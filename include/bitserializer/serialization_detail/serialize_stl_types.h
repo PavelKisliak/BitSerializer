@@ -5,6 +5,7 @@
 #pragma once
 #include <type_traits>
 #include <tuple>
+#include "key_value.h"
 #include "media_archive_base.h"
 
 namespace BitSerializer {
@@ -24,28 +25,30 @@ namespace Detail
 			: value(pair)
 		{ }
 
-		template <class TMediaArchive>
-		inline void Serialize(TMediaArchive& archive)
+		template <class TArchive>
+		inline void Serialize(TArchive& archive)
 		{
 			using noConstKeyType = std::remove_const_t<value_type::first_type>;
-			::BitSerializer::Serialize(archive, U("key"), const_cast<noConstKeyType&>(value.first));
-			::BitSerializer::Serialize(archive, U("value"), value.second);
+			archive << MakeKeyValue("key", const_cast<noConstKeyType&>(value.first));
+			archive << MakeKeyValue("value", value.second);
 		}
 
 		value_type& value;
 	};
 }	// namespace Detail
 
-template<typename TMediaArchive, typename TFirst, typename TSecond>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::pair<TFirst, TSecond>& pair)
+template<typename TArchive, typename TFirst, typename TSecond>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::pair<TFirst, TSecond>& pair)
 {
-	Serialize(archive, key, Detail::PairSerializer<TFirst, TSecond>(pair));
+	auto pairSerializer = Detail::PairSerializer<TFirst, TSecond>(pair);
+	Serialize(archive, key, pairSerializer);
 }
 
-template<typename TMediaArchive, typename TFirst, typename TSecond>
-void Serialize(TMediaArchive& archive, std::pair<TFirst, TSecond>& pair)
+template<typename TArchive, typename TFirst, typename TSecond>
+inline void Serialize(TArchive& archive, std::pair<TFirst, TSecond>& pair)
 {
-	Serialize(archive, Detail::PairSerializer<TFirst, TSecond>(pair));
+	auto pairSerializer = Detail::PairSerializer<TFirst, TSecond>(pair);
+	Serialize(archive, pairSerializer);
 }
 
 }	// namespace BitSerializer

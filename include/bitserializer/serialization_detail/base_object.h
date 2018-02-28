@@ -7,6 +7,9 @@
 
 namespace BitSerializer {
 
+/// <summary>
+/// Implementation of helper class to simplify the serialization of base objects.
+/// </summary>
 template<class TBase, class TDerived>
 struct BaseObjectImpl
 {
@@ -17,6 +20,11 @@ struct BaseObjectImpl
 	TBase& Object;
 };
 
+/// <summary>
+/// The helper function for making a base class wrapper (to simplify the serialization of base objects).
+/// </summary>
+/// <param name="object">The object.</param>
+/// <returns></returns>
 template<class TBase, class TDerived>
 constexpr BaseObjectImpl<TBase, TDerived> BaseObject(TDerived& object) noexcept
 {

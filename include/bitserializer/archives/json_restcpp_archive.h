@@ -15,24 +15,33 @@
 namespace BitSerializer {
 namespace Detail {
 
-// Forward declarations
-class JsonObjectScope;
-
 /// <summary>
-///  Base class of JSON archive
+/// The traits of JSON archive based on C++ REST SDK
 /// </summary>
-/// <seealso cref="MediaArchiveBase" />
-class JsonArchiveBase : public MediaArchiveBase
+class JsonArchiveTraits
 {
 public:
 	using key_type = utility::string_t;
-	using archive_format = utility::string_t;
+	using output_format = utility::string_t;
 	using input_stream = utility::istream_t;
 	using output_stream = utility::ostream_t;
+};
 
-	JsonArchiveBase(const web::json::value* node, SerializeState state = SerializeState::Idle)
-		: MediaArchiveBase(state)
-		, mNode(const_cast<web::json::value*>(node))
+// Forward declarations
+template <SerializeMode TMode>
+class JsonObjectScope;
+
+/// <summary>
+/// Base class of JSON scope
+/// </summary>
+/// <seealso cref="MediaArchiveBase" />
+class JsonScopeBase : public JsonArchiveTraits
+{
+public:
+	JsonScopeBase(JsonScopeBase&&) = default;
+
+	JsonScopeBase(const web::json::value* node)
+		: mNode(const_cast<web::json::value*>(node))
 	{ }
 
 	inline size_t GetSize() const {
@@ -45,127 +54,125 @@ protected:
 
 
 /// <summary>
-/// Implementation of MediaArchive for serializing not-named objects into JSON array.
+/// JSON scope for serializing arrays (list of values without keys).
 /// </summary>
 /// <seealso cref="JsonArchiveBase" />
-class JsonArrayScope : public JsonArchiveBase
+template <SerializeMode TMode>
+class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	JsonArrayScope(const web::json::value* node, SerializeState state = SerializeState::Idle)
-		: JsonArchiveBase(node, state)
+	JsonArrayScope(const web::json::value* node)
+		: JsonScopeBase(node)
 		, mIndex(0)
 	{
 		assert(mNode->is_array());
 	}
 
-	//------------------------------------------------------------------------------
-	// Serialize string types
-	//------------------------------------------------------------------------------
 	template <typename TSym, typename TAllocator>
-	inline void	LoadString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		auto& jsonValue = LoadJsonValue();
-		if (jsonValue.is_string())
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto& jsonValue = LoadJsonValue();
+			if (jsonValue.is_string())
+			{
+				if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+					value = jsonValue.as_string();
+				else
+					value = Convert::ToString(jsonValue.as_string());
+			}
+		}
+		else
 		{
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				value = jsonValue.as_string();
+				SaveJsonValue(web::json::value(value));
 			else
-				value = Convert::ToString(jsonValue.as_string());
+				SaveJsonValue(web::json::value(Convert::FromString<utility::string_t>(value)));
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	inline void SaveString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeValue(bool& value)
 	{
-		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-			SaveJsonValue(web::json::value(value));
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto& jsonValue = LoadJsonValue();
+			if (jsonValue.is_boolean())
+				value = jsonValue.as_bool();
+		}
 		else
-			SaveJsonValue(web::json::value(Convert::FromString<utility::string_t>(value)));
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize fundamental types
-	//------------------------------------------------------------------------------
-	inline void LoadValue(bool& value)
-	{
-		auto& jsonValue = LoadJsonValue();
-		if (jsonValue.is_boolean())
-			value = jsonValue.as_bool();
-	}
-
-	inline void SaveValue(bool value) {
-		SaveJsonValue(web::json::value(value));
-	}
-
-	template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-	inline void LoadValue(T& value)
-	{
-		auto& jsonValue = LoadJsonValue();
-		if (jsonValue.is_integer())
-			value = static_cast<T>(jsonValue.as_integer());
-	}
-
-	template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
-	inline void LoadValue(T& value)
-	{
-		auto& jsonValue = LoadJsonValue();
-		if (jsonValue.is_number())
-			value = static_cast<T>(jsonValue.as_double());
+		{
+			SaveJsonValue(web::json::value(value));
+		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	inline void SaveValue(T value) {
-		SaveJsonValue(web::json::value(value));
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize classes
-	//------------------------------------------------------------------------------
-	std::unique_ptr<JsonObjectScope> OpenScopeForLoadObject()
+	void SerializeValue(T& value)
 	{
-		auto& jsonValue = LoadJsonValue();
-		if (jsonValue.is_object())
+		if constexpr (TMode == SerializeMode::Load)
 		{
-			decltype(auto) node = const_cast<web::json::value&>(jsonValue);
-			return std::make_unique<JsonObjectScope>(&node, mSerializeState);
+			auto& jsonValue = LoadJsonValue();
+			if constexpr (std::is_integral_v<T>)
+			{
+				if (jsonValue.is_integer())
+					value = static_cast<T>(jsonValue.as_integer());
+			}
+			else
+			{
+				if (jsonValue.is_number())
+					value = static_cast<T>(jsonValue.as_double());
+			}
 		}
-		return nullptr;
+		else
+		{
+			SaveJsonValue(web::json::value(value));
+		}
 	}
 
-	std::unique_ptr<JsonObjectScope> OpenScopeForSaveObject()
+	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject()
 	{
-		auto& jsonValue = SaveJsonValue(web::json::value::object());
-		return std::make_unique<JsonObjectScope>(&jsonValue, mSerializeState);
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto& jsonValue = LoadJsonValue();
+			if (jsonValue.is_object())
+			{
+				decltype(auto) node = const_cast<web::json::value&>(jsonValue);
+				return std::make_unique<JsonObjectScope<TMode>>(&node);
+			}
+			return nullptr;
+		}
+		else
+		{
+			auto& jsonValue = SaveJsonValue(web::json::value::object());
+			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue);
+		}
 	}
 
 	//------------------------------------------------------------------------------
 	// Serialize arrays
 	//------------------------------------------------------------------------------
-	inline std::unique_ptr<JsonArrayScope> OpenScopeForLoadArray()
+	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForLoadArray()
 	{
 		auto& jsonValue = LoadJsonValue();
 		if (jsonValue.is_array())
-			return std::make_unique<JsonArrayScope>(&jsonValue, mSerializeState);
+			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
 		return nullptr;
 	}
 
-	inline std::unique_ptr<JsonArrayScope> OpenScopeForSaveArray(size_t arraySize)
+	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForSaveArray(size_t arraySize)
 	{
 		auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
-		return std::make_unique<JsonArrayScope>(&jsonValue, mSerializeState);
+		return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
 	}
 
 protected:
 	inline const web::json::value& LoadJsonValue()
 	{
-		assert(mSerializeState == SerializeState::Load);
 		assert(mIndex < GetSize());
 		return mNode->at(mIndex++);
 	}
 
 	inline web::json::value& SaveJsonValue(web::json::value&& jsonValue)
 	{
-		assert(mSerializeState == SerializeState::Save);
 		assert(mIndex < GetSize());
 		return (*mNode)[mIndex++] = jsonValue;
 	}
@@ -176,124 +183,130 @@ private:
 
 
 /// <summary>
-/// Implementation of MediaArchive for serializing named objects into JSON.
+/// JSON scope for serializing objects (list of values with keys).
 /// </summary>
 /// <seealso cref="JsonArchiveBase" />
-class JsonObjectScope : public JsonArchiveBase
+template <SerializeMode TMode>
+class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	JsonObjectScope(const web::json::value* node, SerializeState state = SerializeState::Idle)
-		: JsonArchiveBase(node, state)
+	JsonObjectScope(JsonObjectScope&&) = default;
+
+	JsonObjectScope(const web::json::value* node)
+		: JsonScopeBase(node)
 	{ };
 
-	//------------------------------------------------------------------------------
-	// Access to keys by index
-	//------------------------------------------------------------------------------
+	// ToDo: handle errors when mNode is not an object
+
+	/// <summary>
+	/// Gets the key by index.
+	/// </summary>
 	key_type GetKeyByIndex(int index) {
 		return (mNode->as_object().cbegin() + index)->first;
 	}
 
-	//------------------------------------------------------------------------------
-	// Serialize string types
-	//------------------------------------------------------------------------------
 	template <typename TSym, typename TAllocator>
-	inline void	LoadString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		auto* jsonValue = LoadJsonValue(key);
-		if (jsonValue != nullptr)
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto* jsonValue = LoadJsonValue(key);
+			if (jsonValue != nullptr)
+			{
+				if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+					value = jsonValue->as_string();
+				else
+					value = Convert::ToString(jsonValue->as_string());
+			}
+		}
+		else
 		{
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				value = jsonValue->as_string();
+				SaveJsonValue(key, web::json::value(value));
 			else
-				value = Convert::ToString(jsonValue->as_string());
+				SaveJsonValue(key, web::json::value(Convert::FromString<utility::string_t>(value)));
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	inline void SaveString(const key_type& key, const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeValue(const key_type& key, bool& value)
 	{
-		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-			SaveJsonValue(key, web::json::value(value));
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto* jsonValue = LoadJsonValue(key);
+			if (jsonValue != nullptr && jsonValue->is_boolean())
+				value = jsonValue->as_bool();
+		}
 		else
-			SaveJsonValue(key, web::json::value(Convert::FromString<utility::string_t>(value)));
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize fundamental types
-	//------------------------------------------------------------------------------
-	inline void LoadValue(const key_type& key, bool& value)
-	{
-		auto* jsonValue = LoadJsonValue(key);
-		if (jsonValue != nullptr && jsonValue->is_boolean())
-			value = jsonValue->as_bool();
-	}
-
-	inline void SaveValue(const key_type& key, bool value) {
-		SaveJsonValue(key, web::json::value::boolean(value));
-	}
-
-	template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-	inline void LoadValue(const key_type& key, T& value)
-	{
-		auto* jsonValue = LoadJsonValue(key);
-		if (jsonValue != nullptr && jsonValue->is_integer())
-			value = static_cast<T>(jsonValue->as_integer());
-	}
-
-	template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
-	inline void LoadValue(const key_type& key, T& value)
-	{
-		auto* jsonValue = LoadJsonValue(key);
-		if (jsonValue != nullptr && jsonValue->is_number())
-			value = static_cast<T>(jsonValue->as_double());
+		{
+			SaveJsonValue(key, web::json::value::boolean(value));
+		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	inline void SaveValue(const key_type& key, T value) {
-		SaveJsonValue(key, web::json::value::number(value));
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize classes
-	//------------------------------------------------------------------------------
-	inline std::unique_ptr<JsonObjectScope> OpenScopeForLoadObject(const key_type& key)
+	void SerializeValue(const key_type& key, T& value)
 	{
-		auto* jsonValue = LoadJsonValue(key);
-		if (jsonValue != nullptr && jsonValue->is_object())
+		if constexpr (TMode == SerializeMode::Load)
 		{
-			decltype(auto) node = const_cast<web::json::value*>(jsonValue);
-			return std::make_unique<JsonObjectScope>(node, mSerializeState);
+			auto* jsonValue = LoadJsonValue(key);
+			if (jsonValue != nullptr)
+			{
+				if constexpr (std::is_integral_v<T>)
+				{
+					if (jsonValue->is_integer())
+						value = static_cast<T>(jsonValue->as_integer());
+				}
+				else
+				{
+					if (jsonValue->is_number())
+						value = static_cast<T>(jsonValue->as_double());
+				}
+			}
 		}
-		return nullptr;
+		else
+		{
+			SaveJsonValue(key, web::json::value::number(value));
+		}
 	}
 
-	inline std::unique_ptr<JsonObjectScope> OpenScopeForSaveObject(const key_type& key)
+	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject(const key_type& key)
 	{
-		auto& jsonValue = SaveJsonValue(key, web::json::value::object());
-		return std::make_unique<JsonObjectScope>(&jsonValue, mSerializeState);
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto* jsonValue = LoadJsonValue(key);
+			if (jsonValue != nullptr && jsonValue->is_object())
+			{
+				decltype(auto) node = const_cast<web::json::value*>(jsonValue);
+				return std::make_unique<JsonObjectScope<TMode>>(node);
+			}
+			return nullptr;
+		}
+		else
+		{
+			auto& jsonValue = SaveJsonValue(key, web::json::value::object());
+			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue);
+		}
 	}
 
 	//------------------------------------------------------------------------------
 	// Serialize arrays
 	//------------------------------------------------------------------------------
-	inline std::unique_ptr<JsonArrayScope> OpenScopeForLoadArray(const key_type& key)
+	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForLoadArray(const key_type& key)
 	{
 		auto* jsonValue = LoadJsonValue(key);
 		if (jsonValue != nullptr && jsonValue->is_array())
-			return std::make_unique<JsonArrayScope>(jsonValue, mSerializeState);
+			return std::make_unique<JsonArrayScope<TMode>>(jsonValue);
 		return nullptr;
 	}
 
-	inline std::unique_ptr<JsonArrayScope> OpenScopeForSaveArray(const key_type& key, size_t arraySize)
+	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForSaveArray(const key_type& key, size_t arraySize)
 	{
 		auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
-		return std::make_unique<JsonArrayScope>(&jsonValue, mSerializeState);
+		return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
 	}
 
 protected:
-	inline const web::json::value* LoadJsonValue(const key_type& key) const
+	inline const web::json::value* LoadJsonValue(const typename key_type& key) const
 	{
-		assert(mSerializeState == SerializeState::Load);
 		assert(mNode->is_object());
 		const auto& jObject = mNode->as_object();
 		auto it = jObject.find(key);
@@ -302,204 +315,177 @@ protected:
 
 	inline web::json::value& SaveJsonValue(const key_type& key, web::json::value&& jsonValue) const
 	{
-		assert(mSerializeState == SerializeState::Save);
 		assert(mNode->is_object());
 		return (*mNode)[key] = jsonValue;
 	}
 };
 
-} //namespace Detail
-
-
 /// <summary>
-/// Implementation of MediaArchive for serializing into JSON (root object).
+/// JSON root scope (can serialize one value, array or object without key)
 /// </summary>
-/// <seealso cref="Detail::JsonObjectScope" />
-class JsonArchive : public Detail::JsonObjectScope
+template <SerializeMode TMode>
+class JsonRootScope : public ArchiveScope<TMode>, public Detail::JsonScopeBase
 {
 public:
-	JsonArchive()
-		: Detail::JsonObjectScope(&mRootJson)
+	JsonRootScope(JsonRootScope&&) = default;
+
+	JsonRootScope(output_format& outputFormat)
+		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
-	{ }
-
-	~JsonArchive()
 	{
-		Finish();
-	}
-
-	// Begin load the contents from text.
-	void BeginLoad(const archive_format& text)
-	{
-		assert(mSerializeState == SerializeState::Idle);
-		std::error_code error;
-		mRootJson = web::json::value::parse(text, error);
-		if (mRootJson.is_null())
+		if constexpr (TMode == SerializeMode::Load)
 		{
-			// Todo: exception
+			std::error_code error;
+			mRootJson = web::json::value::parse(outputFormat, error);
+			if (mRootJson.is_null())
+			{
+				// Todo: exception
+			}
 		}
 		else
 		{
-			mSerializeState = SerializeState::Load;
+			mOutput = &outputFormat;
+			mRootJson = web::json::value::object();
 		}
 	}
 
-	// Begin load the contents from stream.
-	void BeginLoad(input_stream& input)
+	JsonRootScope(input_stream& input)
+		: Detail::JsonScopeBase(&mRootJson)
+		, mOutput(nullptr)
 	{
-		assert(mSerializeState == SerializeState::Idle);
+		assert(TMode == SerializeMode::Load);
 		std::error_code error;
 		mRootJson = web::json::value::parse(input, error);
 		if (mRootJson.is_null())
 		{
 			// Todo: exception
 		}
+	}
+
+	JsonRootScope(output_stream& output)
+		: Detail::JsonScopeBase(&mRootJson)
+		, mOutput(&output)
+	{
+		mOutput = &output;
+		mRootJson = web::json::value::object();
+	}
+
+	~JsonRootScope()
+	{
+		Finish();
+	}
+
+	template <typename TSym, typename TAllocator>
+	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (mRootJson.is_string())
+			{
+				if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+					value = mRootJson.as_string();
+				else
+					value = Convert::FromString<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(mRootJson.as_string());
+			}
+		}
 		else
 		{
-			mSerializeState = SerializeState::Load;
+			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+				mRootJson = web::json::value(value);
+			else
+				mRootJson = web::json::value(Convert::FromString<utility::string_t>(value));
 		}
 	}
 
-	// Begin save to text.
-	void BeginSave(archive_format& output)
+	void SerializeValue(bool& value)
 	{
-		assert(mSerializeState == SerializeState::Idle);
-		mOutput = &output;
-		mRootJson = web::json::value::object();
-		mSerializeState = SerializeState::Save;
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (mRootJson.is_boolean())
+				value = mRootJson.as_bool();
+		}
+		else
+		{
+			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			mRootJson = web::json::value::boolean(value);
+		}
 	}
 
-	// Begin save to stream.
-	void BeginSave(output_stream& output)
+	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	void SerializeValue(T& value)
 	{
-		assert(mSerializeState == SerializeState::Idle);
-		mOutput = &output;
-		mRootJson = web::json::value::object();
-		mSerializeState = SerializeState::Save;
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if constexpr (std::is_integral_v<T>)
+			{
+				if (mRootJson.is_integer())
+					value = static_cast<T>(mRootJson.as_integer());
+			}
+			else
+			{
+				if (mRootJson.is_number())
+					value = static_cast<T>(mRootJson.as_double());
+			}
+		}
+		else
+		{
+			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			mRootJson = web::json::value::number(value);
+		}
 	}
 
+	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject()
+	{
+		return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
+	}
+
+	//------------------------------------------------------------------------------
+	// Serialize arrays
+	//------------------------------------------------------------------------------
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForLoadArray()
+	{
+		if (mRootJson.is_array())
+			return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
+		return nullptr;
+	}
+
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSaveArray(size_t arraySize)
+	{
+		assert(mRootJson.is_object() && mRootJson.size() == 0);
+		mRootJson = web::json::value::array(arraySize);
+		return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
+	}
+
+private:
 	void Finish()
 	{
-		if (IsSaving())
+		if constexpr (TMode == SerializeMode::Save)
 		{
 			std::visit([this](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, archive_format*>)
+				if constexpr (std::is_same_v<T, output_format*>)
 					*arg = mRootJson.serialize();
 				else if constexpr (std::is_same_v<T, output_stream*>)
 					*arg << mRootJson;
 			}, mOutput);
 			mOutput = nullptr;
 		}
-		mSerializeState = SerializeState::Idle;
 	}
 
-	//------------------------------------------------------------------------------
-	// Serialize string types (root level, without key)
-	//------------------------------------------------------------------------------
-	using JsonObjectScope::LoadString;
-	using JsonObjectScope::SaveString;
-
-	template <typename TSym, typename TAllocator>
-	inline void	LoadString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if (mRootJson.is_string())
-		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				value = mRootJson.as_string();
-			else
-				value = Convert::FromString<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(mRootJson.as_string());
-		}
-	}
-
-	template <typename TSym, typename TAllocator>
-	inline void SaveString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		assert(mRootJson.is_object() && mRootJson.size() == 0);
-		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-			mRootJson = web::json::value(value);
-		else
-			mRootJson = web::json::value(Convert::FromString<utility::string_t>(value));
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize fundamental types (root level, without key)
-	//------------------------------------------------------------------------------
-	using JsonObjectScope::LoadValue;
-	using JsonObjectScope::SaveValue;
-
-	inline void LoadValue(bool& value)
-	{
-		if (mRootJson.is_boolean())
-			value = mRootJson.as_bool();
-	}
-
-	inline void SaveValue(bool value)
-	{
-		assert(mRootJson.is_object() && mRootJson.size() == 0);
-		mRootJson = web::json::value::boolean(value);
-	}
-
-	template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-	inline void LoadValue(T& value)
-	{
-		if (mRootJson.is_integer())
-			value = static_cast<T>(mRootJson.as_integer());
-	}
-
-	template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
-	inline void LoadValue(T& value)
-	{
-		if (mRootJson.is_number())
-			value = static_cast<T>(mRootJson.as_double());
-	}
-
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	inline void SaveValue(T value)
-	{
-		assert(mRootJson.is_object() && mRootJson.size() == 0);
-		mRootJson = web::json::value::number(value);
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize classes (root level, without key)
-	//------------------------------------------------------------------------------
-	using JsonObjectScope::OpenScopeForLoadObject;
-	using JsonObjectScope::OpenScopeForSaveObject;
-
-	inline std::unique_ptr<JsonObjectScope> OpenScopeForLoadObject()
-	{
-		return std::make_unique<JsonObjectScope>(&mRootJson, mSerializeState);
-	}
-
-	inline std::unique_ptr<JsonObjectScope> OpenScopeForSaveObject()
-	{
-		return std::make_unique<JsonObjectScope>(&mRootJson, mSerializeState);
-	}
-
-	//------------------------------------------------------------------------------
-	// Serialize arrays (root level, without key)
-	//------------------------------------------------------------------------------
-	using JsonObjectScope::OpenScopeForLoadArray;
-	using JsonObjectScope::OpenScopeForSaveArray;
-
-	inline std::unique_ptr<Detail::JsonArrayScope> OpenScopeForLoadArray()
-	{
-		if (mRootJson.is_array())
-			return std::make_unique<Detail::JsonArrayScope>(&mRootJson, mSerializeState);
-		return nullptr;
-	}
-
-	inline std::unique_ptr<Detail::JsonArrayScope> OpenScopeForSaveArray(size_t arraySize)
-	{
-		assert(mRootJson.is_object() && mRootJson.size() == 0);
-		mRootJson = web::json::value::array(arraySize);
-		return std::make_unique<Detail::JsonArrayScope>(&mRootJson, mSerializeState);
-	}
-
-private:
 	web::json::value mRootJson;
-	std::variant<std::nullptr_t, archive_format*, output_stream*> mOutput;
+	std::variant<std::nullptr_t, output_format*, output_stream*> mOutput;
 };
+
+} //namespace Detail
+
+
+/// <summary>
+/// Declaration of JSON archive
+/// </summary>
+using JsonArchive = MediaArchiveBase<
+	Detail::JsonArchiveTraits,
+	Detail::JsonRootScope<SerializeMode::Load>,
+	Detail::JsonRootScope<SerializeMode::Save>>;
 
 }	// namespace BitSerializer

@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "serialization_detail\key_value.h"
 #include "serialization_detail\serialize_base_types.h"
 #include "serialization_detail\serialize_stl_containers.h"
+#include "serialization_detail\serialize_stl_types.h"
 
 namespace BitSerializer
 {
@@ -15,11 +15,11 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input array.</param>
 	template <typename TMediaArchive, typename T>
-	static void LoadObject(T& object, const typename TMediaArchive::archive_format& input)
+	static inline void LoadObject(T& object, typename TMediaArchive::output_format& input)
 	{
 		TMediaArchive archive;
-		archive.BeginLoad(input);
-		archive << object;
+		auto scope = archive.Load(input);
+		Serialize(scope, object);
 	}
 
 	/// <summary>
@@ -31,8 +31,8 @@ namespace BitSerializer
 	static void LoadObject(T& object, const typename TMediaArchive::input_stream& input)
 	{
 		TMediaArchive archive;
-		archive.BeginLoad(input);
-		archive << object;
+		auto scope = archive.Load(input);
+		Serialize(scope, object);
 	}
 
 	/// <summary>
@@ -41,11 +41,11 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output array.</param>
 	template <typename TMediaArchive, typename T>
-	static void SaveObject(T& object, typename TMediaArchive::archive_format& output)
+	static inline void SaveObject(T& object, typename TMediaArchive::output_format& output)
 	{
 		TMediaArchive archive;
-		archive.BeginSave(output);
-		archive << object;
+		auto scope = archive.Save(output);
+		Serialize(scope, object);
 	}
 
 	/// <summary>
@@ -57,8 +57,8 @@ namespace BitSerializer
 	static void SaveObject(T& object, typename TMediaArchive::output_stream& output)
 	{
 		TMediaArchive archive;
-		archive.BeginSave(output);
-		archive << object;
+		auto scope = archive.Save(output);
+		Serialize(scope, object);
 	}
 
 } // namespace BitSerializer
@@ -70,12 +70,11 @@ namespace BitSerializer
 /// <param name="archive">The archive.</param>
 /// <param name="value">The serializing value.</param>
 /// <returns></returns>
-template <class TMediaArchive, class TValue,
-	std::enable_if_t<std::is_base_of_v<BitSerializer::MediaArchiveBase, TMediaArchive>, int> = 0>
-inline TMediaArchive& operator<<(TMediaArchive& archive, TValue& value)
+template <class TArchive, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
+inline TArchive& operator<<(TArchive& scope, TValue& value)
 {
-	BitSerializer::Serialize(archive, value);
-	return archive;
+	BitSerializer::Serialize(scope, value);
+	return scope;
 }
 
 /// <summary>
@@ -84,15 +83,14 @@ inline TMediaArchive& operator<<(TMediaArchive& archive, TValue& value)
 /// <param name="archive">The archive.</param>
 /// <param name="keyValue">The serializing object with key.</param>
 /// <returns></returns>
-template <class TMediaArchive, class TKey, class TValue,
-	std::enable_if_t<std::is_base_of_v<BitSerializer::MediaArchiveBase, TMediaArchive>, int> = 0>
-inline TMediaArchive& operator<<(TMediaArchive& archive, BitSerializer::KeyValue<TKey, TValue>&& keyValue)
+template <class TArchive, class TKey, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
+inline TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TValue>&& keyValue)
 {
-	if constexpr (std::is_same_v<TKey, TMediaArchive::key_type>)
+	if constexpr (std::is_same_v<TKey, TArchive::key_type>)
 		BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
 	else
 	{
-		const auto archiveCompatibleKey = Convert::FromString<TMediaArchive::key_type>(keyValue.GetKey());
+		const auto archiveCompatibleKey = Convert::FromString<TArchive::key_type>(keyValue.GetKey());
 		BitSerializer::Serialize(archive, archiveCompatibleKey, keyValue.GetValue());
 	}
 	return archive;
@@ -104,9 +102,8 @@ inline TMediaArchive& operator<<(TMediaArchive& archive, BitSerializer::KeyValue
 /// <param name="archive">The archive.</param>
 /// <param name="object">The serializing object.</param>
 /// <returns></returns>
-template <class TMediaArchive, class TBase, class TDerived,
-	std::enable_if_t<std::is_base_of_v<BitSerializer::MediaArchiveBase, TMediaArchive>, int> = 0>
-inline TMediaArchive& operator<<(TMediaArchive& archive, BitSerializer::BaseObjectImpl<TBase, TDerived>&& object)
+template <class TArchive, class TBase, class TDerived, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
+inline TArchive& operator<<(TArchive& archive, BitSerializer::BaseObjectImpl<TBase, TDerived>&& object)
 {
 	BitSerializer::Serialize(archive, std::move(object));
 	return archive;

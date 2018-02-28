@@ -15,240 +15,140 @@ namespace BitSerializer {
 //-----------------------------------------------------------------------------
 // Serialize fundamental types
 //-----------------------------------------------------------------------------
-template <typename TMediaArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, TValue& value)
+template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
-	if constexpr (!can_serialize_value_with_key_v<TMediaArchive, TValue>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize fundamental type with key (maybe this is array level).");
+	if constexpr (!can_serialize_value_with_key_v<TArchive, TValue>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
-			archive.LoadValue(key, value);
-			break;
-		case SerializeState::Save:
-			archive.SaveValue(key, value);
-			break;
-		default:
-			break;
-		}
+		archive.SerializeValue(key, value);
 	}
 };
 
-template <typename TMediaArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
-void Serialize(TMediaArchive& archive, TValue& value)
+template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
+inline void Serialize(TArchive& archive, TValue& value)
 {
-	if constexpr (!can_serialize_value_v<TMediaArchive, TValue>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize fundamental type without key (possible only for the current level).");
+	if constexpr (!can_serialize_value_v<TArchive, TValue>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize fundamental type without key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
-			archive.LoadValue(value);
-			break;
-		case SerializeState::Save:
-			archive.SaveValue(value);
-			break;
-		default:
-			break;
-		}
+		archive.SerializeValue(value);
 	}
 };
 
 //------------------------------------------------------------------------------
 // Serialize string types
 //------------------------------------------------------------------------------
-template <class TMediaArchive, typename TSym, typename TAllocator>
-static void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+template <class TArchive, typename TSym, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	switch (archive.GetState())
-	{
-	case SerializeState::Load:
-		archive.LoadString(key, value);
-		break;
-	case SerializeState::Save:
-		archive.SaveString(key, value);
-		break;
-	default:
-		break;
-	}
+	archive.SerializeString(key, value);
 };
 
-template <class TMediaArchive, typename TSym, typename TAllocator>
-static void Serialize(TMediaArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+template <class TArchive, typename TSym, typename TAllocator>
+inline void Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	switch (archive.GetState())
-	{
-	case SerializeState::Load:
-		archive.LoadString(value);
-		break;
-	case SerializeState::Save:
-		archive.SaveString(value);
-		break;
-	default:
-		break;
-	}
+	archive.SerializeString(value);
 };
 
 //-----------------------------------------------------------------------------
 // Serialize enum types
 //-----------------------------------------------------------------------------
-template <class TMediaArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, TValue& value)
+template <class TArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
-	switch (archive.GetState())
-	{
-	case SerializeState::Load:
+	if constexpr (archive.IsLoading())
 	{
 		std::string str;
-		archive.LoadString(key, str);
+		archive.SerializeString(key, str);
 		Convert::Detail::FromString(str, value);
-		break;
 	}
-	case SerializeState::Save:
+	else
 	{
-		auto str = Convert::ToWString(value);
-		archive.SaveString(key, str);
-		break;
-	}
-	default:
-		break;
+		auto str = Convert::ToString(value);
+		archive.SerializeString(key, str);
 	}
 };
 
-template <class TMediaArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
-void Serialize(TMediaArchive& archive, TValue& value)
+template <class TArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
+inline void Serialize(TArchive& archive, TValue& value)
 {
-	switch (archive.GetState())
-	{
-	case SerializeState::Load:
+	if constexpr (archive.IsLoading())
 	{
 		std::string str;
-		archive.LoadString(str);
+		archive.SerializeString(str);
 		Convert::Detail::FromString(str, value);
-		break;
 	}
-	case SerializeState::Save:
+	else
 	{
-		auto str = Convert::ToWString(value);
-		archive.SaveString(str);
-		break;
-	}
-	default:
-		break;
+		auto str = Convert::ToString(value);
+		archive.SerializeString(str);
 	}
 };
 
 //------------------------------------------------------------------------------
 // Serialize classes
 //------------------------------------------------------------------------------
-template <class TMediaArchive, typename TValue, std::enable_if_t<std::is_class_v<TValue>, int> = 0>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, TValue& value)
+template <class TArchive, typename TValue, std::enable_if_t<std::is_class_v<TValue>, int> = 0>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
 	if constexpr (!is_serializable_class_v<TValue>) {
 		static_assert(false, "BitSerializer. Class should has method Serialize() internally or externally.");
 	}
-	else if constexpr (!can_serialize_object_with_key_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize class with key (maybe this is array level).");
+	else if constexpr (!can_serialize_object_with_key_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize class with key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
-		{
-			auto objectScope = archive.OpenScopeForLoadObject(key);
-			if (objectScope)
-				value.Serialize(*objectScope.get());
-			break;
-		}
-		case SerializeState::Save:
-		{
-			auto objectScope = archive.OpenScopeForSaveObject(key);
-			value.Serialize(*objectScope.get());
-			break;
-		}
-		default:
-			break;
-		}
+		auto objectScope = archive.OpenScopeForSerializeObject(key);
+		value.Serialize(*objectScope.get());
 	}
 };
 
-template <class TMediaArchive, class TValue, std::enable_if_t<std::is_class_v<TValue>, int> = 0>
-void Serialize(TMediaArchive& archive, TValue& value)
+template <class TArchive, class TValue, std::enable_if_t<std::is_class_v<TValue>, int> = 0>
+inline void Serialize(TArchive& archive, TValue& value)
 {
 	if constexpr (!is_serializable_class_v<TValue>) {
 		static_assert(false, "BitSerializer. Class should has method Serialize() internally or externally.");
 	}
-	else if constexpr (!can_serialize_object_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize class without key (possible only for the current level).");
+	else if constexpr (!can_serialize_object_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize class without key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
-		{
-			auto objectScope = archive.OpenScopeForLoadObject();
-			if (objectScope)
-				value.Serialize(*objectScope.get());
-			break;
-		}
-		case SerializeState::Save:
-		{
-			auto objectScope = archive.OpenScopeForSaveObject();
-			value.Serialize(*objectScope.get());
-			break;
-		}
-		default:
-			break;
-		}
+		auto objectScope = archive.OpenScopeForSerializeObject();
+		value.Serialize(*objectScope.get());
 	}
 };
 
 // Serialize base class
-template <typename TMediaArchive, class TBase, class TDerived>
-void Serialize(TMediaArchive& archive, BaseObjectImpl<TBase, TDerived>&& value)
+template <typename TArchive, class TBase, class TDerived>
+inline void Serialize(TArchive& archive, BaseObjectImpl<TBase, TDerived>&& value)
 {
 	if constexpr (!is_serializable_class_v<TBase>) {
 		static_assert(false, "BitSerializer. Class should has method Serialize() internally or externally.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
-		{
-			value.Object.TBase::Serialize(archive);
-			break;
-		}
-		case SerializeState::Save:
-			value.Object.TBase::Serialize(archive);
-			break;
-		default:
-			break;
-		}
+		value.Object.TBase::Serialize(archive);
 	}
 };
 
 //-----------------------------------------------------------------------------
 // Serialize arrays
 //-----------------------------------------------------------------------------
-template<typename TMediaArchive, typename TValue, size_t ArraySize>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, TValue(&cont)[ArraySize])
+template<typename TArchive, typename TValue, size_t ArraySize>
+static void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue(&cont)[ArraySize])
 {
-	if constexpr (!can_serialize_array_with_key_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key (maybe this is array level).");
+	if constexpr (!can_serialize_array_with_key_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
+		if constexpr (archive.IsLoading())
 		{
 			auto arrayScope = archive.OpenScopeForLoadArray(key);
 			if (arrayScope)
@@ -259,56 +159,45 @@ void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& k
 					Serialize(scope, cont[i]);
 				}
 			}
-			break;
 		}
-		case SerializeState::Save:
+		else
 		{
 			auto arrayScope = archive.OpenScopeForSaveArray(key, ArraySize);
 			auto& scope = *arrayScope.get();
 			for (size_t i = 0; i < ArraySize; i++) {
 				Serialize(scope, cont[i]);
 			}
-			break;
-		}
-		default:
-			break;
 		}
 	}
 }
 
-template<typename TMediaArchive, typename TValue, size_t ArraySize>
-void Serialize(TMediaArchive& archive, TValue(&cont)[ArraySize])
+template<typename TArchive, typename TValue, size_t ArraySize>
+static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 {
-	if constexpr (!can_serialize_array_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key (possible only for the current level).");
+	if constexpr (!can_serialize_array_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
+		if constexpr (archive.IsLoading())
 		{
 			auto arrayScope = archive.OpenScopeForLoadArray();
 			if (arrayScope)
 			{
-				auto& scope = arrayScope.value();
+				auto& scope = *arrayScope.get();
 				assert(ArraySize == scope.GetSize());
 				for (size_t i = 0; i < ArraySize; i++) {
 					Serialize(scope, cont[i]);
 				}
 			}
-			break;
 		}
-		case SerializeState::Save:
+		else
 		{
-			auto scope = archive.OpenScopeForSaveArray(ArraySize);
+			auto arrayScope = archive.OpenScopeForSaveArray(ArraySize);
+			auto& scope = *arrayScope.get();
 			for (size_t i = 0; i < ArraySize; i++) {
 				Serialize(scope, cont[i]);
 			}
-			break;
-		}
-		default:
-			break;
 		}
 	}
 }

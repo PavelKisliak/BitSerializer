@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include "media_archive_base.h"
 
 namespace BitSerializer {
 
@@ -11,7 +12,7 @@ struct is_serializable_class
 {
 private:
 	template <typename U>
-	static decltype(std::declval<U>().Serialize(std::declval<MediaArchiveBase>), void(), std::true_type()) test(int);
+	static decltype(std::declval<U>().Serialize(std::declval<ArchiveScope<SerializeMode::Load>>), void(), std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);

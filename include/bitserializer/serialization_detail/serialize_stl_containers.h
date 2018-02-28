@@ -22,17 +22,15 @@ namespace BitSerializer {
 //-----------------------------------------------------------------------------
 namespace Detail
 {
-	template<typename TMediaArchive, typename TContainer>
-	void SerializeContainer(TMediaArchive& archive, const typename TMediaArchive::key_type& key, TContainer& cont)
+	template<typename TArchive, typename TContainer>
+	static void SerializeContainer(TArchive& archive, const typename TArchive::key_type& key, TContainer& cont)
 	{
-		if constexpr (!can_serialize_array_with_key_v<TMediaArchive>) {
-			static_assert(false, "BitSerializer. The archive doesn't support serialize array with key (maybe this is array level).");
+		if constexpr (!can_serialize_array_with_key_v<TArchive>) {
+			static_assert(false, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 		}
 		else
 		{
-			switch (archive.GetState())
-			{
-			case SerializeState::Load:
+			if constexpr (archive.IsLoading())
 			{
 				auto arrayScope = archive.OpenScopeForLoadArray(key);
 				if (arrayScope)
@@ -46,40 +44,33 @@ namespace Detail
 						Serialize(scope, elem);
 					}
 				}
-				break;
 			}
-			case SerializeState::Save:
+			else
 			{
 				auto arrayScope = archive.OpenScopeForSaveArray(key, cont.size());
 				auto& scope = *arrayScope.get();
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
 				}
-				break;
-			}
-			default:
-				break;
 			}
 		}
 	}
 
-	template<typename TMediaArchive, typename TContainer>
-	void SerializeContainer(TMediaArchive& archive, TContainer& cont)
+	template<typename TArchive, typename TContainer>
+	static void SerializeContainer(TArchive& archive, TContainer& cont)
 	{
-		if constexpr (!can_serialize_array_v<TMediaArchive>) {
-			static_assert(false, "BitSerializer. The archive doesn't support serialize array without key (possible only for the current level).");
+		if constexpr (!can_serialize_array_v<TArchive>) {
+			static_assert(false, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 		}
 		else
 		{
-			switch (archive.GetState())
-			{
-			case SerializeState::Load:
+			if constexpr (archive.IsLoading())
 			{
 				auto arrayScope = archive.OpenScopeForLoadArray();
 				if (arrayScope)
 				{
 					auto& scope = *arrayScope.get();
-					if (is_resizeable_cont<TContainer>::value)
+					if constexpr (is_resizeable_cont<TContainer>::value)
 						cont.resize(scope.GetSize());
 					else
 						assert(cont.size() == scope.GetSize());
@@ -87,19 +78,14 @@ namespace Detail
 						Serialize(scope, elem);
 					}
 				}
-				break;
 			}
-			case SerializeState::Save:
+			else
 			{
 				auto arrayScope = archive.OpenScopeForSaveArray(cont.size());
 				auto& scope = *arrayScope.get();
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
 				}
-				break;
-			}
-			default:
-				break;
 			}
 		}
 	}
@@ -108,14 +94,14 @@ namespace Detail
 //-----------------------------------------------------------------------------
 // Serialize std::array
 //-----------------------------------------------------------------------------
-template<typename TMediaArchive, typename TValue, size_t ArraySize>
-inline void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::array<TValue, ArraySize>& cont)
+template<typename TArchive, typename TValue, size_t ArraySize>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::array<TValue, ArraySize>& cont)
 {
 	Detail::SerializeContainer(archive, key, cont);
 }
 
-template<typename TMediaArchive, typename TValue, size_t ArraySize>
-inline void Serialize(TMediaArchive& archive, std::array<TValue, ArraySize>& cont)
+template<typename TArchive, typename TValue, size_t ArraySize>
+inline void Serialize(TArchive& archive, std::array<TValue, ArraySize>& cont)
 {
 	Detail::SerializeContainer(archive, cont);
 }
@@ -123,14 +109,14 @@ inline void Serialize(TMediaArchive& archive, std::array<TValue, ArraySize>& con
 //-----------------------------------------------------------------------------
 // Serialize std::vector
 //-----------------------------------------------------------------------------
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-inline void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::vector<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::vector<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, key, cont);
 }
 
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-inline void Serialize(TMediaArchive& archive, std::vector<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, std::vector<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, cont);
 }
@@ -138,14 +124,14 @@ inline void Serialize(TMediaArchive& archive, std::vector<TValue, TAllocator>& c
 //-----------------------------------------------------------------------------
 // Serialize std::deque
 //-----------------------------------------------------------------------------
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-inline void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::deque<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::deque<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, key, cont);
 }
 
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-inline void Serialize(TMediaArchive& archive, std::deque<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, std::deque<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, cont);
 }
@@ -153,14 +139,14 @@ inline void Serialize(TMediaArchive& archive, std::deque<TValue, TAllocator>& co
 //-----------------------------------------------------------------------------
 // Serialize std::list
 //-----------------------------------------------------------------------------
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-inline void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::list<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::list<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, key, cont);
 }
 
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-inline void Serialize(TMediaArchive& archive, std::list<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, std::list<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, cont);
 }
@@ -170,8 +156,8 @@ inline void Serialize(TMediaArchive& archive, std::list<TValue, TAllocator>& con
 //-----------------------------------------------------------------------------
 namespace Detail
 {
-	template<typename TMediaArchive, typename TValue, typename TAllocator>
-	inline void LoadSetImpl(TMediaArchive& scope, std::set<TValue, TAllocator>& cont)
+	template<typename TArchive, typename TValue, typename TAllocator>
+	inline void LoadSetImpl(TArchive& scope, std::set<TValue, TAllocator>& cont)
 	{
 		auto contSize = scope.GetSize();
 		cont.clear();
@@ -185,106 +171,54 @@ namespace Detail
 	}
 }
 
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::set<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+static void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::set<TValue, TAllocator>& cont)
 {
-	if constexpr (!can_serialize_array_with_key_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key (maybe this is array level).");
+	if constexpr (!can_serialize_array_with_key_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
+		if constexpr (archive.IsLoading())
 		{
 			auto arrayScope = archive.OpenScopeForLoadArray(key);
 			if (arrayScope)
 				Detail::LoadSetImpl(*arrayScope.get(), cont);
-			break;
 		}
-		case SerializeState::Save:
+		else
 		{
 			auto arrayScope = archive.OpenScopeForSaveArray(key, cont.size());
 			auto& scope = *arrayScope.get();
 			for (const TValue& elem : cont) {
 				Serialize(scope, const_cast<TValue&>(elem));
 			}
-			break;
-		}
-		default:
-			break;
 		}
 	}
 }
 
-template<typename TMediaArchive, typename TValue, typename TAllocator>
-void Serialize(TMediaArchive& archive, std::set<TValue, TAllocator>& cont)
+template<typename TArchive, typename TValue, typename TAllocator>
+static void Serialize(TArchive& archive, std::set<TValue, TAllocator>& cont)
 {
-	if constexpr (!can_serialize_array_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key (possible only for the current level).");
+	if constexpr (!can_serialize_array_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
-		{
-		case SerializeState::Load:
+		if constexpr (archive.IsLoading())
 		{
 			auto arrayScope = archive.OpenScopeForLoadArray();
 			if (arrayScope)
-				Detail::LoadSetImpl(arrayScope.value(), cont);
-			break;
+				Detail::LoadSetImpl(*arrayScope.get(), cont);
 		}
-		case SerializeState::Save:
+		else
 		{
 			auto arrayScope = archive.OpenScopeForSaveArray(cont.size());
+			auto& scope = *arrayScope.get();
 			for (const TValue& elem : cont) {
-				Serialize(arrayScope, const_cast<TValue&>(elem));
+				Serialize(scope, const_cast<TValue&>(elem));
 			}
-			break;
-		}
-		default:
-			break;
 		}
 	}
-}
-
-//-----------------------------------------------------------------------------
-// Serialize std::pair
-//-----------------------------------------------------------------------------
-namespace Detail
-{
-	template<typename TFirst, typename TSecond>
-	class PairSerializer
-	{
-	public:
-		using value_type = std::pair<TFirst, TSecond>;
-
-		PairSerializer(value_type& pair)
-			: value(pair)
-		{ }
-
-		template <class TMediaArchive>
-		inline void Serialize(TMediaArchive& archive)
-		{
-			using noConstKeyType = std::remove_const_t<value_type::first_type>;
-			::BitSerializer::Serialize(archive, U("key"), const_cast<noConstKeyType&>(value.first));
-			::BitSerializer::Serialize(archive, U("value"), value.second);
-		}
-
-		value_type& value;
-	};
-}
-
-template<typename TMediaArchive, typename TFirst, typename TSecond>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::pair<TFirst, TSecond>& pair)
-{
-	Serialize(archive, key, Detail::PairSerializer<TFirst, TSecond>(pair));
-}
-
-template<typename TMediaArchive, typename TFirst, typename TSecond>
-void Serialize(TMediaArchive& archive, std::pair<TFirst, TSecond>& pair)
-{
-	Serialize(archive, Detail::PairSerializer<TFirst, TSecond>(pair));
 }
 
 //-----------------------------------------------------------------------------
@@ -299,8 +233,8 @@ enum class MapLoadMode
 
 namespace Detail
 {
-	template<typename TMediaArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-	inline void LoadMapImpl(TMediaArchive& scope, std::map<TKey, TValue, TComparer, TAllocator>& cont, MapLoadMode mapLoadMode)
+	template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
+	inline void LoadMapImpl(TArchive& scope, std::map<TKey, TValue, TComparer, TAllocator>& cont, MapLoadMode mapLoadMode)
 	{
 		using mapType = std::map<TKey, TValue, TComparer, TAllocator>;
 		auto contSize = scope.GetSize();
@@ -332,74 +266,61 @@ namespace Detail
 	}
 }
 
-template<typename TMediaArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-void Serialize(TMediaArchive& archive, const typename TMediaArchive::key_type& key, std::map<TKey, TValue, TComparer, TAllocator>& cont,
+template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
+static void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::map<TKey, TValue, TComparer, TAllocator>& cont,
 	MapLoadMode mapLoadMode = MapLoadMode::Clean)
 {
-	if constexpr (!can_serialize_array_with_key_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key (maybe this is array level).");
+	if constexpr (!can_serialize_object_with_key_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize class with key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
+		if constexpr (archive.IsLoading())
 		{
-		case SerializeState::Load:
-		{
-			auto objectScope = archive.OpenScopeForLoadObject(key);
+			auto objectScope = archive.OpenScopeForSerializeObject(key);
 			if (objectScope)
 				Detail::LoadMapImpl(*objectScope.get(), cont, mapLoadMode);
-			break;
 		}
-		case SerializeState::Save:
+		else
 		{
-			auto objectScope = archive.OpenScopeForSaveObject(key);
+			auto objectScope = archive.OpenScopeForSerializeObject(key);
+			auto& scope = *objectScope.get();
 			for (auto& elem : cont)
 			{
-				if constexpr (std::is_same_v<TKey, TMediaArchive::key_type>)
-					Serialize(*objectScope.get(), elem.first, elem.second);
+				if constexpr (std::is_same_v<TKey, TArchive::key_type>)
+					Serialize(scope, elem.first, elem.second);
 				else
-					Serialize(*objectScope.get(), Convert::To<TMediaArchive::key_type>(elem.first), elem.second);
+					Serialize(scope, Convert::To<TArchive::key_type>(elem.first), elem.second);
 			}
-			break;
-		}
-		default:
-			break;
 		}
 	}
 }
 
-template<typename TMediaArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-void Serialize(TMediaArchive& archive, std::map<TKey, TValue, TComparer, TAllocator>& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
+template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
+static void Serialize(TArchive& archive, std::map<TKey, TValue, TComparer, TAllocator>& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 {
-	if constexpr (!can_serialize_array_v<TMediaArchive>) {
-		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key (possible only for the current level).");
+	if constexpr (!can_serialize_object_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize class without key on this level.");
 	}
 	else
 	{
-		switch (archive.GetState())
+		if constexpr (archive.IsLoading())
 		{
-		case SerializeState::Load:
-		{
-			auto objectScope = archive.OpenScopeForLoadObject();
+			auto objectScope = archive.OpenScopeForSerializeObject();
 			if (objectScope)
 				Detail::LoadMapImpl(*objectScope.get(), cont, mapLoadMode);
-			break;
 		}
-		case SerializeState::Save:
+		else
 		{
-			auto objectScope = archive.OpenScopeForSaveObject();
+			auto objectScope = archive.OpenScopeForSerializeObject();
 			auto& scope = *objectScope.get();
 			for (auto& elem : cont)
 			{
-				if constexpr (std::is_same_v<TKey, TMediaArchive::key_type>)
-					Serialize(*objectScope.get(), elem.first, elem.second);
+				if constexpr (std::is_same_v<TKey, TArchive::key_type>)
+					Serialize(scope, elem.first, elem.second);
 				else
-					Serialize(*objectScope.get(), Convert::To<TMediaArchive::key_type>(elem.first), elem.second);
+					Serialize(scope, Convert::To<TArchive::key_type>(elem.first), elem.second);
 			}
-			break;
-		}
-		default:
-			break;
 		}
 	}
 }

@@ -6,25 +6,56 @@
 
 namespace BitSerializer {
 
-enum class SerializeState
+/// <summary>
+/// Serialization mode
+/// </summary>
+enum class SerializeMode
 {
-	Idle,
 	Save,
 	Load
 };
 
-class MediaArchiveBase
+/// <summary>
+/// Base class of scope in archive (lower level of media archive).
+/// Implementation should have certain set of serialization methods which depending from structure of format.
+/// The format (like JSON for example) can have several levels with different allowed serialization operations.
+/// </summary>
+template <SerializeMode TMode>
+class ArchiveScope
 {
 public:
-	MediaArchiveBase() = default;
-	MediaArchiveBase(SerializeState state) : mSerializeState(state) {}
+	static constexpr SerializeMode GetMode() noexcept	{ return TMode; }
+	static constexpr bool IsSaving() noexcept			{ return TMode == SerializeMode::Save; }
+	static constexpr bool IsLoading() noexcept			{ return TMode == SerializeMode::Load; }
+};
 
-	inline SerializeState GetState() const noexcept	{ return mSerializeState; }
-	inline bool IsSaving() const noexcept			{ return mSerializeState == SerializeState::Save; }
-	inline bool IsLoading() const noexcept			{ return mSerializeState == SerializeState::Load; }
+/// <summary>
+/// Base class of media-archive (wrapper over archive's root scope).
+/// Scopes can be implemented as separate for load and save operations or all in one.
+/// </summary>
+template <typename TArchiveTraits, class TInputArchive, class TOutputArchive>
+class MediaArchiveBase : public TArchiveTraits
+{
+public:
+	inline TInputArchive Load(typename TArchiveTraits::output_format& outputFormat)
+	{
+		return TInputArchive(outputFormat);
+	}
 
-protected:
-	SerializeState mSerializeState;
+	inline TInputArchive Load(typename TArchiveTraits::input_stream& inputStream)
+	{
+		return TInputArchive(inputStream);
+	}
+
+	inline TOutputArchive Save(typename TArchiveTraits::output_format& outputFormat)
+	{
+		return TOutputArchive(outputFormat);
+	}
+
+	inline TOutputArchive Save(typename TArchiveTraits::output_stream& outputStream)
+	{
+		return TOutputArchive(outputStream);
+	}
 };
 
 }	// namespace BitSerializer

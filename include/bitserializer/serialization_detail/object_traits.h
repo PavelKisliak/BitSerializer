@@ -49,4 +49,38 @@ public:
 template <typename T>
 constexpr bool is_resizeable_cont_v = is_resizeable_cont<T>::value;
 
+/// <summary>
+/// Checks that the container has size() method.
+/// </summary>
+template <typename T>
+struct has_size
+{
+private:
+	template <typename U>
+	static decltype(std::declval<U>().size(), void(), std::true_type()) test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool has_size_v = has_size<T>::value;
+
+/// <summary>
+/// Gets the size of the container.
+/// </summary>
+/// <returns></returns>
+template <typename TContainer>
+inline size_t GetContainerSize(const TContainer& cont)
+{
+	if constexpr (has_size_v<TContainer>)
+		return cont.size();
+	else
+		return std::distance(std::begin(cont), std::end(cont));
+}
+
 }	// namespace BitSerializer

@@ -8,6 +8,7 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include <forward_list>
 #include <set>
 #include <map>
 #include "object_traits.h"
@@ -30,7 +31,8 @@ namespace Detail
 		}
 		else
 		{
-			auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+			const size_t size = GetContainerSize(cont);
+			auto arrayScope = archive.OpenScopeForSerializeArray(key, size);
 			if (arrayScope)
 			{
 				auto& scope = *arrayScope.get();
@@ -39,7 +41,7 @@ namespace Detail
 					if constexpr (is_resizeable_cont<TContainer>::value)
 						cont.resize(scope.GetSize());
 					else
-						assert(cont.size() == scope.GetSize());
+						assert(size >= scope.GetSize());
 				}
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
@@ -56,7 +58,8 @@ namespace Detail
 		}
 		else
 		{
-			auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+			const size_t size = GetContainerSize(cont);
+			auto arrayScope = archive.OpenScopeForSerializeArray(size);
 			if (arrayScope)
 			{
 				auto& scope = *arrayScope.get();
@@ -65,7 +68,7 @@ namespace Detail
 					if constexpr (is_resizeable_cont<TContainer>::value)
 						cont.resize(scope.GetSize());
 					else
-						assert(cont.size() == scope.GetSize());
+						assert(size >= scope.GetSize());
 				}
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
@@ -131,6 +134,21 @@ inline void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 
 template<typename TArchive, typename TValue, typename TAllocator>
 inline void Serialize(TArchive& archive, std::list<TValue, TAllocator>& cont)
+{
+	Detail::SerializeContainer(archive, cont);
+}
+
+//-----------------------------------------------------------------------------
+// Serialize std::forward_list
+//-----------------------------------------------------------------------------
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::forward_list<TValue, TAllocator>& cont)
+{
+	Detail::SerializeContainer(archive, key, cont);
+}
+
+template<typename TArchive, typename TValue, typename TAllocator>
+inline void Serialize(TArchive& archive, std::forward_list<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, cont);
 }

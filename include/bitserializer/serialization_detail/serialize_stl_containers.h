@@ -226,7 +226,7 @@ static void Serialize(TArchive& archive, std::set<TValue, TAllocator>& cont)
 //-----------------------------------------------------------------------------
 enum class MapLoadMode
 {
-	Clean,			// Clean before load
+	Clean,			// Clean before load (default)
 	OnlyExistKeys,	// Load only exists keys in map
 	UpdateKeys,		// Load exists keys
 };

@@ -45,13 +45,25 @@ inline void Serialize(TArchive& archive, TValue& value)
 template <class TArchive, typename TSym, typename TAllocator>
 inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	archive.SerializeString(key, value);
+	if constexpr (!can_serialize_string_with_key_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
+	}
+	else
+	{
+		archive.SerializeString(key, value);
+	}
 };
 
 template <class TArchive, typename TSym, typename TAllocator>
 inline void Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	archive.SerializeString(value);
+	if constexpr (!can_serialize_string_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
+	}
+	else
+	{
+		archive.SerializeString(value);
+	}
 };
 
 //-----------------------------------------------------------------------------
@@ -63,13 +75,13 @@ inline void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	if constexpr (archive.IsLoading())
 	{
 		std::string str;
-		archive.SerializeString(key, str);
+		Serialize(archive, key, str);
 		Convert::Detail::FromString(str, value);
 	}
 	else
 	{
 		auto str = Convert::ToString(value);
-		archive.SerializeString(key, str);
+		Serialize(archive, key, str);
 	}
 };
 
@@ -79,13 +91,13 @@ inline void Serialize(TArchive& archive, TValue& value)
 	if constexpr (archive.IsLoading())
 	{
 		std::string str;
-		archive.SerializeString(str);
+		Serialize(archive, str);
 		Convert::Detail::FromString(str, value);
 	}
 	else
 	{
 		auto str = Convert::ToString(value);
-		archive.SerializeString(str);
+		Serialize(archive, str);
 	}
 };
 
@@ -96,7 +108,7 @@ template <class TArchive, typename TValue, std::enable_if_t<std::is_class_v<TVal
 inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
 	if constexpr (!is_serializable_class_v<TValue>) {
-		static_assert(false, "BitSerializer. Class should has method Serialize() internally or externally.");
+		static_assert(false, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
 	}
 	else if constexpr (!can_serialize_object_with_key_v<TArchive>) {
 		static_assert(false, "BitSerializer. The archive doesn't support serialize class with key on this level.");
@@ -112,7 +124,7 @@ template <class TArchive, class TValue, std::enable_if_t<std::is_class_v<TValue>
 inline void Serialize(TArchive& archive, TValue& value)
 {
 	if constexpr (!is_serializable_class_v<TValue>) {
-		static_assert(false, "BitSerializer. Class should has method Serialize() internally or externally.");
+		static_assert(false, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
 	}
 	else if constexpr (!can_serialize_object_v<TArchive>) {
 		static_assert(false, "BitSerializer. The archive doesn't support serialize class without key on this level.");
@@ -124,12 +136,17 @@ inline void Serialize(TArchive& archive, TValue& value)
 	}
 };
 
-// Serialize base class
+/// <summary>
+/// Serializes the base class.
+/// </summary>
 template <typename TArchive, class TBase, class TDerived>
 inline void Serialize(TArchive& archive, BaseObjectImpl<TBase, TDerived>&& value)
 {
 	if constexpr (!is_serializable_class_v<TBase>) {
-		static_assert(false, "BitSerializer. Class should has method Serialize() internally or externally.");
+		static_assert(false, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
+	}
+	else if constexpr (!is_object_scope_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize base class on this level.");
 	}
 	else
 	{

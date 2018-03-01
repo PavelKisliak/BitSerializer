@@ -7,6 +7,9 @@
 
 namespace BitSerializer {
 
+/// <summary>
+/// Checks that the class is serializable - has method Serialize().
+/// </summary>
 template <typename T>
 struct is_serializable_class
 {
@@ -25,7 +28,9 @@ public:
 template <typename T>
 constexpr bool is_serializable_class_v = is_serializable_class<T>::value;
 
-//------------------------------------------------------------------------------
+/// <summary>
+/// Checks that the container is resizable, by checking existence of resize() method.
+/// </summary>
 template <typename T>
 struct is_resizeable_cont
 {

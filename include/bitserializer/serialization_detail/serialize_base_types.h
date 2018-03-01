@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <algorithm>
 #include <type_traits>
 #include "object_traits.h"
 #include "archive_traits.h"
@@ -165,22 +166,11 @@ static void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		if constexpr (archive.IsLoading())
+		auto arrayScope = archive.OpenScopeForSerializeArray(key, ArraySize);
+		if (arrayScope)
 		{
-			auto arrayScope = archive.OpenScopeForLoadArray(key);
-			if (arrayScope)
-			{
-				auto& scope = *arrayScope.get();
-				assert(ArraySize == scope.GetSize());
-				for (size_t i = 0; i < ArraySize; i++) {
-					Serialize(scope, cont[i]);
-				}
-			}
-		}
-		else
-		{
-			auto arrayScope = archive.OpenScopeForSaveArray(key, ArraySize);
 			auto& scope = *arrayScope.get();
+			assert(!archive.IsLoading() || ArraySize >= scope.GetSize());
 			for (size_t i = 0; i < ArraySize; i++) {
 				Serialize(scope, cont[i]);
 			}
@@ -196,22 +186,11 @@ static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 	}
 	else
 	{
-		if constexpr (archive.IsLoading())
+		auto arrayScope = archive.OpenScopeForSerializeArray(ArraySize);
+		if (arrayScope)
 		{
-			auto arrayScope = archive.OpenScopeForLoadArray();
-			if (arrayScope)
-			{
-				auto& scope = *arrayScope.get();
-				assert(ArraySize == scope.GetSize());
-				for (size_t i = 0; i < ArraySize; i++) {
-					Serialize(scope, cont[i]);
-				}
-			}
-		}
-		else
-		{
-			auto arrayScope = archive.OpenScopeForSaveArray(ArraySize);
 			auto& scope = *arrayScope.get();
+			assert(!archive.IsLoading() || ArraySize >= scope.GetSize());
 			for (size_t i = 0; i < ArraySize; i++) {
 				Serialize(scope, cont[i]);
 			}

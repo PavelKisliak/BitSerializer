@@ -30,25 +30,17 @@ namespace Detail
 		}
 		else
 		{
-			if constexpr (archive.IsLoading())
+			auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+			if (arrayScope)
 			{
-				auto arrayScope = archive.OpenScopeForLoadArray(key);
-				if (arrayScope)
+				auto& scope = *arrayScope.get();
+				if constexpr (archive.IsLoading())
 				{
-					auto& scope = *arrayScope.get();
 					if constexpr (is_resizeable_cont<TContainer>::value)
 						cont.resize(scope.GetSize());
 					else
 						assert(cont.size() == scope.GetSize());
-					for (auto& elem : cont) {
-						Serialize(scope, elem);
-					}
 				}
-			}
-			else
-			{
-				auto arrayScope = archive.OpenScopeForSaveArray(key, cont.size());
-				auto& scope = *arrayScope.get();
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
 				}
@@ -64,25 +56,17 @@ namespace Detail
 		}
 		else
 		{
-			if constexpr (archive.IsLoading())
+			auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+			if (arrayScope)
 			{
-				auto arrayScope = archive.OpenScopeForLoadArray();
-				if (arrayScope)
+				auto& scope = *arrayScope.get();
+				if constexpr (archive.IsLoading())
 				{
-					auto& scope = *arrayScope.get();
 					if constexpr (is_resizeable_cont<TContainer>::value)
 						cont.resize(scope.GetSize());
 					else
 						assert(cont.size() == scope.GetSize());
-					for (auto& elem : cont) {
-						Serialize(scope, elem);
-					}
 				}
-			}
-			else
-			{
-				auto arrayScope = archive.OpenScopeForSaveArray(cont.size());
-				auto& scope = *arrayScope.get();
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
 				}
@@ -179,18 +163,18 @@ static void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		if constexpr (archive.IsLoading())
+		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+		if (arrayScope)
 		{
-			auto arrayScope = archive.OpenScopeForLoadArray(key);
-			if (arrayScope)
-				Detail::LoadSetImpl(*arrayScope.get(), cont);
-		}
-		else
-		{
-			auto arrayScope = archive.OpenScopeForSaveArray(key, cont.size());
 			auto& scope = *arrayScope.get();
-			for (const TValue& elem : cont) {
-				Serialize(scope, const_cast<TValue&>(elem));
+			if constexpr (archive.IsLoading()) {
+				Detail::LoadSetImpl(*arrayScope.get(), cont);
+			}
+			else
+			{
+				for (const TValue& elem : cont) {
+					Serialize(scope, const_cast<TValue&>(elem));
+				}
 			}
 		}
 	}
@@ -204,18 +188,18 @@ static void Serialize(TArchive& archive, std::set<TValue, TAllocator>& cont)
 	}
 	else
 	{
-		if constexpr (archive.IsLoading())
+		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+		if (arrayScope)
 		{
-			auto arrayScope = archive.OpenScopeForLoadArray();
-			if (arrayScope)
-				Detail::LoadSetImpl(*arrayScope.get(), cont);
-		}
-		else
-		{
-			auto arrayScope = archive.OpenScopeForSaveArray(cont.size());
 			auto& scope = *arrayScope.get();
-			for (const TValue& elem : cont) {
-				Serialize(scope, const_cast<TValue&>(elem));
+			if constexpr (archive.IsLoading()) {
+				Detail::LoadSetImpl(*arrayScope.get(), cont);
+			}
+			else
+			{
+				for (const TValue& elem : cont) {
+					Serialize(scope, const_cast<TValue&>(elem));
+				}
 			}
 		}
 	}

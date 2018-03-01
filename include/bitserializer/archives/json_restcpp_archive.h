@@ -147,21 +147,20 @@ public:
 		}
 	}
 
-	//------------------------------------------------------------------------------
-	// Serialize arrays
-	//------------------------------------------------------------------------------
-	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForLoadArray()
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(size_t arraySize)
 	{
-		auto& jsonValue = LoadJsonValue();
-		if (jsonValue.is_array())
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto& jsonValue = LoadJsonValue();
+			if (jsonValue.is_array())
+				return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
+			return nullptr;
+		}
+		else
+		{
+			auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
 			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
-		return nullptr;
-	}
-
-	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForSaveArray(size_t arraySize)
-	{
-		auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
-		return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
+		}
 	}
 
 protected:
@@ -287,21 +286,20 @@ public:
 		}
 	}
 
-	//------------------------------------------------------------------------------
-	// Serialize arrays
-	//------------------------------------------------------------------------------
-	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForLoadArray(const key_type& key)
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(const key_type& key, size_t arraySize)
 	{
-		auto* jsonValue = LoadJsonValue(key);
-		if (jsonValue != nullptr && jsonValue->is_array())
-			return std::make_unique<JsonArrayScope<TMode>>(jsonValue);
-		return nullptr;
-	}
-
-	inline std::unique_ptr<JsonArrayScope<TMode>> OpenScopeForSaveArray(const key_type& key, size_t arraySize)
-	{
-		auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
-		return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto* jsonValue = LoadJsonValue(key);
+			if (jsonValue != nullptr && jsonValue->is_array())
+				return std::make_unique<JsonArrayScope<TMode>>(jsonValue);
+			return nullptr;
+		}
+		else
+		{
+			auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
+			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
+		}
 	}
 
 protected:
@@ -440,21 +438,20 @@ public:
 		return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
 	}
 
-	//------------------------------------------------------------------------------
-	// Serialize arrays
-	//------------------------------------------------------------------------------
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForLoadArray()
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(size_t arraySize)
 	{
-		if (mRootJson.is_array())
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (mRootJson.is_array())
+				return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
+			return nullptr;
+		}
+		else
+		{
+			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			mRootJson = web::json::value::array(arraySize);
 			return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
-		return nullptr;
-	}
-
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSaveArray(size_t arraySize)
-	{
-		assert(mRootJson.is_object() && mRootJson.size() == 0);
-		mRootJson = web::json::value::array(arraySize);
-		return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
+		}
 	}
 
 private:

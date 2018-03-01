@@ -183,8 +183,7 @@ struct can_serialize_array
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenScopeForLoadArray())> &&
-		!std::is_void_v<decltype(std::declval<TObj>().OpenScopeForSaveArray(std::declval<size_t>()))>, std::true_type> test(int);
+	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenScopeForSerializeArray(std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -205,8 +204,7 @@ struct can_serialize_array_with_key
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenScopeForLoadArray(std::declval<const typename TArchive::key_type&>()))> &&
-		!std::is_void_v<decltype(std::declval<TObj>().OpenScopeForSaveArray(std::declval<const typename TArchive::key_type&>(), std::declval<size_t>()))>, std::true_type> test(int);
+	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenScopeForSerializeArray(std::declval<const typename TArchive::key_type&>(), std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);

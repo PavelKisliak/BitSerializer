@@ -197,9 +197,9 @@ public:
 
 	JsonObjectScope(const web::json::value* node)
 		: JsonScopeBase(node)
-	{ };
-
-	// ToDo: handle errors when mNode is not an object
+	{
+		assert(mNode->is_object());
+	};
 
 	/// <summary>
 	/// Gets the key by index.
@@ -347,7 +347,6 @@ public:
 		else
 		{
 			mOutput = &outputFormat;
-			mRootJson = web::json::value::object();
 		}
 	}
 
@@ -369,7 +368,6 @@ public:
 		, mOutput(&output)
 	{
 		mOutput = &output;
-		mRootJson = web::json::value::object();
 	}
 
 	~JsonRootScope()
@@ -392,7 +390,7 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			assert(mRootJson.is_null());
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 				mRootJson = web::json::value(value);
 			else
@@ -409,7 +407,7 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			assert(mRootJson.is_null());
 			mRootJson = web::json::value::boolean(value);
 		}
 	}
@@ -432,14 +430,25 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			assert(mRootJson.is_null());
 			mRootJson = web::json::value::number(value);
 		}
 	}
 
 	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject()
 	{
-		return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (mRootJson.is_object())
+				return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
+			return nullptr;
+		}
+		else
+		{
+			assert(mRootJson.is_null());
+			mRootJson = web::json::value::object();
+			return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
+		}
 	}
 
 	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(size_t arraySize)
@@ -452,7 +461,7 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.is_object() && mRootJson.size() == 0);
+			assert(mRootJson.is_null());
 			mRootJson = web::json::value::array(arraySize);
 			return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
 		}

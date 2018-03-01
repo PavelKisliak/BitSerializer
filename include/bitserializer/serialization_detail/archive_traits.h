@@ -160,7 +160,7 @@ struct is_object_scope
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_same_v<decltype(std::declval<TObj>().GetKeyByIndex(std::declval<int>())), typename TArchive::key_type>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<decltype(std::declval<TObj>().GetKeyByIndex(std::declval<size_t>())), typename TArchive::key_type>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);

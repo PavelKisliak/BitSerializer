@@ -44,6 +44,10 @@ public:
 		: mNode(const_cast<web::json::value*>(node))
 	{ }
 
+	/// <summary>
+	/// Returns the size of stored elements (for arrays and objects).
+	/// </summary>
+	/// <returns></returns>
 	inline size_t GetSize() const {
 		return mNode->size();
 	}
@@ -200,7 +204,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(int index) {
+	key_type GetKeyByIndex(size_t index) {
 		return (mNode->as_object().cbegin() + index)->first;
 	}
 

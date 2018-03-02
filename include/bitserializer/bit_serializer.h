@@ -15,7 +15,7 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input array.</param>
 	template <typename TMediaArchive, typename T>
-	static inline void LoadObject(T& object, const typename TMediaArchive::output_format& input)
+	inline void LoadObject(T& object, const typename TMediaArchive::output_format& input)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Load(input);
@@ -28,7 +28,7 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input stream.</param>
 	template <typename TMediaArchive, typename T>
-	static void LoadObject(T& object, const typename TMediaArchive::input_stream& input)
+	inline void LoadObject(T& object, const typename TMediaArchive::input_stream& input)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Load(input);
@@ -41,11 +41,24 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output array.</param>
 	template <typename TMediaArchive, typename T>
-	static inline void SaveObject(T& object, typename TMediaArchive::output_format& output)
+	inline void SaveObject(T& object, typename TMediaArchive::output_format& output)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Save(output);
 		Serialize(scope, object);
+	}
+
+	/// <summary>
+	/// Saves the object to string or binary array (depends to format of archive).
+	/// </summary>
+	/// <param name="object">The serializing object.</param>
+	/// <returns>The output string or binary array</returns>
+	template <typename TMediaArchive, typename T>
+	inline typename TMediaArchive::output_format SaveObject(T& object)
+	{
+		typename TMediaArchive::output_format output;
+		SaveObject<TMediaArchive>(object, output);
+		return output;
 	}
 
 	/// <summary>
@@ -54,7 +67,7 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output stream.</param>
 	template <typename TMediaArchive, typename T>
-	static void SaveObject(T& object, typename TMediaArchive::output_stream& output)
+	inline void SaveObject(T& object, typename TMediaArchive::output_stream& output)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Save(output);

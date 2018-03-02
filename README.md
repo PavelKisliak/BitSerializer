@@ -35,6 +35,8 @@ The library contains only header files, need to include main file which implemen
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"
 
+using namespace BitSerializer;
+
 int main()
 {
 	std::string str = "Hello world!";
@@ -86,6 +88,8 @@ To support serialization of your type, you must implement the Serialize() method
 ```cpp
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"
+
+using namespace BitSerializer;
 
 class TestSimpleClass
 {

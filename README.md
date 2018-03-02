@@ -39,6 +39,7 @@ using namespace BitSerializer;
 
 int main()
 {
+	// Supported serialization of ansi and wide strings
 	std::string str = "Hello world!";
 	auto json = SaveObject<JsonArchive>(str);
 	str.clear();
@@ -51,8 +52,9 @@ int main()
 #### Save std::map
 Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized Serialize() method in extreme cases.
 ```cpp
-	std::map<std::string, int> testMap = { { "One", 1 },{ "Two", 2 },{ "Three", 3 },{ "Four", 4 },{ "Five", 5 } };
-	auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testMap);
+std::map<std::string, int> testMap = 
+	{ { "One", 1 },{ "Two", 2 },{ "Three", 3 },{ "Four", 4 },{ "Five", 5 } };
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testMap);
 ```
 Returns result
 ```json
@@ -78,9 +80,9 @@ Input JSON
 ```
 Code:
 ```cpp
-	std::vector<std::map<std::string, int>> testVectorOfMaps;
-	const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
-	BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
+std::vector<std::map<std::string, int>> testVectorOfMaps;
+const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
+BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
 #### Serializing custom class
@@ -176,14 +178,14 @@ static const bool _HttpMethod = ConvertEnum::Register<HttpMethod>(
 #### Compile time checking
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a compiler error message.
 ```cpp
-	template <class TArchive>
-	inline void Serialize(TArchive& archive)
-	{
-	    // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
-	    archive << TestBool;
-	    // Proper use
-		archive << MakeKeyValue(U("TestString"), TestString);
-	};
+template <class TArchive>
+inline void Serialize(TArchive& archive)
+{
+    // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
+    archive << TestBool;
+    // Proper use
+	archive << MakeKeyValue(U("TestString"), TestString);
+};
 ```
 
 #### Error handling

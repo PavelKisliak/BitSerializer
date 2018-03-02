@@ -10,7 +10,7 @@ This is the first version open for public access, currently it includes support 
   - Checking at compile time the permissibility of saving types depending on the structure of the output format.
   - Simple syntax (similar to serialization in boost library).
   - Support for serialization of most STL containers.
-  - Support for serialization of enum types (registration of a names card is required).
+  - Support for serialization of enum types (registration of a names map is required).
   - As a bonus, the subsystem of converting strings to / from arbitrary types.
 
 #### Supported Formats:

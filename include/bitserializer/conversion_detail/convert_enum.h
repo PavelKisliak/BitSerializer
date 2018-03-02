@@ -81,9 +81,8 @@ private:
 		EnumValueDescriptor() = default;
 		EnumValueDescriptor(TEnum value, const char* name)
 			: mValue(value)
-		{
-			std::transform(name, name + strlen(name), std::back_inserter(mStrName), std::tolower);
-		}
+			, mStrName(name)
+		{ }
 
 		static std::vector<EnumValueDescriptor<TEnum>>& GetStaticDescriptors() noexcept
 		{
@@ -94,7 +93,7 @@ private:
 		template <typename TSym, typename TAllocator>
 		inline bool Equals(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str_value) const {
 			return std::equal(str_value.cbegin(), str_value.cend(), mStrName.cbegin(), mStrName.cend(), [](const TSym lhs, const char rhs) {
-				return std::tolower(static_cast<char>(lhs)) == rhs;
+				return std::tolower(static_cast<char>(lhs)) == std::tolower(static_cast<char>(rhs));
 			});
 		}
 

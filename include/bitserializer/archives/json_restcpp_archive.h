@@ -7,6 +7,7 @@
 #include <memory>
 #include <type_traits>
 #include <variant>
+#include "..\serialization_detail\errors_handling.h"
 #include "..\serialization_detail\media_archive_base.h"
 
 // External dependency (C++ REST SDK)
@@ -309,7 +310,6 @@ public:
 protected:
 	inline const web::json::value* LoadJsonValue(const typename key_type& key) const
 	{
-		assert(mNode->is_object());
 		const auto& jObject = mNode->as_object();
 		auto it = jObject.find(key);
 		return it == jObject.end() ? nullptr : &it->second;
@@ -317,7 +317,6 @@ protected:
 
 	inline web::json::value& SaveJsonValue(const key_type& key, web::json::value&& jsonValue) const
 	{
-		assert(mNode->is_object());
 		return (*mNode)[key] = jsonValue;
 	}
 };
@@ -331,23 +330,23 @@ class JsonRootScope : public ArchiveScope<TMode>, public Detail::JsonScopeBase
 public:
 	JsonRootScope(JsonRootScope&&) = default;
 
-	JsonRootScope(output_format& outputFormat)
+	JsonRootScope(const output_format& outputFormat)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			std::error_code error;
-			mRootJson = web::json::value::parse(outputFormat, error);
-			if (mRootJson.is_null())
-			{
-				// Todo: exception
-			}
+		assert(TMode == SerializeMode::Load);
+		std::error_code error;
+		mRootJson = web::json::value::parse(outputFormat, error);
+		if (mRootJson.is_null()) {
+			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
-		else
-		{
-			mOutput = &outputFormat;
-		}
+	}
+
+	JsonRootScope(output_format& outputFormat)
+		: Detail::JsonScopeBase(&mRootJson)
+		, mOutput(&outputFormat)
+	{
+		assert(TMode == SerializeMode::Save);
 	}
 
 	JsonRootScope(input_stream& input)
@@ -357,9 +356,8 @@ public:
 		assert(TMode == SerializeMode::Load);
 		std::error_code error;
 		mRootJson = web::json::value::parse(input, error);
-		if (mRootJson.is_null())
-		{
-			// Todo: exception
+		if (mRootJson.is_null()) {
+			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
 	}
 

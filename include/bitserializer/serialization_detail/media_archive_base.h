@@ -37,7 +37,7 @@ template <typename TArchiveTraits, class TInputArchive, class TOutputArchive>
 class MediaArchiveBase : public TArchiveTraits
 {
 public:
-	inline TInputArchive Load(typename TArchiveTraits::output_format& outputFormat)
+	inline TInputArchive Load(const typename TArchiveTraits::output_format& outputFormat)
 	{
 		return TInputArchive(outputFormat);
 	}

@@ -15,7 +15,7 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input array.</param>
 	template <typename TMediaArchive, typename T>
-	static inline void LoadObject(T& object, typename TMediaArchive::output_format& input)
+	static inline void LoadObject(T& object, const typename TMediaArchive::output_format& input)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Load(input);

@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <limits>
 
 /// <summary>
 /// Implementation detail for convert fundamental types
@@ -16,20 +17,26 @@ template <typename T> inline void ToString(T val, std::string& ret_Str)			{ ret_
 template <typename T> inline void ToString(T val, std::wstring& ret_Str)		{ ret_Str = std::to_wstring(val); }
 
 // Convert from unsigned decimal to string
-inline void FromString(const std::string& str, unsigned int& ret_Val)			{ ret_Val = std::stoul(str); }
-inline void FromString(const std::wstring& str, unsigned int& ret_Val)			{ ret_Val = std::stoul(str); }
-inline void FromString(const std::string& str, unsigned long& ret_Val)			{ ret_Val = std::stoul(str); }
-inline void FromString(const std::wstring& str, unsigned long& ret_Val)			{ ret_Val = std::stoul(str); }
-inline void FromString(const std::string& str, unsigned long long& ret_Val)		{ ret_Val = std::stoull(str); }
-inline void FromString(const std::wstring& str, unsigned long long& ret_Val)	{ ret_Val = std::stoull(str); }
+template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_unsigned_v<T>), int> = 0>
+inline void FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
+{
+	auto result = std::stoull(str, 0, 0);
+	if (result < std::numeric_limits<T>::min() || std::numeric_limits<T>::max() < result) {
+		throw std::out_of_range("argument out of range");
+	}
+	ret_Val = static_cast<T>(result);
+}
 
 // Convert from signed decimal to string
-inline void FromString(const std::string& str, int& ret_Val)					{ ret_Val = std::stoi(str); }
-inline void FromString(const std::wstring& str, int& ret_Val)					{ ret_Val = std::stoi(str); }
-inline void FromString(const std::string& str, long& ret_Val)					{ ret_Val = std::stol(str); }
-inline void FromString(const std::wstring& str, long& ret_Val)					{ ret_Val = std::stol(str); }
-inline void FromString(const std::string& str, long long& ret_Val)				{ ret_Val = std::stoll(str); }
-inline void FromString(const std::wstring& str, long long& ret_Val)				{ ret_Val = std::stoll(str); }
+template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_signed_v<T>), int> = 0>
+inline void FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
+{
+	auto result = std::stoll(str, 0, 0);
+	if (result < std::numeric_limits<T>::min() || std::numeric_limits<T>::max() < result) {
+		throw std::out_of_range("argument out of range");
+	}
+	ret_Val = static_cast<T>(result);
+}
 
 // Convert from string to boolean
 inline void FromString(const std::string& str, bool& ret_Val)					{ ret_Val = std::stoi(str) ? true : false; }

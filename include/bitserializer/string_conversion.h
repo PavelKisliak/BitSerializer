@@ -68,21 +68,22 @@ namespace BitSerializer::Convert
 	/// <param name="value">The input value.</param>
 	/// <returns>The resulting value</returns>
 	template <typename TOut, typename TIn>
-	inline TOut To(const TIn& value)
+	inline TOut To(TIn&& value)
 	{
-		if constexpr (!(std::is_same_v<TOut, std::string> || std::is_same_v<TOut, std::wstring> || std::is_same_v<TIn, std::string> || std::is_same_v<TIn, std::wstring>))
-			static_assert(false, "BitSerializer::Convert::To(). The input or output value must be a string.");
-		else
-		{
-			TOut result;
-			if constexpr (std::is_same_v<TOut, TIn>)
-				return value;
-			else if constexpr (std::is_same_v<TOut, std::string> || std::is_same_v<TOut, std::wstring>)
-				Detail::ToString(value, result);
-			else
-				Detail::FromString(str, result);
-			return result;
+		if constexpr (std::is_same_v<TOut, TIn>)
+			return std::move(value);
+
+		TOut result;
+		if constexpr (std::is_same_v<TOut, std::string> || std::is_same_v<TOut, std::wstring>) {
+			Detail::ToString(std::move(value), result);
 		}
+		else if constexpr (std::is_same_v<TIn, std::string> || std::is_same_v<TIn, std::wstring>) {
+			Detail::FromString(std::move(value), result);
+		}
+		else {
+			static_assert(false, "BitSerializer::Convert::To(). The input or output value must be a string.");
+		}
+		return result;
 	};
 
 }	// namespace BitSerializer::Convert

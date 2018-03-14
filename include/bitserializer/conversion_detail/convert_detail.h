@@ -13,15 +13,6 @@
 namespace BitSerializer::Convert::Detail {
 
 //------------------------------------------------------------------------------
-// Convert from raw c-strings
-//------------------------------------------------------------------------------
-template <typename TSym, typename TAllocator>
-inline void	ToString(const TSym* in_str, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
-{
-	ret_Str = in_str;
-}
-
-//------------------------------------------------------------------------------
 // Convert to the same type (string to string)
 //------------------------------------------------------------------------------
 inline void FromString(const std::string& in_str, std::string& ret_Str)
@@ -45,7 +36,7 @@ inline void ToString(const std::wstring& in_str, std::wstring& ret_Str)
 }
 
 //------------------------------------------------------------------------------
-// Convert std::string to std::wstring and vice versa
+// Convert std::string to std::wstring and vice versa (without using locale)
 //------------------------------------------------------------------------------
 inline void ToString(const std::wstring& in_str, std::string& ret_Str)
 {
@@ -100,32 +91,24 @@ template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || 
 inline void ToString(const T& classRef, std::basic_string<char, std::char_traits<char>, TAllocator>& ret_Str)
 {
 	if constexpr (!has_to_string_v<T, std::basic_string<char, std::char_traits<char>, TAllocator>>)
-		static_assert(false, "Class should has internal methods ToString() and ToWString() or static in namespace BitSerializer::Convert::Detail.");
+		static_assert(false, "Class should has public constant methods ToString() or static in namespace BitSerializer::Convert::Detail.");
 	else
 		ret_Str = classRef.ToString();
 }
 template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
 inline void ToString(const T& classRef, std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>& ret_Str)
 {
-	if constexpr (!has_to_string_v<T, std::basic_string<char, std::char_traits<char>, TAllocator>>)
-		static_assert(false, "Class should has internal methods ToString() and ToWString() or static in namespace BitSerializer::Convert::Detail.");
+	if constexpr (!has_to_string_v<T, std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>>)
+		static_assert(false, "Class should has public constant methods ToWString() or static in namespace BitSerializer::Convert::Detail.");
 	else
 		ret_Str = classRef.ToWString();
 }
 
-template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
-inline void FromString(const std::basic_string<char, std::char_traits<char>, TAllocator>& str, T& ret_Val)
+template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
+inline void FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
 {
-	if constexpr (!has_from_string_v<T, std::basic_string<char, std::char_traits<char>, TAllocator>>)
-		static_assert(false, "Class should has internal method FromString() or static in namespace BitSerializer::Convert::Detail.");
-	else
-		ret_Val.FromString(str);
-}
-template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
-inline void FromString(const std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>& str, T& ret_Val)
-{
-	if constexpr (!has_from_string_v<T, std::basic_string<char, std::char_traits<char>, TAllocator>>)
-		static_assert(false, "Class should has internal method FromString() or static in namespace BitSerializer::Convert::Detail.");
+	if constexpr (!has_from_string_v<T, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>)
+		static_assert(false, "Class should has public method FromString() or static in namespace BitSerializer::Convert::Detail.");
 	else
 		ret_Val.FromString(str);
 }

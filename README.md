@@ -118,7 +118,7 @@ public:
 private:
 	bool TestBool;
 	std::wstring TestString;
-	double TestTwoDimensionArray[3][2];
+	size_t TestTwoDimensionArray[3][2];
 };
 
 int main()
@@ -184,7 +184,7 @@ inline void Serialize(TArchive& archive)
     // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
     archive << TestBool;
     // Proper use
-	archive << MakeKeyValue(U("TestString"), TestString);
+		archive << MakeKeyValue("TestString", TestString);
 };
 ```
 

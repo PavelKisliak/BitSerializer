@@ -54,6 +54,31 @@ public:
 	}
 
 protected:
+	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	void LoadFundamentalValue(const web::json::value& jsonValue, T& value)
+	{
+		if (!jsonValue.is_number())
+			return;
+
+		if constexpr (std::is_integral_v<T>)
+		{
+			auto number = jsonValue.as_number();
+			if constexpr (std::is_same_v<T, int64_t>) {
+				value = number.to_int64();
+			}
+			else if constexpr (std::is_same_v<T, uint64_t>) {
+				value = number.to_uint64();
+			}
+			else {
+				value = static_cast<T>(number.to_int32());
+			}
+		}
+		else
+		{
+			value = static_cast<T>(jsonValue.as_double());
+		}
+	}
+
 	web::json::value* mNode;
 };
 
@@ -116,16 +141,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto& jsonValue = LoadJsonValue();
-			if constexpr (std::is_integral_v<T>)
-			{
-				if (jsonValue.is_integer())
-					value = static_cast<T>(jsonValue.as_integer());
-			}
-			else
-			{
-				if (jsonValue.is_number())
-					value = static_cast<T>(jsonValue.as_double());
-			}
+			LoadFundamentalValue(jsonValue, value);
 		}
 		else
 		{
@@ -252,18 +268,8 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr)
-			{
-				if constexpr (std::is_integral_v<T>)
-				{
-					if (jsonValue->is_integer())
-						value = static_cast<T>(jsonValue->as_integer());
-				}
-				else
-				{
-					if (jsonValue->is_number())
-						value = static_cast<T>(jsonValue->as_double());
-				}
+			if (jsonValue != nullptr) {
+				LoadFundamentalValue(*jsonValue, value);
 			}
 		}
 		else
@@ -415,16 +421,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if constexpr (std::is_integral_v<T>)
-			{
-				if (mRootJson.is_integer())
-					value = static_cast<T>(mRootJson.as_integer());
-			}
-			else
-			{
-				if (mRootJson.is_number())
-					value = static_cast<T>(mRootJson.as_double());
-			}
+			LoadFundamentalValue(mRootJson, value);
 		}
 		else
 		{

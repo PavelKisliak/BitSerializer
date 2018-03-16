@@ -9,8 +9,12 @@
   <ItemGroup>
     <ClCompile Include="..\pch.cpp" />
     <ClCompile Include="..\string_conversion_tests.cpp" />
+    <ClCompile Include="..\json_restcpp_archive_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\pch.h" />
+    <ClInclude Include="..\common_test_methods.h" />
+    <ClInclude Include="..\auto_fixture.h" />
+    <ClInclude Include="..\common_test_entities.h" />
   </ItemGroup>
 </Project>

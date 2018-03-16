@@ -70,15 +70,21 @@ namespace BitSerializer::Convert
 	template <typename TOut, typename TIn>
 	inline TOut To(TIn&& value)
 	{
-		if constexpr (std::is_same_v<TOut, TIn>)
-			return std::move(value);
+		if constexpr (std::is_same_v<TOut, std::decay_t<TIn>>)
+			return std::forward<TIn>(value);
 
 		TOut result;
 		if constexpr (std::is_same_v<TOut, std::string> || std::is_same_v<TOut, std::wstring>) {
-			Detail::ToString(std::move(value), result);
+			Detail::ToString(std::forward<TIn>(value), result);
 		}
 		else if constexpr (std::is_same_v<TIn, std::string> || std::is_same_v<TIn, std::wstring>) {
-			Detail::FromString(std::move(value), result);
+			Detail::FromString(std::forward<TIn>(value), result);
+		}
+		else if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
+			Detail::FromString(std::forward<std::string>(value), result);
+		}
+		else if constexpr (std::is_same_v<std::decay_t<TIn>, const wchar_t*>) {
+			Detail::FromString(std::forward<std::wstring>(value), result);
 		}
 		else {
 			static_assert(false, "BitSerializer::Convert::To(). The input or output value must be a string.");

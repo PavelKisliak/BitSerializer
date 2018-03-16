@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include "bitserializer\string_conversion.h"
+#include "common_test_entities.h"
 
 using namespace BitSerializer;
 
@@ -69,106 +69,85 @@ TEST(Convert, BoolToWString) {
 }
 
 //-----------------------------------------------------------------------------
-TEST(Convert, CharFromString) {
-	EXPECT_EQ(-128, Convert::FromString<char>("  -128  "));
-	EXPECT_EQ(127, Convert::FromString<char>(L"  +127  "));
+TEST(Convert, Int8FromString) {
+	EXPECT_EQ(-128, Convert::FromString<int8_t>("  -128  "));
+	EXPECT_EQ(127, Convert::FromString<int8_t>(L"  +127  "));
 }
 
-TEST(Convert, CharToString) {
-	EXPECT_EQ("-128", Convert::ToString(char(-128)));
-	EXPECT_EQ(L"127", Convert::ToWString(char(127)));
+TEST(Convert, Int8ToString) {
+	EXPECT_EQ("-128", Convert::ToString(int8_t(-128)));
+	EXPECT_EQ(L"127", Convert::ToWString(int8_t(127)));
 }
 
-TEST(Convert, UnsignedCharFromString) {
-	EXPECT_EQ(255, Convert::FromString<unsigned char>("  255  "));
-	EXPECT_EQ(255, Convert::FromString<unsigned char>(L"  255  "));
+TEST(Convert, UInt8FromString) {
+	EXPECT_EQ(255, Convert::FromString<uint8_t>("  255  "));
+	EXPECT_EQ(255, Convert::FromString<uint8_t>(L"  255  "));
 }
 
-TEST(Convert, UnsignedCharToString) {
-	EXPECT_EQ("255", Convert::ToString(unsigned char(255)));
-	EXPECT_EQ(L"255", Convert::ToWString(unsigned char(255)));
-}
-
-//-----------------------------------------------------------------------------
-TEST(Convert, ShortFromString) {
-	EXPECT_EQ(-32768, Convert::FromString<short>("  -32768  "));
-	EXPECT_EQ(32767, Convert::FromString<short>(L"  +32767  "));
-}
-
-TEST(Convert, ShortToString) {
-	EXPECT_EQ("-32768", Convert::ToString(short(-32768)));
-	EXPECT_EQ(L"32767", Convert::ToWString(short(32767)));
-}
-
-TEST(Convert, UnsignedShortFromString) {
-	EXPECT_EQ(65535, Convert::FromString<unsigned short>("  65535  "));
-	EXPECT_EQ(65535, Convert::FromString<unsigned short>(L"  65535  "));
-}
-
-TEST(Convert, UnsignedShortToString) {
-	EXPECT_EQ("65535", Convert::ToString(unsigned short(65535)));
-	EXPECT_EQ(L"65535", Convert::ToWString(unsigned short(65535)));
+TEST(Convert, UInt8ToString) {
+	EXPECT_EQ("255", Convert::ToString(uint8_t(255)));
+	EXPECT_EQ(L"255", Convert::ToWString(uint8_t(255)));
 }
 
 //-----------------------------------------------------------------------------
-TEST(Convert, IntFromString) {
-	EXPECT_EQ(-32768, Convert::FromString<int>("  -32768  "));
-	EXPECT_EQ(32767, Convert::FromString<int>(L"  +32767  "));
+TEST(Convert, Int16FromString) {
+	EXPECT_EQ(-32768, Convert::FromString<int16_t>("  -32768  "));
+	EXPECT_EQ(32767, Convert::FromString<int16_t>(L"  +32767  "));
 }
 
-TEST(Convert, IntToString) {
-	EXPECT_EQ("-32767", Convert::ToString(-32767));
-	EXPECT_EQ(L"32767", Convert::ToWString(32767));
+TEST(Convert, Int16ToString) {
+	EXPECT_EQ("-32768", Convert::ToString(int16_t(-32768)));
+	EXPECT_EQ(L"32767", Convert::ToWString(int16_t(32767)));
 }
 
-TEST(Convert, UnsignedIntFromString) {
-	EXPECT_EQ(65535, Convert::FromString<unsigned int>("  65535  "));
-	EXPECT_EQ(65535, Convert::FromString<unsigned int>(L"  65535  "));
+TEST(Convert, UInt16FromString) {
+	EXPECT_EQ(65535, Convert::FromString<uint16_t>("  65535  "));
+	EXPECT_EQ(65535, Convert::FromString<uint16_t>(L"  65535  "));
 }
 
-TEST(Convert, UnsignedIntToString) {
-	EXPECT_EQ("65535", Convert::ToString(65535));
-	EXPECT_EQ(L"65535", Convert::ToWString(65535));
+TEST(Convert, UInt16ToString) {
+	EXPECT_EQ("65535", Convert::ToString(uint16_t(65535)));
+	EXPECT_EQ(L"65535", Convert::ToWString(uint16_t(65535)));
 }
 
 //-----------------------------------------------------------------------------
-TEST(Convert, LongFromString) {
-	EXPECT_EQ(-2147483647l, Convert::FromString<long>("  -2147483647  "));
-	EXPECT_EQ(2147483647, Convert::FromString<long>(L"  +2147483647  "));
+TEST(Convert, Int32FromString) {
+	EXPECT_EQ(-2147483647l, Convert::FromString<int32_t>("  -2147483647  "));
+	EXPECT_EQ(2147483647, Convert::FromString<int32_t>(L"  +2147483647  "));
 }
 
-TEST(Convert, LongToString) {
+TEST(Convert, Int32ToString) {
 	EXPECT_EQ("-2147483647", Convert::ToString(-2147483647l));
 	EXPECT_EQ(L"2147483647", Convert::ToWString(2147483647));
 }
 
-TEST(Convert, UnsignedLongFromString) {
-	EXPECT_EQ(4294967295l, Convert::FromString<unsigned long>("  4294967295  "));
-	EXPECT_EQ(4294967295l, Convert::FromString<unsigned long>(L"  4294967295  "));
+TEST(Convert, UInt32FromString) {
+	EXPECT_EQ(4294967295l, Convert::FromString<uint32_t>("  4294967295  "));
+	EXPECT_EQ(4294967295l, Convert::FromString<uint32_t>(L"  4294967295  "));
 }
 
-TEST(Convert, UnsignedLongToString) {
+TEST(Convert, UInt32ToString) {
 	EXPECT_EQ("4294967295", Convert::ToString(4294967295l));
 	EXPECT_EQ(L"4294967295", Convert::ToWString(4294967295l));
 }
 
 //-----------------------------------------------------------------------------
-TEST(Convert, LongLongFromString) {
-	EXPECT_EQ(-9223372036854775808ll, Convert::FromString<long long>("  -9223372036854775808  "));
-	EXPECT_EQ(9223372036854775807ll, Convert::FromString<long long>(L"  +9223372036854775807  "));
+TEST(Convert, Int64FromString) {
+	EXPECT_EQ(-9223372036854775808ll, Convert::FromString<int64_t>("  -9223372036854775808  "));
+	EXPECT_EQ(9223372036854775807ll, Convert::FromString<int64_t>(L"  +9223372036854775807  "));
 }
 
-TEST(Convert, LongLongToString) {
+TEST(Convert, Int64ToString) {
 	EXPECT_EQ("-9223372036854775808", Convert::ToString(-9223372036854775808ll));
 	EXPECT_EQ(L"9223372036854775807", Convert::ToWString(9223372036854775807));
 }
 
-TEST(Convert, UnsignedLongLongFromString) {
-	EXPECT_EQ(18446744073709551615ull, Convert::FromString<unsigned long long>("  18446744073709551615  "));
-	EXPECT_EQ(18446744073709551615ull, Convert::FromString<unsigned long long>(L"  18446744073709551615  "));
+TEST(Convert, UInt64FromString) {
+	EXPECT_EQ(18446744073709551615ull, Convert::FromString<uint64_t>("  18446744073709551615  "));
+	EXPECT_EQ(18446744073709551615ull, Convert::FromString<uint64_t>(L"  18446744073709551615  "));
 }
 
-TEST(Convert, UnsignedLongLongToString) {
+TEST(Convert, UInt64ToString) {
 	EXPECT_EQ("18446744073709551615", Convert::ToString(18446744073709551615ull));
 	EXPECT_EQ(L"18446744073709551615", Convert::ToWString(18446744073709551615ull));
 }
@@ -211,40 +190,35 @@ TEST(Convert, HexIntFromString) {
 //-----------------------------------------------------------------------------
 // Test out of range exception
 //-----------------------------------------------------------------------------
-TEST(Convert, ThrowOutOfRangeExceptionForCharType) {
-	EXPECT_THROW(Convert::FromString<char>("-129"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<char>("128"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<unsigned char>("-1"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<unsigned char>("256"), std::out_of_range);
+TEST(Convert, ThrowOutOfRangeExceptionForInt8) {
+	EXPECT_THROW(Convert::FromString<int8_t>("-129"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<int8_t>("128"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<uint8_t>("-1"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<uint8_t>("256"), std::out_of_range);
 }
 
-TEST(Convert, ThrowOutOfRangeExceptionForShortType) {
-	EXPECT_THROW(Convert::FromString<short>("-32769"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<short>("32768"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<unsigned short>("-1"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<unsigned short>("65536"), std::out_of_range);
+TEST(Convert, ThrowOutOfRangeExceptionForInt16) {
+	EXPECT_THROW(Convert::FromString<int16_t>("-32769"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<int16_t>("32768"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<uint16_t>("-1"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<uint16_t>("65536"), std::out_of_range);
+}
+
+TEST(Convert, ThrowOutOfRangeExceptionForInt32) {
+	EXPECT_THROW(Convert::FromString<int32_t>("-2147483649"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<int32_t>("2147483648"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<uint32_t>("4294967296"), std::out_of_range);
+}
+
+TEST(Convert, ThrowOutOfRangeExceptionForInt64) {
+	EXPECT_THROW(Convert::FromString<int64_t>("-9223372036854775809"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<int64_t>("9223372036854775808"), std::out_of_range);
+	EXPECT_THROW(Convert::FromString<uint64_t>("18446744073709551616"), std::out_of_range);
 }
 
 //-----------------------------------------------------------------------------
 // Test conversion for enum types
 //-----------------------------------------------------------------------------
-enum class TestEnum {
-	One = 1,
-	Two = 2,
-	Three = 3,
-	Four = 4
-};
-
-namespace BitSerializer::Convert::Detail {
-	static const bool _TestEnum = ConvertEnum::Register<TestEnum>(
-	{
-		{ TestEnum::One,	"One" },
-		{ TestEnum::Two,	"Two" },
-		{ TestEnum::Three,	"Three" },
-		{ TestEnum::Four,	"Four" }
-	});
-} // namespace BitSerializer::Convert::Detail
-
 TEST(Convert, EnumFromString) {
 	EXPECT_EQ(TestEnum::One, Convert::FromString<TestEnum>("One"));
 }
@@ -264,77 +238,46 @@ TEST(Convert, EnumToWString) {
 //-----------------------------------------------------------------------------
 // Test conversion for class types (struct, class, union)
 //-----------------------------------------------------------------------------
-struct TestStringConvertibleClass
-{
-	TestStringConvertibleClass() = default;
-
-	TestStringConvertibleClass(int x, int y)
-		: x(x), y(y)
-	{ }
-
-	std::string ToString() const {
-		return std::to_string(x) + ' ' + std::to_string(y);
-	}
-
-	std::wstring ToWString() const {
-		return std::to_wstring(x) + L' ' + std::to_wstring(y);
-	}
-
-	template <typename TSym, typename TAllocator>
-	void FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str)
-	{
-		using str_type = std::basic_string<TSym, std::char_traits<TSym>, TAllocator>;
-		str_type::size_type prev(0), f(0);
-		for (int i = 0; i < 2; ++i)
-		{
-			prev = f = str.find_first_not_of(' ', f);
-			if (prev != str_type::npos)
-			{
-				f = str.find_first_of(' ', f);
-				switch (i)
-				{
-				case 0:
-					x = std::stoi(str.substr(prev, f - prev));
-					break;
-				case 1:
-					y = std::stoi(str.substr(prev, f - prev));
-					break;
-				}
-			}
-			else break;
-		}
-	}
-
-	int x;
-	int y;
-};
-
 TEST(Convert, ClassFromString) {
-	auto actual = Convert::FromString<TestStringConvertibleClass>("100 -200");
+	auto actual = Convert::FromString<TestPointClass>("100 -200");
 	EXPECT_EQ(100, actual.x);
 	EXPECT_EQ(-200, actual.y);
 }
 
 TEST(Convert, ClassFromWString) {
-	auto actual = Convert::FromString<TestStringConvertibleClass>(L"-123 555");
+	auto actual = Convert::FromString<TestPointClass>(L"-123 555");
 	EXPECT_EQ(-123, actual.x);
 	EXPECT_EQ(555, actual.y);
 }
 
 TEST(Convert, ClassToString) {
-	EXPECT_EQ("16384 32768", Convert::ToString(TestStringConvertibleClass(16384, 32768)));
+	EXPECT_EQ("16384 32768", Convert::ToString(TestPointClass(16384, 32768)));
 }
 
 TEST(Convert, ClassToWString) {
-	EXPECT_EQ(L"-777 -888", Convert::ToWString(TestStringConvertibleClass(-777, -888)));
+	EXPECT_EQ(L"-777 -888", Convert::ToWString(TestPointClass(-777, -888)));
 }
 
 //-----------------------------------------------------------------------------
 // Test universal function for conversion
 //-----------------------------------------------------------------------------
+TEST(Convert, UniversalStringToString) {
+	const char* testStr = "Test ANSI string";
+	EXPECT_EQ(std::string(testStr), Convert::To<std::string>(testStr));
+	EXPECT_EQ(std::string(testStr), Convert::To<std::string>(std::string(testStr)));
+}
+
+TEST(Convert, UniversalWStringToWString) {
+	const wchar_t* testWStr = L"Test wide string";
+	EXPECT_EQ(std::wstring(testWStr), Convert::To<std::wstring>(testWStr));
+	EXPECT_EQ(std::wstring(testWStr), Convert::To<std::wstring>(std::wstring(testWStr)));
+}
+
 TEST(Convert, UniversalStringToInt) {
-	EXPECT_EQ(-12345, Convert::To<int>(std::string("-12345")));
-	EXPECT_EQ(-12345, Convert::To<int>(std::wstring(L"-12345")));
+	EXPECT_EQ(-12345, Convert::To<int16_t>("-12345"));
+	EXPECT_EQ(-12345, Convert::To<int16_t>(L"-12345"));
+	EXPECT_EQ(-12345, Convert::To<int16_t>(std::string("-12345")));
+	EXPECT_EQ(-12345, Convert::To<int16_t>(std::wstring(L"-12345")));
 }
 
 TEST(Convert, UniversalIntToString) {
@@ -348,10 +291,10 @@ TEST(Convert, UniversalIntToString) {
 class TestConvertibleClass
 {
 public:
-	std::string ToString() const { return std::string(); }
-	std::wstring ToWString() const { return std::wstring(); }
-	void FromString(const std::string& str) { }
-	void FromString(const std::wstring& str) { }
+	std::string ToString() const				{ return std::string(); }
+	std::wstring ToWString() const				{ return std::wstring(); }
+	void FromString(const std::string& str)		{ }
+	void FromString(const std::wstring& str)	{ }
 };
 
 class TestNotConvertibleClass { };

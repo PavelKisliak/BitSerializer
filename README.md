@@ -2,13 +2,14 @@
 
 The library is designed for simple serialization of arbitrary C++ types to various output formats.
 
-This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C ++ REST SDK library. The purpose of creating this library was to simplify the serialization of data for the http server. 
+This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C ++ REST SDK library. The purpose of creating this library was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
 
 #### Main features:
   - Support for different formats (currently only JSON).
   - Produces a clear JSON, which is convenient to use with Javascript.
   - Checking at compile time the permissibility of saving types depending on the structure of the output format.
   - Simple syntax (similar to serialization in boost library).
+  - Support for serialization ANSI and wide strings.
   - Support for serialization of most STL containers.
   - Support for serialization of enum types (registration of a names map is required).
   - As a bonus, the subsystem of converting strings to / from arbitrary types.
@@ -39,7 +40,6 @@ using namespace BitSerializer;
 
 int main()
 {
-	// Supported serialization of ansi and wide strings
 	std::string str = "Hello world!";
 	auto json = SaveObject<JsonArchive>(str);
 	str.clear();
@@ -148,12 +148,12 @@ template <class TArchive>
 void Serialize(TArchive& archive)
 {
 	archive << BaseObject<MyBaseClass>(*this);
-	archive << MakeKeyValue("TestInt2", TestInt2);
+	archive << MakeKeyValue("TestInt", TestInt);
 };
 ```
 
 #### Serializing enum types
-To be able to serialize enum types, you must register a map with string equivalents.
+To be able to serialize enum types, you must register a map with string equivalents in the HEADER file.
 ```cpp
 // file HttpMethods.h
 #pragma once
@@ -175,7 +175,8 @@ END_ENUM_MAP()
 ```
 
 #### Compile time checking
-If you try to serialize an object that is not supported at the current level of the archive, you will receive a compiler error message.
+The new C++ 17 ability «if constexpr» helps to generate clear error messages.
+If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
 ```cpp
 template <class TArchive>
 inline void Serialize(TArchive& archive)

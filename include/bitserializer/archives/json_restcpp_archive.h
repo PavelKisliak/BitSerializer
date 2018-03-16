@@ -7,8 +7,8 @@
 #include <memory>
 #include <type_traits>
 #include <variant>
-#include "..\serialization_detail\errors_handling.h"
-#include "..\serialization_detail\media_archive_base.h"
+#include "../serialization_detail/errors_handling.h"
+#include "../serialization_detail/media_archive_base.h"
 
 // External dependency (C++ REST SDK)
 #include "cpprest\json.h"

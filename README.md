@@ -165,14 +165,13 @@ enum class HttpMethod {
 	Head = 3
 };
 
-namespace BitSerializer::Convert::Detail {
-static const bool _HttpMethod = ConvertEnum::Register<HttpMethod>(
+REGISTER_ENUM_MAP(HttpMethod)
 {
-	{ HttpMethod::Delete,	"delete" },
-	{ HttpMethod::Get,		"get" },
-	{ HttpMethod::Head,		"head" }
-});
-} // namespace BitSerializer::Convert::Detail
+	{ HttpMethod::Delete,   "delete" },
+	{ HttpMethod::Get,      "get" },
+	{ HttpMethod::Head,     "head" }
+}
+END_ENUM_MAP()
 ```
 
 #### Compile time checking

@@ -9,7 +9,7 @@
 #include "archive_traits.h"
 #include "base_object.h"
 #include "media_archive_base.h"
-#include "..\string_conversion.h"
+#include "../string_conversion.h"
 
 namespace BitSerializer {
 

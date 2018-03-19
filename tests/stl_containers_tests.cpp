@@ -47,6 +47,15 @@ TEST(STL_Containers, SerializeVectorAsClassMember) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubType<test_type>>());
 }
 
+TEST(STL_Containers, SerializeVectorOBooleans) {
+	TestSerializeStlContainer<JsonArchive, std::vector<bool>>();
+}
+
+TEST(STL_Containers, SerializeVectorOBooleansAsClassMember) {
+	using test_type = std::vector<bool>;
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::deque
 //-----------------------------------------------------------------------------

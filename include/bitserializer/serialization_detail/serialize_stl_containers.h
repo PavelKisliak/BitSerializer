@@ -96,6 +96,31 @@ inline void Serialize(TArchive& archive, std::array<TValue, ArraySize>& cont)
 //-----------------------------------------------------------------------------
 // Serialize std::vector
 //-----------------------------------------------------------------------------
+namespace Detail
+{
+	template<typename TArchive, typename TAllocator>
+	inline void SerializeVectorOfBooleansImpl(TArchive& scope, std::vector<bool, TAllocator>& cont)
+	{
+		if constexpr (scope.IsLoading()) {
+			cont.resize(scope.GetSize());
+		}
+		bool value;
+		const auto size = cont.size();
+		for (size_t i = 0; i < size; i++)
+		{
+			if constexpr (scope.IsLoading()) {
+				Serialize(scope, value);
+				cont[i] = value;
+			}
+			else
+			{
+				value = cont[i];
+				Serialize(scope, value);
+			}
+		}
+	}
+}
+
 template<typename TArchive, typename TValue, typename TAllocator>
 inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::vector<TValue, TAllocator>& cont)
 {
@@ -106,6 +131,34 @@ template<typename TArchive, typename TValue, typename TAllocator>
 inline void Serialize(TArchive& archive, std::vector<TValue, TAllocator>& cont)
 {
 	Detail::SerializeContainer(archive, cont);
+}
+
+template<typename TArchive, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::vector<bool, TAllocator>& cont)
+{
+	if constexpr (!can_serialize_array_with_key_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key on this level.");
+	}
+	else
+	{
+		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+		if (arrayScope)
+			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
+	}
+}
+
+template<typename TArchive, typename TAllocator>
+inline void Serialize(TArchive& archive, std::vector<bool, TAllocator>& cont)
+{
+	if constexpr (!can_serialize_array_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key on this level.");
+	}
+	else
+	{
+		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+		if (arrayScope)
+			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -159,16 +212,25 @@ inline void Serialize(TArchive& archive, std::forward_list<TValue, TAllocator>& 
 namespace Detail
 {
 	template<typename TArchive, typename TValue, typename TAllocator>
-	inline void LoadSetImpl(TArchive& scope, std::set<TValue, TAllocator>& cont)
+	inline void SerializeSetImpl(TArchive& scope, std::set<TValue, TAllocator>& cont)
 	{
-		auto contSize = scope.GetSize();
-		cont.clear();
-		auto hint = cont.begin();
-		for (size_t c = 0; c<contSize; c++)
+		if constexpr (scope.IsLoading())
 		{
-			TValue value;
-			Serialize(scope, value);
-			hint = cont.insert(hint, std::move(value));
+			auto contSize = scope.GetSize();
+			cont.clear();
+			auto hint = cont.begin();
+			for (size_t c = 0; c<contSize; c++)
+			{
+				TValue value;
+				Serialize(scope, value);
+				hint = cont.insert(hint, std::move(value));
+			}
+		}
+		else
+		{
+			for (const TValue& elem : cont) {
+				Serialize(scope, const_cast<TValue&>(elem));
+			}
 		}
 	}
 }
@@ -183,18 +245,7 @@ static void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	{
 		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
 		if (arrayScope)
-		{
-			auto& scope = *arrayScope.get();
-			if constexpr (archive.IsLoading()) {
-				Detail::LoadSetImpl(*arrayScope.get(), cont);
-			}
-			else
-			{
-				for (const TValue& elem : cont) {
-					Serialize(scope, const_cast<TValue&>(elem));
-				}
-			}
-		}
+			Detail::SerializeSetImpl(*arrayScope.get(), cont);
 	}
 }
 
@@ -208,18 +259,7 @@ static void Serialize(TArchive& archive, std::set<TValue, TAllocator>& cont)
 	{
 		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
 		if (arrayScope)
-		{
-			auto& scope = *arrayScope.get();
-			if constexpr (archive.IsLoading()) {
-				Detail::LoadSetImpl(*arrayScope.get(), cont);
-			}
-			else
-			{
-				for (const TValue& elem : cont) {
-					Serialize(scope, const_cast<TValue&>(elem));
-				}
-			}
-		}
+			Detail::SerializeSetImpl(*arrayScope.get(), cont);
 	}
 }
 

@@ -22,6 +22,7 @@
     <ClInclude Include="..\auto_fixture.h" />
     <ClInclude Include="..\common_test_methods.h" />
     <ClInclude Include="..\pch.h" />
+    <ClCompile Include="..\stl_containers_tests.cpp" />
     <ClCompile Include="..\string_conversion_tests.cpp" />
     <ClCompile Include="..\json_restcpp_archive_tests.cpp" />
     <ClInclude Include="..\common_test_entities.h" />

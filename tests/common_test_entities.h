@@ -46,6 +46,10 @@ public:
 		return x == rhs.x && y == rhs.y;
 	}
 
+	bool operator<(const TestPointClass& rhs) const {
+		return x < rhs.x || (!(rhs.x < x) && y < rhs.y);
+	}
+
 	std::string ToString() const {
 		return std::to_string(x) + ' ' + std::to_string(y);
 	}
@@ -197,6 +201,27 @@ public:
 	};
 
 	TestClassWithFundamentalTypes TestSubClass;
+};
+
+//-----------------------------------------------------------------------------
+template <typename T>
+class TestClassWithSubType
+{
+public:
+	static void BuildTestFixture(TestClassWithSubType& fixture) {
+		::BuildFixture(fixture.TestSubValue);
+	}
+
+	void Assert(const TestClassWithSubType& rhs) const {
+		ASSERT_EQ(TestSubValue, rhs.TestSubValue);
+	}
+
+	template <class TArchive>
+	inline void Serialize(TArchive& archive) {
+		archive << MakeKeyValue("TestSubValue", TestSubValue);
+	};
+
+	T TestSubValue;
 };
 
 //-----------------------------------------------------------------------------

@@ -124,7 +124,7 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto result = BitSerializer::SaveObject<JsonArchive>(simpleObj);
+	auto result = SaveObject<JsonArchive>(simpleObj);
     return 0;
 }
 ```
@@ -184,7 +184,7 @@ inline void Serialize(TArchive& archive)
     // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
     archive << TestBool;
     // Proper use
-		archive << MakeKeyValue("TestString", TestString);
+	archive << MakeKeyValue("TestString", TestString);
 };
 ```
 

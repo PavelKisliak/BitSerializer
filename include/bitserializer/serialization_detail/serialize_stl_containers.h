@@ -38,7 +38,7 @@ namespace Detail
 				auto& scope = *arrayScope.get();
 				if constexpr (archive.IsLoading())
 				{
-					if constexpr (is_resizeable_cont<TContainer>::value)
+					if constexpr (is_resizeable_cont_v<TContainer>)
 						cont.resize(scope.GetSize());
 					else
 						assert(size >= scope.GetSize());
@@ -65,7 +65,7 @@ namespace Detail
 				auto& scope = *arrayScope.get();
 				if constexpr (archive.IsLoading())
 				{
-					if constexpr (is_resizeable_cont<TContainer>::value)
+					if constexpr (is_resizeable_cont_v<TContainer>)
 						cont.resize(scope.GetSize());
 					else
 						assert(size >= scope.GetSize());

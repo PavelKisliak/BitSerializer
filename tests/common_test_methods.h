@@ -81,3 +81,24 @@ void TestSerializeClass(T&& value)
 	::BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	actual.Assert(value);
 }
+
+/// <summary>
+/// Test template of serialization for STL containers.
+/// </summary>
+/// <param name="value">The value.</param>
+template <typename TArchive, typename TContainer>
+void TestSerializeStlContainer()
+{
+	// Arrange
+	typename TArchive::output_format outputArchive;
+	TContainer expected;
+	::BuildFixture(expected);
+
+	// Act
+	auto jsonResult = SaveObject<JsonArchive>(expected);
+	TContainer actual;
+	LoadObject<JsonArchive>(actual, jsonResult);
+
+	// Assert
+	EXPECT_EQ(expected, actual);
+}

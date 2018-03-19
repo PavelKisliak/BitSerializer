@@ -3,6 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <deque>
+#include <map>
+#include <list>
+#include <forward_list>
 #include "gtest/gtest.h"
 #include "bitserializer/string_conversion.h"
 
@@ -54,4 +58,90 @@ static T BuildFixture()
 	T fixture;
 	BuildFixture(fixture);
 	return fixture;
+}
+
+template <typename T, size_t Size>
+static void BuildFixture(std::array<T, Size>& cont)
+{
+	for (size_t i = 0; i < Size; i++) {
+		BuildFixture(cont[i]);
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::vector<T>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+	for (auto& elem : cont) {
+		BuildFixture(elem);
+	}
+}
+
+static void BuildFixture(std::vector<bool>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+
+	for (size_t i = 0; i < size; i++) {
+		bool elem;
+		BuildFixture(elem);
+		cont[i] = elem;
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::deque<T>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+	for (auto& elem : cont) {
+		BuildFixture(elem);
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::list<T>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+	for (auto& elem : cont) {
+		BuildFixture(elem);
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::forward_list<T>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+	for (auto& elem : cont) {
+		BuildFixture(elem);
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::set<T>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	for (size_t i = 0; i < size; i++) {
+		T element;
+		BuildFixture(element);
+		cont.emplace(std::move(element));
+	}
+}
+
+template <typename TKey, typename TValue>
+static void BuildFixture(std::map<TKey, TValue>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	for (size_t i = 0; i < size; i++) {
+		TValue value;
+		BuildFixture(value);
+		cont.emplace(BuildFixture<TKey>(), std::move(value));
+	}
 }

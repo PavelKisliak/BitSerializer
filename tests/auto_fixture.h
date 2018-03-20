@@ -5,18 +5,52 @@
 #pragma once
 #include <deque>
 #include <map>
+#include <set>
 #include <list>
 #include <forward_list>
+#include <type_traits>
 #include "gtest/gtest.h"
 #include "bitserializer/string_conversion.h"
 
 /// <summary>
-/// Builds the test fixture (classes must have static method GetTestFixture()).
+/// Checks that the class has BuildFixture() method.
 /// </summary>
-/// <returns></returns>
-template <typename T, std::enable_if_t<std::is_class_v<T>, int> = 0>
-static void BuildFixture(T& value)					{ T::BuildTestFixture(value); }
+template <typename T>
+struct has_buld_fixture_method
+{
+private:
+	template <typename U>
+	static decltype(T::BuildFixture(std::declval<T&>()), void(), std::true_type()) test(int);
 
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool has_buld_fixture_method_v = has_buld_fixture_method<T>::value;
+
+/// <summary>
+/// Builds the test fixture for classes (they must have static method BuildFixture()).
+/// As an alternative you can implement method BuildFixture() as global.
+/// </summary>
+template <typename T, std::enable_if_t<std::is_class_v<T>, int> = 0>
+static void BuildFixture(T& value)
+{
+	if constexpr (has_buld_fixture_method_v<T>) {
+		T::BuildFixture(value);
+	}
+	else {
+		static_assert(false, "Your test class should implements static method BuildFixture(ClassType&).");
+	}
+}
+
+/// <summary>
+/// Builds the test fixture for enum types (they must be registered in conversion system).
+/// </summary>
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 

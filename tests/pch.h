@@ -5,6 +5,13 @@
 
 #pragma once
 #include <limits>
-#include <stdlib.h>
 #include <type_traits>
+#include <array>
+#include <vector>
+#include <deque>
+#include <list>
+#include <forward_list>
+#include <set>
+#include <map>
+#include <stdlib.h>
 #include "gtest/gtest.h"

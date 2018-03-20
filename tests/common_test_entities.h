@@ -31,7 +31,7 @@ END_ENUM_MAP()
 class TestPointClass
 {
 public:
-	static void BuildTestFixture(TestPointClass& fixture) {
+	static void BuildFixture(TestPointClass& fixture) {
 		::BuildFixture(fixture.x);
 		::BuildFixture(fixture.y);
 	}
@@ -98,7 +98,7 @@ public:
 class TestClassWithFundamentalTypes
 {
 public:
-	static void BuildTestFixture(TestClassWithFundamentalTypes& fixture)
+	static void BuildFixture(TestClassWithFundamentalTypes& fixture)
 	{
 		::BuildFixture(fixture.TestBool);
 		::BuildFixture(fixture.TestInt8);
@@ -157,9 +157,9 @@ public:
 class TestClassWithInheritance : public TestClassWithFundamentalTypes
 {
 public:
-	static void BuildTestFixture(TestClassWithInheritance& fixture)
+	static void BuildFixture(TestClassWithInheritance& fixture)
 	{
-		TestClassWithFundamentalTypes::BuildTestFixture(fixture);
+		TestClassWithFundamentalTypes::BuildFixture(fixture);
 		::BuildFixture(fixture.TestUInt32);
 		::BuildFixture(fixture.TestUInt64);
 	}
@@ -187,8 +187,8 @@ public:
 class TestClassWithSubClass
 {
 public:
-	static void BuildTestFixture(TestClassWithSubClass& fixture) {
-		TestClassWithFundamentalTypes::BuildTestFixture(fixture.TestSubClass);
+	static void BuildFixture(TestClassWithSubClass& fixture) {
+		TestClassWithFundamentalTypes::BuildFixture(fixture.TestSubClass);
 	}
 
 	void Assert(const TestClassWithSubClass& rhs) const {
@@ -208,7 +208,7 @@ template <typename T>
 class TestClassWithSubType
 {
 public:
-	static void BuildTestFixture(TestClassWithSubType& fixture) {
+	static void BuildFixture(TestClassWithSubType& fixture) {
 		::BuildFixture(fixture.TestSubValue);
 	}
 
@@ -229,7 +229,7 @@ template <typename T, size_t ArraySize = 7>
 class TestClassWithSubArray
 {
 public:
-	static void BuildTestFixture(TestClassWithSubArray<T>& fixture) {
+	static void BuildFixture(TestClassWithSubArray<T>& fixture) {
 		::BuildFixture(fixture.TestArray);
 	}
 
@@ -252,7 +252,7 @@ template <typename T, size_t ArraySize1 = 3, size_t ArraySize2 = 5>
 class TestClassWithSubTwoDimArray
 {
 public:
-	static void BuildTestFixture(TestClassWithSubTwoDimArray& fixture) {
+	static void BuildFixture(TestClassWithSubTwoDimArray& fixture) {
 		::BuildFixture(fixture.TestTwoDimArray);
 	}
 

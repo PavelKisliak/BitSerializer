@@ -48,6 +48,13 @@ static void BuildFixture(TValue(&arr)[ArraySize])
 	}
 }
 
+template <typename TKey, typename TValue>
+static void BuildFixture(std::pair<TKey, TValue>& pair)
+{
+	BuildFixture(pair.first);
+	BuildFixture(pair.second);
+}
+
 /// <summary>
 /// Build the test fixture - overloaded variant with return value (can't be applied to c-array types).
 /// </summary>

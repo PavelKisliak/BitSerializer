@@ -12,6 +12,7 @@
     <ClCompile Include="..\json_restcpp_archive_tests.cpp" />
     <ClCompile Include="..\serialization_stl_types_tests.cpp" />
     <ClCompile Include="..\serialization_containers_tests.cpp" />
+    <ClCompile Include="..\serialization_object_traits_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\pch.h" />

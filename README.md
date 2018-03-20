@@ -170,8 +170,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 	{ HttpMethod::Delete,   "delete" },
 	{ HttpMethod::Get,      "get" },
 	{ HttpMethod::Head,     "head" }
-}
-END_ENUM_MAP()
+} END_ENUM_MAP()
 ```
 
 #### Compile time checking

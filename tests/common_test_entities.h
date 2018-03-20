@@ -24,8 +24,7 @@ REGISTER_ENUM_MAP(TestEnum)
 	{ TestEnum::Three,	"Three" },
 	{ TestEnum::Four,	"Four" },
 	{ TestEnum::Five,	"Five" }
-}
-END_ENUM_MAP()
+} END_ENUM_MAP()
 
 //-----------------------------------------------------------------------------
 class TestPointClass

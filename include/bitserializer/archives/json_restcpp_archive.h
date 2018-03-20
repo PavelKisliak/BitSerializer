@@ -79,6 +79,18 @@ protected:
 		}
 	}
 
+	template <typename TSym, typename TAllocator>
+	void LoadString(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		if (jsonValue.is_string())
+		{
+			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+				value = jsonValue.as_string();
+			else
+				value = Convert::ToString(jsonValue.as_string());
+		}
+	}
+
 	web::json::value* mNode;
 };
 
@@ -101,16 +113,8 @@ public:
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto& jsonValue = LoadJsonValue();
-			if (jsonValue.is_string())
-			{
-				if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-					value = jsonValue.as_string();
-				else
-					value = Convert::ToString(jsonValue.as_string());
-			}
+		if constexpr (TMode == SerializeMode::Load) {
+			LoadString(LoadJsonValue(), value);
 		}
 		else
 		{
@@ -231,12 +235,8 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr)
-			{
-				if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-					value = jsonValue->as_string();
-				else
-					value = Convert::ToString(jsonValue->as_string());
+			if (jsonValue != nullptr) {
+				LoadString(*jsonValue, value);
 			}
 		}
 		else
@@ -382,15 +382,8 @@ public:
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mRootJson.is_string())
-			{
-				if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-					value = mRootJson.as_string();
-				else
-					value = Convert::FromString<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(mRootJson.as_string());
-			}
+		if constexpr (TMode == SerializeMode::Load) {
+			LoadString(mRootJson, value);
 		}
 		else
 		{

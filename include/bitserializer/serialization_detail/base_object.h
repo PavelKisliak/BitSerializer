@@ -8,28 +8,20 @@
 namespace BitSerializer {
 
 /// <summary>
-/// Implementation of helper class to simplify the serialization of base objects.
+/// The wrapper class that keeps a reference to a base user object, used to simplify the serialization of base objects.
 /// </summary>
-template<class TBase, class TDerived>
-struct BaseObjectImpl
+template<class TBase>
+struct BaseObject
 {
-	explicit BaseObjectImpl(TDerived& object) noexcept
+	template <typename TDerived>
+	explicit BaseObject(TDerived& object) noexcept
 		: Object(object)
-	{ }
+	{
+		static_assert(std::is_base_of_v<TBase, TDerived>,
+			"BitSerializer. The template parameter 'TBase' should be a base type of passed object.");
+	}
 
 	TBase& Object;
 };
-
-/// <summary>
-/// The helper function for making a base class wrapper (to simplify the serialization of base objects).
-/// </summary>
-/// <param name="object">The object.</param>
-/// <returns></returns>
-template<class TBase, class TDerived>
-constexpr BaseObjectImpl<TBase, TDerived> BaseObject(TDerived& object) noexcept
-{
-	static_assert(std::is_base_of_v<TBase, TDerived>, "BitSerializer. The template parameter 'TBase' should be a base type of passed object.");
-	return BaseObjectImpl<TBase, TDerived>(object);
-}
 
 }	// namespace BitSerializer

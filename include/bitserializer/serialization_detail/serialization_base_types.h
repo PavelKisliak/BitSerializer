@@ -140,8 +140,8 @@ inline void Serialize(TArchive& archive, TValue& value)
 /// <summary>
 /// Serializes the base class.
 /// </summary>
-template <typename TArchive, class TBase, class TDerived>
-inline void Serialize(TArchive& archive, BaseObjectImpl<TBase, TDerived>&& value)
+template <typename TArchive, class TBase>
+inline void Serialize(TArchive& archive, BaseObject<TBase>&& value)
 {
 	if constexpr (!is_serializable_class_v<TBase>) {
 		static_assert(false, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");

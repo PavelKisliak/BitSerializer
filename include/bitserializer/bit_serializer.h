@@ -115,9 +115,9 @@ inline TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TVa
 /// <param name="archive">The archive.</param>
 /// <param name="object">The serializing object.</param>
 /// <returns></returns>
-template <class TArchive, class TBase, class TDerived, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-inline TArchive& operator<<(TArchive& archive, BitSerializer::BaseObjectImpl<TBase, TDerived>&& object)
+template <class TArchive, class TBase, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
+inline TArchive& operator<<(TArchive& archive, BitSerializer::BaseObject<TBase>&& object)
 {
-	BitSerializer::Serialize(archive, std::move(object));
+	BitSerializer::Serialize(archive, std::forward<BitSerializer::BaseObject<TBase>>(object));
 	return archive;
 }

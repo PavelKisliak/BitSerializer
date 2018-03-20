@@ -240,14 +240,12 @@ TEST(Convert, EnumToWString) {
 //-----------------------------------------------------------------------------
 TEST(Convert, ClassFromString) {
 	auto actual = Convert::FromString<TestPointClass>("100 -200");
-	EXPECT_EQ(100, actual.x);
-	EXPECT_EQ(-200, actual.y);
+	EXPECT_EQ(TestPointClass(100, -200), actual);
 }
 
 TEST(Convert, ClassFromWString) {
 	auto actual = Convert::FromString<TestPointClass>(L"-123 555");
-	EXPECT_EQ(-123, actual.x);
-	EXPECT_EQ(555, actual.y);
+	EXPECT_EQ(TestPointClass(-123, 555), actual);
 }
 
 TEST(Convert, ClassToString) {
@@ -283,6 +281,33 @@ TEST(Convert, UniversalStringToInt) {
 TEST(Convert, UniversalIntToString) {
 	EXPECT_EQ("-12345", Convert::To<std::string>(-12345));
 	EXPECT_EQ(L"-12345", Convert::To<std::wstring>(-12345));
+}
+
+//-----------------------------------------------------------------------------
+// Test streaming functions
+//-----------------------------------------------------------------------------
+TEST(Convert, ConvertClassToStream) {
+	std::ostringstream oss;
+	oss << TestPointClass(543, -345);
+	EXPECT_EQ("543 -345", oss.str());
+}
+
+TEST(Convert, ConvertClassToWStream) {
+	std::wostringstream oss;
+	oss << TestPointClass(543, -345);
+	EXPECT_EQ(L"543 -345", oss.str());
+}
+
+TEST(Convert, ConvertEnumToStream) {
+	std::ostringstream oss;
+	oss << TestEnum::Five;
+	EXPECT_EQ("Five", oss.str());
+}
+
+TEST(Convert, ConvertEnumToWStream) {
+	std::wostringstream oss;
+	oss << TestEnum::Five;
+	EXPECT_EQ(L"Five", oss.str());
 }
 
 //-----------------------------------------------------------------------------

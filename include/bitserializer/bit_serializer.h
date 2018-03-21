@@ -48,6 +48,8 @@ namespace BitSerializer
 		return output;
 	}
 
+	//-----------------------------------------------------------------------------
+
 	/// <summary>
 	/// Loads the object from stream (depends to format of archive).
 	/// </summary>
@@ -72,6 +74,42 @@ namespace BitSerializer
 		TMediaArchive archive;
 		auto scope = archive.Save(output);
 		Serialize(scope, object);
+	}
+
+	//-----------------------------------------------------------------------------
+
+	/// <summary>
+	/// Loads the object from file (archive should support serialization to stream).
+	/// </summary>
+	/// <param name="object">The serializing object.</param>
+	/// <param name="path">The file path.</param>
+	template <typename TMediaArchive, typename T, typename TString>
+	inline void LoadObjectFromFile(T& object, TString&& path)
+	{
+		using stream_char_type = typename TMediaArchive::stream_char_type;
+		std::basic_ifstream<stream_char_type, std::char_traits<stream_char_type>> stream;
+		stream.open(std::forward<TString>(path), std::ios::in | std::ios::binary);
+		if (stream.is_open())
+			LoadObject<TMediaArchive>(object, stream);
+		else
+			throw std::runtime_error("The file '" + Convert::ToString(path) + "' was not found.");
+	}
+
+	/// <summary>
+	/// Saves the object to file (archive should support serialization to stream).
+	/// </summary>
+	/// <param name="object">The serializing object.</param>
+	/// <param name="path">The file path.</param>
+	template <typename TMediaArchive, typename T, typename TString>
+	inline void SaveObjectToFile(T& object, TString&& path)
+	{
+		using stream_char_type = typename TMediaArchive::stream_char_type;
+		std::basic_ofstream<stream_char_type, std::char_traits<stream_char_type>> stream;
+		stream.open(std::forward<TString>(path), std::ios::out | std::ios::binary);
+		if (stream.is_open())
+			SaveObject<TMediaArchive>(object, stream);
+		else
+			throw std::runtime_error("Could not open file: " + Convert::ToString(path));
 	}
 
 } // namespace BitSerializer

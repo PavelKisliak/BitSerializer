@@ -350,4 +350,63 @@ inline void Serialize(TArchive& archive, std::map<TKey, TValue, TComparer, TAllo
 	Serialize(archive, mapSerializer);
 }
 
+//-----------------------------------------------------------------------------
+// Serialize std::multimap
+//-----------------------------------------------------------------------------
+namespace Detail
+{
+	template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
+	inline void SerializeMultimapImpl(TArchive& scope, std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+	{
+		using pair_type = typename std::multimap<TKey, TValue, TComparer, TAllocator>::value_type;
+		if constexpr (scope.IsLoading())
+		{
+			auto loadSize = scope.GetSize();
+			cont.clear();
+			auto hint = cont.begin();
+			for (size_t c = 0; c < loadSize; c++)
+			{
+				pair_type pair;
+				Serialize(scope, pair);
+				hint = cont.emplace_hint(hint, std::move(pair));
+			}
+		}
+		else
+		{
+			for (auto& elem : cont) {
+				Serialize(scope, elem);
+			}
+		}
+	}
+}
+
+template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
+inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+{
+	if constexpr (!can_serialize_array_with_key_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key on this level.");
+	}
+	else
+	{
+		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+		if (arrayScope)
+			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
+	}
+}
+
+template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
+inline void Serialize(TArchive& archive, std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+{
+	if constexpr (!can_serialize_array_v<TArchive>) {
+		static_assert(false, "BitSerializer. The archive doesn't support serialize array without key on this level.");
+	}
+	else
+	{
+		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+		if (arrayScope)
+			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
+	}
+}
+
+
 }	// namespace BitSerializer

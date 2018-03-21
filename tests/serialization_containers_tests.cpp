@@ -152,3 +152,18 @@ TEST(STL_Containers, SerializeMapAsClassMember) {
 	using test_type = std::map<std::wstring, int>;
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubType<test_type>>());
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::multimap
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeMultimapMapWithIntAsKey) {
+	using test_type = std::multimap<int, int>;
+	TestSerializeStlContainer<JsonArchive, test_type>(AssertMultimap<test_type>);
+}
+
+TEST(STL_Containers, SerializeMultimapMapAsClassMember) {
+	using test_type = std::multimap<int, int>;
+	auto fixture = TestClassWithSubType<test_type>(AssertMultimap<test_type>);
+	BuildFixture(fixture);
+	TestSerializeClass<JsonArchive>(fixture);
+}

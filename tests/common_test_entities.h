@@ -5,6 +5,7 @@
 #pragma once
 #include <stdlib.h>
 #include <type_traits>
+#include <functional>
 #include "gtest/gtest.h"
 #include "common_test_methods.h"
 
@@ -207,12 +208,23 @@ template <typename T>
 class TestClassWithSubType
 {
 public:
+	TestClassWithSubType()
+	{
+		mAssertFunc = [](const T& expected, const T& actual) {
+			ASSERT_EQ(expected, actual);
+		};
+	}
+
+	TestClassWithSubType(const std::function<void(const T&, const T&)>& specialAssertFunc)
+		: mAssertFunc(specialAssertFunc)
+	{ }
+
 	static void BuildFixture(TestClassWithSubType& fixture) {
 		::BuildFixture(fixture.TestSubValue);
 	}
 
-	void Assert(const TestClassWithSubType& rhs) const {
-		ASSERT_EQ(TestSubValue, rhs.TestSubValue);
+	void Assert(const TestClassWithSubType& actual) const {
+		mAssertFunc(TestSubValue, actual.TestSubValue);
 	}
 
 	template <class TArchive>
@@ -221,6 +233,9 @@ public:
 	};
 
 	T TestSubValue;
+
+private:
+	std::function<void(const T&, const T&)> mAssertFunc;
 };
 
 //-----------------------------------------------------------------------------

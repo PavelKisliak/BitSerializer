@@ -6,6 +6,8 @@
 #pragma once
 #include <limits>
 #include <type_traits>
+#include <functional>
+#include <optional>
 #include <array>
 #include <vector>
 #include <deque>

@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <optional>
 #include "gtest/gtest.h"
 #include "auto_fixture.h"
 
@@ -79,7 +80,7 @@ void TestSerializeClass(T&& value)
 
 	std::decay_t<T> actual;
 	::BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-	actual.Assert(value);
+	value.Assert(actual);
 }
 
 /// <summary>
@@ -87,7 +88,7 @@ void TestSerializeClass(T&& value)
 /// </summary>
 /// <param name="value">The value.</param>
 template <typename TArchive, typename TContainer>
-void TestSerializeStlContainer()
+void TestSerializeStlContainer(std::optional<std::function<void(const TContainer&, const TContainer&)>> specialAssertFunc = std::nullopt)
 {
 	// Arrange
 	typename TArchive::output_format outputArchive;
@@ -100,5 +101,25 @@ void TestSerializeStlContainer()
 	LoadObject<JsonArchive>(actual, jsonResult);
 
 	// Assert
-	EXPECT_EQ(expected, actual);
+	if (specialAssertFunc.has_value())
+		specialAssertFunc.value()(expected, actual);
+	else
+		EXPECT_EQ(expected, actual);
+}
+
+/// <summary>
+/// Asserts the multimap container.
+/// </summary>
+/// <param name="expected">The expected.</param>
+/// <param name="actual">The actual.</param>
+template <typename TContainer>
+void AssertMultimap(const TContainer& expected, const TContainer& actual)
+{
+	ASSERT_EQ(expected.size(), actual.size());
+	// Order of values can be rearranged after loading
+	for (auto& elem : actual) {
+		auto expectedElementsRange = expected.equal_range(elem.first);
+		auto result = std::find(expectedElementsRange.first, expectedElementsRange.second, elem);
+		ASSERT_TRUE(result != expectedElementsRange.second);
+	}
 }

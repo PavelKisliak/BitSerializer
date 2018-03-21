@@ -84,6 +84,28 @@ void TestSerializeClass(T&& value)
 }
 
 /// <summary>
+/// Test template of serialization for class with using streams.
+/// </summary>
+/// <param name="value">The value.</param>
+template <typename TArchive, typename T>
+void TestSerializeClassToStream(T&& value)
+{
+	// Arrange
+	using string_stream_type = std::basic_stringstream<
+		TArchive::stream_char_type, std::char_traits<TArchive::stream_char_type>, std::allocator<TArchive::stream_char_type>>;
+	string_stream_type outputStream;
+
+	// Act
+	::BitSerializer::SaveObject<TArchive>(value, outputStream);
+	outputStream.seekg(0, std::ios::beg);
+	std::decay_t<T> actual;
+	::BitSerializer::LoadObject<TArchive>(actual, outputStream);
+
+	// Assert
+	value.Assert(actual);
+}
+
+/// <summary>
 /// Test template of serialization for STL containers.
 /// </summary>
 /// <param name="value">The value.</param>

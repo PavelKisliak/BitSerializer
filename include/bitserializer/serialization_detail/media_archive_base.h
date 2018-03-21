@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <type_traits>
 
 namespace BitSerializer {
 
@@ -42,19 +43,37 @@ public:
 		return TInputArchive(outputFormat);
 	}
 
-	inline TInputArchive Load(typename TArchiveTraits::input_stream& inputStream)
-	{
-		return TInputArchive(inputStream);
-	}
-
 	inline TOutputArchive Save(typename TArchiveTraits::output_format& outputFormat)
 	{
 		return TOutputArchive(outputFormat);
 	}
 
-	inline TOutputArchive Save(typename TArchiveTraits::output_stream& outputStream)
+	template <typename TChar>
+	inline TInputArchive Load(std::basic_istream<TChar, std::char_traits<TChar>>& inputStream)
 	{
-		return TOutputArchive(outputStream);
+		if constexpr (std::is_constructible_v<TInputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>)
+			return TInputArchive(inputStream);
+		else
+		{
+			if constexpr (std::is_same_v<TChar, char>)
+				static_assert(false, "BitSerializer. The archive doesn't support loading from stream based on ANSI char element.");
+			else
+				static_assert(false, "BitSerializer. The archive doesn't support loading from stream based on wide string element.");
+		}
+	}
+
+	template <typename TChar>
+	inline TOutputArchive Save(std::basic_ostream<TChar, std::char_traits<TChar>>& outputStream)
+	{
+		if constexpr (std::is_constructible_v<TOutputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>)
+			return TOutputArchive(outputStream);
+		else
+		{
+			if constexpr (std::is_same_v<TChar, char>)
+				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on ANSI char element.");
+			else
+				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on wide string element.");
+		}
 	}
 };
 

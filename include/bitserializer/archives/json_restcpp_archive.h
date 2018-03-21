@@ -24,8 +24,7 @@ class JsonArchiveTraits
 public:
 	using key_type = utility::string_t;
 	using output_format = utility::string_t;
-	using input_stream = utility::istream_t;
-	using output_stream = utility::ostream_t;
+	using stream_char_type = utility::ostream_t::char_type;
 };
 
 // Forward declarations
@@ -355,7 +354,7 @@ public:
 		assert(TMode == SerializeMode::Save);
 	}
 
-	JsonRootScope(input_stream& input)
+	JsonRootScope(typename utility::istream_t& input)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
@@ -367,7 +366,7 @@ public:
 		}
 	}
 
-	JsonRootScope(output_stream& output)
+	JsonRootScope(typename utility::ostream_t& output)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(&output)
 	{
@@ -464,7 +463,7 @@ private:
 				using T = std::decay_t<decltype(arg)>;
 				if constexpr (std::is_same_v<T, output_format*>)
 					*arg = mRootJson.serialize();
-				else if constexpr (std::is_same_v<T, output_stream*>)
+				else if constexpr (std::is_same_v<T, utility::ostream_t*>)
 					*arg << mRootJson;
 			}, mOutput);
 			mOutput = nullptr;
@@ -472,7 +471,7 @@ private:
 	}
 
 	web::json::value mRootJson;
-	std::variant<std::nullptr_t, output_format*, output_stream*> mOutput;
+	std::variant<std::nullptr_t, output_format*, utility::ostream_t*> mOutput;
 };
 
 } //namespace Detail

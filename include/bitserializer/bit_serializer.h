@@ -23,19 +23,6 @@ namespace BitSerializer
 	}
 
 	/// <summary>
-	/// Loads the object from stream (depends to format of archive).
-	/// </summary>
-	/// <param name="object">The serializing object.</param>
-	/// <param name="input">The input stream.</param>
-	template <typename TMediaArchive, typename T>
-	inline void LoadObject(T& object, const typename TMediaArchive::input_stream& input)
-	{
-		TMediaArchive archive;
-		auto scope = archive.Load(input);
-		Serialize(scope, object);
-	}
-
-	/// <summary>
 	/// Saves the object to string or binary array (depends to format of archive).
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
@@ -62,12 +49,25 @@ namespace BitSerializer
 	}
 
 	/// <summary>
+	/// Loads the object from stream (depends to format of archive).
+	/// </summary>
+	/// <param name="object">The serializing object.</param>
+	/// <param name="input">The input stream.</param>
+	template <typename TMediaArchive, typename T, typename TStreamElem>
+	inline void LoadObject(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
+	{
+		TMediaArchive archive;
+		auto scope = archive.Load(input);
+		Serialize(scope, object);
+	}
+
+	/// <summary>
 	/// Saves the object to stream (depends to format of archive).
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output stream.</param>
-	template <typename TMediaArchive, typename T>
-	inline void SaveObject(T& object, typename TMediaArchive::output_stream& output)
+	template <typename TMediaArchive, typename T, typename TStreamElem>
+	inline void SaveObject(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Save(output);

@@ -84,9 +84,9 @@ namespace BitSerializer
 /// <param name="value">The serializing value.</param>
 /// <returns></returns>
 template <class TArchive, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-inline TArchive& operator<<(TArchive& scope, TValue& value)
+inline TArchive& operator<<(TArchive& scope, TValue&& value)
 {
-	BitSerializer::Serialize(scope, value);
+	BitSerializer::Serialize(scope, std::forward<TValue>(value));
 	return scope;
 }
 
@@ -99,25 +99,12 @@ inline TArchive& operator<<(TArchive& scope, TValue& value)
 template <class TArchive, class TKey, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
 inline TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TValue>&& keyValue)
 {
-	if constexpr (std::is_same_v<TKey, TArchive::key_type>)
+	if constexpr (std::is_same_v<std::decay_t<TKey>, TArchive::key_type>)
 		BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
 	else
 	{
 		const auto archiveCompatibleKey = Convert::FromString<TArchive::key_type>(keyValue.GetKey());
 		BitSerializer::Serialize(archive, archiveCompatibleKey, keyValue.GetValue());
 	}
-	return archive;
-}
-
-/// <summary>
-/// Operator << for serialize base object to/from the archive.
-/// </summary>
-/// <param name="archive">The archive.</param>
-/// <param name="object">The serializing object.</param>
-/// <returns></returns>
-template <class TArchive, class TBase, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-inline TArchive& operator<<(TArchive& archive, BitSerializer::BaseObject<TBase>&& object)
-{
-	BitSerializer::Serialize(archive, std::forward<BitSerializer::BaseObject<TBase>>(object));
 	return archive;
 }

@@ -1,8 +1,8 @@
 # BitSerializer
-
+___
 The library is designed for simple serialization of arbitrary C++ types to various output formats.
 
-This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C ++ REST SDK library. The purpose of creating this library was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
+This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C ++ REST SDK library. The purpose of creating this library was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 #### Main features:
   - Support for different formats (currently only JSON).
@@ -28,11 +28,12 @@ The library contains only header files, need to include main file which implemen
 #include "bitserializer\archives\json_restcpp_archive.h"
 ```
 
-
+___
 ## Examples of using
 
 #### Hello world!
 ```cpp
+#include <iostream>
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"
 
@@ -40,11 +41,12 @@ using namespace BitSerializer;
 
 int main()
 {
-	std::string str = "Hello world!";
-	auto json = SaveObject<JsonArchive>(str);
-	str.clear();
-	LoadObject<JsonArchive>(str, json);
-	assert(str == "Hello world!");
+	std::string expected = "Hello world!";
+	auto json = SaveObject<JsonArchive>(expected);
+	std::string result;
+	LoadObject<JsonArchive>(result, json);
+	assert(result == expected);
+	std::cout << result;
 	return 0;
 }
 ```
@@ -174,7 +176,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 ```
 
 #### Compile time checking
-The new C++ 17 ability Â«if constexprÂ» helps to generate clear error messages.
+The new C++ 17 ability «if constexpr» helps to generate clear error messages.
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
 ```cpp
 template <class TArchive>

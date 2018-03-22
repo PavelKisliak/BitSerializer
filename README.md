@@ -87,8 +87,12 @@ const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
-#### Serializing custom class
-To support serialization of your type, you must implement the Serialize() method, which can also be implemented as an external method in the BitSerializer namespace (take a look at the implementation in the library).
+#### Serializing class
+There are two ways to serialize a class, 
+* Your own class (sources can be modified) - posiible to create internal or external method Serialize(), but internal is more convinent.
+* Third party class (no access to sources) - only extrenal method in namespace BitSerializer.
+
+Next example demonstartes how to implemet internal serialization method:
 ```cpp
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"
@@ -152,6 +156,71 @@ void Serialize(TArchive& archive)
 	archive << BaseObject<MyBaseClass>(*this);
 	archive << MakeKeyValue("TestInt", TestInt);
 };
+```
+
+#### Serializing third party class
+For serialize third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method resposible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time the possibility the type serialization in a current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
+
+```cpp
+#include <iostream>
+#include "bitserializer\bit_serializer.h"
+#include "bitserializer\archives\json_restcpp_archive.h"
+
+class TestThirdPartyClass
+{
+public:
+	TestThirdPartyClass(int x, int y)
+		: x(x), y(y)
+	{ }
+
+	int x;
+	int y;
+};
+
+namespace BitSerializer
+{
+	namespace Detail
+	{
+		class TestThirdPartyClassSerializer
+		{
+		public:
+			TestThirdPartyClassSerializer(TestThirdPartyClass& value)
+				: value(value)
+			{ }
+
+			template <class TArchive>
+			inline void Serialize(TArchive& archive)
+			{
+				archive << MakeKeyValue("x", value.x);
+				archive << MakeKeyValue("y", value.y);
+			}
+
+			TestThirdPartyClass& value;
+		};
+	}	// namespace Detail
+
+	template<typename TArchive>
+	inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TestThirdPartyClass& value)
+    {
+		auto serializer = Detail::TestThirdPartyClassSerializer(value);
+		Serialize(archive, key, serializer);
+	}
+	template<typename TArchive>
+	inline void Serialize(TArchive& archive, TestThirdPartyClass& value)
+	{
+		auto serializer = Detail::TestThirdPartyClassSerializer(value);
+		Serialize(archive, serializer);
+	}
+}   // namespace BitSerializer
+
+using namespace BitSerializer;
+
+int main()
+{
+	auto simpleObj = TestThirdPartyClass(100, 200);
+	auto result = SaveObject<JsonArchive>(simpleObj);
+	return 0;
+}
 ```
 
 #### Serializing enum types

@@ -93,6 +93,7 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 
 #### Serializing class
 There are two ways to serialize a class:
+
   * Your own class (sources can be modified), possible to create internal or external method Serialize(), but internal is more convenient.
   * Third party class (no access to sources), only external method in namespace BitSerializer.
 

@@ -248,7 +248,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 } END_ENUM_MAP()
 ```
 
-#### Ñonditions for checking the serialization mode
+#### Conditions for checking the serialization mode
 To check the current serialization mode, use two methods - IsLoading() and IsSaving(). They are haven't CPU overhead, because they are «constexpr».
 ```cpp
 class Foo

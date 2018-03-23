@@ -22,7 +22,11 @@ This is the first version open for public access, currently it includes support 
   - [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)
 
 #### How to use:
-The library contains only header files, need to include main file which implements serialization and file, wich implements required format (JSON for example). For install dependencies for formats (like C++ REST SDK), please follow instructions for these libraries.
+The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implement only one type of archive, you need to install «CppRestSDK». If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the «CppRestSDK» will be automatically installed as dependency.
+```shell
+vcpkg install bitserializer bitserializer:x64-windows
+```
+Now you need just include main file of BitSerializer which implements serialization and file, which implements required format (JSON for example).
 ```cpp
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"
@@ -242,6 +246,31 @@ REGISTER_ENUM_MAP(HttpMethod)
 	{ HttpMethod::Get,      "get" },
 	{ HttpMethod::Head,     "head" }
 } END_ENUM_MAP()
+```
+
+#### Ñonditions for checking the serialization mode
+To check the current serialization mode, use two methods - IsLoading() and IsSaving(). They are haven't CPU overhead, because they are «constexpr».
+```cpp
+class Foo
+public:
+    template <class TArchive>
+    inline void Serialize(TArchive& archive)
+    {
+    	if constexpr (archive.IsLoading()) {
+	        // Code which executes in loading mode
+	    }
+	    else {
+    		// Code which executes in saving mode
+    	}
+	
+    	if constexpr (archive.IsSaving()) {
+		    // Code which executes in saving mode
+	    }
+	    else {
+    		// Code which executes in loading mode
+    	}
+    }
+}
 ```
 
 #### Compile time checking

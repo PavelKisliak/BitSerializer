@@ -22,7 +22,7 @@ This is the first version open for public access, currently it includes support 
   - [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)
 
 #### How to use:
-The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implement only one type of archive, you need to install «CppRestSDK». If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the «CppRestSDK» will be automatically installed as dependency.
+The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implements only one type of archive, you need to install «CppRestSDK». If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the «CppRestSDK» will be automatically installed as dependency.
 ```shell
 vcpkg install bitserializer bitserializer:x64-windows
 ```
@@ -93,8 +93,8 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 
 #### Serializing class
 There are two ways to serialize a class, 
-* Your own class (sources can be modified) - possible to create internal or external method Serialize(), but internal is more convenient.
-* Third party class (no access to sources) - only external method in namespace BitSerializer.
+  - Your own class (sources can be modified) - possible to create internal or external method Serialize(), but internal is more convenient.
+  - Third party class (no access to sources) - only external method in namespace BitSerializer.
 
 Next example demonstartes how to implement internal serialization method:
 ```cpp

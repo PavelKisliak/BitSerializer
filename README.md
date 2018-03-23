@@ -93,10 +93,10 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 
 #### Serializing class
 There are two ways to serialize a class, 
-* Your own class (sources can be modified) - posiible to create internal or external method Serialize(), but internal is more convinent.
-* Third party class (no access to sources) - only extrenal method in namespace BitSerializer.
+* Your own class (sources can be modified) - possible to create internal or external method Serialize(), but internal is more convenient.
+* Third party class (no access to sources) - only external method in namespace BitSerializer.
 
-Next example demonstartes how to implemet internal serialization method:
+Next example demonstartes how to implement internal serialization method:
 ```cpp
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"
@@ -163,7 +163,7 @@ void Serialize(TArchive& archive)
 ```
 
 #### Serializing third party class
-For serialize third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method resposible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time the possibility the type serialization in a current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
+For serialize third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time the possibility the type serialization in a current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
 
 ```cpp
 #include <iostream>

@@ -97,7 +97,7 @@ There are two ways to serialize a class:
   * Your own class (sources can be modified), possible to create internal or external method Serialize(), but internal is more convenient.
   * Third party class (no access to sources), only external method in namespace BitSerializer.
 
-Next example demonstartes how to implement internal serialization method:
+Next example demonstrates how to implement internal serialization method:
 ```cpp
 #include "bitserializer\bit_serializer.h"
 #include "bitserializer\archives\json_restcpp_archive.h"

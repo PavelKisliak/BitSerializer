@@ -3,7 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include "common_test_entities.h"
 #include "bitserializer\serialization_detail\archive_traits.h"
 
 using namespace BitSerializer;
@@ -20,8 +19,8 @@ public:
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}
 
-	std::unique_ptr<TestArchive_LoadMode> OpenScopeForSerializeObject() { return nullptr; }
-	std::unique_ptr<TestArchive_LoadMode> OpenScopeForSerializeArray(size_t arraySize) { return nullptr; }
+	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope() { return nullptr; }
+	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(size_t arraySize) { return nullptr; }
 };
 
 /// <summary>
@@ -40,8 +39,8 @@ public:
 	template <typename TSym, typename TAllocator>
 	void SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}
 
-	std::unique_ptr<TestArchive_LoadMode> OpenScopeForSerializeObject(const key_type& key) { return nullptr; }
-	std::unique_ptr<TestArchive_LoadMode> OpenScopeForSerializeArray(const key_type& key, size_t arraySize) { return nullptr; }
+	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope(const key_type& key) { return nullptr; }
+	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(const key_type& key, size_t arraySize) { return nullptr; }
 };
 
 class TestWrongArchive

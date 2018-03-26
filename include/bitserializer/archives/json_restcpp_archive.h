@@ -152,7 +152,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject()
+	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -171,7 +171,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(size_t arraySize)
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -277,7 +277,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject(const key_type& key)
+	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope(const key_type& key)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -296,7 +296,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(const key_type& key, size_t arraySize)
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -422,7 +422,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<JsonObjectScope<TMode>> OpenScopeForSerializeObject()
+	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -438,7 +438,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenScopeForSerializeArray(size_t arraySize)
+	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{

@@ -32,7 +32,7 @@ namespace Detail
 		else
 		{
 			const size_t size = GetContainerSize(cont);
-			auto arrayScope = archive.OpenScopeForSerializeArray(key, size);
+			auto arrayScope = archive.OpenArrayScope(key, size);
 			if (arrayScope)
 			{
 				auto& scope = *arrayScope.get();
@@ -59,7 +59,7 @@ namespace Detail
 		else
 		{
 			const size_t size = GetContainerSize(cont);
-			auto arrayScope = archive.OpenScopeForSerializeArray(size);
+			auto arrayScope = archive.OpenArrayScope(size);
 			if (arrayScope)
 			{
 				auto& scope = *arrayScope.get();
@@ -141,7 +141,7 @@ inline void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+		auto arrayScope = archive.OpenArrayScope(key, cont.size());
 		if (arrayScope)
 			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
 	}
@@ -155,7 +155,7 @@ inline void Serialize(TArchive& archive, std::vector<bool, TAllocator>& cont)
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+		auto arrayScope = archive.OpenArrayScope(cont.size());
 		if (arrayScope)
 			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
 	}
@@ -243,7 +243,7 @@ static void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+		auto arrayScope = archive.OpenArrayScope(key, cont.size());
 		if (arrayScope)
 			Detail::SerializeSetImpl(*arrayScope.get(), cont);
 	}
@@ -257,7 +257,7 @@ static void Serialize(TArchive& archive, std::set<TValue, TAllocator>& cont)
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+		auto arrayScope = archive.OpenArrayScope(cont.size());
 		if (arrayScope)
 			Detail::SerializeSetImpl(*arrayScope.get(), cont);
 	}
@@ -388,7 +388,7 @@ inline void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(key, cont.size());
+		auto arrayScope = archive.OpenArrayScope(key, cont.size());
 		if (arrayScope)
 			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
 	}
@@ -402,7 +402,7 @@ inline void Serialize(TArchive& archive, std::multimap<TKey, TValue, TComparer, 
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(cont.size());
+		auto arrayScope = archive.OpenArrayScope(cont.size());
 		if (arrayScope)
 			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
 	}

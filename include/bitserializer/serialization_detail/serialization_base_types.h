@@ -116,7 +116,7 @@ inline void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		auto objectScope = archive.OpenScopeForSerializeObject(key);
+		auto objectScope = archive.OpenObjectScope(key);
 		value.Serialize(*objectScope.get());
 	}
 };
@@ -132,7 +132,7 @@ inline void Serialize(TArchive& archive, TValue& value)
 	}
 	else
 	{
-		auto objectScope = archive.OpenScopeForSerializeObject();
+		auto objectScope = archive.OpenObjectScope();
 		value.Serialize(*objectScope.get());
 	}
 };
@@ -166,7 +166,7 @@ static void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(key, ArraySize);
+		auto arrayScope = archive.OpenArrayScope(key, ArraySize);
 		if (arrayScope)
 		{
 			auto& scope = *arrayScope.get();
@@ -186,7 +186,7 @@ static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 	}
 	else
 	{
-		auto arrayScope = archive.OpenScopeForSerializeArray(ArraySize);
+		auto arrayScope = archive.OpenArrayScope(ArraySize);
 		if (arrayScope)
 		{
 			auto& scope = *arrayScope.get();

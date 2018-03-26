@@ -122,10 +122,10 @@ namespace BitSerializer
 /// <param name="value">The serializing value.</param>
 /// <returns></returns>
 template <class TArchive, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-inline TArchive& operator<<(TArchive& scope, TValue&& value)
+inline TArchive& operator<<(TArchive& archive, TValue&& value)
 {
-	BitSerializer::Serialize(scope, std::forward<TValue>(value));
-	return scope;
+	BitSerializer::Serialize(archive, std::forward<TValue>(value));
+	return archive;
 }
 
 /// <summary>

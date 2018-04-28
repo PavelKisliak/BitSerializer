@@ -113,7 +113,7 @@ TEST(JsonRestCpp, SerializeClassWithSubTwoDimArray) {
 // Tests streams
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, SerializeClassToStream) {
-	TestSerializeClassToStream<JsonArchive>(BuildFixture<TestClassWithFundamentalTypes>());
+	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
 }
 
 //-----------------------------------------------------------------------------

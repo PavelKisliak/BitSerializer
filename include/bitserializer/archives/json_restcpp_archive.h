@@ -24,7 +24,6 @@ class JsonArchiveTraits
 public:
 	using key_type = utility::string_t;
 	using output_format = utility::string_t;
-	using stream_char_type = utility::ostream_t::char_type;
 };
 
 // Forward declarations

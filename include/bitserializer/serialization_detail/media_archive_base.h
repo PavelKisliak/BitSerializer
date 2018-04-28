@@ -38,20 +38,46 @@ template <typename TArchiveTraits, class TInputArchive, class TOutputArchive>
 class MediaArchiveBase : public TArchiveTraits
 {
 public:
-	inline TInputArchive Load(const typename TArchiveTraits::output_format& outputFormat)
+	template <typename T>
+	static constexpr bool IsSupportInputDataType()		{ return std::is_constructible_v<TInputArchive, const T>; }
+
+	template <typename T>
+	static constexpr bool IsSupportOutputDataType()		{ return std::is_constructible_v<TOutputArchive, T>; }
+
+	template <typename TChar>
+	static constexpr bool IsSupportInputStringStreamType()
 	{
-		return TInputArchive(outputFormat);
+		return std::is_constructible_v<TInputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>;
 	}
 
-	inline TOutputArchive Save(typename TArchiveTraits::output_format& outputFormat)
+	template <typename TChar>
+	static constexpr bool IsSupportOutputStringStreamType()
 	{
-		return TOutputArchive(outputFormat);
+		return std::is_constructible_v<TOutputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>;
+	}
+
+	inline TInputArchive Load(const typename TArchiveTraits::output_format& inputData)
+	{
+		if constexpr (IsSupportInputDataType<const typename TArchiveTraits::output_format>())
+			return TInputArchive(inputData);
+		else {
+			static_assert(false, "BitSerializer. The archive doesn't support loading from provided data type.");
+		}
+	}
+
+	inline TOutputArchive Save(typename TArchiveTraits::output_format& outputData)
+	{
+		if constexpr (IsSupportOutputDataType<typename TArchiveTraits::output_format>())
+			return TOutputArchive(outputData);
+		else {
+			static_assert(false, "BitSerializer. The archive doesn't support save to provided data type.");
+		}
 	}
 
 	template <typename TChar>
 	inline TInputArchive Load(std::basic_istream<TChar, std::char_traits<TChar>>& inputStream)
 	{
-		if constexpr (std::is_constructible_v<TInputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>)
+		if constexpr (IsSupportInputStringStreamType<TChar>())
 			return TInputArchive(inputStream);
 		else
 		{
@@ -65,7 +91,7 @@ public:
 	template <typename TChar>
 	inline TOutputArchive Save(std::basic_ostream<TChar, std::char_traits<TChar>>& outputStream)
 	{
-		if constexpr (std::is_constructible_v<TOutputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>)
+		if constexpr (IsSupportOutputStringStreamType<TChar>())
 			return TOutputArchive(outputStream);
 		else
 		{

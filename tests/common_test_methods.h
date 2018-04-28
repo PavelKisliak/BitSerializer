@@ -87,12 +87,11 @@ void TestSerializeClass(T&& value)
 /// Test template of serialization for class with using streams.
 /// </summary>
 /// <param name="value">The value.</param>
-template <typename TArchive, typename T>
+template <typename TArchive, typename TStreamElem, typename T>
 void TestSerializeClassToStream(T&& value)
 {
 	// Arrange
-	using string_stream_type = std::basic_stringstream<
-		TArchive::stream_char_type, std::char_traits<TArchive::stream_char_type>, std::allocator<TArchive::stream_char_type>>;
+	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
 	string_stream_type outputStream;
 
 	// Act

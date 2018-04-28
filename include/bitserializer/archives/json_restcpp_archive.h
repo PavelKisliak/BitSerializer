@@ -23,7 +23,8 @@ class JsonArchiveTraits
 {
 public:
 	using key_type = utility::string_t;
-	using output_format = utility::string_t;
+	using preferred_output_format = utility::string_t;
+	using preferred_stream_char_type = utility::ostream_t::char_type;
 };
 
 // Forward declarations
@@ -334,7 +335,7 @@ class JsonRootScope : public ArchiveScope<TMode>, public Detail::JsonScopeBase
 public:
 	JsonRootScope(JsonRootScope&&) = default;
 
-	JsonRootScope(const output_format& outputFormat)
+	JsonRootScope(const utility::string_t& outputFormat)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
@@ -346,7 +347,7 @@ public:
 		}
 	}
 
-	JsonRootScope(output_format& outputFormat)
+	JsonRootScope(utility::string_t& outputFormat)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(&outputFormat)
 	{
@@ -460,7 +461,7 @@ private:
 		{
 			std::visit([this](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, output_format*>)
+				if constexpr (std::is_same_v<T, utility::string_t*>)
 					*arg = mRootJson.serialize();
 				else if constexpr (std::is_same_v<T, utility::ostream_t*>)
 					*arg << mRootJson;
@@ -470,7 +471,7 @@ private:
 	}
 
 	web::json::value mRootJson;
-	std::variant<std::nullptr_t, output_format*, utility::ostream_t*> mOutput;
+	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*> mOutput;
 };
 
 } //namespace Detail

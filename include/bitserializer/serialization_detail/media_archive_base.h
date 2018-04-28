@@ -56,18 +56,20 @@ public:
 		return std::is_constructible_v<TOutputArchive, std::basic_ostream<TChar, std::char_traits<TChar>>&>;
 	}
 
-	inline TInputArchive Load(const typename TArchiveTraits::output_format& inputData)
+	template <typename TInput>
+	inline TInputArchive Load(const TInput& inputData)
 	{
-		if constexpr (IsSupportInputDataType<const typename TArchiveTraits::output_format>())
+		if constexpr (IsSupportInputDataType<TInput>())
 			return TInputArchive(inputData);
 		else {
 			static_assert(false, "BitSerializer. The archive doesn't support loading from provided data type.");
 		}
 	}
 
-	inline TOutputArchive Save(typename TArchiveTraits::output_format& outputData)
+	template <typename TOutput>
+	inline TOutputArchive Save(TOutput& outputData)
 	{
-		if constexpr (IsSupportOutputDataType<typename TArchiveTraits::output_format>())
+		if constexpr (IsSupportOutputDataType<TOutput>())
 			return TOutputArchive(outputData);
 		else {
 			static_assert(false, "BitSerializer. The archive doesn't support save to provided data type.");

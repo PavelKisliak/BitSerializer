@@ -14,8 +14,8 @@ namespace BitSerializer
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input array.</param>
-	template <typename TMediaArchive, typename T>
-	inline void LoadObject(T& object, const typename TMediaArchive::output_format& input)
+	template <typename TMediaArchive, typename TInput, typename T>
+	inline void LoadObject(T& object, const TInput& input)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Load(input);
@@ -27,8 +27,8 @@ namespace BitSerializer
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output array.</param>
-	template <typename TMediaArchive, typename T>
-	inline void SaveObject(T& object, typename TMediaArchive::output_format& output)
+	template <typename TMediaArchive, typename TOutput, typename T>
+	inline void SaveObject(T& object, TOutput& output)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Save(output);
@@ -40,10 +40,10 @@ namespace BitSerializer
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <returns>The output string or binary array</returns>
-	template <typename TMediaArchive, typename T>
-	inline typename TMediaArchive::output_format SaveObject(T& object)
+	template <typename TMediaArchive, typename T, typename TOutput = typename TMediaArchive::preferred_output_format>
+	inline TOutput SaveObject(T& object)
 	{
-		typename TMediaArchive::output_format output;
+		typename TMediaArchive::preferred_output_format output;
 		SaveObject<TMediaArchive>(object, output);
 		return output;
 	}
@@ -56,7 +56,7 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input stream.</param>
 	template <typename TMediaArchive, typename T, typename TStreamElem>
-	inline void LoadObject(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
+	inline void LoadObjectFromStream(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Load(input);
@@ -69,7 +69,7 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output stream.</param>
 	template <typename TMediaArchive, typename T, typename TStreamElem>
-	inline void SaveObject(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
+	inline void SaveObjectToStream(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
 	{
 		TMediaArchive archive;
 		auto scope = archive.Save(output);
@@ -86,11 +86,11 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TString>
 	inline void LoadObjectFromFile(T& object, TString&& path)
 	{
-		using stream_char_type = typename TMediaArchive::stream_char_type;
-		std::basic_ifstream<stream_char_type, std::char_traits<stream_char_type>> stream;
+		using preferred_stream_char_type = typename TMediaArchive::preferred_stream_char_type;
+		std::basic_ifstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
 		stream.open(std::forward<TString>(path), std::ios::in | std::ios::binary);
 		if (stream.is_open())
-			LoadObject<TMediaArchive>(object, stream);
+			LoadObjectFromStream<TMediaArchive>(object, stream);
 		else
 			throw std::runtime_error("The file '" + Convert::ToString(path) + "' was not found.");
 	}
@@ -103,11 +103,11 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TString>
 	inline void SaveObjectToFile(T& object, TString&& path)
 	{
-		using stream_char_type = typename TMediaArchive::stream_char_type;
-		std::basic_ofstream<stream_char_type, std::char_traits<stream_char_type>> stream;
+		using preferred_stream_char_type = typename TMediaArchive::preferred_stream_char_type;
+		std::basic_ofstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
 		stream.open(std::forward<TString>(path), std::ios::out | std::ios::binary);
 		if (stream.is_open())
-			SaveObject<TMediaArchive>(object, stream);
+			SaveObjectToStream<TMediaArchive>(object, stream);
 		else
 			throw std::runtime_error("Could not open file: " + Convert::ToString(path));
 	}

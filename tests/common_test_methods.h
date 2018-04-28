@@ -14,7 +14,7 @@
 template <typename TArchive, typename T>
 void TestSerializeType(T&& value)
 {
-	typename TArchive::output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive;
 	::BitSerializer::SaveObject<TArchive>(value, outputArchive);
 	ASSERT_FALSE(outputArchive.empty());
 
@@ -33,7 +33,7 @@ void TestSerializeArray()
 	TValue testArray[ArraySize];
 	BuildFixture(testArray);
 
-	typename TArchive::output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive;
 	::BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
 	ASSERT_FALSE(outputArchive.empty());
 
@@ -54,7 +54,7 @@ void TestSerializeTwoDimensionalArray()
 	TValue testArray[ArraySize1][ArraySize2];
 	BuildFixture(testArray);
 
-	typename TArchive::output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive;
 	::BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
 	ASSERT_FALSE(outputArchive.empty());
 
@@ -74,7 +74,7 @@ void TestSerializeTwoDimensionalArray()
 template <typename TArchive, typename T>
 void TestSerializeClass(T&& value)
 {
-	typename TArchive::output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive;
 	::BitSerializer::SaveObject<TArchive>(value, outputArchive);
 	ASSERT_FALSE(outputArchive.empty());
 
@@ -95,10 +95,10 @@ void TestSerializeClassToStream(T&& value)
 	string_stream_type outputStream;
 
 	// Act
-	::BitSerializer::SaveObject<TArchive>(value, outputStream);
+	::BitSerializer::SaveObjectToStream<TArchive>(value, outputStream);
 	outputStream.seekg(0, std::ios::beg);
 	std::decay_t<T> actual;
-	::BitSerializer::LoadObject<TArchive>(actual, outputStream);
+	::BitSerializer::LoadObjectFromStream<TArchive>(actual, outputStream);
 
 	// Assert
 	value.Assert(actual);
@@ -112,7 +112,7 @@ template <typename TArchive, typename TContainer>
 void TestSerializeStlContainer(std::optional<std::function<void(const TContainer&, const TContainer&)>> specialAssertFunc = std::nullopt)
 {
 	// Arrange
-	typename TArchive::output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive;
 	TContainer expected;
 	::BuildFixture(expected);
 

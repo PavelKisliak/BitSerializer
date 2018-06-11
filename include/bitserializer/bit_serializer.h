@@ -10,33 +10,43 @@
 namespace BitSerializer
 {
 	/// <summary>
-	/// Loads the object from string or binary array (depends to format of archive).
+	/// Loads the object from one of archive supported data type.
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input array.</param>
 	template <typename TMediaArchive, typename TInput, typename T>
 	inline void LoadObject(T& object, const TInput& input)
 	{
-		TMediaArchive archive;
-		auto scope = archive.Load(input);
-		Serialize(scope, object);
+		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, TInput>::value)
+		{
+			typename TMediaArchive::input_archive_type archive(input);
+			Serialize(archive, object);
+		}
+		else {
+			static_assert(false, "BitSerializer. The archive doesn't support loading from provided data type.");
+		}
 	}
 
 	/// <summary>
-	/// Saves the object to string or binary array (depends to format of archive).
+	/// Saves the object from one of archive supported data type.
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output array.</param>
 	template <typename TMediaArchive, typename TOutput, typename T>
 	inline void SaveObject(T& object, TOutput& output)
 	{
-		TMediaArchive archive;
-		auto scope = archive.Save(output);
-		Serialize(scope, object);
+		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, TOutput>::value)
+		{
+			typename TMediaArchive::output_archive_type archive(output);
+			Serialize(archive, object);
+		}
+		else {
+			static_assert(false, "BitSerializer. The archive doesn't support save to provided data type.");
+		}
 	}
 
 	/// <summary>
-	/// Saves the object to string or binary array (depends to format of archive).
+	/// Saves the object to preferred output type (depends from archive).
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <returns>The output string or binary array</returns>
@@ -58,9 +68,18 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TStreamElem>
 	inline void LoadObjectFromStream(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
 	{
-		TMediaArchive archive;
-		auto scope = archive.Load(input);
-		Serialize(scope, object);
+		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>::value)
+		{
+			typename TMediaArchive::input_archive_type archive(input);
+			Serialize(archive, object);
+		}
+		else
+		{
+			if constexpr (std::is_same_v<TStreamElem, char>)
+				static_assert(false, "BitSerializer. The archive doesn't support loading from stream based on ANSI char element.");
+			else
+				static_assert(false, "BitSerializer. The archive doesn't support loading from stream based on wide string element.");
+		}
 	}
 
 	/// <summary>
@@ -71,9 +90,18 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TStreamElem>
 	inline void SaveObjectToStream(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
 	{
-		TMediaArchive archive;
-		auto scope = archive.Save(output);
-		Serialize(scope, object);
+		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>::value)
+		{
+			typename TMediaArchive::output_archive_type archive(output);
+			Serialize(archive, object);
+		}
+		else
+		{
+			if constexpr (std::is_same_v<TChar, char>)
+				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on ANSI char element.");
+			else
+				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on wide string element.");
+		}
 	}
 
 	//-----------------------------------------------------------------------------

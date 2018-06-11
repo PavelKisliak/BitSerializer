@@ -24,12 +24,12 @@ constexpr bool is_archive_scope_v = is_archive_scope<T>::value;
 //------------------------------------------------------------------------------
 
 /// <summary>
-/// Checks that archive is support required input data type (like strings, binary data).
+/// Checks that archive is support required input data type (like strings, streams, binary data).
 /// </summary>
 template <typename TArchive, typename TInput>
 struct is_archive_support_input_data_type
 {
-	constexpr static bool value = is_input_stream_v<TInput>
+	constexpr static bool value = is_input_stream<TInput>::value
 		? std::is_constructible_v<TArchive, TInput&>
 		: std::is_constructible_v<TArchive, const TInput&>;
 };

@@ -50,3 +50,23 @@ TEST(SerializationObjectTraits, ShouldGetContainerSizeForForwardList) {
 	auto actual = GetContainerSize(testContainer);
 	EXPECT_EQ(expectedSize, actual);
 }
+
+TEST(SerializationObjectTraits, ShouldCheckThatIsInputStream) {
+	bool testResult1 = is_input_stream_v<std::istringstream>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_input_stream_v<std::wistringstream>;
+	EXPECT_TRUE(testResult2);
+
+	bool testResult3 = is_input_stream_v<std::ostringstream>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatIsOutputStream) {
+	bool testResult1 = is_output_stream_v<std::ostringstream>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_output_stream_v<std::wostringstream>;
+	EXPECT_TRUE(testResult2);
+
+	bool testResult3 = is_output_stream_v<std::istringstream>;
+	EXPECT_FALSE(testResult3);
+}

@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include "media_archive_base.h"
+#include "object_traits.h"
 
 namespace BitSerializer {
 
@@ -19,6 +20,36 @@ struct is_archive_scope
 
 template <typename T>
 constexpr bool is_archive_scope_v = is_archive_scope<T>::value;
+
+//------------------------------------------------------------------------------
+
+/// <summary>
+/// Checks that archive is support required input data type (like strings, binary data).
+/// </summary>
+template <typename TArchive, typename TInput>
+struct is_archive_support_input_data_type
+{
+	constexpr static bool value = is_input_stream_v<TInput>
+		? std::is_constructible_v<TArchive, TInput&>
+		: std::is_constructible_v<TArchive, const TInput&>;
+};
+
+template <typename TArchive, typename TInput>
+constexpr bool is_archive_support_input_data_type_v = is_archive_support_input_data_type<TArchive, TInput>::value;
+
+//------------------------------------------------------------------------------
+
+/// <summary>
+/// Checks that archive is support required output data type (like strings, binary data).
+/// </summary>
+template <typename TArchive, typename TOutput>
+struct is_archive_support_output_data_type
+{
+	constexpr static bool value = std::is_constructible_v<TArchive, TOutput&>;
+};
+
+template <typename TArchive, typename TOutput>
+constexpr bool is_archive_support_output_data_type_v = is_archive_support_output_data_type<TArchive, TOutput>::value;
 
 //------------------------------------------------------------------------------
 

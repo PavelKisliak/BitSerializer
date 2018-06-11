@@ -13,6 +13,9 @@ using namespace BitSerializer;
 class TestArchive_LoadMode : ArchiveScope<SerializeMode::Load>
 {
 public:
+	TestArchive_LoadMode(const std::string& inputData) { }
+	TestArchive_LoadMode(std::istream& inputData) { }
+
 	void SerializeValue(bool& value) { }
 	void SerializeValue(int& value) { }
 
@@ -30,6 +33,9 @@ class TestArchive_SaveMode : ArchiveScope<SerializeMode::Save>
 {
 public:
 	using key_type = std::string;
+
+	TestArchive_SaveMode(std::string& outputData) { }
+	TestArchive_SaveMode(std::ostream& inputData) { }
 
 	key_type GetKeyByIndex(size_t index) { return key_type(); }
 
@@ -54,6 +60,26 @@ TEST(SerializationArchiveTraits, ShouldCheckThatClassInheritedFromArchiveScope) 
 	bool testResult2 = is_archive_scope_v<TestArchive_SaveMode>;
 	EXPECT_TRUE(testResult2);
 	bool testResult3 = is_archive_scope_v<TestWrongArchive>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatArchiveSupportInputDataType) {
+	bool testResult1 = is_archive_support_input_data_type_v<TestArchive_LoadMode, std::string>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_archive_support_input_data_type_v<TestArchive_LoadMode, std::istream>;
+	EXPECT_TRUE(testResult2);
+
+	bool testResult3 = is_archive_support_input_data_type_v<TestWrongArchive, std::string>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatArchiveSupportOutputDataType) {
+	bool testResult1 = is_archive_support_output_data_type_v<TestArchive_SaveMode, std::string>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_archive_support_output_data_type_v<TestArchive_SaveMode, std::ostream>;
+	EXPECT_TRUE(testResult2);
+
+	bool testResult3 = is_archive_support_output_data_type_v<TestWrongArchive, std::string>;
 	EXPECT_FALSE(testResult3);
 }
 

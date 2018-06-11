@@ -83,4 +83,44 @@ inline size_t GetContainerSize(const TContainer& cont)
 		return std::distance(std::begin(cont), std::end(cont));
 }
 
+/// <summary>
+/// Checks that is input stream.
+/// </summary>
+template <typename T>
+struct is_input_stream
+{
+	template <typename TObj>
+	static std::enable_if_t<std::is_base_of_v<std::basic_istream<typename TObj::char_type, std::char_traits<typename TObj::char_type>>, TObj>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool is_input_stream_v = is_input_stream<T>::value;
+
+/// <summary>
+/// Checks that is output stream.
+/// </summary>
+template <typename T>
+struct is_output_stream
+{
+	template <typename TObj>
+	static std::enable_if_t<std::is_base_of_v<std::basic_ostream<typename TObj::char_type, std::char_traits<typename TObj::char_type>>, TObj>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool is_output_stream_v = is_output_stream<T>::value;
+
 }	// namespace BitSerializer

@@ -95,10 +95,10 @@ void TestSerializeClassToStream(T&& value)
 	string_stream_type outputStream;
 
 	// Act
-	::BitSerializer::SaveObjectToStream<TArchive>(value, outputStream);
+	::BitSerializer::SaveObject<TArchive>(value, outputStream);
 	outputStream.seekg(0, std::ios::beg);
 	std::decay_t<T> actual;
-	::BitSerializer::LoadObjectFromStream<TArchive>(actual, outputStream);
+	::BitSerializer::LoadObject<TArchive>(actual, outputStream);
 
 	// Assert
 	value.Assert(actual);

@@ -339,7 +339,7 @@ public:
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
-		assert(TMode == SerializeMode::Load);
+		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
 		mRootJson = web::json::value::parse(outputFormat, error);
 		if (mRootJson.is_null()) {
@@ -351,14 +351,14 @@ public:
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(&outputFormat)
 	{
-		assert(TMode == SerializeMode::Save);
+		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
 	JsonRootScope(typename utility::istream_t& input)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
-		assert(TMode == SerializeMode::Load);
+		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
 		mRootJson = web::json::value::parse(input, error);
 		if (mRootJson.is_null()) {
@@ -370,6 +370,7 @@ public:
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(&output)
 	{
+		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 		mOutput = &output;
 	}
 

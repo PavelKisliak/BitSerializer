@@ -29,7 +29,7 @@ constexpr bool is_archive_scope_v = is_archive_scope<T>::value;
 template <typename TArchive, typename TInput>
 struct is_archive_support_input_data_type
 {
-	constexpr static bool value = is_input_stream<TInput>::value
+	constexpr static bool value = is_input_stream_v<TInput>
 		? std::is_constructible_v<TArchive, TInput&>
 		: std::is_constructible_v<TArchive, const TInput&>;
 };

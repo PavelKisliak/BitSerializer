@@ -10,11 +10,11 @@
 namespace BitSerializer
 {
 	/// <summary>
-	/// Loads the object from one of archive supported data type.
+	/// Loads the object from one of archive supported data type (strings, binary data).
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input array.</param>
-	template <typename TMediaArchive, typename TInput, typename T>
+	template <typename TMediaArchive, typename T, typename TInput, std::enable_if_t<!is_input_stream_v<TInput>, int> = 0>
 	inline void LoadObject(T& object, const TInput& input)
 	{
 		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, TInput>::value)
@@ -28,45 +28,12 @@ namespace BitSerializer
 	}
 
 	/// <summary>
-	/// Saves the object from one of archive supported data type.
-	/// </summary>
-	/// <param name="object">The serializing object.</param>
-	/// <param name="output">The output array.</param>
-	template <typename TMediaArchive, typename TOutput, typename T>
-	inline void SaveObject(T& object, TOutput& output)
-	{
-		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, TOutput>::value)
-		{
-			typename TMediaArchive::output_archive_type archive(output);
-			Serialize(archive, object);
-		}
-		else {
-			static_assert(false, "BitSerializer. The archive doesn't support save to provided data type.");
-		}
-	}
-
-	/// <summary>
-	/// Saves the object to preferred output type (depends from archive).
-	/// </summary>
-	/// <param name="object">The serializing object.</param>
-	/// <returns>The output string or binary array</returns>
-	template <typename TMediaArchive, typename T, typename TOutput = typename TMediaArchive::preferred_output_format>
-	inline TOutput SaveObject(T& object)
-	{
-		typename TMediaArchive::preferred_output_format output;
-		SaveObject<TMediaArchive>(object, output);
-		return output;
-	}
-
-	//-----------------------------------------------------------------------------
-
-	/// <summary>
-	/// Loads the object from stream (depends to format of archive).
+	/// Loads the object from stream (should be supported in the archive).
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="input">The input stream.</param>
 	template <typename TMediaArchive, typename T, typename TStreamElem>
-	inline void LoadObjectFromStream(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
+	inline void LoadObject(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
 	{
 		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>::value)
 		{
@@ -83,12 +50,30 @@ namespace BitSerializer
 	}
 
 	/// <summary>
-	/// Saves the object to stream (depends to format of archive).
+	/// Saves the object to one of archive supported data type (strings, binary data).
+	/// </summary>
+	/// <param name="object">The serializing object.</param>
+	/// <param name="output">The output array.</param>
+	template <typename TMediaArchive, typename T, typename TOutput, std::enable_if_t<!is_output_stream_v<TOutput>, int> = 0>
+	inline void SaveObject(T& object, TOutput& output)
+	{
+		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, TOutput>::value)
+		{
+			typename TMediaArchive::output_archive_type archive(output);
+			Serialize(archive, object);
+		}
+		else {
+			static_assert(false, "BitSerializer. The archive doesn't support save to provided data type.");
+		}
+	}
+
+	/// <summary>
+	/// Saves the object to stream (should be supported in the archive).
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output stream.</param>
 	template <typename TMediaArchive, typename T, typename TStreamElem>
-	inline void SaveObjectToStream(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
+	inline void SaveObject(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
 	{
 		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>::value)
 		{
@@ -102,6 +87,19 @@ namespace BitSerializer
 			else
 				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on wide string element.");
 		}
+	}
+
+	/// <summary>
+	/// Saves the object to preferred output type.
+	/// </summary>
+	/// <param name="object">The serializing object.</param>
+	/// <returns>The output string or binary array</returns>
+	template <typename TMediaArchive, typename T, typename TOutput = typename TMediaArchive::preferred_output_format>
+	inline TOutput SaveObject(T& object)
+	{
+		typename TMediaArchive::preferred_output_format output;
+		SaveObject<TMediaArchive>(object, output);
+		return output;
 	}
 
 	//-----------------------------------------------------------------------------

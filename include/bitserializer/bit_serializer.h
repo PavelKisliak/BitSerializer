@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "serialization_detail\serialization_base_types.h"
-#include "serialization_detail\serialization_stl_containers.h"
-#include "serialization_detail\serialization_stl_types.h"
+#include "serialization_detail/serialization_base_types.h"
+#include "serialization_detail/serialization_stl_containers.h"
+#include "serialization_detail/serialization_stl_types.h"
 
 namespace BitSerializer
 {

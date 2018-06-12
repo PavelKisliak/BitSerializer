@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "conversion_detail\convert_detail.h"
+#include "conversion_detail/convert_detail.h"
 
 /// <summary>
 /// Type conversions to/from string

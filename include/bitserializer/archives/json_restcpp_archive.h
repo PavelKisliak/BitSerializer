@@ -11,7 +11,7 @@
 #include "../serialization_detail/media_archive_base.h"
 
 // External dependency (C++ REST SDK)
-#include "cpprest\json.h"
+#include "cpprest/json.h"
 
 namespace BitSerializer {
 namespace Detail {

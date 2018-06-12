@@ -32,7 +32,6 @@
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\media_archive_base.h" />
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\object_traits.h" />
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_base_types.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_common.h" />
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_containers.h" />
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_types.h" />
     <ClInclude Include="..\..\include\bitserializer\string_conversion.h" />

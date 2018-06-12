@@ -4,8 +4,8 @@
 *******************************************************************************/
 #include "pch.h"
 #include "common_test_entities.h"
-#include "bitserializer\bit_serializer.h"
-#include "bitserializer\archives\json_restcpp_archive.h"
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/archives/json_restcpp_archive.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL containers.

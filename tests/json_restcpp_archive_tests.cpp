@@ -123,3 +123,8 @@ TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt;
 	EXPECT_THROW(LoadObject<JsonArchive>(testInt, L"10 }}"), SerializationException);
 }
+
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

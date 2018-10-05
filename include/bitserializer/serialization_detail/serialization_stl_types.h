@@ -38,10 +38,10 @@ namespace Detail
 }	// namespace Detail
 
 template<typename TArchive, typename TFirst, typename TSecond>
-inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::pair<TFirst, TSecond>& pair)
+inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::pair<TFirst, TSecond>& pair)
 {
 	auto pairSerializer = Detail::PairSerializer<TFirst, TSecond>(pair);
-	Serialize(archive, key, pairSerializer);
+	return Serialize(archive, key, pairSerializer);
 }
 
 template<typename TArchive, typename TFirst, typename TSecond>

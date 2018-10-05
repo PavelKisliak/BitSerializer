@@ -34,6 +34,8 @@
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_base_types.h" />
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_containers.h" />
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_types.h" />
+    <ClInclude Include="..\..\include\bitserializer\serialization_detail\validators.h" />
+    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_context.h" />
     <ClInclude Include="..\..\include\bitserializer\string_conversion.h" />
     <ClInclude Include="..\auto_fixture.h" />
     <ClInclude Include="..\common_test_methods.h" />

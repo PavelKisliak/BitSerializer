@@ -17,14 +17,14 @@ namespace BitSerializer {
 // Serialize fundamental types
 //-----------------------------------------------------------------------------
 template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
-inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
+inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
 	if constexpr (!can_serialize_value_with_key_v<TArchive, TValue>) {
 		static_assert(false, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
 	}
 	else
 	{
-		archive.SerializeValue(key, value);
+		return archive.SerializeValue(key, value);
 	}
 };
 
@@ -44,14 +44,14 @@ inline void Serialize(TArchive& archive, TValue& value)
 // Serialize string types
 //------------------------------------------------------------------------------
 template <class TArchive, typename TSym, typename TAllocator>
-inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
 	if constexpr (!can_serialize_string_with_key_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>) {
 		static_assert(false, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
 	}
 	else
 	{
-		archive.SerializeString(key, value);
+		return archive.SerializeString(key, value);
 	}
 };
 
@@ -71,18 +71,19 @@ inline void Serialize(TArchive& archive, std::basic_string<TSym, std::char_trait
 // Serialize enum types
 //-----------------------------------------------------------------------------
 template <class TArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
-inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
+inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
 	if constexpr (archive.IsLoading())
 	{
 		std::string str;
-		Serialize(archive, key, str);
+		auto result = Serialize(archive, key, str);
 		Convert::Detail::FromString(str, value);
+		return result;
 	}
 	else
 	{
 		auto str = Convert::ToString(value);
-		Serialize(archive, key, str);
+		return Serialize(archive, key, str);
 	}
 };
 
@@ -106,7 +107,7 @@ inline void Serialize(TArchive& archive, TValue& value)
 // Serialize classes
 //------------------------------------------------------------------------------
 template <class TArchive, typename TValue, std::enable_if_t<std::is_class_v<TValue>, int> = 0>
-inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
+inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
 {
 	if constexpr (!is_serializable_class_v<TValue>) {
 		static_assert(false, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
@@ -117,7 +118,9 @@ inline void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	else
 	{
 		auto objectScope = archive.OpenObjectScope(key);
-		value.Serialize(*objectScope.get());
+		if (objectScope)
+			value.Serialize(*objectScope.get());
+		return objectScope != nullptr;
 	}
 };
 
@@ -159,7 +162,7 @@ inline void Serialize(TArchive& archive, BaseObject<TBase>&& value)
 // Serialize arrays
 //-----------------------------------------------------------------------------
 template<typename TArchive, typename TValue, size_t ArraySize>
-static void Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue(&cont)[ArraySize])
+static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue(&cont)[ArraySize])
 {
 	if constexpr (!can_serialize_array_with_key_v<TArchive>) {
 		static_assert(false, "BitSerializer. The archive doesn't support serialize array with key on this level.");
@@ -175,6 +178,7 @@ static void Serialize(TArchive& archive, const typename TArchive::key_type& key,
 				Serialize(scope, cont[i]);
 			}
 		}
+		return arrayScope != nullptr;
 	}
 }
 

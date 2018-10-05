@@ -6,9 +6,15 @@
 #include "serialization_detail/serialization_base_types.h"
 #include "serialization_detail/serialization_stl_containers.h"
 #include "serialization_detail/serialization_stl_types.h"
+#include "serialization_detail/validators.h"
 
 namespace BitSerializer
 {
+	/// <summary>
+	/// The serialization context, contains validation information, etc...
+	/// </summary>
+	thread_local static SerializationContext Context;
+
 	/// <summary>
 	/// Loads the object from one of archive supported data type (strings, binary data).
 	/// </summary>
@@ -19,6 +25,7 @@ namespace BitSerializer
 	{
 		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, TInput>::value)
 		{
+			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
 			Serialize(archive, object);
 		}
@@ -37,6 +44,7 @@ namespace BitSerializer
 	{
 		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>::value)
 		{
+			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
 			Serialize(archive, object);
 		}
@@ -59,6 +67,7 @@ namespace BitSerializer
 	{
 		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, TOutput>::value)
 		{
+			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
 			Serialize(archive, object);
 		}
@@ -77,12 +86,13 @@ namespace BitSerializer
 	{
 		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>::value)
 		{
+			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
 			Serialize(archive, object);
 		}
 		else
 		{
-			if constexpr (std::is_same_v<TChar, char>)
+			if constexpr (std::is_same_v<TStreamElem, char>)
 				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on ANSI char element.");
 			else
 				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on wide string element.");
@@ -116,9 +126,9 @@ namespace BitSerializer
 		std::basic_ifstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
 		stream.open(std::forward<TString>(path), std::ios::in | std::ios::binary);
 		if (stream.is_open())
-			LoadObjectFromStream<TMediaArchive>(object, stream);
+			LoadObject<TMediaArchive>(object, stream);
 		else
-			throw std::runtime_error("The file '" + Convert::ToString(path) + "' was not found.");
+			throw std::runtime_error("BitSerializer. The file '" + Convert::ToString(path) + "' was not found.");
 	}
 
 	/// <summary>
@@ -133,9 +143,9 @@ namespace BitSerializer
 		std::basic_ofstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
 		stream.open(std::forward<TString>(path), std::ios::out | std::ios::binary);
 		if (stream.is_open())
-			SaveObjectToStream<TMediaArchive>(object, stream);
+			SaveObject<TMediaArchive>(object, stream);
 		else
-			throw std::runtime_error("Could not open file: " + Convert::ToString(path));
+			throw std::runtime_error("BitSerializer. Could not open file: " + Convert::ToString(path));
 	}
 
 } // namespace BitSerializer
@@ -160,15 +170,30 @@ inline TArchive& operator<<(TArchive& archive, TValue&& value)
 /// <param name="archive">The archive.</param>
 /// <param name="keyValue">The serializing object with key.</param>
 /// <returns></returns>
-template <class TArchive, class TKey, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-inline TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TValue>&& keyValue)
+template <class TArchive, class TKey, class TValue, class... Validators, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
+inline TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TValue, Validators...>&& keyValue)
 {
+	bool result = false;
+	// Checks key type and adapts it to archive if needed
 	if constexpr (std::is_same_v<std::decay_t<TKey>, TArchive::key_type>)
-		BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
+	{
+		result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
+	}
 	else
 	{
 		const auto archiveCompatibleKey = Convert::FromString<TArchive::key_type>(keyValue.GetKey());
-		BitSerializer::Serialize(archive, archiveCompatibleKey, keyValue.GetValue());
+		result = BitSerializer::Serialize(archive, archiveCompatibleKey, keyValue.GetValue());
+	}
+
+	// Validation when loading
+	if constexpr (archive.IsLoading())
+	{
+		auto validationResult = keyValue.ValidateValue(result);
+		if (validationResult.has_value())
+		{
+			auto path = archive.GetPath() + TArchive::path_separator + Convert::ToWString(keyValue.GetKey());
+			Context.AddValidationErrors(path, std::move(*validationResult));
+		}
 	}
 	return archive;
 }

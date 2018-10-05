@@ -80,5 +80,11 @@
     <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_types.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\bitserializer\serialization_detail\validators.h">
+      <Filter>BitSerializer\SerializationDetail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_context.h">
+      <Filter>BitSerializer\SerializationDetail</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

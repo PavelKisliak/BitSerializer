@@ -192,7 +192,7 @@ inline TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TVa
 		if (validationResult.has_value())
 		{
 			auto path = archive.GetPath() + TArchive::path_separator + Convert::ToWString(keyValue.GetKey());
-			Context.AddValidationErrors(path, std::move(*validationResult));
+			BitSerializer::Context.AddValidationErrors(path, std::move(*validationResult));
 		}
 	}
 	return archive;

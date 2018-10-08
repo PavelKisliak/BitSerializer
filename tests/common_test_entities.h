@@ -62,7 +62,7 @@ public:
 	void FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str)
 	{
 		using str_type = std::basic_string<TSym, std::char_traits<TSym>, TAllocator>;
-		str_type::size_type prev(0), f(0);
+		typename str_type::size_type prev(0), f(0);
 		for (int i = 0; i < 2; ++i)
 		{
 			prev = f = str.find_first_not_of(' ', f);
@@ -86,8 +86,8 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("x", x);
-		archive << MakeKeyValue("y", y);
+		archive << BitSerializer::MakeKeyValue("x", x);
+		archive << BitSerializer::MakeKeyValue("y", y);
 	};
 
 	int x;
@@ -129,16 +129,16 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestBool", TestBool);
-		archive << MakeKeyValue("TestInt8", TestInt8);
-		archive << MakeKeyValue("TestInt16", TestInt16);
-		archive << MakeKeyValue("TestInt32", TestInt32);
-		archive << MakeKeyValue("TestInt64", TestInt64);
-		archive << MakeKeyValue("TestFloat", TestFloat);
-		archive << MakeKeyValue("TestDouble", TestDouble);
-		archive << MakeKeyValue("TestEnum", TestEnum);
-		archive << MakeKeyValue("TestString", TestString);
-		archive << MakeKeyValue("TestWString", TestWString);
+		archive << BitSerializer::MakeKeyValue("TestBool", TestBool);
+		archive << BitSerializer::MakeKeyValue("TestInt8", TestInt8);
+		archive << BitSerializer::MakeKeyValue("TestInt16", TestInt16);
+		archive << BitSerializer::MakeKeyValue("TestInt32", TestInt32);
+		archive << BitSerializer::MakeKeyValue("TestInt64", TestInt64);
+		archive << BitSerializer::MakeKeyValue("TestFloat", TestFloat);
+		archive << BitSerializer::MakeKeyValue("TestDouble", TestDouble);
+		archive << BitSerializer::MakeKeyValue("TestEnum", TestEnum);
+		archive << BitSerializer::MakeKeyValue("TestString", TestString);
+		archive << BitSerializer::MakeKeyValue("TestWString", TestWString);
 	};
 
 	bool TestBool;
@@ -174,9 +174,9 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		archive << BaseObject<TestClassWithFundamentalTypes>(*this);
-		archive << MakeKeyValue("TestUInt32", TestUInt32);
-		archive << MakeKeyValue("TestUInt64", TestUInt64);
+		archive << BitSerializer::BaseObject<TestClassWithFundamentalTypes>(*this);
+		archive << BitSerializer::MakeKeyValue("TestUInt32", TestUInt32);
+		archive << BitSerializer::MakeKeyValue("TestUInt64", TestUInt64);
 	};
 
 	uint32_t TestUInt32;
@@ -197,7 +197,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << MakeKeyValue("TestSubClass", TestSubClass);
+		archive << BitSerializer::MakeKeyValue("TestSubClass", TestSubClass);
 	};
 
 	TestClassWithFundamentalTypes TestSubClass;
@@ -229,7 +229,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << MakeKeyValue("TestSubValue", TestSubValue);
+		archive << BitSerializer::MakeKeyValue("TestSubValue", TestSubValue);
 	};
 
 	T TestSubValue;
@@ -255,7 +255,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << MakeKeyValue("TestArray", TestArray);
+		archive << BitSerializer::MakeKeyValue("TestArray", TestArray);
 	};
 
 	T TestArray[ArraySize];
@@ -280,7 +280,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << MakeKeyValue("TestTwoDimArray", TestTwoDimArray);
+		archive << BitSerializer::MakeKeyValue("TestTwoDimArray", TestTwoDimArray);
 	};
 
 	T TestTwoDimArray[ArraySize1][ArraySize2];

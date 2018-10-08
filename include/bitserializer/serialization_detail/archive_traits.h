@@ -82,7 +82,7 @@ struct can_serialize_value_with_key
 {
 private:
 	template <typename TObj, typename TVal>
-	static std::enable_if_t<std::is_void_v<decltype(std::declval<TObj>().SerializeValue(std::declval<const typename TArchive::key_type&>(), std::declval<TVal&>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeValue(std::declval<const typename TArchive::key_type&>(), std::declval<TVal&>()))>, std::true_type> test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);
@@ -126,7 +126,7 @@ struct can_serialize_string_with_key
 {
 private:
 	template <typename TObj, typename TVal>
-	static std::enable_if_t<std::is_void_v<decltype(std::declval<TObj>().SerializeString(std::declval<const typename TArchive::key_type&>(), std::declval<TVal&>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeString(std::declval<const typename TArchive::key_type&>(), std::declval<TVal&>()))>, std::true_type> test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);

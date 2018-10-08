@@ -25,6 +25,7 @@ public:
 	using key_type = utility::string_t;
 	using preferred_output_format = utility::string_t;
 	using preferred_stream_char_type = utility::ostream_t::char_type;
+	static const wchar_t path_separator = L'/';
 };
 
 // Forward declarations
@@ -40,8 +41,10 @@ class JsonScopeBase : public JsonArchiveTraits
 public:
 	JsonScopeBase(JsonScopeBase&&) = default;
 
-	JsonScopeBase(const web::json::value* node)
+	JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
 		: mNode(const_cast<web::json::value*>(node))
+		, mParent(parent)
+		, mParentKey(perentKey)
 	{ }
 
 	/// <summary>
@@ -52,12 +55,24 @@ public:
 		return mNode->size();
 	}
 
+	/// <summary>
+	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
+	/// </summary>
+	/// <returns></returns>
+	virtual std::wstring GetPath() const
+	{
+		std::wstring localPath = mParentKey.empty()
+			? Convert::ToWString(mParentKey)
+			: path_separator + Convert::ToWString(mParentKey);
+		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
+	}
+
 protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void LoadFundamentalValue(const web::json::value& jsonValue, T& value)
+	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
 	{
 		if (!jsonValue.is_number())
-			return;
+			return false;
 
 		if constexpr (std::is_integral_v<T>)
 		{
@@ -76,21 +91,25 @@ protected:
 		{
 			value = static_cast<T>(jsonValue.as_double());
 		}
+		return true;
 	}
 
 	template <typename TSym, typename TAllocator>
-	void LoadString(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool LoadString(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		if (jsonValue.is_string())
-		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				value = jsonValue.as_string();
-			else
-				value = Convert::ToString(jsonValue.as_string());
-		}
+		if (!jsonValue.is_string())
+			return false;
+
+		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+			value = jsonValue.as_string();
+		else
+			value = Convert::ToString(jsonValue.as_string());
+		return true;
 	}
 
 	web::json::value* mNode;
+	JsonScopeBase* mParent;
+	key_type mParentKey;
 };
 
 
@@ -102,11 +121,20 @@ template <SerializeMode TMode>
 class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	JsonArrayScope(const web::json::value* node)
-		: JsonScopeBase(node)
+	JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+		: JsonScopeBase(node, parent, perentKey)
 		, mIndex(0)
 	{
 		assert(mNode->is_array());
+	}
+
+	/// <summary>
+	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
+	/// </summary>
+	/// <returns></returns>
+	std::wstring GetPath() const override
+	{
+		return JsonScopeBase::GetPath() + path_separator + Convert::ToWString(mIndex);
 	}
 
 	template <typename TSym, typename TAllocator>
@@ -160,14 +188,14 @@ public:
 			if (jsonValue.is_object())
 			{
 				decltype(auto) node = const_cast<web::json::value&>(jsonValue);
-				return std::make_unique<JsonObjectScope<TMode>>(&node);
+				return std::make_unique<JsonObjectScope<TMode>>(&node, this);
 			}
 			return nullptr;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::object());
-			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue);
+			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue, this);
 		}
 	}
 
@@ -176,14 +204,12 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto& jsonValue = LoadJsonValue();
-			if (jsonValue.is_array())
-				return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
-			return nullptr;
+			return jsonValue.is_array() ? std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this) : nullptr;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
-			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
+			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this);
 		}
 	}
 
@@ -215,8 +241,8 @@ class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
 public:
 	JsonObjectScope(JsonObjectScope&&) = default;
 
-	JsonObjectScope(const web::json::value* node)
-		: JsonScopeBase(node)
+	JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+		: JsonScopeBase(node, parent, perentKey)
 	{
 		assert(mNode->is_object());
 	};
@@ -229,14 +255,12 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr) {
-				LoadString(*jsonValue, value);
-			}
+			return jsonValue == nullptr ? false : LoadString(*jsonValue, value);
 		}
 		else
 		{
@@ -244,36 +268,41 @@ public:
 				SaveJsonValue(key, web::json::value(value));
 			else
 				SaveJsonValue(key, web::json::value(Convert::FromString<utility::string_t>(value)));
+			return true;
 		}
 	}
 
-	void SerializeValue(const key_type& key, bool& value)
+	bool SerializeValue(const key_type& key, bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->is_boolean())
+			{
 				value = jsonValue->as_bool();
+				return true;
+			}
+			return false;
 		}
 		else
 		{
 			SaveJsonValue(key, web::json::value::boolean(value));
+			return true;
 		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(const key_type& key, T& value)
+	bool SerializeValue(const key_type& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr) {
-				LoadFundamentalValue(*jsonValue, value);
-			}
+			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value);
 		}
 		else
 		{
 			SaveJsonValue(key, web::json::value::number(value));
+			return true;
 		}
 	}
 
@@ -285,14 +314,14 @@ public:
 			if (jsonValue != nullptr && jsonValue->is_object())
 			{
 				decltype(auto) node = const_cast<web::json::value*>(jsonValue);
-				return std::make_unique<JsonObjectScope<TMode>>(node);
+				return std::make_unique<JsonObjectScope<TMode>>(node, this, key);
 			}
 			return nullptr;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::object());
-			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue);
+			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue, this, key);
 		}
 	}
 
@@ -302,13 +331,13 @@ public:
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->is_array())
-				return std::make_unique<JsonArrayScope<TMode>>(jsonValue);
+				return std::make_unique<JsonArrayScope<TMode>>(jsonValue, this, key);
 			return nullptr;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
-			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue);
+			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this, key);
 		}
 	}
 
@@ -412,8 +441,7 @@ public:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	void SerializeValue(T& value)
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
+		if constexpr (TMode == SerializeMode::Load) {
 			LoadFundamentalValue(mRootJson, value);
 		}
 		else
@@ -425,11 +453,8 @@ public:
 
 	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope()
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mRootJson.is_object())
-				return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
-			return nullptr;
+		if constexpr (TMode == SerializeMode::Load)	{
+			return mRootJson.is_object() ? std::make_unique<JsonObjectScope<TMode>>(&mRootJson) : nullptr;
 		}
 		else
 		{
@@ -441,11 +466,8 @@ public:
 
 	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mRootJson.is_array())
-				return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
-			return nullptr;
+		if constexpr (TMode == SerializeMode::Load) {
+			return mRootJson.is_array() ? std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson) : nullptr;
 		}
 		else
 		{

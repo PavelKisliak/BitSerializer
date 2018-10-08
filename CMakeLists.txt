@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
 project(bitserializer LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
@@ -19,5 +19,5 @@ target_include_directories(bitserializer
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 )
 
- add_subdirectory(tests)
- add_subdirectory(samples)
+add_subdirectory(tests)
+add_subdirectory(samples)

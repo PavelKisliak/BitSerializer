@@ -15,5 +15,6 @@
 #include <forward_list>
 #include <set>
 #include <map>
-#include <stdlib.h>
+#include <cstdlib>
+
 #include "gtest/gtest.h"

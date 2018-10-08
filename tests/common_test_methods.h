@@ -6,6 +6,7 @@
 #include <optional>
 #include "gtest/gtest.h"
 #include "auto_fixture.h"
+#include "bitserializer/bit_serializer.h"
 
 /// <summary>
 /// Test template of serialization for fundamental type.
@@ -117,9 +118,9 @@ void TestSerializeStlContainer(std::optional<std::function<void(const TContainer
 	::BuildFixture(expected);
 
 	// Act
-	auto jsonResult = SaveObject<JsonArchive>(expected);
+	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);
 	TContainer actual;
-	LoadObject<JsonArchive>(actual, jsonResult);
+	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
 
 	// Assert
 	if (specialAssertFunc.has_value())

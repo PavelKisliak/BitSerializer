@@ -19,7 +19,7 @@ namespace BitSerializer::Convert
 	inline std::string ToString(T value)
 	{
 		std::string ret_Str;
-		Detail::ToString(value, ret_Str);
+		Detail::To(value, ret_Str);
 		return ret_Str;
 	};
 
@@ -32,7 +32,7 @@ namespace BitSerializer::Convert
 	inline std::wstring ToWString(T value)
 	{
 		std::wstring ret_Str;
-		Detail::ToString(value, ret_Str);
+		Detail::To(value, ret_Str);
 		return ret_Str;
 	};
 
@@ -45,7 +45,7 @@ namespace BitSerializer::Convert
 	inline T FromString(const std::string& str)
 	{
 		T retVal;
-		Detail::FromString(str, retVal);
+		Detail::To(str, retVal);
 		return retVal;
 	};
 
@@ -58,7 +58,7 @@ namespace BitSerializer::Convert
 	inline T FromString(const std::wstring& str)
 	{
 		T retVal;
-		Detail::FromString(str, retVal);
+		Detail::To(str, retVal);
 		return retVal;
 	};
 
@@ -74,20 +74,17 @@ namespace BitSerializer::Convert
 			return std::forward<TIn>(value);
 
 		TOut result;
-		if constexpr (std::is_same_v<TOut, std::string> || std::is_same_v<TOut, std::wstring>) {
-			Detail::ToString(std::forward<TIn>(value), result);
-		}
-		else if constexpr (std::is_same_v<TIn, std::string> || std::is_same_v<TIn, std::wstring>) {
-			Detail::FromString(std::forward<TIn>(value), result);
-		}
-		else if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
-			Detail::FromString(std::forward<std::string>(value), result);
+		if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
+			// Convert to std::string, as internal implementation does not support c-strings
+			Detail::To(std::forward<std::string>(value), result);
 		}
 		else if constexpr (std::is_same_v<std::decay_t<TIn>, const wchar_t*>) {
-			Detail::FromString(std::forward<std::wstring>(value), result);
+			// Convert to std::wstring, as internal implementation does not support c-strings
+			Detail::To(std::forward<std::wstring>(value), result);
 		}
-		else {
-			static_assert(false, "BitSerializer::Convert::To(). The input or output value must be a string.");
+		else
+		{
+			Detail::To(std::forward<TIn>(value), result);
 		}
 		return result;
 	};

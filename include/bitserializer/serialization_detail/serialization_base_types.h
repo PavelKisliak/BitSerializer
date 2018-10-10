@@ -77,7 +77,7 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	{
 		std::string str;
 		auto result = Serialize(archive, key, str);
-		Convert::Detail::FromString(str, value);
+		Convert::Detail::To(str, value);
 		return result;
 	}
 	else
@@ -94,7 +94,7 @@ static void Serialize(TArchive& archive, TValue& value)
 	{
 		std::string str;
 		Serialize(archive, str);
-		Convert::Detail::FromString(str, value);
+		Convert::Detail::To(str, value);
 	}
 	else
 	{

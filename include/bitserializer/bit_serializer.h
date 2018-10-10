@@ -23,14 +23,14 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TInput, std::enable_if_t<!is_input_stream_v<TInput>, int> = 0>
 	static void LoadObject(T& object, const TInput& input)
 	{
-		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, TInput>::value)
+		constexpr auto hasInputDataTypeSupport = is_archive_support_input_data_type<TMediaArchive::input_archive_type, TInput>::value;
+		static_assert(hasInputDataTypeSupport, "BitSerializer. The archive doesn't support loading from provided data type.");
+
+		if constexpr (hasInputDataTypeSupport)
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
 			Serialize(archive, object);
-		}
-		else {
-			static_assert(false, "BitSerializer. The archive doesn't support loading from provided data type.");
 		}
 	}
 
@@ -42,18 +42,14 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TStreamElem>
 	static void LoadObject(T& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
 	{
-		if constexpr (is_archive_support_input_data_type<TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>::value)
+		constexpr auto hasInputDataTypeSupport = is_archive_support_input_data_type<TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>::value;
+		static_assert(hasInputDataTypeSupport, "BitSerializer. The archive doesn't support loading from this type of stream.");
+
+		if constexpr (hasInputDataTypeSupport)
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
 			Serialize(archive, object);
-		}
-		else
-		{
-			if constexpr (std::is_same_v<TStreamElem, char>)
-				static_assert(false, "BitSerializer. The archive doesn't support loading from stream based on ANSI char element.");
-			else
-				static_assert(false, "BitSerializer. The archive doesn't support loading from stream based on wide string element.");
 		}
 	}
 
@@ -65,14 +61,14 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TOutput, std::enable_if_t<!is_output_stream_v<TOutput>, int> = 0>
 	static void SaveObject(T& object, TOutput& output)
 	{
-		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, TOutput>::value)
+		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type<TMediaArchive::output_archive_type, TOutput>::value;
+		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive doesn't support save to provided data type.");
+
+		if constexpr (hasOutputDataTypeSupport)
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
 			Serialize(archive, object);
-		}
-		else {
-			static_assert(false, "BitSerializer. The archive doesn't support save to provided data type.");
 		}
 	}
 
@@ -84,18 +80,14 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TStreamElem>
 	static void SaveObject(T& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
 	{
-		if constexpr (is_archive_support_output_data_type<TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>::value)
+		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type<TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>::value;
+		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive doesn't support save to this type of stream.");
+
+		if constexpr (hasOutputDataTypeSupport)
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
 			Serialize(archive, object);
-		}
-		else
-		{
-			if constexpr (std::is_same_v<TStreamElem, char>)
-				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on ANSI char element.");
-			else
-				static_assert(false, "BitSerializer. The archive doesn't support save to stream based on wide string element.");
 		}
 	}
 

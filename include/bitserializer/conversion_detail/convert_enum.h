@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <vector>
 #include <cctype>

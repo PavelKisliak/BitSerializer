@@ -40,11 +40,11 @@ constexpr bool has_buld_fixture_method_v = has_buld_fixture_method<T>::value;
 template <typename T, std::enable_if_t<std::is_class_v<T>, int> = 0>
 static void BuildFixture(T& value)
 {
-	if constexpr (has_buld_fixture_method_v<T>) {
+	constexpr auto hasBuldMethod = has_buld_fixture_method_v<T>;
+	static_assert(hasBuldMethod, "Your test class should implements static method BuildFixture(ClassType&).");
+
+	if constexpr (hasBuldMethod) {
 		T::BuildFixture(value);
-	}
-	else {
-		static_assert(false, "Your test class should implements static method BuildFixture(ClassType&).");
 	}
 }
 

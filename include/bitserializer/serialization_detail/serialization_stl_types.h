@@ -7,6 +7,7 @@
 #include <tuple>
 #include "key_value.h"
 #include "media_archive_base.h"
+#include "../string_conversion.h"
 
 namespace BitSerializer {
 
@@ -15,7 +16,7 @@ namespace BitSerializer {
 //-----------------------------------------------------------------------------
 namespace Detail
 {
-	template<typename TFirst, typename TSecond>
+	template<class TFirst, class TSecond>
 	class PairSerializer
 	{
 	public:
@@ -25,12 +26,15 @@ namespace Detail
 			: value(pair)
 		{ }
 
-		template <class TArchive>
+		template<class TArchive>
 		inline void Serialize(TArchive& archive)
 		{
+			static const auto keyName = Convert::To<TArchive::key_type>(L"key");
+			static const auto valueName = Convert::To<TArchive::key_type>(L"value");
+
 			using noConstKeyType = std::remove_const_t<value_type::first_type>;
-			archive << MakeKeyValue("key", const_cast<noConstKeyType&>(value.first));
-			archive << MakeKeyValue("value", value.second);
+			::BitSerializer::Serialize(archive, keyName, const_cast<noConstKeyType&>(value.first));
+			::BitSerializer::Serialize(archive, valueName, value.second);
 		}
 
 		value_type& value;

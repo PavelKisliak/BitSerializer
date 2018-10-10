@@ -67,16 +67,15 @@ namespace BitSerializer
 		template <class TValue>
 		std::optional<std::wstring> Validate(const TValue& value, bool isLoaded) noexcept
 		{
-			if constexpr (has_size_v<TValue>)
+			constexpr auto hasSizeMethod = has_size_v<TValue>;
+			static_assert(hasSizeMethod, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
+
+			if constexpr (hasSizeMethod)
 			{
 				if (value.size() >= mMinSize)
 					return std::nullopt;
 
 				return L"The minimum size of this field should be " + Convert::ToWString(mMinSize) + L".";
-			}
-			else
-			{
-				static_assert(false, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
 			}
 		}
 
@@ -98,16 +97,15 @@ namespace BitSerializer
 		template <class TValue>
 		std::optional<std::wstring> Validate(const TValue& value, bool isLoaded) noexcept
 		{
-			if constexpr (has_size_v<TValue>)
+			constexpr auto hasSizeMethod = has_size_v<TValue>;
+			static_assert(hasSizeMethod, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");
+
+			if constexpr (hasSizeMethod)
 			{
 				if (value.size() < mMaxSize)
 					return std::nullopt;
 
 				return L"The maximum size of this field should be not greater than " + Convert::ToWString(mMaxSize) + L".";
-			}
-			else
-			{
-				static_assert(false, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");
 			}
 		}
 

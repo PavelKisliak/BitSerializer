@@ -32,7 +32,7 @@ namespace Detail
 			static const auto keyName = Convert::To<TArchive::key_type>(L"key");
 			static const auto valueName = Convert::To<TArchive::key_type>(L"value");
 
-			using noConstKeyType = std::remove_const_t<value_type::first_type>;
+			using noConstKeyType = std::remove_const_t<typename value_type::first_type>;
 			::BitSerializer::Serialize(archive, keyName, const_cast<noConstKeyType&>(value.first));
 			::BitSerializer::Serialize(archive, valueName, value.second);
 		}

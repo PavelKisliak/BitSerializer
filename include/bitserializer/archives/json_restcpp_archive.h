@@ -342,7 +342,7 @@ public:
 	}
 
 protected:
-	inline const web::json::value* LoadJsonValue(const typename key_type& key) const
+	inline const web::json::value* LoadJsonValue(const key_type& key) const
 	{
 		const auto& jObject = mNode->as_object();
 		auto it = jObject.find(key);

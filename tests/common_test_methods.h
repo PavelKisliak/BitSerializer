@@ -106,6 +106,25 @@ void TestSerializeClassToStream(T&& value)
 }
 
 /// <summary>
+/// Test template of serialization to file.
+/// </summary>
+/// <param name="value">The value.</param>
+template <typename TArchive, typename TStreamElem, typename T>
+void TestSerializeClassToFile(T&& value)
+{
+	// Arrange
+	auto path = std::filesystem::temp_directory_path() / "TestArchive.data";
+
+	// Act
+	::BitSerializer::SaveObjectToFile<TArchive>(value, path);
+	std::decay_t<T> actual;
+	::BitSerializer::LoadObjectFromFile<TArchive>(actual, path);
+
+	// Assert
+	value.Assert(actual);
+}
+
+/// <summary>
 /// Test template of serialization for STL containers.
 /// </summary>
 /// <param name="value">The value.</param>

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\validators_tests.cpp" />
     <ClInclude Include="..\..\include\bitserializer\archives\json_restcpp_archive.h" />
     <ClInclude Include="..\..\include\bitserializer\bit_serializer.h" />
     <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_detail.h" />

@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 #include <optional>
+#include "object_traits.h"
 #include "../string_conversion.h"
 
 namespace BitSerializer
@@ -102,7 +103,7 @@ namespace BitSerializer
 
 			if constexpr (hasSizeMethod)
 			{
-				if (value.size() < mMaxSize)
+				if (value.size() <= mMaxSize)
 					return std::nullopt;
 
 				return L"The maximum size of this field should be not greater than " + Convert::ToWString(mMaxSize) + L".";

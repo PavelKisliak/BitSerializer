@@ -16,7 +16,7 @@ namespace BitSerializer
 	{
 	public:
 		template <class TValue>
-		std::optional<std::wstring> Validate(const TValue& value, bool isLoaded) noexcept
+		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const noexcept
 		{
 			if (isLoaded)
 				return std::nullopt;
@@ -39,7 +39,7 @@ namespace BitSerializer
 		{
 		}
 
-		std::optional<std::wstring> Validate(const TValue& value, bool isLoaded)
+		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const
 		{
 			if (value >= mMin && value < mMax)
 				return std::nullopt;
@@ -65,7 +65,7 @@ namespace BitSerializer
 		}
 
 		template <class TValue>
-		std::optional<std::wstring> Validate(const TValue& value, bool isLoaded) noexcept
+		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const noexcept
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
@@ -95,7 +95,7 @@ namespace BitSerializer
 		}
 
 		template <class TValue>
-		std::optional<std::wstring> Validate(const TValue& value, bool isLoaded) noexcept
+		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const noexcept
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");

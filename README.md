@@ -2,13 +2,16 @@
 ___
 The library is designed for simple serialization of arbitrary C++ types to various output formats.
 
-This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C ++ REST SDK library. The purpose of creating this library was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
+This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C++ REST SDK library. The historical  purpose of creating this library was to simplify the serialization of data for the http server.
+
+The good tests coverage helps to keep stability of project. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 #### Main features:
   - Support for different formats (currently only JSON).
   - Produces a clear JSON, which is convenient to use with Javascript.
   - Checking at compile time the permissibility of saving types depending on the structure of the output format.
   - Simple syntax (similar to serialization in boost library).
+  - Validation of deserialized values.
   - Support for serialization ANSI and wide strings.
   - Support for serialization of most STL containers.
   - Support for serialization of enum types (registration of a names map is required).
@@ -273,6 +276,83 @@ public:
     }
 }
 ```
+
+#### Validation of deserialized values
+
+BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
+```cpp
+archive << MakeKeyValue("TestFloat", TestFloat, Required(), Range(-1.0f, 1.0f));
+```
+After deserialize, you can check the status in context and get errors:
+```cpp
+if (!Context.IsValid())
+{
+    const auto& validationErrors = Context.GetValidationErrors();
+}
+```
+Basically implemented few validators: Required, Range, MinSize, MaxSize.
+Validator 'Range' can be used with all types which have operators '<' and '>'.
+Validators 'MinSize' and 'MaxSize' can be applied to all values which have size() method.
+This list will be extended in future.
+
+Below real example:
+```cpp
+#include <iostream>
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/archives/json_restcpp_archive.h"
+
+using namespace BitSerializer;
+
+class TestSimpleClass
+{
+public:
+	TestSimpleClass() { }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << MakeKeyValue("TestInt", TestInt, Required(), Range(0, 100));
+		archive << MakeKeyValue("TestFloat", TestFloat, Required(), Range(-1.0f, 1.0f));
+		archive << MakeKeyValue("TestString", TestString, MaxSize(8));
+	};
+
+private:
+	int TestInt;
+	float TestFloat;
+	std::wstring TestString;
+};
+
+int main()
+{
+	auto simpleObj = TestSimpleClass();
+	LoadObject<JsonArchive>(simpleObj, L"{	\"TestInt\": 2000, \"TestString\" : \"Very looooooooong string!\"  }");
+	if (!Context.IsValid())
+	{
+		std::wcout << L"Validation errors: "<< std::endl;
+		const auto& validationErrors = Context.GetValidationErrors();
+		for (const auto& keyErrors : validationErrors)
+		{
+			std::wcout << L"Path: " << keyErrors.first << std::endl;
+			for (const auto& err : keyErrors.second)
+			{
+				std::wcout << L"\t" << err << std::endl;
+			}
+		}
+	}
+	return 0;
+}
+```
+The result of execution this code:
+```text
+Validation errors:
+Path: /TestFloat
+        This field is required
+Path: /TestInt
+        Value must be between 0 and 100
+Path: /TestString
+        The maximum size of this field should be not greater than 8
+```
+Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 
 #### Compile time checking
 The new C++ 17 ability «if constexpr» helps to generate clear error messages.

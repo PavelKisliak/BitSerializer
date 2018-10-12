@@ -17,8 +17,9 @@ add_executable(BitSerializerTests
   serialization_containers_tests.cpp
   serialization_object_traits_tests.cpp
   serialization_stl_types_tests.cpp
-  string_conversion_tests.cpp)
+  string_conversion_tests.cpp
   validators_tests.cpp
+ )
 
 target_link_libraries(
   BitSerializerTests

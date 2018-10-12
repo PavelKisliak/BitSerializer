@@ -293,7 +293,7 @@ class TestClassForCheckValidation
 public:
 	void Assert() const
 	{
-		EXPECT_EQ(2, BitSerializer::Context.GetResult().size());
+		EXPECT_EQ(2, BitSerializer::Context.GetValidationErrors().size());
 	}
 
 	template <class TArchive>

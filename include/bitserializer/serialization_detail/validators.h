@@ -42,10 +42,14 @@ namespace BitSerializer
 
 		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const
 		{
-			if (value >= mMin && value < mMax)
+			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
+			if (!isLoaded)
 				return std::nullopt;
 
-			return L"Value must be between " + Convert::ToWString(mMin) + L" and " + Convert::ToWString(mMax);
+			if (value < mMin || value > mMax)
+				return L"Value must be between " + Convert::ToWString(mMin) + L" and " + Convert::ToWString(mMax);
+
+			return std::nullopt;
 		}
 
 	private:
@@ -71,12 +75,16 @@ namespace BitSerializer
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
 
+			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
+			if (!isLoaded)
+				return std::nullopt;
+
 			if constexpr (hasSizeMethod)
 			{
 				if (value.size() >= mMinSize)
 					return std::nullopt;
 
-				return L"The minimum size of this field should be " + Convert::ToWString(mMinSize) + L".";
+				return L"The minimum size of this field should be " + Convert::ToWString(mMinSize);
 			}
 		}
 
@@ -101,12 +109,16 @@ namespace BitSerializer
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");
 
+			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
+			if (!isLoaded)
+				return std::nullopt;
+
 			if constexpr (hasSizeMethod)
 			{
 				if (value.size() <= mMaxSize)
 					return std::nullopt;
 
-				return L"The maximum size of this field should be not greater than " + Convert::ToWString(mMaxSize) + L".";
+				return L"The maximum size of this field should be not greater than " + Convert::ToWString(mMaxSize);
 			}
 		}
 

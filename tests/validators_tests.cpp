@@ -38,10 +38,23 @@ TEST(ValidatorRequired, ShouldReturnErrorIfValueIsNotLoaded)
 //-----------------------------------------------------------------------------
 // Tests for 'Range' validator
 //-----------------------------------------------------------------------------
+TEST(ValidatorRange, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	auto validator = Range(10, 20);
+
+	// Act
+	auto result = validator(0, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+
 TEST(ValidatorRange, ShouldNotReturnErrorIfValueIsInRangeLoaded)
 {
 	// Arrange
-	auto validator = Range<int>(1, 2);
+	auto validator = Range(1, 1);
 
 	// Act
 	auto result = validator(1, true);
@@ -53,23 +66,10 @@ TEST(ValidatorRange, ShouldNotReturnErrorIfValueIsInRangeLoaded)
 TEST(ValidatorRange, ShouldReturnErrorIfValueIsLessThanMin)
 {
 	// Arrange
-	auto validator = Range<int>(10, 20);
+	auto validator = Range(10, 20);
 
 	// Act
-	auto result = validator(5, true);
-
-	// Assert
-	ASSERT_TRUE(result.has_value());
-	EXPECT_FALSE(result->empty());
-}
-
-TEST(ValidatorRange, ShouldReturnErrorIfValueIsEqualToMax)
-{
-	// Arrange
-	auto validator = Range<int>(10, 20);
-
-	// Act
-	auto result = validator(20, true);
+	auto result = validator(9, true);
 
 	// Assert
 	ASSERT_TRUE(result.has_value());
@@ -79,7 +79,7 @@ TEST(ValidatorRange, ShouldReturnErrorIfValueIsEqualToMax)
 TEST(ValidatorRange, ShouldReturnErrorIfValueIsGreaterThanMax)
 {
 	// Arrange
-	auto validator = Range<int>(10, 20);
+	auto validator = Range(10, 20);
 
 	// Act
 	auto result = validator(21, true);
@@ -92,6 +92,19 @@ TEST(ValidatorRange, ShouldReturnErrorIfValueIsGreaterThanMax)
 //-----------------------------------------------------------------------------
 // Tests for 'MinSize' validator
 //-----------------------------------------------------------------------------
+TEST(ValidatorMinSize, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	auto validator = MinSize(10);
+	std::string testValue(9, '#');
+
+	// Act
+	auto result = validator(testValue, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
 TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsEqual)
 {
 	// Arrange
@@ -134,6 +147,19 @@ TEST(ValidatorMinSize, ShouldReturnErrorIfSizeIsLess)
 //-----------------------------------------------------------------------------
 // Tests for 'MaxSize' validator
 //-----------------------------------------------------------------------------
+TEST(ValidatorMaxSize, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	auto validator = MaxSize(10);
+	std::string testValue(11, '#');
+
+	// Act
+	auto result = validator(testValue, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
 TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsEqual)
 {
 	// Arrange

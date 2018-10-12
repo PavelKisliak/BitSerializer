@@ -18,8 +18,8 @@ namespace BitSerializer
 	class SerializationContext
 	{
 	public:
-		bool IsValid() const noexcept						{ return mErrorsMap.empty(); }
-		const ValidationMap& GetResult() const noexcept		{ return mErrorsMap; }
+		bool IsValid() const noexcept								{ return mErrorsMap.empty(); }
+		const ValidationMap& GetValidationErrors() const noexcept	{ return mErrorsMap; }
 
 		void OnStartSerialization()
 		{

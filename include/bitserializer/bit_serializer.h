@@ -120,7 +120,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			LoadObject<TMediaArchive>(object, stream);
 		else
-			throw std::runtime_error("BitSerializer. The file '" + Convert::ToString(path) + "' was not found.");
+			throw std::runtime_error("BitSerializer. The file was not found.");
 	}
 
 	/// <summary>
@@ -137,7 +137,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			SaveObject<TMediaArchive>(object, stream);
 		else
-			throw std::runtime_error("BitSerializer. Could not open file: " + Convert::ToString(path));
+			throw std::runtime_error("BitSerializer. Could not open file.");
 	}
 
 } // namespace BitSerializer

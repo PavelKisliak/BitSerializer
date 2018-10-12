@@ -60,7 +60,7 @@ private:
 		else
 		{
 			decltype(auto) validator = std::get<I>(mValidators);
-			auto result = validator.Validate(GetValue(), isLoaded);
+			auto result = validator(GetValue(), isLoaded);
 			if (result.has_value())
 			{
 				if (!validationResult.has_value())

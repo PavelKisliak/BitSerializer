@@ -110,10 +110,25 @@ TEST(JsonRestCpp, SerializeClassWithSubTwoDimArray) {
 }
 
 //-----------------------------------------------------------------------------
-// Tests streams
+// Test the validation for named values (boolean result, which returned from archive methods).
+//-----------------------------------------------------------------------------
+TEST(JsonRestCpp, ShouldCollectErrorAboutRequiredNamedValues) {
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
+}
+
+//-----------------------------------------------------------------------------
+// Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
+}
+
+TEST(JsonRestCpp, SerializeClassToFile) {
+	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
 }
 
 //-----------------------------------------------------------------------------

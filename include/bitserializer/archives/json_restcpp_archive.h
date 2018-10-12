@@ -39,9 +39,7 @@ class JsonObjectScope;
 class JsonScopeBase : public JsonArchiveTraits
 {
 public:
-	JsonScopeBase(JsonScopeBase&&) = default;
-
-	JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
 		: mNode(const_cast<web::json::value*>(node))
 		, mParent(parent)
 		, mParentKey(perentKey)
@@ -121,7 +119,7 @@ template <SerializeMode TMode>
 class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
 		: JsonScopeBase(node, parent, perentKey)
 		, mIndex(0)
 	{
@@ -239,9 +237,7 @@ template <SerializeMode TMode>
 class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	JsonObjectScope(JsonObjectScope&&) = default;
-
-	JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
 		: JsonScopeBase(node, parent, perentKey)
 	{
 		assert(mNode->is_object());
@@ -362,45 +358,45 @@ template <SerializeMode TMode>
 class JsonRootScope : public ArchiveScope<TMode>, public Detail::JsonScopeBase
 {
 public:
-	JsonRootScope(JsonRootScope&&) = default;
+	explicit JsonRootScope(const utility::char_t* inputStr) : JsonRootScope(utility::string_t(inputStr)) {}
 
-	JsonRootScope(const utility::string_t& outputFormat)
+	explicit JsonRootScope(const utility::string_t& inputStr)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
-		mRootJson = web::json::value::parse(outputFormat, error);
+		mRootJson = web::json::value::parse(inputStr, error);
 		if (mRootJson.is_null()) {
 			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
 	}
 
-	JsonRootScope(utility::string_t& outputFormat)
+	explicit JsonRootScope(utility::string_t& outputStr)
 		: Detail::JsonScopeBase(&mRootJson)
-		, mOutput(&outputFormat)
+		, mOutput(&outputStr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	JsonRootScope(typename utility::istream_t& input)
+	explicit JsonRootScope(typename utility::istream_t& inputStream)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
-		mRootJson = web::json::value::parse(input, error);
+		mRootJson = web::json::value::parse(inputStream, error);
 		if (mRootJson.is_null()) {
 			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
 	}
 
-	JsonRootScope(typename utility::ostream_t& output)
+	explicit JsonRootScope(typename utility::ostream_t& outputStream)
 		: Detail::JsonScopeBase(&mRootJson)
-		, mOutput(&output)
+		, mOutput(&outputStream)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-		mOutput = &output;
+		mOutput = &outputStream;
 	}
 
 	~JsonRootScope()

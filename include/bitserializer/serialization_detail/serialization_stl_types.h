@@ -22,7 +22,7 @@ namespace Detail
 	public:
 		using value_type = std::pair<TFirst, TSecond>;
 
-		PairSerializer(value_type& pair)
+		explicit PairSerializer(value_type& pair)
 			: value(pair)
 		{ }
 

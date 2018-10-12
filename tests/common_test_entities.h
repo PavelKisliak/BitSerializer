@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <stdlib.h>
+#include <cstdlib>
 #include <type_traits>
 #include <functional>
 #include "gtest/gtest.h"
@@ -284,4 +284,34 @@ public:
 	};
 
 	T TestTwoDimArray[ArraySize1][ArraySize2];
+};
+
+//-----------------------------------------------------------------------------
+template <typename TestType>
+class TestClassForCheckValidation
+{
+public:
+	void Assert() const
+	{
+		EXPECT_EQ(2, BitSerializer::Context.GetResult().size());
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::MakeKeyValue("existSingleField", existSingleField, BitSerializer::Required());
+		archive << BitSerializer::MakeKeyValue("existArrayField", existArrayField, BitSerializer::Required());
+
+		// Trying to load not exist fields
+		if (archive.IsLoading())
+		{
+			TestType notExistSingleField;
+			TestType notExistArrayField[3];
+			archive << BitSerializer::MakeKeyValue("notExistSingleField", notExistSingleField, BitSerializer::Required());
+			archive << BitSerializer::MakeKeyValue("notExistArrayField", notExistArrayField, BitSerializer::Required());
+		}
+	};
+
+	TestType existSingleField;
+	TestType existArrayField[3];
 };

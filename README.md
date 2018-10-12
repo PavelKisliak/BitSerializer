@@ -1,21 +1,28 @@
 # BitSerializer
 ___
-The library is designed for simple serialization of arbitrary C++ types to various output formats.
+The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical  purpose was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
 
-This is the first version open for public access, currently it includes support for only one JSON format, which requires an external C++ REST SDK library. The historical  purpose of creating this library was to simplify the serialization of data for the http server.
+This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
-The good tests coverage helps to keep stability of project. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
+What's new in version 0.8:
+[+] Add CMake support.
+[+] Add validation of deserialized values.
+[\*] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
+[\*] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
+[\*] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
+
+[Full log of changes](ChangeLog.md)
 
 #### Main features:
-  - Support for different formats (currently only JSON).
+  - Flexy architecture, which allows to support different kind of formats (currently only JSON).
   - Produces a clear JSON, which is convenient to use with Javascript.
-  - Checking at compile time the permissibility of saving types depending on the structure of the output format.
   - Simple syntax (similar to serialization in boost library).
   - Validation of deserialized values.
+  - Checking at compile time the permissibility of saving types depending on the structure of the output format.
   - Support for serialization ANSI and wide strings.
   - Support for serialization of most STL containers.
   - Support for serialization of enum types (registration of a names map is required).
-  - As a bonus, the subsystem of converting strings to / from arbitrary types.
+  - As a bonus, the subsystem for converting strings to / from arbitrary types.
 
 #### Supported Formats:
   - JSON (the implementation is based on the [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)).

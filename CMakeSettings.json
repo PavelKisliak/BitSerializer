@@ -1,4 +1,9 @@
 {
+  "environments": [
+    {
+      "CMAKE_TOOLCHAIN_FILE": "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    }
+  ],
   "configurations": [
     {
       "name": "x86-Debug",
@@ -8,13 +13,7 @@
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "-m -v:minimal",
-      "buildCommandArgs": "",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "D:/libs/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        }
-      ]
+      "buildCommandArgs": ""
     },
     {
       "name": "x86-Release",
@@ -24,29 +23,17 @@
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "D:/libs/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        }
-      ]
+      "buildCommandArgs": ""
     },
     {
       "name": "x64-Debug",
       "generator": "Visual Studio 15 2017 Win64",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${env.USERPROFILE}\\CMakeBuild\\${workspaceHash}\\build\\${name}",
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "D:/libs/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        }
-      ]
+      "buildCommandArgs": ""
     },
     {
       "name": "x64-Release",
@@ -56,13 +43,7 @@
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "D:/libs/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        }
-      ]
+      "buildCommandArgs": ""
     }
   ]
 }

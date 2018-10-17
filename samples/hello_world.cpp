@@ -13,10 +13,10 @@ int main()
     auto json = SaveObject<JsonArchive>(expected);
     std::string result;
     LoadObject<JsonArchive>(result, json);
+
     assert(result == expected);
-    std::cout << result;
+    std::cout << result << std::endl;
 
     std::cin.get();
-
     return EXIT_SUCCESS;
 }

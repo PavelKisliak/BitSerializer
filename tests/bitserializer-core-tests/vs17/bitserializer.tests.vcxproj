@@ -38,8 +38,9 @@
     <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\validators.h" />
     <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_context.h" />
     <ClInclude Include="..\..\..\include\bitserializer\string_conversion.h" />
-    <ClInclude Include="..\auto_fixture.h" />
-    <ClInclude Include="..\common_test_methods.h" />
+    <ClInclude Include="..\..\test-helpers\auto_fixture.h" />
+    <ClInclude Include="..\..\test-helpers\common_test_entities.h" />
+    <ClInclude Include="..\..\test-helpers\common_test_methods.h" />
     <ClInclude Include="..\pch.h" />
     <ClCompile Include="..\serialization_archive_traits_tests.cpp" />
     <ClCompile Include="..\serialization_containers_tests.cpp" />
@@ -47,7 +48,6 @@
     <ClCompile Include="..\serialization_stl_types_tests.cpp" />
     <ClCompile Include="..\string_conversion_tests.cpp" />
     <ClCompile Include="..\json_restcpp_archive_tests.cpp" />
-    <ClInclude Include="..\common_test_entities.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\pch.cpp">

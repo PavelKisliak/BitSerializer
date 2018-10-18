@@ -17,6 +17,9 @@
     <Filter Include="BitSerializer\SerializationDetail">
       <UniqueIdentifier>{d52e33a7-5071-4f1a-bedc-a479c448ac0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TestHelpers">
+      <UniqueIdentifier>{b151ed58-d4ff-4270-86c7-90c5fe92d972}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\pch.cpp" />
@@ -30,9 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\pch.h" />
-    <ClInclude Include="..\common_test_methods.h" />
-    <ClInclude Include="..\auto_fixture.h" />
-    <ClInclude Include="..\common_test_entities.h" />
     <ClInclude Include="..\..\..\include\bitserializer\bit_serializer.h">
       <Filter>BitSerializer</Filter>
     </ClInclude>
@@ -86,6 +86,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_context.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test-helpers\auto_fixture.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test-helpers\common_test_entities.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test-helpers\common_test_methods.h">
+      <Filter>TestHelpers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

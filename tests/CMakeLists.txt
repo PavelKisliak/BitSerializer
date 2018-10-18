@@ -1,2 +1,2 @@
-add_subdirectory(bitserializer-core-tests)
-add_subdirectory(bitserializer-json-restcpp-tests)
+add_subdirectory(bitserializer_core_tests)
+add_subdirectory(bitserializer_json_restcpp_tests)

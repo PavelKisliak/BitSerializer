@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_core_tests", "tests\bitserializer-core-tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_core_tests", "tests\bitserializer_core_tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_json_restcpp_tests", "tests\bitserializer-json-restcpp-tests\bitserializer_json_restcpp_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_json_restcpp_tests", "tests\bitserializer_json_restcpp_tests\bitserializer_json_restcpp_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D2E1CD40-39CE-437E-A71A-B9C00302747B}"
 EndProject
@@ -49,9 +49,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Archives", "B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHelpers", "TestHelpers", "{366F9442-3B35-457B-A9E8-2076CCE40252}"
 	ProjectSection(SolutionItems) = preProject
-		tests\test-helpers\auto_fixture.h = tests\test-helpers\auto_fixture.h
-		tests\test-helpers\common_test_entities.h = tests\test-helpers\common_test_entities.h
-		tests\test-helpers\common_test_methods.h = tests\test-helpers\common_test_methods.h
+		tests\test_helpers\auto_fixture.h = tests\test_helpers\auto_fixture.h
+		tests\test_helpers\common_test_entities.h = tests\test_helpers\common_test_entities.h
+		tests\test_helpers\common_test_methods.h = tests\test_helpers\common_test_methods.h
 	EndProjectSection
 EndProject
 Global

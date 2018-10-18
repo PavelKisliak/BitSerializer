@@ -33,58 +33,58 @@
     <ClInclude Include="..\common_test_methods.h" />
     <ClInclude Include="..\auto_fixture.h" />
     <ClInclude Include="..\common_test_entities.h" />
-    <ClInclude Include="..\..\include\bitserializer\bit_serializer.h">
+    <ClInclude Include="..\..\..\include\bitserializer\bit_serializer.h">
       <Filter>BitSerializer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\string_conversion.h">
+    <ClInclude Include="..\..\..\include\bitserializer\string_conversion.h">
       <Filter>BitSerializer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\archives\json_restcpp_archive.h">
+    <ClInclude Include="..\..\..\include\bitserializer\archives\json_restcpp_archive.h">
       <Filter>BitSerializer\Archives</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_detail.h">
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_detail.h">
       <Filter>BitSerializer\ConversionDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_enum.h">
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_enum.h">
       <Filter>BitSerializer\ConversionDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_fundamental.h">
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_fundamental.h">
       <Filter>BitSerializer\ConversionDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\object_traits.h">
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\object_traits.h">
       <Filter>BitSerializer\ConversionDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\archive_traits.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\archive_traits.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\base_object.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\base_object.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\errors_handling.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\errors_handling.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\key_value.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\key_value.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\media_archive_base.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\media_archive_base.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\object_traits.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\object_traits.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_base_types.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_base_types.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_containers.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_stl_containers.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_types.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_stl_types.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\validators.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\validators.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_context.h">
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_context.h">
       <Filter>BitSerializer\SerializationDetail</Filter>
     </ClInclude>
   </ItemGroup>

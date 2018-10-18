@@ -20,24 +20,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\validators_tests.cpp" />
-    <ClInclude Include="..\..\include\bitserializer\archives\json_restcpp_archive.h" />
-    <ClInclude Include="..\..\include\bitserializer\bit_serializer.h" />
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_detail.h" />
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_enum.h" />
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\convert_fundamental.h" />
-    <ClInclude Include="..\..\include\bitserializer\conversion_detail\object_traits.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\archive_traits.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\base_object.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\errors_handling.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\key_value.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\media_archive_base.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\object_traits.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_base_types.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_containers.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_stl_types.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\validators.h" />
-    <ClInclude Include="..\..\include\bitserializer\serialization_detail\serialization_context.h" />
-    <ClInclude Include="..\..\include\bitserializer\string_conversion.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\archives\json_restcpp_archive.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\bit_serializer.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_detail.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_enum.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_fundamental.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\object_traits.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\archive_traits.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\base_object.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\errors_handling.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\key_value.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\media_archive_base.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\object_traits.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_base_types.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_stl_containers.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_stl_types.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\validators.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\serialization_detail\serialization_context.h" />
+    <ClInclude Include="..\..\..\include\bitserializer\string_conversion.h" />
     <ClInclude Include="..\auto_fixture.h" />
     <ClInclude Include="..\common_test_methods.h" />
     <ClInclude Include="..\pch.h" />
@@ -135,7 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -153,7 +153,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -174,7 +174,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -196,7 +196,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>

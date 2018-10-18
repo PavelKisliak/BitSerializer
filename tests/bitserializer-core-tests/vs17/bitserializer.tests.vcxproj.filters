@@ -8,9 +8,6 @@
     <Filter Include="BitSerializer">
       <UniqueIdentifier>{781dcb1f-bdf3-48e8-a54a-4d42ddd0c507}</UniqueIdentifier>
     </Filter>
-    <Filter Include="BitSerializer\Archives">
-      <UniqueIdentifier>{b8c18412-e40c-460b-859e-28cd51f17136}</UniqueIdentifier>
-    </Filter>
     <Filter Include="BitSerializer\ConversionDetail">
       <UniqueIdentifier>{cf1c73f7-6018-4bfa-8cb0-102db0d44a65}</UniqueIdentifier>
     </Filter>
@@ -19,6 +16,12 @@
     </Filter>
     <Filter Include="TestHelpers">
       <UniqueIdentifier>{b151ed58-d4ff-4270-86c7-90c5fe92d972}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BitserializerArchives">
+      <UniqueIdentifier>{cf630a19-39b8-4036-9e93-32012f2e2f8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BitserializerArchives\JsonRestCpp">
+      <UniqueIdentifier>{f02d50c8-0596-4531-8ad0-45c8c060dcca}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -37,9 +40,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\bitserializer\string_conversion.h">
       <Filter>BitSerializer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\bitserializer\archives\json_restcpp_archive.h">
-      <Filter>BitSerializer\Archives</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\bitserializer\conversion_detail\convert_detail.h">
       <Filter>BitSerializer\ConversionDetail</Filter>
@@ -94,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="..\..\test-helpers\common_test_methods.h">
       <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\bitserializer\archives\json_restcpp_archive.h">
+      <Filter>BitserializerArchives\JsonRestCpp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

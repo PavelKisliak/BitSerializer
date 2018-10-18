@@ -1,1 +1,1 @@
-add_subdirectory(HelloWorld)
+add_subdirectory(hello_world)

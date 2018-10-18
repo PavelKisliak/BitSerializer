@@ -2,24 +2,8 @@
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include <limits>
-#include <type_traits>
-#include <functional>
-#include <optional>
-#include <array>
-#include <vector>
-#include <deque>
-#include <list>
-#include <forward_list>
-#include <set>
-#include <map>
-#include <cstdlib>
 #include <filesystem>
-
-#include "gtest/gtest.h"
-
 #include "../test-helpers/common_test_entities.h"
-#include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;

@@ -1,0 +1,104 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2003
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_core_tests", "tests\bitserializer-core-tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_json_restcpp_tests", "tests\bitserializer-json-restcpp-tests\bitserializer_json_restcpp_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D2E1CD40-39CE-437E-A71A-B9C00302747B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{2528AB0C-9796-4D5A-B010-65BB140BAFBD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world", "samples\hello_world\hello_world.vcxproj", "{DA596201-E1B4-497D-A727-C393BF79E483}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Core", "BitSerializer.Core", "{FB3AFEFE-379A-469A-A733-8C3A98A0600E}"
+	ProjectSection(SolutionItems) = preProject
+		include\bitserializer\bit_serializer.h = include\bitserializer\bit_serializer.h
+		include\bitserializer\string_conversion.h = include\bitserializer\string_conversion.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "conversion_detail", "conversion_detail", "{14D52DB1-E547-4886-BF56-64799C91B2FD}"
+	ProjectSection(SolutionItems) = preProject
+		include\bitserializer\conversion_detail\convert_detail.h = include\bitserializer\conversion_detail\convert_detail.h
+		include\bitserializer\conversion_detail\convert_enum.h = include\bitserializer\conversion_detail\convert_enum.h
+		include\bitserializer\conversion_detail\convert_fundamental.h = include\bitserializer\conversion_detail\convert_fundamental.h
+		include\bitserializer\conversion_detail\object_traits.h = include\bitserializer\conversion_detail\object_traits.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "serialization_detail", "serialization_detail", "{0EE85DB5-DB42-47A5-96C7-634C2D1FD5C1}"
+	ProjectSection(SolutionItems) = preProject
+		include\bitserializer\serialization_detail\archive_traits.h = include\bitserializer\serialization_detail\archive_traits.h
+		include\bitserializer\serialization_detail\base_object.h = include\bitserializer\serialization_detail\base_object.h
+		include\bitserializer\serialization_detail\errors_handling.h = include\bitserializer\serialization_detail\errors_handling.h
+		include\bitserializer\serialization_detail\key_value.h = include\bitserializer\serialization_detail\key_value.h
+		include\bitserializer\serialization_detail\media_archive_base.h = include\bitserializer\serialization_detail\media_archive_base.h
+		include\bitserializer\serialization_detail\object_traits.h = include\bitserializer\serialization_detail\object_traits.h
+		include\bitserializer\serialization_detail\serialization_base_types.h = include\bitserializer\serialization_detail\serialization_base_types.h
+		include\bitserializer\serialization_detail\serialization_context.h = include\bitserializer\serialization_detail\serialization_context.h
+		include\bitserializer\serialization_detail\serialization_stl_containers.h = include\bitserializer\serialization_detail\serialization_stl_containers.h
+		include\bitserializer\serialization_detail\serialization_stl_types.h = include\bitserializer\serialization_detail\serialization_stl_types.h
+		include\bitserializer\serialization_detail\validators.h = include\bitserializer\serialization_detail\validators.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Archives", "BitSerializer.Archives", "{4FD650AF-D577-4FFB-82CA-EDF9A345D3FE}"
+	ProjectSection(SolutionItems) = preProject
+		include_archives\bitserializer_json_restcpp\json_restcpp_archive.h = include_archives\bitserializer_json_restcpp\json_restcpp_archive.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHelpers", "TestHelpers", "{366F9442-3B35-457B-A9E8-2076CCE40252}"
+	ProjectSection(SolutionItems) = preProject
+		tests\test-helpers\auto_fixture.h = tests\test-helpers\auto_fixture.h
+		tests\test-helpers\common_test_entities.h = tests\test-helpers\common_test_entities.h
+		tests\test-helpers\common_test_methods.h = tests\test-helpers\common_test_methods.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Debug|x64.ActiveCfg = Debug|x64
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Debug|x64.Build.0 = Debug|x64
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Debug|x86.ActiveCfg = Debug|Win32
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Debug|x86.Build.0 = Debug|Win32
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Release|x64.ActiveCfg = Release|x64
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Release|x64.Build.0 = Release|x64
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Release|x86.ActiveCfg = Release|Win32
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}.Release|x86.Build.0 = Release|Win32
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Debug|x64.ActiveCfg = Debug|x64
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Debug|x64.Build.0 = Debug|x64
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Debug|x86.ActiveCfg = Debug|Win32
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Debug|x86.Build.0 = Debug|Win32
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Release|x64.ActiveCfg = Release|x64
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Release|x64.Build.0 = Release|x64
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Release|x86.ActiveCfg = Release|Win32
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C}.Release|x86.Build.0 = Release|Win32
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Debug|x64.ActiveCfg = Debug|x64
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Debug|x64.Build.0 = Debug|x64
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Debug|x86.ActiveCfg = Debug|Win32
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Debug|x86.Build.0 = Debug|Win32
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x64.ActiveCfg = Release|x64
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x64.Build.0 = Release|x64
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x86.ActiveCfg = Release|Win32
+		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
+		{4F9E4167-BFEA-406F-AE70-5772BA53134C} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
+		{DA596201-E1B4-497D-A727-C393BF79E483} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
+		{14D52DB1-E547-4886-BF56-64799C91B2FD} = {FB3AFEFE-379A-469A-A733-8C3A98A0600E}
+		{0EE85DB5-DB42-47A5-96C7-634C2D1FD5C1} = {FB3AFEFE-379A-469A-A733-8C3A98A0600E}
+		{366F9442-3B35-457B-A9E8-2076CCE40252} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F41DAFDC-F7E6-4B35-BB33-54073C9FC110}
+	EndGlobalSection
+EndGlobal

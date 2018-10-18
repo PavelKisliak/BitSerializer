@@ -11,8 +11,7 @@ include_directories(
   ${GTEST_INCLUDE_DIRS}
 )
 
-add_executable(BitSerializerTests 
-  json_restcpp_archive_tests.cpp
+add_executable(BitSerializerCoreTests 
   serialization_archive_traits_tests.cpp
   serialization_containers_tests.cpp
   serialization_object_traits_tests.cpp
@@ -22,9 +21,9 @@ add_executable(BitSerializerTests
  )
 
 target_link_libraries(
-  BitSerializerTests
+  BitSerializerCoreTests
   ${GTEST_BOTH_LIBRARIES} 
   cpprestsdk::cpprest
 )
 
-add_test(Lib_Tests BitSerializerTests)
+add_test(BitSerializerCoreTests BitSerializerCoreTests)

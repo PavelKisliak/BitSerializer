@@ -47,7 +47,6 @@
     <ClCompile Include="..\serialization_object_traits_tests.cpp" />
     <ClCompile Include="..\serialization_stl_types_tests.cpp" />
     <ClCompile Include="..\string_conversion_tests.cpp" />
-    <ClCompile Include="..\json_restcpp_archive_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\pch.cpp">

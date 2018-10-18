@@ -15,36 +15,36 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world", "samples\hell
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Core", "BitSerializer.Core", "{FB3AFEFE-379A-469A-A733-8C3A98A0600E}"
 	ProjectSection(SolutionItems) = preProject
-		include\bitserializer\bit_serializer.h = include\bitserializer\bit_serializer.h
-		include\bitserializer\string_conversion.h = include\bitserializer\string_conversion.h
+		core\bitserializer\bit_serializer.h = core\bitserializer\bit_serializer.h
+		core\bitserializer\string_conversion.h = core\bitserializer\string_conversion.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "conversion_detail", "conversion_detail", "{14D52DB1-E547-4886-BF56-64799C91B2FD}"
 	ProjectSection(SolutionItems) = preProject
-		include\bitserializer\conversion_detail\convert_detail.h = include\bitserializer\conversion_detail\convert_detail.h
-		include\bitserializer\conversion_detail\convert_enum.h = include\bitserializer\conversion_detail\convert_enum.h
-		include\bitserializer\conversion_detail\convert_fundamental.h = include\bitserializer\conversion_detail\convert_fundamental.h
-		include\bitserializer\conversion_detail\object_traits.h = include\bitserializer\conversion_detail\object_traits.h
+		core\bitserializer\conversion_detail\convert_detail.h = core\bitserializer\conversion_detail\convert_detail.h
+		core\bitserializer\conversion_detail\convert_enum.h = core\bitserializer\conversion_detail\convert_enum.h
+		core\bitserializer\conversion_detail\convert_fundamental.h = core\bitserializer\conversion_detail\convert_fundamental.h
+		core\bitserializer\conversion_detail\object_traits.h = core\bitserializer\conversion_detail\object_traits.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "serialization_detail", "serialization_detail", "{0EE85DB5-DB42-47A5-96C7-634C2D1FD5C1}"
 	ProjectSection(SolutionItems) = preProject
-		include\bitserializer\serialization_detail\archive_traits.h = include\bitserializer\serialization_detail\archive_traits.h
-		include\bitserializer\serialization_detail\base_object.h = include\bitserializer\serialization_detail\base_object.h
-		include\bitserializer\serialization_detail\errors_handling.h = include\bitserializer\serialization_detail\errors_handling.h
-		include\bitserializer\serialization_detail\key_value.h = include\bitserializer\serialization_detail\key_value.h
-		include\bitserializer\serialization_detail\media_archive_base.h = include\bitserializer\serialization_detail\media_archive_base.h
-		include\bitserializer\serialization_detail\object_traits.h = include\bitserializer\serialization_detail\object_traits.h
-		include\bitserializer\serialization_detail\serialization_base_types.h = include\bitserializer\serialization_detail\serialization_base_types.h
-		include\bitserializer\serialization_detail\serialization_context.h = include\bitserializer\serialization_detail\serialization_context.h
-		include\bitserializer\serialization_detail\serialization_stl_containers.h = include\bitserializer\serialization_detail\serialization_stl_containers.h
-		include\bitserializer\serialization_detail\serialization_stl_types.h = include\bitserializer\serialization_detail\serialization_stl_types.h
-		include\bitserializer\serialization_detail\validators.h = include\bitserializer\serialization_detail\validators.h
+		core\bitserializer\serialization_detail\archive_traits.h = core\bitserializer\serialization_detail\archive_traits.h
+		core\bitserializer\serialization_detail\base_object.h = core\bitserializer\serialization_detail\base_object.h
+		core\bitserializer\serialization_detail\errors_handling.h = core\bitserializer\serialization_detail\errors_handling.h
+		core\bitserializer\serialization_detail\key_value.h = core\bitserializer\serialization_detail\key_value.h
+		core\bitserializer\serialization_detail\media_archive_base.h = core\bitserializer\serialization_detail\media_archive_base.h
+		core\bitserializer\serialization_detail\object_traits.h = core\bitserializer\serialization_detail\object_traits.h
+		core\bitserializer\serialization_detail\serialization_base_types.h = core\bitserializer\serialization_detail\serialization_base_types.h
+		core\bitserializer\serialization_detail\serialization_context.h = core\bitserializer\serialization_detail\serialization_context.h
+		core\bitserializer\serialization_detail\serialization_stl_containers.h = core\bitserializer\serialization_detail\serialization_stl_containers.h
+		core\bitserializer\serialization_detail\serialization_stl_types.h = core\bitserializer\serialization_detail\serialization_stl_types.h
+		core\bitserializer\serialization_detail\validators.h = core\bitserializer\serialization_detail\validators.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Archives", "BitSerializer.Archives", "{4FD650AF-D577-4FFB-82CA-EDF9A345D3FE}"
 	ProjectSection(SolutionItems) = preProject
-		include_archives\bitserializer_json_restcpp\json_restcpp_archive.h = include_archives\bitserializer_json_restcpp\json_restcpp_archive.h
+		archives\bitserializer_json_restcpp\json_restcpp_archive.h = archives\bitserializer_json_restcpp\json_restcpp_archive.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHelpers", "TestHelpers", "{366F9442-3B35-457B-A9E8-2076CCE40252}"

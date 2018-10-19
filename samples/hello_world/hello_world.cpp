@@ -1,7 +1,5 @@
 #include <cassert>
 #include <iostream>
-#include <string>
-
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 

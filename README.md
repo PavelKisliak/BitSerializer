@@ -48,8 +48,8 @@ ___
 #### Hello world!
 ```cpp
 #include <iostream>
-#include "bitserializer\bit_serializer.h"
-#include "bitserializer\archives\json_restcpp_archive.h"
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
 
@@ -112,8 +112,8 @@ There are two ways to serialize a class:
 
 Next example demonstrates how to implement internal serialization method:
 ```cpp
-#include "bitserializer\bit_serializer.h"
-#include "bitserializer\archives\json_restcpp_archive.h"
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
 
@@ -181,8 +181,8 @@ For serialize third party class, which source cannot be modified, need to implem
 
 ```cpp
 #include <iostream>
-#include "bitserializer\bit_serializer.h"
-#include "bitserializer\archives\json_restcpp_archive.h"
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 class TestThirdPartyClass
 {
@@ -309,7 +309,7 @@ Below real example:
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/archives/json_restcpp_archive.h"
+#include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
 

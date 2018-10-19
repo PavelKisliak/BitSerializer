@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_core_tests", "tests\bitserializer_core_tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.Core.Tests", "tests\bitserializer_core_tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bitserializer_json_restcpp_tests", "tests\bitserializer_json_restcpp_tests\bitserializer_json_restcpp_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.JSon.RestCpp.Tests", "tests\bitserializer_json_restcpp_tests\bitserializer_json_restcpp_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D2E1CD40-39CE-437E-A71A-B9C00302747B}"
 EndProject
@@ -54,6 +54,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHelpers", "TestHelpers"
 		tests\test_helpers\common_test_methods.h = tests\test_helpers\common_test_methods.h
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "validation", "samples\validation\validation.vcxproj", "{8834D80A-1025-494A-91B4-F6596A7C2792}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -86,6 +88,14 @@ Global
 		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x64.Build.0 = Release|x64
 		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x86.ActiveCfg = Release|Win32
 		{DA596201-E1B4-497D-A727-C393BF79E483}.Release|x86.Build.0 = Release|Win32
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Debug|x64.ActiveCfg = Debug|x64
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Debug|x64.Build.0 = Debug|x64
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Debug|x86.ActiveCfg = Debug|Win32
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Debug|x86.Build.0 = Debug|Win32
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Release|x64.ActiveCfg = Release|x64
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Release|x64.Build.0 = Release|x64
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Release|x86.ActiveCfg = Release|Win32
+		{8834D80A-1025-494A-91B4-F6596A7C2792}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +107,7 @@ Global
 		{14D52DB1-E547-4886-BF56-64799C91B2FD} = {FB3AFEFE-379A-469A-A733-8C3A98A0600E}
 		{0EE85DB5-DB42-47A5-96C7-634C2D1FD5C1} = {FB3AFEFE-379A-469A-A733-8C3A98A0600E}
 		{366F9442-3B35-457B-A9E8-2076CCE40252} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
+		{8834D80A-1025-494A-91B4-F6596A7C2792} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F41DAFDC-F7E6-4B35-BB33-54073C9FC110}

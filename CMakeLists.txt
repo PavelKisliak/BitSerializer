@@ -17,9 +17,9 @@ add_library(bitserializer INTERFACE)
 target_include_directories(bitserializer 
   INTERFACE
     $<INSTALL_INTERFACE:core>
-	$<INSTALL_INTERFACE:archives>
+    $<INSTALL_INTERFACE:archives>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/core>
-	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/archives>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/archives>
 )
 
 add_subdirectory(tests)

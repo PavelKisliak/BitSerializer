@@ -1,12 +1,14 @@
 # BitSerializer
 ___
-The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical  purpose was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
+The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
 
 This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 What's new in version 0.8:
-[+] Add CMake support.
+[!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
+[+] Add CMake support (it needs just for samples and tests, as the library is headers only).
 [+] Add validation of deserialized values.
+[+] Added directory with samples.
 [\*] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
 [\*] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
 [\*] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
@@ -14,7 +16,7 @@ What's new in version 0.8:
 [Full log of changes](ChangeLog.md)
 
 #### Main features:
-  - Flexy architecture, which allows to support different kind of formats (currently only JSON).
+  - Flexible architecture, which allows to support different kind of formats (currently only JSON).
   - Produces a clear JSON, which is convenient to use with Javascript.
   - Simple syntax (similar to serialization in boost library).
   - Validation of deserialized values.
@@ -349,6 +351,7 @@ int main()
 			}
 		}
 	}
+	std::cin.get();
 	return 0;
 }
 ```

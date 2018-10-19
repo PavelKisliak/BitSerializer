@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(test_bitserializer)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin/$<CONFIG>_${VCPKG_TARGET_TRIPLET})
 
 enable_testing()
 find_package(GTest REQUIRED)

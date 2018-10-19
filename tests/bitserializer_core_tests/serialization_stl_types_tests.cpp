@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include "common_test_entities.h"
+#include "../test_helpers/common_test_entities.h"
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/archives/json_restcpp_archive.h"
+#include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL types.

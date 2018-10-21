@@ -23,5 +23,33 @@ target_include_directories(bitserializer
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/archives>
 )
 
+if(MSVC)
+    target_compile_options(bitserializer INTERFACE /W4)
+else()
+    target_compile_options(bitserializer
+            INTERFACE
+            -Wall
+            -Wextra # reasonable and standard
+            -Wnon-virtual-dtor # warn the user if a class with virtual functions has a
+                               # non-virtual destructor.
+
+            # track down memory errors
+            -Wold-style-cast # warn for c-style casts
+            -Wcast-align # warn for potential performance problem casts
+            -Wunused # warn on anything being unused
+            -Woverloaded-virtual # warn if you overload but not override a virtual
+
+            # function
+            -Wpedantic # warn if non-standard C++ is used
+            -Wconversion # warn on type conversions that may lose data
+            -Wsign-conversion # warn on sign conversions
+
+            # do not exist
+            -Wduplicated-cond # warn if if / else chain has duplicated conditions
+            -Wduplicated-branches # warn if if / else branches have duplicated code
+            -Wlogical-op # warn about logical operations being where bitwise is used
+    )
+endif()
+
 #add_subdirectory(tests)
 add_subdirectory(samples)

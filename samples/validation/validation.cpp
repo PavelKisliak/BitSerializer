@@ -7,20 +7,20 @@ using namespace BitSerializer;
 class TestSimpleClass
 {
 public:
-	TestSimpleClass() { }
+	TestSimpleClass(): testInt{}, testFloat{} { }
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestInt", TestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("TestFloat", TestFloat, Required(), Range(-1.0f, 1.0f));
-		archive << MakeKeyValue("TestString", TestString, MaxSize(8));
+		archive << MakeKeyValue("TestInt", testInt, Required(), Range(0, 100));
+		archive << MakeKeyValue("TestFloat", testFloat, Required(), Range(-1.0f, 1.0f));
+		archive << MakeKeyValue("TestString", testString, MaxSize(8));
 	};
 
 private:
-	int TestInt;
-	float TestFloat;
-	std::wstring TestString;
+	int testInt;
+	float testFloat;
+	std::wstring testString;
 };
 
 int main()
@@ -40,6 +40,6 @@ int main()
 			}
 		}
 	}
-	std::cin.get();
+
 	return 0;
 }

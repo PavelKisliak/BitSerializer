@@ -4,6 +4,7 @@ project(bitserializer LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(cpprestsdk REQUIRED)
+find_package(Boost COMPONENTS system REQUIRED)
 
 find_path(CPP_REST_SDK_DIR cpprest/json.h)
 include_directories(
@@ -22,5 +23,5 @@ target_include_directories(bitserializer
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/archives>
 )
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
 add_subdirectory(samples)

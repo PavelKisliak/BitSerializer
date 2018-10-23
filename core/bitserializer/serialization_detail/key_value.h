@@ -16,12 +16,12 @@ template<class TKey, class TValue, class... Validators>
 struct KeyValue
 {
 private:
-	const TKey* mKey;
+	TKey mKey;
 	TValue* const mValue;
 	std::tuple<Validators...> mValidators;
 
 public:
-	explicit KeyValue(const TKey* key, TValue& value, const Validators&... validators)
+	explicit KeyValue(TKey&& key, TValue& value, const Validators&... validators)
 		: mKey(key)
 		, mValue(&value)
 		, mValidators(validators...)
@@ -33,7 +33,7 @@ public:
 		, mValidators(rhs.mValidators)
 	{}
 
-	inline const TKey* GetKey() const noexcept		{ return mKey; }
+	inline const TKey GetKey() const noexcept		{ return mKey; }
 	inline TValue& GetValue() const noexcept		{ return *mValue; }
 
 	/// <summary>
@@ -80,8 +80,8 @@ private:
 /// <param name="validators">Validators</param>
 /// <returns></returns>
 template <class TKey, class TValue, class... Validators>
-constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(const TKey* key, TValue& value, const Validators&... validators) noexcept {
-	return KeyValue<TKey, TValue, Validators...>(key, value, validators...);
+constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue& value, const Validators&... validators) noexcept {
+	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), value, validators...);
 }
 
 }	// namespace BitSerializer

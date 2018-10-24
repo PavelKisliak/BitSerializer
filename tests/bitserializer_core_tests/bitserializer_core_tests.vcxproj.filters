@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="serialization_archive_traits_tests.cpp" />
+    <ClCompile Include="serialization_base_types_tests.cpp" />
     <ClCompile Include="serialization_containers_tests.cpp" />
     <ClCompile Include="serialization_object_traits_tests.cpp" />
     <ClCompile Include="serialization_stl_types_tests.cpp" />
@@ -11,5 +12,82 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="..\test_helpers\archive_stub.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\test_helpers\auto_fixture.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\test_helpers\common_test_entities.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\test_helpers\common_test_methods.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_detail.h">
+      <Filter>CoreImpl\conversion_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_enum.h">
+      <Filter>CoreImpl\conversion_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_fundamental.h">
+      <Filter>CoreImpl\conversion_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\conversion_detail\object_traits.h">
+      <Filter>CoreImpl\conversion_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\archive_traits.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\base_object.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\errors_handling.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\key_value.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\media_archive_base.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\object_traits.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_base_types.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_context.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_stl_containers.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_stl_types.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\validators.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\bit_serializer.h">
+      <Filter>CoreImpl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\string_conversion.h">
+      <Filter>CoreImpl</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="TestHelpers">
+      <UniqueIdentifier>{c17966ee-350c-4b74-a90b-a43a8ef94694}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreImpl">
+      <UniqueIdentifier>{b47c94c6-0ec7-4ff7-908b-44a05b80b837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreImpl\conversion_detail">
+      <UniqueIdentifier>{e6cec0fc-290d-4c89-9a32-c0e358cc2908}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreImpl\serialization_detail">
+      <UniqueIdentifier>{a2a93829-2390-47d6-9f3f-db7c3668a9d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

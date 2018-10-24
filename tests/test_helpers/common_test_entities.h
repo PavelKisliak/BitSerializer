@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <type_traits>
 #include <functional>
+#include <tuple>
 #include "gtest/gtest.h"
 #include "common_test_methods.h"
 
@@ -92,6 +93,62 @@ public:
 
 	int x;
 	int y;
+};
+
+//-----------------------------------------------------------------------------
+template <class ...Args>
+class TestClassWithSubTypes : public std::tuple<Args...>
+{
+public:
+	template<std::size_t I = 0>
+	static void BuildFixture(TestClassWithSubTypes& fixture)
+	{
+		if constexpr (I == sizeof...(Args))
+			return;
+		else
+		{
+			decltype(auto) member = std::get<I>(fixture);
+			::BuildFixture(member);
+
+			// Next
+			BuildFixture<I + 1>(fixture);
+		}
+	}
+
+	template<std::size_t I = 0>
+	void Assert(const TestClassWithSubTypes& rhs) const
+	{
+		if constexpr (I == sizeof...(Args))
+			return;
+		else
+		{
+			// Get class member
+			decltype(auto) expected = std::get<I>(*this);
+			decltype(auto) actual = std::get<I>(rhs);
+
+			// Assert
+			EXPECT_EQ(expected, actual);
+
+			// Next
+			Assert<I + 1>(rhs);
+		}
+	}
+
+	template <class TArchive, std::size_t I = 0>
+	void Serialize(TArchive& archive)
+	{
+		if constexpr (I == sizeof...(Args))
+			return;
+		else
+		{
+			decltype(auto) member = std::get<I>(*this);
+			std::string key = "Member_" + BitSerializer::Convert::ToString(I);
+			archive << BitSerializer::MakeKeyValue(key, member);
+
+			// Next
+			Serialize<TArchive, I + 1>(archive);
+		}
+	};
 };
 
 //-----------------------------------------------------------------------------

@@ -3,4 +3,14 @@
   <ItemGroup>
     <ClCompile Include="json_restcpp_archive_tests.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Impl">
+      <UniqueIdentifier>{8291d8bc-0e90-4264-9155-6a722615deac}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\archives\bitserializer_json_restcpp\json_restcpp_archive.h">
+      <Filter>Impl</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="json_restcpp_archive_tests.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\archives\bitserializer_json_restcpp\json_restcpp_archive.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{4F9E4167-BFEA-406F-AE70-5772BA53134C}</ProjectGuid>

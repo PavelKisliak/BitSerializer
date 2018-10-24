@@ -13,47 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{2528
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world", "samples\hello_world\hello_world.vcxproj", "{DA596201-E1B4-497D-A727-C393BF79E483}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Core", "BitSerializer.Core", "{FB3AFEFE-379A-469A-A733-8C3A98A0600E}"
-	ProjectSection(SolutionItems) = preProject
-		core\bitserializer\bit_serializer.h = core\bitserializer\bit_serializer.h
-		core\bitserializer\string_conversion.h = core\bitserializer\string_conversion.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "conversion_detail", "conversion_detail", "{14D52DB1-E547-4886-BF56-64799C91B2FD}"
-	ProjectSection(SolutionItems) = preProject
-		core\bitserializer\conversion_detail\convert_detail.h = core\bitserializer\conversion_detail\convert_detail.h
-		core\bitserializer\conversion_detail\convert_enum.h = core\bitserializer\conversion_detail\convert_enum.h
-		core\bitserializer\conversion_detail\convert_fundamental.h = core\bitserializer\conversion_detail\convert_fundamental.h
-		core\bitserializer\conversion_detail\object_traits.h = core\bitserializer\conversion_detail\object_traits.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "serialization_detail", "serialization_detail", "{0EE85DB5-DB42-47A5-96C7-634C2D1FD5C1}"
-	ProjectSection(SolutionItems) = preProject
-		core\bitserializer\serialization_detail\archive_traits.h = core\bitserializer\serialization_detail\archive_traits.h
-		core\bitserializer\serialization_detail\base_object.h = core\bitserializer\serialization_detail\base_object.h
-		core\bitserializer\serialization_detail\errors_handling.h = core\bitserializer\serialization_detail\errors_handling.h
-		core\bitserializer\serialization_detail\key_value.h = core\bitserializer\serialization_detail\key_value.h
-		core\bitserializer\serialization_detail\media_archive_base.h = core\bitserializer\serialization_detail\media_archive_base.h
-		core\bitserializer\serialization_detail\object_traits.h = core\bitserializer\serialization_detail\object_traits.h
-		core\bitserializer\serialization_detail\serialization_base_types.h = core\bitserializer\serialization_detail\serialization_base_types.h
-		core\bitserializer\serialization_detail\serialization_context.h = core\bitserializer\serialization_detail\serialization_context.h
-		core\bitserializer\serialization_detail\serialization_stl_containers.h = core\bitserializer\serialization_detail\serialization_stl_containers.h
-		core\bitserializer\serialization_detail\serialization_stl_types.h = core\bitserializer\serialization_detail\serialization_stl_types.h
-		core\bitserializer\serialization_detail\validators.h = core\bitserializer\serialization_detail\validators.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitSerializer.Archives", "BitSerializer.Archives", "{4FD650AF-D577-4FFB-82CA-EDF9A345D3FE}"
-	ProjectSection(SolutionItems) = preProject
-		archives\bitserializer_json_restcpp\json_restcpp_archive.h = archives\bitserializer_json_restcpp\json_restcpp_archive.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestHelpers", "TestHelpers", "{366F9442-3B35-457B-A9E8-2076CCE40252}"
-	ProjectSection(SolutionItems) = preProject
-		tests\test_helpers\auto_fixture.h = tests\test_helpers\auto_fixture.h
-		tests\test_helpers\common_test_entities.h = tests\test_helpers\common_test_entities.h
-		tests\test_helpers\common_test_methods.h = tests\test_helpers\common_test_methods.h
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "validation", "samples\validation\validation.vcxproj", "{8834D80A-1025-494A-91B4-F6596A7C2792}"
 EndProject
 Global
@@ -104,9 +63,6 @@ Global
 		{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
 		{4F9E4167-BFEA-406F-AE70-5772BA53134C} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
 		{DA596201-E1B4-497D-A727-C393BF79E483} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
-		{14D52DB1-E547-4886-BF56-64799C91B2FD} = {FB3AFEFE-379A-469A-A733-8C3A98A0600E}
-		{0EE85DB5-DB42-47A5-96C7-634C2D1FD5C1} = {FB3AFEFE-379A-469A-A733-8C3A98A0600E}
-		{366F9442-3B35-457B-A9E8-2076CCE40252} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
 		{8834D80A-1025-494A-91B4-F6596A7C2792} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

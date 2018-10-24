@@ -15,6 +15,5 @@ int main()
     assert(result == expected);
     std::cout << result << std::endl;
 
-    std::cin.get();
     return EXIT_SUCCESS;
 }

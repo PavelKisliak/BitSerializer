@@ -56,7 +56,7 @@ static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 
 static void BuildFixture(int64_t& value)			{ value = static_cast<int64_t>(std::rand()) * std::rand(); }
 static void BuildFixture(uint64_t& value)			{ value = static_cast<uint64_t>(std::rand()) * std::rand(); }
-static void BuildFixture(bool& value)				{ value = static_cast<bool>(std::rand() % 2); }
+static void BuildFixture(bool& value)				{ value = true; }
 static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand() / (std::rand() + 1)); }
 static void BuildFixture(double& value)				{ value = static_cast<double>(std::rand() / (std::rand() + 1)); }
 static void BuildFixture(std::string& value)		{ value = std::to_string(std::rand()); }

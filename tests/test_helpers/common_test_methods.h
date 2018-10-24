@@ -19,11 +19,11 @@ void TestSerializeType(T&& value)
 	typename TArchive::preferred_output_format outputArchive;
 	std::decay_t<T> actual;
 
-	// Act / Assert
+	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputArchive);
-	ASSERT_FALSE(outputArchive.empty());
-
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
 	EXPECT_EQ(value, actual);
 }
 
@@ -40,10 +40,10 @@ void TestSerializeArray()
 	typename TArchive::preferred_output_format outputArchive;
 	TValue actual[ArraySize];
 
-	// Act / Assert
+	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
-	ASSERT_FALSE(outputArchive.empty());
 
+	// Assert
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	for (size_t i = 0; i < ArraySize; i++) {
 		ASSERT_EQ(testArray[i], actual[i]);
@@ -63,10 +63,10 @@ void TestSerializeTwoDimensionalArray()
 	typename TArchive::preferred_output_format outputArchive;
 	TValue actual[ArraySize1][ArraySize2];
 
-	// Act / Assert
+	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
-	ASSERT_FALSE(outputArchive.empty());
 
+	// Assert
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	for (size_t i = 0; i < ArraySize1; i++) {
 		for (size_t c = 0; c < ArraySize2; c++) {
@@ -86,10 +86,10 @@ void TestSerializeClass(T&& value)
 	typename TArchive::preferred_output_format outputArchive;
 	std::decay_t<T> actual;
 
-	// Act / Assert
+	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputArchive);
-	ASSERT_FALSE(outputArchive.empty());
 
+	// Assert
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	value.Assert(actual);
 }

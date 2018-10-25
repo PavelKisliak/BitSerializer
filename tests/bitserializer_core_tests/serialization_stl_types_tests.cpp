@@ -4,8 +4,7 @@
 *******************************************************************************/
 #include "pch.h"
 #include "../test_helpers/common_test_entities.h"
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer_json_restcpp/json_restcpp_archive.h"
+#include "../test_helpers/archive_stub.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL types.
@@ -20,11 +19,11 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 TEST(STL_Types, SerializePair) {
 	auto pair = BuildFixture<std::pair<std::string, int>>();
-	TestSerializeType<JsonArchive>(pair);
+	TestSerializeType<ArchiveStub>(pair);
 }
 
 TEST(STL_Types, SerializePairAsClassMember) {
 	TestClassWithSubType<std::pair<std::string, int>> testEntity;
 	BuildFixture(testEntity);
-	TestSerializeClass<JsonArchive>(testEntity);
+	TestSerializeClass<ArchiveStub>(testEntity);
 }

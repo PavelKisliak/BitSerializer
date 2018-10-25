@@ -15,7 +15,7 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		archive << MakeKeyValue("testInt", testInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("testDouble", testDouble, Required(), Range(-1.0f, 1.0f));
+		archive << MakeKeyValue("testDouble", testDouble, Required(), Range(-1.0, 1.0));
 		archive << MakeKeyValue("testString", testString, MaxSize(8));
 	};
 

@@ -15,7 +15,7 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		archive << MakeKeyValue("testInt", testInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("testDouble", testDouble, Required(), Range(-1.0f, 1.0f));
+		archive << MakeKeyValue("testDouble", testDouble, Required(), Range(-1.0, 1.0));
 		archive << MakeKeyValue("testString", testString, MaxSize(8));
 	};
 
@@ -28,8 +28,8 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto data = _XPLATSTR("{ \"testInt\": 2000, \"testDouble\": 1.0, \"testString\" : \"Very looooooooong string!\" }");
-	LoadObject<JsonArchive>(simpleObj, data);
+	auto json = _XPLATSTR("{ \"testInt\": 2000, \"testDouble\": 1.0, \"testString\" : \"Very looooooooong string!\" }");
+	LoadObject<JsonArchive>(simpleObj, json);
 	if (!Context.IsValid())
 	{
 		std::wcout << L"Validation errors: " << std::endl;

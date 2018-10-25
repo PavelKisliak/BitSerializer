@@ -100,6 +100,12 @@ template <class ...Args>
 class TestClassWithSubTypes : public std::tuple<Args...>
 {
 public:
+	TestClassWithSubTypes() = default;
+	TestClassWithSubTypes(Args... args)
+		: std::tuple<Args...>(args...)
+	{
+	}
+
 	template<std::size_t I = 0>
 	static void BuildFixture(TestClassWithSubTypes& fixture)
 	{
@@ -241,31 +247,12 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-class TestClassWithSubClass
-{
-public:
-	static void BuildFixture(TestClassWithSubClass& fixture) {
-		TestClassWithFundamentalTypes::BuildFixture(fixture.TestSubClass);
-	}
-
-	void Assert(const TestClassWithSubClass& rhs) const {
-		TestSubClass.Assert(rhs.TestSubClass);
-	}
-
-	template <class TArchive>
-	inline void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeKeyValue("TestSubClass", TestSubClass);
-	};
-
-	TestClassWithFundamentalTypes TestSubClass;
-};
-
-//-----------------------------------------------------------------------------
 template <typename T>
 class TestClassWithSubType
 {
 public:
-	TestClassWithSubType()
+	TestClassWithSubType(const T& initValue = {})
+		: TestSubValue(initValue)
 	{
 		mAssertFunc = [](const T& expected, const T& actual) {
 			ASSERT_EQ(expected, actual);

@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <sstream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
@@ -7,26 +9,28 @@ using namespace BitSerializer;
 class TestSimpleClass
 {
 public:
-	TestSimpleClass(): testInt{}, testFloat{} { }
+	TestSimpleClass(): testInt{}, testDouble{} { }
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestInt", testInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("TestFloat", testFloat, Required(), Range(-1.0f, 1.0f));
-		archive << MakeKeyValue("TestString", testString, MaxSize(8));
+		archive << MakeKeyValue("testInt", testInt, Required(), Range(0, 100));
+		archive << MakeKeyValue("testDouble", testDouble, Required(), Range(-1.0f, 1.0f));
+		archive << MakeKeyValue("testString", testString, MaxSize(8));
 	};
 
 private:
 	int testInt;
-	float testFloat;
-	std::wstring testString;
+	double testDouble;
+	std::string testString;
 };
 
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	LoadObject<JsonArchive>(simpleObj, L"{	\"TestInt\": 2000, \"TestString\" : \"Very looooooooong string!\"  }");
+	std::string data = "{	\"testInt\": 2000, \"testDouble\": 1.0, \"testString\" : \"Very looooooooong string!\"  }";
+	std::istringstream wrapper(data);
+	LoadObject<JsonArchive>(simpleObj, wrapper);
 	if (!Context.IsValid())
 	{
 		std::wcout << L"Validation errors: " << std::endl;

@@ -7,6 +7,11 @@
 #include "../test_helpers/common_test_entities.h"
 #include "../test_helpers/archive_stub.h"
 
+//-----------------------------------------------------------------------------
+// Tests of serialization for base types.
+// For these purposes used archive stub which is simulate JSON structure.
+//-----------------------------------------------------------------------------
+
 using namespace BitSerializer;
 
 //-----------------------------------------------------------------------------

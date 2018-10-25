@@ -261,7 +261,10 @@ public:
 	/// Gets the key by index.
 	/// </summary>
 	key_type GetKeyByIndex(size_t index) {
-		return (GetAsObject().cbegin() + index)->first;
+
+		auto it = GetAsObject().cbegin();
+		std::advance(it, index);
+		return it->first;
 	}
 
 	template <typename TSym, typename TAllocator>

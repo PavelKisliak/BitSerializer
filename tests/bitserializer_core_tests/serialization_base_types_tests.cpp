@@ -23,8 +23,8 @@ TEST(BaseTypes, SerializeBoolean) {
 }
 
 TEST(BaseTypes, SerializeInteger) {
-	TestSerializeType<ArchiveStub, int32_t>(std::numeric_limits<int8_t>::min());
-	TestSerializeType<ArchiveStub, uint32_t>(std::numeric_limits<uint8_t>::max());
+	TestSerializeType<ArchiveStub, int8_t>(std::numeric_limits<int8_t>::min());
+	TestSerializeType<ArchiveStub, uint8_t>(std::numeric_limits<uint8_t>::max());
 	TestSerializeType<ArchiveStub, int64_t>(std::numeric_limits<int64_t>::min());
 	TestSerializeType<ArchiveStub, uint64_t>(std::numeric_limits<uint64_t>::max());
 }
@@ -89,7 +89,8 @@ TEST(BaseTypes, SerializeTwoDimensionalArray) {
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, SerializeClassWithMemberBoolean) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<bool>>());
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<bool>(false));
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<bool>(true));
 }
 
 TEST(BaseTypes, SerializeClassWithMemberInteger) {

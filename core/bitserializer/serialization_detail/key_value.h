@@ -41,7 +41,7 @@ public:
 	/// </summary>
 	/// <param name="isLoaded">if set to <c>true</c> [is loaded].</param>
 	/// <returns></returns>
-	std::optional<ValidationErrors> ValidateValue(bool isLoaded)
+	std::optional<ValidationErrors> ValidateValue(bool isLoaded) const
 	{
 		if constexpr (sizeof...(Validators) == 0)
 			return std::nullopt;
@@ -53,7 +53,7 @@ public:
 
 private:
 	template<std::size_t I = 0>
-	void ValidateValueImpl(bool isLoaded, std::optional<ValidationErrors>& validationResult)
+	void ValidateValueImpl(bool isLoaded, std::optional<ValidationErrors>& validationResult) const
 	{
 		if constexpr (I == sizeof...(Validators))
 			return;

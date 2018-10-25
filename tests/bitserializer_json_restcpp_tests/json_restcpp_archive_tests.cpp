@@ -17,8 +17,8 @@ TEST(JsonRestCpp, SerializeBoolean) {
 }
 
 TEST(JsonRestCpp, SerializeInteger) {
-	TestSerializeType<JsonArchive, int32_t>(std::numeric_limits<int32_t>::min());
-	TestSerializeType<JsonArchive, uint32_t>(std::numeric_limits<uint32_t>::max());
+	TestSerializeType<JsonArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
+	TestSerializeType<JsonArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
 	TestSerializeType<JsonArchive, int64_t>(std::numeric_limits<int64_t>::min());
 	TestSerializeType<JsonArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
 }
@@ -49,10 +49,16 @@ TEST(JsonRestCpp, SerializeWString) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for c-arrays (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(JsonRestCpp, SerializeArrayOfFundamentalTypes) {
+TEST(JsonRestCpp, SerializeArrayOfBooleans) {
 	TestSerializeArray<JsonArchive, bool>();
-	TestSerializeArray<JsonArchive, int32_t>();
+}
+
+TEST(JsonRestCpp, SerializeArrayOfIntegers) {
+	TestSerializeArray<JsonArchive, int8_t>();
 	TestSerializeArray<JsonArchive, int64_t>();
+}
+
+TEST(JsonRestCpp, SerializeArrayOfFloats) {
 	TestSerializeArray<JsonArchive, float>();
 	TestSerializeArray<JsonArchive, double>();
 }
@@ -65,6 +71,10 @@ TEST(JsonRestCpp, SerializeArrayOfWStrings) {
 	TestSerializeArray<JsonArchive, std::wstring>();
 }
 
+TEST(JsonRestCpp, SerializeArrayOfClasses) {
+	TestSerializeArray<JsonArchive, TestPointClass>();
+}
+
 TEST(JsonRestCpp, SerializeTwoDimensionalArray) {
 	TestSerializeTwoDimensionalArray<JsonArchive, int32_t>();
 }
@@ -72,32 +82,38 @@ TEST(JsonRestCpp, SerializeTwoDimensionalArray) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------
-TEST(JsonRestCpp, SerializeClassWithFundamentalTypes) {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithFundamentalTypes>());
+TEST(JsonRestCpp, SerializeClassWithMemberBoolean) {
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes<bool>(false));
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes<bool>(true));
+}
+
+TEST(JsonRestCpp, SerializeClassWithMemberInteger) {
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+}
+
+TEST(JsonRestCpp, SerializeClassWithMemberFloat) {
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<float>>());
+}
+
+TEST(JsonRestCpp, SerializeClassWithMemberDouble) {
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<double>>());
+}
+
+TEST(JsonRestCpp, SerializeClassWithMemberString) {
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
 }
 
 TEST(JsonRestCpp, SerializeClassHierarchy) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithInheritance>());
 }
 
-TEST(JsonRestCpp, SerializeClassWithSubClass) {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubClass>());
+TEST(JsonRestCpp, SerializeClassWithMemberClass) {
+	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassType>());
 }
 
-TEST(JsonRestCpp, SerializeClassWithSubArrayOfFundamentalTypes) {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<bool>>());
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<int32_t>>());
+TEST(JsonRestCpp, SerializeClassWithSubArray) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<float>>());
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<double>>());
-}
-
-TEST(JsonRestCpp, SerializeClassWithSubArrayOfStringTypes) {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<std::string>>());
-}
-
-TEST(JsonRestCpp, SerializeClassWithSubArrayOfWStringTypes) {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<std::wstring>>());
 }
 
 TEST(JsonRestCpp, SerializeClassWithSubArrayOfClasses) {

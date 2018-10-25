@@ -39,8 +39,8 @@ public:
 
 	key_type GetKeyByIndex(size_t index) { return key_type(); }
 
-	bool SerializeValue(const key_type& key, bool& value) { }
-	bool SerializeValue(const key_type& key, int& value) { }
+	bool SerializeValue(const key_type& key, bool& value) { return true; }
+	bool SerializeValue(const key_type& key, int& value) { return true; }
 
 	template <typename TSym, typename TAllocator>
 	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}

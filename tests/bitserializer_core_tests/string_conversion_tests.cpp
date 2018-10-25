@@ -132,6 +132,9 @@ TEST(Convert, UInt32ToString) {
 }
 
 //-----------------------------------------------------------------------------
+// Optional tests for int64 types
+//-----------------------------------------------------------------------------
+#if INT64_MAX > INT32_MAX
 TEST(Convert, Int64FromString) {
 	EXPECT_EQ(-9223372036854775808ll, Convert::FromString<int64_t>("  -9223372036854775808  "));
 	EXPECT_EQ(9223372036854775807ll, Convert::FromString<int64_t>(L"  +9223372036854775807  "));
@@ -151,6 +154,7 @@ TEST(Convert, UInt64ToString) {
 	EXPECT_EQ("18446744073709551615", Convert::ToString(18446744073709551615ull));
 	EXPECT_EQ(L"18446744073709551615", Convert::ToWString(18446744073709551615ull));
 }
+#endif
 
 //-----------------------------------------------------------------------------
 TEST(Convert, FloatFromString) {

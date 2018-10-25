@@ -28,9 +28,8 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	std::string data = "{	\"testInt\": 2000, \"testDouble\": 1.0, \"testString\" : \"Very looooooooong string!\"  }";
-	std::istringstream wrapper(data);
-	LoadObject<JsonArchive>(simpleObj, wrapper);
+	auto data = _XPLATSTR("{ \"testInt\": 2000, \"testDouble\": 1.0, \"testString\" : \"Very looooooooong string!\" }");
+	LoadObject<JsonArchive>(simpleObj, data);
 	if (!Context.IsValid())
 	{
 		std::wcout << L"Validation errors: " << std::endl;

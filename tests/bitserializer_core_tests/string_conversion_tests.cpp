@@ -5,6 +5,8 @@
 #include "pch.h"
 #include "../test_helpers/common_test_entities.h"
 
+#include <limits>
+
 using namespace BitSerializer;
 
 //-----------------------------------------------------------------------------
@@ -134,27 +136,25 @@ TEST(Convert, UInt32ToString) {
 //-----------------------------------------------------------------------------
 // Optional tests for int64 types
 //-----------------------------------------------------------------------------
-#if INT64_MAX > INT32_MAX
 TEST(Convert, Int64FromString) {
-	EXPECT_EQ(-9223372036854775808ll, Convert::FromString<int64_t>("  -9223372036854775808  "));
-	EXPECT_EQ(9223372036854775807ll, Convert::FromString<int64_t>(L"  +9223372036854775807  "));
+	EXPECT_EQ(std::numeric_limits<int64_t>::min(), Convert::FromString<int64_t>("  -9223372036854775808  "));
+	EXPECT_EQ(std::numeric_limits<int64_t>::max(), Convert::FromString<int64_t>(L"  +9223372036854775807  "));
 }
 
 TEST(Convert, Int64ToString) {
-	EXPECT_EQ("-9223372036854775808", Convert::ToString(-9223372036854775808ll));
-	EXPECT_EQ(L"9223372036854775807", Convert::ToWString(9223372036854775807));
+	EXPECT_EQ("-9223372036854775808", Convert::ToString(std::numeric_limits<int64_t>::min()));
+	EXPECT_EQ(L"9223372036854775807", Convert::ToWString(std::numeric_limits<int64_t>::max()));
 }
 
 TEST(Convert, UInt64FromString) {
-	EXPECT_EQ(18446744073709551615ull, Convert::FromString<uint64_t>("  18446744073709551615  "));
-	EXPECT_EQ(18446744073709551615ull, Convert::FromString<uint64_t>(L"  18446744073709551615  "));
+	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::FromString<uint64_t>("  18446744073709551615  "));
+	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::FromString<uint64_t>(L"  18446744073709551615  "));
 }
 
 TEST(Convert, UInt64ToString) {
 	EXPECT_EQ("18446744073709551615", Convert::ToString(18446744073709551615ull));
 	EXPECT_EQ(L"18446744073709551615", Convert::ToWString(18446744073709551615ull));
 }
-#endif
 
 //-----------------------------------------------------------------------------
 TEST(Convert, FloatFromString) {

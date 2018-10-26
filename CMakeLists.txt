@@ -1,14 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(bitserializer LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(cpprestsdk REQUIRED)
-find_package(Boost COMPONENTS system REQUIRED)
-
-find_path(CPP_REST_SDK_DIR cpprest/json.h)
 include_directories(
-  ${CPP_REST_SDK_DIR}
   core
   archives
 )
@@ -51,5 +47,5 @@ else()
     )
 endif()
 
-#add_subdirectory(tests)
+add_subdirectory(tests)
 add_subdirectory(samples)

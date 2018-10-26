@@ -2,7 +2,7 @@
 ___
 The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
 
-This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
+This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in ï¿½[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)ï¿½ section.
 
 What's new in version 0.8:
 [!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
@@ -34,7 +34,7 @@ What's new in version 0.8:
   - [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)
 
 #### How to use:
-The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implements only one type of archive, you need to install «CppRestSDK». If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the «CppRestSDK» will be automatically installed as dependency.
+The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implements only one type of archive, you need to install ï¿½CppRestSDKï¿½. If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the ï¿½CppRestSDKï¿½ will be automatically installed as dependency.
 ```shell
 vcpkg install bitserializer bitserializer:x64-windows
 ```
@@ -124,8 +124,8 @@ class TestSimpleClass
 public:
 	TestSimpleClass()
 	{
-		TestBool = true;
-		TestString = L"Hello world!";
+		testBool = true;
+		testString = L"Hello world!";
 		for (size_t i = 0; i < 3; i++) {
 			for (size_t k = 0; k < 2; k++) {
 				TestTwoDimensionArray[i][k] = i * 10 + k;
@@ -136,14 +136,14 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestBool", TestBool);
-		archive << MakeKeyValue("TestString", TestString);
+		archive << MakeKeyValue("testBool", testBool);
+		archive << MakeKeyValue("testString", testString);
 		archive << MakeKeyValue("TestTwoDimensionArray", TestTwoDimensionArray);
 	};
 
 private:
-	bool TestBool;
-	std::wstring TestString;
+	bool testBool;
+	std::wstring testString;
 	size_t TestTwoDimensionArray[3][2];
 };
 
@@ -157,8 +157,8 @@ int main()
 Returns result
 ```json
 {
-	"TestBool": true,
-	"TestString": "Hello world!",
+	"testBool": true,
+	"testString": "Hello world!",
 	"TestTwoDimensionArray": [
 		[0, 1],
 		[10, 11],
@@ -265,7 +265,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 ```
 
 #### Conditions for checking the serialization mode
-To check the current serialization mode, use two methods - IsLoading() and IsSaving(). They are haven't CPU overhead, because they are «constexpr».
+To check the current serialization mode, use two methods - IsLoading() and IsSaving(). They are haven't CPU overhead, because they are ï¿½constexprï¿½.
 ```cpp
 class Foo
 public:
@@ -293,7 +293,7 @@ public:
 
 BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
 ```cpp
-archive << MakeKeyValue("TestFloat", TestFloat, Required(), Range(-1.0f, 1.0f));
+archive << MakeKeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
 ```
 After deserialize, you can check the status in context and get errors:
 ```cpp
@@ -324,20 +324,20 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		archive << MakeKeyValue("TestInt", TestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("TestFloat", TestFloat, Required(), Range(-1.0f, 1.0f));
-		archive << MakeKeyValue("TestString", TestString, MaxSize(8));
+		archive << MakeKeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
+		archive << MakeKeyValue("testString", testString, MaxSize(8));
 	};
 
 private:
 	int TestInt;
-	float TestFloat;
-	std::wstring TestString;
+	float testFloat;
+	std::wstring testString;
 };
 
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	LoadObject<JsonArchive>(simpleObj, L"{	\"TestInt\": 2000, \"TestString\" : \"Very looooooooong string!\"  }");
+	LoadObject<JsonArchive>(simpleObj, L"{	\"TestInt\": 2000, \"testString\" : \"Very looooooooong string!\"  }");
 	if (!Context.IsValid())
 	{
 		std::wcout << L"Validation errors: "<< std::endl;
@@ -358,26 +358,26 @@ int main()
 The result of execution this code:
 ```text
 Validation errors:
-Path: /TestFloat
+Path: /testFloat
         This field is required
 Path: /TestInt
         Value must be between 0 and 100
-Path: /TestString
+Path: /testString
         The maximum size of this field should be not greater than 8
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 
 #### Compile time checking
-The new C++ 17 ability «if constexpr» helps to generate clear error messages.
+The new C++ 17 ability ï¿½if constexprï¿½ helps to generate clear error messages.
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
 ```cpp
 template <class TArchive>
 inline void Serialize(TArchive& archive)
 {
     // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
-    archive << TestBool;
+    archive << testBool;
     // Proper use
-	archive << MakeKeyValue("TestString", TestString);
+	archive << MakeKeyValue("testString", testString);
 };
 ```
 

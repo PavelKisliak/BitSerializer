@@ -43,6 +43,7 @@ TEST(JsonRestCpp, SerializeString) {
 }
 
 //FIXME: Linux(wstring). Build Failed. This test must be fixed
+// TDB: which string should we use: wstring or u16string?
 //TEST(JsonRestCpp, SerializeWString) {
 //	TestSerializeType<JsonArchive, std::wstring>(L"Test wide string");
 //}
@@ -69,6 +70,7 @@ TEST(JsonRestCpp, SerializeArrayOfStrings) {
 }
 
 //FIXME: Linux(wstring). Build Failed. This test must be fixed
+// TDB: which string should we use: wstring or u16string?
 //TEST(JsonRestCpp, SerializeArrayOfWStrings) {
 //	TestSerializeArray<JsonArchive, std::wstring>();
 //}
@@ -102,6 +104,7 @@ TEST(JsonRestCpp, SerializeClassWithMemberDouble) {
 }
 
 //FIXME: Linux(wstring). Build Failed. This test must be fixed
+// NOTE: We can't use utility::string_t(equal std::string) instead of std::wstring
 //TEST(JsonRestCpp, SerializeClassWithMemberString) {
 //	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
 //}
@@ -155,7 +158,7 @@ TEST(JsonRestCpp, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 
 // FIXME error: static assertion failed: BitSerializer. The archive doesn't support loading from provided data type.
-//TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
-//	int testInt;
-//	EXPECT_THROW(LoadObject<JsonArchive>(testInt, L"10 }}"), SerializationException);
-//}
+TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
+	int testInt;
+	EXPECT_THROW(LoadObject<JsonArchive>(testInt, _XPLATSTR("10 }}")), SerializationException);
+}

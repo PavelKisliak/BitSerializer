@@ -192,16 +192,16 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeKeyValue("testBool", testBool);
-		archive << BitSerializer::MakeKeyValue("testInt8", testInt8);
-		archive << BitSerializer::MakeKeyValue("testInt16", testInt16);
-		archive << BitSerializer::MakeKeyValue("testInt32", testInt32);
-		archive << BitSerializer::MakeKeyValue("testInt64", testInt64);
-		archive << BitSerializer::MakeKeyValue("testFloat", testFloat);
-		archive << BitSerializer::MakeKeyValue("testDouble", testDouble);
-		archive << BitSerializer::MakeKeyValue("testEnum", testEnum);
-		archive << BitSerializer::MakeKeyValue("testString", testString);
-		archive << BitSerializer::MakeKeyValue("testWString", testWString);
+		archive << BitSerializer::MakeKeyValue("TestBool", testBool);
+		archive << BitSerializer::MakeKeyValue("TestInt8", testInt8);
+		archive << BitSerializer::MakeKeyValue("TestInt16", testInt16);
+		archive << BitSerializer::MakeKeyValue("TestInt32", testInt32);
+		archive << BitSerializer::MakeKeyValue("TestInt64", testInt64);
+		archive << BitSerializer::MakeKeyValue("TestFloat", testFloat);
+		archive << BitSerializer::MakeKeyValue("TestDouble", testDouble);
+		archive << BitSerializer::MakeKeyValue("TestEnum", testEnum);
+		archive << BitSerializer::MakeKeyValue("TestString", testString);
+		archive << BitSerializer::MakeKeyValue("TestWString", testWString);
 	};
 
 	bool testBool;

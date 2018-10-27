@@ -5,8 +5,6 @@
 #include "pch.h"
 #include "../test_helpers/common_test_entities.h"
 
-#include <limits>
-
 using namespace BitSerializer;
 
 //-----------------------------------------------------------------------------
@@ -133,9 +131,6 @@ TEST(Convert, UInt32ToString) {
 	EXPECT_EQ(L"4294967295", Convert::ToWString(4294967295l));
 }
 
-//-----------------------------------------------------------------------------
-// Optional tests for int64 types
-//-----------------------------------------------------------------------------
 TEST(Convert, Int64FromString) {
 	EXPECT_EQ(std::numeric_limits<int64_t>::min(), Convert::FromString<int64_t>("  -9223372036854775808  "));
 	EXPECT_EQ(std::numeric_limits<int64_t>::max(), Convert::FromString<int64_t>(L"  +9223372036854775807  "));

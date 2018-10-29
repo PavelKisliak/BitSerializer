@@ -148,7 +148,6 @@ TEST(JsonRestCpp, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
 }
 
-//FIXME: Linux(SerializeClassToFile). Build Failed. This test must be fixed
 TEST(JsonRestCpp, SerializeClassToFile) {
 	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
 }
@@ -156,8 +155,6 @@ TEST(JsonRestCpp, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------
-
-// FIXME error: static assertion failed: BitSerializer. The archive doesn't support loading from provided data type.
 TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt;
 	EXPECT_THROW(LoadObject<JsonArchive>(testInt, _XPLATSTR("10 }}")), SerializationException);

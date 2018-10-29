@@ -49,7 +49,8 @@ namespace Detail
 			}
 			return arrayScope != nullptr;
 		}
-	}
+        return false;
+    }
 
 	template<typename TArchive, typename TContainer>
 	static void SerializeContainer(TArchive& archive, TContainer& cont)
@@ -147,6 +148,8 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
 		return arrayScope != nullptr;
 	}
+
+	return false;
 }
 
 template<typename TArchive, typename TAllocator>
@@ -250,6 +253,8 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 			Detail::SerializeSetImpl(*arrayScope.get(), cont);
 		return arrayScope != nullptr;
 	}
+
+	return false;
 }
 
 template<typename TArchive, typename TValue, typename TAllocator>
@@ -286,11 +291,11 @@ namespace Detail
 		{
 			for (auto& elem : cont)
 			{
-				if constexpr (std::is_same_v<std::decay_t<TKey>, TArchive::key_type>)
+				if constexpr (std::is_same_v<std::decay_t<TKey>, typename TArchive::key_type>)
 					Serialize(scope, elem.first, elem.second);
 				else
 				{
-					const auto strKey = Convert::To<TArchive::key_type>(elem.first);
+					const auto strKey = Convert::To<typename TArchive::key_type>(elem.first);
 					Serialize(scope, strKey, elem.second);
 				}
 			}
@@ -341,6 +346,8 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 			Detail::SerializeMapImpl(*objectScope.get(), cont, mapLoadMode);
 		return objectScope != nullptr;
 	}
+
+    return false;
 }
 
 template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
@@ -400,6 +407,8 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
 		return arrayScope != nullptr;
 	}
+
+	return false;
 }
 
 template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>

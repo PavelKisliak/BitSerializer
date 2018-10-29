@@ -163,57 +163,57 @@ class TestClassWithFundamentalTypes
 public:
 	static void BuildFixture(TestClassWithFundamentalTypes& fixture)
 	{
-		::BuildFixture(fixture.TestBool);
-		::BuildFixture(fixture.TestInt8);
-		::BuildFixture(fixture.TestInt16);
-		::BuildFixture(fixture.TestInt32);
-		::BuildFixture(fixture.TestInt64);
-		::BuildFixture(fixture.TestFloat);
-		::BuildFixture(fixture.TestDouble);
-		::BuildFixture(fixture.TestEnum);
-		::BuildFixture(fixture.TestString);
-		::BuildFixture(fixture.TestWString);
+		::BuildFixture(fixture.testBool);
+		::BuildFixture(fixture.testInt8);
+		::BuildFixture(fixture.testInt16);
+		::BuildFixture(fixture.testInt32);
+		::BuildFixture(fixture.testInt64);
+		::BuildFixture(fixture.testFloat);
+		::BuildFixture(fixture.testDouble);
+		::BuildFixture(fixture.testEnum);
+		::BuildFixture(fixture.testString);
+		::BuildFixture(fixture.testWString);
 	}
 
 	void Assert(const TestClassWithFundamentalTypes& rhs) const
 	{
-		EXPECT_EQ(TestBool, rhs.TestBool);
-		EXPECT_EQ(TestInt8, rhs.TestInt8);
-		EXPECT_EQ(TestInt16, rhs.TestInt16);
-		EXPECT_EQ(TestInt32, rhs.TestInt32);
-		EXPECT_EQ(TestInt64, rhs.TestInt64);
-		EXPECT_EQ(TestFloat, rhs.TestFloat);
-		EXPECT_EQ(TestDouble, rhs.TestDouble);
-		EXPECT_EQ(TestEnum, rhs.TestEnum);
-		EXPECT_EQ(TestString, rhs.TestString);
-		EXPECT_EQ(TestWString, rhs.TestWString);
+		EXPECT_EQ(testBool, rhs.testBool);
+		EXPECT_EQ(testInt8, rhs.testInt8);
+		EXPECT_EQ(testInt16, rhs.testInt16);
+		EXPECT_EQ(testInt32, rhs.testInt32);
+		EXPECT_EQ(testInt64, rhs.testInt64);
+		EXPECT_EQ(testFloat, rhs.testFloat);
+		EXPECT_EQ(testDouble, rhs.testDouble);
+		EXPECT_EQ(testEnum, rhs.testEnum);
+		EXPECT_EQ(testString, rhs.testString);
+		EXPECT_EQ(testWString, rhs.testWString);
 	}
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeKeyValue("TestBool", TestBool);
-		archive << BitSerializer::MakeKeyValue("TestInt8", TestInt8);
-		archive << BitSerializer::MakeKeyValue("TestInt16", TestInt16);
-		archive << BitSerializer::MakeKeyValue("TestInt32", TestInt32);
-		archive << BitSerializer::MakeKeyValue("TestInt64", TestInt64);
-		archive << BitSerializer::MakeKeyValue("TestFloat", TestFloat);
-		archive << BitSerializer::MakeKeyValue("TestDouble", TestDouble);
-		archive << BitSerializer::MakeKeyValue("TestEnum", TestEnum);
-		archive << BitSerializer::MakeKeyValue("TestString", TestString);
-		archive << BitSerializer::MakeKeyValue("TestWString", TestWString);
+		archive << BitSerializer::MakeKeyValue("TestBool", testBool);
+		archive << BitSerializer::MakeKeyValue("TestInt8", testInt8);
+		archive << BitSerializer::MakeKeyValue("TestInt16", testInt16);
+		archive << BitSerializer::MakeKeyValue("TestInt32", testInt32);
+		archive << BitSerializer::MakeKeyValue("TestInt64", testInt64);
+		archive << BitSerializer::MakeKeyValue("TestFloat", testFloat);
+		archive << BitSerializer::MakeKeyValue("TestDouble", testDouble);
+		archive << BitSerializer::MakeKeyValue("TestEnum", testEnum);
+		archive << BitSerializer::MakeKeyValue("TestString", testString);
+		archive << BitSerializer::MakeKeyValue("TestWString", testWString);
 	};
 
-	bool TestBool;
-	int8_t TestInt8;
-	int16_t TestInt16;
-	int32_t TestInt32;
-	int64_t TestInt64;
-	float TestFloat;
-	double TestDouble;
-	TestEnum TestEnum;
-	std::string TestString;
-	std::string TestWString;
+	bool testBool;
+	int8_t testInt8;
+	int16_t testInt16;
+	int32_t testInt32;
+	int64_t testInt64;
+	float testFloat;
+	double testDouble;
+	TestEnum testEnum;
+	std::string testString;
+	std::string testWString;
 };
 
 //-----------------------------------------------------------------------------

@@ -43,7 +43,7 @@ public:
 	bool SerializeValue(const key_type& key, int& value) { return true; }
 
 	template <typename TSym, typename TAllocator>
-	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}
+	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {return true;}
 
 	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope(const key_type& key) { return nullptr; }
 	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(const key_type& key, size_t arraySize) { return nullptr; }

@@ -29,8 +29,8 @@ namespace Detail
 		template<class TArchive>
 		inline void Serialize(TArchive& archive)
 		{
-			static const auto keyName = Convert::To<TArchive::key_type>(L"key");
-			static const auto valueName = Convert::To<TArchive::key_type>(L"value");
+			static const auto keyName = Convert::To<typename TArchive::key_type>(L"key");
+			static const auto valueName = Convert::To<typename TArchive::key_type>(L"value");
 
 			using noConstKeyType = std::remove_const_t<typename value_type::first_type>;
 			::BitSerializer::Serialize(archive, keyName, const_cast<noConstKeyType&>(value.first));

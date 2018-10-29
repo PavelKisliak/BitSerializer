@@ -5,6 +5,7 @@
 #pragma once
 #include <cassert>
 #include <string>
+#include <map>
 #include <memory>
 #include <variant>
 #include <type_traits>
@@ -329,7 +330,7 @@ public:
 		}
 		else
 		{
-			auto& ioData = AddArchiveValue(key);
+			TestIoData& ioData = AddArchiveValue(key);
 			ioData.emplace<TestIoDataObject>(TestIoDataObject());
 			return std::make_unique<ArchiveStubObjectScope<TMode>>(&ioData, this, key);
 		}
@@ -346,7 +347,7 @@ public:
 		}
 		else
 		{
-			auto& ioData = AddArchiveValue(key);
+			TestIoData& ioData = AddArchiveValue(key);
 			ioData.emplace<TestIoDataArray>(TestIoDataArray(arraySize));
 			return std::make_unique<ArchiveStubArrayScope<TMode>>(&ioData, this, key);
 		}

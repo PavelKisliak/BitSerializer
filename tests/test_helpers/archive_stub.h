@@ -124,7 +124,7 @@ protected:
 		if constexpr (std::is_same_v<TSym, std::wstring::value_type>)
 			value = std::get<std::wstring>(ioData);
 		else
-			value = Convert::ToString(std::get<std::wstring>(ioData));
+			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::get<std::wstring>(ioData));
 		return true;
 	}
 

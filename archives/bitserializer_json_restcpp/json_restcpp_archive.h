@@ -101,7 +101,7 @@ protected:
 		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 			value = jsonValue.as_string();
 		else
-			value = Convert::ToString(jsonValue.as_string());
+			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.as_string());
 		return true;
 	}
 
@@ -147,7 +147,7 @@ public:
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 				SaveJsonValue(web::json::value(value));
 			else
-				SaveJsonValue(web::json::value(Convert::FromString<utility::string_t>(value)));
+				SaveJsonValue(web::json::value(Convert::To<utility::string_t>(value)));
 		}
 	}
 
@@ -262,7 +262,7 @@ public:
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 				SaveJsonValue(key, web::json::value(value));
 			else
-				SaveJsonValue(key, web::json::value(Convert::FromString<utility::string_t>(value)));
+				SaveJsonValue(key, web::json::value(Convert::To<utility::string_t>(value)));
 			return true;
 		}
 	}
@@ -414,7 +414,7 @@ public:
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 				mRootJson = web::json::value(value);
 			else
-				mRootJson = web::json::value(Convert::FromString<utility::string_t>(value));
+				mRootJson = web::json::value(Convert::To<utility::string_t>(value));
 		}
 	}
 

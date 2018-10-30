@@ -42,11 +42,9 @@ TEST(JsonRestCpp, SerializeString) {
 	TestSerializeType<JsonArchive, std::string>("Test ANSI string");
 }
 
-//FIXME: Linux(wstring). Build Failed. This test must be fixed
-// TDB: which string should we use: wstring or u16string?
-//TEST(JsonRestCpp, SerializeWString) {
-//	TestSerializeType<JsonArchive, std::wstring>(L"Test wide string");
-//}
+TEST(JsonRestCpp, SerializeWString) {
+	TestSerializeType<JsonArchive, std::wstring>(L"Test wide string");
+}
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for c-arrays (at root scope of archive)
@@ -69,11 +67,9 @@ TEST(JsonRestCpp, SerializeArrayOfStrings) {
 	TestSerializeArray<JsonArchive, std::string>();
 }
 
-//FIXME: Linux(wstring). Build Failed. This test must be fixed
-// TDB: which string should we use: wstring or u16string?
-//TEST(JsonRestCpp, SerializeArrayOfWStrings) {
-//	TestSerializeArray<JsonArchive, std::wstring>();
-//}
+TEST(JsonRestCpp, SerializeArrayOfWStrings) {
+	TestSerializeArray<JsonArchive, std::wstring>();
+}
 
 TEST(JsonRestCpp, SerializeArrayOfClasses) {
 	TestSerializeArray<JsonArchive, TestPointClass>();
@@ -111,11 +107,9 @@ TEST(JsonRestCpp, SerializeClassWithMemberDouble) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<double>>());
 }
 
-//FIXME: Linux(wstring). Build Failed. This test must be fixed
-// NOTE: We can't use utility::string_t(equal std::string) instead of std::wstring
-//TEST(JsonRestCpp, SerializeClassWithMemberString) {
-//	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
-//}
+TEST(JsonRestCpp, SerializeClassWithMemberString) {
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+}
 
 TEST(JsonRestCpp, SerializeClassHierarchy) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithInheritance>());
@@ -164,8 +158,6 @@ TEST(JsonRestCpp, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------
-
-// FIXME error: static assertion failed: BitSerializer. The archive doesn't support loading from provided data type.
 TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt;
 	EXPECT_THROW(LoadObject<JsonArchive>(testInt, _XPLATSTR("10 }}")), SerializationException);

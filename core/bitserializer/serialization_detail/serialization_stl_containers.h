@@ -40,8 +40,6 @@ namespace Detail
 				{
 					if constexpr (is_resizeable_cont_v<TContainer>)
 						cont.resize(scope.GetSize());
-					else
-						assert(size >= scope.GetSize());
 				}
 				for (auto& elem : cont) {
 					Serialize(scope, elem);
@@ -69,8 +67,6 @@ namespace Detail
 				{
 					if constexpr (is_resizeable_cont_v<TContainer>)
 						cont.resize(scope.GetSize());
-					else
-						assert(size >= scope.GetSize());
 				}
 				for (auto& elem : cont) {
 					Serialize(scope, elem);

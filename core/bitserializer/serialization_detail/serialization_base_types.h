@@ -175,7 +175,6 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 		if (arrayScope)
 		{
 			auto& scope = *arrayScope.get();
-			assert(!archive.IsLoading() || ArraySize >= scope.GetSize());
 			for (size_t i = 0; i < ArraySize; i++) {
 				Serialize(scope, cont[i]);
 			}
@@ -196,7 +195,6 @@ static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 		if (arrayScope)
 		{
 			auto& scope = *arrayScope.get();
-			assert(!archive.IsLoading() || ArraySize >= scope.GetSize());
 			for (size_t i = 0; i < ArraySize; i++) {
 				Serialize(scope, cont[i]);
 			}

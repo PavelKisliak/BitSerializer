@@ -21,7 +21,7 @@ target_include_directories(bitserializer
 
 if(MSVC)
     target_compile_options(bitserializer INTERFACE
-            /permissive #helps to identify and fix conformance issues in your code,
+            /permissive- #helps to identify and fix conformance issues in your code,
                         #to make it both more correct and more portable.
             /W4     # all reasonable warnings
             /w14242 #'identfier': conversion from 'type1' to 'type1', possible loss of data

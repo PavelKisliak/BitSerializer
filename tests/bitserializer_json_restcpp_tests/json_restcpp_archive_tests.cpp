@@ -150,7 +150,6 @@ TEST(JsonRestCpp, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
 }
 
-//FIXME: Linux(SerializeClassToFile). Build Failed. This test must be fixed
 TEST(JsonRestCpp, SerializeClassToFile) {
 	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
 }

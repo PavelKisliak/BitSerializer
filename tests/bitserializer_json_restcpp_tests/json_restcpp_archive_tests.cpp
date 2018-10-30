@@ -87,6 +87,14 @@ TEST(JsonRestCpp, ShouldLoadToArrayWithLesserAmountOfElements) {
 	TestSerializeArray<JsonArchive, TestPointClass, 7, 5>();
 }
 
+TEST(JsonRestCpp, ShouldLoadToArrayWithBiggerAmountOfElements) {
+	TestSerializeArray<JsonArchive, bool, 5, 7>();
+	TestSerializeArray<JsonArchive, int64_t, 5, 7>();
+	TestSerializeArray<JsonArchive, double, 5, 7>();
+	TestSerializeArray<JsonArchive, std::string, 5, 7>();
+	TestSerializeArray<JsonArchive, TestPointClass, 5, 7>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------

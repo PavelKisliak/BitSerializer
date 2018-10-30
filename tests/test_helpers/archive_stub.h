@@ -234,8 +234,7 @@ public:
 protected:
 	inline TestIoData& NextElement()
 	{
-		if constexpr (TMode == SerializeMode::Save)
-			assert(mIndex < GetSize());
+		assert(mIndex < GetSize());
 		auto& archiveArray = std::get<TestIoDataArray>(*mNode);
 		return archiveArray.at(mIndex++);
 	}

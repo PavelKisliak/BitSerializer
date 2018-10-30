@@ -85,6 +85,14 @@ TEST(BaseTypes, SerializeTwoDimensionalArray) {
 	TestSerializeTwoDimensionalArray<ArchiveStub, int32_t>();
 }
 
+TEST(BaseTypes, ShouldLoadToArrayWithLesserAmountOfElements) {
+	TestSerializeArray<ArchiveStub, bool, 7, 5>();
+	TestSerializeArray<ArchiveStub, int64_t, 7, 5>();
+	TestSerializeArray<ArchiveStub, double, 7, 5>();
+	TestSerializeArray<ArchiveStub, std::string, 7, 5>();
+	TestSerializeArray<ArchiveStub, TestPointClass, 7, 5>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------

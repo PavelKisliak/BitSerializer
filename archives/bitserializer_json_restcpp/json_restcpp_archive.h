@@ -139,7 +139,8 @@ public:
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			LoadString(LoadJsonValue(), value);
+			if (mIndex < GetSize()) 
+				LoadString((*mNode)[mIndex++], value);
 		}
 		else
 		{
@@ -154,9 +155,11 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto& jsonValue = LoadJsonValue();
-			if (jsonValue.is_boolean())
-				value = jsonValue.as_bool();
+			if (mIndex < GetSize()) {
+				auto& jsonValue = (*mNode)[mIndex++];
+				if (jsonValue.is_boolean())
+					value = jsonValue.as_bool();
+			}
 		}
 		else
 		{
@@ -167,13 +170,11 @@ public:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	void SerializeValue(T& value)
 	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto& jsonValue = LoadJsonValue();
-			LoadFundamentalValue(jsonValue, value);
+		if constexpr (TMode == SerializeMode::Load)	{
+			if (mIndex < GetSize())
+				LoadFundamentalValue((*mNode)[mIndex++], value);
 		}
-		else
-		{
+		else {
 			SaveJsonValue(web::json::value(value));
 		}
 	}
@@ -182,11 +183,11 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto& jsonValue = LoadJsonValue();
-			if (jsonValue.is_object())
+			if (mIndex < GetSize())
 			{
-				decltype(auto) node = const_cast<web::json::value&>(jsonValue);
-				return std::make_unique<JsonObjectScope<TMode>>(&node, this);
+				auto& jsonValue = (*mNode)[mIndex++];
+				if (jsonValue.is_object())
+					return std::make_unique<JsonObjectScope<TMode>>(&jsonValue, this);
 			}
 			return nullptr;
 		}
@@ -201,8 +202,12 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto& jsonValue = LoadJsonValue();
-			return jsonValue.is_array() ? std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this) : nullptr;
+			if (mIndex < GetSize()) {
+				auto& jsonValue = (*mNode)[mIndex++];
+				if (jsonValue.is_array())
+					return std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this);
+			}
+			return nullptr;
 		}
 		else
 		{
@@ -212,16 +217,10 @@ public:
 	}
 
 protected:
-	inline const web::json::value& LoadJsonValue()
-	{
-		assert(mIndex < GetSize());
-		return mNode->at(mIndex++);
-	}
-
 	inline web::json::value& SaveJsonValue(web::json::value&& jsonValue)
 	{
 		assert(mIndex < GetSize());
-		return (*mNode)[mIndex++] = jsonValue;
+		return (*mNode)[mIndex++] = std::move(jsonValue);
 	}
 
 private:
@@ -396,7 +395,6 @@ public:
 		, mOutput(&outputStream)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-		mOutput = &outputStream;
 	}
 
 	~JsonRootScope()

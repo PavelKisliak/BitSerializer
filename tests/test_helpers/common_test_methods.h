@@ -31,21 +31,21 @@ void TestSerializeType(T&& value)
 /// Test template of serialization for c-array.
 /// </summary>
 /// <param name="value">The value.</param>
-template<typename TArchive, typename TValue, size_t ArraySize = 7>
+template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
 void TestSerializeArray()
 {
 	// Arrange
-	TValue testArray[ArraySize];
+	TValue testArray[SourceArraySize];
 	BuildFixture(testArray);
 	typename TArchive::preferred_output_format outputArchive;
-	TValue actual[ArraySize];
+	TValue actual[TargetArraySize];
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
 
 	// Assert
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-	for (size_t i = 0; i < ArraySize; i++) {
+	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
 		ASSERT_EQ(testArray[i], actual[i]);
 	}
 }

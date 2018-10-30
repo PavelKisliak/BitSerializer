@@ -83,6 +83,14 @@ TEST(JsonRestCpp, SerializeTwoDimensionalArray) {
 	TestSerializeTwoDimensionalArray<JsonArchive, int32_t>();
 }
 
+TEST(JsonRestCpp, ShouldLoadToArrayWithLesserAmountOfElements) {
+	TestSerializeArray<JsonArchive, bool, 7, 5>();
+	TestSerializeArray<JsonArchive, int64_t, 7, 5>();
+	TestSerializeArray<JsonArchive, double, 7, 5>();
+	TestSerializeArray<JsonArchive, std::string, 7, 5>();
+	TestSerializeArray<JsonArchive, TestPointClass, 7, 5>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------

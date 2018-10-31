@@ -129,7 +129,7 @@ public:
 	};
 
 	uint32_t TestUInt32;
-	uint32_t TestUInt64;
+	uint64_t TestUInt64;
 };
 
 //-----------------------------------------------------------------------------
@@ -258,6 +258,9 @@ template <typename T, size_t ArraySize1 = 3, size_t ArraySize2 = 5>
 class TestClassWithSubTwoDimArray
 {
 public:
+	static const int Array1stLevelSize = ArraySize1;
+	static const int Array2stLevelSize = ArraySize2;
+
 	static void BuildFixture(TestClassWithSubTwoDimArray& fixture) {
 		::BuildFixture(fixture.TestTwoDimArray);
 	}

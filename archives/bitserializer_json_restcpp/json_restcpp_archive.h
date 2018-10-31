@@ -130,7 +130,8 @@ public:
 	/// <returns></returns>
 	std::wstring GetPath() const override
 	{
-		return JsonScopeBase::GetPath() + path_separator + Convert::ToWString(mIndex);
+		auto index = mIndex == 0 ? 0 : mIndex - 1;
+		return JsonScopeBase::GetPath() + path_separator + Convert::ToWString(index);
 	}
 
 	template <typename TSym, typename TAllocator>

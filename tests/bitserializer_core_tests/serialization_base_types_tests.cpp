@@ -3,7 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include <filesystem>
 #include "../test_helpers/common_test_methods.h"
 #include "../test_helpers/archive_stub.h"
 
@@ -148,6 +147,25 @@ TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
 
 TEST(BaseTypes, ShouldGetKeyByIndexInObjectScope) {
 	TestGetKeyByIndex<ArchiveStub>();
+}
+
+//-----------------------------------------------------------------------------
+// Test paths in archive
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, ShouldReturnPathInObjectScopeWhenLoading) {
+	TestGetPathInObjectScopeWhenLoading<ArchiveStub>();
+}
+
+TEST(BaseTypes, ShouldReturnPathInObjectScopeWhenSaving) {
+	TestGetPathInObjectScopeWhenSaving<ArchiveStub>();
+}
+
+TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenLoading) {
+	TestGetPathInArrayScopeWhenLoading<ArchiveStub>();
+}
+
+TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenSaving) {
+	TestGetPathInArrayScopeWhenLoading<ArchiveStub>();
 }
 
 //-----------------------------------------------------------------------------

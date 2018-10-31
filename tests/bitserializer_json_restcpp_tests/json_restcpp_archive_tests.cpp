@@ -140,8 +140,27 @@ TEST(JsonRestCpp, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(RapidJsonArchive, ShouldGetKeyByIndexInObjectScope) {
+TEST(JsonRestCpp, ShouldGetKeyByIndexInObjectScope) {
 	TestGetKeyByIndex<JsonArchive>();
+}
+
+//-----------------------------------------------------------------------------
+// Test paths in archive
+//-----------------------------------------------------------------------------
+TEST(JsonRestCpp, ShouldReturnPathInObjectScopeWhenLoading) {
+	TestGetPathInObjectScopeWhenLoading<JsonArchive>();
+}
+
+TEST(JsonRestCpp, ShouldReturnPathInObjectScopeWhenSaving) {
+	TestGetPathInObjectScopeWhenSaving<JsonArchive>();
+}
+
+TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenLoading) {
+	TestGetPathInArrayScopeWhenLoading<JsonArchive>();
+}
+
+TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenSaving) {
+	TestGetPathInArrayScopeWhenLoading<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

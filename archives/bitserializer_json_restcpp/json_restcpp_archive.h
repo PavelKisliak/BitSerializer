@@ -134,22 +134,6 @@ public:
 		return JsonScopeBase::GetPath() + path_separator + Convert::ToWString(index);
 	}
 
-	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if constexpr (TMode == SerializeMode::Load) {
-			if (mIndex < GetSize()) 
-				LoadString((*mNode)[mIndex++], value);
-		}
-		else
-		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				SaveJsonValue(web::json::value(value));
-			else
-				SaveJsonValue(web::json::value(Convert::To<utility::string_t>(value)));
-		}
-	}
-
 	void SerializeValue(bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -175,6 +159,22 @@ public:
 		}
 		else {
 			SaveJsonValue(web::json::value(value));
+		}
+	}
+
+	template <typename TSym, typename TAllocator>
+	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		if constexpr (TMode == SerializeMode::Load) {
+			if (mIndex < GetSize())
+				LoadString((*mNode)[mIndex++], value);
+		}
+		else
+		{
+			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+				SaveJsonValue(web::json::value(value));
+			else
+				SaveJsonValue(web::json::value(Convert::To<utility::string_t>(value)));
 		}
 	}
 
@@ -248,24 +248,6 @@ public:
 		return (mNode->as_object().cbegin() + index)->first;
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto* jsonValue = LoadJsonValue(key);
-			return jsonValue == nullptr ? false : LoadString(*jsonValue, value);
-		}
-		else
-		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				SaveJsonValue(key, web::json::value(value));
-			else
-				SaveJsonValue(key, web::json::value(Convert::To<utility::string_t>(value)));
-			return true;
-		}
-	}
-
 	bool SerializeValue(const key_type& key, bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -296,6 +278,24 @@ public:
 		else
 		{
 			SaveJsonValue(key, web::json::value::number(value));
+			return true;
+		}
+	}
+
+	template <typename TSym, typename TAllocator>
+	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto* jsonValue = LoadJsonValue(key);
+			return jsonValue == nullptr ? false : LoadString(*jsonValue, value);
+		}
+		else
+		{
+			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+				SaveJsonValue(key, web::json::value(value));
+			else
+				SaveJsonValue(key, web::json::value(Convert::To<utility::string_t>(value)));
 			return true;
 		}
 	}
@@ -402,22 +402,6 @@ public:
 		Finish();
 	}
 
-	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if constexpr (TMode == SerializeMode::Load) {
-			LoadString(mRootJson, value);
-		}
-		else
-		{
-			assert(mRootJson.is_null());
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				mRootJson = web::json::value(value);
-			else
-				mRootJson = web::json::value(Convert::To<utility::string_t>(value));
-		}
-	}
-
 	void SerializeValue(bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -442,6 +426,22 @@ public:
 		{
 			assert(mRootJson.is_null());
 			mRootJson = web::json::value::number(value);
+		}
+	}
+
+	template <typename TSym, typename TAllocator>
+	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		if constexpr (TMode == SerializeMode::Load) {
+			LoadString(mRootJson, value);
+		}
+		else
+		{
+			assert(mRootJson.is_null());
+			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
+				mRootJson = web::json::value(value);
+			else
+				mRootJson = web::json::value(Convert::To<utility::string_t>(value));
 		}
 	}
 

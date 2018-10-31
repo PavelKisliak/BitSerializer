@@ -140,6 +140,10 @@ TEST(JsonRestCpp, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
+TEST(RapidJsonArchive, ShouldGetKeyByIndexInObjectScope) {
+	TestGetKeyByIndex<JsonArchive>();
+}
+
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returned from archive methods).
 //-----------------------------------------------------------------------------

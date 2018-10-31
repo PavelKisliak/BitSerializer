@@ -196,3 +196,34 @@ void TestValidationForNamedValues()
 	ASSERT_FALSE(loadResult);
 	testObj.Assert();
 }
+
+/// <summary>
+/// Tests archive method which should return key by index.
+/// </summary>
+template <typename TArchive>
+void TestGetKeyByIndex()
+{
+	// Arrange
+	auto expectedKey1 = BitSerializer::Convert::To<typename TArchive::key_type>("key");
+	auto expectedKey2 = BitSerializer::Convert::To<typename TArchive::key_type>("value");
+
+	std::pair<std::string, std::string> testObj;
+	::BuildFixture(testObj);
+	using OutputFormat = typename TArchive::preferred_output_format;
+	OutputFormat outputData;
+	BitSerializer::SaveObject<TArchive>(testObj, outputData);
+	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData));
+
+	// Act / Assert
+	auto objScope = inputArchive.OpenObjectScope();
+	ASSERT_TRUE(objScope != nullptr);
+
+	auto actualSize = objScope->GetSize();
+	ASSERT_EQ(2, actualSize);
+
+	auto actualKey1 = objScope->GetKeyByIndex(0);
+	EXPECT_EQ(expectedKey1, actualKey1);
+
+	auto actualKey2 = objScope->GetKeyByIndex(1);
+	EXPECT_EQ(expectedKey2, actualKey2);
+}

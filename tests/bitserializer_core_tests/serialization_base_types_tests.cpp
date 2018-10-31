@@ -146,6 +146,10 @@ TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
+TEST(BaseTypes, ShouldGetKeyByIndexInObjectScope) {
+	TestGetKeyByIndex<ArchiveStub>();
+}
+
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returned from archive methods).
 //-----------------------------------------------------------------------------

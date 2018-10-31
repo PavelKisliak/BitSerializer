@@ -48,7 +48,6 @@ public:
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
-	/// <returns></returns>
 	inline size_t GetSize() const {
 		return mNode->size();
 	}
@@ -56,7 +55,6 @@ public:
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
-	/// <returns></returns>
 	virtual std::wstring GetPath() const
 	{
 		std::wstring localPath = mParentKey.empty()
@@ -114,7 +112,7 @@ protected:
 /// <summary>
 /// JSON scope for serializing arrays (list of values without keys).
 /// </summary>
-/// <seealso cref="JsonArchiveBase" />
+/// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
 class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
@@ -231,7 +229,7 @@ private:
 /// <summary>
 /// JSON scope for serializing objects (list of values with keys).
 /// </summary>
-/// <seealso cref="JsonArchiveBase" />
+/// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
 class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
@@ -346,13 +344,14 @@ protected:
 
 	inline web::json::value& SaveJsonValue(const key_type& key, web::json::value&& jsonValue) const
 	{
-		return (*mNode)[key] = jsonValue;
+		return (*mNode)[key] = std::move(jsonValue);
 	}
 };
 
 /// <summary>
 /// JSON root scope (can serialize one value, array or object without key)
 /// </summary>
+/// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
 class JsonRootScope : public ArchiveScope<TMode>, public Detail::JsonScopeBase
 {

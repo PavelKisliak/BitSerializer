@@ -395,6 +395,7 @@ public:
 	explicit ArchiveStubRootScope(const TestIoData& inputData)
 		: Detail::ArchiveStubScopeBase(&inputData)
 		, mInputData(&inputData)
+		, mOutputData(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 	}

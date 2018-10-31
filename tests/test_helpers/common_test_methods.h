@@ -5,8 +5,7 @@
 #pragma once
 #include <optional>
 #include "gtest/gtest.h"
-#include "auto_fixture.h"
-#include "bitserializer/bit_serializer.h"
+#include "common_test_entities.h"
 
 /// <summary>
 /// Test template of serialization for fundamental type.
@@ -204,11 +203,11 @@ template <typename TArchive>
 void TestGetKeyByIndex()
 {
 	// Arrange
-	auto expectedKey1 = BitSerializer::Convert::To<typename TArchive::key_type>("key");
-	auto expectedKey2 = BitSerializer::Convert::To<typename TArchive::key_type>("value");
-
-	std::pair<std::string, std::string> testObj;
+	auto expectedKey1 = BitSerializer::Convert::To<typename TArchive::key_type>("x");
+	auto expectedKey2 = BitSerializer::Convert::To<typename TArchive::key_type>("y");
+	TestPointClass testObj;
 	::BuildFixture(testObj);
+
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);

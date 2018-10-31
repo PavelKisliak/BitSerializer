@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <filesystem>
-#include "../test_helpers/common_test_entities.h"
+#include "../test_helpers/common_test_methods.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
@@ -159,11 +159,11 @@ TEST(JsonRestCpp, ShouldCollectErrorAboutRequiredNamedValues) {
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, SerializeClassToStream) {
-	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
+	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestPointClass>());
 }
 
 TEST(JsonRestCpp, SerializeClassToFile) {
-	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestClassWithFundamentalTypes>());
+	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestPointClass>());
 }
 
 //-----------------------------------------------------------------------------

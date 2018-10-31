@@ -4,7 +4,7 @@
 *******************************************************************************/
 #include "pch.h"
 #include <filesystem>
-#include "../test_helpers/common_test_entities.h"
+#include "../test_helpers/common_test_methods.h"
 #include "../test_helpers/archive_stub.h"
 
 //-----------------------------------------------------------------------------

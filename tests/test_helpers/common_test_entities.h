@@ -8,7 +8,8 @@
 #include <functional>
 #include <tuple>
 #include "gtest/gtest.h"
-#include "common_test_methods.h"
+#include "auto_fixture.h"
+#include "bitserializer/bit_serializer.h"
 
 //-----------------------------------------------------------------------------
 enum class TestEnum {
@@ -35,6 +36,12 @@ public:
 	static void BuildFixture(TestPointClass& fixture) {
 		::BuildFixture(fixture.x);
 		::BuildFixture(fixture.y);
+	}
+
+	void Assert(const TestPointClass& rhs) const
+	{
+		EXPECT_EQ(x, rhs.x);
+		EXPECT_EQ(y, rhs.y);
 	}
 
 	TestPointClass() = default;
@@ -93,6 +100,72 @@ public:
 
 	int x;
 	int y;
+};
+
+//-----------------------------------------------------------------------------
+class TestClassWithInheritance : public TestPointClass
+{
+public:
+	static void BuildFixture(TestClassWithInheritance& fixture)
+	{
+		TestPointClass::BuildFixture(fixture);
+		::BuildFixture(fixture.TestUInt32);
+		::BuildFixture(fixture.TestUInt64);
+	}
+
+	void Assert(const TestClassWithInheritance& rhs) const
+	{
+		this->TestPointClass::Assert(rhs);
+		EXPECT_EQ(TestUInt32, rhs.TestUInt32);
+		EXPECT_EQ(TestUInt64, rhs.TestUInt64);
+	}
+
+	template <class TArchive>
+	inline void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::BaseObject<TestPointClass>(*this);
+		archive << BitSerializer::MakeKeyValue("TestUInt32", TestUInt32);
+		archive << BitSerializer::MakeKeyValue("TestUInt64", TestUInt64);
+	};
+
+	uint32_t TestUInt32;
+	uint32_t TestUInt64;
+};
+
+//-----------------------------------------------------------------------------
+template <typename T>
+class TestClassWithSubType
+{
+public:
+	TestClassWithSubType(const T& initValue = {})
+		: TestSubValue(initValue)
+	{
+		mAssertFunc = [](const T& expected, const T& actual) {
+			ASSERT_EQ(expected, actual);
+		};
+	}
+
+	TestClassWithSubType(const std::function<void(const T&, const T&)>& specialAssertFunc)
+		: mAssertFunc(specialAssertFunc)
+	{ }
+
+	static void BuildFixture(TestClassWithSubType& fixture) {
+		::BuildFixture(fixture.TestSubValue);
+	}
+
+	void Assert(const TestClassWithSubType& actual) const {
+		mAssertFunc(TestSubValue, actual.TestSubValue);
+	}
+
+	template <class TArchive>
+	inline void Serialize(TArchive& archive) {
+		archive << BitSerializer::MakeKeyValue("TestSubValue", TestSubValue);
+	};
+
+	T TestSubValue;
+
+private:
+	std::function<void(const T&, const T&)> mAssertFunc;
 };
 
 //-----------------------------------------------------------------------------
@@ -155,131 +228,6 @@ public:
 			Serialize<TArchive, I + 1>(archive);
 		}
 	};
-};
-
-//-----------------------------------------------------------------------------
-class TestClassWithFundamentalTypes
-{
-public:
-	static void BuildFixture(TestClassWithFundamentalTypes& fixture)
-	{
-		::BuildFixture(fixture.testBool);
-		::BuildFixture(fixture.testInt8);
-		::BuildFixture(fixture.testInt16);
-		::BuildFixture(fixture.testInt32);
-		::BuildFixture(fixture.testInt64);
-		::BuildFixture(fixture.testFloat);
-		::BuildFixture(fixture.testDouble);
-		::BuildFixture(fixture.testEnum);
-		::BuildFixture(fixture.testString);
-		::BuildFixture(fixture.testWString);
-	}
-
-	void Assert(const TestClassWithFundamentalTypes& rhs) const
-	{
-		EXPECT_EQ(testBool, rhs.testBool);
-		EXPECT_EQ(testInt8, rhs.testInt8);
-		EXPECT_EQ(testInt16, rhs.testInt16);
-		EXPECT_EQ(testInt32, rhs.testInt32);
-		EXPECT_EQ(testInt64, rhs.testInt64);
-		EXPECT_EQ(testFloat, rhs.testFloat);
-		EXPECT_EQ(testDouble, rhs.testDouble);
-		EXPECT_EQ(testEnum, rhs.testEnum);
-		EXPECT_EQ(testString, rhs.testString);
-		EXPECT_EQ(testWString, rhs.testWString);
-	}
-
-	template <class TArchive>
-	inline void Serialize(TArchive& archive)
-	{
-		archive << BitSerializer::MakeKeyValue("TestBool", testBool);
-		archive << BitSerializer::MakeKeyValue("TestInt8", testInt8);
-		archive << BitSerializer::MakeKeyValue("TestInt16", testInt16);
-		archive << BitSerializer::MakeKeyValue("TestInt32", testInt32);
-		archive << BitSerializer::MakeKeyValue("TestInt64", testInt64);
-		archive << BitSerializer::MakeKeyValue("TestFloat", testFloat);
-		archive << BitSerializer::MakeKeyValue("TestDouble", testDouble);
-		archive << BitSerializer::MakeKeyValue("TestEnum", testEnum);
-		archive << BitSerializer::MakeKeyValue("TestString", testString);
-		archive << BitSerializer::MakeKeyValue("TestWString", testWString);
-	};
-
-	bool testBool;
-	int8_t testInt8;
-	int16_t testInt16;
-	int32_t testInt32;
-	int64_t testInt64;
-	float testFloat;
-	double testDouble;
-	TestEnum testEnum;
-	std::string testString;
-	std::string testWString;
-};
-
-//-----------------------------------------------------------------------------
-class TestClassWithInheritance : public TestClassWithFundamentalTypes
-{
-public:
-	static void BuildFixture(TestClassWithInheritance& fixture)
-	{
-		TestClassWithFundamentalTypes::BuildFixture(fixture);
-		::BuildFixture(fixture.TestUInt32);
-		::BuildFixture(fixture.TestUInt64);
-	}
-
-	void Assert(const TestClassWithInheritance& rhs) const
-	{
-		this->TestClassWithFundamentalTypes::Assert(rhs);
-		EXPECT_EQ(TestUInt32, rhs.TestUInt32);
-		EXPECT_EQ(TestUInt64, rhs.TestUInt64);
-	}
-
-	template <class TArchive>
-	inline void Serialize(TArchive& archive)
-	{
-		archive << BitSerializer::BaseObject<TestClassWithFundamentalTypes>(*this);
-		archive << BitSerializer::MakeKeyValue("TestUInt32", TestUInt32);
-		archive << BitSerializer::MakeKeyValue("TestUInt64", TestUInt64);
-	};
-
-	uint32_t TestUInt32;
-	uint32_t TestUInt64;
-};
-
-//-----------------------------------------------------------------------------
-template <typename T>
-class TestClassWithSubType
-{
-public:
-	TestClassWithSubType(const T& initValue = {})
-		: TestSubValue(initValue)
-	{
-		mAssertFunc = [](const T& expected, const T& actual) {
-			ASSERT_EQ(expected, actual);
-		};
-	}
-
-	TestClassWithSubType(const std::function<void(const T&, const T&)>& specialAssertFunc)
-		: mAssertFunc(specialAssertFunc)
-	{ }
-
-	static void BuildFixture(TestClassWithSubType& fixture) {
-		::BuildFixture(fixture.TestSubValue);
-	}
-
-	void Assert(const TestClassWithSubType& actual) const {
-		mAssertFunc(TestSubValue, actual.TestSubValue);
-	}
-
-	template <class TArchive>
-	inline void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeKeyValue("TestSubValue", TestSubValue);
-	};
-
-	T TestSubValue;
-
-private:
-	std::function<void(const T&, const T&)> mAssertFunc;
 };
 
 //-----------------------------------------------------------------------------

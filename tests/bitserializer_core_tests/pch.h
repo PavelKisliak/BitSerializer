@@ -4,7 +4,6 @@
 //
 
 #pragma once
-// Keep standard headers in alphabetical order
 #include <array>
 #include <cstdlib>
 #include <deque>
@@ -18,6 +17,8 @@
 #include <set>
 #include <type_traits>
 #include <vector>
+#include <ostream>
+#include <istream>
+#include <fstream>
 
-// Additional header have to keep in alphabetical order too
 #include "gtest/gtest.h"

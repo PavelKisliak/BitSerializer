@@ -2,29 +2,29 @@
 ___
 The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
 
-This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in �[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)� section.
+This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 What's new in version 0.8:
-[!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
-[+] Add CMake support (it needs just for samples and tests, as the library is headers only).
-[+] Add validation of deserialized values.
-[+] Added directory with samples.
-[\*] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
-[\*] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
-[\*] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
+- [!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
+- [+] Added CMake support (it needs just for samples and tests, as the library is headers only).
+- [+] Added validation of deserialized values.
+- [+] Added directory with samples.
+- [\*] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
+- [\*] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
+- [\*] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
 
-[Full log of changes](ChangeLog.md)
+[Full log of changes](History.md)
 
 #### Main features:
-  - Flexible architecture, which allows to support different kind of formats (currently only JSON).
-  - Produces a clear JSON, which is convenient to use with Javascript.
-  - Simple syntax (similar to serialization in boost library).
-  - Validation of deserialized values.
-  - Checking at compile time the permissibility of saving types depending on the structure of the output format.
-  - Support for serialization ANSI and wide strings.
-  - Support for serialization of most STL containers.
-  - Support for serialization of enum types (registration of a names map is required).
-  - As a bonus, the subsystem for converting strings to / from arbitrary types.
+- Flexible architecture, which allows to support different kind of formats (currently only JSON).
+- Produces a clear JSON, which is convenient to use with Javascript.
+- Simple syntax (similar to serialization in Boost library).
+- Validation of deserialized values.
+- Checking at compile time the permissibility of saving types depending on the structure of the output format.
+- Support for serialization ANSI and wide strings.
+- Support for serialization of most STL containers.
+- Support for serialization of enum types (registration of a names map is required).
+- As a bonus, the subsystem for converting strings to / from arbitrary types.
 
 #### Supported Formats:
   - JSON (the implementation is based on the [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)).
@@ -34,7 +34,7 @@ What's new in version 0.8:
   - [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)
 
 #### How to use:
-The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implements only one type of archive, you need to install �CppRestSDK�. If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the �CppRestSDK� will be automatically installed as dependency.
+The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implements only one type of archive, you need to install «CppRestSDK». If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the «CppRestSDK» will be automatically installed as dependency.
 ```shell
 vcpkg install bitserializer bitserializer:x64-windows
 ```

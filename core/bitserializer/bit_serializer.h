@@ -168,7 +168,7 @@ static TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TVa
 {
 	bool result = false;
 	// Checks key type and adapts it to archive if needed
-	if constexpr (std::is_same_v<std::decay_t<TKey>, typename TArchive::key_type>)
+	if constexpr (std::is_convertible_v<TKey, typename TArchive::key_type>)
 	{
 		result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
 	}

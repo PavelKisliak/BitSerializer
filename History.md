@@ -2,6 +2,7 @@
 
 #### Version 0.8 (10 October 2018):
 - [!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
+- [+] Added new implementation for JSON format based on library RapidJson.
 - [+] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [+] Added validation of deserialized values.
 - [+] Added directory with samples.

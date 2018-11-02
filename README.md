@@ -6,6 +6,7 @@ This is second release of library and it's still in active development and curre
 
 #### What's new in version 0.8:
 - [!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
+- [+] Added new implementation for JSON format based on library RapidJson.
 - [+] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [+] Added validation of deserialized values.
 - [+] Added directory with samples.
@@ -266,7 +267,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 ```
 
 #### Conditions for checking the serialization mode
-To check the current serialization mode, use two methods - IsLoading() and IsSaving(). They are haven't CPU overhead, because they are �constexpr�.
+To check the current serialization mode, use two methods - IsLoading() and IsSaving(). They are haven't CPU overhead, because they are «constexpr».
 ```cpp
 class Foo
 public:
@@ -370,7 +371,7 @@ Path: /TestString
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 
 #### Compile time checking
-The new C++ 17 ability �if constexpr� helps to generate clear error messages.
+The new C++ 17 ability «if constexpr» helps to generate clear error messages.
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
 ```cpp
 template <class TArchive>

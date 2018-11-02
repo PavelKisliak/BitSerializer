@@ -3,14 +3,14 @@
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
-using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 int main()
 {
     std::string expected = "Hello world!";
-    auto json = SaveObject<JsonArchive>(expected);
+    auto json = BitSerializer::SaveObject<JsonArchive>(expected);
     std::string result;
-    LoadObject<JsonArchive>(result, json);
+	BitSerializer::LoadObject<JsonArchive>(result, json);
 
     assert(result == expected);
     std::cout << result << std::endl;

@@ -4,7 +4,7 @@ The library is designed for simple serialization of arbitrary C++ types to vario
 
 This is second release of library and it's still in active development and currently includes support for only one JSON format, which requires an external C++ REST SDK library. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
-What's new in version 0.8:
+#### What's new in version 0.8:
 - [!] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
 - [+] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [+] Added validation of deserialized values.
@@ -49,23 +49,23 @@ ___
 
 #### Hello world!
 ```cpp
+#include <cassert>
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
-using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 int main()
 {
     std::string expected = "Hello world!";
-    auto json = SaveObject<JsonArchive>(expected);
+    auto json = BitSerializer::SaveObject<JsonArchive>(expected);
     std::string result;
-    LoadObject<JsonArchive>(result, json);
+	BitSerializer::LoadObject<JsonArchive>(result, json);
 
     assert(result == expected);
     std::cout << result << std::endl;
 
-    std::cin.get();
     return EXIT_SUCCESS;
 }
 ```
@@ -118,6 +118,7 @@ Next example demonstrates how to implement internal serialization method:
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 class TestSimpleClass
 {
@@ -150,7 +151,7 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto result = SaveObject<JsonArchive>(simpleObj);
+	auto result = BitSerializer::SaveObject<JsonArchive>(simpleObj);
     return 0;
 }
 ```
@@ -233,12 +234,12 @@ namespace BitSerializer
 	}
 }   // namespace BitSerializer
 
-using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 int main()
 {
 	auto simpleObj = TestThirdPartyClass(100, 200);
-	auto result = SaveObject<JsonArchive>(simpleObj);
+	auto result = BitSerializer::SaveObject<JsonArchive>(simpleObj);
 	return 0;
 }
 ```
@@ -309,39 +310,40 @@ This list will be extended in future.
 
 Below real example:
 ```cpp
-#include <iostream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 class TestSimpleClass
 {
 public:
-	TestSimpleClass() { }
-
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestInt", TestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
-		archive << MakeKeyValue("testString", testString, MaxSize(8));
+		archive << MakeKeyValue("TestBool", mTestBool, Required());
+		archive << MakeKeyValue("TestInt", mTestInt, Required(), Range(0, 100));
+		archive << MakeKeyValue("TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
+		archive << MakeKeyValue("TestString", mTestString, MaxSize(8));
 	};
 
 private:
-	int TestInt;
-	float testFloat;
-	std::wstring testString;
+	bool mTestBool;
+	int mTestInt;
+	double mTestDouble;
+	std::string mTestString;
 };
 
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	LoadObject<JsonArchive>(simpleObj, L"{	\"TestInt\": 2000, \"testString\" : \"Very looooooooong string!\"  }");
-	if (!Context.IsValid())
+	auto json = _XPLATSTR("{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\" }");
+	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
+	if (!BitSerializer::Context.IsValid())
 	{
-		std::wcout << L"Validation errors: "<< std::endl;
-		const auto& validationErrors = Context.GetValidationErrors();
+		std::wcout << L"Validation errors: " << std::endl;
+		const auto& validationErrors = BitSerializer::Context.GetValidationErrors();
 		for (const auto& keyErrors : validationErrors)
 		{
 			std::wcout << L"Path: " << keyErrors.first << std::endl;
@@ -351,18 +353,18 @@ int main()
 			}
 		}
 	}
-	std::cin.get();
-	return 0;
+
+	return EXIT_SUCCESS;
 }
 ```
 The result of execution this code:
 ```text
 Validation errors:
-Path: /testFloat
+Path: /TestBool
         This field is required
 Path: /TestInt
         Value must be between 0 and 100
-Path: /testString
+Path: /TestString
         The maximum size of this field should be not greater than 8
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).

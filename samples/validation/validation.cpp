@@ -1,39 +1,37 @@
-#include <iostream>
-#include <string>
-#include <sstream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
 using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 class TestSimpleClass
 {
 public:
-	TestSimpleClass(): testInt{}, testDouble{} { }
-
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("testInt", testInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("testDouble", testDouble, Required(), Range(-1.0, 1.0));
-		archive << MakeKeyValue("testString", testString, MaxSize(8));
+		archive << MakeKeyValue("TestBool", mTestBool, Required());
+		archive << MakeKeyValue("TestInt", mTestInt, Required(), Range(0, 100));
+		archive << MakeKeyValue("TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
+		archive << MakeKeyValue("TestString", mTestString, MaxSize(8));
 	};
 
 private:
-	int testInt;
-	double testDouble;
-	std::string testString;
+	bool mTestBool;
+	int mTestInt;
+	double mTestDouble;
+	std::string mTestString;
 };
 
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto json = _XPLATSTR("{ \"testInt\": 2000, \"testDouble\": 1.0, \"testString\" : \"Very looooooooong string!\" }");
-	LoadObject<JsonArchive>(simpleObj, json);
-	if (!Context.IsValid())
+	auto json = _XPLATSTR("{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\" }");
+	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
+	if (!BitSerializer::Context.IsValid())
 	{
 		std::wcout << L"Validation errors: " << std::endl;
-		const auto& validationErrors = Context.GetValidationErrors();
+		const auto& validationErrors = BitSerializer::Context.GetValidationErrors();
 		for (const auto& keyErrors : validationErrors)
 		{
 			std::wcout << L"Path: " << keyErrors.first << std::endl;

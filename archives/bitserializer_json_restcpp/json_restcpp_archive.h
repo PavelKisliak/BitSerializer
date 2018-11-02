@@ -13,7 +13,7 @@
 // External dependency (C++ REST SDK)
 #include "cpprest/json.h"
 
-namespace BitSerializer {
+namespace BitSerializer::Json::CppRest {
 namespace Detail {
 
 /// <summary>
@@ -502,4 +502,4 @@ using JsonArchive = MediaArchiveBase<
 	Detail::JsonRootScope<SerializeMode::Load>,
 	Detail::JsonRootScope<SerializeMode::Save>>;
 
-}	// namespace BitSerializer
+}	// namespace BitSerializer::Json::CppRest

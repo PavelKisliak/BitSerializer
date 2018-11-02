@@ -6,7 +6,7 @@
 #include "../test_helpers/common_test_methods.h"
 #include "bitserializer_json_restcpp/json_restcpp_archive.h"
 
-using namespace BitSerializer;
+using namespace BitSerializer::Json::CppRest;
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
@@ -190,5 +190,5 @@ TEST(JsonRestCpp, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt;
-	EXPECT_THROW(LoadObject<JsonArchive>(testInt, _XPLATSTR("10 }}")), SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, _XPLATSTR("10 }}")), BitSerializer::SerializationException);
 }

@@ -36,15 +36,15 @@ public:
 template <SerializeMode TMode, class TAllocator>
 class RapidJsonObjectScope;
 
-using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF16<>>;
-
-
 /// <summary>
 /// Base class of JSON scope
 /// </summary>
 /// <seealso cref="MediaArchiveBase" />
 class RapidJsonScopeBase : public RapidJsonArchiveTraits
 {
+protected:
+	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF16<>>;
+
 public:
 	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
 		: mNode(const_cast<RapidJsonNode*>(node))
@@ -308,7 +308,48 @@ public:
 		return (mNode->GetObject().begin() + index)->name.GetString();
 	}
 
-	bool SerializeValue(const key_type& key, bool& value)
+	inline bool SerializeValue(const key_type& key, bool& value) {
+		return SerializeBooleanImpl(key, value);
+	}
+	inline bool SerializeValue(const wchar_t* key, bool& value) {
+		return SerializeBooleanImpl(key, value);
+	}
+
+	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	inline bool SerializeValue(const key_type& key, T& value) {
+		return SerializeFundamentalValueImpl(key, value);
+	}
+	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	inline bool SerializeValue(const wchar_t* key, T& value) {
+		return SerializeFundamentalValueImpl(key, value);
+	}
+
+	template <typename TSym, typename TAllocator>
+	inline bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
+		return SerializeStringImpl(key, value);
+	}
+	template <typename TSym, typename TAllocator>
+	inline bool SerializeString(const wchar_t* key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
+		return SerializeStringImpl(key, value);
+	}
+
+	inline std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const key_type& key) {
+		return OpenObjectScopeImpl(key);
+	}
+	inline std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const wchar_t* key) {
+		return OpenObjectScopeImpl(key);
+	}
+
+	inline std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const key_type& key, size_t arraySize) {
+		return OpenArrayScopeImpl(key, arraySize);
+	}
+	inline std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const wchar_t* key, size_t arraySize) {
+		return OpenArrayScopeImpl(key, arraySize);
+	}
+
+protected:
+	template <typename TKey>
+	bool SerializeBooleanImpl(TKey&& key, bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -327,8 +368,8 @@ public:
 		}
 	}
 
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool SerializeValue(const key_type& key, T& value)
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	bool SerializeFundamentalValueImpl(TKey&& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -342,8 +383,8 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TKey, typename TSym, typename TAllocator>
+	bool SerializeStringImpl(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -363,7 +404,8 @@ public:
 		}
 	}
 
-	std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const key_type& key)
+	template <typename TKey>
+	std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScopeImpl(TKey&& key)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -380,7 +422,8 @@ public:
 		}
 	}
 
-	std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const key_type& key, size_t arraySize)
+	template <typename TKey>
+	std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScopeImpl(TKey&& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -399,7 +442,6 @@ public:
 		}
 	}
 
-protected:
 	inline const RapidJsonNode* LoadJsonValue(const key_type& key) const
 	{
 		const auto& jObject = mNode->GetObject();
@@ -407,10 +449,21 @@ protected:
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
+	inline const RapidJsonNode* LoadJsonValue(const wchar_t* key) const
+	{
+		const auto& jObject = mNode->GetObject();
+		auto it = jObject.FindMember(key);
+		return it == jObject.MemberEnd() ? nullptr : &it->value;
+	}
+
 	inline void SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue)
 	{
 		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);
 		mNode->AddMember(jsonKey.Move(), jsonValue.Move(), mAllocator);
+	}
+
+	inline void SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue) {
+		mNode->AddMember(rapidjson::GenericStringRef(key), jsonValue.Move(), mAllocator);
 	}
 
 	TAllocator& mAllocator;

@@ -77,12 +77,12 @@ constexpr bool can_serialize_value_v = can_serialize_value<TArchive, TValue>::va
 /// <summary>
 /// Checks that the FUNDAMENTAL VALUE can be serialized WITH KEY in target archive scope.
 /// </summary>
-template <typename TArchive, typename TValue>
+template <typename TArchive, typename TValue, typename TKey>
 struct can_serialize_value_with_key
 {
 private:
 	template <typename TObj, typename TVal>
-	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeValue(std::declval<const typename TArchive::key_type&>(), std::declval<TVal&>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeValue(std::declval<TKey>(), std::declval<TVal&>()))>, std::true_type> test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);
@@ -92,8 +92,8 @@ public:
 	enum { value = type::value };
 };
 
-template <typename TArchive, typename TValue>
-constexpr bool can_serialize_value_with_key_v = can_serialize_value_with_key<TArchive, TValue>::value;
+template <typename TArchive, typename TValue, typename TKey>
+constexpr bool can_serialize_value_with_key_v = can_serialize_value_with_key<TArchive, TValue, TKey>::value;
 
 //------------------------------------------------------------------------------
 
@@ -121,12 +121,12 @@ constexpr bool can_serialize_string_v = can_serialize_string<TArchive, TValue>::
 /// <summary>
 /// Checks that the STRING can be serialized WITH KEY in target archive scope.
 /// </summary>
-template <typename TArchive, typename TValue>
+template <typename TArchive, typename TValue, typename TKey>
 struct can_serialize_string_with_key
 {
 private:
 	template <typename TObj, typename TVal>
-	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeString(std::declval<const typename TArchive::key_type&>(), std::declval<TVal&>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeString(std::declval<TKey>(), std::declval<TVal&>()))>, std::true_type> test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);
@@ -136,8 +136,8 @@ public:
 	enum { value = type::value };
 };
 
-template <typename TArchive, typename TValue>
-constexpr bool can_serialize_string_with_key_v = can_serialize_string_with_key<TArchive, TValue>::value;
+template <typename TArchive, typename TValue, typename TKey>
+constexpr bool can_serialize_string_with_key_v = can_serialize_string_with_key<TArchive, TValue, TKey>::value;
 
 //------------------------------------------------------------------------------
 
@@ -165,12 +165,12 @@ constexpr bool can_serialize_object_v = can_serialize_object<TArchive>::value;
 /// <summary>
 /// Checks that the CLASS OBJECT can be serialized WITH KEY in target archive scope.
 /// </summary>
-template <typename TArchive>
+template <typename TArchive, typename TKey>
 struct can_serialize_object_with_key
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<const typename TArchive::key_type&>()))>, std::true_type> test(int);
+	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<TKey>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -180,18 +180,18 @@ public:
 	enum { value = type::value };
 };
 
-template <typename TArchive>
-constexpr bool can_serialize_object_with_key_v = can_serialize_object_with_key<TArchive>::value;
+template <typename TArchive, typename TKey>
+constexpr bool can_serialize_object_with_key_v = can_serialize_object_with_key<TArchive, TKey>::value;
 
 /// <summary>
 /// Checks that the archive scope has support serialize values with keys (by checking existence of GetKeyByIndex() method).
 /// </summary>
-template <typename TArchive>
+template <typename TArchive, typename TKey>
 struct is_object_scope
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_same_v<decltype(std::declval<TObj>().GetKeyByIndex(std::declval<size_t>())), typename TArchive::key_type>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<decltype(std::declval<TObj>().GetKeyByIndex(std::declval<size_t>())), TKey>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -201,8 +201,8 @@ public:
 	enum { value = type::value };
 };
 
-template <typename TArchive>
-constexpr bool is_object_scope_v = is_object_scope<TArchive>::value;
+template <typename TArchive, typename TKey>
+constexpr bool is_object_scope_v = is_object_scope<TArchive, TKey>::value;
 
 //------------------------------------------------------------------------------
 
@@ -230,12 +230,12 @@ constexpr bool can_serialize_array_v = can_serialize_array<TArchive>::value;
 /// <summary>
 /// Checks that the ARRAY can be serialized WITH KEY in target archive scope.
 /// </summary>
-template <typename TArchive>
+template <typename TArchive, typename TKey>
 struct can_serialize_array_with_key
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenArrayScope(std::declval<const typename TArchive::key_type&>(), std::declval<size_t>()))>, std::true_type> test(int);
+	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenArrayScope(std::declval<TKey>(), std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -245,7 +245,7 @@ public:
 	enum { value = type::value };
 };
 
-template <typename TArchive>
-constexpr bool can_serialize_array_with_key_v = can_serialize_array_with_key<TArchive>::value;
+template <typename TArchive, typename TKey>
+constexpr bool can_serialize_array_with_key_v = can_serialize_array_with_key<TArchive, TKey>::value;
 
 }	// namespace BitSerializer

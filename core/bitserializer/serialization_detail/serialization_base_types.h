@@ -16,10 +16,10 @@ namespace BitSerializer {
 //-----------------------------------------------------------------------------
 // Serialize fundamental types
 //-----------------------------------------------------------------------------
-template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
+template <typename TArchive, typename TKey, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
+static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 {
-	constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, TValue>;
+	constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, TValue, TKey>;
 	static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
 
 	if constexpr (hasValueWithKeySupport) {
@@ -41,10 +41,11 @@ static void Serialize(TArchive& archive, TValue& value)
 //------------------------------------------------------------------------------
 // Serialize string types
 //------------------------------------------------------------------------------
-template <class TArchive, typename TSym, typename TAllocator>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+template <class TArchive, typename TKey, typename TSym, typename TAllocator>
+static bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	constexpr auto hasStringWithKeySupport = can_serialize_string_with_key_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
+	constexpr auto hasStringWithKeySupport = can_serialize_string_with_key_v<TArchive,
+		std::basic_string<TSym, std::char_traits<TSym>, TAllocator>, TKey>;
 	static_assert(hasStringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
 
 	if constexpr (hasStringWithKeySupport) {
@@ -66,8 +67,8 @@ static void Serialize(TArchive& archive, std::basic_string<TSym, std::char_trait
 //-----------------------------------------------------------------------------
 // Serialize enum types
 //-----------------------------------------------------------------------------
-template <class TArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
+template <class TArchive, typename TKey, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
+static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 {
 	if constexpr (archive.IsLoading())
 	{
@@ -102,15 +103,15 @@ static void Serialize(TArchive& archive, TValue& value)
 //------------------------------------------------------------------------------
 // Serialize classes
 //------------------------------------------------------------------------------
-template <class TArchive, typename TValue, std::enable_if_t<std::is_class_v<TValue> && is_serializable_class_v<TValue>, int> = 0>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue& value)
+template <class TArchive, typename TKey, typename TValue, std::enable_if_t<std::is_class_v<TValue> && is_serializable_class_v<TValue>, int> = 0>
+static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 {
 	constexpr auto isSerializableClass = is_serializable_class_v<TValue>;
 	static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
 
 	if constexpr (isSerializableClass)
 	{
-		constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive>;
+		constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
 		static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
 
 		if constexpr (hasObjectWithKeySupport)
@@ -152,7 +153,7 @@ static void Serialize(TArchive& archive, BaseObject<TBase>&& value)
 	static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
 
 	if constexpr (isSerializableClass) {
-		constexpr auto isObjectScope = is_object_scope_v<TArchive>;
+		constexpr auto isObjectScope = is_object_scope_v<TArchive, typename TArchive::key_type>;
 		static_assert(isObjectScope, "BitSerializer. The archive doesn't support serialize base class on this level.");
 
 		if constexpr (isObjectScope) {
@@ -164,10 +165,10 @@ static void Serialize(TArchive& archive, BaseObject<TBase>&& value)
 //-----------------------------------------------------------------------------
 // Serialize arrays
 //-----------------------------------------------------------------------------
-template<typename TArchive, typename TValue, size_t ArraySize>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, TValue(&cont)[ArraySize])
+template<typename TArchive, typename TKey, typename TValue, size_t ArraySize>
+static bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])
 {
-	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive>;
+	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 	static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
 	if constexpr (hasArrayWithKeySupport)

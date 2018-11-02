@@ -51,6 +51,7 @@ public:
 
 class TestWrongArchive
 {
+public:
 	using key_type = std::string;
 };
 
@@ -93,11 +94,11 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValue) {
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValueWithKey) {
-	bool testResult1 = can_serialize_value_with_key_v<TestArchive_SaveMode, bool>;
+	bool testResult1 = can_serialize_value_with_key_v<TestArchive_SaveMode, bool, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = can_serialize_value_with_key_v<TestArchive_SaveMode, int>;
+	bool testResult2 = can_serialize_value_with_key_v<TestArchive_SaveMode, int, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_value_with_key_v<TestWrongArchive, int>;
+	bool testResult3 = can_serialize_value_with_key_v<TestWrongArchive, int, TestArchive_SaveMode::key_type>;
 	EXPECT_FALSE(testResult3);
 }
 
@@ -111,11 +112,11 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeString) {
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeStringWithKey) {
-	bool testResult1 = can_serialize_string_with_key_v<TestArchive_SaveMode, std::string>;
+	bool testResult1 = can_serialize_string_with_key_v<TestArchive_SaveMode, std::string, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = can_serialize_string_with_key_v<TestArchive_SaveMode, std::wstring>;
+	bool testResult2 = can_serialize_string_with_key_v<TestArchive_SaveMode, std::wstring, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_string_with_key_v<TestWrongArchive, std::string>;
+	bool testResult3 = can_serialize_string_with_key_v<TestWrongArchive, std::string, TestArchive_SaveMode::key_type>;
 	EXPECT_FALSE(testResult3);
 }
 
@@ -129,18 +130,18 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeObject) {
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeObjectWithKey) {
-	bool testResult1 = can_serialize_object_with_key_v<TestArchive_SaveMode>;
+	bool testResult1 = can_serialize_object_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = can_serialize_object_with_key_v<TestArchive_SaveMode>;
+	bool testResult2 = can_serialize_object_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_object_with_key_v<TestWrongArchive>;
+	bool testResult3 = can_serialize_object_with_key_v<TestWrongArchive, TestArchive_SaveMode::key_type>;
 	EXPECT_FALSE(testResult3);
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveIsObjectScope) {
-	bool testResult1 = is_object_scope_v<TestArchive_SaveMode>;
+	bool testResult1 = is_object_scope_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_object_scope_v<TestWrongArchive>;
+	bool testResult2 = is_object_scope_v<TestWrongArchive, TestWrongArchive::key_type>;
 	EXPECT_FALSE(testResult2);
 }
 
@@ -154,10 +155,10 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeArray) {
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeArrayWithKey) {
-	bool testResult1 = can_serialize_array_with_key_v<TestArchive_SaveMode>;
+	bool testResult1 = can_serialize_array_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = can_serialize_array_with_key_v<TestArchive_SaveMode>;
+	bool testResult2 = can_serialize_array_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_array_with_key_v<TestWrongArchive>;
+	bool testResult3 = can_serialize_array_with_key_v<TestWrongArchive, TestWrongArchive::key_type>;
 	EXPECT_FALSE(testResult3);
 }

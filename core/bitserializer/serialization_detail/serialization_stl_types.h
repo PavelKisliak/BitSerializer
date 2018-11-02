@@ -41,8 +41,8 @@ namespace Detail
 	};
 }	// namespace Detail
 
-template<typename TArchive, typename TFirst, typename TSecond>
-inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::pair<TFirst, TSecond>& pair)
+template<typename TArchive, typename TKey, typename TFirst, typename TSecond>
+inline bool Serialize(TArchive& archive, TKey&& key, std::pair<TFirst, TSecond>& pair)
 {
 	auto pairSerializer = Detail::PairSerializer<TFirst, TSecond>(pair);
 	return Serialize(archive, key, pairSerializer);

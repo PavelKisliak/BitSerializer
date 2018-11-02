@@ -23,10 +23,10 @@ namespace BitSerializer {
 //-----------------------------------------------------------------------------
 namespace Detail
 {
-	template<typename TArchive, typename TContainer>
-	static bool SerializeContainer(TArchive& archive, const typename TArchive::key_type& key, TContainer& cont)
+	template<typename TArchive, typename TKey, typename TContainer>
+	static bool SerializeContainer(TArchive& archive, TKey&& key, TContainer& cont)
 	{
-		constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive>;
+		constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 		static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
 		if constexpr (hasArrayWithKeySupport)
@@ -79,8 +79,8 @@ namespace Detail
 //-----------------------------------------------------------------------------
 // Serialize std::array
 //-----------------------------------------------------------------------------
-template<typename TArchive, typename TValue, size_t ArraySize>
-inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::array<TValue, ArraySize>& cont)
+template<typename TArchive, typename TKey, typename TValue, size_t ArraySize>
+inline bool Serialize(TArchive& archive, TKey&& key, std::array<TValue, ArraySize>& cont)
 {
 	return Detail::SerializeContainer(archive, key, cont);
 }
@@ -119,8 +119,8 @@ namespace Detail
 	}
 }
 
-template<typename TArchive, typename TValue, typename TAllocator>
-inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::vector<TValue, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
+inline bool Serialize(TArchive& archive, TKey&& key, std::vector<TValue, TAllocator>& cont)
 {
 	return Detail::SerializeContainer(archive, key, cont);
 }
@@ -131,10 +131,10 @@ inline void Serialize(TArchive& archive, std::vector<TValue, TAllocator>& cont)
 	Detail::SerializeContainer(archive, cont);
 }
 
-template<typename TArchive, typename TAllocator>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::vector<bool, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TAllocator>
+static bool Serialize(TArchive& archive, TKey&& key, std::vector<bool, TAllocator>& cont)
 {
-	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive>;
+	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 	static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
 	if constexpr (hasArrayWithKeySupport)
@@ -165,8 +165,8 @@ static void Serialize(TArchive& archive, std::vector<bool, TAllocator>& cont)
 //-----------------------------------------------------------------------------
 // Serialize std::deque
 //-----------------------------------------------------------------------------
-template<typename TArchive, typename TValue, typename TAllocator>
-inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::deque<TValue, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
+inline bool Serialize(TArchive& archive, TKey&& key, std::deque<TValue, TAllocator>& cont)
 {
 	return Detail::SerializeContainer(archive, key, cont);
 }
@@ -180,8 +180,8 @@ inline void Serialize(TArchive& archive, std::deque<TValue, TAllocator>& cont)
 //-----------------------------------------------------------------------------
 // Serialize std::list
 //-----------------------------------------------------------------------------
-template<typename TArchive, typename TValue, typename TAllocator>
-inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::list<TValue, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
+inline bool Serialize(TArchive& archive, TKey&& key, std::list<TValue, TAllocator>& cont)
 {
 	return Detail::SerializeContainer(archive, key, cont);
 }
@@ -195,8 +195,8 @@ inline void Serialize(TArchive& archive, std::list<TValue, TAllocator>& cont)
 //-----------------------------------------------------------------------------
 // Serialize std::forward_list
 //-----------------------------------------------------------------------------
-template<typename TArchive, typename TValue, typename TAllocator>
-inline bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::forward_list<TValue, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
+inline bool Serialize(TArchive& archive, TKey&& key, std::forward_list<TValue, TAllocator>& cont)
 {
 	return Detail::SerializeContainer(archive, key, cont);
 }
@@ -236,10 +236,10 @@ namespace Detail
 	}
 }
 
-template<typename TArchive, typename TValue, typename TAllocator>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::set<TValue, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
+static bool Serialize(TArchive& archive, TKey&& key, std::set<TValue, TAllocator>& cont)
 {
-	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive>;
+	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 	static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
 	if constexpr (hasArrayWithKeySupport)
@@ -279,15 +279,15 @@ enum class MapLoadMode
 
 namespace Detail
 {
-	template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-	static void SerializeMapImpl(TArchive& scope, std::map<TKey, TValue, TComparer, TAllocator>& cont,
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	static void SerializeMapImpl(TArchive& scope, std::map<TMapKey, TValue, TComparer, TAllocator>& cont,
 		MapLoadMode mapLoadMode = MapLoadMode::Clean)
 	{
 		if constexpr (scope.IsSaving())
 		{
 			for (auto& elem : cont)
 			{
-				if constexpr (std::is_same_v<std::decay_t<TKey>, typename TArchive::key_type>)
+				if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>)
 					Serialize(scope, elem.first, elem.second);
 				else
 				{
@@ -305,7 +305,11 @@ namespace Detail
 			for (size_t c = 0; c < loadSize; c++)
 			{
 				decltype(auto) archiveKey = scope.GetKeyByIndex(c);
-				auto key = Convert::FromString<TKey>(archiveKey);
+				TMapKey key;
+				if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>)
+					key = archiveKey;
+				else
+					key = Convert::To<TMapKey>(archiveKey);
 				switch (mapLoadMode)
 				{
 				case MapLoadMode::Clean:
@@ -328,11 +332,11 @@ namespace Detail
 	}
 }
 
-template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::map<TKey, TValue, TComparer, TAllocator>& cont,
+template<typename TArchive, typename TKey, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+static bool Serialize(TArchive& archive, TKey&& key, std::map<TMapKey, TValue, TComparer, TAllocator>& cont,
 	MapLoadMode mapLoadMode = MapLoadMode::Clean)
 {
-	constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive>;
+	constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
 	static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize object with key on this level.");
 
 	if constexpr (hasObjectWithKeySupport)
@@ -346,8 +350,8 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
     return false;
 }
 
-template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-static void Serialize(TArchive& archive, std::map<TKey, TValue, TComparer, TAllocator>& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
+template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+static void Serialize(TArchive& archive, std::map<TMapKey, TValue, TComparer, TAllocator>& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 {
 	constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
 	static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize object without key on this level.");
@@ -365,10 +369,10 @@ static void Serialize(TArchive& archive, std::map<TKey, TValue, TComparer, TAllo
 //-----------------------------------------------------------------------------
 namespace Detail
 {
-	template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-	static void SerializeMultimapImpl(TArchive& scope, std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	static void SerializeMultimapImpl(TArchive& scope, std::multimap<TMapKey, TValue, TComparer, TAllocator>& cont)
 	{
-		using pair_type = typename std::multimap<TKey, TValue, TComparer, TAllocator>::value_type;
+		using pair_type = typename std::multimap<TMapKey, TValue, TComparer, TAllocator>::value_type;
 		if constexpr (scope.IsLoading())
 		{
 			auto loadSize = scope.GetSize();
@@ -390,10 +394,10 @@ namespace Detail
 	}
 }
 
-template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-static bool Serialize(TArchive& archive, const typename TArchive::key_type& key, std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+template<typename TArchive, typename TKey, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+static bool Serialize(TArchive& archive, TKey&& key, std::multimap<TMapKey, TValue, TComparer, TAllocator>& cont)
 {
-	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive>;
+	constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 	static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
 	if constexpr (hasArrayWithKeySupport)
@@ -407,8 +411,8 @@ static bool Serialize(TArchive& archive, const typename TArchive::key_type& key,
 	return false;
 }
 
-template<typename TArchive, typename TKey, typename TValue, typename TComparer, typename TAllocator>
-static void Serialize(TArchive& archive, std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+static void Serialize(TArchive& archive, std::multimap<TMapKey, TValue, TComparer, TAllocator>& cont)
 {
 	constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
 	static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");

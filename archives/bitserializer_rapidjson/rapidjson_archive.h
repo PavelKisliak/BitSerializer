@@ -125,6 +125,18 @@ protected:
 		return true;
 	}
 
+	template <typename TSym, typename TAllocator, typename TRapidAllocator>
+	RapidJsonNode MakeRapidJsonNodeFromString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
+	{
+		using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
+		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
+			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
+		else {
+			const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
+			return RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), allocator);
+		}
+	}
+
 	RapidJsonNode* mNode;
 	RapidJsonScopeBase* mParent;
 	key_type mParentKey;
@@ -207,15 +219,8 @@ public:
 			if (jsonValue != nullptr)
 				LoadString(*jsonValue, value);
 		}
-		else
-		{
-			using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
-			if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
-				SaveJsonValue(RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
-			else {
-				const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
-				SaveJsonValue(RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), mAllocator));
-			}
+		else {
+			SaveJsonValue(RapidJsonScopeBase::MakeRapidJsonNodeFromString(value, mAllocator));
 		}
 	}
 
@@ -361,10 +366,8 @@ protected:
 			}
 			return false;
 		}
-		else
-		{
-			SaveJsonValue(key, RapidJsonNode(value));
-			return true;
+		else {
+			return SaveJsonValue(key, RapidJsonNode(value));
 		}
 	}
 
@@ -376,10 +379,8 @@ protected:
 			auto* jsonValue = LoadJsonValue(key);
 			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value);
 		}
-		else
-		{
-			SaveJsonValue(key, RapidJsonNode(value));
-			return true;
+		else {
+			return  SaveJsonValue(key, RapidJsonNode(value));
 		}
 	}
 
@@ -391,16 +392,8 @@ protected:
 			auto* jsonValue = LoadJsonValue(key);
 			return jsonValue == nullptr ? false : LoadString(*jsonValue, value);
 		}
-		else
-		{
-			using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
-			if constexpr (std::is_same_v<TSym, TargetSymType>)
-				SaveJsonValue(key, RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
-			else {
-				const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
-				SaveJsonValue(key, RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), mAllocator));
-			}
-			return true;
+		else {
+			return SaveJsonValue(key, RapidJsonScopeBase::MakeRapidJsonNodeFromString(value, mAllocator));
 		}
 	}
 
@@ -417,7 +410,7 @@ protected:
 		else
 		{
 			SaveJsonValue(key, RapidJsonNode(rapidjson::kObjectType));
-			auto& insertedMember = mNode->GetObject().FindMember(key.c_str())->value;
+			auto& insertedMember = FindMember(key)->value;
 			return std::make_unique<RapidJsonObjectScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
 		}
 	}
@@ -437,9 +430,17 @@ protected:
 			auto rapidJsonArray = RapidJsonNode(rapidjson::kArrayType);
 			rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
 			SaveJsonValue(key, std::move(rapidJsonArray));
-			auto& insertedMember = mNode->GetObject().FindMember(key.c_str())->value;
+			auto& insertedMember = FindMember(key)->value;
 			return std::make_unique<RapidJsonArrayScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
 		}
+	}
+
+	inline auto FindMember(const key_type& key) {
+		return mNode->GetObject().FindMember(key.c_str());
+	}
+
+	inline auto FindMember(const wchar_t* key) {
+		return mNode->GetObject().FindMember(key);
 	}
 
 	inline const RapidJsonNode* LoadJsonValue(const key_type& key) const
@@ -456,14 +457,17 @@ protected:
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	inline void SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue)
+	inline bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue)
 	{
 		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);
 		mNode->AddMember(jsonKey.Move(), jsonValue.Move(), mAllocator);
+		return true;
 	}
 
-	inline void SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue) {
+	inline bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue)
+	{
 		mNode->AddMember(rapidjson::GenericStringRef(key), jsonValue.Move(), mAllocator);
+		return true;
 	}
 
 	TAllocator& mAllocator;

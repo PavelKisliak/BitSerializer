@@ -7,7 +7,6 @@
 #include <type_traits>
 #include <functional>
 #include <tuple>
-#include "gtest/gtest.h"
 #include "auto_fixture.h"
 #include "bitserializer/bit_serializer.h"
 
@@ -94,8 +93,12 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeKeyValue("x", x);
-		archive << BitSerializer::MakeKeyValue("y", y);
+		// Auto key adaptation uses for able to test different type of archives.
+		static const auto adaptedKeyX = BitSerializer::Convert::To<typename TArchive::key_type>("x");
+		static const auto adaptedKeyY = BitSerializer::Convert::To<typename TArchive::key_type>("y");
+
+		archive << BitSerializer::MakeKeyValue(adaptedKeyX, x);
+		archive << BitSerializer::MakeKeyValue(adaptedKeyY, y);
 	};
 
 	int x;
@@ -109,27 +112,33 @@ public:
 	static void BuildFixture(TestClassWithInheritance& fixture)
 	{
 		TestPointClass::BuildFixture(fixture);
-		::BuildFixture(fixture.TestUInt32);
-		::BuildFixture(fixture.TestUInt64);
+		::BuildFixture(fixture.mTestUInt32);
+		::BuildFixture(fixture.mTestUInt64);
 	}
 
 	void Assert(const TestClassWithInheritance& rhs) const
 	{
 		this->TestPointClass::Assert(rhs);
-		EXPECT_EQ(TestUInt32, rhs.TestUInt32);
-		EXPECT_EQ(TestUInt64, rhs.TestUInt64);
+		EXPECT_EQ(mTestUInt32, rhs.mTestUInt32);
+		EXPECT_EQ(mTestUInt64, rhs.mTestUInt64);
 	}
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
 		archive << BitSerializer::BaseObject<TestPointClass>(*this);
-		archive << BitSerializer::MakeKeyValue("TestUInt32", TestUInt32);
-		archive << BitSerializer::MakeKeyValue("TestUInt64", TestUInt64);
+
+		// Auto key adaptation uses for able to test different type of archives.
+		static const auto adaptedKeyTestUInt32 = BitSerializer::Convert::To<typename TArchive::key_type>("TestUInt32");
+		static const auto adaptedKeyTestUInt64 = BitSerializer::Convert::To<typename TArchive::key_type>("TestUInt64");
+
+		archive << BitSerializer::MakeKeyValue(adaptedKeyTestUInt32, mTestUInt32);
+		archive << BitSerializer::MakeKeyValue(adaptedKeyTestUInt64, mTestUInt64);
 	};
 
-	uint32_t TestUInt32;
-	uint64_t TestUInt64;
+private:
+	uint32_t mTestUInt32;
+	uint64_t mTestUInt64;
 };
 
 //-----------------------------------------------------------------------------
@@ -138,7 +147,7 @@ class TestClassWithSubType
 {
 public:
 	TestClassWithSubType(const T& initValue = {})
-		: TestSubValue(initValue)
+		: mTestSubValue(initValue)
 	{
 		mAssertFunc = [](const T& expected, const T& actual) {
 			ASSERT_EQ(expected, actual);
@@ -150,21 +159,22 @@ public:
 	{ }
 
 	static void BuildFixture(TestClassWithSubType& fixture) {
-		::BuildFixture(fixture.TestSubValue);
+		::BuildFixture(fixture.mTestSubValue);
 	}
 
 	void Assert(const TestClassWithSubType& actual) const {
-		mAssertFunc(TestSubValue, actual.TestSubValue);
+		mAssertFunc(mTestSubValue, actual.mTestSubValue);
 	}
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeKeyValue("TestSubValue", TestSubValue);
+		// Auto key adaptation uses for able to test different type of archives.
+		static const auto adaptedKeyTestSubValue = BitSerializer::Convert::To<typename TArchive::key_type>("TestSubValue");
+		archive << BitSerializer::MakeKeyValue(adaptedKeyTestSubValue, mTestSubValue);
 	};
 
-	T TestSubValue;
-
 private:
+	T mTestSubValue;
 	std::function<void(const T&, const T&)> mAssertFunc;
 };
 
@@ -221,7 +231,10 @@ public:
 		else
 		{
 			decltype(auto) member = std::get<I>(*this);
-			std::string key = "Member_" + BitSerializer::Convert::ToString(I);
+
+			// Auto key adaptation uses for able to test different type of archives.
+			static const auto key = BitSerializer::Convert::To<typename TArchive::key_type>("Member_")
+				+ BitSerializer::Convert::To<typename TArchive::key_type>(I);
 			archive << BitSerializer::MakeKeyValue(key, member);
 
 			// Next
@@ -236,21 +249,24 @@ class TestClassWithSubArray
 {
 public:
 	static void BuildFixture(TestClassWithSubArray<T>& fixture) {
-		::BuildFixture(fixture.TestArray);
+		::BuildFixture(fixture.mTestArray);
 	}
 
 	void Assert(const TestClassWithSubArray<T>& rhs) const {
 		for (size_t i = 0; i < ArraySize; i++) {
-			ASSERT_EQ(TestArray[i], rhs.TestArray[i]);
+			ASSERT_EQ(mTestArray[i], rhs.mTestArray[i]);
 		}
 	}
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeKeyValue("TestArray", TestArray);
+		// Auto key adaptation uses for able to test different type of archives.
+		static const auto adaptedKeyTestArray = BitSerializer::Convert::To<typename TArchive::key_type>("TestArray");
+		archive << BitSerializer::MakeKeyValue(adaptedKeyTestArray, mTestArray);
 	};
 
-	T TestArray[ArraySize];
+private:
+	T mTestArray[ArraySize];
 };
 
 //-----------------------------------------------------------------------------
@@ -262,23 +278,26 @@ public:
 	static const int Array2stLevelSize = ArraySize2;
 
 	static void BuildFixture(TestClassWithSubTwoDimArray& fixture) {
-		::BuildFixture(fixture.TestTwoDimArray);
+		::BuildFixture(fixture.mTestTwoDimArray);
 	}
 
 	void Assert(const TestClassWithSubTwoDimArray& rhs) const {
 		for (size_t i = 0; i < ArraySize1; i++) {
 			for (size_t c = 0; c < ArraySize2; c++) {
-				ASSERT_EQ(TestTwoDimArray[i][c], rhs.TestTwoDimArray[i][c]);
+				ASSERT_EQ(mTestTwoDimArray[i][c], rhs.mTestTwoDimArray[i][c]);
 			}
 		}
 	}
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeKeyValue("TestTwoDimArray", TestTwoDimArray);
+		// Auto key adaptation uses for able to test different type of archives.
+		static const auto adaptedKeyTestTwoDimArray = BitSerializer::Convert::To<typename TArchive::key_type>("TestTwoDimArray");
+		archive << BitSerializer::MakeKeyValue(adaptedKeyTestTwoDimArray, mTestTwoDimArray);
 	};
 
-	T TestTwoDimArray[ArraySize1][ArraySize2];
+private:
+	T mTestTwoDimArray[ArraySize1][ArraySize2];
 };
 
 //-----------------------------------------------------------------------------
@@ -294,19 +313,28 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeKeyValue("existSingleField", existSingleField, BitSerializer::Required());
-		archive << BitSerializer::MakeKeyValue("existArrayField", existArrayField, BitSerializer::Required());
+		static const auto adaptedKeyExistSingleField = BitSerializer::Convert::To<typename TArchive::key_type>("ExistSingleField");
+		static const auto adaptedKeyExistArrayField = BitSerializer::Convert::To<typename TArchive::key_type>("ExistArrayField");
+
+		// Auto key adaptation uses for able to test different type of archives.
+		archive << BitSerializer::MakeKeyValue(adaptedKeyExistSingleField, mExistSingleField, BitSerializer::Required());
+		archive << BitSerializer::MakeKeyValue(adaptedKeyExistArrayField, mEexistArrayField, BitSerializer::Required());
 
 		// Trying to load not exist fields
 		if (archive.IsLoading())
 		{
 			TestType notExistSingleField;
 			TestType notExistArrayField[3];
-			archive << BitSerializer::MakeKeyValue("notExistSingleField", notExistSingleField, BitSerializer::Required());
-			archive << BitSerializer::MakeKeyValue("notExistArrayField", notExistArrayField, BitSerializer::Required());
+
+			static const auto adaptedKeyNotExistSingleField = BitSerializer::Convert::To<typename TArchive::key_type>("NotExistSingleField");
+			static const auto adaptedKeyNotExistArrayField = BitSerializer::Convert::To<typename TArchive::key_type>("NotExistArrayField");
+
+			archive << BitSerializer::MakeKeyValue(adaptedKeyNotExistSingleField, notExistSingleField, BitSerializer::Required());
+			archive << BitSerializer::MakeKeyValue(adaptedKeyNotExistArrayField, notExistArrayField, BitSerializer::Required());
 		}
 	};
 
-	TestType existSingleField;
-	TestType existArrayField[3];
+private:
+	TestType mExistSingleField;
+	TestType mEexistArrayField[3];
 };

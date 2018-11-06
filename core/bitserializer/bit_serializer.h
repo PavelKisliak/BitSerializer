@@ -166,17 +166,7 @@ inline TArchive& operator<<(TArchive& archive, TValue&& value)
 template <class TArchive, class TKey, class TValue, class... Validators, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
 static TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TValue, Validators...>&& keyValue)
 {
-	bool result = false;
-	// Checks key type and adapts it to archive if needed
-	if constexpr (std::is_convertible_v<TKey, typename TArchive::key_type>)
-	{
-		result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
-	}
-	else
-	{
-		const auto archiveCompatibleKey = BitSerializer::Convert::To<typename TArchive::key_type>(keyValue.GetKey());
-		result = BitSerializer::Serialize(archive, archiveCompatibleKey, keyValue.GetValue());
-	}
+	bool result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
 
 	// Validation when loading
 	if constexpr (archive.IsLoading())

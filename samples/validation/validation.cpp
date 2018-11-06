@@ -10,10 +10,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestBool", mTestBool, Required());
-		archive << MakeKeyValue("TestInt", mTestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
-		archive << MakeKeyValue("TestString", mTestString, MaxSize(8));
+		archive << MakeKeyValue(_XPLATSTR("TestBool"), mTestBool, Required());
+		archive << MakeKeyValue(_XPLATSTR("TestInt"), mTestInt, Required(), Range(0, 100));
+		archive << MakeKeyValue(_XPLATSTR("TestDouble"), mTestDouble, Required(), Range(-1.0, 1.0));
+		archive << MakeKeyValue(_XPLATSTR("TestString"), mTestString, MaxSize(8));
 	};
 
 private:

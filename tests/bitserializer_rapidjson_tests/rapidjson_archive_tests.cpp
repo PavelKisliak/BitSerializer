@@ -163,7 +163,7 @@ TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenLoading) {
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenSaving) {
-	TestGetPathInArrayScopeWhenLoading<JsonArchive>();
+	TestGetPathInArrayScopeWhenSaving<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

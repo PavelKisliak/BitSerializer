@@ -345,12 +345,12 @@ void TestGetPathInArrayScopeWhenSaving()
 	const auto expectedObjectPath = TArchive::path_separator + std::wstring(L"TestTwoDimArray");
 	auto arrayScope = objScope->OpenArrayScope(arrayKey, array1stLevelSize);
 	ASSERT_TRUE(arrayScope != nullptr);
-	ASSERT_EQ(arrayScope->GetPath(), expectedObjectPath + JsonArchive::path_separator + L"0");
+	ASSERT_EQ(arrayScope->GetPath(), expectedObjectPath + TArchive::path_separator + L"0");
 
 	int saveValue = 0x10203040;
 	for (size_t k = 0; k < array1stLevelSize; k++)
 	{
-		auto subArrayScope = arrayScope->OpenArrayScope(TestType::Size2);
+		auto subArrayScope = arrayScope->OpenArrayScope(array2stLevelSize);
 		ASSERT_TRUE(subArrayScope != nullptr);
 
 		for (size_t i = 0; i < array2stLevelSize; i++)

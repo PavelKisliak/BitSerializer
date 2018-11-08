@@ -165,7 +165,7 @@ TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenLoading) {
 }
 
 TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenSaving) {
-	TestGetPathInArrayScopeWhenLoading<ArchiveStub>();
+	TestGetPathInArrayScopeWhenSaving<ArchiveStub>();
 }
 
 //-----------------------------------------------------------------------------

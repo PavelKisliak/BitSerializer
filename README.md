@@ -225,8 +225,8 @@ namespace BitSerializer
 		};
 	}	// namespace Detail
 
-	template<typename TArchive>
-	inline void Serialize(TArchive& archive, const typename TArchive::key_type& key, TestThirdPartyClass& value)
+	template<typename TArchive, typename TKey>
+	inline void Serialize(TArchive& archive, TKey&& key, TestThirdPartyClass& value)
     {
 		auto serializer = Detail::TestThirdPartyClassSerializer(value);
 		Serialize(archive, key, serializer);

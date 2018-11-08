@@ -160,7 +160,7 @@ TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenLoading) {
 }
 
 TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenSaving) {
-	TestGetPathInArrayScopeWhenLoading<JsonArchive>();
+	TestGetPathInArrayScopeWhenSaving<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

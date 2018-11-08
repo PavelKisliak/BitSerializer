@@ -174,14 +174,11 @@ public:
 	std::wstring GetPath() const override
 	{
 		int64_t index = 0;
-		if constexpr (TMode == SerializeMode::Load) {
-			if (mValueIt != mNode->Begin())
-				index = std::distance(mNode->Begin(), mValueIt) - 1;
-		}
-		else {
+		if constexpr (TMode == SerializeMode::Load)
+			index = std::distance(mNode->Begin(), mValueIt);
+		else
 			index = mNode->GetArray().Size();
-		}
-		return RapidJsonScopeBase::GetPath() + path_separator + Convert::ToWString(index);
+		return RapidJsonScopeBase::GetPath() + path_separator + Convert::ToWString(index == 0 ? 0 : index - 1);
 	}
 
 	void SerializeValue(bool& value)

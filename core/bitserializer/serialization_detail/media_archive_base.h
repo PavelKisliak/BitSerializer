@@ -17,6 +17,12 @@ enum class SerializeMode
 };
 
 /// <summary>
+/// Class for provide information about supported key types in the archive.
+/// </summary>
+template <class ...KeyTypes>
+using SupportedKeyTypes = std::tuple<KeyTypes...>;
+
+/// <summary>
 /// Base class of scope in archive (lower level of media archive).
 /// Implementation should have certain set of serialization methods which depending from structure of format.
 /// The format (like JSON for example) can have several levels with different allowed serialization operations.

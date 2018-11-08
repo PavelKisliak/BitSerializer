@@ -23,6 +23,7 @@ class JsonArchiveTraits
 {
 public:
 	using key_type = utility::string_t;
+	using supported_key_types = SupportedKeyTypes<utility::string_t>;
 	using preferred_output_format = utility::string_t;
 	using preferred_stream_char_type = utility::ostream_t::char_type;
 	static const wchar_t path_separator = L'/';

@@ -248,4 +248,23 @@ public:
 template <typename TArchive, typename TKey>
 constexpr bool can_serialize_array_with_key_v = can_serialize_array_with_key<TArchive, TKey>::value;
 
+/// <summary>
+/// Checks that provided type is convertible to one of element from std::tuple
+/// </summary>
+template <typename T, typename TTuple>
+struct is_type_convertible_to_one_from_tuple
+{
+private:
+	template <size_t... Is>
+	static constexpr bool test(std::index_sequence<Is...>) {
+		return (std::is_convertible_v<T, typename std::tuple_element<Is, TTuple>::type> || ...);
+	}
+
+public:
+	constexpr static bool value = test(std::make_index_sequence<std::tuple_size<TTuple>::value>{});
+};
+
+template <typename T, typename TTuple>
+constexpr bool is_type_convertible_to_one_from_tuple_v = is_type_convertible_to_one_from_tuple<T, TTuple>::value;
+
 }	// namespace BitSerializer

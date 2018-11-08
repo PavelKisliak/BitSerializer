@@ -162,3 +162,12 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeArrayWithKey)
 	bool testResult3 = can_serialize_array_with_key_v<TestWrongArchive, TestWrongArchive::key_type>;
 	EXPECT_FALSE(testResult3);
 }
+
+TEST(SerializationArchiveTraits, ShouldCheckThatTypeConvertibleToOneFromTuple) {
+	bool testResult1 = is_type_convertible_to_one_from_tuple_v<std::wstring, std::tuple<std::string, std::wstring>>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_type_convertible_to_one_from_tuple_v<wchar_t*, std::tuple<std::string, std::wstring>>;
+	EXPECT_TRUE(testResult2);
+	bool testResult3 = is_type_convertible_to_one_from_tuple_v<std::string, std::tuple<std::wstring>>;
+	EXPECT_FALSE(testResult3);
+}

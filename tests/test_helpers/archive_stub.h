@@ -35,6 +35,7 @@ class ArchiveStubTraits
 {
 public:
 	using key_type = std::wstring;
+	using supported_key_types = SupportedKeyTypes<std::wstring>;
 	using preferred_output_format = TestIoData;
 	static const wchar_t path_separator = L'/';
 };

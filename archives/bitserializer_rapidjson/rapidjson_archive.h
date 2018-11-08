@@ -27,6 +27,7 @@ class RapidJsonArchiveTraits
 {
 public:
 	using key_type = std::wstring;
+	using supported_key_types = SupportedKeyTypes<std::wstring>;
 	using preferred_output_format = std::wstring;
 	using preferred_stream_char_type = std::wostream::char_type;
 	static const wchar_t path_separator = L'/';

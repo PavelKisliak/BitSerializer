@@ -1,5 +1,5 @@
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_json_restcpp/json_restcpp_archive.h"
+#include "bitserializer_cpprest_json/cpprest_json_archive.h"
 
 using namespace BitSerializer;
 using namespace BitSerializer::Json::CppRest;

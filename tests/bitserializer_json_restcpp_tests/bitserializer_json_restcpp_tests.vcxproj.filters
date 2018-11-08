@@ -9,7 +9,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\archives\bitserializer_json_restcpp\json_restcpp_archive.h">
+    <ClInclude Include="..\..\archives\bitserializer_cpprest_json\cpprest_json_archive.h">
       <Filter>Impl</Filter>
     </ClInclude>
   </ItemGroup>

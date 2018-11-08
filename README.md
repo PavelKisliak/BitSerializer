@@ -5,12 +5,11 @@ The library is designed for simple serialization of arbitrary C++ types to vario
 This is second release of library and it's still in active development, currently it includes support for only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 #### What's new in version 0.8:
-- [ ! ] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-json-restcpp" (requires "cpprestsdk").
+- [ ! ] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-cpprestjson" (requires "cpprestsdk").
 - [ + ] Added new implementation for JSON format based on library RapidJson (currently supported only UTF16).
 - [ + ] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [ + ] Added validation of deserialized values.
 - [ + ] Added directory with samples.
-- [ \- ] Removed auto key adaptation for avoid performance degradation (if uses not supported key type).
 - [ \* ] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
 - [ \* ] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
 - [ \* ] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
@@ -56,7 +55,7 @@ ___
 #include <cassert>
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_json_restcpp/json_restcpp_archive.h"
+#include "bitserializer_cpprest_json/cpprest_json_archive.h"
 
 using namespace BitSerializer::Json::CppRest;
 
@@ -120,7 +119,7 @@ There are two ways to serialize a class:
 Next example demonstrates how to implement internal serialization method:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_json_restcpp/json_restcpp_archive.h"
+#include "bitserializer_cpprest_json/cpprest_json_archive.h"
 
 using namespace BitSerializer;
 using namespace BitSerializer::Json::CppRest;
@@ -190,7 +189,7 @@ For serialize third party class, which source cannot be modified, need to implem
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_json_restcpp/json_restcpp_archive.h"
+#include "bitserializer_cpprest_json/cpprest_json_archive.h"
 
 class TestThirdPartyClass
 {
@@ -316,7 +315,7 @@ This list will be extended in future.
 Below real example:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_json_restcpp/json_restcpp_archive.h"
+#include "bitserializer_cpprest_json/cpprest_json_archive.h"
 
 using namespace BitSerializer;
 using namespace BitSerializer::Json::CppRest;

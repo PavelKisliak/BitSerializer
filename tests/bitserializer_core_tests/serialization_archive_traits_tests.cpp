@@ -170,4 +170,6 @@ TEST(SerializationArchiveTraits, ShouldCheckThatTypeConvertibleToOneFromTuple) {
 	EXPECT_TRUE(testResult2);
 	bool testResult3 = is_type_convertible_to_one_from_tuple_v<std::string, std::tuple<std::wstring>>;
 	EXPECT_FALSE(testResult3);
+	bool testResult4 = is_type_convertible_to_one_from_tuple_v<std::string, std::tuple<>>;
+	EXPECT_FALSE(testResult4);
 }

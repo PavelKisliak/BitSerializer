@@ -183,3 +183,20 @@ static TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TVa
 	}
 	return archive;
 }
+
+/// <summary>
+/// Operator << for serialize a named value to/from the archive (with auto adaptation a key to type which is supported by archive).
+/// </summary>
+/// <param name="archive">The archive.</param>
+/// <param name="keyValue">The serializing object with key.</param>
+/// <returns></returns>
+template <class TArchive, class TKey, class TValue, class... Validators, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
+static TArchive& operator<<(TArchive& archive, BitSerializer::AutoKeyValue<TKey, TValue, Validators...>&& keyValue)
+{
+	// Checks key type and adapts it to archive if needed
+	if constexpr (std::is_convertible_v<TKey, typename TArchive::key_type>)
+		archive << std::forward<BitSerializer::KeyValue<TKey, TValue, Validators...>>(keyValue);
+	else
+		archive << keyValue.AdaptAndMoveToBaseKeyValue<typename TArchive::key_type>();
+	return archive;
+}

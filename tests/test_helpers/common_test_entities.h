@@ -93,12 +93,8 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive)
 	{
-		// Auto key adaptation uses for able to test different type of archives.
-		static const auto adaptedKeyX = BitSerializer::Convert::To<typename TArchive::key_type>("x");
-		static const auto adaptedKeyY = BitSerializer::Convert::To<typename TArchive::key_type>("y");
-
-		archive << BitSerializer::MakeKeyValue(adaptedKeyX, x);
-		archive << BitSerializer::MakeKeyValue(adaptedKeyY, y);
+		archive << BitSerializer::MakeAutoKeyValue("x", x);
+		archive << BitSerializer::MakeAutoKeyValue("y", y);
 	};
 
 	int x;
@@ -128,12 +124,8 @@ public:
 	{
 		archive << BitSerializer::BaseObject<TestPointClass>(*this);
 
-		// Auto key adaptation uses for able to test different type of archives.
-		static const auto adaptedKeyTestUInt32 = BitSerializer::Convert::To<typename TArchive::key_type>("TestUInt32");
-		static const auto adaptedKeyTestUInt64 = BitSerializer::Convert::To<typename TArchive::key_type>("TestUInt64");
-
-		archive << BitSerializer::MakeKeyValue(adaptedKeyTestUInt32, mTestUInt32);
-		archive << BitSerializer::MakeKeyValue(adaptedKeyTestUInt64, mTestUInt64);
+		archive << BitSerializer::MakeAutoKeyValue(L"TestUInt32", mTestUInt32);
+		archive << BitSerializer::MakeAutoKeyValue(L"TestUInt64", mTestUInt64);
 	};
 
 private:
@@ -168,9 +160,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		// Auto key adaptation uses for able to test different type of archives.
-		static const auto adaptedKeyTestSubValue = BitSerializer::Convert::To<typename TArchive::key_type>("TestSubValue");
-		archive << BitSerializer::MakeKeyValue(adaptedKeyTestSubValue, mTestSubValue);
+		archive << BitSerializer::MakeAutoKeyValue(L"TestSubValue", mTestSubValue);
 	};
 
 private:
@@ -260,9 +250,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		// Auto key adaptation uses for able to test different type of archives.
-		static const auto adaptedKeyTestArray = BitSerializer::Convert::To<typename TArchive::key_type>("TestArray");
-		archive << BitSerializer::MakeKeyValue(adaptedKeyTestArray, mTestArray);
+		archive << BitSerializer::MakeAutoKeyValue(L"TestArray", mTestArray);
 	};
 
 private:
@@ -291,9 +279,7 @@ public:
 
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
-		// Auto key adaptation uses for able to test different type of archives.
-		static const auto adaptedKeyTestTwoDimArray = BitSerializer::Convert::To<typename TArchive::key_type>("TestTwoDimArray");
-		archive << BitSerializer::MakeKeyValue(adaptedKeyTestTwoDimArray, mTestTwoDimArray);
+		archive << BitSerializer::MakeAutoKeyValue(L"TestTwoDimArray", mTestTwoDimArray);
 	};
 
 private:
@@ -313,12 +299,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		static const auto adaptedKeyExistSingleField = BitSerializer::Convert::To<typename TArchive::key_type>("ExistSingleField");
-		static const auto adaptedKeyExistArrayField = BitSerializer::Convert::To<typename TArchive::key_type>("ExistArrayField");
-
-		// Auto key adaptation uses for able to test different type of archives.
-		archive << BitSerializer::MakeKeyValue(adaptedKeyExistSingleField, mExistSingleField, BitSerializer::Required());
-		archive << BitSerializer::MakeKeyValue(adaptedKeyExistArrayField, mEexistArrayField, BitSerializer::Required());
+		archive << BitSerializer::MakeAutoKeyValue(L"ExistSingleField", mExistSingleField, BitSerializer::Required());
+		archive << BitSerializer::MakeAutoKeyValue(L"ExistArrayField", mEexistArrayField, BitSerializer::Required());
 
 		// Trying to load not exist fields
 		if (archive.IsLoading())
@@ -326,11 +308,8 @@ public:
 			TestType notExistSingleField;
 			TestType notExistArrayField[3];
 
-			static const auto adaptedKeyNotExistSingleField = BitSerializer::Convert::To<typename TArchive::key_type>("NotExistSingleField");
-			static const auto adaptedKeyNotExistArrayField = BitSerializer::Convert::To<typename TArchive::key_type>("NotExistArrayField");
-
-			archive << BitSerializer::MakeKeyValue(adaptedKeyNotExistSingleField, notExistSingleField, BitSerializer::Required());
-			archive << BitSerializer::MakeKeyValue(adaptedKeyNotExistArrayField, notExistArrayField, BitSerializer::Required());
+			archive << BitSerializer::MakeAutoKeyValue(L"NotExistSingleField", notExistSingleField, BitSerializer::Required());
+			archive << BitSerializer::MakeAutoKeyValue(L"NotExistArrayField", notExistArrayField, BitSerializer::Required());
 		}
 	};
 

@@ -15,7 +15,7 @@ include_directories(${GTEST_INCLUDE_DIRS} ${CPP_REST_SDK_DIR})
 enable_testing()
 
 add_executable(${PROJECT_NAME}
-  json_restcpp_archive_tests.cpp
+  cpprest_json_archive_tests.cpp
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -54,4 +54,4 @@ else()
     )
 endif()
 
-add_test(JsonRestCppAllTests ${PROJECT_NAME})
+add_test(RestCppJsonTests ${PROJECT_NAME})

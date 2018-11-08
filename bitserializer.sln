@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.Core.Tests", "tests\bitserializer_core_tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.JSon.RestCpp.Tests", "tests\bitserializer_json_restcpp_tests\bitserializer_json_restcpp_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.JSon.RestCpp.Tests", "tests\bitserializer_cpprest_json_tests\bitserializer_cpprest_json_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D2E1CD40-39CE-437E-A71A-B9C00302747B}"
 EndProject

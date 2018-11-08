@@ -14,14 +14,13 @@ include_directories(
   ${GTEST_INCLUDE_DIRS}
 )
 
-add_executable(JsonRestCppTests 
+add_executable(RapidJsonTests 
   rapidjson_archive_tests.cpp
 )
 
 target_link_libraries(
-  JsonRestCppTests
+  RapidJsonTests
   ${GTEST_BOTH_LIBRARIES} 
-  cpprestsdk::cpprest
 )
 
-add_test(JsonRestCppTests JsonRestCppTests)
+add_test(RapidJsonTests RapidJsonTests)

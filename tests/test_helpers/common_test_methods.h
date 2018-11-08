@@ -330,7 +330,7 @@ template <typename TArchive>
 void TestGetPathInArrayScopeWhenSaving()
 {
 	// Arrange
-	int array1stLevelSize = 3, array2stLevelSize = 5;
+	size_t array1stLevelSize = 3, array2stLevelSize = 5;
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	typename TArchive::output_archive_type outputArchive(outputData);

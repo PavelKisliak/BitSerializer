@@ -10,6 +10,7 @@ This is second release of library and it's still in active development, currentl
 - [ + ] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [ + ] Added validation of deserialized values.
 - [ + ] Added directory with samples.
+- [ + ] Added function MakeAutoKeyVale() to make key/value which is able to automatically adapt key to target archive.
 - [ \* ] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
 - [ \* ] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
 - [ \* ] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
@@ -28,22 +29,23 @@ This is second release of library and it's still in active development, currentl
 - As a bonus, the subsystem for converting strings to / from arbitrary types.
 
 #### Supported Formats:
-  - JSON (two implementations)
-     - Based on [RapidJson](https://github.com/Tencent/rapidjson)
-	 - Based on [C++ REST SDK](https://github.com/Microsoft/cpprestsdk)
+| VCPKG Library name | Format | Based on |
+| ------ | ------ | ------ |
+| bitserializer-cpprestjson | JSON | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
+| bitserializer-rapidjson | JSON | [RapidJson](https://github.com/Tencent/rapidjson) |
 
 #### Requirements:
   - C++ 17
   - Dependencies which required by selected type of archive.
 
-#### How to use:
-The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). As currently the BitSerializer implements only one type of archive, you need to install «CppRestSDK». If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), in this case, the «CppRestSDK» will be automatically installed as dependency.
+#### How to install:
+The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
 ```shell
-vcpkg install bitserializer bitserializer:x64-windows
+vcpkg install bitserializer-rapidjson bitserializer-rapidjson:x64-windows
 ```
 Now you need just include main file of BitSerializer which implements serialization and file, which implements required format (JSON for example).
 ```cpp
-#include "bitserializer\bit_serializer.h"
+#include "bitserializer/bit_serializer.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 ```
 
@@ -51,6 +53,7 @@ ___
 ## Examples of using
 
 #### Hello world!
+[See full sample](samples\hello_world\hello_world.cpp)
 ```cpp
 #include <cassert>
 #include <iostream>
@@ -61,15 +64,15 @@ using namespace BitSerializer::Json::CppRest;
 
 int main()
 {
-    std::string expected = "Hello world!";
-    auto json = BitSerializer::SaveObject<JsonArchive>(expected);
-    std::string result;
+	std::string expected = "Hello world!";
+	auto json = BitSerializer::SaveObject<JsonArchive>(expected);
+	std::string result;
 	BitSerializer::LoadObject<JsonArchive>(result, json);
 
-    assert(result == expected);
-    std::cout << result << std::endl;
+	assert(result == expected);
+	std::cout << result << std::endl;
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 ```
 There is no mistake as JSON format supported any type at root level (and libraries which are used as base also supports this).
@@ -216,8 +219,8 @@ namespace BitSerializer
 			template <class TArchive>
 			inline void Serialize(TArchive& archive)
 			{
-				archive << MakeKeyValue(L"x", value.x);
-				archive << MakeKeyValue(L"y", value.y);
+				archive << MakeAutoKeyValue(L"x", value.x);
+				archive << MakeAutoKeyValue(L"y", value.y);
 			}
 
 			TestThirdPartyClass& value;
@@ -312,13 +315,14 @@ Validator 'Range' can be used with all types which have operators '<' and '>'.
 Validators 'MinSize' and 'MaxSize' can be applied to all values which have size() method.
 This list will be extended in future.
 
-Below real example:
+[See full sample](samples\validation\validation.cpp)
 ```cpp
+#include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer_rapidjson/rapidjson_archive.h"
 
 using namespace BitSerializer;
-using namespace BitSerializer::Json::CppRest;
+using namespace BitSerializer::Json::RapidJson;
 
 class TestSimpleClass
 {
@@ -342,7 +346,7 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto json = _XPLATSTR("{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\" }");
+	auto json = L"{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\" }";
 	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
 	if (!BitSerializer::Context.IsValid())
 	{
@@ -361,6 +365,7 @@ int main()
 	return EXIT_SUCCESS;
 }
 ```
+
 The result of execution this code:
 ```text
 Validation errors:

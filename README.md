@@ -1,8 +1,9 @@
 # BitSerializer
 ___
-The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. The good tests coverage helps to keep stability of project.
+The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. 
+This is second release of library and it's still in active development, currently it includes support for only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK. 
 
-This is second release of library and it's still in active development, currently it includes support for only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK. If you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
+The good tests coverage helps to keep stability of project, but if you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 #### What's new in version 0.8:
 - [ ! ] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-cpprestjson" (requires "cpprestsdk").
@@ -39,7 +40,7 @@ This is second release of library and it's still in active development, currentl
   - Dependencies which required by selected type of archive.
 
 #### How to install:
-The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). If you are a Windows user, the best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
+The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
 ```shell
 vcpkg install bitserializer-rapidjson bitserializer-rapidjson:x64-windows
 ```
@@ -78,7 +79,7 @@ int main()
 There is no mistake as JSON format supported any type at root level (and libraries which are used as base also supports this).
 
 #### Save std::map
-Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized Serialize() method in extreme cases.
+Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
 ```cpp
 std::map<std::string, int> testMap = 
 	{ { "One", 1 },{ "Two", 2 },{ "Three", 3 },{ "Four", 4 },{ "Five", 5 } };
@@ -116,8 +117,8 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 #### Serializing class
 There are two ways to serialize a class:
 
-  * Your own class (sources can be modified), possible to create internal or external method Serialize(), but internal is more convenient.
-  * Third party class (no access to sources), only external method in namespace BitSerializer.
+  * Internal public method Serialize() - good way for your own classes.
+  * External static method Serialize() - used for third party class (no access to sources).
 
 Next example demonstrates how to implement internal serialization method:
 ```cpp
@@ -174,6 +175,7 @@ Returns result
 	]
 }
 ```
+For serializing a named object please use helper method MakeKeyValue(key, value). The type of key should be supported by archive, but also exists method MakeAutoKeyValue(key, value) which automatically converts to preferred key type for the archive. The good place for using this method is some common serialization code which could be used with different kind of archives.
 
 #### Serializing base class
 To serialize the base class, use the helper method BaseObject(), as in the next example.

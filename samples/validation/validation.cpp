@@ -1,8 +1,12 @@
+// Define for suppress warning STL4015 : The std::iterator class template (used as a base class to provide typedefs) is deprecated in C++17.
+#define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
+
+#include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer_rapidjson/rapidjson_archive.h"
 
 using namespace BitSerializer;
-using namespace BitSerializer::Json::CppRest;
+using namespace BitSerializer::Json::RapidJson;
 
 class TestSimpleClass
 {
@@ -10,10 +14,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue(_XPLATSTR("TestBool"), mTestBool, Required());
-		archive << MakeKeyValue(_XPLATSTR("TestInt"), mTestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue(_XPLATSTR("TestDouble"), mTestDouble, Required(), Range(-1.0, 1.0));
-		archive << MakeKeyValue(_XPLATSTR("TestString"), mTestString, MaxSize(8));
+		archive << MakeKeyValue(L"TestBool", mTestBool, Required());
+		archive << MakeKeyValue(L"TestInt", mTestInt, Required(), Range(0, 100));
+		archive << MakeKeyValue(L"TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
+		archive << MakeKeyValue(L"TestString", mTestString, MaxSize(8));
 	};
 
 private:
@@ -26,7 +30,7 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto json = _XPLATSTR("{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\" }");
+	auto json = L"{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\" }";
 	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
 	if (!BitSerializer::Context.IsValid())
 	{

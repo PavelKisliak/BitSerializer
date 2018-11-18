@@ -1,4 +1,4 @@
-add_executable(validation validation.cpp)
+add_executable(serialize_third_party_class serialize_third_party_class.cpp)
 
 find_package(RapidJSON CONFIG REQUIRED)
 target_include_directories(validation PRIVATE ${RAPIDJSON_INCLUDE_DIRS})

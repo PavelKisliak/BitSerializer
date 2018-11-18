@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.Core.Tests", "tests\bitserializer_core_tests\bitserializer_core_tests.vcxproj", "{22A6D4F9-E8C7-48E8-86C8-1AFFF5E5E7F5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.JSon.RestCpp.Tests", "tests\bitserializer_cpprest_json_tests\bitserializer_cpprest_json_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.CppRest.Json.Tests", "tests\bitserializer_cpprest_json_tests\bitserializer_cpprest_json_tests.vcxproj", "{4F9E4167-BFEA-406F-AE70-5772BA53134C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D2E1CD40-39CE-437E-A71A-B9C00302747B}"
 EndProject
@@ -15,7 +15,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_world", "samples\hell
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "validation", "samples\validation\validation.vcxproj", "{8834D80A-1025-494A-91B4-F6596A7C2792}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.RapidJson", "tests\bitserializer_rapidjson_tests\bitserializer_rapidjson_tests.vcxproj", "{910DD787-9A67-4A39-952A-2077B6607CFC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.RapidJson.Tests", "tests\bitserializer_rapidjson_tests\bitserializer_rapidjson_tests.vcxproj", "{910DD787-9A67-4A39-952A-2077B6607CFC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serialize_third_party_class", "samples\serialize_third_party_class\serialize_third_party_class.vcxproj", "{491E5B5F-725F-44ED-9525-99F38C673A95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,14 @@ Global
 		{910DD787-9A67-4A39-952A-2077B6607CFC}.Release|x64.Build.0 = Release|x64
 		{910DD787-9A67-4A39-952A-2077B6607CFC}.Release|x86.ActiveCfg = Release|Win32
 		{910DD787-9A67-4A39-952A-2077B6607CFC}.Release|x86.Build.0 = Release|Win32
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Debug|x64.ActiveCfg = Debug|x64
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Debug|x64.Build.0 = Debug|x64
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Debug|x86.ActiveCfg = Debug|Win32
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Debug|x86.Build.0 = Debug|Win32
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Release|x64.ActiveCfg = Release|x64
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Release|x64.Build.0 = Release|x64
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Release|x86.ActiveCfg = Release|Win32
+		{491E5B5F-725F-44ED-9525-99F38C673A95}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,6 +85,7 @@ Global
 		{DA596201-E1B4-497D-A727-C393BF79E483} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
 		{8834D80A-1025-494A-91B4-F6596A7C2792} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
 		{910DD787-9A67-4A39-952A-2077B6607CFC} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
+		{491E5B5F-725F-44ED-9525-99F38C673A95} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F41DAFDC-F7E6-4B35-BB33-54073C9FC110}

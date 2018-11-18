@@ -11,5 +11,6 @@ include_directories(${CPP_REST_SDK_DIR})
 
 add_subdirectory(hello_world)
 add_subdirectory(validation)
+add_subdirectory(serialize_third_party_class)
 
 add_custom_target(samples DEPENDS hello_world validation)

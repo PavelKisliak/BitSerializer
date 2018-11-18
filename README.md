@@ -189,10 +189,11 @@ void Serialize(TArchive& archive)
 #### Serializing third party class
 For serialize third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time the possibility the type serialization in a current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
 
+[See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer_rapidjson/rapidjson_archive.h"
 
 class TestThirdPartyClass
 {
@@ -201,8 +202,7 @@ public:
 		: x(x), y(y)
 	{ }
 
-	int x;
-	int y;
+	int x, y;
 };
 
 namespace BitSerializer
@@ -229,7 +229,7 @@ namespace BitSerializer
 
 	template<typename TArchive, typename TKey>
 	inline void Serialize(TArchive& archive, TKey&& key, TestThirdPartyClass& value)
-    {
+	{
 		auto serializer = Detail::TestThirdPartyClassSerializer(value);
 		Serialize(archive, key, serializer);
 	}
@@ -239,14 +239,16 @@ namespace BitSerializer
 		auto serializer = Detail::TestThirdPartyClassSerializer(value);
 		Serialize(archive, serializer);
 	}
-}   // namespace BitSerializer
+}	// namespace BitSerializer
 
-using namespace BitSerializer::Json::CppRest;
+
+using namespace BitSerializer::Json::RapidJson;
 
 int main()
 {
-	auto simpleObj = TestThirdPartyClass(100, 200);
-	auto result = BitSerializer::SaveObject<JsonArchive>(simpleObj);
+	auto testObj = TestThirdPartyClass(100, 200);
+	auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
+	std::wcout << result << std::endl;
 	return 0;
 }
 ```

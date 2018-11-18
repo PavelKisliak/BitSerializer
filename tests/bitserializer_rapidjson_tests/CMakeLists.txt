@@ -7,16 +7,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin/$<CONFIG>_${VCP
 
 enable_testing()
 find_package(GTest REQUIRED)
-find_package(RapidJSON REQUIRED)
-target_include_directories(main PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
+include_directories(${GTEST_INCLUDE_DIRS})
 
-include_directories(
-  ${GTEST_INCLUDE_DIRS}
-)
-
-add_executable(RapidJsonTests 
+add_executable(RapidJsonTests
   rapidjson_archive_tests.cpp
 )
+
+find_package(RapidJSON CONFIG REQUIRED)
+target_include_directories(RapidJsonTests PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
 
 target_link_libraries(
   RapidJsonTests

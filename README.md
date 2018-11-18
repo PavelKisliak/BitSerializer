@@ -53,7 +53,7 @@ ___
 ## Examples of using
 
 #### Hello world!
-[See full sample](samples\hello_world\hello_world.cpp)
+[See full sample](samples/hello_world/hello_world.cpp)
 ```cpp
 #include <cassert>
 #include <iostream>
@@ -315,7 +315,7 @@ Validator 'Range' can be used with all types which have operators '<' and '>'.
 Validators 'MinSize' and 'MaxSize' can be applied to all values which have size() method.
 This list will be extended in future.
 
-[See full sample](samples\validation\validation.cpp)
+[See full sample](samples/validation/validation.cpp)
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"

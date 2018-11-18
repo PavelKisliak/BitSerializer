@@ -9,16 +9,16 @@ enable_testing()
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(RapidJsonTests
+add_executable(${PROJECT_NAME}
   rapidjson_archive_tests.cpp
 )
 
 find_package(RapidJSON CONFIG REQUIRED)
-target_include_directories(RapidJsonTests PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
 
 target_link_libraries(
-  RapidJsonTests
-  ${GTEST_BOTH_LIBRARIES} 
+  ${PROJECT_NAME}
+  ${GTEST_BOTH_LIBRARIES}
 )
 
-add_test(RapidJsonTests RapidJsonTests)
+add_test(RapidJsonTests ${PROJECT_NAME})

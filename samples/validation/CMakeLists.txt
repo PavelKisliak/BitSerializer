@@ -1,4 +1,6 @@
-add_executable(validation validation.cpp)
+project(validation)
+
+add_executable(${PROJECT_NAME} validation.cpp)
 
 find_package(RapidJSON CONFIG REQUIRED)
-target_include_directories(validation PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${RAPIDJSON_INCLUDE_DIRS})

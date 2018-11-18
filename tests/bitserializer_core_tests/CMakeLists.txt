@@ -6,7 +6,7 @@ enable_testing()
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(bitserializer_core_tests
+add_executable(${PROJECT_NAME}
   serialization_archive_traits_tests.cpp
   serialization_base_types_tests.cpp
   serialization_containers_tests.cpp
@@ -16,5 +16,5 @@ add_executable(bitserializer_core_tests
   validators_tests.cpp
 )
 
-target_link_libraries(bitserializer_core_tests PRIVATE GTest::GTest GTest::Main)
-add_test(BitSerializerAllCoreTests bitserializer_core_tests)
+target_link_libraries(${PROJECT_NAME} PRIVATE GTest::GTest GTest::Main)
+add_test(BitSerializerAllCoreTests ${PROJECT_NAME})

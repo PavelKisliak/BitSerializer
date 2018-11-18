@@ -5,7 +5,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 
 find_package(GTest REQUIRED)
 
-find_package(cpprestsdk REQUIRED)
+find_package(cpprestsdk CONFIG REQUIRED)
 find_package(Boost COMPONENTS system REQUIRED)
 
 find_path(CPP_REST_SDK_DIR cpprest/json.h)

@@ -7,6 +7,7 @@
 #include "serialization_detail/serialization_base_types.h"
 #include "serialization_detail/serialization_stl_containers.h"
 #include "serialization_detail/serialization_stl_types.h"
+#include "serialization_detail/key_value.h"
 #include "serialization_detail/validators.h"
 
 namespace BitSerializer

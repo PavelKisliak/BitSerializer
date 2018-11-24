@@ -40,7 +40,7 @@ class JsonObjectScope;
 class JsonScopeBase : public JsonArchiveTraits
 {
 public:
-	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type()) noexcept
 		: mNode(const_cast<web::json::value*>(node))
 		, mParent(parent)
 		, mParentKey(perentKey)

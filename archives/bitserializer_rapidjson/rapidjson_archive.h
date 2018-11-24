@@ -47,7 +47,7 @@ protected:
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF16<>>;
 
 public:
-	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, const key_type& perentKey = key_type()) noexcept
 		: mNode(const_cast<RapidJsonNode*>(node))
 		, mParent(parent)
 		, mParentKey(perentKey)

@@ -17,7 +17,7 @@ namespace BitSerializer
 	{
 	public:
 		template <class TValue>
-		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const noexcept
+		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const noexcept
 		{
 			if (isLoaded)
 				return std::nullopt;
@@ -40,7 +40,7 @@ namespace BitSerializer
 		{
 		}
 
-		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const
+		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const
 		{
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded)
@@ -64,13 +64,13 @@ namespace BitSerializer
 	class MinSize
 	{
 	public:
-		MinSize(size_t minSize)
+		MinSize(const size_t minSize) noexcept
 			: mMinSize(minSize)
 		{
 		}
 
 		template <class TValue>
-		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const noexcept
+		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
@@ -86,6 +86,7 @@ namespace BitSerializer
 
 				return L"The minimum size of this field should be " + Convert::ToWString(mMinSize);
 			}
+			return std::nullopt;
 		}
 
 	private:
@@ -98,13 +99,13 @@ namespace BitSerializer
 	class MaxSize
 	{
 	public:
-		MaxSize(size_t maxSize)
+		MaxSize(const size_t maxSize) noexcept
 			: mMaxSize(maxSize)
 		{
 		}
 
 		template <class TValue>
-		std::optional<std::wstring> operator () (const TValue& value, bool isLoaded) const noexcept
+		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");
@@ -120,6 +121,7 @@ namespace BitSerializer
 
 				return L"The maximum size of this field should be not greater than " + Convert::ToWString(mMaxSize);
 			}
+			return std::nullopt;
 		}
 
 	private:

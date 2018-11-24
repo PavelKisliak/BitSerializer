@@ -32,7 +32,7 @@ namespace BitSerializer {
 	class SerializationException : public std::exception
 	{
 	public:
-		SerializationException(SerializationErrorCode errorCode, const std::string& message)
+		SerializationException(const SerializationErrorCode errorCode, const std::string& message)
 			: mErrorCode(errorCode)
 			, mMessage((Convert::ToString(errorCode) + ": " + message))
 		{ }

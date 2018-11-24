@@ -3,9 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <type_traits>
-#include <tuple>
-#include "key_value.h"
+#include <utility>
 #include "media_archive_base.h"
 #include "../string_conversion.h"
 
@@ -22,7 +20,7 @@ namespace Detail
 	public:
 		using value_type = std::pair<TFirst, TSecond>;
 
-		explicit PairSerializer(value_type& pair)
+		explicit PairSerializer(value_type& pair) noexcept
 			: value(pair)
 		{ }
 

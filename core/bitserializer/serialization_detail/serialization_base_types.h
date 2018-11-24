@@ -8,7 +8,6 @@
 #include "object_traits.h"
 #include "archive_traits.h"
 #include "base_object.h"
-#include "media_archive_base.h"
 #include "../string_conversion.h"
 
 namespace BitSerializer {
@@ -122,6 +121,7 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 			return objectScope != nullptr;
 		}
 	}
+	return false;
 };
 
 template <class TArchive, class TValue, std::enable_if_t<std::is_class_v<TValue> && is_serializable_class_v<TValue>, int> = 0>
@@ -184,6 +184,7 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])
 		}
 		return arrayScope != nullptr;
 	}
+	return false;
 }
 
 template<typename TArchive, typename TValue, size_t ArraySize>

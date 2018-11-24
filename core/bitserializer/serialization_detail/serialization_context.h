@@ -5,7 +5,6 @@
 #pragma once
 #include <map>
 #include <vector>
-#include "../string_conversion.h"
 
 namespace BitSerializer
 {

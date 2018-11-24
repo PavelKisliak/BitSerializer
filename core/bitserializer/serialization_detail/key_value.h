@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <tuple>
+#include <utility>
 #include <optional>
 #include "serialization_context.h"
 
@@ -33,7 +34,7 @@ public:
 		, mValidators(validators)
 	{}
 
-	inline const TKey GetKey() const noexcept	{ return mKey; }
+	inline const TKey& GetKey() const noexcept	{ return mKey; }
 	inline TValue& GetValue() const noexcept	{ return *mValue; }
 
 	/// <summary>
@@ -41,7 +42,7 @@ public:
 	/// </summary>
 	/// <param name="isLoaded">if set to <c>true</c> [is loaded].</param>
 	/// <returns></returns>
-	std::optional<ValidationErrors> ValidateValue(bool isLoaded) const
+	std::optional<ValidationErrors> ValidateValue(const bool isLoaded) const
 	{
 		if constexpr (sizeof...(Validators) == 0)
 			return std::nullopt;

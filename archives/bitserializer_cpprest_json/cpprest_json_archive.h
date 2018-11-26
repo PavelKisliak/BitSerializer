@@ -46,6 +46,8 @@ public:
 		, mParentKey(perentKey)
 	{ }
 
+	virtual ~JsonScopeBase() = default;
+
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
@@ -398,7 +400,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	~JsonRootScope()
+	virtual ~JsonRootScope()
 	{
 		Finish();
 	}

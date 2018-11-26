@@ -53,6 +53,8 @@ public:
 		, mParentKey(perentKey)
 	{ }
 
+	virtual ~RapidJsonScopeBase() {}
+
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
@@ -365,7 +367,7 @@ protected:
 			return false;
 		}
 		else {
-			return SaveJsonValue(key, RapidJsonNode(value));
+			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
 		}
 	}
 
@@ -378,7 +380,7 @@ protected:
 			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value);
 		}
 		else {
-			return  SaveJsonValue(key, RapidJsonNode(value));
+			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
 		}
 	}
 
@@ -407,7 +409,7 @@ protected:
 		}
 		else
 		{
-			SaveJsonValue(key, RapidJsonNode(rapidjson::kObjectType));
+			SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(rapidjson::kObjectType));
 			auto& insertedMember = FindMember(key)->value;
 			return std::make_unique<RapidJsonObjectScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
 		}
@@ -427,7 +429,7 @@ protected:
 		{
 			auto rapidJsonArray = RapidJsonNode(rapidjson::kArrayType);
 			rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
-			SaveJsonValue(key, std::move(rapidJsonArray));
+			SaveJsonValue(std::forward<TKey>(key), std::move(rapidJsonArray));
 			auto& insertedMember = FindMember(key)->value;
 			return std::make_unique<RapidJsonArrayScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
 		}
@@ -464,7 +466,7 @@ protected:
 
 	inline bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue)
 	{
-		mNode->AddMember(rapidjson::GenericStringRef(key), jsonValue.Move(), mAllocator);
+		mNode->AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(key), jsonValue.Move(), mAllocator);
 		return true;
 	}
 
@@ -517,7 +519,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	~RapidJsonRootScope()
+	virtual ~RapidJsonRootScope()
 	{
 		Finish();
 	}

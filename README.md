@@ -1,6 +1,6 @@
 # BitSerializer
 ___
-The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. This is second release of library and it's still in active development, currently it includes support for only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK.
+The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. I was tried to find some library (but without success), which could serialize models to popular web formats like JSON, Xml, UrlEncoded, but one of my requirement was that library should has one common interface for all formats. This is second release of library and it is just begin of way, currently it supports only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK.
 
 The good tests coverage helps to keep stability of project, but if you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
@@ -36,7 +36,7 @@ The good tests coverage helps to keep stability of project, but if you are see k
 | bitserializer-rapidjson | JSON | [RapidJson](https://github.com/Tencent/rapidjson) |
 
 ### Performance
-I understand that one of question that you should have - how much it costs from performance perspective? For answer to this question and to purpose of control the performance, I developed performance test which load/save test model via BitSerializer and via native API provided by base library. The model for tests includes itself a different types which are supported by JSON format. The source code of the test also available [here](tests/performance_tests).
+I understand that one of question that you should have - how much it costs from performance perspective? For answer this I developed performance test which load/save test model via BitSerializer and via native API provided by base library. The model for tests includes itself a different types which are supported by JSON format. The source code of the test also available [here](tests/performance_tests).
 
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
@@ -91,7 +91,7 @@ int main()
 There is no mistake as JSON format supported any type at root level (and libraries which are used as base also supports this).
 
 #### Save std::map
-Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
+Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), This needs to proper serialization JavaScript objects. if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
 ```cpp
 std::map<std::string, int> testMap = 
 	{ { "One", 1 },{ "Two", 2 },{ "Three", 3 },{ "Four", 4 },{ "Five", 5 } };
@@ -105,6 +105,14 @@ Returns result
 	"One": 1,
 	"Three": 3,
 	"Two": 2
+}
+```
+For able to serialize std::map, which has custom type as a key, you can implement two internal methods in this type:
+```cpp
+class YourCustomKey
+{
+	std::string ToString() const { }
+	std::wstring ToWString() const { }
 }
 ```
 #### Loading a vector of maps
@@ -125,7 +133,6 @@ std::vector<std::map<std::string, int>> testVectorOfMaps;
 const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
-
 #### Serializing class
 There are two ways to serialize a class:
 

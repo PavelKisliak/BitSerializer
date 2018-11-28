@@ -129,7 +129,7 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator, typename TRapidAllocator>
-	RapidJsonNode MakeRapidJsonNodeFromString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
+	RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
 	{
 		using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
 		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
@@ -459,6 +459,9 @@ protected:
 
 	inline bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue)
 	{
+		// Checks that object was not saved previously under the same key
+		assert(mNode->GetObject().FindMember(key.c_str()) == mNode->GetObject().MemberEnd());
+
 		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);
 		mNode->AddMember(jsonKey.Move(), jsonValue.Move(), mAllocator);
 		return true;
@@ -466,6 +469,9 @@ protected:
 
 	inline bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue)
 	{
+		// Checks that object was not saved previously under the same key
+		assert(mNode->GetObject().FindMember(key) == mNode->GetObject().MemberEnd());
+
 		mNode->AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(key), jsonValue.Move(), mAllocator);
 		return true;
 	}

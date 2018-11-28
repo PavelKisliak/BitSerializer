@@ -1,16 +1,16 @@
 # BitSerializer
 ___
-The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. 
-This is second release of library and it's still in active development, currently it includes support for only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK. 
+The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. This is second release of library and it's still in active development, currently it includes support for only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK.
 
 The good tests coverage helps to keep stability of project, but if you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
 
 #### What's new in version 0.8:
 - [ ! ] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-cpprestjson" (requires "cpprestsdk").
 - [ + ] Added new implementation for JSON format based on library RapidJson (currently supported only UTF16).
-- [ + ] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [ + ] Added validation of deserialized values.
+- [ + ] Added performance test.
 - [ + ] Added directory with samples.
+- [ + ] Added CMake support (it needs just for samples and tests, as the library is headers only).
 - [ + ] Added function MakeAutoKeyVale() to make key/value which is able to automatically adapt key to target archive.
 - [ \* ] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
 - [ \* ] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
@@ -35,6 +35,16 @@ The good tests coverage helps to keep stability of project, but if you are see k
 | bitserializer-cpprestjson | JSON | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
 | bitserializer-rapidjson | JSON | [RapidJson](https://github.com/Tencent/rapidjson) |
 
+### Performance
+I understand that one of question that you should have - how much it costs from performance perspective? For answer to this question and to purpose of control the performance, I developed performance test which load/save test model via BitSerializer and via native API provided by base library. The model for tests includes itself a different types which are supported by JSON format. The source code of the test also available [here](tests/performance_tests).
+| Base library name | Format | Operation | Native API | BitSerializer | Difference
+| ------ | ------ | ------ |  ------ | ------ | ------ |
+| RapidJson | JSON | Save object | 174 msec | 190 msec | -8.4%
+| RapidJson | JSON | Load object | 302 msec | 324 msec | -6.8%
+| C++ REST SDK | JSON | Save object | 1083 msec | 1094 msec | -1%
+| C++ REST SDK | JSON | Load object | 892 msec | 936 msec | -4.7%
+Tests were performed on Windows system with CPU Intel i5-4690, you may have slightly different results, it depends to system and compiler options. But in general, all overhead of BitSerializer is about 10%. Differences between base libraries is related to their specific implementations. RapidJson, as one of fastest library, shows best result, but wrapper for BitSerializer is a bit more expensive.
+
 #### Requirements:
   - C++ 17
   - Dependencies which required by selected type of archive.
@@ -54,7 +64,6 @@ ___
 ## Examples of using
 
 #### Hello world!
-[See full sample](samples/hello_world/hello_world.cpp)
 ```cpp
 #include <cassert>
 #include <iostream>
@@ -76,6 +85,7 @@ int main()
 	return EXIT_SUCCESS;
 }
 ```
+[See full sample](samples/hello_world/hello_world.cpp)
 There is no mistake as JSON format supported any type at root level (and libraries which are used as base also supports this).
 
 #### Save std::map
@@ -190,8 +200,6 @@ void Serialize(TArchive& archive)
 
 #### Serializing third party class
 For serialize third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time the possibility the type serialization in a current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
-
-[See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -254,6 +262,7 @@ int main()
 	return 0;
 }
 ```
+[See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
 #### Serializing enum types
 To be able to serialize enum types, you must register a map with string equivalents in the HEADER file.
@@ -318,8 +327,6 @@ Basically implemented few validators: Required, Range, MinSize, MaxSize.
 Validator 'Range' can be used with all types which have operators '<' and '>'.
 Validators 'MinSize' and 'MaxSize' can be applied to all values which have size() method.
 This list will be extended in future.
-
-[See full sample](samples/validation/validation.cpp)
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -369,6 +376,7 @@ int main()
 	return EXIT_SUCCESS;
 }
 ```
+[See full sample](samples/validation/validation.cpp)
 
 The result of execution this code:
 ```text

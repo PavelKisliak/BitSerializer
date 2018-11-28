@@ -348,6 +348,9 @@ protected:
 
 	inline web::json::value& SaveJsonValue(const key_type& key, web::json::value&& jsonValue) const
 	{
+		// Checks that object was not saved previously under the same key
+		assert(mNode->as_object().find(key) == mNode->as_object().end());
+
 		return (*mNode)[key] = std::move(jsonValue);
 	}
 };

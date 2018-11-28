@@ -37,12 +37,14 @@ The good tests coverage helps to keep stability of project, but if you are see k
 
 ### Performance
 I understand that one of question that you should have - how much it costs from performance perspective? For answer to this question and to purpose of control the performance, I developed performance test which load/save test model via BitSerializer and via native API provided by base library. The model for tests includes itself a different types which are supported by JSON format. The source code of the test also available [here](tests/performance_tests).
+
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
 | RapidJson | JSON | Save object | 174 msec | 190 msec | -8.4% |
 | RapidJson | JSON | Load object | 302 msec | 324 msec | -6.8% |
 | C++ REST SDK | JSON | Save object | 1083 msec | 1094 msec | -1% |
 | C++ REST SDK | JSON | Load object | 892 msec | 936 msec | -4.7% |
+
 Tests were performed on Windows system with CPU Intel i5-4690, you may have slightly different results, it depends to system and compiler options. But in general, all overhead of BitSerializer is about 10%. Differences between base libraries is related to their specific implementations. RapidJson, as one of fastest library, shows best result, but wrapper for BitSerializer is a bit more expensive.
 
 #### Requirements:

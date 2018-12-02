@@ -170,7 +170,7 @@ static TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TVa
 	constexpr auto hasSupportKeyType = BitSerializer::is_type_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
 	static_assert(hasSupportKeyType, "BitSerializer. The archive doesn't support this key type.");
 
-	bool result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
+	const bool result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
 
 	// Validation when loading
 	if constexpr (archive.IsLoading())

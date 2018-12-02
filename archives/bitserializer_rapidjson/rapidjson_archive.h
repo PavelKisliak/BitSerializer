@@ -47,13 +47,13 @@ protected:
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF16<>>;
 
 public:
-	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, const key_type& perentKey = key_type()) noexcept
+	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 		: mNode(const_cast<RapidJsonNode*>(node))
 		, mParent(parent)
-		, mParentKey(perentKey)
+		, mParentKey(parentKey)
 	{ }
 
-	virtual ~RapidJsonScopeBase() {}
+	virtual ~RapidJsonScopeBase() = default;
 
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
@@ -69,7 +69,7 @@ public:
 
 protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadFundamentalValue(const RapidJsonNode& jsonValue, T& value)
+	static bool LoadFundamentalValue(const RapidJsonNode& jsonValue, T& value)
 	{
 		if (!jsonValue.IsNumber())
 			return false;
@@ -94,7 +94,7 @@ protected:
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool SaveFundamentalValue(RapidJsonNode& jsonValue, T& value)
+	static bool SaveFundamentalValue(RapidJsonNode& jsonValue, T& value)
 	{
 		if constexpr (std::is_integral_v<T>)
 		{
@@ -116,12 +116,12 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator>
-	bool LoadString(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	static bool LoadString(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if (!jsonValue.IsString())
 			return false;
 
-		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
+		if constexpr (std::is_same_v<TSym, RapidJsonNode::EncodingType::Ch>)
 			value = jsonValue.GetString();
 		else
 			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.GetString());
@@ -129,10 +129,10 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator, typename TRapidAllocator>
-	RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
+	static RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
 	{
-		using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
-		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
+		using TargetSymType = RapidJsonNode::EncodingType::Ch;
+		if constexpr (std::is_same_v<TSym, RapidJsonNode::EncodingType::Ch>)
 			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
 		else {
 			const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
@@ -156,8 +156,8 @@ class RapidJsonArrayScope : public ArchiveScope<TMode>, public RapidJsonScopeBas
 public:
 	using AllocatorType = TAllocator;
 
-	explicit RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
-		: RapidJsonScopeBase(node, parent, perentKey)
+	explicit RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+		: RapidJsonScopeBase(node, parent, parentKey)
 		, mAllocator(allocator)
 		, mValueIt(mNode->GetArray().Begin())
 	{
@@ -176,7 +176,7 @@ public:
 	/// </summary>
 	std::wstring GetPath() const override
 	{
-		int64_t index = 0;
+		int64_t index;
 		if constexpr (TMode == SerializeMode::Load)
 			index = std::distance(mNode->Begin(), mValueIt);
 		else
@@ -211,8 +211,8 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TSym, typename TStrAllocator>
+	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			auto* jsonValue = NextElement();
@@ -265,19 +265,19 @@ protected:
 	{
 		if (mValueIt == mNode->End())
 			return nullptr;
-		auto& jsonValue = *mValueIt;
+		const auto& jsonValue = *mValueIt;
 		++mValueIt;
 		return &jsonValue;
 	}
 
-	inline void SaveJsonValue(RapidJsonNode&& jsonValue)
+	inline void SaveJsonValue(RapidJsonNode&& jsonValue) const
 	{
 		assert(mNode->Size() < mNode->Capacity());
 		mNode->PushBack(std::move(jsonValue), mAllocator);
 	}
 
 	TAllocator& mAllocator;
-	typename RapidJsonNode::ValueIterator mValueIt;
+	RapidJsonNode::ValueIterator mValueIt;
 };
 
 
@@ -291,8 +291,8 @@ class RapidJsonObjectScope : public ArchiveScope<TMode>, public RapidJsonScopeBa
 public:
 	using AllocatorType = TAllocator;
 
-	explicit RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
-		: RapidJsonScopeBase(node, parent, perentKey)
+	explicit RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+		: RapidJsonScopeBase(node, parent, parentKey)
 		, mAllocator(allocator)
 	{
 		assert(mNode->IsObject());
@@ -309,7 +309,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(size_t index) {
+	key_type GetKeyByIndex(size_t index) const {
 		return (mNode->GetObject().begin() + index)->name.GetString();
 	}
 
@@ -329,12 +329,12 @@ public:
 		return SerializeFundamentalValueImpl(key, value);
 	}
 
-	template <typename TSym, typename TAllocator>
-	inline bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
+	template <typename TSym, typename TStrAllocator>
+	inline bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		return SerializeStringImpl(key, value);
 	}
-	template <typename TSym, typename TAllocator>
-	inline bool SerializeString(const wchar_t* key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
+	template <typename TSym, typename TStrAllocator>
+	inline bool SerializeString(const wchar_t* key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		return SerializeStringImpl(key, value);
 	}
 
@@ -384,8 +384,8 @@ protected:
 		}
 	}
 
-	template <typename TKey, typename TSym, typename TAllocator>
-	bool SerializeStringImpl(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TKey, typename TSym, typename TStrAllocator>
+	bool SerializeStringImpl(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -435,11 +435,11 @@ protected:
 		}
 	}
 
-	inline auto FindMember(const key_type& key) {
+	inline auto FindMember(const key_type& key) const {
 		return mNode->GetObject().FindMember(key.c_str());
 	}
 
-	inline auto FindMember(const wchar_t* key) {
+	inline auto FindMember(const wchar_t* key) const {
 		return mNode->GetObject().FindMember(key);
 	}
 
@@ -453,11 +453,11 @@ protected:
 	inline const RapidJsonNode* LoadJsonValue(const wchar_t* key) const
 	{
 		const auto& jObject = mNode->GetObject();
-		auto it = jObject.FindMember(key);
+		const auto it = jObject.FindMember(key);
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	inline bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue)
+	inline bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue) const
 	{
 		// Checks that object was not saved previously under the same key
 		assert(mNode->GetObject().FindMember(key.c_str()) == mNode->GetObject().MemberEnd());
@@ -467,7 +467,7 @@ protected:
 		return true;
 	}
 
-	inline bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue)
+	inline bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue) const
 	{
 		// Checks that object was not saved previously under the same key
 		assert(mNode->GetObject().FindMember(key) == mNode->GetObject().MemberEnd());
@@ -566,7 +566,7 @@ public:
 		else
 		{
 			assert(mRootJson.IsNull());
-			using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
+			using TargetSymType = RapidJsonNode::EncodingType::Ch;
 			if constexpr (std::is_same_v<TSym, TargetSymType>)
 				mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
 			else {
@@ -576,12 +576,12 @@ public:
 		}
 	}
 
-	std::unique_ptr<Detail::RapidJsonArrayScope<TMode, typename RapidJsonDocument::AllocatorType>> OpenArrayScope(size_t arraySize)
+	std::unique_ptr<Detail::RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			return mRootJson.IsArray()
-				? std::make_unique<RapidJsonArrayScope<TMode, typename RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
+				? std::make_unique<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
 				: nullptr;
 		}
 		else
@@ -589,22 +589,22 @@ public:
 			assert(mRootJson.IsNull());
 			mRootJson.SetArray();
 			mRootJson.Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
-			return std::make_unique<RapidJsonArrayScope<TMode, typename RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
+			return std::make_unique<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
 		}
 	}
 
-	std::unique_ptr<RapidJsonObjectScope<TMode, typename RapidJsonDocument::AllocatorType>> OpenObjectScope()
+	std::unique_ptr<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
 			return mRootJson.IsObject()
-				? std::make_unique<RapidJsonObjectScope<TMode, typename RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
+				? std::make_unique<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
 				: nullptr;
 		}
 		else
 		{
 			assert(mRootJson.IsNull());
 			mRootJson.SetObject();
-			return std::make_unique<RapidJsonObjectScope<TMode, typename RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
+			return std::make_unique<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
 		}
 	}
 

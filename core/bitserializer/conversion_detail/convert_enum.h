@@ -73,7 +73,7 @@ public:
 	template <typename TEnum>
 	static const enum_descriptors<TEnum>& GetDescriptors() noexcept
 	{
-		auto& descriptors = GetDescriptorsImpl<TEnum>();
+		const auto& descriptors = GetDescriptorsImpl<TEnum>();
 		// Make sure, that type is registered
 		assert(!descriptors.empty());
 		return const_cast<enum_descriptors<TEnum>&>(descriptors);

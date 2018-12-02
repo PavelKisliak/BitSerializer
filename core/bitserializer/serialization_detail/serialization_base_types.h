@@ -24,6 +24,7 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	if constexpr (hasValueWithKeySupport) {
 		return archive.SerializeValue(key, value);
 	}
+	return false;
 };
 
 template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
@@ -50,6 +51,7 @@ static bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std
 	if constexpr (hasStringWithKeySupport) {
 		return archive.SerializeString(key, value);
 	}
+	return false;
 };
 
 template <class TArchive, typename TSym, typename TAllocator>

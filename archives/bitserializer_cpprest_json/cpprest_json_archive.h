@@ -40,10 +40,10 @@ class JsonObjectScope;
 class JsonScopeBase : public JsonArchiveTraits
 {
 public:
-	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type()) noexcept
+	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 		: mNode(const_cast<web::json::value*>(node))
 		, mParent(parent)
-		, mParentKey(perentKey)
+		, mParentKey(parentKey)
 	{ }
 
 	virtual ~JsonScopeBase() = default;
@@ -68,14 +68,14 @@ public:
 
 protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
+	static bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
 	{
 		if (!jsonValue.is_number())
 			return false;
 
 		if constexpr (std::is_integral_v<T>)
 		{
-			auto number = jsonValue.as_number();
+			const auto& number = jsonValue.as_number();
 			if constexpr (std::is_same_v<T, int64_t>) {
 				value = number.to_int64();
 			}
@@ -94,7 +94,7 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator>
-	bool LoadString(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	static bool LoadString(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if (!jsonValue.is_string())
 			return false;
@@ -120,8 +120,8 @@ template <SerializeMode TMode>
 class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
-		: JsonScopeBase(node, parent, perentKey)
+	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+		: JsonScopeBase(node, parent, parentKey)
 		, mIndex(0)
 	{
 		assert(mNode->is_array());
@@ -133,7 +133,7 @@ public:
 	/// <returns></returns>
 	std::wstring GetPath() const override
 	{
-		auto index = mIndex == 0 ? 0 : mIndex - 1;
+		const auto index = mIndex == 0 ? 0 : mIndex - 1;
 		return JsonScopeBase::GetPath() + path_separator + Convert::ToWString(index);
 	}
 
@@ -142,7 +142,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			if (mIndex < GetSize()) {
-				auto& jsonValue = (*mNode)[mIndex++];
+				const auto& jsonValue = (*mNode)[mIndex++];
 				if (jsonValue.is_boolean())
 					value = jsonValue.as_bool();
 			}
@@ -238,8 +238,8 @@ template <SerializeMode TMode>
 class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& perentKey = key_type())
-		: JsonScopeBase(node, parent, perentKey)
+	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+		: JsonScopeBase(node, parent, parentKey)
 	{
 		assert(mNode->is_object());
 	};
@@ -247,7 +247,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(size_t index) {
+	key_type GetKeyByIndex(size_t index) const {
 		return (mNode->as_object().cbegin() + index)->first;
 	}
 
@@ -384,7 +384,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit JsonRootScope(typename utility::istream_t& inputStream)
+	explicit JsonRootScope(utility::istream_t& inputStream)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
@@ -396,7 +396,7 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(typename utility::ostream_t& outputStream)
+	explicit JsonRootScope(utility::ostream_t& outputStream)
 		: Detail::JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
 	{

@@ -52,11 +52,13 @@ class ArchiveStubObjectScope;
 class ArchiveStubScopeBase : public ArchiveStubTraits
 {
 public:
-	explicit ArchiveStubScopeBase(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+	explicit ArchiveStubScopeBase(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 		: mNode(const_cast<TestIoData*>(node))
 		, mParent(parent)
-		, mParentKey(perentKey)
+		, mParentKey(parentKey)
 	{ }
+
+	virtual ~ArchiveStubScopeBase() = default;
 
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
@@ -151,8 +153,8 @@ template <SerializeMode TMode>
 class ArchiveStubArrayScope : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
-	explicit ArchiveStubArrayScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& perentKey = key_type())
-		: ArchiveStubScopeBase(node, parent, perentKey)
+	explicit ArchiveStubArrayScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+		: ArchiveStubScopeBase(node, parent, parentKey)
 		, mIndex(0)
 	{
 		assert(std::holds_alternative<TestIoDataArray>(*mNode));
@@ -254,8 +256,8 @@ template <SerializeMode TMode>
 class ArchiveStubObjectScope : public ArchiveScope<TMode> , public ArchiveStubScopeBase
 {
 public:
-	explicit ArchiveStubObjectScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& perentKey = key_type())
-		: ArchiveStubScopeBase(node, parent, perentKey)
+	explicit ArchiveStubObjectScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+		: ArchiveStubScopeBase(node, parent, parentKey)
 	{
 		assert(std::holds_alternative<TestIoDataObject>(*mNode));
 	};
@@ -263,7 +265,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(size_t index) {
+	key_type GetKeyByIndex(size_t index) const {
 
 		auto it = GetAsObject().cbegin();
 		std::advance(it, index);
@@ -356,19 +358,19 @@ public:
 	}
 
 protected:
-	constexpr TestIoDataObject& GetAsObject()
+	constexpr TestIoDataObject& GetAsObject() const
 	{
 		return std::get<TestIoDataObject>(*mNode);
 	}
 
-	TestIoData* LoadArchiveValueByKey(const key_type& key)
+	TestIoData* LoadArchiveValueByKey(const key_type& key) const
 	{
 		auto& archiveObject = GetAsObject();
 		auto it = archiveObject.find(key);
 		return it == archiveObject.end() ? nullptr : &it->second;
 	}
 
-	TestIoData& AddArchiveValue(const key_type& key)
+	TestIoData& AddArchiveValue(const key_type& key) const
 	{
 		auto& archiveObject = GetAsObject();
 		decltype(auto) result = archiveObject.emplace(key, TestIoData());
@@ -396,8 +398,8 @@ class ArchiveStubRootScope : public ArchiveScope<TMode>, public Detail::ArchiveS
 public:
 	explicit ArchiveStubRootScope(const TestIoData& inputData)
 		: Detail::ArchiveStubScopeBase(&inputData)
-		, mInputData(&inputData)
 		, mOutputData(nullptr)
+		, mInputData(&inputData)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 	}
@@ -405,11 +407,12 @@ public:
 	explicit ArchiveStubRootScope(TestIoData& outputData)
 		: Detail::ArchiveStubScopeBase(&outputData)
 		, mOutputData(&outputData)
+		, mInputData(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	void SerializeValue(bool& value)
+	void SerializeValue(bool& value) const
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{

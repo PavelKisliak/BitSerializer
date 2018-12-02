@@ -45,15 +45,15 @@ public:
 
 	TestPointClass() = default;
 
-	TestPointClass(int x, int y)
+	TestPointClass(int x, int y) noexcept
 		: x(x), y(y)
 	{ }
 
-	bool operator==(const TestPointClass& rhs) const {
+	bool operator==(const TestPointClass& rhs) const noexcept {
 		return x == rhs.x && y == rhs.y;
 	}
 
-	bool operator<(const TestPointClass& rhs) const {
+	bool operator<(const TestPointClass& rhs) const noexcept {
 		return x < rhs.x || (!(rhs.x < x) && y < rhs.y);
 	}
 

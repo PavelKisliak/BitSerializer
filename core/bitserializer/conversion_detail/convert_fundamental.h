@@ -26,8 +26,8 @@ inline void To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>
 	}
 	ret_Val = static_cast<T>(result);
 }
-inline void To(const std::string& str, unsigned long long& ret_Val)		{ ret_Val = std::stoull(str, 0, 0); }
-inline void To(const std::wstring& str, unsigned long long& ret_Val)	{ ret_Val = std::stoull(str, 0, 0); }
+inline void To(const std::string& str, unsigned long long& ret_Val)		{ ret_Val = std::stoull(str, nullptr, 0); }
+inline void To(const std::wstring& str, unsigned long long& ret_Val)	{ ret_Val = std::stoull(str, nullptr, 0); }
 
 // Convert from signed decimal to string
 template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_signed_v<T>), int> = 0>
@@ -39,8 +39,8 @@ inline void To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>
 	}
 	ret_Val = static_cast<T>(result);
 }
-inline void To(const std::string& str, long long& ret_Val)				{ ret_Val = std::stoll(str, 0, 0); }
-inline void To(const std::wstring& str, long long& ret_Val)				{ ret_Val = std::stoll(str, 0, 0); }
+inline void To(const std::string& str, long long& ret_Val)				{ ret_Val = std::stoll(str, nullptr, 0); }
+inline void To(const std::wstring& str, long long& ret_Val)				{ ret_Val = std::stoll(str, nullptr, 0); }
 
 // Convert from string to boolean
 inline void To(const std::string& str, bool& ret_Val)					{ ret_Val = std::stoi(str) ? true : false; }

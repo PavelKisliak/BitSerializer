@@ -27,7 +27,7 @@ class RapidJsonArchiveTraits
 {
 public:
 	using key_type = std::wstring;
-	using supported_key_types = SupportedKeyTypes<std::wstring>;
+	using supported_key_types = SupportedKeyTypes<const wchar_t*, std::wstring>;
 	using preferred_output_format = std::wstring;
 	using preferred_stream_char_type = std::wostream::char_type;
 	static const wchar_t path_separator = L'/';
@@ -47,7 +47,9 @@ protected:
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF16<>>;
 
 public:
-	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	using key_type_view = std::basic_string_view<key_type::value_type>;
+
+	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: mNode(const_cast<RapidJsonNode*>(node))
 		, mParent(parent)
 		, mParentKey(parentKey)
@@ -61,8 +63,8 @@ public:
 	/// <returns></returns>
 	virtual std::wstring GetPath() const
 	{
-		std::wstring localPath = mParentKey.empty()
-			? Convert::ToWString(mParentKey)
+		const std::wstring localPath = mParentKey.empty()
+			? std::wstring()
 			: path_separator + Convert::ToWString(mParentKey);
 		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
 	}
@@ -142,7 +144,7 @@ protected:
 
 	RapidJsonNode* mNode;
 	RapidJsonScopeBase* mParent;
-	key_type mParentKey;
+	key_type_view mParentKey;
 };
 
 
@@ -156,7 +158,7 @@ class RapidJsonArrayScope : public ArchiveScope<TMode>, public RapidJsonScopeBas
 public:
 	using AllocatorType = TAllocator;
 
-	explicit RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	explicit RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: RapidJsonScopeBase(node, parent, parentKey)
 		, mAllocator(allocator)
 		, mValueIt(mNode->GetArray().Begin())
@@ -291,7 +293,7 @@ class RapidJsonObjectScope : public ArchiveScope<TMode>, public RapidJsonScopeBa
 public:
 	using AllocatorType = TAllocator;
 
-	explicit RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	explicit RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: RapidJsonScopeBase(node, parent, parentKey)
 		, mAllocator(allocator)
 	{

@@ -15,8 +15,8 @@ namespace BitSerializer::Convert
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>ANSI string</returns>
-	template <typename T>
-	inline std::string ToString(T value)
+	template <typename TIn>
+	inline std::string ToString(TIn&& value)
 	{
 		std::string ret_Str;
 		Detail::To(value, ret_Str);
@@ -28,8 +28,8 @@ namespace BitSerializer::Convert
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>Wide string</returns>
-	template <typename T>
-	inline std::wstring ToWString(T value)
+	template <typename TIn>
+	inline std::wstring ToWString(TIn&& value)
 	{
 		std::wstring ret_Str;
 		Detail::To(value, ret_Str);

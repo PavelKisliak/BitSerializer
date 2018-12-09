@@ -86,12 +86,12 @@ TestArchiveMetadata TestArchivePerformance()
 	const auto minSaveTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinSaveTime).count();
 	const auto minNativeSaveTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinNativeSaveTime).count();
 	std::cout << metadata.mName << " save time: " << minNativeSaveTimeMs << " BitSerializer: " << minSaveTimeMs <<
-		" (" << std::round((minNativeSaveTimeMs / (minSaveTimeMs / 100.0) - 100) * 10) / 10 << "%)" << std::endl;
+		" - difference " << minSaveTimeMs - minNativeSaveTimeMs << " (" << std::round((minNativeSaveTimeMs / (minSaveTimeMs / 100.0) - 100) * 10) / 10 << "%)" << std::endl;
 
 	const auto minLoadTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinLoadTime).count();
 	const auto minNativeLoadTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinNativeLoadTime).count();
 	std::cout << metadata.mName << " load time: " << minNativeLoadTimeMs << " BitSerializer: " << minLoadTimeMs <<
-		" (" << std::round((minNativeLoadTimeMs / (minLoadTimeMs / 100.0) - 100) * 10) / 10 << "%)" << std::endl;
+		" - difference " << minLoadTimeMs - minNativeLoadTimeMs << " (" << std::round((minNativeLoadTimeMs / (minLoadTimeMs / 100.0) - 100) * 10) / 10 << "%)" << std::endl;
 
 	return metadata;
 }

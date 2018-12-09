@@ -13,17 +13,14 @@
 namespace BitSerializer::Convert::Detail {
 
 //------------------------------------------------------------------------------
-// Convert to the same type (string to string)
+// Convert to types which have the same base char type
 //------------------------------------------------------------------------------
-inline void To(const std::string& in_str, std::string& ret_Str)
-{
-	ret_Str = in_str;
-}
-
-inline void To(const std::wstring& in_str, std::wstring& ret_Str)
-{
-	ret_Str = in_str;
-}
+inline void To(const char* in_str, std::string& ret_Str)				{ ret_Str = in_str; }
+inline void To(const wchar_t* in_str, std::wstring& ret_Str)			{ ret_Str = in_str; }
+inline void To(const std::string& in_str, std::string& ret_Str)			{ ret_Str = in_str; }
+inline void To(const std::wstring& in_str, std::wstring& ret_Str)		{ ret_Str = in_str; }
+inline void To(const std::string_view& in_str, std::string& ret_Str)	{ ret_Str = in_str; }
+inline void To(const std::wstring_view& in_str, std::wstring& ret_Str)	{ ret_Str = in_str; }
 
 //------------------------------------------------------------------------------
 // Convert std::string to std::wstring and vice versa (without using locale)
@@ -32,6 +29,7 @@ inline void To(const std::wstring& in_str, std::string& ret_Str)
 {
 	ret_Str.append(in_str.begin(), in_str.end());
 }
+
 inline void To(const std::string& in_str, std::wstring& ret_Str)
 {
 	ret_Str.append(in_str.begin(), in_str.end());

@@ -40,7 +40,9 @@ class JsonObjectScope;
 class JsonScopeBase : public JsonArchiveTraits
 {
 public:
-	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	using key_type_view = std::basic_string_view<key_type::value_type>;
+
+	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: mNode(const_cast<web::json::value*>(node))
 		, mParent(parent)
 		, mParentKey(parentKey)
@@ -60,8 +62,8 @@ public:
 	/// </summary>
 	virtual std::wstring GetPath() const
 	{
-		std::wstring localPath = mParentKey.empty()
-			? Convert::ToWString(mParentKey)
+		const std::wstring localPath = mParentKey.empty()
+			? std::wstring()
 			: path_separator + Convert::ToWString(mParentKey);
 		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
 	}
@@ -108,7 +110,7 @@ protected:
 
 	web::json::value* mNode;
 	JsonScopeBase* mParent;
-	key_type mParentKey;
+	key_type_view mParentKey;
 };
 
 
@@ -120,7 +122,7 @@ template <SerializeMode TMode>
 class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
 		, mIndex(0)
 	{
@@ -238,7 +240,7 @@ template <SerializeMode TMode>
 class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
 	{
 		assert(mNode->is_object());

@@ -249,7 +249,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(size_t index) const {
+	const key_type& GetKeyByIndex(size_t index) const {
 		return (mNode->as_object().cbegin() + index)->first;
 	}
 
@@ -344,7 +344,7 @@ protected:
 	inline const web::json::value* LoadJsonValue(const key_type& key) const
 	{
 		const auto& jObject = mNode->as_object();
-		auto it = jObject.find(key);
+		const auto it = jObject.find(key);
 		return it == jObject.end() ? nullptr : &it->second;
 	}
 

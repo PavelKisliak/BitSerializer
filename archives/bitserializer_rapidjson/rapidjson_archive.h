@@ -311,7 +311,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(size_t index) const {
+	const wchar_t* GetKeyByIndex(size_t index) const {
 		return (mNode->GetObject().begin() + index)->name.GetString();
 	}
 

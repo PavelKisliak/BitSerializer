@@ -265,7 +265,7 @@ public:
 	/// <summary>
 	/// Gets the key by index.
 	/// </summary>
-	key_type GetKeyByIndex(size_t index) const {
+	const key_type& GetKeyByIndex(size_t index) const {
 
 		auto it = GetAsObject().cbegin();
 		std::advance(it, index);

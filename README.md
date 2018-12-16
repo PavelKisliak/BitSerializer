@@ -40,12 +40,12 @@ I understand that one of question that you should have - how much it costs from 
 
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 174 msec | 190 msec | -8.4% |
-| RapidJson | JSON | Load object | 302 msec | 324 msec | -6.8% |
-| C++ REST SDK | JSON | Save object | 1083 msec | 1094 msec | -1% |
-| C++ REST SDK | JSON | Load object | 892 msec | 936 msec | -4.7% |
+| RapidJson | JSON | Save object | 174 msec | 190 msec | 16 msec (-8.4%) |
+| RapidJson | JSON | Load object | 302 msec | 324 msec | 22 msec (-6.8%) |
+| C++ REST SDK | JSON | Save object | 1083 msec | 1094 msec | 11 msec (-1%) |
+| C++ REST SDK | JSON | Load object | 892 msec | 936 msec | 44 msec (-4.7%) |
 
-Tests were performed on Windows system with CPU Intel i5-4690, you may have slightly different results, it depends to system and compiler options. But in general, all overhead of BitSerializer is about 10%. Differences between base libraries is related to their specific implementations. RapidJson, as one of fastest library, shows best result, but wrapper for BitSerializer is a bit more expensive.
+Tests were performed on Windows system with CPU Intel i5-4690, you may have slightly different results, it depends to system and compiler options. But in general, all overhead of BitSerializer is about 10% and would optimize in next release. Differences between base libraries is related to their specific implementations. RapidJson, as one of fastest library, shows best result, but wrapper for CppRestSDK is a bit more expensive.
 
 #### Requirements:
   - C++ 17
@@ -426,6 +426,11 @@ catch (const BitSerializer::SerializationException& ex)
 	std::string message = ex.what();
 }
 ```
+
+Thanks
+----
+- Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
+- Alexander Stepaniuk for support and participation in technical discussions.
 
 License
 ----

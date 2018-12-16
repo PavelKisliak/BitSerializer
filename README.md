@@ -427,7 +427,8 @@ catch (const BitSerializer::SerializationException& ex)
 }
 ```
 
-Thanks:
+Thanks
+----
 Andrey Mazhyrau - for help with cmake scripts, fix GCC and Linux related issues.
 Alexander Stepaniuk - for support and participation in technical discussions.
 

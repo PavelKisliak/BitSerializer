@@ -4,8 +4,8 @@
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <memory>
 #include <type_traits>
+#include <optional>
 #include <variant>
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/media_archive_base.h"
@@ -226,31 +226,31 @@ public:
 		}
 	}
 
-	std::unique_ptr<RapidJsonObjectScope<TMode, AllocatorType>> OpenObjectScope()
+	std::optional<RapidJsonObjectScope<TMode, AllocatorType>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = NextElement();
 			if (jsonValue != nullptr && jsonValue->IsObject())
-				return std::make_unique<RapidJsonObjectScope<TMode, AllocatorType>>(jsonValue, mAllocator, this);
-			return nullptr;
+				return std::make_optional<RapidJsonObjectScope<TMode, AllocatorType>>(jsonValue, mAllocator, this);
+			return std::nullopt;
 		}
 		else
 		{
 			SaveJsonValue(RapidJsonNode(rapidjson::kObjectType));
 			auto& lastJsonValue = (*mNode)[mNode->Size() - 1];
-			return std::make_unique<RapidJsonObjectScope<TMode, AllocatorType>>(&lastJsonValue, mAllocator, this);
+			return std::make_optional<RapidJsonObjectScope<TMode, AllocatorType>>(&lastJsonValue, mAllocator, this);
 		}
 	}
 
-	std::unique_ptr<Detail::RapidJsonArrayScope<TMode, AllocatorType>> OpenArrayScope(size_t arraySize)
+	std::optional<Detail::RapidJsonArrayScope<TMode, AllocatorType>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = NextElement();
 			if (jsonValue != nullptr && jsonValue->IsArray())
-				return std::make_unique<RapidJsonArrayScope<TMode, AllocatorType>>(jsonValue, mAllocator, this);
-			return nullptr;
+				return std::make_optional<RapidJsonArrayScope<TMode, AllocatorType>>(jsonValue, mAllocator, this);
+			return std::nullopt;
 		}
 		else
 		{
@@ -258,7 +258,7 @@ public:
 			rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
 			SaveJsonValue(std::move(rapidJsonArray));
 			auto& lastJsonValue = (*mNode)[mNode->Size() - 1];
-			return std::make_unique<RapidJsonArrayScope<TMode, AllocatorType>>(&lastJsonValue, mAllocator, this);
+			return std::make_optional<RapidJsonArrayScope<TMode, AllocatorType>>(&lastJsonValue, mAllocator, this);
 		}
 	}
 
@@ -340,17 +340,17 @@ public:
 		return SerializeStringImpl(key, value);
 	}
 
-	inline std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const key_type& key) {
+	inline std::optional<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const key_type& key) {
 		return OpenObjectScopeImpl(key);
 	}
-	inline std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const wchar_t* key) {
+	inline std::optional<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScope(const wchar_t* key) {
 		return OpenObjectScopeImpl(key);
 	}
 
-	inline std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const key_type& key, size_t arraySize) {
+	inline std::optional<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const key_type& key, size_t arraySize) {
 		return OpenArrayScopeImpl(key, arraySize);
 	}
-	inline std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const wchar_t* key, size_t arraySize) {
+	inline std::optional<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScope(const wchar_t* key, size_t arraySize) {
 		return OpenArrayScopeImpl(key, arraySize);
 	}
 
@@ -400,32 +400,32 @@ protected:
 	}
 
 	template <typename TKey>
-	std::unique_ptr<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScopeImpl(TKey&& key)
+	std::optional<RapidJsonObjectScope<TMode, TAllocator>> OpenObjectScopeImpl(TKey&& key)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->IsObject())
-				return std::make_unique<RapidJsonObjectScope<TMode, TAllocator>>(jsonValue, mAllocator, this, key);
-			return nullptr;
+				return std::make_optional<RapidJsonObjectScope<TMode, TAllocator>>(jsonValue, mAllocator, this, key);
+			return std::nullopt;
 		}
 		else
 		{
 			SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(rapidjson::kObjectType));
 			auto& insertedMember = FindMember(key)->value;
-			return std::make_unique<RapidJsonObjectScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
+			return std::make_optional<RapidJsonObjectScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
 		}
 	}
 
 	template <typename TKey>
-	std::unique_ptr<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScopeImpl(TKey&& key, size_t arraySize)
+	std::optional<RapidJsonArrayScope<TMode, TAllocator>> OpenArrayScopeImpl(TKey&& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->IsArray())
-				return std::make_unique<RapidJsonArrayScope<TMode, TAllocator>>(jsonValue, mAllocator, this, key);
-			return nullptr;
+				return std::make_optional<RapidJsonArrayScope<TMode, TAllocator>>(jsonValue, mAllocator, this, key);
+			return std::nullopt;
 		}
 		else
 		{
@@ -433,7 +433,7 @@ protected:
 			rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
 			SaveJsonValue(std::forward<TKey>(key), std::move(rapidJsonArray));
 			auto& insertedMember = FindMember(key)->value;
-			return std::make_unique<RapidJsonArrayScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
+			return std::make_optional<RapidJsonArrayScope<TMode, TAllocator>>(&insertedMember, mAllocator, this, key);
 		}
 	}
 
@@ -486,14 +486,14 @@ protected:
 /// JSON root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class RapidJsonRootScope : public ArchiveScope<TMode>, public Detail::RapidJsonScopeBase
+class RapidJsonRootScope : public ArchiveScope<TMode>, public RapidJsonScopeBase
 {
 protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF16<>>;
 
 public:
 	explicit RapidJsonRootScope(const wchar_t* inputStr)
-		: Detail::RapidJsonScopeBase(&mRootJson)
+		: RapidJsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -504,14 +504,14 @@ public:
 	explicit RapidJsonRootScope(const std::wstring& inputStr) : RapidJsonRootScope(inputStr.c_str()) {}
 
 	explicit RapidJsonRootScope(std::wstring& outputStr)
-		: Detail::RapidJsonScopeBase(&mRootJson)
+		: RapidJsonScopeBase(&mRootJson)
 		, mOutput(&outputStr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
 	explicit RapidJsonRootScope(std::wistream& inputStream)
-		: Detail::RapidJsonScopeBase(&mRootJson)
+		: RapidJsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -521,7 +521,7 @@ public:
 	}
 
 	explicit RapidJsonRootScope(std::wostream& outputStream)
-		: Detail::RapidJsonScopeBase(&mRootJson)
+		: RapidJsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
@@ -578,35 +578,35 @@ public:
 		}
 	}
 
-	std::unique_ptr<Detail::RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>> OpenArrayScope(size_t arraySize)
+	std::optional<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			return mRootJson.IsArray()
-				? std::make_unique<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
-				: nullptr;
+				? std::make_optional<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
+				: std::nullopt;
 		}
 		else
 		{
 			assert(mRootJson.IsNull());
 			mRootJson.SetArray();
 			mRootJson.Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
-			return std::make_unique<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
+			return std::make_optional<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
 		}
 	}
 
-	std::unique_ptr<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>> OpenObjectScope()
+	std::optional<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
 			return mRootJson.IsObject()
-				? std::make_unique<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
-				: nullptr;
+				? std::make_optional<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator())
+				: std::nullopt;
 		}
 		else
 		{
 			assert(mRootJson.IsNull());
 			mRootJson.SetObject();
-			return std::make_unique<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
+			return std::make_optional<RapidJsonObjectScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
 		}
 	}
 

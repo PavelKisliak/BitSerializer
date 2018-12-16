@@ -4,9 +4,9 @@
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <memory>
 #include <type_traits>
 #include <variant>
+#include <optional>
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/media_archive_base.h"
 
@@ -183,7 +183,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope()
+	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -191,32 +191,32 @@ public:
 			{
 				auto& jsonValue = (*mNode)[mIndex++];
 				if (jsonValue.is_object())
-					return std::make_unique<JsonObjectScope<TMode>>(&jsonValue, this);
+					return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this);
 			}
-			return nullptr;
+			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::object());
-			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue, this);
+			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this);
 		}
 	}
 
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			if (mIndex < GetSize()) {
 				auto& jsonValue = (*mNode)[mIndex++];
 				if (jsonValue.is_array())
-					return std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this);
+					return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);
 			}
-			return nullptr;
+			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
-			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this);
+			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);
 		}
 	}
 
@@ -253,7 +253,7 @@ public:
 		return (mNode->as_object().cbegin() + index)->first;
 	}
 
-	bool SerializeValue(const key_type& key, bool& value)
+	bool SerializeValue(const key_type& key, bool& value) const
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -305,7 +305,7 @@ public:
 		}
 	}
 
-	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope(const key_type& key)
+	std::optional<JsonObjectScope<TMode>> OpenObjectScope(const key_type& key)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -313,30 +313,30 @@ public:
 			if (jsonValue != nullptr && jsonValue->is_object())
 			{
 				decltype(auto) node = const_cast<web::json::value*>(jsonValue);
-				return std::make_unique<JsonObjectScope<TMode>>(node, this, key);
+				return std::make_optional<JsonObjectScope<TMode>>(node, this, key);
 			}
-			return nullptr;
+			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::object());
-			return std::make_unique<JsonObjectScope<TMode>>(&jsonValue, this, key);
+			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this, key);
 		}
 	}
 
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
+	std::optional<JsonArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->is_array())
-				return std::make_unique<JsonArrayScope<TMode>>(jsonValue, this, key);
-			return nullptr;
+				return std::make_optional<JsonArrayScope<TMode>>(jsonValue, this, key);
+			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
-			return std::make_unique<JsonArrayScope<TMode>>(&jsonValue, this, key);
+			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this, key);
 		}
 	}
 
@@ -362,13 +362,13 @@ protected:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonRootScope : public ArchiveScope<TMode>, public Detail::JsonScopeBase
+class JsonRootScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
 	explicit JsonRootScope(const utility::char_t* inputStr) : JsonRootScope(utility::string_t(inputStr)) {}
 
 	explicit JsonRootScope(const utility::string_t& inputStr)
-		: Detail::JsonScopeBase(&mRootJson)
+		: JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -380,14 +380,14 @@ public:
 	}
 
 	explicit JsonRootScope(utility::string_t& outputStr)
-		: Detail::JsonScopeBase(&mRootJson)
+		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
 	explicit JsonRootScope(utility::istream_t& inputStream)
-		: Detail::JsonScopeBase(&mRootJson)
+		: JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -399,7 +399,7 @@ public:
 	}
 
 	explicit JsonRootScope(utility::ostream_t& outputStream)
-		: Detail::JsonScopeBase(&mRootJson)
+		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
@@ -453,29 +453,29 @@ public:
 		}
 	}
 
-	std::unique_ptr<JsonObjectScope<TMode>> OpenObjectScope()
+	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			return mRootJson.is_object() ? std::make_unique<JsonObjectScope<TMode>>(&mRootJson) : nullptr;
+			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson) : std::nullopt;
 		}
 		else
 		{
 			assert(mRootJson.is_null());
 			mRootJson = web::json::value::object();
-			return std::make_unique<JsonObjectScope<TMode>>(&mRootJson);
+			return std::make_optional<JsonObjectScope<TMode>>(&mRootJson);
 		}
 	}
 
-	std::unique_ptr<Detail::JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return mRootJson.is_array() ? std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson) : nullptr;
+			return mRootJson.is_array() ? std::make_optional<JsonArrayScope<TMode>>(&mRootJson) : std::nullopt;
 		}
 		else
 		{
 			assert(mRootJson.is_null());
 			mRootJson = web::json::value::array(arraySize);
-			return std::make_unique<Detail::JsonArrayScope<TMode>>(&mRootJson);
+			return std::make_optional<JsonArrayScope<TMode>>(&mRootJson);
 		}
 	}
 

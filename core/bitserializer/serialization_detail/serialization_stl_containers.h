@@ -35,17 +35,14 @@ namespace Detail
 			auto arrayScope = archive.OpenArrayScope(key, size);
 			if (arrayScope)
 			{
-				auto& scope = *arrayScope.get();
-				if constexpr (archive.IsLoading())
-				{
-					if constexpr (is_resizeable_cont_v<TContainer>)
-						cont.resize(scope.GetSize());
+				if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {
+					cont.resize(arrayScope->GetSize());
 				}
 				for (auto& elem : cont) {
-					Serialize(scope, elem);
+					Serialize(*arrayScope, elem);
 				}
 			}
-			return arrayScope != nullptr;
+			return arrayScope.has_value();
 		}
         return false;
     }
@@ -62,14 +59,11 @@ namespace Detail
 			auto arrayScope = archive.OpenArrayScope(size);
 			if (arrayScope)
 			{
-				auto& scope = *arrayScope.get();
-				if constexpr (archive.IsLoading())
-				{
-					if constexpr (is_resizeable_cont_v<TContainer>)
-						cont.resize(scope.GetSize());
+				if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {
+					cont.resize(arrayScope->GetSize());
 				}
 				for (auto& elem : cont) {
-					Serialize(scope, elem);
+					Serialize(*arrayScope, elem);
 				}
 			}
 		}
@@ -141,8 +135,8 @@ static bool Serialize(TArchive& archive, TKey&& key, std::vector<bool, TAllocato
 	{
 		auto arrayScope = archive.OpenArrayScope(key, cont.size());
 		if (arrayScope)
-			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
-		return arrayScope != nullptr;
+			Detail::SerializeVectorOfBooleansImpl(*arrayScope, cont);
+		return arrayScope.has_value();
 	}
 
 	return false;
@@ -158,7 +152,7 @@ static void Serialize(TArchive& archive, std::vector<bool, TAllocator>& cont)
 	{
 		auto arrayScope = archive.OpenArrayScope(cont.size());
 		if (arrayScope)
-			Detail::SerializeVectorOfBooleansImpl(*arrayScope.get(), cont);
+			Detail::SerializeVectorOfBooleansImpl(*arrayScope, cont);
 	}
 }
 
@@ -246,8 +240,8 @@ static bool Serialize(TArchive& archive, TKey&& key, std::set<TValue, TAllocator
 	{
 		auto arrayScope = archive.OpenArrayScope(key, cont.size());
 		if (arrayScope)
-			Detail::SerializeSetImpl(*arrayScope.get(), cont);
-		return arrayScope != nullptr;
+			Detail::SerializeSetImpl(*arrayScope, cont);
+		return arrayScope.has_value();
 	}
 
 	return false;
@@ -263,7 +257,7 @@ static void Serialize(TArchive& archive, std::set<TValue, TAllocator>& cont)
 	{
 		auto arrayScope = archive.OpenArrayScope(cont.size());
 		if (arrayScope)
-			Detail::SerializeSetImpl(*arrayScope.get(), cont);
+			Detail::SerializeSetImpl(*arrayScope, cont);
 	}
 }
 
@@ -343,8 +337,8 @@ static bool Serialize(TArchive& archive, TKey&& key, std::map<TMapKey, TValue, T
 	{
 		auto objectScope = archive.OpenObjectScope(key);
 		if (objectScope)
-			Detail::SerializeMapImpl(*objectScope.get(), cont, mapLoadMode);
-		return objectScope != nullptr;
+			Detail::SerializeMapImpl(*objectScope, cont, mapLoadMode);
+		return objectScope.has_value();
 	}
 
     return false;
@@ -360,7 +354,7 @@ static void Serialize(TArchive& archive, std::map<TMapKey, TValue, TComparer, TA
 	{
 		auto objectScope = archive.OpenObjectScope();
 		if (objectScope)
-			Detail::SerializeMapImpl(*objectScope.get(), cont, mapLoadMode);
+			Detail::SerializeMapImpl(*objectScope, cont, mapLoadMode);
 	}
 }
 
@@ -404,8 +398,8 @@ static bool Serialize(TArchive& archive, TKey&& key, std::multimap<TMapKey, TVal
 	{
 		auto arrayScope = archive.OpenArrayScope(key, cont.size());
 		if (arrayScope)
-			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
-		return arrayScope != nullptr;
+			Detail::SerializeMultimapImpl(*arrayScope, cont);
+		return arrayScope.has_value();
 	}
 
 	return false;
@@ -421,9 +415,8 @@ static void Serialize(TArchive& archive, std::multimap<TMapKey, TValue, TCompare
 	{
 		auto arrayScope = archive.OpenArrayScope(cont.size());
 		if (arrayScope)
-			Detail::SerializeMultimapImpl(*arrayScope.get(), cont);
+			Detail::SerializeMultimapImpl(*arrayScope, cont);
 	}
 }
-
 
 }	// namespace BitSerializer

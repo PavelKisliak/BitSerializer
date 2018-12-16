@@ -118,9 +118,9 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 		if constexpr (hasObjectWithKeySupport)
 		{
 			auto objectScope = archive.OpenObjectScope(key);
-			if (objectScope != nullptr)
-				value.Serialize(*objectScope.get());
-			return objectScope != nullptr;
+			if (objectScope)
+				value.Serialize(*objectScope);
+			return objectScope.has_value();
 		}
 	}
 	return false;
@@ -139,8 +139,8 @@ static void Serialize(TArchive& archive, TValue& value)
 
 		if constexpr (hasObjectSupport) {
 			auto objectScope = archive.OpenObjectScope();
-			if (objectScope != nullptr)
-				value.Serialize(*objectScope.get());
+			if (objectScope)
+				value.Serialize(*objectScope);
 		}
 	}
 };
@@ -178,13 +178,12 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])
 		auto arrayScope = archive.OpenArrayScope(key, ArraySize);
 		if (arrayScope)
 		{
-			auto& scope = *arrayScope.get();
-			const auto size = std::min(ArraySize, scope.GetSize());
+			const auto size = std::min(ArraySize, arrayScope->GetSize());
 			for (size_t i = 0; i < size; i++) {
-				Serialize(scope, cont[i]);
+				Serialize(*arrayScope, cont[i]);
 			}
 		}
-		return arrayScope != nullptr;
+		return arrayScope.has_value();
 	}
 	return false;
 }
@@ -200,10 +199,9 @@ static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 		auto arrayScope = archive.OpenArrayScope(ArraySize);
 		if (arrayScope)
 		{
-			auto& scope = *arrayScope.get();
-			const auto size = std::min(ArraySize, scope.GetSize());
+			const auto size = std::min(ArraySize, arrayScope->GetSize());
 			for (size_t i = 0; i < size; i++) {
-				Serialize(scope, cont[i]);
+				Serialize(*arrayScope, cont[i]);
 			}
 		}
 	}

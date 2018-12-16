@@ -6,8 +6,8 @@
 #include <cassert>
 #include <string>
 #include <map>
-#include <memory>
 #include <variant>
+#include <optional>
 #include <type_traits>
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/media_archive_base.h"
@@ -68,7 +68,7 @@ public:
 		if (std::holds_alternative<TestIoDataObject>(*mNode)) {
 			return std::get<TestIoDataObject>(*mNode).size();
 		}
-		else if (std::holds_alternative<TestIoDataArray>(*mNode)) {
+		if (std::holds_alternative<TestIoDataArray>(*mNode)) {
 			return std::get<TestIoDataArray>(*mNode).size();
 		}
 		return 0;
@@ -80,7 +80,7 @@ public:
 	/// <returns></returns>
 	virtual std::wstring GetPath() const
 	{
-		std::wstring localPath = mParentKey.empty()
+		const std::wstring localPath = mParentKey.empty()
 			? Convert::ToWString(mParentKey)
 			: path_separator + Convert::ToWString(mParentKey);
 		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
@@ -203,35 +203,35 @@ public:
 			SaveFundamentalValue(ioData, value);
 	}
 
-	std::unique_ptr<ArchiveStubObjectScope<TMode>> OpenObjectScope()
+	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()
 	{
 		TestIoData& ioData = NextElement();
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			return std::holds_alternative<TestIoDataObject>(ioData)
-				? std::make_unique<ArchiveStubObjectScope<TMode>>(&ioData, this)
-				: nullptr;
+				? std::make_optional<ArchiveStubObjectScope<TMode>>(&ioData, this)
+				: std::nullopt;
 		}
 		else
 		{
 			ioData.emplace<TestIoDataObject>(TestIoDataObject());
-			return std::make_unique<ArchiveStubObjectScope<TMode>>(&ioData, this);
+			return std::make_optional<ArchiveStubObjectScope<TMode>>(&ioData, this);
 		}
 	}
 
-	std::unique_ptr<Detail::ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		TestIoData& ioData = NextElement();
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			return std::holds_alternative<TestIoDataArray>(ioData)
-				? std::make_unique<ArchiveStubArrayScope<TMode>>(&ioData, this)
-				: nullptr;
+				? std::make_optional<ArchiveStubArrayScope<TMode>>(&ioData, this)
+				: std::nullopt;
 		}
 		else
 		{
 			ioData.emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-			return std::make_unique<ArchiveStubArrayScope<TMode>>(&ioData, this);
+			return std::make_optional<ArchiveStubArrayScope<TMode>>(&ioData, this);
 		}
 	}
 
@@ -322,38 +322,38 @@ public:
 		}
 	}
 
-	std::unique_ptr<ArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key)
+	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* archiveValue = LoadArchiveValueByKey(key);
 			if (archiveValue != nullptr && std::holds_alternative<TestIoDataObject>(*archiveValue)) {
-				return std::make_unique<ArchiveStubObjectScope<TMode>>(archiveValue, this, key);
+				return std::make_optional<ArchiveStubObjectScope<TMode>>(archiveValue, this, key);
 			}
-			return nullptr;
+			return std::nullopt;
 		}
 		else
 		{
 			TestIoData& ioData = AddArchiveValue(key);
 			ioData.emplace<TestIoDataObject>(TestIoDataObject());
-			return std::make_unique<ArchiveStubObjectScope<TMode>>(&ioData, this, key);
+			return std::make_optional<ArchiveStubObjectScope<TMode>>(&ioData, this, key);
 		}
 	}
 
-	std::unique_ptr<Detail::ArchiveStubArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
+	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* archiveValue = LoadArchiveValueByKey(key);
 			if (archiveValue != nullptr && std::holds_alternative<TestIoDataArray>(*archiveValue))
-				return std::make_unique<ArchiveStubArrayScope<TMode>>(archiveValue, this, key);
-			return nullptr;
+				return std::make_optional<ArchiveStubArrayScope<TMode>>(archiveValue, this, key);
+			return std::nullopt;
 		}
 		else
 		{
 			TestIoData& ioData = AddArchiveValue(key);
 			ioData.emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-			return std::make_unique<ArchiveStubArrayScope<TMode>>(&ioData, this, key);
+			return std::make_optional<ArchiveStubArrayScope<TMode>>(&ioData, this, key);
 		}
 	}
 
@@ -393,11 +393,11 @@ protected:
 /// Root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class ArchiveStubRootScope : public ArchiveScope<TMode>, public Detail::ArchiveStubScopeBase
+class ArchiveStubRootScope : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubRootScope(const TestIoData& inputData)
-		: Detail::ArchiveStubScopeBase(&inputData)
+		: ArchiveStubScopeBase(&inputData)
 		, mOutputData(nullptr)
 		, mInputData(&inputData)
 	{
@@ -405,7 +405,7 @@ public:
 	}
 
 	explicit ArchiveStubRootScope(TestIoData& outputData)
-		: Detail::ArchiveStubScopeBase(&outputData)
+		: ArchiveStubScopeBase(&outputData)
 		, mOutputData(&outputData)
 		, mInputData(nullptr)
 	{
@@ -443,31 +443,31 @@ public:
 			SaveString(*mOutputData, value);
 	}
 
-	std::unique_ptr<ArchiveStubObjectScope<TMode>> OpenObjectScope()
+	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			return std::holds_alternative<TestIoDataObject>(*mInputData)
-				? std::make_unique<ArchiveStubObjectScope<TMode>>(mInputData)
-				: nullptr;
+				? std::make_optional<ArchiveStubObjectScope<TMode>>(mInputData)
+				: std::nullopt;
 		}
 		else
 		{
 			mOutputData->emplace<TestIoDataObject>(TestIoDataObject());
-			return std::make_unique<ArchiveStubObjectScope<TMode>>(mOutputData);
+			return std::make_optional<ArchiveStubObjectScope<TMode>>(mOutputData);
 		}
 	}
 
-	std::unique_ptr<Detail::ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			return std::holds_alternative<TestIoDataArray>(*mInputData)
-				? std::make_unique<ArchiveStubArrayScope<TMode>>(mInputData)
-				: nullptr;
+				? std::make_optional<ArchiveStubArrayScope<TMode>>(mInputData)
+				: std::nullopt;
 		}
 		else
 		{
 			mOutputData->emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-			return std::make_unique<ArchiveStubArrayScope<TMode>>(mOutputData);
+			return std::make_optional<ArchiveStubArrayScope<TMode>>(mOutputData);
 		}
 	}
 

@@ -51,7 +51,7 @@ TestArchiveMetadata TestArchivePerformance()
 		const auto saveTime = Timer::now() - startTime;
 		if (metadata.mMinSaveTime == std::chrono::nanoseconds(0) || metadata.mMinSaveTime > saveTime) metadata.mMinSaveTime = saveTime;
 
-		// Save model via BitSerializer
+		// Load model via BitSerializer
 		TPerformanceTestModel testModelForBitSerializer;
 		startTime = Timer::now();
 		BitSerializer::LoadObject<TArchive>(testModelForBitSerializer, bitSerializerSaveResult);

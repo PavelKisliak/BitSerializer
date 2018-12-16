@@ -1,6 +1,6 @@
 # BitSerializer (History log)
 
-#### Version 0.8 (10 October 2018):
+#### Version 0.8 (30 November 2018):
 - [ ! ] The package for VCPKG was splitted into two: "bitserializer" (core without any dependencies) and "bitserializer-cpprestjson" (requires "cpprestsdk").
 - [ + ] Added new implementation for JSON format based on library RapidJson (currently supported only UTF16).
 - [ + ] Added validation of deserialized values.

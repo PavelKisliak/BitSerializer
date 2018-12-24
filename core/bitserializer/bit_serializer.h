@@ -12,6 +12,15 @@
 
 namespace BitSerializer
 {
+	struct Version
+	{
+		static constexpr uint8_t Major = 0;
+		static constexpr uint8_t Minor = 9;
+		static constexpr uint8_t Maintenance = 0;
+
+		static constexpr uint32_t Combined = Major * 100 + Minor * 10 + Maintenance;
+	};
+
 	/// <summary>
 	/// The serialization context, contains validation information, etc...
 	/// </summary>

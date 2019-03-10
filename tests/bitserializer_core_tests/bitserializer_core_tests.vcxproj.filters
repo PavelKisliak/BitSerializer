@@ -75,6 +75,9 @@
     <ClInclude Include="..\..\core\bitserializer\string_conversion.h">
       <Filter>CoreImpl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\key_value_proxy.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="TestHelpers">

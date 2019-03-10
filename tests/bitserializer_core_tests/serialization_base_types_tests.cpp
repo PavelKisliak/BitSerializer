@@ -145,8 +145,8 @@ TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(BaseTypes, ShouldGetKeyByIndexInObjectScope) {
-	TestGetKeyByIndex<ArchiveStub>();
+TEST(BaseTypes, ShouldIterateKeysInObjectScope) {
+	TestIterateKeysInObjectScope<ArchiveStub>();
 }
 
 //-----------------------------------------------------------------------------

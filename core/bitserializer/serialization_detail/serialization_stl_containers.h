@@ -296,9 +296,10 @@ namespace Detail
 			if (mapLoadMode == MapLoadMode::Clean)
 				cont.clear();
 			auto hint = cont.begin();
-			for (size_t c = 0; c < loadSize; c++)
+			auto endIt = scope.cend();
+			for (auto it = scope.cbegin(); it != endIt; ++it)
 			{
-				decltype(auto) archiveKey = scope.GetKeyByIndex(c);
+				decltype(auto) archiveKey = *it;
 				TMapKey key;
 				if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>)
 					key = archiveKey;

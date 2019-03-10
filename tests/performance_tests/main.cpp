@@ -9,7 +9,7 @@
 #include <cassert>
 #include <iostream>
 #include <chrono>
-#include <math.h>
+#include <cmath>
 #include "../test_helpers/common_test_methods.h"
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
@@ -104,4 +104,6 @@ int main()
 		TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel>(),
 		TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel>()
 	};
+
+	return 0;
 }

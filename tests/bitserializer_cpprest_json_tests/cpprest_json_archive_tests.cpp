@@ -140,8 +140,8 @@ TEST(JsonRestCpp, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(JsonRestCpp, ShouldGetKeyByIndexInObjectScope) {
-	TestGetKeyByIndex<JsonArchive>();
+TEST(JsonRestCpp, ShouldIterateKeysInObjectScope) {
+	TestIterateKeysInObjectScope<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

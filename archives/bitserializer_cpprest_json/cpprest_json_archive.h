@@ -5,6 +5,7 @@
 #pragma once
 #include <cassert>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <optional>
 #include "bitserializer/serialization_detail/errors_handling.h"
@@ -53,7 +54,7 @@ public:
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
-	inline size_t GetSize() const {
+	size_t GetSize() const {
 		return mNode->size();
 	}
 
@@ -233,6 +234,38 @@ private:
 
 
 /// <summary>
+/// Constant iterator of the keys.
+/// </summary>
+class key_const_iterator
+{
+	template <SerializeMode TMode>
+	friend class JsonObjectScope;
+
+	web::json::object::const_iterator mJsonIt;
+
+	key_const_iterator(web::json::object::const_iterator it)
+		: mJsonIt(it) { }
+
+public:
+	bool operator==(const key_const_iterator& rhs) const {
+		return this->mJsonIt == rhs.mJsonIt;
+	}
+	bool operator!=(const key_const_iterator& rhs) const {
+		return this->mJsonIt != rhs.mJsonIt;
+	}
+
+	key_const_iterator& operator++() {
+		++mJsonIt;
+		return *this;
+	}
+
+	const JsonScopeBase::key_type& operator*() const {
+		return mJsonIt->first;
+	}
+};
+
+
+/// <summary>
 /// JSON scope for serializing objects (list of values with keys).
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
@@ -246,11 +279,12 @@ public:
 		assert(mNode->is_object());
 	};
 
-	/// <summary>
-	/// Gets the key by index.
-	/// </summary>
-	const key_type& GetKeyByIndex(size_t index) const {
-		return (mNode->as_object().cbegin() + index)->first;
+	key_const_iterator cbegin() const {
+		return key_const_iterator(mNode->as_object().cbegin());
+	}
+
+	key_const_iterator cend() const {
+		return key_const_iterator(mNode->as_object().cend());
 	}
 
 	bool SerializeValue(const key_type& key, bool& value) const

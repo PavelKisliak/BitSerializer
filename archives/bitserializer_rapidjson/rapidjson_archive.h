@@ -169,7 +169,7 @@ public:
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
-	inline size_t GetSize() const {
+	size_t GetSize() const {
 		return mNode->Capacity();
 	}
 
@@ -282,6 +282,36 @@ protected:
 	RapidJsonNode::ValueIterator mValueIt;
 };
 
+/// <summary>
+/// Constant iterator of the keys.
+/// </summary>
+class key_const_iterator
+{
+	template <SerializeMode TMode, class TAllocator>
+	friend class RapidJsonObjectScope;
+
+	rapidjson::GenericValue<rapidjson::UTF16<>>::MemberIterator mJsonIt;
+
+	key_const_iterator(rapidjson::GenericValue<rapidjson::UTF16<>>::MemberIterator it)
+		: mJsonIt(it) { }
+
+public:
+	bool operator==(const key_const_iterator& rhs) const {
+		return this->mJsonIt == rhs.mJsonIt;
+	}
+	bool operator!=(const key_const_iterator& rhs) const {
+		return this->mJsonIt != rhs.mJsonIt;
+	}
+
+	key_const_iterator& operator++() {
+		++mJsonIt;
+		return *this;
+	}
+
+	const wchar_t* operator*() const {
+		return mJsonIt->name.GetString();
+	}
+};
 
 /// <summary>
 /// JSON scope for serializing objects (list of values with keys).
@@ -300,19 +330,12 @@ public:
 		assert(mNode->IsObject());
 	};
 
-	/// <summary>
-	/// Returns the size of stored elements (for arrays and objects).
-	/// </summary>
-	/// <returns></returns>
-	inline size_t GetSize() const {
-		return mNode->MemberCount();
+	key_const_iterator cbegin() const {
+		return key_const_iterator(mNode->GetObject().begin());
 	}
 
-	/// <summary>
-	/// Gets the key by index.
-	/// </summary>
-	const wchar_t* GetKeyByIndex(size_t index) const {
-		return (mNode->GetObject().begin() + index)->name.GetString();
+	key_const_iterator cend() const {
+		return key_const_iterator(mNode->GetObject().end());
 	}
 
 	inline bool SerializeValue(const key_type& key, bool& value) {

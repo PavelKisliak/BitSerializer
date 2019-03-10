@@ -249,6 +249,38 @@ private:
 
 
 /// <summary>
+/// Constant iterator of the keys.
+/// </summary>
+class key_const_iterator
+{
+	template <SerializeMode TMode>
+	friend class ArchiveStubObjectScope;
+
+	TestIoDataObject::const_iterator mJsonIt;
+
+	key_const_iterator(TestIoDataObject::const_iterator it)
+		: mJsonIt(it) { }
+
+public:
+	bool operator==(const key_const_iterator& rhs) const {
+		return this->mJsonIt == rhs.mJsonIt;
+	}
+	bool operator!=(const key_const_iterator& rhs) const {
+		return this->mJsonIt != rhs.mJsonIt;
+	}
+
+	key_const_iterator& operator++() {
+		++mJsonIt;
+		return *this;
+	}
+
+	const ArchiveStubTraits::key_type& operator*() const {
+		return mJsonIt->first;
+	}
+};
+
+
+/// <summary>
 /// Scope for serializing objects (list of values with keys).
 /// </summary>
 /// <seealso cref="ArchiveStubScopeBase" />
@@ -262,14 +294,12 @@ public:
 		assert(std::holds_alternative<TestIoDataObject>(*mNode));
 	};
 
-	/// <summary>
-	/// Gets the key by index.
-	/// </summary>
-	const key_type& GetKeyByIndex(size_t index) const {
+	key_const_iterator cbegin() const {
+		return key_const_iterator(GetAsObject().cbegin());
+	}
 
-		auto it = GetAsObject().cbegin();
-		std::advance(it, index);
-		return it->first;
+	key_const_iterator cend() const {
+		return key_const_iterator(GetAsObject().cend());
 	}
 
 	template <typename TSym, typename TAllocator>

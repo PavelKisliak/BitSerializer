@@ -34,10 +34,26 @@ class TestArchive_SaveMode : ArchiveScope<SerializeMode::Save>
 public:
 	using key_type = std::string;
 
+	class key_const_iterator
+	{
+		key_type mTest;
+
+	public:
+		const key_type& operator*() const {
+			return mTest;
+		}
+	};
+
 	TestArchive_SaveMode(std::string& outputData) { }
 	TestArchive_SaveMode(std::ostream& inputData) { }
 
-	key_type GetKeyByIndex(size_t index) { return key_type(); }
+	key_const_iterator cbegin() const {
+		return key_const_iterator();
+	}
+
+	key_const_iterator cend() const {
+		return key_const_iterator();
+	}
 
 	bool SerializeValue(const key_type& key, bool& value) { return true; }
 	bool SerializeValue(const key_type& key, int& value) { return true; }

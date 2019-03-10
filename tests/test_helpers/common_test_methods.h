@@ -201,7 +201,7 @@ void TestValidationForNamedValues()
 /// Tests archive method which should return key by index.
 /// </summary>
 template <typename TArchive>
-void TestGetKeyByIndex()
+void TestIterateKeysInObjectScope()
 {
 	// Arrange
 	auto expectedKey1 = BitSerializer::Convert::To<typename TArchive::key_type>("x");
@@ -218,14 +218,17 @@ void TestGetKeyByIndex()
 	auto objScope = inputArchive.OpenObjectScope();
 	ASSERT_TRUE(objScope.has_value());
 
-	auto actualSize = objScope->GetSize();
-	ASSERT_EQ(2, actualSize);
+	auto it = objScope->cbegin();
+	auto endIt = objScope->cend();
+	EXPECT_EQ(expectedKey1, *it);
+	EXPECT_TRUE(it != endIt);
 
-	auto actualKey1 = objScope->GetKeyByIndex(0);
-	EXPECT_EQ(expectedKey1, actualKey1);
+	++it;
+	EXPECT_EQ(expectedKey2, *it);
+	EXPECT_TRUE(it != endIt);
 
-	auto actualKey2 = objScope->GetKeyByIndex(1);
-	EXPECT_EQ(expectedKey2, actualKey2);
+	++it;
+	EXPECT_TRUE(it == endIt);
 }
 
 /// <summary>

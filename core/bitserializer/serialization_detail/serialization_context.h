@@ -40,4 +40,9 @@ namespace BitSerializer
 		ValidationMap mErrorsMap;
 	};
 
+	/// <summary>
+	/// The serialization context, contains validation information, etc...
+	/// </summary>
+	thread_local static SerializationContext Context;
+
 }	// namespace BitSerializer

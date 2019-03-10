@@ -7,7 +7,7 @@
 #include "serialization_detail/serialization_base_types.h"
 #include "serialization_detail/serialization_stl_containers.h"
 #include "serialization_detail/serialization_stl_types.h"
-#include "serialization_detail/key_value.h"
+#include "serialization_detail/key_value_proxy.h"
 #include "serialization_detail/validators.h"
 
 namespace BitSerializer
@@ -20,11 +20,6 @@ namespace BitSerializer
 
 		static constexpr uint32_t Combined = Major * 100 + Minor * 10 + Maintenance;
 	};
-
-	/// <summary>
-	/// The serialization context, contains validation information, etc...
-	/// </summary>
-	thread_local static SerializationContext Context;
 
 	/// <summary>
 	/// Loads the object from one of archive supported data type (strings, binary data).
@@ -41,7 +36,7 @@ namespace BitSerializer
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
-			Serialize(archive, object);
+			KeyValueProxy::SplitAndSerialize(archive, object);
 		}
 	}
 
@@ -60,7 +55,7 @@ namespace BitSerializer
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
-			Serialize(archive, object);
+			KeyValueProxy::SplitAndSerialize(archive, object);
 		}
 	}
 
@@ -79,7 +74,7 @@ namespace BitSerializer
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
-			Serialize(archive, object);
+			KeyValueProxy::SplitAndSerialize(archive, object);
 		}
 	}
 
@@ -98,7 +93,7 @@ namespace BitSerializer
 		{
 			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
-			Serialize(archive, object);
+			KeyValueProxy::SplitAndSerialize(archive, object);
 		}
 	}
 
@@ -155,58 +150,14 @@ namespace BitSerializer
 
 
 /// <summary>
-/// Operator << for serialize object to/from the archive.
+/// Global operator << for serialize object from/to the archive.
 /// </summary>
 /// <param name="archive">The archive.</param>
 /// <param name="value">The serializing value.</param>
-/// <returns></returns>
+/// <returns>The archive.</returns>
 template <class TArchive, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
 inline TArchive& operator<<(TArchive& archive, TValue&& value)
 {
-	BitSerializer::Serialize(archive, std::forward<TValue>(value));
-	return archive;
-}
-
-/// <summary>
-/// Operator << for serialize a named value to/from the archive.
-/// </summary>
-/// <param name="archive">The archive.</param>
-/// <param name="keyValue">The serializing object with key.</param>
-/// <returns></returns>
-template <class TArchive, class TKey, class TValue, class... Validators, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-static TArchive& operator<<(TArchive& archive, BitSerializer::KeyValue<TKey, TValue, Validators...>&& keyValue)
-{
-	constexpr auto hasSupportKeyType = BitSerializer::is_type_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
-	static_assert(hasSupportKeyType, "BitSerializer. The archive doesn't support this key type.");
-
-	const bool result = BitSerializer::Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
-
-	// Validation when loading
-	if constexpr (archive.IsLoading())
-	{
-		auto validationResult = keyValue.ValidateValue(result);
-		if (validationResult.has_value())
-		{
-			auto path = archive.GetPath() + TArchive::path_separator + BitSerializer::Convert::ToWString(keyValue.GetKey());
-			BitSerializer::Context.AddValidationErrors(path, std::move(*validationResult));
-		}
-	}
-	return archive;
-}
-
-/// <summary>
-/// Operator << for serialize a named value to/from the archive (with auto adaptation a key to type which is supported by archive).
-/// </summary>
-/// <param name="archive">The archive.</param>
-/// <param name="keyValue">The serializing object with key.</param>
-/// <returns></returns>
-template <class TArchive, class TKey, class TValue, class... Validators, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-static TArchive& operator<<(TArchive& archive, BitSerializer::AutoKeyValue<TKey, TValue, Validators...>&& keyValue)
-{
-	// Checks key type and adapts it to archive if needed
-	if constexpr (std::is_convertible_v<TKey, typename TArchive::key_type>)
-		archive << std::forward<BitSerializer::KeyValue<TKey, TValue, Validators...>>(keyValue);
-	else
-		archive << keyValue.AdaptAndMoveToBaseKeyValue<typename TArchive::key_type>();
+	BitSerializer::KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(value));
 	return archive;
 }

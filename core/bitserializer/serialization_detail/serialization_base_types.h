@@ -178,7 +178,7 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])
 		auto arrayScope = archive.OpenArrayScope(key, ArraySize);
 		if (arrayScope)
 		{
-			const auto size = std::min(ArraySize, arrayScope->GetSize());
+			const auto size = archive.IsSaving() ? ArraySize : std::min(ArraySize, arrayScope->GetSize());
 			for (size_t i = 0; i < size; i++) {
 				Serialize(*arrayScope, cont[i]);
 			}
@@ -199,7 +199,7 @@ static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 		auto arrayScope = archive.OpenArrayScope(ArraySize);
 		if (arrayScope)
 		{
-			const auto size = std::min(ArraySize, arrayScope->GetSize());
+			const auto size = archive.IsSaving() ? ArraySize : std::min(ArraySize, arrayScope->GetSize());
 			for (size_t i = 0; i < size; i++) {
 				Serialize(*arrayScope, cont[i]);
 			}

@@ -41,9 +41,9 @@ namespace BitSerializer::KeyValueProxy
 	{
 		// Checks key type and adapts it to archive if needed
 		if constexpr (std::is_convertible_v<TKey, typename TArchive::key_type>)
-			archive << std::forward<KeyValue<TKey, TValue, Validators...>>(keyValue);
+			SplitAndSerialize(archive, std::forward<KeyValue<TKey, TValue, Validators...>>(keyValue));
 		else
-			archive << keyValue.template AdaptAndMoveToBaseKeyValue<typename TArchive::key_type>();
+			SplitAndSerialize(archive, keyValue.template AdaptAndMoveToBaseKeyValue<typename TArchive::key_type>());
 	}
 
 }	// namespace BitSerializer::KeyValueProxy

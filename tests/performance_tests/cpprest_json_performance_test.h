@@ -32,7 +32,7 @@ public:
 			booleansJsonArray[i] = web::json::value(mArrayOfBooleans[i]);
 		}
 
-		// Save array of intergers
+		// Save array of integers
 		web::json::value& intsJsonArray = rootObj[_XPLATSTR("ArrayOfInts")] = web::json::value::array(ARRAY_SIZE);
 		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
 			intsJsonArray[i] = web::json::value(mArrayOfInts[i]);
@@ -47,13 +47,17 @@ public:
 		// Save array of strings
 		web::json::value& stringsJsonArray = rootObj[_XPLATSTR("ArrayOfStrings")] = web::json::value::array(ARRAY_SIZE);
 		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
-			stringsJsonArray[i] = StringToJsonValue(mArrayOfStrings[i]);
+#ifdef _UTF16_STRINGS
+			stringsJsonArray[i] = web::json::value(mArrayOfStrings[i]);
+#else
+			stringsJsonArray[i] = web::json::value(BitSerializer::Convert::To<utility::string_t>(mArrayOfStrings[i]));
+#endif
 		}
 
 		// Save array of objects
 		web::json::value& objectsJsonArray = rootObj[_XPLATSTR("ArrayOfObjects")] = web::json::value::array(ARRAY_SIZE);
 		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
-			auto& obj = mArrayOfObjects[i];
+			const auto& obj = mArrayOfObjects[i];
 			auto& jObj = objectsJsonArray[i] = web::json::value::object();
 			jObj[_XPLATSTR("TestBoolValue")] = web::json::value(obj.mTestBoolValue);
 			jObj[_XPLATSTR("TestCharValue")] = web::json::value(obj.mTestCharValue);
@@ -62,8 +66,13 @@ public:
 			jObj[_XPLATSTR("TestInt64Value")] = web::json::value(obj.mTestInt64Value);
 			jObj[_XPLATSTR("TestFloatValue")] = web::json::value(obj.mTestFloatValue);
 			jObj[_XPLATSTR("TestDoubleValue")] = web::json::value(obj.mTestDoubleValue);
-			jObj[_XPLATSTR("TestStringValue")] = StringToJsonValue(obj.mTestStringValue);
-			jObj[_XPLATSTR("TestWStringValue")] = StringToJsonValue(obj.mTestWStringValue);
+#ifdef _UTF16_STRINGS
+			jObj[_XPLATSTR("TestStringValue")] = web::json::value(BitSerializer::Convert::To<utility::string_t>(obj.mTestStringValue));
+			jObj[_XPLATSTR("TestWStringValue")] = web::json::value(obj.mTestWStringValue);
+#else
+			jObj[_XPLATSTR("TestStringValue")] = web::json::value(obj.mTestStringValue);
+			jObj[_XPLATSTR("TestWStringValue")] = web::json::value(BitSerializer::Convert::To<utility::string_t>(obj.mTestWStringValue));
+#endif
 		}
 
 		// Build
@@ -72,7 +81,6 @@ public:
 
 	void TestLoad(const utility::string_t& json)
 	{
-		std::error_code error;
 		auto rootJson = web::json::value::parse(json);
 		if (rootJson.is_null())
 			throw std::exception("CppRestJson parse error");
@@ -86,7 +94,7 @@ public:
 			++i;
 		}
 
-		// Load array of intergers
+		// Load array of integers
 		const auto& integersJsonArray = rootObj.find(_XPLATSTR("ArrayOfInts"))->second.as_array();
 		i = 0;
 		for (const auto& jVal : integersJsonArray) {
@@ -130,7 +138,7 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	inline web::json::value StringToJsonValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	inline web::json::value StringToJsonValue(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 			return web::json::value(value);

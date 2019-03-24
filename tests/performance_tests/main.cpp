@@ -14,7 +14,6 @@
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
 
-static const int TestCycles = 20000;
 using Timer = std::chrono::high_resolution_clock;
 
 struct TestArchiveMetadata
@@ -29,7 +28,7 @@ struct TestArchiveMetadata
 	std::chrono::nanoseconds mMinNativeLoadTime;
 };
 
-template <class TArchive, class TPerformanceTestModel>
+template <class TArchive, class TPerformanceTestModel, int TestCycles>
 TestArchiveMetadata TestArchivePerformance()
 {
 	auto origModel = BuildFixture<TPerformanceTestModel>();
@@ -38,7 +37,7 @@ TestArchiveMetadata TestArchivePerformance()
 	int percent = -1;
 	for (int i = 0; i < TestCycles; i++)
 	{
-		const int newPercent = static_cast<int>(i / (TestCycles * 0.01));
+		const auto newPercent = static_cast<int>(i / (TestCycles * 0.01));
 		if (percent != newPercent)
 		{
 			percent = newPercent;
@@ -83,15 +82,17 @@ TestArchiveMetadata TestArchivePerformance()
 	std::cout << "\r";
 
 	// Display result
-	const auto minSaveTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinSaveTime).count();
-	const auto minNativeSaveTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinNativeSaveTime).count();
-	std::cout << metadata.mName << " save time: " << minNativeSaveTimeMs << " BitSerializer: " << minSaveTimeMs <<
-		" - difference " << minSaveTimeMs - minNativeSaveTimeMs << " (" << std::round((minNativeSaveTimeMs / (minSaveTimeMs / 100.0) - 100) * 10) / 10 << "%)" << std::endl;
+	const auto minSaveTimeMs = std::chrono::round<std::chrono::microseconds>(metadata.mMinSaveTime).count();
+	const auto minNativeSaveTimeMs = std::chrono::round<std::chrono::microseconds>(metadata.mMinNativeSaveTime).count();
+	const auto diffSavePercent = std::round((minNativeSaveTimeMs / (minSaveTimeMs / 100.0) - 100) * 10) / 10;
+	std::cout << metadata.mName << " save time: " << minNativeSaveTimeMs << " BitSerializer: " << minSaveTimeMs
+		<< " - difference " << minSaveTimeMs - minNativeSaveTimeMs << " (" << diffSavePercent << "%)" << std::endl;
 
-	const auto minLoadTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinLoadTime).count();
-	const auto minNativeLoadTimeMs = std::chrono::duration_cast<std::chrono::microseconds>(metadata.mMinNativeLoadTime).count();
-	std::cout << metadata.mName << " load time: " << minNativeLoadTimeMs << " BitSerializer: " << minLoadTimeMs <<
-		" - difference " << minLoadTimeMs - minNativeLoadTimeMs << " (" << std::round((minNativeLoadTimeMs / (minLoadTimeMs / 100.0) - 100) * 10) / 10 << "%)" << std::endl;
+	const auto minLoadTimeMs = std::chrono::round<std::chrono::microseconds>(metadata.mMinLoadTime).count();
+	const auto minNativeLoadTimeMs = std::chrono::round<std::chrono::microseconds>(metadata.mMinNativeLoadTime).count();
+	const auto diffLoadPercent = std::round((minNativeLoadTimeMs / (minLoadTimeMs / 100.0) - 100) * 10) / 10;
+	std::cout << metadata.mName << " load time: " << minNativeLoadTimeMs << " BitSerializer: " << minLoadTimeMs
+		<< " - difference " << minLoadTimeMs - minNativeLoadTimeMs << " (" << diffLoadPercent << "%)" << std::endl;
 
 	return metadata;
 }
@@ -101,8 +102,8 @@ int main()
 	std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
 
 	const TestArchiveMetadata metadataList[] = {
-		TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel>(),
-		TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel>()
+		TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel, 20000>(),
+		TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel, 5000>()
 	};
 
 	return 0;

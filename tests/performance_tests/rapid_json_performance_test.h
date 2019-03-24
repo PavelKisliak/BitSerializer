@@ -33,7 +33,7 @@ public:
 		}
 		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfBooleans"), booleansJsonArray.Move(), allocator);
 
-		// Save array of intergers
+		// Save array of integers
 		auto intsJsonArray = RapidJsonNode(rapidjson::kArrayType);
 		intsJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
 		for (auto item : mArrayOfInts) {
@@ -87,7 +87,6 @@ public:
 	void TestLoad(const std::wstring& json)
 	{
 		RapidJsonDocument jsonDoc;
-		auto& allocator = jsonDoc.GetAllocator();
 		if (jsonDoc.Parse(json.c_str()).HasParseError())
 			throw std::exception("RapidJson parse error");
 		const auto& jObject = jsonDoc.GetObject();
@@ -100,7 +99,7 @@ public:
 			++i;
 		}
 
-		// Load array of intergers
+		// Load array of integers
 		const auto& integersJsonArray = jObject.FindMember(L"ArrayOfInts")->value;
 		i = 0;
 		for (auto jItem = integersJsonArray.Begin(); jItem != integersJsonArray.End(); ++jItem) {
@@ -137,17 +136,17 @@ public:
 			obj.mTestInt64Value = jObj.FindMember(L"TestInt64Value")->value.GetInt64();
 			obj.mTestFloatValue = jObj.FindMember(L"TestFloatValue")->value.GetFloat();
 			obj.mTestDoubleValue = jObj.FindMember(L"TestDoubleValue")->value.GetDouble();
-			AssignStringFromJsonvalue(jObj.FindMember(L"TestStringValue")->value, obj.mTestStringValue);
-			AssignStringFromJsonvalue(jObj.FindMember(L"TestWStringValue")->value, obj.mTestWStringValue);
+			AssignStringFromJsonValue(jObj.FindMember(L"TestStringValue")->value, obj.mTestStringValue);
+			AssignStringFromJsonValue(jObj.FindMember(L"TestWStringValue")->value, obj.mTestWStringValue);
 			++i;
 		}
 	}
 
 	template <typename TSym, typename TAllocator, typename TRapidAllocator>
-	inline RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
+	RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
 	{
-		using TargetSymType = typename RapidJsonNode::EncodingType::Ch;
-		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
+		using TargetSymType = RapidJsonNode::EncodingType::Ch;
+		if constexpr (std::is_same_v<TSym, RapidJsonNode::EncodingType::Ch>)
 			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
 		else {
 			const auto str = BitSerializer::Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
@@ -156,12 +155,12 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	inline bool AssignStringFromJsonvalue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool AssignStringFromJsonValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if (!jsonValue.IsString())
 			return false;
 
-		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
+		if constexpr (std::is_same_v<TSym, RapidJsonNode::EncodingType::Ch>)
 			value = jsonValue.GetString();
 		else
 			value = BitSerializer::Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.GetString());

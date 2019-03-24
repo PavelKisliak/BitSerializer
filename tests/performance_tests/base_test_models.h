@@ -65,7 +65,7 @@ public:
 class BasePerformanceTestModel
 {
 public:
-	static constexpr size_t ARRAY_SIZE = 200;
+	static constexpr size_t ARRAY_SIZE = 20;
 
 	virtual ~BasePerformanceTestModel() = default;
 
@@ -102,9 +102,9 @@ public:
 	};
 
 protected:
-	bool mArrayOfBooleans[ARRAY_SIZE];
-	int64_t mArrayOfInts[ARRAY_SIZE];
-	double mArrayOfFloats[ARRAY_SIZE];
+	bool mArrayOfBooleans[ARRAY_SIZE] = {};
+	int64_t mArrayOfInts[ARRAY_SIZE] = {};
+	double mArrayOfFloats[ARRAY_SIZE] = {};
 	std::wstring mArrayOfStrings[ARRAY_SIZE];
-	ModelWithBasicTypes mArrayOfObjects[ARRAY_SIZE];
+	ModelWithBasicTypes mArrayOfObjects[ARRAY_SIZE] = {};
 };

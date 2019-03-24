@@ -1,5 +1,11 @@
 # BitSerializer
 ___
+
+| Build status | Windows |
+| ------ | ------ |
+| master | [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=1&branchName=master) |
+| dev | [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=dev)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=1&branchName=dev) |
+
 The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. I was tried to find some library (but without success), which could serialize models to popular web formats like JSON, Xml, UrlEncoded, but one of my requirement was that library should has one common interface for all formats. This is second release of library and it is just begin of way, currently it supports only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK.
 
 The good tests coverage helps to keep stability of project, but if you are see kind of issue, please describe it in «[Issues](https://bitbucket.org/Pavel_Kisliak/bitserializer/issues?status=new&status=open)» section.
@@ -11,7 +17,7 @@ The good tests coverage helps to keep stability of project, but if you are see k
 - [ + ] Added performance test.
 - [ + ] Added directory with samples.
 - [ + ] Added CMake support (it needs just for samples and tests, as the library is headers only).
-- [ + ] Added function MakeAutoKeyVale() to make key/value which is able to automatically adapt key to target archive.
+- [ + ] Added function MakeAutoKeyValue() to make key/value which is able to automatically adapt key to target archive.
 - [ \* ] Enhanced architecture for support different kind of formats (for example allow to implement ANSI/Unicode streams in one archive).
 - [ \* ] Fixed compilation issues on latest Visual Studio 15.8.6 and GCC.
 - [ \* ] Changed (unified) interface methods: LoadObjectFromStream() -> LoadObject(), SaveObjectToStream() -> SaveObject().
@@ -26,7 +32,7 @@ The good tests coverage helps to keep stability of project, but if you are see k
 - Checking at compile time the permissibility of saving types depending on the structure of the output format.
 - Support for serialization ANSI and wide strings.
 - Support for serialization of most STL containers.
-- Support for serialization of enum types (registration of a names map is required).
+- Support for serialization of enum types (registration a names map is required).
 - As a bonus, the subsystem for converting strings to / from arbitrary types.
 
 #### Supported Formats:
@@ -194,7 +200,7 @@ Returns result
 	]
 }
 ```
-For serializing a named object please use helper method MakeKeyValue(key, value). The type of key should be supported by archive, but also exists method MakeAutoKeyValue(key, value) which automatically converts to preferred key type for the archive. The good place for using this method is some common serialization code which could be used with different kind of archives.
+For serializing a named object please use helper method MakeKeyValue(key, value). The type of key should be supported by archive, but also exists method MakeAutoKeyValue(key, value) which automatically converts to preferred key type for the archive. The good place for using this method is some common serialization code that can be used with various types of archives.
 
 #### Serializing base class
 To serialize the base class, use the helper method BaseObject(), as in the next example.

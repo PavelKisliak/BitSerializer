@@ -78,15 +78,14 @@ protected:
 
 		if constexpr (std::is_integral_v<T>)
 		{
-			const auto& number = jsonValue.as_number();
 			if constexpr (std::is_same_v<T, int64_t>) {
-				value = number.to_int64();
+				value = jsonValue.as_number().to_int64();
 			}
 			else if constexpr (std::is_same_v<T, uint64_t>) {
-				value = number.to_uint64();
+				value = jsonValue.as_number().to_uint64();
 			}
 			else {
-				value = static_cast<T>(number.to_int32());
+				value = static_cast<T>(jsonValue.as_number().to_int32());
 			}
 		}
 		else
@@ -122,11 +121,15 @@ protected:
 template <SerializeMode TMode>
 class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 {
+protected:
+	size_t mSize;
 public:
 	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
 		, mIndex(0)
 	{
+		if (node != nullptr)
+			mSize = node->size();
 		assert(mNode->is_array());
 	}
 
@@ -144,7 +147,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mIndex < GetSize()) {
+			if (mIndex < mSize) {
 				const auto& jsonValue = (*mNode)[mIndex++];
 				if (jsonValue.is_boolean())
 					value = jsonValue.as_bool();
@@ -160,7 +163,7 @@ public:
 	void SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			if (mIndex < GetSize())
+			if (mIndex < mSize)
 				LoadFundamentalValue((*mNode)[mIndex++], value);
 		}
 		else {
@@ -172,7 +175,7 @@ public:
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			if (mIndex < GetSize())
+			if (mIndex < mSize)
 				LoadString((*mNode)[mIndex++], value);
 		}
 		else
@@ -188,7 +191,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mIndex < GetSize())
+			if (mIndex < mSize)
 			{
 				auto& jsonValue = (*mNode)[mIndex++];
 				if (jsonValue.is_object())
@@ -207,7 +210,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mIndex < GetSize()) {
+			if (mIndex < mSize) {
 				auto& jsonValue = (*mNode)[mIndex++];
 				if (jsonValue.is_array())
 					return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);

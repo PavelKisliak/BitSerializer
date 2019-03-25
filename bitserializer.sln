@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serialize_third_party_class
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Performance.Tests", "tests\performance_tests\performance_tests.vcxproj", "{02A5D96C-40FC-43DF-834B-816BB5FA0D8C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.PugiXml.Tests", "tests\bitserializer_pugixml_tests\bitserializer_pugixml_tests.vcxproj", "{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -85,6 +87,14 @@ Global
 		{02A5D96C-40FC-43DF-834B-816BB5FA0D8C}.Release|x64.Build.0 = Release|x64
 		{02A5D96C-40FC-43DF-834B-816BB5FA0D8C}.Release|x86.ActiveCfg = Release|Win32
 		{02A5D96C-40FC-43DF-834B-816BB5FA0D8C}.Release|x86.Build.0 = Release|Win32
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Debug|x64.ActiveCfg = Debug|x64
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Debug|x64.Build.0 = Debug|x64
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Debug|x86.ActiveCfg = Debug|Win32
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Debug|x86.Build.0 = Debug|Win32
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Release|x64.ActiveCfg = Release|x64
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Release|x64.Build.0 = Release|x64
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Release|x86.ActiveCfg = Release|Win32
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +107,7 @@ Global
 		{910DD787-9A67-4A39-952A-2077B6607CFC} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
 		{491E5B5F-725F-44ED-9525-99F38C673A95} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
 		{02A5D96C-40FC-43DF-834B-816BB5FA0D8C} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
+		{313CBE60-95BB-4742-A6A9-B5859A4FD7BE} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F41DAFDC-F7E6-4B35-BB33-54073C9FC110}

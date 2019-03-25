@@ -7,9 +7,10 @@
 #define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 
 #include "../test_helpers/common_test_methods.h"
+#include "../test_helpers/common_json_test_methods.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 
-using namespace BitSerializer::Json::RapidJson;
+using BitSerializer::Json::RapidJson::JsonArchive;
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
@@ -151,19 +152,19 @@ TEST(RapidJsonArchive, ShouldIterateKeysInObjectScope) {
 // Test paths in archive
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ShouldReturnPathInObjectScopeWhenLoading) {
-	TestGetPathInObjectScopeWhenLoading<JsonArchive>();
+	TestGetPathInJsonObjectScopeWhenLoading<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInObjectScopeWhenSaving) {
-	TestGetPathInObjectScopeWhenSaving<JsonArchive>();
+	TestGetPathInJsonObjectScopeWhenSaving<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenLoading) {
-	TestGetPathInArrayScopeWhenLoading<JsonArchive>();
+	TestGetPathInJsonArrayScopeWhenLoading<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenSaving) {
-	TestGetPathInArrayScopeWhenSaving<JsonArchive>();
+	TestGetPathInJsonArrayScopeWhenSaving<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

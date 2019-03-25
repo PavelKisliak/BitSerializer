@@ -30,7 +30,6 @@ void TestSerializeType(T&& value)
 /// <summary>
 /// Test template of serialization for c-array.
 /// </summary>
-/// <param name="value">The value.</param>
 template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
 void TestSerializeArray()
 {
@@ -51,9 +50,30 @@ void TestSerializeArray()
 }
 
 /// <summary>
+/// Test template of serialization for c-array.
+/// </summary>
+template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
+void TestSerializeArrayWithKey()
+{
+	// Arrange
+	TValue testArray[SourceArraySize];
+	BuildFixture(testArray);
+	typename TArchive::preferred_output_format outputArchive;
+	TValue actual[TargetArraySize];
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", testArray), outputArchive);
+
+	// Assert
+	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", actual), outputArchive);
+	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
+		ASSERT_EQ(testArray[i], actual[i]);
+	}
+}
+
+/// <summary>
 /// Test template of serialization for two-dimensional c-array.
 /// </summary>
-/// <param name="value">The value.</param>
 template<typename TArchive, typename TValue, size_t ArraySize1 = 3, size_t ArraySize2 = 5>
 void TestSerializeTwoDimensionalArray()
 {
@@ -91,6 +111,25 @@ void TestSerializeClass(T&& value)
 
 	// Assert
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+	value.Assert(actual);
+}
+
+/// <summary>
+/// Test template of serialization for class with key (must have constant method Assert()).
+/// </summary>
+/// <param name="value">The value.</param>
+template <typename TArchive, typename T>
+void TestSerializeClassWithKey(T&& value)
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive;
+	std::decay_t<T> actual;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", value), outputArchive);
+
+	// Assert
+	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue("Root", actual), outputArchive);
 	value.Assert(actual);
 }
 
@@ -137,7 +176,7 @@ void TestSerializeClassToFile(T&& value)
 /// <summary>
 /// Test template of serialization for STL containers.
 /// </summary>
-/// <param name="value">The value.</param>
+/// <param name="specialAssertFunc">The assertion function.</param>
 template <typename TArchive, typename TContainer>
 void TestSerializeStlContainer(std::optional<std::function<void(const TContainer&, const TContainer&)>> specialAssertFunc = std::nullopt)
 {
@@ -229,140 +268,4 @@ void TestIterateKeysInObjectScope()
 
 	++it;
 	EXPECT_TRUE(it == endIt);
-}
-
-/// <summary>
-/// Tests archive method which should return current path in object scope (when loading).
-/// </summary>
-template <typename TArchive>
-void TestGetPathInObjectScopeWhenLoading()
-{
-	// Arrange
-	TestClassWithSubType<TestPointClass> testObj;
-	::BuildFixture(testObj);
-	using OutputFormat = typename TArchive::preferred_output_format;
-	OutputFormat outputData;
-	BitSerializer::SaveObject<TArchive>(testObj, outputData);
-
-	// Act / Assert
-	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData));
-	ASSERT_EQ(inputArchive.GetPath(), L"");
-	auto objScope = inputArchive.OpenObjectScope();
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), L"");
-
-	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestSubValue");
-	const auto expectedObjectPath = TArchive::path_separator + std::wstring(L"TestSubValue");
-	auto subScope = objScope->OpenObjectScope(objectKey);
-	ASSERT_TRUE(subScope.has_value());
-	ASSERT_EQ(subScope->GetPath(), expectedObjectPath);
-}
-
-/// <summary>
-/// Tests archive method which should return current path in object scope (when saving).
-/// </summary>
-template <typename TArchive>
-void TestGetPathInObjectScopeWhenSaving()
-{
-	// Arrange
-	using OutputFormat = typename TArchive::preferred_output_format;
-	OutputFormat outputData;
-	typename TArchive::output_archive_type outputArchive(outputData);
-
-	// Act / Assert
-	ASSERT_EQ(outputArchive.GetPath(), L"");
-	auto objScope = outputArchive.OpenObjectScope();
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), L"");
-
-	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestSubValue");
-	auto subScope = objScope->OpenObjectScope(objectKey);
-	ASSERT_TRUE(subScope.has_value());
-	ASSERT_EQ(subScope->GetPath(), TArchive::path_separator + objectKey);
-}
-
-/// <summary>
-/// Tests archive method which should return current path in array scope (when loading).
-/// </summary>
-template <typename TArchive>
-void TestGetPathInArrayScopeWhenLoading()
-{
-	// Arrange
-	using TestType = TestClassWithSubTwoDimArray<TestClassWithSubType<int>>;
-	TestType testObj;
-	::BuildFixture(testObj);
-
-	using OutputFormat = typename TArchive::preferred_output_format;
-	OutputFormat outputData;
-	BitSerializer::SaveObject<TArchive>(testObj, outputData);
-
-	// Act / Assert
-	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData));
-	ASSERT_EQ(inputArchive.GetPath(), L"");
-	auto objScope = inputArchive.OpenObjectScope();
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), L"");
-
-	const auto arrayKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestTwoDimArray");
-	const auto expectedObjectPath = TArchive::path_separator + std::wstring(L"TestTwoDimArray");
-	auto arrayScope = objScope->OpenArrayScope(arrayKey, TestType::Array1stLevelSize);
-	ASSERT_TRUE(arrayScope.has_value());
-	ASSERT_EQ(arrayScope->GetPath(), expectedObjectPath + TArchive::path_separator + L"0");
-
-	int loadValue;
-	for (size_t k = 0; k < TestType::Array1stLevelSize; k++)
-	{
-		auto subArrayScope = arrayScope->OpenArrayScope(TestType::Array2stLevelSize);
-		ASSERT_TRUE(subArrayScope.has_value());
-
-		for (size_t i = 0; i < TestType::Array2stLevelSize; i++)
-		{
-			subArrayScope->SerializeValue(loadValue);
-			auto expectedPath = expectedObjectPath
-				+ TArchive::path_separator + BitSerializer::Convert::ToWString(k)
-				+ TArchive::path_separator + BitSerializer::Convert::ToWString(i);
-			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
-		}
-	}
-}
-
-/// <summary>
-/// Tests archive method which should return current path in array scope (when saving).
-/// </summary>
-template <typename TArchive>
-void TestGetPathInArrayScopeWhenSaving()
-{
-	// Arrange
-	size_t array1stLevelSize = 3, array2stLevelSize = 5;
-	using OutputFormat = typename TArchive::preferred_output_format;
-	OutputFormat outputData;
-	typename TArchive::output_archive_type outputArchive(outputData);
-
-	// Act / Assert
-	ASSERT_EQ(outputArchive.GetPath(), L"");
-	auto objScope = outputArchive.OpenObjectScope();
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), L"");
-
-	const auto arrayKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestTwoDimArray");
-	const auto expectedObjectPath = TArchive::path_separator + std::wstring(L"TestTwoDimArray");
-	auto arrayScope = objScope->OpenArrayScope(arrayKey, array1stLevelSize);
-	ASSERT_TRUE(arrayScope.has_value());
-	ASSERT_EQ(arrayScope->GetPath(), expectedObjectPath + TArchive::path_separator + L"0");
-
-	int saveValue = 0x10203040;
-	for (size_t k = 0; k < array1stLevelSize; k++)
-	{
-		auto subArrayScope = arrayScope->OpenArrayScope(array2stLevelSize);
-		ASSERT_TRUE(subArrayScope.has_value());
-
-		for (size_t i = 0; i < array2stLevelSize; i++)
-		{
-			subArrayScope->SerializeValue(saveValue);
-			auto expectedPath = expectedObjectPath
-				+ TArchive::path_separator + BitSerializer::Convert::ToWString(k)
-				+ TArchive::path_separator + BitSerializer::Convert::ToWString(i);
-			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
-		}
-	}
 }

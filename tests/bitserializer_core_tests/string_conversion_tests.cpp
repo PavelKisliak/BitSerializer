@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include "../test_helpers/common_test_entities.h"
+#include "test_helpers/common_test_entities.h"
 
 using namespace BitSerializer;
 

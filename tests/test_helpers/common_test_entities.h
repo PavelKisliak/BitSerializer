@@ -3,8 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cstdlib>
-#include <type_traits>
 #include <functional>
 #include <tuple>
 #include "auto_fixture.h"
@@ -84,6 +82,7 @@ public:
 				case 1:
 					y = std::stoi(str.substr(prev, f - prev));
 					break;
+				default: ;
 				}
 			}
 			else break;
@@ -305,7 +304,7 @@ public:
 		// Trying to load not exist fields
 		if (archive.IsLoading())
 		{
-			TestType notExistSingleField;
+			TestType notExistSingleField{};
 			TestType notExistArrayField[3];
 
 			archive << BitSerializer::MakeAutoKeyValue(L"NotExistSingleField", notExistSingleField, BitSerializer::Required());

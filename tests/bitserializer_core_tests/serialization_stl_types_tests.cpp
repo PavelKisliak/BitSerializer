@@ -3,8 +3,8 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include "../test_helpers/common_test_methods.h"
-#include "../test_helpers/archive_stub.h"
+#include "test_helpers/common_test_methods.h"
+#include "test_helpers/archive_stub.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL types.

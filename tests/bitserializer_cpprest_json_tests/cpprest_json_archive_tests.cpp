@@ -2,11 +2,12 @@
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include <filesystem>
-#include "../test_helpers/common_test_methods.h"
+#include "gtest/gtest.h"
 #include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "test_helpers/common_test_methods.h"
+#include "test_helpers/common_json_test_methods.h"
 
-using namespace BitSerializer::Json::CppRest;
+using BitSerializer::Json::CppRest::JsonArchive;
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
@@ -148,19 +149,19 @@ TEST(JsonRestCpp, ShouldIterateKeysInObjectScope) {
 // Test paths in archive
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ShouldReturnPathInObjectScopeWhenLoading) {
-	TestGetPathInObjectScopeWhenLoading<JsonArchive>();
+	TestGetPathInJsonObjectScopeWhenLoading<JsonArchive>();
 }
 
 TEST(JsonRestCpp, ShouldReturnPathInObjectScopeWhenSaving) {
-	TestGetPathInObjectScopeWhenSaving<JsonArchive>();
+	TestGetPathInJsonObjectScopeWhenSaving<JsonArchive>();
 }
 
 TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenLoading) {
-	TestGetPathInArrayScopeWhenLoading<JsonArchive>();
+	TestGetPathInJsonArrayScopeWhenLoading<JsonArchive>();
 }
 
 TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenSaving) {
-	TestGetPathInArrayScopeWhenSaving<JsonArchive>();
+	TestGetPathInJsonArrayScopeWhenSaving<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

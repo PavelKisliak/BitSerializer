@@ -3,8 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "pch.h"
-#include "../test_helpers/common_test_methods.h"
-#include "../test_helpers/archive_stub.h"
+#include "test_helpers/archive_stub.h"
+#include "test_helpers/common_test_methods.h"
+#include "test_helpers/common_json_test_methods.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for base types.
@@ -153,19 +154,19 @@ TEST(BaseTypes, ShouldIterateKeysInObjectScope) {
 // Test paths in archive
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, ShouldReturnPathInObjectScopeWhenLoading) {
-	TestGetPathInObjectScopeWhenLoading<ArchiveStub>();
+	TestGetPathInJsonObjectScopeWhenLoading<ArchiveStub>();
 }
 
 TEST(BaseTypes, ShouldReturnPathInObjectScopeWhenSaving) {
-	TestGetPathInObjectScopeWhenSaving<ArchiveStub>();
+	TestGetPathInJsonObjectScopeWhenSaving<ArchiveStub>();
 }
 
 TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenLoading) {
-	TestGetPathInArrayScopeWhenLoading<ArchiveStub>();
+	TestGetPathInJsonArrayScopeWhenLoading<ArchiveStub>();
 }
 
 TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenSaving) {
-	TestGetPathInArrayScopeWhenSaving<ArchiveStub>();
+	TestGetPathInJsonArrayScopeWhenSaving<ArchiveStub>();
 }
 
 //-----------------------------------------------------------------------------

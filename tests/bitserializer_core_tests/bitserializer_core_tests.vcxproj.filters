@@ -78,6 +78,12 @@
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\key_value_proxy.h">
       <Filter>CoreImpl\serialization_detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\test_helpers\xml_test_templates.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\test_helpers\common_json_test_methods.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="TestHelpers">

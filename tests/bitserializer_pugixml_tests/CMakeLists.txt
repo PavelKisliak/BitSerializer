@@ -9,16 +9,16 @@ enable_testing()
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
+find_package(pugixml CONFIG REQUIRED)
+
 add_executable(${PROJECT_NAME}
   pugixml_archive_tests.cpp
 )
 
-find_package(pugixml CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE pugixml)
-
 target_link_libraries(
   ${PROJECT_NAME}
   ${GTEST_BOTH_LIBRARIES}
+  pugixml
 )
 
 add_test(PugiXmlTests ${PROJECT_NAME})

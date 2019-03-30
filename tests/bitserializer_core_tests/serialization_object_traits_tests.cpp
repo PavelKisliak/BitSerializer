@@ -2,7 +2,8 @@
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include "pch.h"
+#include <gtest/gtest.h>
+#include <forward_list>
 #include "bitserializer/serialization_detail/object_traits.h"
 
 using namespace BitSerializer;

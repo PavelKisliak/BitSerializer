@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <type_traits>
 #include "media_archive_base.h"
 
 namespace BitSerializer {

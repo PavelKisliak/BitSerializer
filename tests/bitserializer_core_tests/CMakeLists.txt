@@ -16,5 +16,8 @@ add_executable(${PROJECT_NAME}
   validators_tests.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE GTest::GTest GTest::Main)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    GTest::Main
+    GTest::GTest)
+
 add_test(BitSerializerAllCoreTests ${PROJECT_NAME})

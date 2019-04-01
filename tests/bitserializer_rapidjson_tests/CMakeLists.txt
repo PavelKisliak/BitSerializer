@@ -16,9 +16,10 @@ add_executable(${PROJECT_NAME}
 find_package(RapidJSON CONFIG REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
 
-target_link_libraries(
-  ${PROJECT_NAME}
-  ${GTEST_BOTH_LIBRARIES}
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>
+  GTest::GTest
+  GTest::Main
 )
 
 add_test(RapidJsonTests ${PROJECT_NAME})

@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <optional>
-#include <filesystem>
+#include <experimental/filesystem>
 #include "gtest/gtest.h"
 #include "common_test_entities.h"
 
@@ -162,7 +162,7 @@ template <typename TArchive, typename TStreamElem, typename T>
 void TestSerializeClassToFile(T&& value)
 {
 	// Arrange
-	auto path = std::filesystem::temp_directory_path() / "TestArchive.data";
+	auto path = std::experimental::filesystem::temp_directory_path() / "TestArchive.data";
 	std::decay_t<T> actual;
 
 	// Act

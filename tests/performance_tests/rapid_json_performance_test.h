@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <exception>
 #include "bitserializer/string_conversion.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 #include "base_test_models.h"
@@ -88,7 +89,7 @@ public:
 	{
 		RapidJsonDocument jsonDoc;
 		if (jsonDoc.Parse(json.c_str()).HasParseError())
-			throw std::exception("RapidJson parse error");
+			throw std::runtime_error("RapidJson parse error");
 		const auto& jObject = jsonDoc.GetObject();
 
 		// Load array of booleans

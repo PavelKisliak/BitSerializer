@@ -19,9 +19,9 @@ namespace BitSerializer::Convert
 	inline std::string ToString(TIn&& value)
 	{
 		std::string ret_Str;
-		Detail::To(value, ret_Str);
+		Detail::To(std::forward<TIn>(value), ret_Str);
 		return ret_Str;
-	};
+	}
 
 	/// <summary>
 	/// Converts value to the wide string.
@@ -32,9 +32,9 @@ namespace BitSerializer::Convert
 	inline std::wstring ToWString(TIn&& value)
 	{
 		std::wstring ret_Str;
-		Detail::To(value, ret_Str);
+		Detail::To(std::forward<TIn>(value), ret_Str);
 		return ret_Str;
-	};
+	}
 
 	/// <summary>
 	/// Converts ANSI string to specified value.
@@ -44,10 +44,10 @@ namespace BitSerializer::Convert
 	template <typename T>
 	inline T FromString(const std::string& str)
 	{
-		T retVal;
+		T retVal{};
 		Detail::To(str, retVal);
 		return retVal;
-	};
+	}
 
 	/// <summary>
 	/// Converts wide string to specified value.
@@ -60,7 +60,7 @@ namespace BitSerializer::Convert
 		T retVal;
 		Detail::To(str, retVal);
 		return retVal;
-	};
+	}
 
 	/// <summary>
 	/// Converts from string to specified value or from value to specified string (universal function).
@@ -87,7 +87,7 @@ namespace BitSerializer::Convert
 			Detail::To(std::forward<TIn>(value), result);
 		}
 		return result;
-	};
+	}
 
 }	// namespace BitSerializer::Convert
 

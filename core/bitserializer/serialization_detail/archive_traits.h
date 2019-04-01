@@ -258,19 +258,14 @@ template <typename T, typename TTuple>
 struct is_type_convertible_to_one_from_tuple
 {
 private:
-	template <class TTuple , size_t... Is >
+	template <class TestType, size_t... Is >
 	static constexpr bool testImpl(std::index_sequence<Is...>) {
-		return (std::is_convertible_v<T, typename std::tuple_element<Is, TTuple>::type> || ...);
+		return (std::is_convertible_v<T, typename std::tuple_element<Is, TestType>::type> || ...);
 	}
 
-	template <class TTuple>
+	template <class TestType>
 	static constexpr bool test() {
-		return testImpl<TTuple>(std::make_index_sequence<std::tuple_size<TTuple>::value>{});
-	}
-
-	template <>
-	static constexpr bool test<std::tuple<>>() {
-		return false;
+		return testImpl<TestType>(std::make_index_sequence<std::tuple_size<TestType>::value>{});
 	}
 
 public:

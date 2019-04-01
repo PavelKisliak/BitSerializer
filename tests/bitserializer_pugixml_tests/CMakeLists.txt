@@ -15,9 +15,10 @@ add_executable(${PROJECT_NAME}
   pugixml_archive_tests.cpp
 )
 
-target_link_libraries(
-  ${PROJECT_NAME}
-  ${GTEST_BOTH_LIBRARIES}
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>
+  GTest::GTest
+  GTest::Main
   pugixml
 )
 

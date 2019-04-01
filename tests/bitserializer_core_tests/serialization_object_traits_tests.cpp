@@ -3,6 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
+#include <sstream>
+#include <vector>
+#include <array>
+#include <list>
 #include <forward_list>
 #include "bitserializer/serialization_detail/object_traits.h"
 

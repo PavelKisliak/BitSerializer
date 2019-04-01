@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <exception>
 #include "bitserializer/string_conversion.h"
 #include "bitserializer_cpprest_json/cpprest_json_archive.h"
 #include "base_test_models.h"
@@ -83,7 +84,7 @@ public:
 	{
 		auto rootJson = web::json::value::parse(json);
 		if (rootJson.is_null())
-			throw std::exception("CppRestJson parse error");
+			throw std::runtime_error("CppRestJson parse error");
 		auto& rootObj = rootJson.as_object();
 
 		// Load array of booleans

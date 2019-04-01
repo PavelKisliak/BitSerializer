@@ -13,11 +13,11 @@ struct has_to_string
 private:
 	template <typename TObj, typename TStr>
 	static std::enable_if_t<std::is_same_v<typename TStr::value_type, char> &&
-		std::is_same_v<decltype(std::declval<TObj>().ToString()), TStr>, std::true_type> test(int);
+		std::is_convertible_v<decltype(std::declval<TObj>().ToString()), TStr>, std::true_type> test(int);
 
 	template <typename TObj, typename TStr>
 	static std::enable_if_t<std::is_same_v<typename TStr::value_type, wchar_t> &&
-		std::is_same_v<decltype(std::declval<TObj>().ToWString()), TStr>, std::true_type> test(int);
+		std::is_convertible_v<decltype(std::declval<TObj>().ToWString()), TStr>, std::true_type> test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);

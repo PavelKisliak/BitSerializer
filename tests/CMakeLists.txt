@@ -1,3 +1,7 @@
+include_directories(
+  ${CMAKE_CURRENT_LIST_DIR}
+)
+
 add_subdirectory(performance_tests)
 add_subdirectory(bitserializer_core_tests)
 add_subdirectory(bitserializer_cpprest_json_tests)

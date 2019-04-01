@@ -182,9 +182,9 @@ void TestSerializeStlContainer(std::optional<std::function<void(const TContainer
 {
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive;
-	TContainer expected;
+	TContainer expected{};
 	::BuildFixture(expected);
-	TContainer actual;
+	TContainer actual{};
 
 	// Act
 	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);

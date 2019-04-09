@@ -11,16 +11,48 @@
 namespace BitSerializer::Convert
 {
 	/// <summary>
+	/// Converts from string to specified value or from value to specified string (universal function).
+	/// </summary>
+	/// <param name="value">The input value.</param>
+	/// <returns>The resulting value</returns>
+	template <typename TOut, typename TIn>
+	TOut To(TIn&& value)
+	{
+		if constexpr (std::is_convertible_v<std::decay_t<TIn>, TOut>)
+			return std::forward<TIn>(value);
+
+		TOut result;
+		if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
+			// Convert to std::string, as internal implementation does not support c-strings
+			Detail::To(std::forward<std::string>(value), result);
+		}
+		else if constexpr (std::is_same_v<std::decay_t<TIn>, const wchar_t*>) {
+			// Convert to std::wstring, as internal implementation does not support c-strings
+			Detail::To(std::forward<std::wstring>(value), result);
+		}
+		else if constexpr (std::is_same_v<std::decay_t<TIn>, std::string_view>) {
+			// Convert to std::string, as internal implementation does not support string_view
+			Detail::To(std::string(value.data(), value.size()), result);
+		}
+		else if constexpr (std::is_same_v<std::decay_t<TIn>, std::wstring_view>) {
+			// Convert to std::wstring, as internal implementation does not support string_view
+			Detail::To(std::wstring(value.data(), value.size()), result);
+		}
+		else
+		{
+			Detail::To(std::forward<TIn>(value), result);
+		}
+		return result;
+	}
+
+	/// <summary>
 	/// Converts value to the string.
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>ANSI string</returns>
 	template <typename TIn>
-	inline std::string ToString(TIn&& value)
-	{
-		std::string ret_Str;
-		Detail::To(std::forward<TIn>(value), ret_Str);
-		return ret_Str;
+	std::string ToString(TIn&& value) {
+		return To<std::string>(std::forward<TIn>(value));
 	}
 
 	/// <summary>
@@ -29,11 +61,8 @@ namespace BitSerializer::Convert
 	/// <param name="value">The input value.</param>
 	/// <returns>Wide string</returns>
 	template <typename TIn>
-	inline std::wstring ToWString(TIn&& value)
-	{
-		std::wstring ret_Str;
-		Detail::To(std::forward<TIn>(value), ret_Str);
-		return ret_Str;
+	std::wstring ToWString(TIn&& value) {
+		return To<std::wstring>(std::forward<TIn>(value));
 	}
 
 	/// <summary>
@@ -42,7 +71,7 @@ namespace BitSerializer::Convert
 	/// <param name="str">The input string.</param>
 	/// <returns>The resulting value</returns>
 	template <typename T>
-	inline T FromString(const std::string& str)
+	T FromString(const std::string& str)
 	{
 		T retVal{};
 		Detail::To(str, retVal);
@@ -55,38 +84,11 @@ namespace BitSerializer::Convert
 	/// <param name="str">The input string.</param>
 	/// <returns>The resulting value</returns>
 	template <typename T>
-	inline T FromString(const std::wstring& str)
+	T FromString(const std::wstring& str)
 	{
 		T retVal;
 		Detail::To(str, retVal);
 		return retVal;
-	}
-
-	/// <summary>
-	/// Converts from string to specified value or from value to specified string (universal function).
-	/// </summary>
-	/// <param name="value">The input value.</param>
-	/// <returns>The resulting value</returns>
-	template <typename TOut, typename TIn>
-	inline TOut To(TIn&& value)
-	{
-		if constexpr (std::is_same_v<TOut, std::decay_t<TIn>>)
-			return std::forward<TIn>(value);
-
-		TOut result;
-		if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
-			// Convert to std::string, as internal implementation does not support c-strings
-			Detail::To(std::forward<std::string>(value), result);
-		}
-		else if constexpr (std::is_same_v<std::decay_t<TIn>, const wchar_t*>) {
-			// Convert to std::wstring, as internal implementation does not support c-strings
-			Detail::To(std::forward<std::wstring>(value), result);
-		}
-		else
-		{
-			Detail::To(std::forward<TIn>(value), result);
-		}
-		return result;
 	}
 
 }	// namespace BitSerializer::Convert
@@ -101,7 +103,7 @@ namespace BitSerializer::Convert
 /// <returns></returns>
 template <typename TIn, std::enable_if_t<((std::is_class_v<TIn> || std::is_union_v<TIn>) &&
 	BitSerializer::Convert::Detail::has_to_string_v<TIn, std::string>), int> = 0>
-inline std::ostream& operator<<(std::ostream& stream, const TIn& value) {
+std::ostream& operator<<(std::ostream& stream, const TIn& value) {
 	stream << value.ToString();
 	return stream;
 }
@@ -114,7 +116,7 @@ inline std::ostream& operator<<(std::ostream& stream, const TIn& value) {
 /// <returns></returns>
 template <typename TIn, std::enable_if_t<((std::is_class_v<TIn> || std::is_union_v<TIn>) &&
 	BitSerializer::Convert::Detail::has_to_string_v<TIn, std::wstring>), int> = 0>
-inline std::wostream& operator<<(std::wostream& stream, const TIn& value) {
+std::wostream& operator<<(std::wostream& stream, const TIn& value) {
 	stream << value.ToWString();
 	return stream;
 }
@@ -126,7 +128,7 @@ inline std::wostream& operator<<(std::wostream& stream, const TIn& value) {
 /// <param name="value">The value.</param>
 /// <returns></returns>
 template <typename TIn, typename TSym, std::enable_if_t<std::is_enum_v<TIn>, int> = 0>
-inline std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, const TIn& value)
+std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, const TIn& value)
 {
 	std::basic_string<TSym, std::char_traits<TSym>> str;
 	BitSerializer::Convert::Detail::ConvertEnum::ToString(value, str);

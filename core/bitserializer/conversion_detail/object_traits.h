@@ -36,12 +36,7 @@ struct has_from_string
 {
 private:
 	template <typename TObj, typename TStr>
-	static std::enable_if_t<std::is_same_v<typename TStr::value_type, char> &&
-		std::is_void_v<decltype(std::declval<TObj>().FromString(std::declval<const TStr&>()))>, std::true_type> test(int);
-
-	template <typename TObj, typename TStr>
-	static std::enable_if_t<std::is_same_v<typename TStr::value_type, wchar_t> &&
-		std::is_void_v<decltype(std::declval<TObj>().FromString(std::declval<const TStr&>()))>, std::true_type> test(int);
+	static decltype(std::declval<TObj>().FromString(std::declval<const TStr&>()), void(), std::true_type()) test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);

@@ -20,8 +20,6 @@ inline void To(const char* in_str, std::string& ret_Str)				{ ret_Str = in_str; 
 inline void To(const wchar_t* in_str, std::wstring& ret_Str)			{ ret_Str = in_str; }
 inline void To(const std::string& in_str, std::string& ret_Str)			{ ret_Str = in_str; }
 inline void To(const std::wstring& in_str, std::wstring& ret_Str)		{ ret_Str = in_str; }
-inline void To(const std::string_view& in_str, std::string& ret_Str)	{ ret_Str = in_str; }
-inline void To(const std::wstring_view& in_str, std::wstring& ret_Str)	{ ret_Str = in_str; }
 
 //------------------------------------------------------------------------------
 // Convert std::string to std::wstring and vice versa (without using locale)
@@ -72,7 +70,7 @@ template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || 
 void To(const T& classRef, std::basic_string<char, std::char_traits<char>, TAllocator>& ret_Str)
 {
 	constexpr auto isConvertible = has_to_string_v<T, std::basic_string<char, std::char_traits<char>, TAllocator>>;
-	//static_assert(isConvertible, "Class should has public constant methods ToString() or static in namespace BitSerializer::Convert::Detail.");
+	static_assert(isConvertible, "Class should has public constant methods ToString() or static in namespace BitSerializer::Convert::Detail.");
 
 	if constexpr (isConvertible) {
 		ret_Str = classRef.ToString();
@@ -83,7 +81,7 @@ template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || 
 void To(const T& classRef, std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>& ret_Str)
 {
 	constexpr auto isConvertible = has_to_string_v<T, std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>>;
-	//static_assert(isConvertible, "Class should has public constant methods ToWString() or static in namespace BitSerializer::Convert::Detail.");
+	static_assert(isConvertible, "Class should has public constant methods ToWString() or static in namespace BitSerializer::Convert::Detail.");
 
 	if constexpr (isConvertible) {
 		ret_Str = classRef.ToWString();

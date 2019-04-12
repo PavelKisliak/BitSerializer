@@ -41,9 +41,9 @@ void TestSerializeArray()
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
 		ASSERT_EQ(testArray[i], actual[i]);
 	}
@@ -63,9 +63,9 @@ void TestSerializeArrayWithKey()
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", testArray), outputArchive);
+	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", actual), outputArchive);
 
 	// Assert
-	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", actual), outputArchive);
 	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
 		ASSERT_EQ(testArray[i], actual[i]);
 	}
@@ -85,9 +85,9 @@ void TestSerializeTwoDimensionalArray()
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	for (size_t i = 0; i < ArraySize1; i++) {
 		for (size_t c = 0; c < ArraySize2; c++) {
 			ASSERT_EQ(testArray[i][c], actual[i][c]);
@@ -108,9 +108,9 @@ void TestSerializeClass(T&& value)
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 	value.Assert(actual);
 }
 
@@ -127,9 +127,9 @@ void TestSerializeClassWithKey(T&& value)
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", value), outputArchive);
+	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue("Root", actual), outputArchive);
 
 	// Assert
-	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue("Root", actual), outputArchive);
 	value.Assert(actual);
 }
 

@@ -94,7 +94,7 @@ public:
 	{
 		archive << BitSerializer::MakeAutoKeyValue("x", x);
 		archive << BitSerializer::MakeAutoKeyValue("y", y);
-	};
+	}
 
 	int x;
 	int y;
@@ -125,7 +125,7 @@ public:
 
 		archive << BitSerializer::MakeAutoKeyValue(L"TestUInt32", mTestUInt32);
 		archive << BitSerializer::MakeAutoKeyValue(L"TestUInt64", mTestUInt64);
-	};
+	}
 
 private:
 	uint32_t mTestUInt32;
@@ -160,7 +160,7 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
 		archive << BitSerializer::MakeAutoKeyValue(L"TestSubValue", mTestSubValue);
-	};
+	}
 
 private:
 	T mTestSubValue;
@@ -229,7 +229,7 @@ public:
 			// Next
 			Serialize<TArchive, I + 1>(archive);
 		}
-	};
+	}
 };
 
 //-----------------------------------------------------------------------------
@@ -250,7 +250,7 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
 		archive << BitSerializer::MakeAutoKeyValue(L"TestArray", mTestArray);
-	};
+	}
 
 private:
 	T mTestArray[ArraySize];
@@ -279,7 +279,7 @@ public:
 	template <class TArchive>
 	inline void Serialize(TArchive& archive) {
 		archive << BitSerializer::MakeAutoKeyValue(L"TestTwoDimArray", mTestTwoDimArray);
-	};
+	}
 
 private:
 	T mTestTwoDimArray[ArraySize1][ArraySize2];
@@ -310,7 +310,7 @@ public:
 			archive << BitSerializer::MakeAutoKeyValue(L"NotExistSingleField", notExistSingleField, BitSerializer::Required());
 			archive << BitSerializer::MakeAutoKeyValue(L"NotExistArrayField", notExistArrayField, BitSerializer::Required());
 		}
-	};
+	}
 
 private:
 	TestType mExistSingleField;

@@ -83,20 +83,25 @@ protected:
 	}
 
 	template <typename T>
-	void LoadValue(const pugi::xml_node& node, T& value) {
+	void LoadValue(const pugi::xml_node& node, T& value)
+	{
 		if constexpr (std::is_same_v<T, bool>) {
 			value = node.text().as_bool();
 		}
 		else if constexpr (std::is_integral_v<T>)
 		{
-			if constexpr (std::is_same_v<T, long long>)
+			if constexpr (std::is_same_v<T, int64_t>) {
 				value = node.text().as_llong();
-			else if constexpr (std::is_same_v<T, unsigned long>)
+			}
+			else if constexpr (std::is_same_v<T, uint64_t>) {
 				value = node.text().as_ullong();
-			else if constexpr (std::is_unsigned_v<T>)
+			}
+			else if constexpr (std::is_unsigned_v<T>) {
 				value = static_cast<T>(node.text().as_uint());
-			else
+			}
+			else {
 				value = static_cast<T>(node.text().as_int());
+			}
 		}
 		else
 		{

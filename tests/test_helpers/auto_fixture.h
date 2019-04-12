@@ -53,8 +53,8 @@ static void BuildFixture(T& value)
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 
-static void BuildFixture(int64_t& value)			{ value = static_cast<int64_t>(std::rand()) * std::rand(); }
-static void BuildFixture(uint64_t& value)			{ value = static_cast<uint64_t>(std::rand()) * std::rand(); }
+static void BuildFixture(int64_t& value)			{ value = (static_cast<int64_t>(std::rand()) << 32) + std::rand(); }
+static void BuildFixture(uint64_t& value)			{ value = (static_cast<uint64_t>(std::rand()) << 32) + std::rand(); }
 static void BuildFixture(bool& value)				{ value = static_cast<bool>(std::rand() % 2); }
 static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand() / 10.0f); }
 static void BuildFixture(double& value)				{ value = static_cast<double>(std::rand() / 1000.0); }

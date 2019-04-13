@@ -7,6 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 find_package(cpprestsdk CONFIG REQUIRED)
 find_package(Boost COMPONENTS system REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
+find_package(pugixml CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
   main.cpp
@@ -30,6 +31,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
             cpprestsdk::cpprestsdk_boost_internal
             cpprestsdk::cpprestsdk_openssl_internal
             ${Boost_SYSTEM_LIBRARY}
+            pugixml
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # since gcc, link with -lstdc++fs.
@@ -41,6 +43,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
             cpprestsdk::cpprestsdk_boost_internal
             cpprestsdk::cpprestsdk_openssl_internal
             ${Boost_SYSTEM_LIBRARY}
+            pugixml
     )
 else()
     target_link_libraries(${PROJECT_NAME}
@@ -50,5 +53,6 @@ else()
             cpprestsdk::cpprestsdk_boost_internal
             cpprestsdk::cpprestsdk_openssl_internal
             ${Boost_SYSTEM_LIBRARY}
+            pugixml
     )
 endif()

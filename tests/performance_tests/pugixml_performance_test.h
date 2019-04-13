@@ -9,7 +9,7 @@
 #include "base_test_models.h"
 
 
-class PugiXmlPerformanceTestModel : public BasePerformanceTestModel<char>
+class PugiXmlPerformanceTestModel : public BasePerformanceTestModel<pugi::char_t>
 {
 public:
 	const char* GetName() override

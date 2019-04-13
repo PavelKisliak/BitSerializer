@@ -9,14 +9,14 @@
 #include "base_test_models.h"
 
 
-class CppRestJsonPerformanceTestModel : public BasePerformanceTestModel<wchar_t>
+class CppRestJsonPerformanceTestModel : public BasePerformanceTestModel<utility::char_t>
 {
 public:
 	~CppRestJsonPerformanceTestModel() = default;
 
 	const char* GetName() override
 	{
-		if constexpr (std::is_same_v<wchar_t, utility::string_t::value_type>)
+		if constexpr (std::is_same_v<wchar_t, utility::char_t>)
 			return "CppRestJson (std::wstring)";
 		else
 			return "CppRestJson (std::string)";

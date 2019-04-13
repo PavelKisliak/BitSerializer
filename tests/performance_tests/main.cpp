@@ -13,6 +13,7 @@
 #include "test_helpers/common_test_methods.h"
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
+#include "pugixml_performance_test.h"
 
 using Timer = std::chrono::high_resolution_clock;
 
@@ -102,8 +103,9 @@ int main()
 	std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
 
 	const TestArchiveMetadata metadataList[] = {
-		TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel, 20000>(),
-		TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel, 5000>()
+		TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel, 30000>(),
+		TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel, 10000>(),
+		TestArchivePerformance<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlPerformanceTestModel, 20000>()
 	};
 
 	return 0;

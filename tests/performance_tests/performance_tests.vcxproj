@@ -175,6 +175,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="pugixml_performance_test.h" />
     <ClInclude Include="rapid_json_performance_test.h" />
     <ClInclude Include="base_test_models.h" />
     <ClInclude Include="cpprest_json_performance_test.h" />

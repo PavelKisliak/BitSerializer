@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
   base_test_models.h
   rapid_json_performance_test.h
   cpprest_json_performance_test.h
+  pugixml_performance_test.h
 )
 
 find_path(CPP_REST_SDK_DIR cpprest/json.h)

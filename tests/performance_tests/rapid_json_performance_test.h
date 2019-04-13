@@ -3,13 +3,13 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <exception>
+#include <stdexcept>
 #include "bitserializer/string_conversion.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 #include "base_test_models.h"
 
 
-class RapidJsonPerformanceTestModel : public BasePerformanceTestModel
+class RapidJsonPerformanceTestModel : public BasePerformanceTestModel<wchar_t>
 {
 public:
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF16<>>;

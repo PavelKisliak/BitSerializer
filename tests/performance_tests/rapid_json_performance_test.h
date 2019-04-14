@@ -54,7 +54,7 @@ public:
 		auto stringsJsonArray = RapidJsonNode(rapidjson::kArrayType);
 		stringsJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
 		for (const auto& item : mArrayOfStrings) {
-			stringsJsonArray.PushBack(MakeRapidJsonNodeFromString(item, allocator), allocator);
+			stringsJsonArray.PushBack(RapidJsonNode::StringRefType(item.data(), static_cast<rapidjson::SizeType>(item.size())), allocator);
 		}
 		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfStrings"), stringsJsonArray.Move(), allocator);
 
@@ -71,8 +71,8 @@ public:
 			jsonObject.AddMember(L"TestInt64Value", item.mTestInt64Value, allocator);
 			jsonObject.AddMember(L"TestFloatValue", item.mTestFloatValue, allocator);
 			jsonObject.AddMember(L"TestDoubleValue", item.mTestDoubleValue, allocator);
-			jsonObject.AddMember(L"TestStringValue", MakeRapidJsonNodeFromString(item.mTestStringValue, allocator), allocator);
-			jsonObject.AddMember(L"TestWStringValue", MakeRapidJsonNodeFromString(item.mTestWStringValue, allocator), allocator);
+			jsonObject.AddMember(L"TestStringValue", RapidJsonNode::StringRefType(
+				item.mTestStringValue.data(), static_cast<rapidjson::SizeType>(item.mTestStringValue.size())), allocator);
 
 			objectsJsonArray.PushBack(jsonObject.Move(), allocator);
 		}
@@ -137,34 +137,8 @@ public:
 			obj.mTestInt64Value = jObj.FindMember(L"TestInt64Value")->value.GetInt64();
 			obj.mTestFloatValue = jObj.FindMember(L"TestFloatValue")->value.GetFloat();
 			obj.mTestDoubleValue = jObj.FindMember(L"TestDoubleValue")->value.GetDouble();
-			AssignStringFromJsonValue(jObj.FindMember(L"TestStringValue")->value, obj.mTestStringValue);
-			AssignStringFromJsonValue(jObj.FindMember(L"TestWStringValue")->value, obj.mTestWStringValue);
+			obj.mTestStringValue = jObj.FindMember(L"TestStringValue")->value.GetString();
 			++i;
 		}
-	}
-
-	template <typename TSym, typename TAllocator, typename TRapidAllocator>
-	RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
-	{
-		using TargetSymType = RapidJsonNode::EncodingType::Ch;
-		if constexpr (std::is_same_v<TSym, RapidJsonNode::EncodingType::Ch>)
-			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
-		else {
-			const auto str = BitSerializer::Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
-			return RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), allocator);
-		}
-	}
-
-	template <typename TSym, typename TAllocator>
-	bool AssignStringFromJsonValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if (!jsonValue.IsString())
-			return false;
-
-		if constexpr (std::is_same_v<TSym, RapidJsonNode::EncodingType::Ch>)
-			value = jsonValue.GetString();
-		else
-			value = BitSerializer::Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.GetString());
-		return true;
 	}
 };

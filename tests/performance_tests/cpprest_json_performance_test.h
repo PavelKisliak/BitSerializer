@@ -48,11 +48,7 @@ public:
 		// Save array of strings
 		web::json::value& stringsJsonArray = rootObj[_XPLATSTR("ArrayOfStrings")] = web::json::value::array(ARRAY_SIZE);
 		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
-#ifdef _UTF16_STRINGS
 			stringsJsonArray[i] = web::json::value(mArrayOfStrings[i]);
-#else
-			stringsJsonArray[i] = web::json::value(BitSerializer::Convert::To<utility::string_t>(mArrayOfStrings[i]));
-#endif
 		}
 
 		// Save array of objects
@@ -67,13 +63,7 @@ public:
 			jObj[_XPLATSTR("TestInt64Value")] = web::json::value(obj.mTestInt64Value);
 			jObj[_XPLATSTR("TestFloatValue")] = web::json::value(obj.mTestFloatValue);
 			jObj[_XPLATSTR("TestDoubleValue")] = web::json::value(obj.mTestDoubleValue);
-#ifdef _UTF16_STRINGS
-			jObj[_XPLATSTR("TestStringValue")] = web::json::value(BitSerializer::Convert::To<utility::string_t>(obj.mTestStringValue));
-			jObj[_XPLATSTR("TestWStringValue")] = web::json::value(obj.mTestWStringValue);
-#else
 			jObj[_XPLATSTR("TestStringValue")] = web::json::value(obj.mTestStringValue);
-			jObj[_XPLATSTR("TestWStringValue")] = web::json::value(BitSerializer::Convert::To<utility::string_t>(obj.mTestWStringValue));
-#endif
 		}
 
 		// Build
@@ -115,7 +105,7 @@ public:
 		const auto& stringsJsonArray = rootObj.find(_XPLATSTR("ArrayOfStrings"))->second.as_array();
 		i = 0;
 		for (const auto& jVal : stringsJsonArray) {
-			LoadString(jVal, mArrayOfStrings[i]);
+			mArrayOfStrings[i] = jVal.as_string();
 			++i;
 		}
 
@@ -126,34 +116,14 @@ public:
 			auto& obj = mArrayOfObjects[i];
 			const auto& jObj = jVal.as_object();
 			obj.mTestBoolValue = jObj.find(_XPLATSTR("TestBoolValue"))->second.as_bool();
-			obj.mTestCharValue = static_cast<char>(jObj.find(_XPLATSTR("TestCharValue"))->second.as_number().to_int32());
-			obj.mTestInt16Value = static_cast<int16_t>(jObj.find(_XPLATSTR("TestInt16Value"))->second.as_number().to_int32());
-			obj.mTestInt32Value = jObj.find(_XPLATSTR("TestInt32Value"))->second.as_number().to_int32();
+			obj.mTestCharValue = static_cast<char>(jObj.find(_XPLATSTR("TestCharValue"))->second.as_integer());
+			obj.mTestInt16Value = static_cast<int16_t>(jObj.find(_XPLATSTR("TestInt16Value"))->second.as_integer());
+			obj.mTestInt32Value = jObj.find(_XPLATSTR("TestInt32Value"))->second.as_integer();
 			obj.mTestInt64Value = jObj.find(_XPLATSTR("TestInt64Value"))->second.as_number().to_int64();
 			obj.mTestFloatValue = static_cast<float>(jObj.find(_XPLATSTR("TestFloatValue"))->second.as_double());
 			obj.mTestDoubleValue = jObj.find(_XPLATSTR("TestDoubleValue"))->second.as_double();
-			LoadString(jObj.find(_XPLATSTR("TestStringValue"))->second, obj.mTestStringValue);
-			LoadString(jObj.find(_XPLATSTR("TestWStringValue"))->second, obj.mTestWStringValue);
+			obj.mTestStringValue = jObj.find(_XPLATSTR("TestStringValue"))->second.as_string();
 			++i;
 		}
-	}
-
-	template <typename TSym, typename TAllocator>
-	inline web::json::value StringToJsonValue(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-			return web::json::value(value);
-		else
-			return web::json::value(BitSerializer::Convert::To<utility::string_t>(value));
-	}
-
-	template <typename TSym, typename TAllocator>
-	inline bool LoadString(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-			value = jsonValue.as_string();
-		else
-			value = BitSerializer::Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.as_string());
-		return true;
 	}
 };

@@ -11,6 +11,9 @@ template <typename TKey>
 class ModelWithBasicTypes
 {
 public:
+	using char_t = TKey;
+	using string_t = std::basic_string<TKey, std::char_traits<TKey>>;
+
 	static void BuildFixture(ModelWithBasicTypes& fixture)
 	{
 		::BuildFixture(fixture.mTestBoolValue);
@@ -21,7 +24,6 @@ public:
 		::BuildFixture(fixture.mTestFloatValue);
 		::BuildFixture(fixture.mTestDoubleValue);
 		::BuildFixture(fixture.mTestStringValue);
-		::BuildFixture(fixture.mTestWStringValue);
 	}
 
 	void Assert(const ModelWithBasicTypes& rhs) const
@@ -34,7 +36,6 @@ public:
 		assert(mTestFloatValue == rhs.mTestFloatValue);
 		assert(mTestDoubleValue == rhs.mTestDoubleValue);
 		assert(mTestStringValue == rhs.mTestStringValue);
-		assert(mTestWStringValue == rhs.mTestWStringValue);
 	}
 
 	template <class TArchive>
@@ -50,7 +51,6 @@ public:
 			archive << BitSerializer::MakeKeyValue("TestFloatValue", mTestFloatValue);
 			archive << BitSerializer::MakeKeyValue("TestDoubleValue", mTestDoubleValue);
 			archive << BitSerializer::MakeKeyValue("TestStringValue", mTestStringValue);
-			archive << BitSerializer::MakeKeyValue("TestWStringValue", mTestWStringValue);
 		}
 		else
 		{
@@ -62,7 +62,6 @@ public:
 			archive << BitSerializer::MakeKeyValue(L"TestFloatValue", mTestFloatValue);
 			archive << BitSerializer::MakeKeyValue(L"TestDoubleValue", mTestDoubleValue);
 			archive << BitSerializer::MakeKeyValue(L"TestStringValue", mTestStringValue);
-			archive << BitSerializer::MakeKeyValue(L"TestWStringValue", mTestWStringValue);
 		}
 	}
 
@@ -73,8 +72,7 @@ public:
 	int64_t mTestInt64Value;
 	float mTestFloatValue;
 	double mTestDoubleValue;
-	std::string mTestStringValue;
-	std::wstring mTestWStringValue;
+	string_t mTestStringValue;
 };
 
 template <typename TKey>
@@ -82,6 +80,9 @@ class BasePerformanceTestModel
 {
 public:
 	static constexpr size_t ARRAY_SIZE = 20;
+
+	using char_t = TKey;
+	using string_t = std::basic_string<TKey, std::char_traits<TKey>>;
 
 	virtual ~BasePerformanceTestModel() = default;
 
@@ -133,6 +134,6 @@ protected:
 	bool mArrayOfBooleans[ARRAY_SIZE] = {};
 	int64_t mArrayOfInts[ARRAY_SIZE] = {};
 	double mArrayOfFloats[ARRAY_SIZE] = {};
-	std::wstring mArrayOfStrings[ARRAY_SIZE];
+	string_t mArrayOfStrings[ARRAY_SIZE];
 	ModelWithBasicTypes<TKey> mArrayOfObjects[ARRAY_SIZE] = {};
 };

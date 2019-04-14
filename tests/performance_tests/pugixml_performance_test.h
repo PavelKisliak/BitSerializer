@@ -66,7 +66,6 @@ public:
 			objectNode.append_child("TestFloatValue").text().set(item.mTestFloatValue);
 			objectNode.append_child("TestDoubleValue").text().set(item.mTestDoubleValue);
 			objectNode.append_child("TestStringValue").text().set(item.mTestStringValue.c_str());
-			objectNode.append_child("TestWStringValue").text().set(BitSerializer::Convert::ToString(item.mTestWStringValue).c_str());
 		}
 
 		// Build
@@ -116,7 +115,7 @@ public:
 		i = 0;
 		for (auto it = stringsXmlNode.begin(); it != stringsXmlNode.end(); ++it)
 		{
-			mArrayOfStrings[i] = BitSerializer::Convert::ToWString(it->text().as_string());
+			mArrayOfStrings[i] = it->text().as_string();
 			++i;
 		}
 
@@ -134,7 +133,6 @@ public:
 			obj.mTestFloatValue = it->child("TestFloatValue").text().as_float();
 			obj.mTestDoubleValue = it->child("TestDoubleValue").text().as_double();
 			obj.mTestStringValue = it->child("TestStringValue").text().as_string();
-			obj.mTestWStringValue = BitSerializer::Convert::ToWString(it->child("TestWStringValue").text().as_string());
 			++i;
 		}
 	}

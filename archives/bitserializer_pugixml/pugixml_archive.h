@@ -134,34 +134,6 @@ protected:
 			node.text().set(Convert::To<pugi::string_t>(value).c_str());
 	}
 
-	template <SerializeMode TMode>
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScopeImpl(const key_type& key)
-	{
-		if constexpr (TMode == SerializeMode::Load) {
-			auto child = mNode.child(key.c_str());
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
-		}
-		else
-		{
-			auto child = mNode.append_child(key.c_str());
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
-		}
-	}
-
-	template <SerializeMode TMode>
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScopeImpl(const pugi::char_t* key)
-	{
-		if constexpr (TMode == SerializeMode::Load) {
-			auto child = mNode.child(key);
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
-		}
-		else
-		{
-			auto child = mNode.append_child(key);
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
-		}
-	}
-
 	pugi::xml_node mNode;
 };
 
@@ -187,13 +159,22 @@ public:
 	}
 
 	template<typename T>
-	void SerializeValue(T& value) {
-		SerializeValueImpl(value);
-	}
-
-	template <typename TSym, typename TAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
-		SerializeValueImpl(value);
+	void SerializeValue(T& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (mValueIt != mValueIt->end())
+			{
+				LoadValue(*mValueIt, value);
+				++mValueIt;
+			}
+		}
+		else
+		{
+			auto child = AppendChild(GetKeyByValueType<T>());
+			if (!child.empty())
+				SaveValue(child, value);
+		}
 	}
 
 	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
@@ -235,25 +216,6 @@ public:
 	}
 
 protected:
-	template <typename T>
-	void SerializeValueImpl(T& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mValueIt != mValueIt->end())
-			{
-				LoadValue(*mValueIt, value);
-				++mValueIt;
-			}
-		}
-		else
-		{
-			auto child = AppendChild(GetKeyByValueType<T>());
-			if (!child.empty())
-				SaveValue(child, value);
-		}
-	}
-
 	template <typename T>
 	static constexpr const pugi::char_t* GetKeyByValueType()
 	{
@@ -346,37 +308,51 @@ public:
 		return key_const_iterator(mNode.end());
 	}
 
-	bool SerializeValue(const key_type& key, bool& value) {
-		return SerializeImpl(key, value);
-	}
-	bool SerializeValue(const pugi::char_t* key, bool& value) {
-		return SerializeImpl(key, value);
-	}
-
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool SerializeValue(const key_type& key, T& value) {
-		return SerializeImpl(key, value);
-	}
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool SerializeValue(const wchar_t* key, T& value) {
-		return SerializeImpl(key, value);
-	}
-
-	template <typename TSym, typename TStrAllocator>
-	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
-		return SerializeImpl(key, value);
-	}
-	template <typename TSym, typename TStrAllocator>
-	bool SerializeValue(const pugi::char_t* key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
-		return SerializeImpl(key, value);
+	template <typename TKey, typename T>
+	bool SerializeValue(TKey&& key, T& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto child = GetChild(std::forward<TKey>(key));
+			if (child.empty())
+				return false;
+			LoadValue(child, value);
+			return true;
+		}
+		else
+		{
+			auto child = AppendChild(std::forward<TKey>(key));
+			if (child.empty())
+				return false;
+			SaveValue(child, value);
+			return true;
+		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const key_type& key) {
-		return OpenObjectScopeImpl<TMode>(key);
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const key_type& key)
+	{
+		if constexpr (TMode == SerializeMode::Load) {
+			auto child = mNode.child(key.c_str());
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+		}
+		else
+		{
+			auto child = mNode.append_child(key.c_str());
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const pugi::char_t* key) {
-		return OpenObjectScopeImpl<TMode>(key);
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const pugi::char_t* key)
+	{
+		if constexpr (TMode == SerializeMode::Load) {
+			auto child = mNode.child(key);
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+		}
+		else
+		{
+			auto child = mNode.append_child(key);
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+		}
 	}
 
 	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
@@ -404,28 +380,6 @@ public:
 		{
 			auto node = mNode.append_child(key);
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
-		}
-	}
-
-protected:
-	template <typename TKey, typename T>
-	bool SerializeImpl(TKey&& key, T& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto child = GetChild(std::forward<TKey>(key));
-			if (child.empty())
-				return false;
-			LoadValue(child, value);
-			return true;
-		}
-		else
-		{
-			auto child = AppendChild(std::forward<TKey>(key));
-			if (child.empty())
-				return false;
-			SaveValue(child, value);
-			return true;
 		}
 	}
 };

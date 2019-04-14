@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <experimental/filesystem>
 
 #include "convert_fundamental.h"
 #include "object_traits.h"
@@ -97,6 +98,17 @@ void To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, 
 	if constexpr (isConvertible) {
 		ret_Val.FromString(str);
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Convert from filesystem::path to string
+//-----------------------------------------------------------------------------
+inline void To(const std::experimental::filesystem::v1::path& path, std::string& ret_Str) {
+	ret_Str.assign(path.generic_string());
+}
+
+inline void To(const std::experimental::filesystem::v1::path& path, std::wstring& ret_Str) {
+	ret_Str.assign(path.generic_wstring());
 }
 
 }	// BitSerializer::Convert::Detail

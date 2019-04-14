@@ -1,10 +1,9 @@
 # BitSerializer
 ___
 
-| Build status | Windows |
+| Build status (master) | Build status (dev) |
 | ------ | ------ |
-| master | [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=1&branchName=master) |
-| dev | [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=dev)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=1&branchName=dev) |
+| [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=1&branchName=master) | [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=dev)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=1&branchName=dev) |
 
 The library is designed for simple serialization of arbitrary C++ types to various output formats. The historical purpose was to simplify the serialization of data for the http server. I was tried to find some library (but without success), which could serialize models to popular web formats like JSON, Xml, UrlEncoded, but one of my requirement was that library should has one common interface for all formats. This is second release of library and it is just begin of way, currently it supports only one JSON format but with two kind of implementation - one of them is based on RapidJson and second on CppRestSDK.
 

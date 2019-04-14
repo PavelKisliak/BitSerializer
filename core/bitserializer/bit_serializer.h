@@ -9,6 +9,7 @@
 #include "serialization_detail/serialization_stl_types.h"
 #include "serialization_detail/key_value_proxy.h"
 #include "serialization_detail/validators.h"
+#include "serialization_detail/errors_handling.h"
 
 namespace BitSerializer
 {
@@ -126,7 +127,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			LoadObject<TMediaArchive>(std::forward<T>(object), stream);
 		else
-			throw std::runtime_error("BitSerializer. The file was not found.");
+			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("The file was not found: ") + Convert::ToString(std::forward<TString>(path)));
 	}
 
 	/// <summary>
@@ -143,7 +144,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			SaveObject<TMediaArchive>(std::forward<T>(object), stream);
 		else
-			throw std::runtime_error("BitSerializer. Could not open file.");
+			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("Could not open file: ") + Convert::ToString(std::forward<TString>(path)));
 	}
 
 } // namespace BitSerializer

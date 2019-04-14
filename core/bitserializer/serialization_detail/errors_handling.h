@@ -14,14 +14,16 @@ namespace BitSerializer {
 	/// </summary>
 	enum class SerializationErrorCode
 	{
-		ParsingError
+		ParsingError,
+		InputOutputError
 	};
 
 	namespace Convert::Detail
 	{
 		static const bool _SerializationErrorCode = ConvertEnum::Register<SerializationErrorCode>(
 		{
-			{ SerializationErrorCode::ParsingError,	"Parsing error" }
+			{ SerializationErrorCode::ParsingError,	"Parsing error" },
+			{ SerializationErrorCode::InputOutputError,	"Input/output error" }
 		});
 	}
 

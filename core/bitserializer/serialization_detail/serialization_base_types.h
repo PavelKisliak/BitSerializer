@@ -44,12 +44,12 @@ static void Serialize(TArchive& archive, TValue& value)
 template <class TArchive, typename TKey, typename TSym, typename TAllocator>
 static bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	constexpr auto hasStringWithKeySupport = can_serialize_string_with_key_v<TArchive,
+	constexpr auto hasStringWithKeySupport = can_serialize_value_with_key_v<TArchive,
 		std::basic_string<TSym, std::char_traits<TSym>, TAllocator>, TKey>;
 	static_assert(hasStringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
 
 	if constexpr (hasStringWithKeySupport) {
-		return archive.SerializeString(key, value);
+		return archive.SerializeValue(key, value);
 	}
 	return false;
 };
@@ -57,11 +57,11 @@ static bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std
 template <class TArchive, typename TSym, typename TAllocator>
 static void Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 {
-	constexpr auto hasStringSupport = can_serialize_string_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
+	constexpr auto hasStringSupport = can_serialize_value_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
 	static_assert(hasStringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
 
 	if constexpr (hasStringSupport) {
-		archive.SerializeString(value);
+		archive.SerializeValue(value);
 	}
 };
 

@@ -118,24 +118,6 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValueWithKey)
 	EXPECT_FALSE(testResult3);
 }
 
-TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeString) {
-	bool testResult1 = can_serialize_string_v<TestArchive_LoadMode, std::string>;
-	EXPECT_TRUE(testResult1);
-	bool testResult2 = can_serialize_string_v<TestArchive_LoadMode, std::wstring>;
-	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_string_v<TestWrongArchive, std::string>;
-	EXPECT_FALSE(testResult3);
-}
-
-TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeStringWithKey) {
-	bool testResult1 = can_serialize_string_with_key_v<TestArchive_SaveMode, std::string, TestArchive_SaveMode::key_type>;
-	EXPECT_TRUE(testResult1);
-	bool testResult2 = can_serialize_string_with_key_v<TestArchive_SaveMode, std::wstring, TestArchive_SaveMode::key_type>;
-	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_string_with_key_v<TestWrongArchive, std::string, TestArchive_SaveMode::key_type>;
-	EXPECT_FALSE(testResult3);
-}
-
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeObject) {
 	bool testResult1 = can_serialize_object_v<TestArchive_LoadMode>;
 	EXPECT_TRUE(testResult1);

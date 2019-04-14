@@ -5,7 +5,7 @@
 #pragma once
 #include <utility>
 #include "media_archive_base.h"
-#include "../string_conversion.h"
+#include "bitserializer/string_conversion.h"
 
 namespace BitSerializer {
 

@@ -214,7 +214,7 @@ public:
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			auto* jsonValue = NextElement();
@@ -355,11 +355,11 @@ public:
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	inline bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
+	inline bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		return SerializeStringImpl(key, value);
 	}
 	template <typename TSym, typename TStrAllocator>
-	inline bool SerializeString(const wchar_t* key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
+	inline bool SerializeValue(const wchar_t* key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		return SerializeStringImpl(key, value);
 	}
 
@@ -583,7 +583,7 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			LoadString(mRootJson, value);

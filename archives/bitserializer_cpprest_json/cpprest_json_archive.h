@@ -172,7 +172,7 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			if (mIndex < mSize)
@@ -325,7 +325,7 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -475,7 +475,7 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			LoadString(mRootJson, value);

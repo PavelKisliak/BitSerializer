@@ -6,7 +6,7 @@
 #include <string>
 #include <optional>
 #include "object_traits.h"
-#include "../string_conversion.h"
+#include "bitserializer/string_conversion.h"
 
 namespace BitSerializer
 {

@@ -14,7 +14,7 @@
 #include "object_traits.h"
 #include "archive_traits.h"
 #include "media_archive_base.h"
-#include "../string_conversion.h"
+#include "bitserializer/string_conversion.h"
 
 namespace BitSerializer {
 

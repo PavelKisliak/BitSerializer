@@ -192,7 +192,7 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
+	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
 		SerializeValueImpl(value);
 	}
 
@@ -363,11 +363,11 @@ public:
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
+	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		return SerializeImpl(key, value);
 	}
 	template <typename TSym, typename TStrAllocator>
-	bool SerializeString(const pugi::char_t* key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
+	bool SerializeValue(const pugi::char_t* key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		return SerializeImpl(key, value);
 	}
 

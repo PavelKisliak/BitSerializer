@@ -85,7 +85,7 @@ protected:
 				value = jsonValue.as_number().to_uint64();
 			}
 			else {
-				value = static_cast<T>(jsonValue.as_number().to_int32());
+				value = static_cast<T>(jsonValue.as_integer());
 			}
 		}
 		else
@@ -246,7 +246,7 @@ class key_const_iterator
 
 	web::json::object::const_iterator mJsonIt;
 
-	key_const_iterator(web::json::object::const_iterator it)
+	key_const_iterator(web::json::object::const_iterator&& it)
 		: mJsonIt(it) { }
 
 public:

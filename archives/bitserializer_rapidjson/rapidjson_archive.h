@@ -292,7 +292,7 @@ class key_const_iterator
 
 	rapidjson::GenericValue<rapidjson::UTF16<>>::MemberIterator mJsonIt;
 
-	key_const_iterator(rapidjson::GenericValue<rapidjson::UTF16<>>::MemberIterator it)
+	key_const_iterator(rapidjson::GenericValue<rapidjson::UTF16<>>::MemberIterator&& it)
 		: mJsonIt(it) { }
 
 public:

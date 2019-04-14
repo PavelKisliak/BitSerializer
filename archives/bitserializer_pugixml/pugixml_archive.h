@@ -83,25 +83,21 @@ protected:
 	}
 
 	template <typename T>
-	void LoadValue(const pugi::xml_node& node, T& value)
+	static void LoadValue(const pugi::xml_node& node, T& value)
 	{
 		if constexpr (std::is_same_v<T, bool>) {
 			value = node.text().as_bool();
 		}
 		else if constexpr (std::is_integral_v<T>)
 		{
-			if constexpr (std::is_same_v<T, int64_t>) {
+			if constexpr (std::is_same_v<T, int64_t>)
 				value = node.text().as_llong();
-			}
-			else if constexpr (std::is_same_v<T, uint64_t>) {
+			else if constexpr (std::is_same_v<T, uint64_t>)
 				value = node.text().as_ullong();
-			}
-			else if constexpr (std::is_unsigned_v<T>) {
+			else if constexpr (std::is_unsigned_v<T>)
 				value = static_cast<T>(node.text().as_uint());
-			}
-			else {
+			else
 				value = static_cast<T>(node.text().as_int());
-			}
 		}
 		else
 		{
@@ -113,7 +109,7 @@ protected:
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	void LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	static void LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			value = node.text().as_string();
@@ -192,12 +188,12 @@ public:
 
 	template<typename T>
 	void SerializeValue(T& value) {
-		SerializeValueImpl(GetKeyByValueType<T>(), value);
+		SerializeValueImpl(value);
 	}
 
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {
-		SerializeValueImpl(GetKeyByValueType<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(), value);
+		SerializeValueImpl(value);
 	}
 
 	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
@@ -240,7 +236,7 @@ public:
 
 protected:
 	template <typename T>
-	void SerializeValueImpl(const pugi::char_t* key, T& value)
+	void SerializeValueImpl(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -252,14 +248,14 @@ protected:
 		}
 		else
 		{
-			auto child = AppendChild(key);
+			auto child = AppendChild(GetKeyByValueType<T>());
 			if (!child.empty())
 				SaveValue(child, value);
 		}
 	}
 
 	template <typename T>
-	static const pugi::char_t* GetKeyByValueType()
+	static constexpr const pugi::char_t* GetKeyByValueType()
 	{
 		if constexpr (std::is_same_v<T, bool>)
 			return PUGIXML_TEXT("bool");
@@ -306,7 +302,7 @@ class key_const_iterator
 
 	pugi::xml_node_iterator mNodeIt;
 
-	key_const_iterator(pugi::xml_node_iterator it)
+	key_const_iterator(pugi::xml_node_iterator&& it)
 		: mNodeIt(it) { }
 
 public:

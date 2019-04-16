@@ -39,51 +39,26 @@ public:
 	static const wchar_t path_separator	= L'/';
 };
 
-// Forward declarations
-template <SerializeMode TMode>
-class PugiXmlObjectScope;
-
-/// <summary>
-/// Base class of XML scope
-/// </summary>
-/// <seealso cref="MediaArchiveBase" />
-class PugiXmlScopeBase : public PugiXmlArchiveTraits
+namespace PugiXmlExtensions
 {
-public:
-	explicit PugiXmlScopeBase(const pugi::xml_node& node)
-		: mNode(node)
-	{ }
-
-	virtual ~PugiXmlScopeBase() = default;
-
-	/// <summary>
-	/// Gets the current path in XML.
-	/// </summary>
-	/// <returns></returns>
-	virtual std::wstring GetPath() const
-	{
-		return Convert::ToWString(mNode.path());
+	inline pugi::xml_node AppendChild(pugi::xml_node& node, const PugiXmlArchiveTraits::key_type& key) {
+		return node.append_child(key.c_str());
 	}
 
-protected:
-	pugi::xml_node AppendChild(const key_type& key) {
-		return mNode.append_child(key.c_str());
+	inline pugi::xml_node AppendChild(pugi::xml_node& node, const pugi::char_t* key) {
+		return node.append_child(key);
 	}
 
-	pugi::xml_node AppendChild(const pugi::char_t* key) {
-		return mNode.append_child(key);
+	inline pugi::xml_node GetChild(pugi::xml_node& node, const PugiXmlArchiveTraits::key_type& key) {
+		return node.child(key.c_str());
 	}
 
-	pugi::xml_node GetChild(const key_type& key) const {
-		return mNode.child(key.c_str());
-	}
-
-	pugi::xml_node GetChild(const pugi::char_t* key) const {
-		return mNode.child(key);
+	inline pugi::xml_node GetChild(pugi::xml_node& node, const pugi::char_t* key) {
+		return node.child(key);
 	}
 
 	template <typename T>
-	static void LoadValue(const pugi::xml_node& node, T& value)
+	void LoadValue(const pugi::xml_node& node, T& value)
 	{
 		if constexpr (std::is_same_v<T, bool>) {
 			value = node.text().as_bool();
@@ -109,7 +84,7 @@ protected:
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	static void LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	void LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			value = node.text().as_string();
@@ -118,38 +93,48 @@ protected:
 	}
 
 	template <typename T>
-	static void SaveValue(const pugi::xml_node& node, T& value) {
+	void SaveValue(const pugi::xml_node& node, T& value) {
 		node.text().set(value);
 	}
 
-	static void SaveValue(const pugi::xml_node& node, const pugi::char_t* value) {
+	inline void SaveValue(const pugi::xml_node& node, const pugi::char_t* value) {
 		node.text().set(value);
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	static void SaveValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
+	void SaveValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
 		if (std::is_same_v<TSym, pugi::char_t>)
 			node.text().set(value.c_str());
 		else
 			node.text().set(Convert::To<pugi::string_t>(value).c_str());
 	}
+} // namespace PugiXmlExtensions
 
-	pugi::xml_node mNode;
-};
 
+// Forward declarations
+template <SerializeMode TMode>
+class PugiXmlObjectScope;
 
 /// <summary>
 /// XML scope for serializing arrays (list of values without keys).
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlArrayScope : public ArchiveScope<TMode>, public PugiXmlScopeBase
+class PugiXmlArrayScope : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlArrayScope(const pugi::xml_node& node)
-		: PugiXmlScopeBase(node)
+		: mNode(node)
 		, mValueIt(mNode.begin())
 	{ }
+
+	/// <summary>
+	/// Gets the current path in XML.
+	/// </summary>
+	std::wstring GetPath() const
+	{
+		return Convert::ToWString(mNode.path());
+	}
 
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
@@ -165,15 +150,15 @@ public:
 		{
 			if (mValueIt != mValueIt->end())
 			{
-				LoadValue(*mValueIt, value);
+				PugiXmlExtensions::LoadValue(*mValueIt, value);
 				++mValueIt;
 			}
 		}
 		else
 		{
-			auto child = AppendChild(GetKeyByValueType<T>());
+			auto child = mNode.append_child(GetKeyByValueType<T>());
 			if (!child.empty())
-				SaveValue(child, value);
+				PugiXmlExtensions::SaveValue(child, value);
 		}
 	}
 
@@ -191,7 +176,7 @@ public:
 		}
 		else
 		{
-			auto node = AppendChild(PUGIXML_TEXT("array"));
+			auto node = mNode.append_child("array");
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 	}
@@ -250,6 +235,7 @@ protected:
 		return PUGIXML_TEXT("string");
 	}
 
+	pugi::xml_node mNode;
 	pugi::xml_node_iterator mValueIt;
 };
 
@@ -291,11 +277,11 @@ public:
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlObjectScope : public ArchiveScope<TMode>, public PugiXmlScopeBase
+class PugiXmlObjectScope : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlObjectScope(const pugi::xml_node& node)
-		: PugiXmlScopeBase(node)
+		: mNode(node)
 	{
 		assert(mNode.type() == pugi::node_element);
 	}
@@ -308,80 +294,66 @@ public:
 		return key_const_iterator(mNode.end());
 	}
 
+	/// <summary>
+	/// Gets the current path in XML.
+	/// </summary>
+	std::wstring GetPath() const
+	{
+		return Convert::ToWString(mNode.path());
+	}
+
 	template <typename TKey, typename T>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto child = GetChild(std::forward<TKey>(key));
+			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			if (child.empty())
 				return false;
-			LoadValue(child, value);
+			PugiXmlExtensions::LoadValue(child, value);
 			return true;
 		}
 		else
 		{
-			auto child = AppendChild(std::forward<TKey>(key));
+			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
 			if (child.empty())
 				return false;
-			SaveValue(child, value);
+			PugiXmlExtensions::SaveValue(child, value);
 			return true;
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const key_type& key)
+	template <typename TKey>
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			auto child = mNode.child(key.c_str());
+			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
 		}
 		else
 		{
-			auto child = mNode.append_child(key.c_str());
+			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
 			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const pugi::char_t* key)
-	{
-		if constexpr (TMode == SerializeMode::Load) {
-			auto child = mNode.child(key);
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
-		}
-		else
-		{
-			auto child = mNode.append_child(key);
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
-		}
-	}
-
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
+	template <typename TKey>
+	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto node = mNode.child(key.c_str());
+			auto node = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 		else
 		{
-			auto node = mNode.append_child(key.c_str());
+			auto node = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 	}
 
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(const pugi::char_t* key, size_t arraySize)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto node = mNode.child(key);
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
-		}
-		else
-		{
-			auto node = mNode.append_child(key);
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
-		}
-	}
+protected:
+	pugi::xml_node mNode;
 };
 
 
@@ -467,30 +439,17 @@ public:
 		}
 	}
 
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
+	template <typename TKey>
+	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto node = mRootXml.child(key.c_str());
+			auto node = GetChild(mRootXml, std::forward<TKey>(key));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 		else
 		{
-			auto node = mRootXml.append_child(key.c_str());
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
-		}
-	}
-
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(const pugi::char_t* key, size_t arraySize)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto node = mRootXml.child(key);
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
-		}
-		else
-		{
-			auto node = mRootXml.append_child(key);
+			auto node = AppendChild(mRootXml, std::forward<TKey>(key));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 	}
@@ -507,29 +466,17 @@ public:
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const key_type& key)
-	{
-		if constexpr (TMode == SerializeMode::Load)	{
-			auto node = mRootXml.child(key.c_str());
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node);
-		}
-		else
-		{
-			auto node = mRootXml.append_child(key.c_str());
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node);
-		}
-	}
-
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(const pugi::char_t* key)
+	template <typename TKey>
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			auto node = mRootXml.child(key);
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node);
+			auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
 		}
 		else
 		{
-			auto node = mRootXml.append_child(key);
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node);
+			auto child = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
 		}
 	}
 

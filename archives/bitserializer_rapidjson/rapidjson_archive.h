@@ -49,7 +49,7 @@ protected:
 public:
 	using key_type_view = std::basic_string_view<key_type::value_type>;
 
-	explicit RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+	RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: mNode(const_cast<RapidJsonNode*>(node))
 		, mParent(parent)
 		, mParentKey(parentKey)
@@ -70,6 +70,15 @@ public:
 	}
 
 protected:
+	static bool LoadValue(const RapidJsonNode& jsonValue, bool& value)
+	{
+		if (jsonValue.IsBool()) {
+			value = jsonValue.GetBool();
+			return true;
+		}
+		return false;
+	}
+
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	static bool LoadValue(const RapidJsonNode& jsonValue, T& value)
 	{
@@ -88,37 +97,14 @@ protected:
 				value = static_cast<T>(jsonValue.GetInt());
 			}
 		}
-		else
-		{
+		else {
 			value = static_cast<T>(jsonValue.GetDouble());
 		}
 		return true;
 	}
 
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	static bool SaveFundamentalValue(RapidJsonNode& jsonValue, T& value)
-	{
-		if constexpr (std::is_integral_v<T>)
-		{
-			if constexpr (std::is_same_v<T, int64_t>) {
-				jsonValue.SetInt64(value);
-			}
-			else if constexpr (std::is_same_v<T, uint64_t>) {
-				jsonValue.SetUint64(value);
-			}
-			else {
-				jsonValue.SetInt(value);
-			}
-		}
-		else
-		{
-			jsonValue.SetDouble(value);
-		}
-		return true;
-	}
-
 	template <typename TSym, typename TAllocator>
-	static bool LoadString(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	static bool LoadValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if (!jsonValue.IsString())
 			return false;
@@ -158,7 +144,7 @@ class RapidJsonArrayScope : public ArchiveScope<TMode>, public RapidJsonScopeBas
 public:
 	using AllocatorType = TAllocator;
 
-	explicit RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+	RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: RapidJsonScopeBase(node, parent, parentKey)
 		, mAllocator(allocator)
 		, mValueIt(mNode->GetArray().Begin())
@@ -186,19 +172,6 @@ public:
 		return RapidJsonScopeBase::GetPath() + path_separator + Convert::ToWString(index == 0 ? 0 : index - 1);
 	}
 
-	void SerializeValue(bool& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr && jsonValue->IsBool())
-				value = jsonValue->GetBool();
-		}
-		else {
-			SaveJsonValue(RapidJsonNode(value));
-		}
-	}
-
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	void SerializeValue(T& value)
 	{
@@ -219,7 +192,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load) {
 			auto* jsonValue = NextElement();
 			if (jsonValue != nullptr)
-				LoadString(*jsonValue, value);
+				LoadValue(*jsonValue, value);
 		}
 		else {
 			SaveJsonValue(RapidJsonScopeBase::MakeRapidJsonNodeFromString(value, mAllocator));
@@ -263,7 +236,7 @@ public:
 	}
 
 protected:
-	inline const RapidJsonNode* NextElement()
+	const RapidJsonNode* NextElement()
 	{
 		if (mValueIt == mNode->End())
 			return nullptr;
@@ -272,10 +245,10 @@ protected:
 		return &jsonValue;
 	}
 
-	inline void SaveJsonValue(RapidJsonNode&& jsonValue) const
+	void SaveJsonValue(RapidJsonNode&& jsonValue) const
 	{
 		assert(mNode->Size() < mNode->Capacity());
-		mNode->PushBack(std::move(jsonValue), mAllocator);
+		mNode->PushBack(jsonValue, mAllocator);
 	}
 
 	TAllocator& mAllocator;
@@ -323,7 +296,7 @@ class RapidJsonObjectScope : public ArchiveScope<TMode>, public RapidJsonScopeBa
 public:
 	using AllocatorType = TAllocator;
 
-	explicit RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+	RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: RapidJsonScopeBase(node, parent, parentKey)
 		, mAllocator(allocator)
 	{
@@ -336,24 +309,6 @@ public:
 
 	key_const_iterator cend() const {
 		return key_const_iterator(mNode->GetObject().end());
-	}
-
-	template <typename TKey>
-	bool SerializeValue(TKey&& key, bool& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto* jsonValue = LoadJsonValue(std::forward<TKey>(key));
-			if (jsonValue != nullptr && jsonValue->IsBool())
-			{
-				value = jsonValue->GetBool();
-				return true;
-			}
-			return false;
-		}
-		else {
-			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
-		}
 	}
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -375,7 +330,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(std::forward<TKey>(key));
-			return jsonValue == nullptr ? false : LoadString(*jsonValue, value);
+			return jsonValue == nullptr ? false : LoadValue(*jsonValue, value);
 		}
 		else {
 			return SaveJsonValue(std::forward<TKey>(key), RapidJsonScopeBase::MakeRapidJsonNodeFromString(value, mAllocator));
@@ -421,29 +376,29 @@ public:
 	}
 
 protected:
-	inline auto FindMember(const key_type& key) const {
+	auto FindMember(const key_type& key) const {
 		return mNode->GetObject().FindMember(key.c_str());
 	}
 
-	inline auto FindMember(const wchar_t* key) const {
+	auto FindMember(const wchar_t* key) const {
 		return mNode->GetObject().FindMember(key);
 	}
 
-	inline const RapidJsonNode* LoadJsonValue(const key_type& key) const
+	const RapidJsonNode* LoadJsonValue(const key_type& key) const
 	{
-		const auto& jObject = mNode->GetObject();
+		const auto jObject = mNode->GetObject();
 		auto it = jObject.FindMember(key.c_str());
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	inline const RapidJsonNode* LoadJsonValue(const wchar_t* key) const
+	const RapidJsonNode* LoadJsonValue(const wchar_t* key) const
 	{
-		const auto& jObject = mNode->GetObject();
+		const auto jObject = mNode->GetObject();
 		const auto it = jObject.FindMember(key);
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	inline bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue) const
+	bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue) const
 	{
 		// Checks that object was not saved previously under the same key
 		assert(mNode->GetObject().FindMember(key.c_str()) == mNode->GetObject().MemberEnd());
@@ -453,7 +408,7 @@ protected:
 		return true;
 	}
 
-	inline bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue) const
+	bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue) const
 	{
 		// Checks that object was not saved previously under the same key
 		assert(mNode->GetObject().FindMember(key) == mNode->GetObject().MemberEnd());
@@ -511,23 +466,9 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	virtual ~RapidJsonRootScope()
+	~RapidJsonRootScope() override
 	{
 		Finish();
-	}
-
-	void SerializeValue(bool& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mRootJson.IsBool())
-				value = mRootJson.GetBool();
-		}
-		else
-		{
-			assert(mRootJson.IsNull());
-			mRootJson.SetBool(value);
-		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -539,7 +480,24 @@ public:
 		else
 		{
 			assert(mRootJson.IsNull());
-			SaveFundamentalValue(mRootJson, value);
+			if constexpr (std::is_same_v<T, bool>) {
+				mRootJson.SetBool(value);
+			}
+			else if constexpr (std::is_integral_v<T>)
+			{
+				if constexpr (std::is_same_v<T, int64_t>) {
+					mRootJson.SetInt64(value);
+				}
+				else if constexpr (std::is_same_v<T, uint64_t>) {
+					mRootJson.SetUint64(value);
+				}
+				else {
+					mRootJson.SetInt(value);
+				}
+			}
+			else {
+				mRootJson.SetDouble(value);
+			}
 		}
 	}
 
@@ -547,7 +505,7 @@ public:
 	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			LoadString(mRootJson, value);
+			LoadValue(mRootJson, value);
 		}
 		else
 		{
@@ -573,8 +531,7 @@ public:
 		else
 		{
 			assert(mRootJson.IsNull());
-			mRootJson.SetArray();
-			mRootJson.Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
+			mRootJson.SetArray().Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
 			return std::make_optional<RapidJsonArrayScope<TMode, RapidJsonDocument::AllocatorType>>(&mRootJson, mRootJson.GetAllocator());
 		}
 	}

@@ -124,12 +124,11 @@ class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
 protected:
 	size_t mSize;
 public:
-	explicit JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+	JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
+		, mSize(node == nullptr ? 0 : node->size())
 		, mIndex(0)
 	{
-		if (node != nullptr)
-			mSize = node->size();
 		assert(mNode->is_array());
 	}
 
@@ -442,7 +441,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	virtual ~JsonRootScope()
+	~JsonRootScope() override
 	{
 		Finish();
 	}

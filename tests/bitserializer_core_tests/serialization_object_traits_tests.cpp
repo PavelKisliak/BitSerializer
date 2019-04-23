@@ -8,6 +8,7 @@
 #include <array>
 #include <list>
 #include <forward_list>
+#include <optional>
 #include "bitserializer/serialization_detail/object_traits.h"
 
 using namespace BitSerializer;
@@ -16,10 +17,19 @@ class TestSerializableClass
 {
 public:
 	template <class TArchive>
-	inline void Serialize(TArchive& archive) { };
+	void Serialize(TArchive& archive) { }
 };
 
 class TestNotSerializableClass { };
+
+class TestValidatorClass
+{
+public:
+	template <class TValue>
+	std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const noexcept {
+		return std::nullopt;
+	}
+};
 
 TEST(SerializationObjectTraits, ShouldCheckThatClassHasSerializeMethod) {
 	bool testResult1 = is_serializable_class_v<TestSerializableClass>;
@@ -74,4 +84,11 @@ TEST(SerializationObjectTraits, ShouldCheckThatIsOutputStream) {
 
 	bool testResult3 = is_output_stream_v<std::istringstream>;
 	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatIsValidator) {
+	const bool testResult1 = is_validator_v<TestValidatorClass, int>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = is_validator_v<TestNotSerializableClass, int>;
+	EXPECT_FALSE(testResult2);
 }

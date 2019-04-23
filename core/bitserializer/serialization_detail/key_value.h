@@ -60,15 +60,22 @@ private:
 			return;
 		else
 		{
-			decltype(auto) validator = std::get<I>(mValidators);
-			auto result = validator(GetValue(), isLoaded);
-			if (result.has_value())
+			constexpr auto isValidator = is_validator_v<std::tuple_element_t<I, std::tuple<Validators...>>, TValue>;
+			if constexpr (isValidator)
 			{
-				if (!validationResult.has_value())
-					validationResult = ValidationErrors();
-				validationResult->emplace_back(std::move(*result));
+				decltype(auto) validator = std::get<I>(mValidators);
+				auto result = validator(GetValue(), isLoaded);
+				if (result.has_value())
+				{
+					if (!validationResult.has_value())
+						validationResult = ValidationErrors();
+					validationResult->emplace_back(std::move(*result));
+				}
+				ValidateValueImpl<I + 1>(isLoaded, validationResult);
 			}
-			ValidateValueImpl<I + 1>(isLoaded, validationResult);
+			else {
+				static_assert(isValidator, "BitSerializer. The provided validator does not match the required signature.");
+			}
 		}
 	}
 };
@@ -105,7 +112,7 @@ public:
 	template<class TArchiveKey>
 	KeyValue<TArchiveKey, TValue, Validators...> AdaptAndMoveToBaseKeyValue()
 	{
-		auto archiveCompatibleKey = BitSerializer::Convert::To<TArchiveKey>(this->GetKey());
+		auto archiveCompatibleKey = Convert::To<TArchiveKey>(this->GetKey());
 		return BitSerializer::KeyValue<TArchiveKey, TValue, Validators...>(
 			std::move(archiveCompatibleKey), this->GetValue(), std::move(this->mValidators));
 	}

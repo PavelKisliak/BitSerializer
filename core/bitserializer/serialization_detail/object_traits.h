@@ -4,6 +4,8 @@
 *******************************************************************************/
 #pragma once
 #include <type_traits>
+#include <string>
+#include <optional>
 #include "media_archive_base.h"
 
 namespace BitSerializer {
@@ -76,7 +78,7 @@ constexpr bool has_size_v = has_size<T>::value;
 /// </summary>
 /// <returns></returns>
 template <typename TContainer>
-inline size_t GetContainerSize(const TContainer& cont)
+size_t GetContainerSize(const TContainer& cont)
 {
 	if constexpr (has_size_v<TContainer>)
 		return cont.size();
@@ -90,6 +92,7 @@ inline size_t GetContainerSize(const TContainer& cont)
 template <typename T>
 struct is_input_stream
 {
+private:
 	template <typename TObj>
 	static std::enable_if_t<std::is_base_of_v<std::basic_istream<typename TObj::char_type, std::char_traits<typename TObj::char_type>>, TObj>, std::true_type> test(int);
 
@@ -110,6 +113,7 @@ constexpr bool is_input_stream_v = is_input_stream<T>::value;
 template <typename T>
 struct is_output_stream
 {
+private:
 	template <typename TObj>
 	static std::enable_if_t<std::is_base_of_v<std::basic_ostream<typename TObj::char_type, std::char_traits<typename TObj::char_type>>, TObj>, std::true_type> test(int);
 
@@ -123,5 +127,27 @@ public:
 
 template <typename T>
 constexpr bool is_output_stream_v = is_output_stream<T>::value;
+
+/// <summary>
+/// Checks that it is a validator
+/// </summary>
+template <typename T, typename TValue>
+struct is_validator
+{
+private:
+	template <typename TObj>
+	static std::enable_if_t<std::is_same_v<std::optional<std::wstring>,
+		decltype(std::declval<TObj>().operator()(std::declval<const TValue&>(), std::declval<const bool>()))>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T, typename TValue>
+constexpr bool is_validator_v = is_validator<T, TValue>::value;
 
 }	// namespace BitSerializer

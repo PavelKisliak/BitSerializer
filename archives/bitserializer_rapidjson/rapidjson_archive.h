@@ -607,7 +607,7 @@ private:
 	std::variant<decltype(nullptr), memory_io_type*, ostream_type*> mOutput;
 };
 
-} //namespace Detail
+} // namespace Detail
 
 
 /// <summary>
@@ -631,4 +631,4 @@ using JsonUtf16Archive = MediaArchiveBase<
 /// </summary>
 using JsonArchive = JsonUtf16Archive;
 
-}	// namespace BitSerializer::Json::RapidJson
+} // namespace BitSerializer::Json::RapidJson

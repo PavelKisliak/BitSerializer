@@ -291,6 +291,12 @@ template <typename TestType>
 class TestClassForCheckValidation
 {
 public:
+	static void BuildFixture(TestClassForCheckValidation<TestType>& fixture)
+	{
+		::BuildFixture(fixture.mExistSingleField);
+		::BuildFixture(fixture.mExistArrayField);
+	}
+
 	void Assert() const
 	{
 		EXPECT_EQ(2, BitSerializer::Context.GetValidationErrors().size());
@@ -300,7 +306,7 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		archive << BitSerializer::MakeAutoKeyValue(L"ExistSingleField", mExistSingleField, BitSerializer::Required());
-		archive << BitSerializer::MakeAutoKeyValue(L"ExistArrayField", mEexistArrayField, BitSerializer::Required());
+		archive << BitSerializer::MakeAutoKeyValue(L"ExistArrayField", mExistArrayField, BitSerializer::Required());
 
 		// Trying to load not exist fields
 		if (archive.IsLoading())
@@ -315,5 +321,5 @@ public:
 
 private:
 	TestType mExistSingleField;
-	TestType mEexistArrayField[3];
+	TestType mExistArrayField[3];
 };

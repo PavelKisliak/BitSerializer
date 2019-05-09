@@ -317,7 +317,7 @@ TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenSaving)
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returned from archive methods).
+// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ShouldCollectErrorAboutRequiredNamedValues)
 {

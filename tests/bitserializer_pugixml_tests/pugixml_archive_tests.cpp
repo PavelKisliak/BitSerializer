@@ -114,7 +114,7 @@ TEST(PugiXmlArchive, ShouldIterateKeysInObjectScope) {
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returned from archive methods).
+// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<bool>>();

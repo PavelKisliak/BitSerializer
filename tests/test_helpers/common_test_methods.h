@@ -215,13 +215,13 @@ void AssertMultimap(const TContainer& expected, const TContainer& actual)
 }
 
 /// <summary>
-/// Test template of validation for named values (boolean result, which returned from archive methods).
+/// Test template of validation for named values (boolean result, which returns by archive's method SerializeValue()).
 /// </summary>
 template <typename TArchive, class T>
 void TestValidationForNamedValues()
 {
 	// Arrange
-	T testObj;
+	T testObj = BuildFixture<T>();
 	typename TArchive::preferred_output_format outputArchive;
 
 	// Act
@@ -237,7 +237,7 @@ void TestValidationForNamedValues()
 }
 
 /// <summary>
-/// Tests archive method which should return key by index.
+/// Template for test iterating keys in the object scope.
 /// </summary>
 template <typename TArchive>
 void TestIterateKeysInObjectScope()

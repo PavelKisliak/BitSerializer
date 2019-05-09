@@ -165,7 +165,7 @@ TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenSaving) {
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returned from archive methods).
+// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ShouldCollectErrorAboutRequiredNamedValues) {
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();

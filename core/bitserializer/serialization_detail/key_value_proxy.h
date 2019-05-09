@@ -11,7 +11,7 @@
 namespace BitSerializer::KeyValueProxy
 {
 	template <class TArchive, class TValue, std::enable_if_t<is_archive_scope_v<TArchive>, int> = 0>
-	inline void SplitAndSerialize(TArchive& archive, TValue&& value)
+	void SplitAndSerialize(TArchive& archive, TValue&& value)
 	{
 		Serialize(archive, std::forward<TValue>(value));
 	}

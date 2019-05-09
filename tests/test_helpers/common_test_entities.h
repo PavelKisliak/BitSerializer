@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cstddef>
 #include <functional>
 #include <tuple>
 #include "auto_fixture.h"
@@ -90,7 +91,7 @@ public:
 	}
 
 	template <class TArchive>
-	inline void Serialize(TArchive& archive)
+	void Serialize(TArchive& archive)
 	{
 		archive << BitSerializer::MakeAutoKeyValue("x", x);
 		archive << BitSerializer::MakeAutoKeyValue("y", y);
@@ -119,7 +120,7 @@ public:
 	}
 
 	template <class TArchive>
-	inline void Serialize(TArchive& archive)
+	void Serialize(TArchive& archive)
 	{
 		archive << BitSerializer::BaseObject<TestPointClass>(*this);
 
@@ -158,7 +159,7 @@ public:
 	}
 
 	template <class TArchive>
-	inline void Serialize(TArchive& archive) {
+	void Serialize(TArchive& archive) {
 		archive << BitSerializer::MakeAutoKeyValue(L"TestSubValue", mTestSubValue);
 	}
 
@@ -248,7 +249,7 @@ public:
 	}
 
 	template <class TArchive>
-	inline void Serialize(TArchive& archive) {
+	void Serialize(TArchive& archive) {
 		archive << BitSerializer::MakeAutoKeyValue(L"TestArray", mTestArray);
 	}
 
@@ -261,8 +262,8 @@ template <typename T, size_t ArraySize1 = 3, size_t ArraySize2 = 5>
 class TestClassWithSubTwoDimArray
 {
 public:
-	static const int Array1stLevelSize = ArraySize1;
-	static const int Array2stLevelSize = ArraySize2;
+	static const size_t Array1stLevelSize = ArraySize1;
+	static const size_t Array2stLevelSize = ArraySize2;
 
 	static void BuildFixture(TestClassWithSubTwoDimArray& fixture) {
 		::BuildFixture(fixture.mTestTwoDimArray);
@@ -277,7 +278,7 @@ public:
 	}
 
 	template <class TArchive>
-	inline void Serialize(TArchive& archive) {
+	void Serialize(TArchive& archive) {
 		archive << BitSerializer::MakeAutoKeyValue(L"TestTwoDimArray", mTestTwoDimArray);
 	}
 

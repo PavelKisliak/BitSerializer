@@ -80,7 +80,7 @@ public:
 	}
 
 	template <typename TEnum>
-	static bool Register(const std::initializer_list<std::pair<TEnum, const char*>> descriptors)
+	static bool Register(const std::initializer_list<std::pair<TEnum, const char*>>& descriptors)
 	{
 		auto& staticDescriptors = GetDescriptorsImpl<TEnum>();
 		// Check is that type was already registered

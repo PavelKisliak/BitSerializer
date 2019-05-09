@@ -157,7 +157,7 @@ namespace BitSerializer
 /// <param name="value">The serializing value.</param>
 /// <returns>The archive.</returns>
 template <class TArchive, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
-inline TArchive& operator<<(TArchive& archive, TValue&& value)
+TArchive& operator<<(TArchive& archive, TValue&& value)
 {
 	BitSerializer::KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(value));
 	return archive;

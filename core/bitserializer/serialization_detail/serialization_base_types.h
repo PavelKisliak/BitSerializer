@@ -104,7 +104,7 @@ static void Serialize(TArchive& archive, TValue& value)
 //------------------------------------------------------------------------------
 // Serialize classes
 //------------------------------------------------------------------------------
-template <class TArchive, typename TKey, typename TValue, std::enable_if_t<std::is_class_v<TValue> && is_serializable_class_v<TValue>, int> = 0>
+template <class TArchive, typename TKey, typename TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>) && is_serializable_class_v<TValue>, int> = 0>
 static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 {
 	constexpr auto isSerializableClass = is_serializable_class_v<TValue>;
@@ -126,7 +126,7 @@ static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	return false;
 };
 
-template <class TArchive, class TValue, std::enable_if_t<std::is_class_v<TValue> && is_serializable_class_v<TValue>, int> = 0>
+template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>) && is_serializable_class_v<TValue>, int> = 0>
 static void Serialize(TArchive& archive, TValue& value)
 {
 	constexpr auto isSerializableClass = is_serializable_class_v<TValue>;

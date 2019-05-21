@@ -38,7 +38,7 @@ constexpr bool has_buld_fixture_method_v = has_buld_fixture_method<T>::value;
 /// Builds the test fixture for classes (they must have static method BuildFixture()).
 /// As an alternative you can implement method BuildFixture() as global.
 /// </summary>
-template <typename T, std::enable_if_t<std::is_class_v<T>, int> = 0>
+template <typename T, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
 static void BuildFixture(T& value)
 {
 	constexpr auto hasBuldMethod = has_buld_fixture_method_v<T>;

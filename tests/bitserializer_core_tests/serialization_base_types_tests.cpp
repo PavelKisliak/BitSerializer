@@ -102,11 +102,15 @@ TEST(BaseTypes, ShouldLoadToArrayWithBiggerAmountOfElements) {
 }
 
 //-----------------------------------------------------------------------------
-// Tests of serialization for classes
+// Tests of serialization for classes and unions
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, SerializeClassWithMemberBoolean) {
 	TestSerializeClass<ArchiveStub>(TestClassWithSubType<bool>(false));
 	TestSerializeClass<ArchiveStub>(TestClassWithSubType<bool>(true));
+}
+
+TEST(BaseTypes, SerializeUnion) {
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestUnion>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberInteger) {

@@ -28,6 +28,39 @@ REGISTER_ENUM_MAP(TestEnum)
 } END_ENUM_MAP()
 
 //-----------------------------------------------------------------------------
+union TestUnion
+{
+	static void BuildFixture(TestUnion& fixture) {
+		::BuildFixture(fixture.mIntValue);
+	}
+
+	void Assert(const TestUnion& rhs) const
+	{
+		EXPECT_EQ(mIntValue, rhs.mIntValue);
+	}
+
+	TestUnion() = default;
+
+	TestUnion(int x) noexcept
+		: mIntValue(x)
+	{ }
+
+	bool operator==(const TestUnion& rhs) const noexcept { return mIntValue == rhs.mIntValue; }
+
+	std::string ToString() const { return std::to_string(mIntValue); }
+	std::wstring ToWString() const { return std::to_wstring(mIntValue); }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::MakeAutoKeyValue("value", mIntValue);
+	}
+
+	int mIntValue;
+	float mFloatValue;
+};
+
+//-----------------------------------------------------------------------------
 class TestPointClass
 {
 public:

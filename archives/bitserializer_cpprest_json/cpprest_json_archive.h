@@ -119,7 +119,7 @@ protected:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonArrayScope : public ArchiveScope<TMode>, public JsonScopeBase
+class JsonArrayScope final : public ArchiveScope<TMode>, public JsonScopeBase
 {
 protected:
 	size_t mSize;
@@ -272,7 +272,7 @@ public:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonObjectScope : public ArchiveScope<TMode>, public JsonScopeBase
+class JsonObjectScope final : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
 	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
@@ -398,7 +398,7 @@ protected:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonRootScope : public ArchiveScope<TMode>, public JsonScopeBase
+class JsonRootScope final : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
 	explicit JsonRootScope(const utility::char_t* inputStr) : JsonRootScope(utility::string_t(inputStr)) {}

@@ -31,7 +31,6 @@ template <SerializeMode TMode>
 class ArchiveScope
 {
 public:
-	virtual ~ArchiveScope() = default;
 	static constexpr SerializeMode GetMode() noexcept	{ return TMode; }
 	static constexpr bool IsSaving() noexcept			{ return TMode == SerializeMode::Save; }
 	static constexpr bool IsLoading() noexcept			{ return TMode == SerializeMode::Load; }

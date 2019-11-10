@@ -64,7 +64,7 @@ public:
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
 	/// <returns></returns>
-	inline size_t GetSize() const {
+	size_t GetSize() const {
 		if (std::holds_alternative<TestIoDataObject>(*mNode)) {
 			return std::get<TestIoDataObject>(*mNode).size();
 		}
@@ -236,7 +236,7 @@ public:
 	}
 
 protected:
-	inline TestIoData& NextElement()
+	TestIoData& NextElement()
 	{
 		assert(mIndex < GetSize());
 		auto& archiveArray = std::get<TestIoDataArray>(*mNode);

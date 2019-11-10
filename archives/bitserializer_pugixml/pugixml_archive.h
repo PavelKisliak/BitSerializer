@@ -57,6 +57,22 @@ namespace PugiXmlExtensions
 		return node.child(key);
 	}
 
+	inline pugi::xml_attribute AppendAttribute(pugi::xml_node& node, const PugiXmlArchiveTraits::key_type& key) {
+		return node.append_attribute(key.c_str());
+	}
+
+	inline pugi::xml_attribute AppendAttribute(pugi::xml_node& node, const pugi::char_t* key) {
+		return node.append_attribute(key);
+	}
+
+	inline pugi::xml_attribute GetAttribute(pugi::xml_node& node, const PugiXmlArchiveTraits::key_type& key) {
+		return node.attribute(key.c_str());
+	}
+
+	inline pugi::xml_attribute GetAttribute(pugi::xml_node& node, const pugi::char_t* key) {
+		return node.attribute(key);
+	}
+
 	template <typename T>
 	void LoadValue(const pugi::xml_node& node, T& value)
 	{
@@ -120,7 +136,7 @@ class PugiXmlObjectScope;
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlArrayScope : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlArrayScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlArrayScope(const pugi::xml_node& node)
@@ -277,7 +293,7 @@ public:
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlObjectScope : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlObjectScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlObjectScope(const pugi::xml_node& node)
@@ -358,12 +374,84 @@ protected:
 
 
 /// <summary>
+/// XML scope for serializing attributes (key=value pairs in the XML node)
+/// </summary>
+/// <seealso cref="RapidJsonScopeBase" />
+template <SerializeMode TMode>
+class PugiXmlAttributeScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+{
+public:
+	explicit PugiXmlAttributeScope(const pugi::xml_node& node)
+		: mNode(node)
+	{
+		assert(mNode.type() == pugi::node_element);
+	}
+
+	/// <summary>
+	/// Gets the current path in XML.
+	/// </summary>
+	std::wstring GetPath() const {
+		return Convert::ToWString(mNode.path());
+	}
+
+	template <typename TKey, typename T>
+	bool SerializeValue(TKey&& key, T& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
+			if (attr.empty())
+				return false;
+
+			if constexpr (std::is_same_v<T, bool>) {
+				value = attr.as_bool();
+			}
+			else if constexpr (std::is_integral_v<T>)
+			{
+				if constexpr (std::is_same_v<T, int64_t>)
+					value = attr.as_llong();
+				else if constexpr (std::is_same_v<T, uint64_t>)
+					value = attr.as_ullong();
+				else if constexpr (std::is_unsigned_v<T>)
+					value = static_cast<T>(attr.as_uint());
+				else
+					value = static_cast<T>(attr.as_int());
+			}
+			else
+			{
+				if constexpr (std::is_same_v<T, float>)
+					value = attr.as_float();
+				else if constexpr (std::is_same_v<T, double>)
+					value = attr.as_double();
+			}
+			return true;
+		}
+		else
+		{
+			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
+			if (attr.empty())
+				return false;
+			attr.set_value(value);
+			return true;
+		}
+	}
+
+protected:
+	pugi::xml_node mNode;
+};
+
+/// <summary>
 /// XML root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class PugiXmlRootScope : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlRootScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
+	PugiXmlRootScope(const PugiXmlRootScope&) = delete;
+	PugiXmlRootScope(PugiXmlRootScope&&) = delete;
+	PugiXmlRootScope& operator=(const PugiXmlRootScope&) = delete;
+	PugiXmlRootScope& operator=(PugiXmlRootScope&&) = delete;
+
 	explicit PugiXmlRootScope(const pugi::char_t* inputStr)
 		: mOutput(nullptr)
 	{

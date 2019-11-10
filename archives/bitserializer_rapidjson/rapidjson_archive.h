@@ -55,8 +55,6 @@ public:
 		, mParentKey(parentKey)
 	{ }
 
-	virtual ~RapidJsonScopeBase() = default;
-
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
@@ -251,7 +249,7 @@ protected:
 	void SaveJsonValue(RapidJsonNode&& jsonValue) const
 	{
 		assert(this->mNode->Size() < this->mNode->Capacity());
-		this->mNode->PushBack(jsonValue, mAllocator);
+		this->mNode->PushBack(jsonValue.Move(), mAllocator);
 	}
 
 	TAllocator& mAllocator;
@@ -487,7 +485,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	~RapidJsonRootScope() override
+	~RapidJsonRootScope()
 	{
 		Finish();
 	}

@@ -76,7 +76,8 @@ namespace PugiXmlExtensions
 	template <typename T>
 	void LoadValue(const pugi::xml_node& node, T& value)
 	{
-		if constexpr (std::is_same_v<T, bool>) {
+		if constexpr (std::is_same_v<T, bool>)
+		{
 			value = node.text().as_bool();
 		}
 		else if constexpr (std::is_integral_v<T>)
@@ -118,8 +119,9 @@ namespace PugiXmlExtensions
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	void SaveValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
-		if (std::is_same_v<TSym, pugi::char_t>)
+	void SaveValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	{
+		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			node.text().set(value.c_str());
 		else
 			node.text().set(Convert::To<pugi::string_t>(value).c_str());
@@ -257,6 +259,103 @@ protected:
 
 
 /// <summary>
+/// XML scope for serializing attributes (key=value pairs in the XML node)
+/// </summary>
+/// <seealso cref="RapidJsonScopeBase" />
+template <SerializeMode TMode>
+class PugiXmlAttributeScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+{
+public:
+	explicit PugiXmlAttributeScope(const pugi::xml_node& node)
+		: mNode(node)
+	{
+		assert(mNode.type() == pugi::node_element);
+	}
+
+	/// <summary>
+	/// Gets the current path in XML.
+	/// </summary>
+	std::wstring GetPath() const {
+		return Convert::ToWString(mNode.path());
+	}
+
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	bool SerializeValue(TKey&& key, T& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
+			if (attr.empty())
+				return false;
+
+			if constexpr (std::is_same_v<T, bool>) {
+				value = attr.as_bool();
+			}
+			else if constexpr (std::is_integral_v<T>)
+			{
+				if constexpr (std::is_same_v<T, int64_t>)
+					value = attr.as_llong();
+				else if constexpr (std::is_same_v<T, uint64_t>)
+					value = attr.as_ullong();
+				else if constexpr (std::is_unsigned_v<T>)
+					value = static_cast<T>(attr.as_uint());
+				else
+					value = static_cast<T>(attr.as_int());
+			}
+			else
+			{
+				if constexpr (std::is_same_v<T, float>)
+					value = attr.as_float();
+				else if constexpr (std::is_same_v<T, double>)
+					value = attr.as_double();
+			}
+			return true;
+		}
+		else
+		{
+			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
+			if (attr.empty())
+				return false;
+			attr.set_value(value);
+			return true;
+		}
+	}
+
+	template <typename TKey, typename TSym, typename TStrAllocator>
+	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
+			if (attr.empty())
+				return false;
+
+			if constexpr (std::is_same_v<TSym, pugi::char_t>)
+				value = attr.as_string();
+			else
+				value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(attr.as_string());
+			return true;
+		}
+		else
+		{
+			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
+			if (attr.empty())
+				return false;
+
+			if constexpr (std::is_same_v<TSym, pugi::char_t>)
+				attr.set_value(value.c_str());
+			else
+				attr.set_value(Convert::To<pugi::string_t>(value).c_str());
+			return true;
+		}
+	}
+
+protected:
+	pugi::xml_node mNode;
+};
+
+
+/// <summary>
 /// Constant iterator of the keys.
 /// </summary>
 class key_const_iterator
@@ -342,7 +441,8 @@ public:
 	template <typename TKey>
 	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key)
 	{
-		if constexpr (TMode == SerializeMode::Load) {
+		if constexpr (TMode == SerializeMode::Load)
+		{
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
 		}
@@ -368,77 +468,15 @@ public:
 		}
 	}
 
-protected:
-	pugi::xml_node mNode;
-};
-
-
-/// <summary>
-/// XML scope for serializing attributes (key=value pairs in the XML node)
-/// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
-template <SerializeMode TMode>
-class PugiXmlAttributeScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
-{
-public:
-	explicit PugiXmlAttributeScope(const pugi::xml_node& node)
-		: mNode(node)
+	std::optional<PugiXmlAttributeScope<TMode>> OpenAttributeScope()
 	{
-		assert(mNode.type() == pugi::node_element);
-	}
-
-	/// <summary>
-	/// Gets the current path in XML.
-	/// </summary>
-	std::wstring GetPath() const {
-		return Convert::ToWString(mNode.path());
-	}
-
-	template <typename TKey, typename T>
-	bool SerializeValue(TKey&& key, T& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
-			if (attr.empty())
-				return false;
-
-			if constexpr (std::is_same_v<T, bool>) {
-				value = attr.as_bool();
-			}
-			else if constexpr (std::is_integral_v<T>)
-			{
-				if constexpr (std::is_same_v<T, int64_t>)
-					value = attr.as_llong();
-				else if constexpr (std::is_same_v<T, uint64_t>)
-					value = attr.as_ullong();
-				else if constexpr (std::is_unsigned_v<T>)
-					value = static_cast<T>(attr.as_uint());
-				else
-					value = static_cast<T>(attr.as_int());
-			}
-			else
-			{
-				if constexpr (std::is_same_v<T, float>)
-					value = attr.as_float();
-				else if constexpr (std::is_same_v<T, double>)
-					value = attr.as_double();
-			}
-			return true;
-		}
-		else
-		{
-			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
-			if (attr.empty())
-				return false;
-			attr.set_value(value);
-			return true;
-		}
+		return std::make_optional<PugiXmlAttributeScope<TMode>>(mNode);
 	}
 
 protected:
 	pugi::xml_node mNode;
 };
+
 
 /// <summary>
 /// XML root scope (can serialize one value, array or object without key)

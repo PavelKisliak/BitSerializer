@@ -82,6 +82,9 @@
     <ClInclude Include="..\test_helpers\common_json_test_methods.h">
       <Filter>TestHelpers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\attr_key_value.h">
+      <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="TestHelpers">

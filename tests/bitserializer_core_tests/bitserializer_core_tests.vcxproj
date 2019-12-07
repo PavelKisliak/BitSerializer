@@ -55,6 +55,7 @@
     <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_fundamental.h" />
     <ClInclude Include="..\..\core\bitserializer\conversion_detail\object_traits.h" />
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\archive_traits.h" />
+    <ClInclude Include="..\..\core\bitserializer\serialization_detail\attr_key_value.h" />
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\base_object.h" />
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\errors_handling.h" />
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\key_value.h" />

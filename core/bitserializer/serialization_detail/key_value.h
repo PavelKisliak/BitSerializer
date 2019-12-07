@@ -88,7 +88,7 @@ private:
 /// <param name="validators">Validators</param>
 /// <returns></returns>
 template <class TKey, class TValue, class... Validators>
-constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue& value, const Validators&... validators) noexcept {
+constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue& value, const Validators&... validators) {
 	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), value, validators...);
 }
 

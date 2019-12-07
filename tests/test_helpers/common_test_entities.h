@@ -356,3 +356,68 @@ private:
 	TestType mExistSingleField;
 	TestType mExistArrayField[3];
 };
+
+//-----------------------------------------------------------------------------
+template <class ...Args>
+class TestClassWithAttributes : public std::tuple<Args...>
+{
+public:
+	TestClassWithAttributes() = default;
+	TestClassWithAttributes(Args... args)
+		: std::tuple<Args...>(args...)
+	{
+	}
+
+	template<std::size_t I = 0>
+	static void BuildFixture(TestClassWithAttributes& fixture)
+	{
+		if constexpr (I == sizeof...(Args))
+			return;
+		else
+		{
+			decltype(auto) member = std::get<I>(fixture);
+			::BuildFixture(member);
+
+			// Next
+			BuildFixture<I + 1>(fixture);
+		}
+	}
+
+	template<std::size_t I = 0>
+	void Assert(const TestClassWithAttributes& rhs) const
+	{
+		if constexpr (I == sizeof...(Args))
+			return;
+		else
+		{
+			// Get class member
+			decltype(auto) expected = std::get<I>(*this);
+			decltype(auto) actual = std::get<I>(rhs);
+
+			// Assert
+			EXPECT_EQ(expected, actual);
+
+			// Next
+			Assert<I + 1>(rhs);
+		}
+	}
+
+	template <class TArchive, std::size_t I = 0>
+	void Serialize(TArchive& archive)
+	{
+		if constexpr (I == sizeof...(Args))
+			return;
+		else
+		{
+			decltype(auto) member = std::get<I>(*this);
+
+			// Auto key adaptation uses for able to test different type of archives.
+			static const auto attributeKey = BitSerializer::Convert::To<typename TArchive::key_type>("Attribute_")
+				+ BitSerializer::Convert::To<typename TArchive::key_type>(I);
+			archive << BitSerializer::MakeAttributeValue(attributeKey, member);
+
+			// Next
+			Serialize<TArchive, I + 1>(archive);
+		}
+	}
+};

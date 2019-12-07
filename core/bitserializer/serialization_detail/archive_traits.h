@@ -106,7 +106,7 @@ struct can_serialize_object
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenObjectScope())>, std::true_type> test(int);
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenObjectScope())>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -127,7 +127,7 @@ struct can_serialize_object_with_key
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<TKey>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<TKey>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -173,7 +173,7 @@ struct can_serialize_array
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenArrayScope(std::declval<size_t>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenArrayScope(std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -194,7 +194,7 @@ struct can_serialize_array_with_key
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<!std::is_void_v<decltype(std::declval<TObj>().OpenArrayScope(std::declval<TKey>(), std::declval<size_t>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenArrayScope(std::declval<TKey>(), std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -206,6 +206,33 @@ public:
 
 template <typename TArchive, typename TKey>
 constexpr bool can_serialize_array_with_key_v = can_serialize_array_with_key<TArchive, TKey>::value;
+
+
+//------------------------------------------------------------------------------
+
+/// <summary>
+/// Checks that target archive is supported serializing attributes
+/// </summary>
+template <typename TArchive>
+struct can_serialize_attribute
+{
+private:
+	template <typename TObj>
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenAttributeScope())>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<TArchive>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename TArchive>
+constexpr bool can_serialize_attribute_v = can_serialize_attribute<TArchive>::value;
+
+
+//------------------------------------------------------------------------------
 
 /// <summary>
 /// Checks that provided type is convertible to one of element from std::tuple

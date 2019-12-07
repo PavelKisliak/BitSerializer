@@ -114,6 +114,25 @@ TEST(PugiXmlArchive, ShouldIterateKeysInObjectScope) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for attributes
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SerializeAttributesWithBoolean) {
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<bool>>());
+}
+
+TEST(PugiXmlArchive, SerializeAttributesWithIntegers) {
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<int8_t, uint8_t, int64_t, uint64_t>>());
+}
+
+TEST(PugiXmlArchive, SerializeAttributesWithFloats) {
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<float, double>>());
+}
+
+TEST(PugiXmlArchive, SerializeAttributesWithString) {
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<std::string, std::wstring>>());
+}
+
+//-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {

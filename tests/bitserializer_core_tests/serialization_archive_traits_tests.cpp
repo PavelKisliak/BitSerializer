@@ -24,6 +24,7 @@ public:
 
 	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope() { return nullptr; }
 	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(size_t arraySize) { return nullptr; }
+	std::unique_ptr<TestArchive_LoadMode> OpenAttributeScope() { return nullptr; }
 };
 
 /// <summary>
@@ -63,6 +64,7 @@ public:
 
 	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope(const key_type& key) { return nullptr; }
 	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(const key_type& key, size_t arraySize) { return nullptr; }
+	std::unique_ptr<TestArchive_LoadMode> OpenAttributeScope(const key_type& key) { return nullptr; }
 };
 
 class TestWrongArchive
@@ -158,6 +160,15 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeArrayWithKey)
 	bool testResult2 = can_serialize_array_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
 	bool testResult3 = can_serialize_array_with_key_v<TestWrongArchive, TestWrongArchive::key_type>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeAttribute) {
+	bool testResult1 = can_serialize_attribute_v<TestArchive_LoadMode>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = can_serialize_attribute_v<TestArchive_LoadMode>;
+	EXPECT_TRUE(testResult2);
+	bool testResult3 = can_serialize_attribute_v<TestWrongArchive>;
 	EXPECT_FALSE(testResult3);
 }
 

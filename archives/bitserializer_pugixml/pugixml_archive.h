@@ -570,12 +570,12 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto node = GetChild(mRootXml, std::forward<TKey>(key));
+			auto node = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 		else
 		{
-			auto node = AppendChild(mRootXml, std::forward<TKey>(key));
+			auto node = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 	}

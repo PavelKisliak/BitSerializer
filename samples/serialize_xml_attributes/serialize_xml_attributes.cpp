@@ -35,7 +35,11 @@ int main()
 		{ 20, 5 },
 		{ 50, 25 }
 	};
-	const auto result = BitSerializer::SaveObject<XmlArchive>(MakeKeyValue("Shapes", Shapes));
+	const auto result = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Shapes", Shapes));
+#ifdef PUGIXML_WCHAR_MODE
+	std::wcout << result << std::endl;
+#else
 	std::cout << result << std::endl;
+#endif
 	return 0;
 }

@@ -79,10 +79,12 @@ template <typename TKey>
 class BasePerformanceTestModel
 {
 public:
-	static constexpr size_t ARRAY_SIZE = 20;
+	static constexpr size_t ARRAY_SIZE = 100;
 
 	using char_t = TKey;
 	using string_t = std::basic_string<TKey, std::char_traits<TKey>>;
+	using out_string_stream_t = std::basic_ostringstream<TKey, std::char_traits<TKey>, std::allocator<TKey>>;
+	using in_string_stream_t = std::basic_ostringstream<TKey, std::char_traits<TKey>, std::allocator<TKey>>;
 
 	virtual ~BasePerformanceTestModel() = default;
 

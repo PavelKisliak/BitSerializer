@@ -194,7 +194,7 @@ public:
 		}
 		else
 		{
-			auto node = mNode.append_child("array");
+			auto node = mNode.append_child(PUGIXML_TEXT("array"));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 	}
@@ -560,7 +560,7 @@ public:
 		}
 		else
 		{
-			auto node = mRootXml.append_child("array");
+			auto node = mRootXml.append_child(PUGIXML_TEXT("array"));
 			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
 		}
 	}
@@ -612,7 +612,7 @@ private:
 		if constexpr (TMode == SerializeMode::Save)
 		{
 			auto decl = mRootXml.prepend_child(pugi::node_declaration);
-			decl.append_attribute("version") = "1.0";
+			decl.append_attribute(PUGIXML_TEXT("version")) = PUGIXML_TEXT("1.0");
 
 			std::visit([this](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;

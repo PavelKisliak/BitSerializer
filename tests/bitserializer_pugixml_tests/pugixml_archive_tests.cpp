@@ -159,5 +159,5 @@ TEST(PugiXmlArchive, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowExceptionWhenBadSyntaxInSource) {
 	auto fixture = BuildFixture<TestClassWithSubTypes<std::string>>();
-	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, "<root>Hello"), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, PUGIXML_TEXT("<root>Hello")), BitSerializer::SerializationException);
 }

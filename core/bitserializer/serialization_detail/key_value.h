@@ -11,7 +11,7 @@
 namespace BitSerializer {
 
 /// <summary>
-/// Implementation of helper class for wrap a serialization value, key and validators.
+/// The wrapper for key, value and set of validators.
 /// </summary>
 template<class TKey, class TValue, class... Validators>
 struct KeyValue
@@ -31,7 +31,7 @@ public:
 	KeyValue(TKey&& key, TValue& value, std::tuple<Validators...>&& validators)
 		: mKey(key)
 		, mValue(&value)
-		, mValidators(validators)
+		, mValidators(std::move(validators))
 	{}
 
 	inline const TKey& GetKey() const noexcept	{ return mKey; }
@@ -41,7 +41,6 @@ public:
 	/// Validates deserialized value.
 	/// </summary>
 	/// <param name="isLoaded">if set to <c>true</c> [is loaded].</param>
-	/// <returns></returns>
 	std::optional<ValidationErrors> ValidateValue(const bool isLoaded) const
 	{
 		if constexpr (sizeof...(Validators) == 0)
@@ -81,12 +80,12 @@ private:
 };
 
 /// <summary>
-/// The helper function for making a wrapper with a serialization value, key and validators.
+/// The helper function for making the wrapper for key, value and set of validators.
 /// </summary>
 /// <param name="key">The key.</param>
 /// <param name="value">The value.</param>
 /// <param name="validators">Validators</param>
-/// <returns></returns>
+/// <returns>The KeyValue object</returns>
 template <class TKey, class TValue, class... Validators>
 constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue& value, const Validators&... validators) {
 	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), value, validators...);
@@ -95,7 +94,7 @@ constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue&
 //------------------------------------------------------------------------------
 
 /// <summary>
-/// This key value wrapper allows to automatically adaptation key to type which is supported by archive (of course with reducing performance).
+/// The wrapper for key and value with automatically adaptation to char type which is supported by archive (of course with reducing performance).
 /// </summary>
 template<class TKey, class TValue, class... Validators>
 class AutoKeyValue : public KeyValue<TKey, TValue, Validators...>
@@ -108,7 +107,6 @@ public:
 	/// <summary>
 	/// Adapts the key to target archive and move to base KeyValue type.
 	/// </summary>
-	/// <returns></returns>
 	template<class TArchiveKey>
 	KeyValue<TArchiveKey, TValue, Validators...> AdaptAndMoveToBaseKeyValue()
 	{
@@ -119,12 +117,12 @@ public:
 };
 
 /// <summary>
-/// The helper function for making an auto wrapper with a serialization value, key and validators.
+/// The helper function for making the auto keys wrapper.
 /// </summary>
 /// <param name="key">The key.</param>
 /// <param name="value">The value.</param>
 /// <param name="validators">Validators</param>
-/// <returns></returns>
+/// <returns>The AutoKeyValue object</returns>
 template <class TKey, class TValue, class... Validators>
 constexpr AutoKeyValue<TKey, TValue, Validators...> MakeAutoKeyValue(TKey&& key, TValue& value, const Validators&... validators) noexcept {
 	return AutoKeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), value, validators...);

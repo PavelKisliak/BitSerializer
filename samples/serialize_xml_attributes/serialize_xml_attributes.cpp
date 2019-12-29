@@ -18,9 +18,9 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAttributeValue("Type", mType);
-		archive << MakeAttributeValue("Width", mWidth);
-		archive << MakeAttributeValue("Height", mHeight);
+		archive << MakeAutoAttributeValue("Type", mType);
+		archive << MakeAutoAttributeValue("Width", mWidth);
+		archive << MakeAutoAttributeValue("Height", mHeight);
 	}
 
 	std::string mType;

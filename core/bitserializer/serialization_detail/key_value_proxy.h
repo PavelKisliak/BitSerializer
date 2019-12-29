@@ -11,13 +11,13 @@
 
 namespace BitSerializer::KeyValueProxy
 {
-	template <class TArchive, class TValue, std::enable_if_t<is_archive_scope_v<TArchive>, int> = 0>
+	template <class TArchive, class TValue>
 	void SplitAndSerialize(TArchive& archive, TValue&& value)
 	{
 		Serialize(archive, std::forward<TValue>(value));
 	}
 
-	template <class TArchive, class TKey, class TValue, class... TValidators, std::enable_if_t<is_archive_scope_v<TArchive>, int> = 0>
+	template <class TArchive, class TKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TValidators...>&& keyValue)
 	{
 		constexpr auto hasSupportKeyType = BitSerializer::is_type_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
@@ -37,7 +37,7 @@ namespace BitSerializer::KeyValueProxy
 		}
 	}
 
-	template <class TArchive, class TKey, class TValue, class... TValidators, std::enable_if_t<is_archive_scope_v<TArchive>, int> = 0>
+	template <class TArchive, class TKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, AutoKeyValue<TKey, TValue, TValidators...>&& keyValue)
 	{
 		// Checks key type and adapts it to archive if needed
@@ -47,7 +47,7 @@ namespace BitSerializer::KeyValueProxy
 			SplitAndSerialize(archive, keyValue.template AdaptAndMoveToBaseKeyValue<typename TArchive::key_type>());
 	}
 
-	template <class TArchive, class TAttrKey, class TValue, class... TValidators, std::enable_if_t<is_archive_scope_v<TArchive>, int> = 0>
+	template <class TArchive, class TAttrKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TValidators...>&& keyValue)
 	{
 		constexpr auto hasSupportAttributes = BitSerializer::can_serialize_attribute_v<TArchive>;
@@ -59,6 +59,16 @@ namespace BitSerializer::KeyValueProxy
 			if (attributesScope)
 				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TValidators...>>(keyValue));
 		}
+	}
+
+	template <class TArchive, class TAttrKey, class TValue, class... TValidators>
+	static void SplitAndSerialize(TArchive& archive, AutoAttributeValue<TAttrKey, TValue, TValidators...>&& keyValue)
+	{
+		// Checks key type and adapts it to archive if needed
+		if constexpr (std::is_convertible_v<TAttrKey, typename TArchive::key_type>)
+			SplitAndSerialize(archive, std::forward<AttributeValue<TAttrKey, TValue, TValidators...>>(keyValue));
+		else
+			SplitAndSerialize(archive, keyValue.template AdaptAndMoveToBaseAttributeValue<typename TArchive::key_type>());
 	}
 
 }	// namespace BitSerializer::KeyValueProxy

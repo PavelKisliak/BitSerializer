@@ -7,12 +7,13 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
+  string_conversion_tests.cpp
+  utf8_encoding_tests.cpp
   serialization_archive_traits_tests.cpp
   serialization_base_types_tests.cpp
   serialization_containers_tests.cpp
   serialization_object_traits_tests.cpp
   serialization_stl_types_tests.cpp
-  string_conversion_tests.cpp
   validators_tests.cpp
 )
 

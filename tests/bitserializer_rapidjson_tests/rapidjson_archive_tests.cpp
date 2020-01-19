@@ -61,7 +61,7 @@ TEST(RapidJsonArchive, SerializeDouble)
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::string and std::wstring (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, SerializeString)
+TEST(RapidJsonArchive, SerializeAnsiString)
 {
 	// UTF8
 	TestSerializeType<JsonUtf8Archive, std::string>("Test ANSI string");
@@ -69,12 +69,12 @@ TEST(RapidJsonArchive, SerializeString)
 	TestSerializeType<JsonUtf16Archive, std::string>("Test ANSI string");
 }
 
-TEST(RapidJsonArchive, SerializeWString)
+TEST(RapidJsonArchive, SerializeUnicodeString)
 {
 	// UTF8
-	TestSerializeType<JsonUtf8Archive, std::wstring>(L"Test wide string");
+	TestSerializeType<JsonUtf8Archive, std::wstring>(L"Test Unicode string - Привет мир!");
 	// UTF16
-	TestSerializeType<JsonUtf16Archive, std::wstring>(L"Test wide string");
+	TestSerializeType<JsonUtf16Archive, std::wstring>(L"Test Unicode string - Привет мир!");
 }
 
 TEST(RapidJsonArchive, SerializeEnum)

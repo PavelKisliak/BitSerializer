@@ -8,6 +8,7 @@
     <ClCompile Include="serialization_stl_types_tests.cpp" />
     <ClCompile Include="string_conversion_tests.cpp" />
     <ClCompile Include="validators_tests.cpp" />
+    <ClCompile Include="utf8_encoding_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test_helpers\archive_stub.h">
@@ -84,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\attr_key_value.h">
       <Filter>CoreImpl\serialization_detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_utf.h">
+      <Filter>CoreImpl\conversion_detail</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

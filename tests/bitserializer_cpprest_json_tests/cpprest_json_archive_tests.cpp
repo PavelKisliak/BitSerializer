@@ -39,12 +39,12 @@ TEST(JsonRestCpp, SerializeEnum) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::string and std::wstring (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(JsonRestCpp, SerializeString) {
+TEST(JsonRestCpp, SerializeAnsiString) {
 	TestSerializeType<JsonArchive, std::string>("Test ANSI string");
 }
 
-TEST(JsonRestCpp, SerializeWString) {
-	TestSerializeType<JsonArchive, std::wstring>(L"Test wide string");
+TEST(JsonRestCpp, SerializeUnicodeString) {
+	TestSerializeType<JsonArchive, std::wstring>(L"Test Unicode string - Привет мир!");
 }
 
 //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -9,6 +9,7 @@
 #include <experimental/filesystem>
 
 #include "convert_fundamental.h"
+#include "convert_utf.h"
 #include "object_traits.h"
 #include "convert_enum.h"
 
@@ -23,16 +24,18 @@ inline void To(const std::string& in_str, std::string& ret_Str)			{ ret_Str = in
 inline void To(const std::wstring& in_str, std::wstring& ret_Str)		{ ret_Str = in_str; }
 
 //------------------------------------------------------------------------------
-// Convert std::string to std::wstring and vice versa (without using locale)
+// Convert std::string to std::wstring and vice versa (with using UTF-8 encoding)
 //------------------------------------------------------------------------------
 inline void To(const std::wstring& in_str, std::string& ret_Str)
 {
-	ret_Str.append(in_str.begin(), in_str.end());
+	ret_Str.reserve(ret_Str.size() + (in_str.size() * 2));
+	Utf8::Encode(in_str.begin(), in_str.end(), ret_Str);
 }
 
 inline void To(const std::string& in_str, std::wstring& ret_Str)
 {
-	ret_Str.append(in_str.begin(), in_str.end());
+	ret_Str.reserve(ret_Str.size() + in_str.size());
+	Utf8::Decode(in_str.begin(), in_str.end(), ret_Str);
 }
 
 //------------------------------------------------------------------------------
@@ -40,12 +43,12 @@ inline void To(const std::string& in_str, std::wstring& ret_Str)
 // Need to register your enumeration types, see detail in class ConvertEnum.
 //------------------------------------------------------------------------------
 template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-inline bool To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
+bool To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
 {
 	return ConvertEnum::ToString<T>(val, ret_Str);
 }
 template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-inline bool To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
+bool To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
 {
 	return ConvertEnum::FromString<T>(str, ret_Val);
 }

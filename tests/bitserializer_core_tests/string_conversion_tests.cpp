@@ -45,6 +45,14 @@ TEST(Convert, WStringFromString) {
 	EXPECT_EQ(L"Test", Convert::FromString<std::wstring>("Test"));
 }
 
+TEST(Convert, WStringToUtf8) {
+	EXPECT_EQ(u8"Привет мир!", Convert::ToString(L"Привет мир!"));
+}
+
+TEST(Convert, Utf8ToString) {
+	EXPECT_EQ(L"Привет мир!", Convert::ToWString(u8"Привет мир!"));
+}
+
 //-----------------------------------------------------------------------------
 // Test conversion for fundamental types
 //-----------------------------------------------------------------------------

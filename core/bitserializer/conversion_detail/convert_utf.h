@@ -85,8 +85,8 @@ namespace BitSerializer::Convert
 				{
 					sym -= 0x10000;
 					outStr.append({
-						static_cast<wchar_t>(Utf16HighSurrogatesStart | ((sym >> 10) & 0x3FF)),
-						static_cast<wchar_t>(Utf16LowSurrogatesStart | (sym & 0x3FF))
+						static_cast<TOutChar>(Utf16HighSurrogatesStart | ((sym >> 10) & 0x3FF)),
+						static_cast<TOutChar>(Utf16LowSurrogatesStart | (sym & 0x3FF))
 						});
 					continue;
 				}

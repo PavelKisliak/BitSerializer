@@ -46,11 +46,11 @@ TEST(Convert, WStringFromString) {
 }
 
 TEST(Convert, WStringToUtf8) {
-	EXPECT_EQ(u8"Привет мир!", Convert::ToString(L"Привет мир!"));
+	EXPECT_EQ(u8"РџСЂРёРІРµС‚ РјРёСЂ!", Convert::ToString(L"РџСЂРёРІРµС‚ РјРёСЂ!"));
 }
 
 TEST(Convert, Utf8ToString) {
-	EXPECT_EQ(L"Привет мир!", Convert::ToWString(u8"Привет мир!"));
+	EXPECT_EQ(L"РџСЂРёРІРµС‚ РјРёСЂ!", Convert::ToWString(u8"РџСЂРёРІРµС‚ РјРёСЂ!"));
 }
 
 //-----------------------------------------------------------------------------

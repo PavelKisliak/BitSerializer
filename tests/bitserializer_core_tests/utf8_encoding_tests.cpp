@@ -19,6 +19,13 @@ protected:
 		return result;
 	}
 
+	static std::string EncodeUtf8(const std::u16string& unicodeStr, const char errSym = '?')
+	{
+		std::string result;
+		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		return result;
+	}
+
 	static std::string EncodeUtf8(const std::u32string& unicodeStr, const char errSym = '?')
 	{
 		std::string result;
@@ -80,14 +87,14 @@ TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedFourOctets) {
 }
 
 TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WithDecodingSurrogatePairs) {
-	const std::wstring surrogatePair = { wchar_t(0xD83D), wchar_t(0xDE00) };
-	EXPECT_EQ(u8"😀test😀", EncodeUtf8(surrogatePair + L"test" + surrogatePair));
+	const std::u16string surrogatePair = { char16_t(0xD83D), char16_t(0xDE00) };
+	EXPECT_EQ(u8"😀test😀", EncodeUtf8(surrogatePair + u"test" + surrogatePair));
 }
 
 TEST_F(Utf8EncodeTest, ShouldEncodeInvalidSurrogatePairsAsErrSym) {
-	EXPECT_EQ(u8"test?", EncodeUtf8(std::wstring(L"test") + wchar_t(0xDE00)));
-	EXPECT_EQ(u8"test?", EncodeUtf8(std::wstring(L"test") + wchar_t(0xD83D)));
-	EXPECT_EQ(u8"test_string", EncodeUtf8(std::wstring(L"test") + wchar_t(0xD83D) + L"string", '_'));
+	EXPECT_EQ(u8"test?", EncodeUtf8(std::u16string(u"test") + char16_t(0xDE00)));
+	EXPECT_EQ(u8"test?", EncodeUtf8(std::u16string(u"test") + char16_t(0xD83D)));
+	EXPECT_EQ(u8"test_string", EncodeUtf8(std::u16string(u"test") + char16_t(0xD83D) + u"string", '_'));
 }
 
 //-----------------------------------------------------------------------------
@@ -106,57 +113,57 @@ TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedThreeOctets) {
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedFourOctets) {
-	EXPECT_EQ(std::u32string(U"😀😎🙋"), DecodeUtf8ToU32string(u8"😀😎🙋"));
+	EXPECT_EQ(U"😀😎🙋", DecodeUtf8ToU32string(u8"😀😎🙋"));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedFiveOctets) {
 	const std::string fiveOctets({ char(0b11111000), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001) });
-	EXPECT_EQ(std::u32string(U"_test_"), DecodeUtf8ToU32string(fiveOctets + u8"test" + fiveOctets, '_'));
+	EXPECT_EQ(U"_test_", DecodeUtf8ToU32string(fiveOctets + u8"test" + fiveOctets, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedSixOctets) {
 	const std::string sixOctets({ char(0b11111100), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001) });
-	EXPECT_EQ(std::u32string(U"_test_"), DecodeUtf8ToU32string(sixOctets + u8"test" + sixOctets, '_'));
+	EXPECT_EQ(U"_test_", DecodeUtf8ToU32string(sixOctets + u8"test" + sixOctets, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode) {
 	const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
-	EXPECT_EQ(std::u32string(U"__test__"), DecodeUtf8ToU32string(wrongStartCodes + u8"test" + wrongStartCodes, '_'));
+	EXPECT_EQ(U"__test__", DecodeUtf8ToU32string(wrongStartCodes + u8"test" + wrongStartCodes, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail2InSequence) {
 	const std::string wrongSequence({ char(0b11110111), char(0b11111111), char(0b10111111), char(0b10111111) });
-	EXPECT_EQ(std::u32string(U"_test_"), DecodeUtf8ToU32string(wrongSequence + u8"test" + wrongSequence, '_'));
+	EXPECT_EQ(U"_test_", DecodeUtf8ToU32string(wrongSequence + u8"test" + wrongSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail3InSequence) {
 	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b11111111), char(0b10111111) });
-	EXPECT_EQ(std::u32string(U"_test_"), DecodeUtf8ToU32string(wrongSequence + u8"test" + wrongSequence, '_'));
+	EXPECT_EQ(U"_test_", DecodeUtf8ToU32string(wrongSequence + u8"test" + wrongSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence) {
 	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
-	EXPECT_EQ(std::u32string(U"_test_"), DecodeUtf8ToU32string(wrongSequence + u8"test" + wrongSequence, '_'));
+	EXPECT_EQ(U"_test_", DecodeUtf8ToU32string(wrongSequence + u8"test" + wrongSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenCroppedTwoOctetsAtEnd) {
 	const std::string croppedSequence({ char(0b11011111) });
-	EXPECT_EQ(std::u32string(U"test_"), DecodeUtf8ToU32string(u8"test" + croppedSequence, '_'));
+	EXPECT_EQ(U"test_", DecodeUtf8ToU32string(u8"test" + croppedSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenCroppedThreeOctetsAtEnd) {
 	const std::string croppedSequence({ char(0b11101111) });
-	EXPECT_EQ(std::u32string(U"test_"), DecodeUtf8ToU32string(u8"test" + croppedSequence, '_'));
+	EXPECT_EQ(U"test_", DecodeUtf8ToU32string(u8"test" + croppedSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenCroppedFourOctetsAtEnd) {
 	const std::string croppedSequence({ char(0b11110111) });
-	EXPECT_EQ(std::u32string(U"test_"), DecodeUtf8ToU32string(u8"test" + croppedSequence, '_'));
+	EXPECT_EQ(U"test_", DecodeUtf8ToU32string(u8"test" + croppedSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldNotDecodeSurrogatePairs) {
 	const std::string encodedSurrogatePair = { char(0xED), char(0xA1), char(0x8C), char(0xED), char(0xBE), char(0xB4) };
-	EXPECT_EQ(std::u32string(U"test__"), DecodeUtf8ToU32string(u8"test" + encodedSurrogatePair, '_'));
+	EXPECT_EQ(U"test__", DecodeUtf8ToU32string(u8"test" + encodedSurrogatePair, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeAsSurrogatePairsWhenCharExceedsUtf16Range) {

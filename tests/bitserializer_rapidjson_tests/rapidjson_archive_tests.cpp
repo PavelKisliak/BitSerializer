@@ -1,4 +1,4 @@
-/*******************************************************************************
+п»ї/*******************************************************************************
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -72,9 +72,9 @@ TEST(RapidJsonArchive, SerializeAnsiString)
 TEST(RapidJsonArchive, SerializeUnicodeString)
 {
 	// UTF8
-	TestSerializeType<JsonUtf8Archive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeType<JsonUtf8Archive, std::wstring>(L"Test Unicode string - РџСЂРёРІРµС‚ РјРёСЂ!");
 	// UTF16
-	TestSerializeType<JsonUtf16Archive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeType<JsonUtf16Archive, std::wstring>(L"Test Unicode string - РџСЂРёРІРµС‚ РјРёСЂ!");
 }
 
 TEST(RapidJsonArchive, SerializeEnum)

@@ -1,4 +1,4 @@
-/*******************************************************************************
+п»ї/*******************************************************************************
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -44,7 +44,7 @@ TEST(JsonRestCpp, SerializeAnsiString) {
 }
 
 TEST(JsonRestCpp, SerializeUnicodeString) {
-	TestSerializeType<JsonArchive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeType<JsonArchive, std::wstring>(L"Test Unicode string - РџСЂРёРІРµС‚ РјРёСЂ!");
 }
 
 //-----------------------------------------------------------------------------

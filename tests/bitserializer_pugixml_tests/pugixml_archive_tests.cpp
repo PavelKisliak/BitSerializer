@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -148,6 +148,16 @@ TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SerializeClassToWStream) {
 	TestSerializeClassToStream<XmlArchive, wchar_t>(BuildFixture<TestPointClass>());
+}
+
+TEST(JsonRestCpp, SerializeUnicodeToUtf8Stream) {
+	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestSerializeClassToStream<XmlArchive, char>(TestValue);
+}
+
+TEST(JsonRestCpp, SerializeUnicodeToUtf16Stream) {
+	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestSerializeClassToStream<XmlArchive, wchar_t>(TestValue);
 }
 
 TEST(PugiXmlArchive, SerializeClassToFile) {

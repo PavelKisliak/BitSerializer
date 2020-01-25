@@ -182,6 +182,11 @@ TEST(JsonRestCpp, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestPointClass>());
 }
 
+TEST(JsonRestCpp, SerializeUnicodeToUtf8Stream) {
+	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestSerializeClassToStream<JsonArchive, char>(TestValue);
+}
+
 TEST(JsonRestCpp, SerializeClassToFile) {
 	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestPointClass>());
 }

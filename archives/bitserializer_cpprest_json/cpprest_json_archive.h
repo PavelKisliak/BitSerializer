@@ -441,6 +441,28 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
+// Only for Windows need special implementation for load/save from UTF-8 streams (on other platforms CppRestSdk works with UTF-8 by default)
+#ifdef _WIN32
+	explicit JsonRootScope(std::istream& inputStream)
+		: JsonScopeBase(&mRootJson)
+		, mOutput(nullptr)
+	{
+		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
+		std::error_code error;
+		mRootJson = web::json::value::parse(inputStream, error);
+		if (mRootJson.is_null()) {
+			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
+		}
+	}
+
+	explicit JsonRootScope(std::ostream& outputStream)
+		: JsonScopeBase(&mRootJson)
+		, mOutput(&outputStream)
+	{
+		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
+	}
+#endif
+
 	~JsonRootScope() override
 	{
 		Finish();
@@ -525,14 +547,22 @@ private:
 				if constexpr (std::is_same_v<T, utility::string_t*>)
 					*arg = mRootJson.serialize();
 				else if constexpr (std::is_same_v<T, utility::ostream_t*>)
-					*arg << mRootJson;
+					mRootJson.serialize(*arg);
+#ifdef _WIN32
+				else if constexpr (std::is_same_v<T, std::ostream*>)
+					mRootJson.serialize(*arg);
+#endif
 			}, mOutput);
 			mOutput = nullptr;
 		}
 	}
 
 	web::json::value mRootJson;
+#ifdef _WIN32
+	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*, std::ostream*> mOutput;
+#else
 	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*> mOutput;
+#endif
 };
 
 } //namespace Detail

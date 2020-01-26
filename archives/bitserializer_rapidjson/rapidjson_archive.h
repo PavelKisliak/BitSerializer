@@ -646,8 +646,8 @@ using JsonUtf16Archive = MediaArchiveBase<
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF16<>>>;
 
 /// <summary>
-/// JSON archive with in memory encoding in UTF-16 (alias of JsonUtf16Archive)
+/// JSON archive with in memory encoding in UTF-8 (alias of JsonUtf16Archive)
 /// </summary>
-using JsonArchive = JsonUtf16Archive;
+using JsonArchive = JsonUtf8Archive;
 
 } // namespace BitSerializer::Json::RapidJson

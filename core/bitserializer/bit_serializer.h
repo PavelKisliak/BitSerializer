@@ -19,7 +19,7 @@ namespace BitSerializer
 		static constexpr uint8_t Minor = 9;
 		static constexpr uint8_t Maintenance = 0;
 
-		static constexpr uint32_t Combined = Major * 100 + Minor * 10 + Maintenance;
+		static constexpr uint32_t Full = Major * 100 + Minor * 10 + Maintenance;
 	};
 
 	/// <summary>

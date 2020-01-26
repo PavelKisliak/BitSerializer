@@ -14,12 +14,12 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue(L"TestBool", mTestBool, Required());
-		archive << MakeKeyValue(L"TestInt", mTestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue(L"TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
-		archive << MakeKeyValue(L"TestString", mTestString, MaxSize(8));
+		archive << MakeKeyValue("TestBool", mTestBool, Required());
+		archive << MakeKeyValue("TestInt", mTestInt, Required(), Range(0, 100));
+		archive << MakeKeyValue("TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
+		archive << MakeKeyValue("TestString", mTestString, MaxSize(8));
 		// Sample with validation via lambda
-		archive << MakeKeyValue(L"TestString2", mTestString, [](const std::string& val, const bool isLoaded) -> std::optional<std::wstring>
+		archive << MakeKeyValue("TestString2", mTestString, [](const std::string& val, const bool isLoaded) -> std::optional<std::wstring>
 		{
 			if (!isLoaded || val.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
@@ -28,9 +28,9 @@ public:
 	}
 
 private:
-	bool mTestBool;
-	int mTestInt;
-	double mTestDouble;
+	bool mTestBool = false;
+	int mTestInt = 0;
+	double mTestDouble = 0.0;
 	std::string mTestString;
 	std::string mTestString2;
 };
@@ -38,7 +38,7 @@ private:
 int main()
 {
 	auto simpleObj = TestSimpleClass();
-	auto json = L"{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\", \"TestString2\" : \"1 23\" }";
+	auto json = "{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\", \"TestString2\" : \"1 23\" }";
 	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
 	if (!BitSerializer::Context.IsValid())
 	{

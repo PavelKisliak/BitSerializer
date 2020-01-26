@@ -58,6 +58,6 @@ int main()
 {
 	auto testObj = TestThirdPartyClass(100, 200);
 	const auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
-	std::wcout << result << std::endl;
+	std::cout << result << std::endl;
 	return 0;
 }

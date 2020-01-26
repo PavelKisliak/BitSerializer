@@ -38,6 +38,7 @@ namespace BitSerializer
 			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
+			archive.Finalize();
 		}
 	}
 
@@ -57,6 +58,7 @@ namespace BitSerializer
 			Context.OnStartSerialization();
 			typename TMediaArchive::input_archive_type archive(input);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
+			archive.Finalize();
 		}
 	}
 
@@ -76,6 +78,7 @@ namespace BitSerializer
 			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
+			archive.Finalize();
 		}
 	}
 
@@ -95,6 +98,7 @@ namespace BitSerializer
 			Context.OnStartSerialization();
 			typename TMediaArchive::output_archive_type archive(output);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
+			archive.Finalize();
 		}
 	}
 
@@ -127,7 +131,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			LoadObject<TMediaArchive>(std::forward<T>(object), stream);
 		else
-			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("The file was not found: ") + Convert::ToString(std::forward<TString>(path)));
+			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("File not found: ") + Convert::ToString(std::forward<TString>(path)));
 	}
 
 	/// <summary>

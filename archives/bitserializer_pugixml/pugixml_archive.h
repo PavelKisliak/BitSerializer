@@ -129,10 +129,11 @@ namespace PugiXmlExtensions
 
 	inline std::string GetPath(const pugi::xml_node& node)
 	{
-		if constexpr (std::is_same_v<char, pugi::char_t>)
-			return node.path();
-		else
-			return Convert::ToString(node.path());
+#ifdef PUGIXML_WCHAR_MODE
+		return Convert::ToString(node.path());
+#else
+		return node.path();
+#endif
 	}
 } // namespace PugiXmlExtensions
 
@@ -545,11 +546,6 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	~PugiXmlRootScope()
-	{
-		Finish();
-	}
-
 	/// <summary>
 	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
@@ -611,8 +607,7 @@ public:
 		}
 	}
 
-private:
-	void Finish()
+	void Finalize()
 	{
 		if constexpr (TMode == SerializeMode::Save)
 		{
@@ -641,6 +636,7 @@ private:
 		}
 	}
 
+private:
 	pugi::xml_document mRootXml;
 	std::variant<std::nullptr_t, std::string*, std::wstring*, std::ostream*, std::wostream*> mOutput;
 };

@@ -462,11 +462,6 @@ public:
 	}
 #endif
 
-	~JsonRootScope() override
-	{
-		Finish();
-	}
-
 	void SerializeValue(bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -536,8 +531,7 @@ public:
 		}
 	}
 
-private:
-	void Finish()
+	void Finalize()
 	{
 		if constexpr (TMode == SerializeMode::Save)
 		{
@@ -556,6 +550,7 @@ private:
 		}
 	}
 
+private:
 	web::json::value mRootJson;
 #ifdef _WIN32
 	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*, std::ostream*> mOutput;

@@ -440,6 +440,10 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
+	void Finalize()
+	{
+	}
+
 	void SerializeValue(bool& value) const
 	{
 		if constexpr (TMode == SerializeMode::Load)

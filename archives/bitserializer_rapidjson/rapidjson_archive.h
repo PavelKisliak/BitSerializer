@@ -503,11 +503,6 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	~RapidJsonRootScope()
-	{
-		Finish();
-	}
-
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	void SerializeValue(T& value)
 	{
@@ -587,8 +582,7 @@ public:
 		}
 	}
 
-private:
-	void Finish()
+	void Finalize()
 	{
 		if constexpr (TMode == SerializeMode::Save)
 		{
@@ -622,6 +616,7 @@ private:
 		}
 	}
 
+private:
 	RapidJsonDocument mRootJson;
 	std::variant<decltype(nullptr), memory_io_type*, std::ostream*, std::wostream*> mOutput;
 };

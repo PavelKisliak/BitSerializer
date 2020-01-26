@@ -27,7 +27,7 @@ public:
 	using supported_key_types = SupportedKeyTypes<utility::string_t>;
 	using preferred_output_format = utility::string_t;
 	using preferred_stream_char_type = utility::ostream_t::char_type;
-	static const wchar_t path_separator = L'/';
+	static const char path_separator = '/';
 };
 
 // Forward declarations
@@ -61,11 +61,11 @@ public:
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
-	virtual std::wstring GetPath() const
+	virtual std::string GetPath() const
 	{
-		const std::wstring localPath = mParentKey.empty()
-			? std::wstring()
-			: path_separator + Convert::ToWString(mParentKey);
+		const std::string localPath = mParentKey.empty()
+			? std::string()
+			: path_separator + Convert::ToString(mParentKey);
 		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
 	}
 
@@ -135,11 +135,10 @@ public:
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
-	/// <returns></returns>
-	std::wstring GetPath() const override
+	std::string GetPath() const override
 	{
 		const auto index = mIndex == 0 ? 0 : mIndex - 1;
-		return JsonScopeBase::GetPath() + path_separator + Convert::ToWString(index);
+		return JsonScopeBase::GetPath() + path_separator + Convert::ToString(index);
 	}
 
 	void SerializeValue(bool& value)
@@ -224,7 +223,7 @@ public:
 	}
 
 protected:
-	inline web::json::value& SaveJsonValue(web::json::value&& jsonValue)
+	web::json::value& SaveJsonValue(web::json::value&& jsonValue)
 	{
 		assert(mIndex < GetSize());
 		return (*mNode)[mIndex++] = std::move(jsonValue);
@@ -377,14 +376,14 @@ public:
 	}
 
 protected:
-	inline const web::json::value* LoadJsonValue(const key_type& key) const
+	const web::json::value* LoadJsonValue(const key_type& key) const
 	{
 		const auto& jObject = mNode->as_object();
 		const auto it = jObject.find(key);
 		return it == jObject.end() ? nullptr : &it->second;
 	}
 
-	inline web::json::value& SaveJsonValue(const key_type& key, web::json::value&& jsonValue) const
+	web::json::value& SaveJsonValue(const key_type& key, web::json::value&& jsonValue) const
 	{
 		// Checks that object was not saved previously under the same key
 		assert(mNode->as_object().find(key) == mNode->as_object().end());

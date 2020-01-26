@@ -31,8 +31,8 @@ namespace BitSerializer::KeyValueProxy
 			auto validationResult = keyValue.ValidateValue(result);
 			if (validationResult.has_value())
 			{
-				auto path = archive.GetPath() + TArchive::path_separator + Convert::ToWString(keyValue.GetKey());
-				Context.AddValidationErrors(path, std::move(*validationResult));
+				auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
+				Context.AddValidationErrors(std::move(path), std::move(*validationResult));
 			}
 		}
 	}

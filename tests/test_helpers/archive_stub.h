@@ -37,7 +37,7 @@ public:
 	using key_type = std::wstring;
 	using supported_key_types = SupportedKeyTypes<std::wstring>;
 	using preferred_output_format = TestIoData;
-	static const wchar_t path_separator = L'/';
+	static const char path_separator = '/';
 };
 
 // Forward declarations
@@ -77,12 +77,11 @@ public:
 	/// <summary>
 	/// Gets the current path
 	/// </summary>
-	/// <returns></returns>
-	virtual std::wstring GetPath() const
+	virtual std::string GetPath() const
 	{
-		const std::wstring localPath = mParentKey.empty()
-			? Convert::ToWString(mParentKey)
-			: path_separator + Convert::ToWString(mParentKey);
+		const std::string localPath = mParentKey.empty()
+			? Convert::ToString(mParentKey)
+			: path_separator + Convert::ToString(mParentKey);
 		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
 	}
 
@@ -163,11 +162,10 @@ public:
 	/// <summary>
 	/// Gets the current path
 	/// </summary>
-	/// <returns></returns>
-	std::wstring GetPath() const override
+	std::string GetPath() const override
 	{
 		auto index = mIndex == 0 ? 0 : mIndex - 1;
-		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToWString(index);
+		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(index);
 	}
 
 	template <typename TSym, typename TAllocator>

@@ -9,7 +9,7 @@
 namespace BitSerializer
 {
 	using ValidationErrors = std::vector<std::wstring>;
-	using ValidationMap = std::map<std::wstring, ValidationErrors>;
+	using ValidationMap = std::map<std::string, ValidationErrors>;
 
 	/// <summary>
 	/// Serialization context - stores validation results and something other which would be need in future.
@@ -25,7 +25,7 @@ namespace BitSerializer
 			mErrorsMap.clear();
 		}
 
-		void AddValidationErrors(const std::wstring& path, ValidationErrors&& validationList)
+		void AddValidationErrors(std::string&& path, ValidationErrors&& validationList)
 		{
 			auto it = mErrorsMap.find(path);
 			if (it == mErrorsMap.end()) {

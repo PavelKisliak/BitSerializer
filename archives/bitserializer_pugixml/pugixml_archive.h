@@ -36,7 +36,7 @@ public:
 	using preferred_stream_char_type = char;
 #endif
 
-	static const wchar_t path_separator	= L'/';
+	static const char path_separator = '/';
 };
 
 namespace PugiXmlExtensions
@@ -126,6 +126,14 @@ namespace PugiXmlExtensions
 		else
 			node.text().set(Convert::To<pugi::string_t>(value).c_str());
 	}
+
+	inline std::string GetPath(const pugi::xml_node& node)
+	{
+		if constexpr (std::is_same_v<char, pugi::char_t>)
+			return node.path();
+		else
+			return Convert::ToString(node.path());
+	}
 } // namespace PugiXmlExtensions
 
 
@@ -147,11 +155,10 @@ public:
 	{ }
 
 	/// <summary>
-	/// Gets the current path in XML.
+	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::wstring GetPath() const
-	{
-		return Convert::ToWString(mNode.path());
+	std::string GetPath() const {
+		return PugiXmlExtensions::GetPath(mNode);
 	}
 
 	/// <summary>
@@ -273,10 +280,10 @@ public:
 	}
 
 	/// <summary>
-	/// Gets the current path in XML.
+	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::wstring GetPath() const {
-		return Convert::ToWString(mNode.path());
+	std::string GetPath() const {
+		return PugiXmlExtensions::GetPath(mNode);
 	}
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -410,11 +417,10 @@ public:
 	}
 
 	/// <summary>
-	/// Gets the current path in XML.
+	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::wstring GetPath() const
-	{
-		return Convert::ToWString(mNode.path());
+	std::string GetPath() const {
+		return PugiXmlExtensions::GetPath(mNode);
 	}
 
 	template <typename TKey, typename T>
@@ -545,11 +551,10 @@ public:
 	}
 
 	/// <summary>
-	/// Gets the current path in XML.
+	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::wstring GetPath() const
-	{
-		return Convert::ToWString(mRootXml.path());
+	std::string GetPath() const	{
+		return PugiXmlExtensions::GetPath(mRootXml);
 	}
 
 	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t arraySize)

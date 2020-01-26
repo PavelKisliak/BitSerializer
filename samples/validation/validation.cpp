@@ -46,7 +46,7 @@ int main()
 		const auto& validationErrors = BitSerializer::Context.GetValidationErrors();
 		for (const auto& keyErrors : validationErrors)
 		{
-			std::wcout << L"Path: " << keyErrors.first << std::endl;
+			std::cout << "Path: " << keyErrors.first << std::endl;
 			for (const auto& err : keyErrors.second)
 			{
 				std::wcout << L"\t" << err << std::endl;

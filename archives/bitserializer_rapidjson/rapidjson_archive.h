@@ -33,7 +33,7 @@ public:
 	using supported_key_types = SupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using preferred_output_format = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using preferred_stream_char_type = typename TEncoding::Ch;
-	static const wchar_t path_separator = L'/';
+	static const char path_separator = '/';
 };
 
 // Forward declarations
@@ -58,13 +58,13 @@ public:
 	{ }
 
 	/// <summary>
-	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
+	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
 	/// </summary>
-	virtual std::wstring GetPath() const
+	virtual std::string GetPath() const
 	{
-		const std::wstring localPath = mParentKey.empty()
-			? std::wstring()
-			: RapidJsonArchiveTraits<TEncoding>::path_separator + Convert::ToWString(mParentKey);
+		const std::string localPath = mParentKey.empty()
+			? std::string()
+			: RapidJsonArchiveTraits<TEncoding>::path_separator + Convert::ToString(mParentKey);
 		return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
 	}
 
@@ -161,9 +161,9 @@ public:
 	}
 
 	/// <summary>
-	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
+	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::wstring GetPath() const override
+	std::string GetPath() const override
 	{
 		int64_t index;
 		if constexpr (TMode == SerializeMode::Load)
@@ -172,7 +172,7 @@ public:
 			index = this->mNode->GetArray().Size();
 		return RapidJsonScopeBase<TEncoding>::GetPath()
 			+ RapidJsonArchiveTraits<TEncoding>::path_separator
-			+ Convert::ToWString(index == 0 ? 0 : index - 1);
+			+ Convert::ToString(index == 0 ? 0 : index - 1);
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>

@@ -13,6 +13,9 @@
 using BitSerializer::Json::RapidJson::JsonUtf8Archive;
 using BitSerializer::Json::RapidJson::JsonUtf16Archive;
 
+#pragma warning(push)
+#pragma warning(disable: 4566)
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -405,3 +408,5 @@ TEST(RapidJsonArchive, ThrowExceptionWhenBadSyntaxInSource)
 	// UTF16
 	EXPECT_THROW(BitSerializer::LoadObject<JsonUtf16Archive>(testInt, L"10 }}"), BitSerializer::SerializationException);
 }
+
+#pragma warning(pop)

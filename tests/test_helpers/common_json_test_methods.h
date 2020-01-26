@@ -26,8 +26,8 @@ void TestGetPathInJsonObjectScopeWhenLoading()
 	ASSERT_TRUE(objScope.has_value());
 	ASSERT_EQ(objScope->GetPath(), L"");
 
-	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestSubValue");
-	const auto expectedObjectPath = TArchive::path_separator + std::wstring(L"TestSubValue");
+	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestValue");
+	const auto expectedObjectPath = TArchive::path_separator + std::wstring(L"TestValue");
 	auto subScope = objScope->OpenObjectScope(objectKey);
 	ASSERT_TRUE(subScope.has_value());
 	ASSERT_EQ(subScope->GetPath(), expectedObjectPath);
@@ -50,7 +50,7 @@ void TestGetPathInJsonObjectScopeWhenSaving()
 	ASSERT_TRUE(objScope.has_value());
 	ASSERT_EQ(objScope->GetPath(), L"");
 
-	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestSubValue");
+	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestValue");
 	auto subScope = objScope->OpenObjectScope(objectKey);
 	ASSERT_TRUE(subScope.has_value());
 	ASSERT_EQ(subScope->GetPath(), TArchive::path_separator + BitSerializer::Convert::ToWString(objectKey));

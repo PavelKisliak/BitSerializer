@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <functional>
 #include <tuple>
+#include <utility>
 #include "auto_fixture.h"
 #include "bitserializer/bit_serializer.h"
 
@@ -130,8 +131,8 @@ public:
 		archive << BitSerializer::MakeAutoKeyValue("y", y);
 	}
 
-	int x;
-	int y;
+	int x = 0;
+	int y = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -162,8 +163,8 @@ public:
 	}
 
 private:
-	uint32_t mTestUInt32;
-	uint64_t mTestUInt64;
+	uint32_t mTestUInt32 = 0u;
+	uint64_t mTestUInt64 = 0u;
 };
 
 //-----------------------------------------------------------------------------
@@ -171,8 +172,8 @@ template <typename T>
 class TestClassWithSubType
 {
 public:
-	TestClassWithSubType(const T& initValue = {})
-		: mTestSubValue(initValue)
+	TestClassWithSubType(T initValue = {})
+		: mTestValue(std::move(initValue))
 	{
 		mAssertFunc = [](const T& expected, const T& actual) {
 			ASSERT_EQ(expected, actual);
@@ -184,20 +185,22 @@ public:
 	{ }
 
 	static void BuildFixture(TestClassWithSubType& fixture) {
-		::BuildFixture(fixture.mTestSubValue);
+		::BuildFixture(fixture.mTestValue);
 	}
 
 	void Assert(const TestClassWithSubType& actual) const {
-		mAssertFunc(mTestSubValue, actual.mTestSubValue);
+		mAssertFunc(mTestValue, actual.mTestValue);
 	}
 
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeAutoKeyValue(L"TestSubValue", mTestSubValue);
+		archive << BitSerializer::MakeAutoKeyValue("TestValue", mTestValue);
 	}
 
+	const T& GetValue() const { return mTestValue; }
+
 private:
-	T mTestSubValue;
+	T mTestValue;
 	std::function<void(const T&, const T&)> mAssertFunc;
 };
 

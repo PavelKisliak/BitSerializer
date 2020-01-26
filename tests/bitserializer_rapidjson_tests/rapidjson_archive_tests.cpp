@@ -339,20 +339,59 @@ TEST(RapidJsonArchive, ShouldCollectErrorAboutRequiredNamedValues)
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, SerializeClassToWStream)
+TEST(RapidJsonArchive, SerializeClassToStream)
 {
-	// UTF8
+	// UTF-8
 	TestSerializeClassToStream<JsonUtf8Archive, char>(BuildFixture<TestPointClass>());
-	// UTF16
+	// UTF-16
 	TestSerializeClassToStream<JsonUtf16Archive, wchar_t>(BuildFixture<TestPointClass>());
+}
+
+TEST(RapidJsonArchive, SerializeUnicodeToUtf8Stream)
+{
+	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestSerializeClassToStream<JsonUtf8Archive, char>(TestValue);
+}
+
+TEST(RapidJsonArchive, SerializeUnicodeToUtf16Stream)
+{
+	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestSerializeClassToStream<JsonUtf16Archive, wchar_t>(TestValue);
+}
+
+TEST(RapidJsonArchive, LoadFromUtf8StreamWithBom)
+{
+	// Arrange
+	std::stringstream inputStream(std::string({ char(0xEF), char(0xBB), char(0xBF) }) + u8"{\"TestValue\":\"Привет мир!\"}");
+
+	// Act
+	TestClassWithSubType<std::string> actual;
+	BitSerializer::LoadObject<JsonUtf8Archive>(actual, inputStream);
+
+	// Assert
+	EXPECT_EQ(u8"Привет мир!", actual.GetValue());
+}
+
+TEST(RapidJsonArchive, SaveToUtf8StreamWithBom)
+{
+	// Arrange
+	std::stringstream outputStream;
+	TestClassWithSubType<std::string> testObj(u8"Привет мир!");
+
+	// Act
+	BitSerializer::SaveObject<JsonUtf8Archive>(testObj, outputStream);
+
+	// Assert
+	const std::string expected = std::string({ char(0xEF), char(0xBB), char(0xBF) }) + u8"{\"TestValue\":\"Привет мир!\"}";
+	EXPECT_EQ(expected, outputStream.str());
 }
 
 TEST(RapidJsonArchive, SerializeClassToFile)
 {
 	// UTF8
-	TestSerializeClassToFile<JsonUtf8Archive, char>(BuildFixture<TestPointClass>());
+	TestSerializeClassToFile<JsonUtf8Archive>(BuildFixture<TestPointClass>());
 	// UTF16
-	TestSerializeClassToFile<JsonUtf16Archive, wchar_t>(BuildFixture<TestPointClass>());
+	TestSerializeClassToFile<JsonUtf16Archive>(BuildFixture<TestPointClass>());
 }
 
 //-----------------------------------------------------------------------------

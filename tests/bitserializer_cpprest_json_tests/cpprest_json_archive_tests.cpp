@@ -188,7 +188,7 @@ TEST(JsonRestCpp, SerializeUnicodeToUtf8Stream) {
 }
 
 TEST(JsonRestCpp, SerializeClassToFile) {
-	TestSerializeClassToFile<JsonArchive, utility::char_t>(BuildFixture<TestPointClass>());
+	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
 }
 
 //-----------------------------------------------------------------------------

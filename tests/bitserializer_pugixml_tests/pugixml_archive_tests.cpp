@@ -146,7 +146,11 @@ TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST(PugiXmlArchive, SerializeClassToWStream) {
+TEST(PugiXmlArchive, SerializeClassToStream)
+{
+	// UTF-8
+	TestSerializeClassToStream<XmlArchive, char>(BuildFixture<TestPointClass>());
+	// UTF-16
 	TestSerializeClassToStream<XmlArchive, wchar_t>(BuildFixture<TestPointClass>());
 }
 
@@ -161,7 +165,7 @@ TEST(JsonRestCpp, SerializeUnicodeToUtf16Stream) {
 }
 
 TEST(PugiXmlArchive, SerializeClassToFile) {
-	TestSerializeClassToFile<XmlArchive, wchar_t>(BuildFixture<TestPointClass>());
+	TestSerializeClassToFile<XmlArchive>(BuildFixture<TestPointClass>());
 }
 
 //-----------------------------------------------------------------------------

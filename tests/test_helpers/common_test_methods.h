@@ -158,7 +158,7 @@ void TestSerializeClassToStream(T&& value)
 /// Test template of serialization to file.
 /// </summary>
 /// <param name="value">The value.</param>
-template <typename TArchive, typename TStreamElem, typename T>
+template <typename TArchive, typename T>
 void TestSerializeClassToFile(T&& value)
 {
 	// Arrange

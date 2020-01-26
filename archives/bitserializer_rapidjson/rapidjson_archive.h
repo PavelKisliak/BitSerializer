@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -13,6 +13,8 @@
 // External dependency (RapidJson)
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include <rapidjson/stream.h>
+#include "rapidjson/encodings.h"
 #include "rapidjson/error/en.h"
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/ostreamwrapper.h>
@@ -440,8 +442,6 @@ protected:
 	using allocator_type = typename RapidJsonDocument::AllocatorType;
 	using base_char_type = typename TEncoding::Ch;
 	using memory_io_type = std::basic_string<base_char_type, std::char_traits<base_char_type>>;
-	using istream_type = std::basic_istream<base_char_type, std::char_traits<base_char_type>>;
-	using ostream_type = std::basic_ostream<base_char_type, std::char_traits<base_char_type>>;
 
 public:
 	RapidJsonRootScope(const RapidJsonRootScope&) = delete;
@@ -468,17 +468,35 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit RapidJsonRootScope(istream_type& inputStream)
+	explicit RapidJsonRootScope(std::istream& encodedInputStream)
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		rapidjson::BasicIStreamWrapper<istream_type> isw(inputStream);
+		rapidjson::IStreamWrapper isw(encodedInputStream);
+		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);
+		if (mRootJson.ParseStream(eis).HasParseError())
+			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
+	}
+
+	explicit RapidJsonRootScope(std::wistream& inputStream)
+		: RapidJsonScopeBase<TEncoding>(&mRootJson)
+		, mOutput(nullptr)
+	{
+		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
+		rapidjson::WIStreamWrapper isw(inputStream);
 		if (mRootJson.ParseStream(isw).HasParseError())
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(ostream_type& outputStream)
+	explicit RapidJsonRootScope(std::ostream& outputStream)
+		: RapidJsonScopeBase<TEncoding>(&mRootJson)
+		, mOutput(&outputStream)
+	{
+		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
+	}
+
+	explicit RapidJsonRootScope(std::wostream& outputStream)
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
 	{
@@ -574,7 +592,8 @@ private:
 	{
 		if constexpr (TMode == SerializeMode::Save)
 		{
-			std::visit([this](auto&& arg) {
+			std::visit([this](auto&& arg)
+			{
 				using T = std::decay_t<decltype(arg)>;
 				if constexpr (std::is_same_v<T, memory_io_type*>)
 				{
@@ -587,13 +606,15 @@ private:
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
 					rapidjson::OStreamWrapper osw(*arg);
-					rapidjson::Writer<rapidjson::OStreamWrapper, TEncoding, TEncoding> writer(osw);
+					using AutoOutputStream = rapidjson::AutoUTFOutputStream<uint32_t, rapidjson::OStreamWrapper>;
+					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, true);
+					rapidjson::Writer<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
 					mRootJson.Accept(writer);
 				}
 				else if constexpr (std::is_same_v<T, std::wostream*>)
 				{
 					rapidjson::WOStreamWrapper osw(*arg);
-					rapidjson::Writer<rapidjson::WOStreamWrapper, TEncoding, TEncoding> writer(osw);
+					rapidjson::Writer<rapidjson::WOStreamWrapper, TEncoding, rapidjson::UTF16<>> writer(osw);
 					mRootJson.Accept(writer);
 				}
 			}, mOutput);
@@ -602,14 +623,14 @@ private:
 	}
 
 	RapidJsonDocument mRootJson;
-	std::variant<decltype(nullptr), memory_io_type*, ostream_type*> mOutput;
+	std::variant<decltype(nullptr), memory_io_type*, std::ostream*, std::wostream*> mOutput;
 };
 
 } // namespace Detail
 
 
 /// <summary>
-/// Declaration of JSON archive with encoding from/to UTF8
+/// JSON archive with in memory encoding in UTF-8
 /// </summary>
 using JsonUtf8Archive = MediaArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,
@@ -617,7 +638,7 @@ using JsonUtf8Archive = MediaArchiveBase<
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF8<>>>;
 
 /// <summary>
-/// Declaration of JSON archive with encoding from/to UTF16
+/// JSON archive with in memory encoding in UTF-16
 /// </summary>
 using JsonUtf16Archive = MediaArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF16<>>,
@@ -625,7 +646,7 @@ using JsonUtf16Archive = MediaArchiveBase<
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF16<>>>;
 
 /// <summary>
-/// Declaration of JSON archive with encoding from/to UTF16
+/// JSON archive with in memory encoding in UTF-16 (alias of JsonUtf16Archive)
 /// </summary>
 using JsonArchive = JsonUtf16Archive;
 

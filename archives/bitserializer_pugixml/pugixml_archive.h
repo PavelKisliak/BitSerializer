@@ -492,11 +492,6 @@ template <SerializeMode TMode>
 class PugiXmlRootScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	PugiXmlRootScope(const PugiXmlRootScope&) = delete;
-	PugiXmlRootScope(PugiXmlRootScope&&) = delete;
-	PugiXmlRootScope& operator=(const PugiXmlRootScope&) = delete;
-	PugiXmlRootScope& operator=(PugiXmlRootScope&&) = delete;
-
 	explicit PugiXmlRootScope(const pugi::char_t* inputStr)
 		: mOutput(nullptr)
 	{
@@ -645,7 +640,8 @@ private:
 
 
 /// <summary>
-/// Declaration of JSON archive
+/// XML archive based on the PugiXml library.
+/// Encoding in memory is depend from global definition in the PugiXml 'PUGIXML_WCHAR_MODE', by default uses UTF-8.
 /// </summary>
 using XmlArchive = MediaArchiveBase<
 	Detail::PugiXmlArchiveTraits,

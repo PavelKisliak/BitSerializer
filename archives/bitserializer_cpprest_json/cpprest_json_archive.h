@@ -563,7 +563,8 @@ private:
 
 
 /// <summary>
-/// Declaration of JSON archive
+/// JSON archive based on JSON implementation from CppRestSdk library.
+/// Encoding in memory is depend from platform: UTF-16 on Windows and UTF-8 on all other.
 /// </summary>
 using JsonArchive = MediaArchiveBase<
 	Detail::JsonArchiveTraits,

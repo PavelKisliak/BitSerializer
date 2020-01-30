@@ -57,6 +57,13 @@ public:
 		, mParentKey(parentKey)
 	{ }
 
+	RapidJsonScopeBase(const RapidJsonScopeBase&) = delete;
+	RapidJsonScopeBase(RapidJsonScopeBase&&) = default;
+	RapidJsonScopeBase& operator=(const RapidJsonScopeBase&) = delete;
+	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) = default;
+
+	virtual ~RapidJsonScopeBase() = default;
+
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
 	/// </summary>
@@ -440,16 +447,11 @@ class RapidJsonRootScope final : public ArchiveScope<TMode>, public RapidJsonSco
 protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<TEncoding>;
 	using allocator_type = typename RapidJsonDocument::AllocatorType;
-	using base_char_type = typename TEncoding::Ch;
-	using memory_io_type = std::basic_string<base_char_type, std::char_traits<base_char_type>>;
+	using char_type = typename TEncoding::Ch;
+	using string_type = std::basic_string<char_type, std::char_traits<char_type>>;
 
 public:
-	RapidJsonRootScope(const RapidJsonRootScope&) = delete;
-	RapidJsonRootScope(RapidJsonRootScope&&) = delete;
-	RapidJsonRootScope& operator=(const RapidJsonRootScope&) = delete;
-	RapidJsonRootScope& operator=(RapidJsonRootScope&&) = delete;
-
-	explicit RapidJsonRootScope(const base_char_type* inputStr)
+	explicit RapidJsonRootScope(const char_type* inputStr)
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
 	{
@@ -458,10 +460,10 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(const memory_io_type& inputStr)
+	explicit RapidJsonRootScope(const string_type& inputStr)
 		: RapidJsonRootScope(inputStr.c_str()) {}
 
-	explicit RapidJsonRootScope(memory_io_type& outputStr)
+	explicit RapidJsonRootScope(string_type& outputStr)
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStr)
 	{
@@ -542,10 +544,10 @@ public:
 		else
 		{
 			assert(mRootJson.IsNull());
-			if constexpr (std::is_same_v<TSym, base_char_type>)
+			if constexpr (std::is_same_v<TSym, char_type>)
 				mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
 			else {
-				const auto str = Convert::To<std::basic_string<base_char_type, std::char_traits<base_char_type>>>(value);
+				const auto str = Convert::To<std::basic_string<char_type, std::char_traits<char_type>>>(value);
 				mRootJson.SetString(str.data(), static_cast<rapidjson::SizeType>(str.size()), mRootJson.GetAllocator());
 			}
 		}
@@ -569,7 +571,8 @@ public:
 
 	std::optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>> OpenObjectScope()
 	{
-		if constexpr (TMode == SerializeMode::Load)	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
 			return mRootJson.IsObject()
 				? std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator())
 				: std::nullopt;
@@ -589,7 +592,7 @@ public:
 			std::visit([this](auto&& arg)
 			{
 				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, memory_io_type*>)
+				if constexpr (std::is_same_v<T, string_type*>)
 				{
 					using StringBuffer = rapidjson::GenericStringBuffer<TEncoding>;
 					StringBuffer buffer;
@@ -618,14 +621,14 @@ public:
 
 private:
 	RapidJsonDocument mRootJson;
-	std::variant<decltype(nullptr), memory_io_type*, std::ostream*, std::wostream*> mOutput;
+	std::variant<decltype(nullptr), string_type*, std::ostream*, std::wostream*> mOutput;
 };
 
 } // namespace Detail
 
 
 /// <summary>
-/// JSON archive with in memory encoding in UTF-8
+/// JSON archive with in memory encoding in UTF-8, effective for cases when JSON contains mostly ASCII symbols and rarely Unicode.
 /// </summary>
 using JsonUtf8Archive = MediaArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,
@@ -633,7 +636,7 @@ using JsonUtf8Archive = MediaArchiveBase<
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF8<>>>;
 
 /// <summary>
-/// JSON archive with in memory encoding in UTF-16
+/// JSON archive with in memory encoding in UTF-16, effective in cases when JSON mostly in Unicode, contains localizations strings, etc.
 /// </summary>
 using JsonUtf16Archive = MediaArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF16<>>,
@@ -641,7 +644,8 @@ using JsonUtf16Archive = MediaArchiveBase<
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF16<>>>;
 
 /// <summary>
-/// JSON archive with in memory encoding in UTF-8 (alias of JsonUtf16Archive)
+/// JSON archive based on RapidJson library.
+///	Default archive with in memory encoding in UTF-8 (alias of JsonUtf16Archive).
 /// </summary>
 using JsonArchive = JsonUtf8Archive;
 

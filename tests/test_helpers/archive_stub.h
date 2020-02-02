@@ -31,13 +31,15 @@ class TestIoData : public std::variant<bool, int64_t, double, std::wstring, Test
 /// <summary>
 /// The traits of archive stub 
 /// </summary>
-class ArchiveStubTraits
+struct ArchiveStubTraits
 {
-public:
 	using key_type = std::wstring;
 	using supported_key_types = SupportedKeyTypes<std::wstring>;
 	using preferred_output_format = TestIoData;
 	static const char path_separator = '/';
+
+protected:
+	~ArchiveStubTraits() = default;
 };
 
 // Forward declarations
@@ -57,8 +59,6 @@ public:
 		, mParent(parent)
 		, mParentKey(parentKey)
 	{ }
-
-	virtual ~ArchiveStubScopeBase() = default;
 
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
@@ -86,6 +86,8 @@ public:
 	}
 
 protected:
+	~ArchiveStubScopeBase() = default;
+
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool LoadFundamentalValue(const TestIoData& ioData, T& value)
 	{
@@ -149,7 +151,7 @@ protected:
 /// </summary>
 /// <seealso cref="ArchiveStubScopeBase" />
 template <SerializeMode TMode>
-class ArchiveStubArrayScope : public ArchiveScope<TMode>, public ArchiveStubScopeBase
+class ArchiveStubArrayScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubArrayScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
@@ -257,7 +259,7 @@ class key_const_iterator
 	TestIoDataObject::const_iterator mJsonIt;
 
 	key_const_iterator(TestIoDataObject::const_iterator it)
-		: mJsonIt(it) { }
+		: mJsonIt(std::move(it)) { }
 
 public:
 	bool operator==(const key_const_iterator& rhs) const {
@@ -283,7 +285,7 @@ public:
 /// </summary>
 /// <seealso cref="ArchiveStubScopeBase" />
 template <SerializeMode TMode>
-class ArchiveStubObjectScope : public ArchiveScope<TMode> , public ArchiveStubScopeBase
+class ArchiveStubObjectScope final : public ArchiveScope<TMode> , public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubObjectScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
@@ -421,7 +423,7 @@ protected:
 /// Root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class ArchiveStubRootScope : public ArchiveScope<TMode>, public ArchiveStubScopeBase
+class ArchiveStubRootScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubRootScope(const TestIoData& inputData)

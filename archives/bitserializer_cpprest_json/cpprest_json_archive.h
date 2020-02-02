@@ -20,14 +20,16 @@ namespace Detail {
 /// <summary>
 /// The traits of JSON archive based on C++ REST SDK
 /// </summary>
-class JsonArchiveTraits
+struct JsonArchiveTraits
 {
-public:
 	using key_type = utility::string_t;
 	using supported_key_types = SupportedKeyTypes<utility::string_t>;
 	using preferred_output_format = utility::string_t;
 	using preferred_stream_char_type = utility::ostream_t::char_type;
 	static const char path_separator = '/';
+
+protected:
+	~JsonArchiveTraits() = default;
 };
 
 // Forward declarations
@@ -49,7 +51,8 @@ public:
 		, mParentKey(parentKey)
 	{ }
 
-	virtual ~JsonScopeBase() = default;
+	JsonScopeBase(const JsonScopeBase&) = delete;
+	JsonScopeBase& operator=(const JsonScopeBase&) = delete;
 
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
@@ -70,6 +73,10 @@ public:
 	}
 
 protected:
+	~JsonScopeBase() = default;
+	JsonScopeBase(JsonScopeBase&&) = default;
+	JsonScopeBase& operator=(JsonScopeBase&&) = default;
+
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	static bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
 	{
@@ -245,7 +252,7 @@ class key_const_iterator
 	web::json::object::const_iterator mJsonIt;
 
 	key_const_iterator(web::json::object::const_iterator&& it)
-		: mJsonIt(it) { }
+		: mJsonIt(std::move(it)) { }
 
 public:
 	bool operator==(const key_const_iterator& rhs) const {

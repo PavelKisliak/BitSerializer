@@ -26,14 +26,16 @@ namespace Detail {
 /// The traits of JSON archive based on RapidJson
 /// </summary>
 template <class TEncoding>
-class RapidJsonArchiveTraits
+struct RapidJsonArchiveTraits
 {
-public:
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using supported_key_types = SupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using preferred_output_format = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using preferred_stream_char_type = typename TEncoding::Ch;
 	static const char path_separator = '/';
+
+protected:
+	~RapidJsonArchiveTraits() = default;
 };
 
 // Forward declarations
@@ -58,11 +60,7 @@ public:
 	{ }
 
 	RapidJsonScopeBase(const RapidJsonScopeBase&) = delete;
-	RapidJsonScopeBase(RapidJsonScopeBase&&) = default;
 	RapidJsonScopeBase& operator=(const RapidJsonScopeBase&) = delete;
-	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) = default;
-
-	virtual ~RapidJsonScopeBase() = default;
 
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
@@ -76,6 +74,10 @@ public:
 	}
 
 protected:
+	~RapidJsonScopeBase() = default;
+	RapidJsonScopeBase(RapidJsonScopeBase&&) = default;
+	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) = default;
+
 	static bool LoadValue(const RapidJsonNode& jsonValue, bool& value)
 	{
 		if (jsonValue.IsBool()) {
@@ -281,7 +283,7 @@ class key_const_iterator
 	member_iterator mJsonIt;
 
 	key_const_iterator(member_iterator&& it)
-		: mJsonIt(it) { }
+		: mJsonIt(std::move(it)) { }
 
 public:
 	bool operator==(const key_const_iterator& rhs) const {

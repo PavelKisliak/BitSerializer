@@ -20,9 +20,8 @@ namespace Detail {
 /// <summary>
 /// The traits of XML archive based on PugiXml
 /// </summary>
-class PugiXmlArchiveTraits
+struct PugiXmlArchiveTraits
 {
-public:
 	// Character type is related to PugiXml's definition PUGIXML_WCHAR_MODE
 #ifdef PUGIXML_WCHAR_MODE
 	using key_type = std::wstring;
@@ -37,6 +36,9 @@ public:
 #endif
 
 	static const char path_separator = '/';
+
+protected:
+	~PugiXmlArchiveTraits() = default;
 };
 
 namespace PugiXmlExtensions

@@ -79,7 +79,7 @@ template <typename TKey>
 class BasePerformanceTestModel
 {
 public:
-	static constexpr size_t ARRAY_SIZE = 100;
+	static constexpr size_t ARRAY_SIZE = 70;
 
 	using char_t = TKey;
 	using string_t = std::basic_string<TKey, std::char_traits<TKey>>;

@@ -493,16 +493,18 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(std::ostream& outputStream)
+	explicit RapidJsonRootScope(std::ostream& outputStream, const OutputStreamOptions& outputStreamOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
+		, mOutputStreamOptions(outputStreamOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit RapidJsonRootScope(std::wostream& outputStream)
+	explicit RapidJsonRootScope(std::wostream& outputStream, const OutputStreamOptions& outputStreamOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
+		, mOutputStreamOptions(outputStreamOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -606,7 +608,7 @@ public:
 				{
 					rapidjson::OStreamWrapper osw(*arg);
 					using AutoOutputStream = rapidjson::AutoUTFOutputStream<uint32_t, rapidjson::OStreamWrapper>;
-					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, true);
+					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, mOutputStreamOptions->WriteBom);
 					rapidjson::Writer<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
 					mRootJson.Accept(writer);
 				}
@@ -624,6 +626,7 @@ public:
 private:
 	RapidJsonDocument mRootJson;
 	std::variant<decltype(nullptr), string_type*, std::ostream*, std::wostream*> mOutput;
+	std::optional<OutputStreamOptions> mOutputStreamOptions;
 };
 
 } // namespace Detail

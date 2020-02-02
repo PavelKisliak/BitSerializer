@@ -252,7 +252,7 @@ class key_const_iterator
 	web::json::object::const_iterator mJsonIt;
 
 	key_const_iterator(web::json::object::const_iterator&& it)
-		: mJsonIt(std::move(it)) { }
+		: mJsonIt(it) { }
 
 public:
 	bool operator==(const key_const_iterator& rhs) const {
@@ -440,9 +440,10 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(utility::ostream_t& outputStream)
+	explicit JsonRootScope(utility::ostream_t& outputStream, const OutputStreamOptions& outputStreamOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
+		, mOutputStreamOptions(outputStreamOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -461,9 +462,10 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(std::ostream& outputStream)
+	explicit JsonRootScope(std::ostream& outputStream, const OutputStreamOptions& outputStreamOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
+		, mOutputStreamOptions(outputStreamOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -564,6 +566,7 @@ private:
 #else
 	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*> mOutput;
 #endif
+	std::optional<OutputStreamOptions> mOutputStreamOptions;
 };
 
 } //namespace Detail

@@ -30,7 +30,7 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TInput, std::enable_if_t<!is_input_stream_v<TInput>, int> = 0>
 	static void LoadObject(T&& object, const TInput& input)
 	{
-		constexpr auto hasInputDataTypeSupport = is_archive_support_input_data_type<typename TMediaArchive::input_archive_type, TInput>::value;
+		constexpr auto hasInputDataTypeSupport = is_archive_support_input_data_type_v<typename TMediaArchive::input_archive_type, TInput>;
 		static_assert(hasInputDataTypeSupport, "BitSerializer. The archive doesn't support loading from provided data type.");
 
 		if constexpr (hasInputDataTypeSupport)
@@ -50,8 +50,8 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TStreamElem>
 	static void LoadObject(T&& object, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>& input)
 	{
-		constexpr auto hasInputDataTypeSupport = is_archive_support_input_data_type<typename TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>::value;
-		static_assert(hasInputDataTypeSupport, "BitSerializer. The archive doesn't support loading from this type of stream.");
+		constexpr auto hasInputDataTypeSupport = is_archive_support_input_data_type_v<typename TMediaArchive::input_archive_type, std::basic_istream<TStreamElem, std::char_traits<TStreamElem>>>;
+		static_assert(hasInputDataTypeSupport, "BitSerializer. The archive doesn't support loading from provided stream type.");
 
 		if constexpr (hasInputDataTypeSupport)
 		{
@@ -70,7 +70,7 @@ namespace BitSerializer
 	template <typename TMediaArchive, typename T, typename TOutput, std::enable_if_t<!is_output_stream_v<TOutput>, int> = 0>
 	static void SaveObject(T&& object, TOutput& output)
 	{
-		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type<typename TMediaArchive::output_archive_type, TOutput>::value;
+		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type_v<typename TMediaArchive::output_archive_type, TOutput>;
 		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive doesn't support save to provided data type.");
 
 		if constexpr (hasOutputDataTypeSupport)
@@ -87,16 +87,17 @@ namespace BitSerializer
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output stream.</param>
+	/// <param name="outputStreamOptions">The output stream options.</param>
 	template <typename TMediaArchive, typename T, typename TStreamElem>
-	static void SaveObject(T&& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output)
+	static void SaveObject(T&& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output, const OutputStreamOptions& outputStreamOptions = {})
 	{
-		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type<typename TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>::value;
-		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive doesn't support save to this type of stream.");
+		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type_v<typename TMediaArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>;
+		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive doesn't support save to provided data type.");
 
 		if constexpr (hasOutputDataTypeSupport)
 		{
 			Context.OnStartSerialization();
-			typename TMediaArchive::output_archive_type archive(output);
+			typename TMediaArchive::output_archive_type archive(output, outputStreamOptions);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
 		}

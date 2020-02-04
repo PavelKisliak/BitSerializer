@@ -171,3 +171,20 @@ TEST_F(Utf8DecodeTest, ShouldDecodeAsSurrogatePairsWhenCharExceedsUtf16Range) {
 }
 
 #pragma warning(pop)
+
+//-----------------------------------------------------------------------------
+// Tests for BOM (Byte Order Mark) detection
+//-----------------------------------------------------------------------------
+TEST(Utf8BomDetect, ShouldReturnTrueWhenStartsWithValidBom) {
+	static const std::string testStr = { char(0xEF), char(0xBB), char(0xBF) };
+	EXPECT_TRUE(Convert::Utf8::StartsWithBom(testStr));
+}
+
+TEST(Utf8BomDetect, ShouldReturnFalseWhenBomIsNotFull) {
+	static const std::string testStr = { char(0xEF), char(0xBB), '#' };
+	EXPECT_FALSE(Convert::Utf8::StartsWithBom(testStr));
+}
+
+TEST(Utf8BomDetect, ShouldReturnFalseWhenInputDataIsEmpty) {
+	EXPECT_FALSE(Convert::Utf8::StartsWithBom(""));
+}

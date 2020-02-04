@@ -17,6 +17,21 @@ namespace BitSerializer::Convert
 	class Utf8
 	{
 	public:
+		static constexpr char Bom[] = { char(0xEF), char(0xBB), char(0xBF) };
+
+		template<class T>
+		static bool StartsWithBom(T&& inputString) 
+		{
+			auto it = std::cbegin(inputString);
+			const auto endIt = std::cend(inputString);
+			for (const char ch : Bom)
+			{
+				if (it == endIt || *it != ch) return false;
+				++it;
+			}
+			return true;
+		}
+
 		template<class TInIt, typename TOutChar, typename TAllocator>
 		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const TOutChar errSym = '?')
 		{

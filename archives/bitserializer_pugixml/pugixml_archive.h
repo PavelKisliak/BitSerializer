@@ -531,16 +531,16 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	explicit PugiXmlRootScope(std::ostream& outputStream, const OutputStreamOptions& outputStreamOptions = {})
+	explicit PugiXmlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStream)
-		, mOutputStreamOptions(outputStreamOptions)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit PugiXmlRootScope(std::wostream& outputStream, const OutputStreamOptions& outputStreamOptions = {})
+	explicit PugiXmlRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStream)
-		, mOutputStreamOptions(outputStreamOptions)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -638,7 +638,7 @@ public:
 private:
 	pugi::xml_document mRootXml;
 	std::variant<std::nullptr_t, std::string*, std::wstring*, std::ostream*, std::wostream*> mOutput;
-	std::optional<OutputStreamOptions> mOutputStreamOptions;
+	std::optional<SerializationOptions> mSerializationOptions;
 };
 
 } //namespace Detail

@@ -440,10 +440,10 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(utility::ostream_t& outputStream, const OutputStreamOptions& outputStreamOptions = {})
+	explicit JsonRootScope(utility::ostream_t& outputStream, const SerializationOptions& serializationOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
-		, mOutputStreamOptions(outputStreamOptions)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -462,10 +462,10 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(std::ostream& outputStream, const OutputStreamOptions& outputStreamOptions = {})
+	explicit JsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
-		, mOutputStreamOptions(outputStreamOptions)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -566,7 +566,7 @@ private:
 #else
 	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*> mOutput;
 #endif
-	std::optional<OutputStreamOptions> mOutputStreamOptions;
+	std::optional<SerializationOptions> mSerializationOptions;
 };
 
 } //namespace Detail

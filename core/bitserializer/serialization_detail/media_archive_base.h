@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <tuple>
+#include "serialization_options.h"
 
 namespace BitSerializer {
 
@@ -56,18 +57,6 @@ class MediaArchiveBase : public TArchiveTraits
 public:
 	using input_archive_type = TInputArchive;
 	using output_archive_type = TOutputArchive;
-};
-
-/// <summary>
-/// Contains a set of options for output stream.
-/// Some options cannot be applicable to all types of archive, in that case it will be ignored.
-/// </summary>
-struct OutputStreamOptions
-{
-	/// <summary>
-	/// Determines that BOM (Byte Order Mark) should be written to output stream (applicable for text based formats).
-	/// </summary>
-	bool WriteBom = true;
 };
 
 }	// namespace BitSerializer

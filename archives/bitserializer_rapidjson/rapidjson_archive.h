@@ -493,7 +493,7 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
+	RapidJsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
@@ -501,7 +501,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit RapidJsonRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
+	RapidJsonRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)

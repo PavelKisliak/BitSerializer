@@ -141,3 +141,74 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 		}
 	}
 }
+
+/// <summary>
+/// Tests loading from UTF-8 stream with BOM.
+/// </summary>
+template <typename TArchive>
+void TestLoadJsonFromUtf8StreamWithBom()
+{
+	// Arrange
+	std::stringstream inputStream(std::string({ char(0xEF), char(0xBB), char(0xBF) }) + "{\"TestValue\":\"Hello world!\"}");
+
+	// Act
+	TestClassWithSubType<std::string> actual;
+	BitSerializer::LoadObject<TArchive>(actual, inputStream);
+
+	// Assert
+	EXPECT_EQ("Hello world!", actual.GetValue());
+}
+
+/// <summary>
+/// Tests loading from UTF-8 stream with BOM.
+/// </summary>
+template <typename TArchive>
+void TestLoadJsonFromUtf8StreamWithoutBom()
+{
+	// Arrange
+	std::stringstream inputStream(std::string("{\"TestValue\":\"Hello world!\"}"));
+
+	// Act
+	TestClassWithSubType<std::string> actual;
+	BitSerializer::LoadObject<TArchive>(actual, inputStream);
+
+	// Assert
+	EXPECT_EQ("Hello world!", actual.GetValue());
+}
+
+/// <summary>
+/// Tests saving to UTF-8 stream with writing BOM.
+/// </summary>
+template <typename TArchive>
+void TestSaveJsonToUtf8StreamWithBom()
+{
+	// Arrange
+	std::stringstream outputStream;
+	TestClassWithSubType<std::string> testObj("Hello world!");
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(testObj, outputStream);
+
+	// Assert
+	const std::string expected = std::string({ char(0xEF), char(0xBB), char(0xBF) }) + "{\"TestValue\":\"Hello world!\"}";
+	EXPECT_EQ(expected, outputStream.str());
+}
+
+/// <summary>
+/// Tests saving to UTF-8 stream with disabled writing BOM.
+/// </summary>
+template <typename TArchive>
+void TestSaveJsonToUtf8StreamWithoutBom()
+{
+	// Arrange
+	std::stringstream outputStream;
+	TestClassWithSubType<std::string> testObj("Hello world!");
+	BitSerializer::SerializationOptions serializationOptions;
+	serializationOptions.StreamOptions.WriteBom = false;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(testObj, outputStream, serializationOptions);
+
+	// Assert
+	EXPECT_EQ("{\"TestValue\":\"Hello world!\"}", outputStream.str());
+}

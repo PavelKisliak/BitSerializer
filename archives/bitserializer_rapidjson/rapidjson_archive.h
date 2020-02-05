@@ -608,7 +608,7 @@ public:
 				{
 					rapidjson::OStreamWrapper osw(*arg);
 					using AutoOutputStream = rapidjson::AutoUTFOutputStream<uint32_t, rapidjson::OStreamWrapper>;
-					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, mSerializationOptions->StreamOptions.WriteBom);
+					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, mSerializationOptions->streamOptions.writeBom);
 					rapidjson::Writer<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
 					mRootJson.Accept(writer);
 				}

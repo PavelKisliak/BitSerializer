@@ -204,7 +204,7 @@ void TestSaveJsonToUtf8StreamWithoutBom()
 	std::stringstream outputStream;
 	TestClassWithSubType<std::string> testObj("Hello world!");
 	BitSerializer::SerializationOptions serializationOptions;
-	serializationOptions.StreamOptions.WriteBom = false;
+	serializationOptions.streamOptions.writeBom = false;
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testObj, outputStream, serializationOptions);

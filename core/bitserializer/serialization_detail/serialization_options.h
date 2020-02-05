@@ -16,17 +16,17 @@ namespace BitSerializer
 		/// <summary>
 		/// Determines that output text archive should be formatted.
 		/// </summary>
-		bool EnableFormat = false;
+		bool enableFormat = false;
 
 		/// <summary>
 		/// Character for padding, must be whitespace ' ' or '\t'.
 		/// </summary>
-		char PaddingChar = ' ';
+		char paddingChar = ' ';
 
 		/// <summary>
 		/// The number of characters for padding each level.
 		/// </summary>
-		uint16_t PaddingCharNum = 4;
+		uint16_t paddingCharNum = 4;
 	};
 
 	/// <summary>
@@ -38,7 +38,7 @@ namespace BitSerializer
 		/// <summary>
 		/// Determines that BOM (Byte Order Mark) should be written to output stream (applicable for text based formats).
 		/// </summary>
-		bool WriteBom = true;
+		bool writeBom = true;
 	};
 
 	/// <summary>
@@ -50,12 +50,12 @@ namespace BitSerializer
 		/// <summary>
 		/// Contains a set of options which give a control over formatting output text (for text based archives).
 		/// </summary>
-		FormatOptions FormatOptions;
+		FormatOptions formatOptions;
 
 		/// <summary>
 		/// Contains a set of options for output stream.
 		/// </summary>
-		StreamOptions StreamOptions;
+		StreamOptions streamOptions;
 	};
 
 }	// namespace BitSerializer

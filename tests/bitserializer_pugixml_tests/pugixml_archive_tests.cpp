@@ -154,14 +154,72 @@ TEST(PugiXmlArchive, SerializeClassToStream)
 	TestSerializeClassToStream<XmlArchive, wchar_t>(BuildFixture<TestPointClass>());
 }
 
-TEST(JsonRestCpp, SerializeUnicodeToUtf8Stream) {
+TEST(PugiXmlArchive, SerializeUnicodeToUtf8Stream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<XmlArchive, char>(TestValue);
 }
 
-TEST(JsonRestCpp, SerializeUnicodeToUtf16Stream) {
+TEST(PugiXmlArchive, SerializeUnicodeToUtf16Stream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<XmlArchive, wchar_t>(TestValue);
+}
+
+TEST(PugiXmlArchive, LoadFromUtf8StreamWithBom)
+{
+	// Arrange
+	std::stringstream inputStream(std::string({ char(0xEF), char(0xBB), char(0xBF) }) +
+		R"(<?xml version="1.0" encoding="utf-8"?><root><TestValue>Hello world!</TestValue></root>)");
+
+	// Act
+	TestClassWithSubType<std::string> actual;
+	BitSerializer::LoadObject<XmlArchive>(actual, inputStream);
+
+	// Assert
+	EXPECT_EQ("Hello world!", actual.GetValue());
+}
+
+TEST(PugiXmlArchive, LoadFromUtf8StreamWithoutBom)
+{
+	// Arrange
+	std::stringstream inputStream(
+		std::string(R"(<?xml version="1.0" encoding="utf-8"?><root><TestValue>Hello world!</TestValue></root>)"));
+
+	// Act
+	TestClassWithSubType<std::string> actual;
+	BitSerializer::LoadObject<XmlArchive>(actual, inputStream);
+
+	// Assert
+	EXPECT_EQ("Hello world!", actual.GetValue());
+}
+
+TEST(PugiXmlArchive, SaveToUtf8StreamWithBom)
+{
+	// Arrange
+	std::stringstream outputStream;
+	TestClassWithSubType<std::string> testObj("Hello world!");
+
+	// Act
+	BitSerializer::SaveObject<XmlArchive>(testObj, outputStream);
+
+	// Assert
+	const auto result = outputStream.str();
+	EXPECT_TRUE(result.find(std::string({ char(0xEF), char(0xBB), char(0xBF) }) + R"(<?xml version)") == 0);
+}
+
+TEST(PugiXmlArchive, SaveToUtf8StreamWithoutBom)
+{
+	// Arrange
+	std::stringstream outputStream;
+	TestClassWithSubType<std::string> testObj("Hello world!");
+	BitSerializer::SerializationOptions serializationOptions;
+	serializationOptions.streamOptions.writeBom = false;
+
+	// Act
+	BitSerializer::SaveObject<XmlArchive>(testObj, outputStream, serializationOptions);
+
+	// Assert
+	const auto result = outputStream.str();
+	EXPECT_TRUE(result.find(R"(<?xml version)") == 0);
 }
 
 TEST(PugiXmlArchive, SerializeClassToFile) {

@@ -531,14 +531,14 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	explicit PugiXmlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
+	PugiXmlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit PugiXmlRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
+	PugiXmlRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
 	{
@@ -615,20 +615,28 @@ public:
 
 			std::visit([this](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;
+
+				const pugi::string_t indent(mSerializationOptions->formatOptions.paddingCharNum, mSerializationOptions->formatOptions.paddingChar);
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					std::ostringstream stream;
-					mRootXml.print(stream);
+					const unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
+					mRootXml.print(stream, indent.c_str(), flags);
 					*arg = stream.str();
 				}
 				else if constexpr (std::is_same_v<T, std::wstring*>)
 				{
 					std::wostringstream stream;
-					mRootXml.print(stream);
+					const unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
+					mRootXml.print(stream, indent.c_str(), flags);
 					*arg = stream.str();
 				}
-				else if constexpr (std::is_same_v<T, std::ostream*> || std::is_same_v<T, std::wostream*>) {
-					mRootXml.print(*arg);
+				else if constexpr (std::is_same_v<T, std::ostream*> || std::is_same_v<T, std::wostream*>)
+				{
+					const unsigned int flags =
+						(mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0) |
+						(mSerializationOptions->streamOptions.writeBom ? pugi::format_write_bom : 0);
+					mRootXml.save(*arg, indent.c_str(), flags);
 				}
 			}, mOutput);
 			mOutput = nullptr;

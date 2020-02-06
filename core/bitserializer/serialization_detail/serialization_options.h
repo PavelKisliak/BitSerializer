@@ -21,12 +21,12 @@ namespace BitSerializer
 		/// <summary>
 		/// Character for padding, must be whitespace ' ' or '\t'.
 		/// </summary>
-		char paddingChar = ' ';
+		char paddingChar = '\t';
 
 		/// <summary>
 		/// The number of characters for padding each level.
 		/// </summary>
-		uint16_t paddingCharNum = 4;
+		uint16_t paddingCharNum = 1;
 	};
 
 	/// <summary>

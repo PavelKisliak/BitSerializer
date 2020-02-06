@@ -650,7 +650,7 @@ using JsonUtf16Archive = MediaArchiveBase<
 
 /// <summary>
 /// JSON archive based on RapidJson library.
-///	Default archive with in memory encoding in UTF-8 (alias of JsonUtf16Archive).
+///	Default archive with in memory encoding in UTF-8 (alias of JsonUtf8Archive).
 /// </summary>
 using JsonArchive = JsonUtf8Archive;
 

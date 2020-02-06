@@ -66,7 +66,15 @@ TestArchiveMetadata TestArchivePerformance()
 
 		// Check an identity of two results (for test saver via native code)
 		if (i == 0)
-			assert(nativeCodeSaveResult == bitSerializerSaveResult);
+		{
+			using NativeOutputType = decltype(origModel.TestSave());
+			if constexpr (std::is_same_v<NativeOutputType, typename TArchive::preferred_output_format>) {
+				assert(nativeCodeSaveResult == bitSerializerSaveResult);
+			}
+			else {
+				assert(nativeCodeSaveResult == BitSerializer::Convert::To<NativeOutputType>(bitSerializerSaveResult));
+			}
+		}
 
 		// Load model via native code
 		TPerformanceTestModel testModelForNativeCode;

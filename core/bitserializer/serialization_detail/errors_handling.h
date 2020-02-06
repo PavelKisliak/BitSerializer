@@ -15,17 +15,17 @@ namespace BitSerializer {
 	enum class SerializationErrorCode
 	{
 		ParsingError,
-		InputOutputError
+		InputOutputError,
+		UnsupportedEncoding
 	};
 
-	namespace Convert::Detail
+	REGISTER_ENUM_MAP(SerializationErrorCode)
 	{
-		static const bool _SerializationErrorCode = ConvertEnum::Register<SerializationErrorCode>(
-		{
-			{ SerializationErrorCode::ParsingError,	"Parsing error" },
-			{ SerializationErrorCode::InputOutputError,	"Input/output error" }
-		});
+		{ SerializationErrorCode::ParsingError, "Parsing error" },
+		{ SerializationErrorCode::InputOutputError, "Input/output error" },
+		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" }
 	}
+	END_ENUM_MAP()
 
 	/// <summary>
 	/// Serialization exception

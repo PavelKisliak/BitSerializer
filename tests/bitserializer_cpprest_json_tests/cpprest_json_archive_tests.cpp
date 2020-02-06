@@ -179,12 +179,31 @@ TEST(JsonRestCpp, ShouldCollectErrorAboutRequiredNamedValues) {
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, SerializeClassToStream) {
-	TestSerializeClassToStream<JsonArchive, utility::char_t>(BuildFixture<TestPointClass>());
+	TestSerializeClassToStream<JsonArchive, char>(BuildFixture<TestPointClass>());
 }
 
-TEST(JsonRestCpp, SerializeUnicodeToUtf8Stream) {
+TEST(JsonRestCpp, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<JsonArchive, char>(TestValue);
+}
+
+TEST(JsonRestCpp, LoadFromUtf8StreamWithBom) {
+	TestLoadJsonFromUtf8StreamWithBom<JsonArchive>();
+}
+
+TEST(JsonRestCpp, LoadFromUtf8StreamWithoutBom) {
+	TestLoadJsonFromUtf8StreamWithoutBom<JsonArchive>();
+}
+
+TEST(JsonRestCpp, SaveToUtf8StreamWithBom) {
+	std::ostringstream stream;
+	stream << BitSerializer::Convert::Utf8::Bom;
+	auto r = stream.str();
+	TestSaveJsonToUtf8StreamWithBom<JsonArchive>();
+}
+
+TEST(JsonRestCpp, SaveToUtf8StreamWithoutBom) {
+	TestSaveJsonToUtf8StreamWithoutBom<JsonArchive>();
 }
 
 TEST(JsonRestCpp, SerializeClassToFile) {
@@ -196,5 +215,5 @@ TEST(JsonRestCpp, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt;
-	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, _XPLATSTR("10 }}")), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }

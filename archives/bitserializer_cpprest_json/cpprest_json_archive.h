@@ -22,10 +22,15 @@ namespace Detail {
 /// </summary>
 struct JsonArchiveTraits
 {
-	using key_type = utility::string_t;
-	using supported_key_types = SupportedKeyTypes<utility::string_t>;
-	using preferred_output_format = utility::string_t;
-	using preferred_stream_char_type = utility::ostream_t::char_type;
+#ifdef _UTF16_STRINGS
+	using key_type = std::wstring;
+	using supported_key_types = SupportedKeyTypes<std::wstring>;
+#else
+	using key_type = std::string;
+	using supported_key_types = SupportedKeyTypes<std::string>;
+#endif
+	using preferred_output_format = std::string;
+	using preferred_stream_char_type = char;
 	static const char path_separator = '/';
 
 protected:
@@ -407,54 +412,39 @@ template <SerializeMode TMode>
 class JsonRootScope final : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonRootScope(const utility::char_t* inputStr) : JsonRootScope(utility::string_t(inputStr)) {}
-
-	explicit JsonRootScope(const utility::string_t& inputStr)
+	explicit JsonRootScope(const std::string& inputStr)
 		: JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
+#ifdef _UTF16_STRINGS
+		mRootJson = web::json::value::parse(utility::conversions::to_string_t(inputStr), error);
+#else
 		mRootJson = web::json::value::parse(inputStr, error);
+#endif
 		if (mRootJson.is_null()) {
 			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
 	}
 
-	explicit JsonRootScope(utility::string_t& outputStr)
+	explicit JsonRootScope(std::string& outputStr)
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit JsonRootScope(utility::istream_t& inputStream)
-		: JsonScopeBase(&mRootJson)
-		, mOutput(nullptr)
-	{
-		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		std::error_code error;
-		mRootJson = web::json::value::parse(inputStream, error);
-		if (mRootJson.is_null()) {
-			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
-		}
-	}
-
-	explicit JsonRootScope(utility::ostream_t& outputStream, const SerializationOptions& serializationOptions = {})
-		: JsonScopeBase(&mRootJson)
-		, mOutput(&outputStream)
-		, mSerializationOptions(serializationOptions)
-	{
-		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-	}
-
-// Only for Windows need special implementation for load/save from UTF-8 streams (on other platforms CppRestSdk works with UTF-8 by default)
-#ifdef _WIN32
 	explicit JsonRootScope(std::istream& inputStream)
 		: JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
+		const auto utfType = Convert::DetectEncoding(inputStream);
+		if (utfType != Convert::UtfType::Utf8) {
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
+		}
+
 		std::error_code error;
 		mRootJson = web::json::value::parse(inputStream, error);
 		if (mRootJson.is_null()) {
@@ -462,14 +452,13 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
+	JsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
-#endif
 
 	void SerializeValue(bool& value)
 	{
@@ -546,14 +535,23 @@ public:
 		{
 			std::visit([this](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, utility::string_t*>)
-					*arg = mRootJson.serialize();
-				else if constexpr (std::is_same_v<T, utility::ostream_t*>)
-					mRootJson.serialize(*arg);
-#ifdef _WIN32
+				if constexpr (std::is_same_v<T, std::string*>)
+				{
+					if constexpr (std::is_same_v<std::remove_pointer_t<T>, decltype(mRootJson.serialize())>) {
+						*arg = mRootJson.serialize();
+					}
+					else {
+						// Encode to UTF-8 (CppRestSDK does not have native methods on Windows platform)
+						*arg = utility::conversions::to_utf8string(mRootJson.serialize());
+					}
+				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
+				{
+					if (mSerializationOptions->streamOptions.writeBom) {
+						*arg << Convert::Utf8::Bom;
+					}
 					mRootJson.serialize(*arg);
-#endif
+				}
 			}, mOutput);
 			mOutput = nullptr;
 		}
@@ -561,11 +559,7 @@ public:
 
 private:
 	web::json::value mRootJson;
-#ifdef _WIN32
-	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*, std::ostream*> mOutput;
-#else
-	std::variant<std::nullptr_t, utility::string_t*, utility::ostream_t*> mOutput;
-#endif
+	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
 	std::optional<SerializationOptions> mSerializationOptions;
 };
 
@@ -574,8 +568,13 @@ private:
 
 /// <summary>
 /// JSON archive based on JSON implementation from CppRestSdk library.
-/// Encoding in memory is depend from platform: UTF-16 on Windows and UTF-8 on all other.
+/// Supports load/save from UTF-8 encoded strings and streams.
 /// </summary>
+/// <remarks>
+/// The JSON-key type is depends from type utility::string_t defined in the CppRestSdk and it is different on Windows and *nix platforms.
+/// For stay your code cross compiled you can use macros _XPLATSTR("MyKey") from CppRestSdk or
+/// use BitSerializer::AutoKeyValue() but with possible small overhead for converting.
+/// </remarks>
 using JsonArchive = MediaArchiveBase<
 	Detail::JsonArchiveTraits,
 	Detail::JsonRootScope<SerializeMode::Load>,

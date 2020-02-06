@@ -12,16 +12,16 @@
 /// <summary>
 /// Registers a map of strings equivalents for enum type.
 /// </summary>
-/// <example>
+/// <example><code>
 /// REGISTER_ENUM_MAP(YOUR_ENUM_TYPE)
 ///	{
 ///		{ YOUR_ENUM_TYPE::Apple, "Apple" },
 ///		{ YOUR_ENUM_TYPE::Orange, "Orange" }
 /// }
 /// END_ENUM_MAP()
-/// </example>
-#define REGISTER_ENUM_MAP(enumType) namespace BitSerializer::Convert::Detail { \
-	static const bool registration_##enumType = ConvertEnum::Register<enumType>(
+/// </code></example>
+#define REGISTER_ENUM_MAP(enumType) namespace { \
+	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::ConvertEnum::Register<enumType>(
 #define END_ENUM_MAP() ); }
 
 namespace BitSerializer::Convert::Detail {
@@ -37,25 +37,25 @@ public:
 	{ }
 
 	template <typename TSym, typename TAllocator>
-	inline bool Equals(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str_value) const
+	bool Equals(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str_value) const
 	{
 		return std::equal(str_value.cbegin(), str_value.cend(), mStrName.cbegin(), mStrName.cend(), [](const TSym lhs, const char rhs) {
 			return std::tolower(static_cast<char>(lhs)) == std::tolower(static_cast<char>(rhs));
 		});
 	}
 
-	inline bool Equals(TEnum enum_value) const noexcept {
+	bool Equals(TEnum enum_value) const noexcept {
 		return enum_value == mValue;
 	}
 
 	template <typename TSym, typename TAllocator>
-	inline void GetName(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str) const
+	void GetName(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str) const
 	{
 		ret_Str.clear();
 		ret_Str.append(mStrName.begin(), mStrName.end());
 	}
 
-	inline TEnum GetEnum() const noexcept {
+	TEnum GetEnum() const noexcept {
 		return mValue;
 	}
 

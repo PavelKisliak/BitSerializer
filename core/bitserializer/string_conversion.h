@@ -1,9 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include "conversion_detail/convert_detail.h"
+#include "conversion_detail/convert_utf.h"
 
 /// <summary>
 /// Type conversions to/from string
@@ -11,15 +12,16 @@
 namespace BitSerializer::Convert
 {
 	/// <summary>
-	/// Converts from string to specified value or from value to specified string (universal function).
+	/// Universal function for convert any value to/from string.
 	/// </summary>
 	/// <param name="value">The input value.</param>
-	/// <returns>The resulting value</returns>
+	/// <returns>The converted value</returns>
 	template <typename TOut, typename TIn>
 	TOut To(TIn&& value)
 	{
-		if constexpr (std::is_convertible_v<std::decay_t<TIn>, TOut>)
+		if constexpr (std::is_convertible_v<std::decay_t<TIn>, TOut>) {
 			return std::forward<TIn>(value);
+		}
 
 		TOut result;
 		if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
@@ -46,20 +48,31 @@ namespace BitSerializer::Convert
 	}
 
 	/// <summary>
-	/// Converts value to the string.
+	/// Overload for To() function for case when input and output strings are equal.
+	/// </summary>
+	/// <param name="value">The input string.</param>
+	/// <returns>The constant reference to input string</returns>
+	template<typename TSym, typename TAllocator>
+	const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		return value;
+	}
+
+	/// <summary>
+	/// Converts value to std::string, just syntax sugar of To() function.
 	/// </summary>
 	/// <param name="value">The input value.</param>
-	/// <returns>ANSI string</returns>
+	/// <returns>UTF-8 string</returns>
 	template <typename TIn>
 	std::string ToString(TIn&& value) {
 		return To<std::string>(std::forward<TIn>(value));
 	}
 
 	/// <summary>
-	/// Converts value to the wide string.
+	/// Converts value to the wide string, just syntax sugar of To() function.
 	/// </summary>
 	/// <param name="value">The input value.</param>
-	/// <returns>Wide string</returns>
+	/// <returns>Unicode string</returns>
 	template <typename TIn>
 	std::wstring ToWString(TIn&& value) {
 		return To<std::wstring>(std::forward<TIn>(value));
@@ -91,6 +104,32 @@ namespace BitSerializer::Convert
 		return retVal;
 	}
 
+	/// <summary>
+	/// Detects an encoding type by checking BOM.
+	/// The BOM sequence will be skipped if it found in the stream.
+	/// </summary>
+	static UtfType DetectEncoding(std::istream& inputStream)
+	{
+		static constexpr size_t maxBomSize = 4;
+
+		// Read first bytes for check BOM
+		std::string buffer(maxBomSize, 0);
+		const auto origPos = inputStream.tellg();
+		inputStream.read(buffer.data(), maxBomSize);
+
+		if (Utf8::StartsWithBom(buffer))
+		{
+			if constexpr (maxBomSize != sizeof Utf8::Bom) {
+				inputStream.seekg(origPos + std::streamoff(sizeof Utf8::Bom));
+			}
+			return UtfType::Utf8;
+		}
+
+		// Get back to start position
+		inputStream.seekg(origPos);
+		return UtfType::Utf8;
+	}
+
 }	// namespace BitSerializer::Convert
 
 //------------------------------------------------------------------------------
@@ -100,7 +139,6 @@ namespace BitSerializer::Convert
 /// </summary>
 /// <param name="stream">The stream.</param>
 /// <param name="value">The value.</param>
-/// <returns></returns>
 template <typename TIn, std::enable_if_t<((std::is_class_v<TIn> || std::is_union_v<TIn>) &&
 	BitSerializer::Convert::Detail::has_to_string_v<TIn, std::string>), int> = 0>
 std::ostream& operator<<(std::ostream& stream, const TIn& value) {
@@ -113,7 +151,6 @@ std::ostream& operator<<(std::ostream& stream, const TIn& value) {
 /// </summary>
 /// <param name="stream">The stream.</param>
 /// <param name="value">The value.</param>
-/// <returns></returns>
 template <typename TIn, std::enable_if_t<((std::is_class_v<TIn> || std::is_union_v<TIn>) &&
 	BitSerializer::Convert::Detail::has_to_string_v<TIn, std::wstring>), int> = 0>
 std::wostream& operator<<(std::wostream& stream, const TIn& value) {
@@ -126,7 +163,6 @@ std::wostream& operator<<(std::wostream& stream, const TIn& value) {
 /// </summary>
 /// <param name="stream">The stream.</param>
 /// <param name="value">The value.</param>
-/// <returns></returns>
 template <typename TIn, typename TSym, std::enable_if_t<std::is_enum_v<TIn>, int> = 0>
 std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, const TIn& value)
 {

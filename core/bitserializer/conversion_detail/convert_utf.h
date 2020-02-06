@@ -6,13 +6,38 @@
 #include <string>
 #include <iterator>
 #include <algorithm>
+#include "convert_enum.h"
 
 namespace BitSerializer::Convert
 {
-	static constexpr uint16_t Utf16HighSurrogatesStart = 0xD800;
-	static constexpr uint16_t Utf16HighSurrogatesEnd = 0xDBFF;
-	static constexpr uint16_t Utf16LowSurrogatesStart = 0xDC00;
-	static constexpr uint16_t Utf16LowSurrogatesEnd = 0xDFFF;
+	/// <summary>
+	/// UTF encoding type.
+	/// </summary>
+	enum class UtfType : unsigned char
+	{
+		Utf8 = 0,
+		Utf16le = 1,
+		Utf16be = 2,
+		Utf32le = 3,
+		Utf32be = 4
+	};
+
+	REGISTER_ENUM_MAP(UtfType)
+	{
+		{ UtfType::Utf8, "UTF-8" },
+		{ UtfType::Utf16le, "UTF-16 (LE)" },
+		{ UtfType::Utf16be, "UTF-16 (BE)" },
+		{ UtfType::Utf32le, "UTF-32 (LE)" },
+		{ UtfType::Utf32be, "UTF-32 (BE)" }
+	} END_ENUM_MAP()
+
+	namespace Unicode
+	{
+		static constexpr uint16_t HighSurrogatesStart = 0xD800;
+		static constexpr uint16_t HighSurrogatesEnd = 0xDBFF;
+		static constexpr uint16_t LowSurrogatesStart = 0xDC00;
+		static constexpr uint16_t LowSurrogatesEnd = 0xDFFF;
+	}
 
 	class Utf8
 	{
@@ -91,7 +116,7 @@ namespace BitSerializer::Convert
 				}
 
 				// Surrogates pairs are prohibited in the UTF8
-				if (sym >= Utf16HighSurrogatesStart && sym <= Utf16LowSurrogatesEnd)
+				if (sym >= Unicode::HighSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
 				{
 					sym = errSym;
 				}
@@ -100,8 +125,8 @@ namespace BitSerializer::Convert
 				{
 					sym -= 0x10000;
 					outStr.append({
-						static_cast<TOutChar>(Utf16HighSurrogatesStart | ((sym >> 10) & 0x3FF)),
-						static_cast<TOutChar>(Utf16LowSurrogatesStart | (sym & 0x3FF))
+						static_cast<TOutChar>(Unicode::HighSurrogatesStart | ((sym >> 10) & 0x3FF)),
+						static_cast<TOutChar>(Unicode::LowSurrogatesStart | (sym & 0x3FF))
 						});
 					continue;
 				}
@@ -127,10 +152,10 @@ namespace BitSerializer::Convert
 				// Handle surrogates for UTF-16 (decode before encoding to UTF8)
 				if constexpr (sizeof(InCharType) == 2)
 				{
-					if (sym >= Utf16HighSurrogatesStart && sym <= Utf16LowSurrogatesEnd)
+					if (sym >= Unicode::HighSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
 					{
 						// Low surrogate character cannot be first
-						if (sym >= Utf16LowSurrogatesStart)
+						if (sym >= Unicode::LowSurrogatesStart)
 						{
 							outStr.push_back(errSym);
 							continue;
@@ -144,7 +169,7 @@ namespace BitSerializer::Convert
 
 						// Surrogate characters are always written as pairs (high followed by low)
 						const uint32_t low = *in;
-						if (low >= Utf16LowSurrogatesStart && sym <= Utf16LowSurrogatesEnd)
+						if (low >= Unicode::LowSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
 						{
 							sym = 0x10000 + ((sym & 0x3FF) << 10 | (low & 0x3FF));
 							++in;

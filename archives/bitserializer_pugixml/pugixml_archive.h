@@ -620,15 +620,17 @@ public:
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					std::ostringstream stream;
-					const unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
-					mRootXml.print(stream, indent.c_str(), flags);
+					//const unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
+					//mRootXml.print(stream, indent.c_str(), flags);
+					mRootXml.print(stream);
 					*arg = stream.str();
 				}
 				else if constexpr (std::is_same_v<T, std::wstring*>)
 				{
 					std::wostringstream stream;
-					const unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
-					mRootXml.print(stream, indent.c_str(), flags);
+					//const unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
+					//mRootXml.print(stream, indent.c_str(), flags);
+					mRootXml.print(stream);
 					*arg = stream.str();
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*> || std::is_same_v<T, std::wostream*>)

@@ -64,7 +64,7 @@ public:
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
 	/// <returns></returns>
-	size_t GetSize() const {
+	[[nodiscard]] size_t GetSize() const {
 		if (std::holds_alternative<TestIoDataObject>(*mNode)) {
 			return std::get<TestIoDataObject>(*mNode).size();
 		}
@@ -77,7 +77,7 @@ public:
 	/// <summary>
 	/// Gets the current path
 	/// </summary>
-	virtual std::string GetPath() const
+	[[nodiscard]] virtual std::string GetPath() const
 	{
 		const std::string localPath = mParentKey.empty()
 			? Convert::ToString(mParentKey)
@@ -164,7 +164,7 @@ public:
 	/// <summary>
 	/// Gets the current path
 	/// </summary>
-	std::string GetPath() const override
+	[[nodiscard]] std::string GetPath() const override
 	{
 		auto index = mIndex == 0 ? 0 : mIndex - 1;
 		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(index);
@@ -294,11 +294,11 @@ public:
 		assert(std::holds_alternative<TestIoDataObject>(*mNode));
 	};
 
-	key_const_iterator cbegin() const {
+	[[nodiscard]] key_const_iterator cbegin() const {
 		return key_const_iterator(GetAsObject().cbegin());
 	}
 
-	key_const_iterator cend() const {
+	[[nodiscard]] key_const_iterator cend() const {
 		return key_const_iterator(GetAsObject().cend());
 	}
 
@@ -434,10 +434,11 @@ public:
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 	}
 
-	explicit ArchiveStubRootScope(TestIoData& outputData)
+	explicit ArchiveStubRootScope(TestIoData& outputData, const SerializationOptions& serializationOptions = {})
 		: ArchiveStubScopeBase(&outputData)
 		, mOutputData(&outputData)
 		, mInputData(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -508,6 +509,7 @@ public:
 private:
 	TestIoData* mOutputData;
 	const TestIoData* mInputData;
+	std::optional<SerializationOptions> mSerializationOptions;
 };
 
 }	// namespace Detail

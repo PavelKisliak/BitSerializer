@@ -67,8 +67,9 @@ namespace BitSerializer
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="output">The output array.</param>
+	/// <param name="serializationOptions">The serialization options.</param>
 	template <typename TMediaArchive, typename T, typename TOutput, std::enable_if_t<!is_output_stream_v<TOutput>, int> = 0>
-	static void SaveObject(T&& object, TOutput& output)
+	static void SaveObject(T&& object, TOutput& output, const SerializationOptions& serializationOptions = {})
 	{
 		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type_v<typename TMediaArchive::output_archive_type, TOutput>;
 		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive doesn't support save to provided data type.");
@@ -76,7 +77,7 @@ namespace BitSerializer
 		if constexpr (hasOutputDataTypeSupport)
 		{
 			Context.OnStartSerialization();
-			typename TMediaArchive::output_archive_type archive(output);
+			typename TMediaArchive::output_archive_type archive(output, serializationOptions);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
 		}

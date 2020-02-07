@@ -65,7 +65,7 @@ public:
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
 	/// </summary>
-	virtual std::string GetPath() const
+	[[nodiscard]] virtual std::string GetPath() const
 	{
 		const std::string localPath = mParentKey.empty()
 			? std::string()
@@ -165,14 +165,14 @@ public:
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
-	size_t GetSize() const {
+	[[nodiscard]] size_t GetSize() const {
 		return this->mNode->Capacity();
 	}
 
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::string GetPath() const override
+	[[nodiscard]] std::string GetPath() const override
 	{
 		int64_t index;
 		if constexpr (TMode == SerializeMode::Load)
@@ -322,11 +322,11 @@ public:
 		assert(this->mNode->IsObject());
 	};
 
-	key_const_iterator<TEncoding> cbegin() const {
+	[[nodiscard]] key_const_iterator<TEncoding> cbegin() const {
 		return key_const_iterator<TEncoding>(this->mNode->GetObject().begin());
 	}
 
-	key_const_iterator<TEncoding> cend() const {
+	[[nodiscard]] key_const_iterator<TEncoding> cend() const {
 		return key_const_iterator<TEncoding>(this->mNode->GetObject().end());
 	}
 
@@ -465,9 +465,10 @@ public:
 	explicit RapidJsonRootScope(const string_type& inputStr)
 		: RapidJsonRootScope(inputStr.c_str()) {}
 
-	explicit RapidJsonRootScope(string_type& outputStr)
+	explicit RapidJsonRootScope(string_type& outputStr, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}

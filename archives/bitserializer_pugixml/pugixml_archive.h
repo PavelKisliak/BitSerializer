@@ -129,7 +129,7 @@ namespace PugiXmlExtensions
 			node.text().set(Convert::To<pugi::string_t>(value).c_str());
 	}
 
-	inline std::string GetPath(const pugi::xml_node& node)
+	[[nodiscard]] inline std::string GetPath(const pugi::xml_node& node)
 	{
 #ifdef PUGIXML_WCHAR_MODE
 		return Convert::ToString(node.path());
@@ -160,14 +160,14 @@ public:
 	/// <summary>
 	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::string GetPath() const {
+	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mNode);
 	}
 
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
-	size_t GetSize() const {
+	[[nodiscard]] size_t GetSize() const {
 		return std::distance(mNode.begin(), mNode.end());
 	}
 
@@ -230,7 +230,7 @@ public:
 
 protected:
 	template <typename T>
-	static constexpr const pugi::char_t* GetKeyByValueType()
+	static constexpr const pugi::char_t* GetKeyByValueType() noexcept
 	{
 		if constexpr (std::is_same_v<T, bool>)
 			return PUGIXML_TEXT("bool");
@@ -285,7 +285,7 @@ public:
 	/// <summary>
 	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::string GetPath() const {
+	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mNode);
 	}
 
@@ -411,18 +411,18 @@ public:
 		assert(mNode.type() == pugi::node_element);
 	}
 
-	key_const_iterator cbegin() const {
+	[[nodiscard]] key_const_iterator cbegin() const {
 		return key_const_iterator(mNode.begin());
 	}
 
-	key_const_iterator cend() const {
+	[[nodiscard]] key_const_iterator cend() const {
 		return key_const_iterator(mNode.end());
 	}
 
 	/// <summary>
 	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::string GetPath() const {
+	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mNode);
 	}
 
@@ -507,8 +507,9 @@ public:
 		: PugiXmlRootScope(inputStr.c_str())
 	{}
 
-	explicit PugiXmlRootScope(pugi::string_t& outputStr)
+	explicit PugiXmlRootScope(pugi::string_t& outputStr, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -548,7 +549,7 @@ public:
 	/// <summary>
 	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
-	std::string GetPath() const	{
+	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mRootXml);
 	}
 
@@ -613,21 +614,25 @@ public:
 			auto decl = mRootXml.prepend_child(pugi::node_declaration);
 			decl.append_attribute(PUGIXML_TEXT("version")) = PUGIXML_TEXT("1.0");
 
-			std::visit([this](auto&& arg) {
+			std::visit([this](auto&& arg)
+			{
 				using T = std::decay_t<decltype(arg)>;
 
+				assert(mSerializationOptions);
 				unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
 				const pugi::string_t indent(mSerializationOptions->formatOptions.paddingCharNum, mSerializationOptions->formatOptions.paddingChar);
+				assert(!mSerializationOptions->formatOptions.enableFormat || !indent.empty());
+
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					std::ostringstream stream;
-					mRootXml.print(stream, indent.c_str());
+					mRootXml.print(stream, indent.c_str(), flags);
 					*arg = stream.str();
 				}
 				else if constexpr (std::is_same_v<T, std::wstring*>)
 				{
 					std::wostringstream stream;
-					mRootXml.print(stream, indent.c_str());
+					mRootXml.print(stream, indent.c_str(), flags);
 					*arg = stream.str();
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*> || std::is_same_v<T, std::wostream*>)

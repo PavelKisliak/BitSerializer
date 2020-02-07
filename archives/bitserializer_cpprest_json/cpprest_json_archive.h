@@ -62,14 +62,14 @@ public:
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
-	size_t GetSize() const {
+	[[nodiscard]] size_t GetSize() const {
 		return mNode->size();
 	}
 
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
-	virtual std::string GetPath() const
+	[[nodiscard]] virtual std::string GetPath() const
 	{
 		const std::string localPath = mParentKey.empty()
 			? std::string()
@@ -147,7 +147,7 @@ public:
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
 	/// </summary>
-	std::string GetPath() const override
+	[[nodiscard]] std::string GetPath() const override
 	{
 		const auto index = mIndex == 0 ? 0 : mIndex - 1;
 		return JsonScopeBase::GetPath() + path_separator + Convert::ToString(index);
@@ -292,11 +292,11 @@ public:
 		assert(mNode->is_object());
 	};
 
-	key_const_iterator cbegin() const {
+	[[nodiscard]] key_const_iterator cbegin() const {
 		return key_const_iterator(mNode->as_object().cbegin());
 	}
 
-	key_const_iterator cend() const {
+	[[nodiscard]] key_const_iterator cend() const {
 		return key_const_iterator(mNode->as_object().cend());
 	}
 
@@ -428,9 +428,10 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(std::string& outputStr)
+	explicit JsonRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(&outputStr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}

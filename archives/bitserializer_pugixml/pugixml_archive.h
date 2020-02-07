@@ -22,20 +22,18 @@ namespace Detail {
 /// </summary>
 struct PugiXmlArchiveTraits
 {
-	// Character type is related to PugiXml's definition PUGIXML_WCHAR_MODE
+	// Key type is related to PugiXml's definition PUGIXML_WCHAR_MODE
 #ifdef PUGIXML_WCHAR_MODE
 	using key_type = std::wstring;
 	using supported_key_types = SupportedKeyTypes<key_type, const wchar_t*>;
-	using preferred_output_format = std::wstring;
-	using preferred_stream_char_type = wchar_t;
 #else
 	using key_type = std::string;
 	using supported_key_types = SupportedKeyTypes<key_type, const char*>;
-	using preferred_output_format = std::string;
-	using preferred_stream_char_type = char;
 #endif
 
-	static const char path_separator = '/';
+	using preferred_output_format = std::string;
+	using preferred_stream_char_type = char;
+	static constexpr char path_separator = '/';
 
 protected:
 	~PugiXmlArchiveTraits() = default;
@@ -494,20 +492,22 @@ template <SerializeMode TMode>
 class PugiXmlRootScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlRootScope(const pugi::char_t* inputStr)
+	explicit PugiXmlRootScope(const std::string& inputStr)
 		: mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		const auto result = mRootXml.load_string(inputStr);
+		pugi::xml_parse_result result;
+		if constexpr (std::is_same_v<pugi::string_t, std::string>) {
+			result = mRootXml.load_buffer(inputStr.c_str(), inputStr.size(), pugi::parse_default, pugi::encoding_utf8);
+		}
+		else {
+			mRootXml.load_buffer(inputStr.c_str(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
+		}
 		if (!result)
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	explicit PugiXmlRootScope(const pugi::string_t& inputStr)
-		: PugiXmlRootScope(inputStr.c_str())
-	{}
-
-	explicit PugiXmlRootScope(pugi::string_t& outputStr, const SerializationOptions& serializationOptions = {})
+	PugiXmlRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStr)
 		, mSerializationOptions(serializationOptions)
 	{
@@ -533,13 +533,6 @@ public:
 	}
 
 	PugiXmlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-		: mOutput(&outputStream)
-		, mSerializationOptions(serializationOptions)
-	{
-		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-	}
-
-	PugiXmlRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
 	{
@@ -611,34 +604,25 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Save)
 		{
-			auto decl = mRootXml.prepend_child(pugi::node_declaration);
-			decl.append_attribute(PUGIXML_TEXT("version")) = PUGIXML_TEXT("1.0");
-
 			std::visit([this](auto&& arg)
 			{
 				using T = std::decay_t<decltype(arg)>;
 
 				assert(mSerializationOptions);
-				unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : 0;
+				unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : pugi::format_raw;
 				const pugi::string_t indent(mSerializationOptions->formatOptions.paddingCharNum, mSerializationOptions->formatOptions.paddingChar);
 				assert(!mSerializationOptions->formatOptions.enableFormat || !indent.empty());
 
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					std::ostringstream stream;
-					mRootXml.print(stream, indent.c_str(), flags);
+					mRootXml.print(stream, indent.c_str(), flags, pugi::encoding_utf8);
 					*arg = stream.str();
 				}
-				else if constexpr (std::is_same_v<T, std::wstring*>)
+				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
-					std::wostringstream stream;
-					mRootXml.print(stream, indent.c_str(), flags);
-					*arg = stream.str();
-				}
-				else if constexpr (std::is_same_v<T, std::ostream*> || std::is_same_v<T, std::wostream*>)
-				{
-					flags |= (mSerializationOptions->streamOptions.writeBom ? pugi::format_write_bom : 0);
-					mRootXml.save(*arg, indent.c_str(), flags);
+					flags |= mSerializationOptions->streamOptions.writeBom ? pugi::format_write_bom : 0;
+					mRootXml.save(*arg, indent.c_str(), flags, pugi::encoding_utf8);
 				}
 			}, mOutput);
 			mOutput = nullptr;
@@ -647,7 +631,7 @@ public:
 
 private:
 	pugi::xml_document mRootXml;
-	std::variant<std::nullptr_t, std::string*, std::wstring*, std::ostream*, std::wostream*> mOutput;
+	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
 	std::optional<SerializationOptions> mSerializationOptions;
 };
 
@@ -656,8 +640,15 @@ private:
 
 /// <summary>
 /// XML archive based on the PugiXml library.
-/// Encoding in memory is depend from global definition in the PugiXml 'PUGIXML_WCHAR_MODE', by default uses UTF-8.
+/// Supports load/save from:
+/// - UTF-8 encoded strings (std::string)
+/// - UTF-8 encoded streams (std::istream and std::ostream)
 /// </summary>
+/// <remarks>
+/// The JSON-key type is depends from global definition in the PugiXml 'PUGIXML_WCHAR_MODE' in the PugiXml, by default uses std::string.
+/// For stay your code cross compiled you can use macros PUGIXML_TEXT("MyKey") from PugiXml or
+/// use BitSerializer::AutoKeyValue() but with possible small overhead for converting.
+/// </remarks>
 using XmlArchive = MediaArchiveBase<
 	Detail::PugiXmlArchiveTraits,
 	Detail::PugiXmlRootScope<SerializeMode::Load>,

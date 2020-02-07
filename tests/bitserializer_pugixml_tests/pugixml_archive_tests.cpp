@@ -148,20 +148,12 @@ TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SerializeClassToStream)
 {
-	// UTF-8
 	TestSerializeClassToStream<XmlArchive, char>(BuildFixture<TestPointClass>());
-	// UTF-16
-	TestSerializeClassToStream<XmlArchive, wchar_t>(BuildFixture<TestPointClass>());
 }
 
 TEST(PugiXmlArchive, SerializeUnicodeToUtf8Stream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<XmlArchive, char>(TestValue);
-}
-
-TEST(PugiXmlArchive, SerializeUnicodeToUtf16Stream) {
-	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-	TestSerializeClassToStream<XmlArchive, wchar_t>(TestValue);
 }
 
 TEST(PugiXmlArchive, LoadFromUtf8StreamWithBom)

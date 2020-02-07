@@ -31,7 +31,7 @@ struct JsonArchiveTraits
 #endif
 	using preferred_output_format = std::string;
 	using preferred_stream_char_type = char;
-	static const char path_separator = '/';
+	static constexpr char path_separator = '/';
 
 protected:
 	~JsonArchiveTraits() = default;
@@ -569,7 +569,9 @@ private:
 
 /// <summary>
 /// JSON archive based on JSON implementation from CppRestSdk library.
-/// Supports load/save from UTF-8 encoded strings and streams.
+/// Supports load/save from:
+/// - UTF-8 encoded strings (std::string)
+/// - UTF-8 encoded streams (std::istream and std::ostream)
 /// </summary>
 /// <remarks>
 /// The JSON-key type is depends from type utility::string_t defined in the CppRestSdk and it is different on Windows and *nix platforms.

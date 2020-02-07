@@ -32,7 +32,7 @@ struct RapidJsonArchiveTraits
 	using supported_key_types = SupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using preferred_output_format = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using preferred_stream_char_type = typename TEncoding::Ch;
-	static const char path_separator = '/';
+	static constexpr char path_separator = '/';
 
 protected:
 	~RapidJsonArchiveTraits() = default;

@@ -108,12 +108,13 @@ namespace BitSerializer
 	/// Saves the object to preferred output type.
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
+	/// <param name="serializationOptions">The serialization options.</param>
 	/// <returns>The output string or binary array</returns>
 	template <typename TMediaArchive, typename T, typename TOutput = typename TMediaArchive::preferred_output_format>
-	static TOutput SaveObject(T&& object)
+	static TOutput SaveObject(T&& object, const SerializationOptions& serializationOptions = {})
 	{
 		typename TMediaArchive::preferred_output_format output;
-		SaveObject<TMediaArchive>(std::forward<T>(object), output);
+		SaveObject<TMediaArchive>(std::forward<T>(object), output, serializationOptions);
 		return output;
 	}
 

@@ -18,6 +18,7 @@
 #include "rapidjson/error/en.h"
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/ostreamwrapper.h>
+#include "rapidjson/prettywriter.h"
 
 namespace BitSerializer::Json::RapidJson {
 namespace Detail {
@@ -597,12 +598,23 @@ public:
 			std::visit([this](auto&& arg)
 			{
 				using T = std::decay_t<decltype(arg)>;
+
+				assert(mSerializationOptions);
 				if constexpr (std::is_same_v<T, string_type*>)
 				{
 					using StringBuffer = rapidjson::GenericStringBuffer<TEncoding>;
 					StringBuffer buffer;
-					rapidjson::Writer<StringBuffer, TEncoding, TEncoding> writer(buffer);
-					mRootJson.Accept(writer);
+					if (mSerializationOptions->formatOptions.enableFormat)
+					{
+						rapidjson::PrettyWriter<StringBuffer, TEncoding, TEncoding> writer(buffer);
+						writer.SetIndent(mSerializationOptions->formatOptions.paddingChar, mSerializationOptions->formatOptions.paddingCharNum);
+						mRootJson.Accept(writer);
+					}
+					else
+					{
+						rapidjson::Writer<StringBuffer, TEncoding, TEncoding> writer(buffer);
+						mRootJson.Accept(writer);
+					}
 					*arg = buffer.GetString();
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
@@ -610,8 +622,17 @@ public:
 					rapidjson::OStreamWrapper osw(*arg);
 					using AutoOutputStream = rapidjson::AutoUTFOutputStream<uint32_t, rapidjson::OStreamWrapper>;
 					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, mSerializationOptions->streamOptions.writeBom);
-					rapidjson::Writer<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
-					mRootJson.Accept(writer);
+					if (mSerializationOptions->formatOptions.enableFormat)
+					{
+						rapidjson::PrettyWriter<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
+						writer.SetIndent(mSerializationOptions->formatOptions.paddingChar, mSerializationOptions->formatOptions.paddingCharNum);
+						mRootJson.Accept(writer);
+					}
+					else
+					{
+						rapidjson::Writer<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
+						mRootJson.Accept(writer);
+					}
 				}
 				else if constexpr (std::is_same_v<T, std::wostream*>)
 				{

@@ -340,6 +340,17 @@ TEST(RapidJsonArchive, ShouldCollectErrorAboutRequiredNamedValues)
 }
 
 //-----------------------------------------------------------------------------
+// Tests format output JSON
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, SaveWithFormatting)
+{
+	// UTF-8 archive
+	TestSaveFormattedJson<JsonUtf8Archive>();
+	// UTF-16 archive
+	TestSaveFormattedJson<JsonUtf16Archive>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeClassToStream)

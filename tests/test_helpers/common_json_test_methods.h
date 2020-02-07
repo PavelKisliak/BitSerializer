@@ -212,3 +212,28 @@ void TestSaveJsonToUtf8StreamWithoutBom()
 	// Assert
 	EXPECT_EQ("{\"TestValue\":\"Hello world!\"}", outputStream.str());
 }
+
+/// <summary>
+/// Tests save JSON with formatting.
+/// </summary>
+template <typename TArchive>
+void TestSaveFormattedJson()
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputStr;
+	TestClassWithSubType<std::string> testObj("Hello world!");
+	BitSerializer::SerializationOptions serializationOptions;
+	serializationOptions.formatOptions.enableFormat = true;
+	serializationOptions.formatOptions.paddingChar = ' ';
+	serializationOptions.formatOptions.paddingCharNum = 2;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(testObj, outputStr, serializationOptions);
+
+	// Assert
+	const auto expected = BitSerializer::Convert::To<typename TArchive::preferred_output_format>(
+		"{\n"
+		"  \"TestValue\": \"Hello world!\"\n"
+		"}");
+	EXPECT_EQ(expected, outputStr);
+}

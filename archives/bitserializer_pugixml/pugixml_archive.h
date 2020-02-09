@@ -496,13 +496,7 @@ public:
 		: mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		pugi::xml_parse_result result;
-		if constexpr (std::is_same_v<pugi::string_t, std::string>) {
-			result = mRootXml.load_buffer(inputStr.c_str(), inputStr.size(), pugi::parse_default, pugi::encoding_utf8);
-		}
-		else {
-			mRootXml.load_buffer(inputStr.c_str(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
-		}
+		pugi::xml_parse_result result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
 		if (!result)
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}

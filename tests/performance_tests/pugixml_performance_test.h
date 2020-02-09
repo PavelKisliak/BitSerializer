@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -9,25 +9,14 @@
 #include "base_test_models.h"
 
 
-class PugiXmlPerformanceTestModel : public BasePerformanceTestModel<pugi::char_t>
+class PugiXmlPerformanceTestModel : public BasePerformanceTestModel<char>
 {
 public:
-	const char* GetName() override
-	{
-#ifdef PUGIXML_WCHAR_MODE
-	return "PugiXml (std::wstring)";
-#else
-	return "PugiXml (std::string)";
-#endif
-	}
+	const char* GetName() override { return "PugiXml"; }
 
-	string_t TestSave()
+	std::string TestSave()
 	{
 		pugi::xml_document mDoc;
-
-		auto decl = mDoc.prepend_child(pugi::node_declaration);
-		decl.append_attribute(PUGIXML_TEXT("version")) = PUGIXML_TEXT("1.0");
-		decl.append_attribute(PUGIXML_TEXT("encoding")) = PUGIXML_TEXT("UTF-8");
 		auto rootNode =  mDoc.append_child(PUGIXML_TEXT("root"));
 
 		// Save array of booleans
@@ -70,14 +59,14 @@ public:
 
 		// Build
 		out_string_stream_t stream;
-		mDoc.print(stream);
+		mDoc.save(stream, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
 		return stream.str();
 	}
 
-	void TestLoad(const string_t& data)
+	void TestLoad(const std::string& data)
 	{
 		pugi::xml_document mDoc;
-		const auto result = mDoc.load_string(data.c_str());
+		const auto result = mDoc.load_buffer(data.data(), data.size(), pugi::parse_default, pugi::encoding_auto);
 		if (!result)
 			throw std::runtime_error("PugiXml parse error");
 

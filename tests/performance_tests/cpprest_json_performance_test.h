@@ -1,10 +1,9 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
-#include "bitserializer/string_conversion.h"
 #include "bitserializer_cpprest_json/cpprest_json_archive.h"
 #include "base_test_models.h"
 
@@ -14,15 +13,9 @@ class CppRestJsonPerformanceTestModel : public BasePerformanceTestModel<utility:
 public:
 	~CppRestJsonPerformanceTestModel() = default;
 
-	const char* GetName() override
-	{
-		if constexpr (std::is_same_v<wchar_t, utility::char_t>)
-			return "CppRestJson (std::wstring)";
-		else
-			return "CppRestJson (std::string)";
-	}
+	const char* GetName() override { return "CppRestJson"; }
 
-	utility::string_t TestSave()
+	std::string TestSave()
 	{
 		web::json::value rootJson = web::json::value::object();
 		auto& rootObj = rootJson.as_object();
@@ -66,13 +59,21 @@ public:
 			jObj[_XPLATSTR("TestStringValue")] = web::json::value(obj.mTestStringValue);
 		}
 
-		// Build
+#ifdef _UTF16_STRINGS
+		// Encode to UTF-8 (CppRestSDK does not have native methods on Windows platform)
+		return utility::conversions::to_utf8string(rootJson.serialize());
+#else
 		return rootJson.serialize();
+#endif
 	}
 
-	void TestLoad(const utility::string_t& json)
+	void TestLoad(const std::string& json)
 	{
+#ifdef _UTF16_STRINGS
+		auto rootJson = web::json::value::parse(utility::conversions::to_string_t(json));
+#else
 		auto rootJson = web::json::value::parse(json);
+#endif
 		if (rootJson.is_null())
 			throw std::runtime_error("CppRestJson parse error");
 		auto& rootObj = rootJson.as_object();

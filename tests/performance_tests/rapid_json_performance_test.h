@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -9,18 +9,18 @@
 #include "base_test_models.h"
 
 
-class RapidJsonPerformanceTestModel : public BasePerformanceTestModel<wchar_t>
+class RapidJsonPerformanceTestModel : public BasePerformanceTestModel<char>
 {
 public:
-	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF16<>>;
-	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF16<>>;
-	using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF16<>>;
+	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
+	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF8<>>;
+	using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
 
 	~RapidJsonPerformanceTestModel() = default;
 
-	const char* GetName() override { return "RapidJson (std::wstring)"; }
+	const char* GetName() override { return "RapidJson"; }
 
-	std::wstring TestSave()
+	std::string TestSave()
 	{
 		RapidJsonDocument jsonDoc;
 		auto& allocator = jsonDoc.GetAllocator();
@@ -32,7 +32,7 @@ public:
 		for (auto item : mArrayOfBooleans) {
 			booleansJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfBooleans"), booleansJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfBooleans"), booleansJsonArray.Move(), allocator);
 
 		// Save array of integers
 		auto intsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -40,7 +40,7 @@ public:
 		for (auto item : mArrayOfInts) {
 			intsJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfInts"), intsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfInts"), intsJsonArray.Move(), allocator);
 
 		// Save array of floats
 		auto floatsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -48,7 +48,7 @@ public:
 		for (auto item : mArrayOfFloats) {
 			floatsJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfFloats"), floatsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfFloats"), floatsJsonArray.Move(), allocator);
 
 		// Save array of strings
 		auto stringsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -56,7 +56,7 @@ public:
 		for (const auto& item : mArrayOfStrings) {
 			stringsJsonArray.PushBack(RapidJsonNode::StringRefType(item.data(), static_cast<rapidjson::SizeType>(item.size())), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfStrings"), stringsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfStrings"), stringsJsonArray.Move(), allocator);
 
 		// Save array of objects
 		auto objectsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -64,28 +64,28 @@ public:
 		for (const auto& item : mArrayOfObjects)
 		{
 			RapidJsonNode jsonObject(rapidjson::kObjectType);
-			jsonObject.AddMember(L"TestBoolValue", item.mTestBoolValue, allocator);
-			jsonObject.AddMember(L"TestCharValue", item.mTestCharValue, allocator);
-			jsonObject.AddMember(L"TestInt16Value", item.mTestInt16Value, allocator);
-			jsonObject.AddMember(L"TestInt32Value", item.mTestInt32Value, allocator);
-			jsonObject.AddMember(L"TestInt64Value", item.mTestInt64Value, allocator);
-			jsonObject.AddMember(L"TestFloatValue", item.mTestFloatValue, allocator);
-			jsonObject.AddMember(L"TestDoubleValue", item.mTestDoubleValue, allocator);
-			jsonObject.AddMember(L"TestStringValue", RapidJsonNode::StringRefType(
+			jsonObject.AddMember("TestBoolValue", item.mTestBoolValue, allocator);
+			jsonObject.AddMember("TestCharValue", item.mTestCharValue, allocator);
+			jsonObject.AddMember("TestInt16Value", item.mTestInt16Value, allocator);
+			jsonObject.AddMember("TestInt32Value", item.mTestInt32Value, allocator);
+			jsonObject.AddMember("TestInt64Value", item.mTestInt64Value, allocator);
+			jsonObject.AddMember("TestFloatValue", item.mTestFloatValue, allocator);
+			jsonObject.AddMember("TestDoubleValue", item.mTestDoubleValue, allocator);
+			jsonObject.AddMember("TestStringValue", RapidJsonNode::StringRefType(
 				item.mTestStringValue.data(), static_cast<rapidjson::SizeType>(item.mTestStringValue.size())), allocator);
 
 			objectsJsonArray.PushBack(jsonObject.Move(), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>(L"ArrayOfObjects"), objectsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfObjects"), objectsJsonArray.Move(), allocator);
 
 		// Build
 		StringBuffer buffer;
-		rapidjson::Writer<StringBuffer, rapidjson::UTF16<>, rapidjson::UTF16<>> writer(buffer);
+		rapidjson::Writer<StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>> writer(buffer);
 		jsonDoc.Accept(writer);
 		return buffer.GetString();
 	}
 
-	void TestLoad(const std::wstring& json)
+	void TestLoad(const std::string& json)
 	{
 		RapidJsonDocument jsonDoc;
 		if (jsonDoc.Parse(json.c_str()).HasParseError())
@@ -93,7 +93,7 @@ public:
 		const auto& jObject = jsonDoc.GetObject();
 
 		// Load array of booleans
-		const auto& booleansJsonArray = jObject.FindMember(L"ArrayOfBooleans")->value;
+		const auto& booleansJsonArray = jObject.FindMember("ArrayOfBooleans")->value;
 		int i = 0;
 		for (auto jItem = booleansJsonArray.Begin(); jItem != booleansJsonArray.End(); ++jItem) {
 			mArrayOfBooleans[i] = jItem->GetBool();
@@ -101,7 +101,7 @@ public:
 		}
 
 		// Load array of integers
-		const auto& integersJsonArray = jObject.FindMember(L"ArrayOfInts")->value;
+		const auto& integersJsonArray = jObject.FindMember("ArrayOfInts")->value;
 		i = 0;
 		for (auto jItem = integersJsonArray.Begin(); jItem != integersJsonArray.End(); ++jItem) {
 			mArrayOfInts[i] = jItem->GetInt64();
@@ -109,7 +109,7 @@ public:
 		}
 
 		// Load array of floats
-		const auto& floatsJsonArray = jObject.FindMember(L"ArrayOfFloats")->value;
+		const auto& floatsJsonArray = jObject.FindMember("ArrayOfFloats")->value;
 		i = 0;
 		for (auto jItem = floatsJsonArray.Begin(); jItem != floatsJsonArray.End(); ++jItem) {
 			mArrayOfFloats[i] = jItem->GetDouble();
@@ -117,27 +117,27 @@ public:
 		}
 
 		// Load array of strings
-		const auto& stringsJsonArray = jObject.FindMember(L"ArrayOfStrings")->value;
+		const auto& stringsJsonArray = jObject.FindMember("ArrayOfStrings")->value;
 		i = 0;
 		for (auto jItem = stringsJsonArray.Begin(); jItem != stringsJsonArray.End(); ++jItem) {
-			mArrayOfStrings[i] = BitSerializer::Convert::ToWString(jItem->GetString());
+			mArrayOfStrings[i] = jItem->GetString();
 			++i;
 		}
 
 		// Load array of objects
-		const auto& objectsJsonArray = jObject.FindMember(L"ArrayOfObjects")->value;
+		const auto& objectsJsonArray = jObject.FindMember("ArrayOfObjects")->value;
 		i = 0;
 		for (auto jItem = objectsJsonArray.Begin(); jItem != objectsJsonArray.End(); ++jItem) {
 			auto& obj = mArrayOfObjects[i];
 			const auto& jObj = jItem->GetObject();
-			obj.mTestBoolValue = jObj.FindMember(L"TestBoolValue")->value.GetBool();
-			obj.mTestCharValue = jObj.FindMember(L"TestCharValue")->value.GetInt();
-			obj.mTestInt16Value = jObj.FindMember(L"TestInt16Value")->value.GetInt();
-			obj.mTestInt32Value = jObj.FindMember(L"TestInt32Value")->value.GetInt();
-			obj.mTestInt64Value = jObj.FindMember(L"TestInt64Value")->value.GetInt64();
-			obj.mTestFloatValue = jObj.FindMember(L"TestFloatValue")->value.GetFloat();
-			obj.mTestDoubleValue = jObj.FindMember(L"TestDoubleValue")->value.GetDouble();
-			obj.mTestStringValue = jObj.FindMember(L"TestStringValue")->value.GetString();
+			obj.mTestBoolValue = jObj.FindMember("TestBoolValue")->value.GetBool();
+			obj.mTestCharValue = jObj.FindMember("TestCharValue")->value.GetInt();
+			obj.mTestInt16Value = jObj.FindMember("TestInt16Value")->value.GetInt();
+			obj.mTestInt32Value = jObj.FindMember("TestInt32Value")->value.GetInt();
+			obj.mTestInt64Value = jObj.FindMember("TestInt64Value")->value.GetInt64();
+			obj.mTestFloatValue = jObj.FindMember("TestFloatValue")->value.GetFloat();
+			obj.mTestDoubleValue = jObj.FindMember("TestDoubleValue")->value.GetDouble();
+			obj.mTestStringValue = jObj.FindMember("TestStringValue")->value.GetString();
 			++i;
 		}
 	}

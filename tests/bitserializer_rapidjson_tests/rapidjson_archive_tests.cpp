@@ -10,8 +10,7 @@
 #include "../test_helpers/common_json_test_methods.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 
-using BitSerializer::Json::RapidJson::JsonUtf8Archive;
-using BitSerializer::Json::RapidJson::JsonUtf16Archive;
+using BitSerializer::Json::RapidJson::JsonArchive;
 
 #pragma warning(push)
 #pragma warning(disable: 4566)
@@ -21,44 +20,26 @@ using BitSerializer::Json::RapidJson::JsonUtf16Archive;
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeBoolean)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, bool>(false);
-	TestSerializeType<JsonUtf8Archive, bool>(true);
-
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, bool>(false);
-	TestSerializeType<JsonUtf16Archive, bool>(true);
+	TestSerializeType<JsonArchive, bool>(false);
+	TestSerializeType<JsonArchive, bool>(true);
 }
 
 TEST(RapidJsonArchive, SerializeInteger)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, uint8_t>(std::numeric_limits<uint8_t>::min());
-	TestSerializeType<JsonUtf8Archive, uint8_t>(std::numeric_limits<uint8_t>::max());
-	TestSerializeType<JsonUtf8Archive, int64_t>(std::numeric_limits<int64_t>::min());
-	TestSerializeType<JsonUtf8Archive, uint64_t>(std::numeric_limits<uint64_t>::max());
-
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, uint8_t>(std::numeric_limits<uint8_t>::min());
-	TestSerializeType<JsonUtf16Archive, uint8_t>(std::numeric_limits<uint8_t>::max());
-	TestSerializeType<JsonUtf16Archive, int64_t>(std::numeric_limits<int64_t>::min());
-	TestSerializeType<JsonUtf16Archive, uint64_t>(std::numeric_limits<uint64_t>::max());
+	TestSerializeType<JsonArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
+	TestSerializeType<JsonArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
+	TestSerializeType<JsonArchive, int64_t>(std::numeric_limits<int64_t>::min());
+	TestSerializeType<JsonArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
 }
 
 TEST(RapidJsonArchive, SerializeFloat)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, float>(::BuildFixture<float>());
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, float>(::BuildFixture<float>());
+	TestSerializeType<JsonArchive, float>(::BuildFixture<float>());
 }
 
 TEST(RapidJsonArchive, SerializeDouble)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, double>(::BuildFixture<double>());
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, double>(::BuildFixture<double>());
+	TestSerializeType<JsonArchive, double>(::BuildFixture<double>());
 }
 
 //-----------------------------------------------------------------------------
@@ -66,26 +47,17 @@ TEST(RapidJsonArchive, SerializeDouble)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeAnsiString)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, std::string>("Test ANSI string");
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, std::string>("Test ANSI string");
+	TestSerializeType<JsonArchive, std::string>("Test ANSI string");
 }
 
 TEST(RapidJsonArchive, SerializeUnicodeString)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, std::wstring>(L"Test Unicode string - Привет мир!");
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeType<JsonArchive, std::wstring>(L"Test Unicode string - Привет мир!");
 }
 
 TEST(RapidJsonArchive, SerializeEnum)
 {
-	// UTF-8 archive
-	TestSerializeType<JsonUtf8Archive, TestEnum>(TestEnum::Two);
-	// UTF-16 archive
-	TestSerializeType<JsonUtf16Archive, TestEnum>(TestEnum::Two);
+	TestSerializeType<JsonArchive, TestEnum>(TestEnum::Two);
 }
 
 //-----------------------------------------------------------------------------
@@ -93,98 +65,57 @@ TEST(RapidJsonArchive, SerializeEnum)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeArrayOfBooleans)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, bool>();
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, bool>();
+	TestSerializeArray<JsonArchive, bool>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfIntegers)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, int8_t>();
-	TestSerializeArray<JsonUtf8Archive, int64_t>();
-
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, int8_t>();
-	TestSerializeArray<JsonUtf16Archive, int64_t>();
+	TestSerializeArray<JsonArchive, int8_t>();
+	TestSerializeArray<JsonArchive, int64_t>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfFloats)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, float>();
-	TestSerializeArray<JsonUtf8Archive, double>();
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, float>();
-	TestSerializeArray<JsonUtf16Archive, double>();
+	TestSerializeArray<JsonArchive, float>();
+	TestSerializeArray<JsonArchive, double>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfStrings)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, std::string>();
-
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, std::string>();
+	TestSerializeArray<JsonArchive, std::string>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfWStrings)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, std::wstring>();
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, std::wstring>();
+	TestSerializeArray<JsonArchive, std::wstring>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfClasses)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, TestPointClass>();
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, TestPointClass>();
+	TestSerializeArray<JsonArchive, TestPointClass>();
 }
 
 TEST(RapidJsonArchive, SerializeTwoDimensionalArray)
 {
-	// UTF-8 archive
-	TestSerializeTwoDimensionalArray<JsonUtf8Archive, int32_t>();
-	// UTF-16 archive
-	TestSerializeTwoDimensionalArray<JsonUtf16Archive, int32_t>();
+	TestSerializeTwoDimensionalArray<JsonArchive, int32_t>();
 }
 
 TEST(RapidJsonArchive, ShouldLoadToArrayWithLesserAmountOfElements)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, bool, 7, 5>();
-	TestSerializeArray<JsonUtf8Archive, int, 7, 5>();
-	TestSerializeArray<JsonUtf8Archive, double, 7, 5>();
-	TestSerializeArray<JsonUtf8Archive, std::string, 7, 5>();
-	TestSerializeArray<JsonUtf8Archive, TestPointClass, 7, 5>();
-
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, bool, 7, 5>();
-	TestSerializeArray<JsonUtf16Archive, int, 7, 5>();
-	TestSerializeArray<JsonUtf16Archive, double, 7, 5>();
-	TestSerializeArray<JsonUtf16Archive, std::string, 7, 5>();
-	TestSerializeArray<JsonUtf16Archive, TestPointClass, 7, 5>();
+	TestSerializeArray<JsonArchive, bool, 7, 5>();
+	TestSerializeArray<JsonArchive, int, 7, 5>();
+	TestSerializeArray<JsonArchive, double, 7, 5>();
+	TestSerializeArray<JsonArchive, std::string, 7, 5>();
+	TestSerializeArray<JsonArchive, TestPointClass, 7, 5>();
 }
 
 TEST(RapidJsonArchive, ShouldLoadToArrayWithBiggerAmountOfElements)
 {
-	// UTF-8 archive
-	TestSerializeArray<JsonUtf8Archive, bool, 5, 7>();
-	TestSerializeArray<JsonUtf8Archive, int, 5, 7>();
-	TestSerializeArray<JsonUtf8Archive, double, 5, 7>();
-	TestSerializeArray<JsonUtf8Archive, std::string, 5, 7>();
-	TestSerializeArray<JsonUtf8Archive, TestPointClass, 5, 7>();
-
-	// UTF-16 archive
-	TestSerializeArray<JsonUtf16Archive, bool, 5, 7>();
-	TestSerializeArray<JsonUtf16Archive, int, 5, 7>();
-	TestSerializeArray<JsonUtf16Archive, double, 5, 7>();
-	TestSerializeArray<JsonUtf16Archive, std::string, 5, 7>();
-	TestSerializeArray<JsonUtf16Archive, TestPointClass, 5, 7>();
+	TestSerializeArray<JsonArchive, bool, 5, 7>();
+	TestSerializeArray<JsonArchive, int, 5, 7>();
+	TestSerializeArray<JsonArchive, double, 5, 7>();
+	TestSerializeArray<JsonArchive, std::string, 5, 7>();
+	TestSerializeArray<JsonArchive, TestPointClass, 5, 7>();
 }
 
 //-----------------------------------------------------------------------------
@@ -192,96 +123,59 @@ TEST(RapidJsonArchive, ShouldLoadToArrayWithBiggerAmountOfElements)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeClassWithMemberBoolean)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(TestClassWithSubTypes<bool>(false));
-	TestSerializeClass<JsonUtf8Archive>(TestClassWithSubTypes<bool>(true));
-
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(TestClassWithSubTypes<bool>(false));
-	TestSerializeClass<JsonUtf16Archive>(TestClassWithSubTypes<bool>(true));
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes<bool>(false));
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes<bool>(true));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberInteger)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberFloat)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubTypes<float>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubTypes<float>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<float>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubTypes<double>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubTypes<double>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<double>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberString)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassHierarchy)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithInheritance>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithInheritance>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberClass)
 {
-	// UTF-8 archive
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassType>());
-
-	// UTF-16 archive
-	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassType>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassType>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSubArray)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubArray<int64_t>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubArray<int64_t>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSubArrayOfClasses)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSubTwoDimArray)
 {
-	// UTF-8 archive
-	TestSerializeClass<JsonUtf8Archive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
-	// UTF-16 archive
-	TestSerializeClass<JsonUtf16Archive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
 TEST(RapidJsonArchive, ShouldIterateKeysInObjectScope)
 {
-	// UTF-8 archive
-	TestIterateKeysInObjectScope<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestIterateKeysInObjectScope<JsonUtf16Archive>();
+	TestIterateKeysInObjectScope<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------
@@ -289,34 +183,22 @@ TEST(RapidJsonArchive, ShouldIterateKeysInObjectScope)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ShouldReturnPathInObjectScopeWhenLoading)
 {
-	// UTF-8 archive
-	TestGetPathInJsonObjectScopeWhenLoading<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestGetPathInJsonObjectScopeWhenLoading<JsonUtf16Archive>();
+	TestGetPathInJsonObjectScopeWhenLoading<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInObjectScopeWhenSaving)
 {
-	// UTF-8 archive
-	TestGetPathInJsonObjectScopeWhenSaving<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestGetPathInJsonObjectScopeWhenSaving<JsonUtf16Archive>();
+	TestGetPathInJsonObjectScopeWhenSaving<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenLoading)
 {
-	// UTF-8 archive
-	TestGetPathInJsonArrayScopeWhenLoading<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestGetPathInJsonArrayScopeWhenLoading<JsonUtf16Archive>();
+	TestGetPathInJsonArrayScopeWhenLoading<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenSaving)
 {
-	// UTF-8 archive
-	TestGetPathInJsonArrayScopeWhenSaving<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestGetPathInJsonArrayScopeWhenSaving<JsonUtf16Archive>();
+	TestGetPathInJsonArrayScopeWhenSaving<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------
@@ -324,19 +206,11 @@ TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenSaving)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ShouldCollectErrorAboutRequiredNamedValues)
 {
-	// UTF-8 archive
-	TestValidationForNamedValues<JsonUtf8Archive, TestClassForCheckValidation<bool>>();
-	TestValidationForNamedValues<JsonUtf8Archive, TestClassForCheckValidation<int>>();
-	TestValidationForNamedValues<JsonUtf8Archive, TestClassForCheckValidation<double>>();
-	TestValidationForNamedValues<JsonUtf8Archive, TestClassForCheckValidation<std::string>>();
-	TestValidationForNamedValues<JsonUtf8Archive, TestClassForCheckValidation<TestPointClass>>();
-
-	// UTF-16 archive
-	TestValidationForNamedValues<JsonUtf16Archive, TestClassForCheckValidation<bool>>();
-	TestValidationForNamedValues<JsonUtf16Archive, TestClassForCheckValidation<int>>();
-	TestValidationForNamedValues<JsonUtf16Archive, TestClassForCheckValidation<double>>();
-	TestValidationForNamedValues<JsonUtf16Archive, TestClassForCheckValidation<std::string>>();
-	TestValidationForNamedValues<JsonUtf16Archive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -344,10 +218,7 @@ TEST(RapidJsonArchive, ShouldCollectErrorAboutRequiredNamedValues)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SaveWithFormatting)
 {
-	// UTF-8 archive
-	TestSaveFormattedJson<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestSaveFormattedJson<JsonUtf16Archive>();
+	TestSaveFormattedJson<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------
@@ -355,60 +226,38 @@ TEST(RapidJsonArchive, SaveWithFormatting)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeClassToStream)
 {
-	// UTF-8 archive
-	TestSerializeClassToStream<JsonUtf8Archive, char>(BuildFixture<TestPointClass>());
-	// UTF-16 archive
-	TestSerializeClassToStream<JsonUtf16Archive, wchar_t>(BuildFixture<TestPointClass>());
+	TestSerializeClassToStream<JsonArchive, char>(BuildFixture<TestPointClass>());
 }
 
 TEST(RapidJsonArchive, SerializeUnicodeToEncodedStream)
 {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-
-	// UTF-8 archive
-	TestSerializeClassToStream<JsonUtf8Archive, char>(TestValue);
-	// UTF-16 archive
-	TestSerializeClassToStream<JsonUtf16Archive, wchar_t>(TestValue);
+	TestSerializeClassToStream<JsonArchive, char>(TestValue);
 }
 
 TEST(RapidJsonArchive, LoadFromUtf8StreamWithBom)
 {
-	// UTF-8 archive
-	TestLoadJsonFromUtf8StreamWithBom<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestLoadJsonFromUtf8StreamWithBom<JsonUtf16Archive>();
+	TestLoadJsonFromUtf8StreamWithBom<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, LoadFromUtf8StreamWithoutBom)
 {
-	// UTF-8 archive
-	TestLoadJsonFromUtf8StreamWithoutBom<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestLoadJsonFromUtf8StreamWithoutBom<JsonUtf16Archive>();
+	TestLoadJsonFromUtf8StreamWithoutBom<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, SaveToUtf8StreamWithBom)
 {
-	// UTF-8 archive
-	TestSaveJsonToUtf8StreamWithBom<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestSaveJsonToUtf8StreamWithBom<JsonUtf16Archive>();
+	TestSaveJsonToUtf8StreamWithBom<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, SaveToUtf8StreamWithoutBom)
 {
-	// UTF-8 archive
-	TestSaveJsonToUtf8StreamWithoutBom<JsonUtf8Archive>();
-	// UTF-16 archive
-	TestSaveJsonToUtf8StreamWithoutBom<JsonUtf16Archive>();
+	TestSaveJsonToUtf8StreamWithoutBom<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, SerializeClassToFile)
 {
-	// UTF-8 archive
-	TestSerializeClassToFile<JsonUtf8Archive>(BuildFixture<TestPointClass>());
-	// UTF-16 archive
-	TestSerializeClassToFile<JsonUtf16Archive>(BuildFixture<TestPointClass>());
+	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
 }
 
 //-----------------------------------------------------------------------------
@@ -417,10 +266,7 @@ TEST(RapidJsonArchive, SerializeClassToFile)
 TEST(RapidJsonArchive, ThrowExceptionWhenBadSyntaxInSource)
 {
 	int testInt;
-	// UTF-8 archive
-	EXPECT_THROW(BitSerializer::LoadObject<JsonUtf8Archive>(testInt, "10 }}"), BitSerializer::SerializationException);
-	// UTF-16 archive
-	EXPECT_THROW(BitSerializer::LoadObject<JsonUtf16Archive>(testInt, L"10 }}"), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
 
 #pragma warning(pop)

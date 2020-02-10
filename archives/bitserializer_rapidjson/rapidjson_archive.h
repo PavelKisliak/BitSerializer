@@ -31,8 +31,8 @@ struct RapidJsonArchiveTraits
 {
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using supported_key_types = SupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
-	using preferred_output_format = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
-	using preferred_stream_char_type = typename TEncoding::Ch;
+	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
+	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
 
 protected:
@@ -451,24 +451,20 @@ protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<TEncoding>;
 	using allocator_type = typename RapidJsonDocument::AllocatorType;
 	using char_type = typename TEncoding::Ch;
-	using string_type = std::basic_string<char_type, std::char_traits<char_type>>;
 
 public:
-	explicit RapidJsonRootScope(const char_type* inputStr)
+	explicit RapidJsonRootScope(const std::string& encodedInputStr)
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		if (mRootJson.Parse(inputStr).HasParseError())
+		if (mRootJson.Parse(encodedInputStr.data(), encodedInputStr.length()).HasParseError())
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(const string_type& inputStr)
-		: RapidJsonRootScope(inputStr.c_str()) {}
-
-	explicit RapidJsonRootScope(string_type& outputStr, const SerializationOptions& serializationOptions = {})
+	explicit RapidJsonRootScope(std::string& encodedOutputStr, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
-		, mOutput(&outputStr)
+		, mOutput(&encodedOutputStr)
 		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
@@ -485,25 +481,7 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(std::wistream& inputStream)
-		: RapidJsonScopeBase<TEncoding>(&mRootJson)
-		, mOutput(nullptr)
-	{
-		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		rapidjson::WIStreamWrapper isw(inputStream);
-		if (mRootJson.ParseStream(isw).HasParseError())
-			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
-	}
-
 	RapidJsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-		: RapidJsonScopeBase<TEncoding>(&mRootJson)
-		, mOutput(&outputStream)
-		, mSerializationOptions(serializationOptions)
-	{
-		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-	}
-
-	RapidJsonRootScope(std::wostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
@@ -600,19 +578,19 @@ public:
 				using T = std::decay_t<decltype(arg)>;
 
 				assert(mSerializationOptions);
-				if constexpr (std::is_same_v<T, string_type*>)
+				if constexpr (std::is_same_v<T, std::string*>)
 				{
-					using StringBuffer = rapidjson::GenericStringBuffer<TEncoding>;
+					using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
 					StringBuffer buffer;
 					if (mSerializationOptions->formatOptions.enableFormat)
 					{
-						rapidjson::PrettyWriter<StringBuffer, TEncoding, TEncoding> writer(buffer);
+						rapidjson::PrettyWriter<StringBuffer, TEncoding, rapidjson::UTF8<>> writer(buffer);
 						writer.SetIndent(mSerializationOptions->formatOptions.paddingChar, mSerializationOptions->formatOptions.paddingCharNum);
 						mRootJson.Accept(writer);
 					}
 					else
 					{
-						rapidjson::Writer<StringBuffer, TEncoding, TEncoding> writer(buffer);
+						rapidjson::Writer<StringBuffer, TEncoding, rapidjson::UTF8<>> writer(buffer);
 						mRootJson.Accept(writer);
 					}
 					*arg = buffer.GetString();
@@ -634,12 +612,6 @@ public:
 						mRootJson.Accept(writer);
 					}
 				}
-				else if constexpr (std::is_same_v<T, std::wostream*>)
-				{
-					rapidjson::WOStreamWrapper osw(*arg);
-					rapidjson::Writer<rapidjson::WOStreamWrapper, TEncoding, rapidjson::UTF16<>> writer(osw);
-					mRootJson.Accept(writer);
-				}
 			}, mOutput);
 			mOutput = nullptr;
 		}
@@ -647,7 +619,7 @@ public:
 
 private:
 	RapidJsonDocument mRootJson;
-	std::variant<decltype(nullptr), string_type*, std::ostream*, std::wostream*> mOutput;
+	std::variant<decltype(nullptr), std::string*, std::ostream*> mOutput;
 	std::optional<SerializationOptions> mSerializationOptions;
 };
 
@@ -655,25 +627,14 @@ private:
 
 
 /// <summary>
-/// JSON archive with in memory encoding in UTF-8, effective for cases when JSON contains mostly ASCII symbols and rarely Unicode.
+/// JSON archive based on RapidJson library.
+/// Supports load/save from:
+/// - UTF-8 encoded strings (std::string)
+/// - UTF-8 encoded streams (std::istream and std::ostream)
 /// </summary>
-using JsonUtf8Archive = MediaArchiveBase<
+using JsonArchive = MediaArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,
 	Detail::RapidJsonRootScope<SerializeMode::Load, rapidjson::UTF8<>>,
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF8<>>>;
-
-/// <summary>
-/// JSON archive with in memory encoding in UTF-16, effective in cases when JSON mostly in Unicode, contains localizations strings, etc.
-/// </summary>
-using JsonUtf16Archive = MediaArchiveBase<
-	Detail::RapidJsonArchiveTraits<rapidjson::UTF16<>>,
-	Detail::RapidJsonRootScope<SerializeMode::Load, rapidjson::UTF16<>>,
-	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF16<>>>;
-
-/// <summary>
-/// JSON archive based on RapidJson library.
-///	Default archive with in memory encoding in UTF-8 (alias of JsonUtf8Archive).
-/// </summary>
-using JsonArchive = JsonUtf8Archive;
 
 } // namespace BitSerializer::Json::RapidJson

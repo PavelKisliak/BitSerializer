@@ -88,7 +88,7 @@ public:
 	void TestLoad(const std::string& json)
 	{
 		RapidJsonDocument jsonDoc;
-		if (jsonDoc.Parse(json.c_str()).HasParseError())
+		if (jsonDoc.Parse(json.data(), json.size()).HasParseError())
 			throw std::runtime_error("RapidJson parse error");
 		const auto& jObject = jsonDoc.GetObject();
 

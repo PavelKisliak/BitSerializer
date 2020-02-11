@@ -22,6 +22,7 @@ namespace Detail {
 /// </summary>
 struct PugiXmlArchiveTraits
 {
+	static constexpr ArchiveType archive_type = ArchiveType::Xml;
 	// Key type is related to PugiXml's definition PUGIXML_WCHAR_MODE
 #ifdef PUGIXML_WCHAR_MODE
 	using key_type = std::wstring;

@@ -18,6 +18,15 @@ enum class SerializeMode
 };
 
 /// <summary>
+/// The enumeration of all used output archive types.
+/// </summary>
+enum class ArchiveType
+{
+	Json,
+	Xml
+};
+
+/// <summary>
 /// Class for provide information about supported key types in the archive.
 /// </summary>
 template <class ...KeyTypes>

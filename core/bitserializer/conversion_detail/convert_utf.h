@@ -15,20 +15,20 @@ namespace BitSerializer::Convert
 	/// </summary>
 	enum class UtfType : unsigned char
 	{
-		Utf8 = 0,
-		Utf16le = 1,
-		Utf16be = 2,
-		Utf32le = 3,
-		Utf32be = 4
+		Utf8,
+		Utf16le,
+		Utf16be,
+		Utf32le,
+		Utf32be
 	};
 
 	REGISTER_ENUM_MAP(UtfType)
 	{
 		{ UtfType::Utf8, "UTF-8" },
-		{ UtfType::Utf16le, "UTF-16 (LE)" },
-		{ UtfType::Utf16be, "UTF-16 (BE)" },
-		{ UtfType::Utf32le, "UTF-32 (LE)" },
-		{ UtfType::Utf32be, "UTF-32 (BE)" }
+		{ UtfType::Utf16le, "UTF-16LE" },
+		{ UtfType::Utf16be, "UTF-16BE" },
+		{ UtfType::Utf32le, "UTF-32LE" },
+		{ UtfType::Utf32be, "UTF-32BE" }
 	} END_ENUM_MAP()
 
 	namespace Unicode

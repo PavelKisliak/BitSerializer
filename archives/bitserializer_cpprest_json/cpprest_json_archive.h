@@ -22,6 +22,7 @@ namespace Detail {
 /// </summary>
 struct JsonArchiveTraits
 {
+	static constexpr ArchiveType archive_type = ArchiveType::Json;
 #ifdef _UTF16_STRINGS
 	using key_type = std::wstring;
 	using supported_key_types = SupportedKeyTypes<std::wstring>;
@@ -534,8 +535,12 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Save)
 		{
-			std::visit([this](auto&& arg) {
+			std::visit([this](auto&& arg)
+			{
 				using T = std::decay_t<decltype(arg)>;
+
+				assert(mSerializationOptions);
+				assert(!mSerializationOptions->formatOptions.enableFormat && "CppRestJson does not support formatting");
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					if constexpr (std::is_same_v<std::remove_pointer_t<T>, decltype(mRootJson.serialize())>) {

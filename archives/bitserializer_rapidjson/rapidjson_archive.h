@@ -29,6 +29,7 @@ namespace Detail {
 template <class TEncoding>
 struct RapidJsonArchiveTraits
 {
+	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using supported_key_types = SupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;

@@ -518,15 +518,6 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	explicit PugiXmlRootScope(std::wistream& inputStream)
-		: mOutput(nullptr)
-	{
-		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		const auto result = mRootXml.load(inputStream);
-		if (!result)
-			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
-	}
-
 	PugiXmlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(&outputStream)
 		, mSerializationOptions(serializationOptions)
@@ -611,13 +602,15 @@ public:
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					std::ostringstream stream;
+					auto decl = mRootXml.prepend_child(pugi::node_declaration);
+					decl.append_attribute(PUGIXML_TEXT("version")) = PUGIXML_TEXT("1.0");
 					mRootXml.print(stream, indent.c_str(), flags, pugi::encoding_utf8);
 					*arg = stream.str();
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
 					flags |= mSerializationOptions->streamOptions.writeBom ? pugi::format_write_bom : 0;
-					mRootXml.save(*arg, indent.c_str(), flags, pugi::encoding_utf8);
+					mRootXml.save(*arg, indent.c_str(), flags, ToPugiUtfType(mSerializationOptions->streamOptions.encoding));
 				}
 			}, mOutput);
 			mOutput = nullptr;
@@ -625,6 +618,25 @@ public:
 	}
 
 private:
+	static constexpr pugi::xml_encoding ToPugiUtfType(const Convert::UtfType utfType)
+	{
+		switch (utfType)
+		{
+		case Convert::UtfType::Utf8:
+			return pugi::xml_encoding::encoding_utf8;
+		case Convert::UtfType::Utf16le:
+			return pugi::xml_encoding::encoding_utf16_le;
+		case Convert::UtfType::Utf16be:
+			return pugi::xml_encoding::encoding_utf16_be;
+		case Convert::UtfType::Utf32le:
+			return pugi::xml_encoding::encoding_utf32_le;
+		case Convert::UtfType::Utf32be:
+			return pugi::xml_encoding::encoding_utf32_be;
+		default:
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
+		}
+	}
+
 	pugi::xml_document mRootXml;
 	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
 	std::optional<SerializationOptions> mSerializationOptions;
@@ -636,8 +648,8 @@ private:
 /// <summary>
 /// XML archive based on the PugiXml library.
 /// Supports load/save from:
-/// - UTF-8 encoded strings (std::string)
-/// - UTF-8 encoded streams (std::istream and std::ostream)
+/// - <c>std::string</c>: UTF-8
+/// - <c>std::istream and std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
 /// <remarks>
 /// The JSON-key type is depends from global definition in the PugiXml 'PUGIXML_WCHAR_MODE' in the PugiXml, by default uses std::string.

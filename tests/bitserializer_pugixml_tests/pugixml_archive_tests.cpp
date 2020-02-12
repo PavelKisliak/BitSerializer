@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include "bitserializer_pugixml/pugixml_archive.h"
 #include "test_helpers/common_test_methods.h"
+#include "test_helpers/common_xml_test_methods.h"
 
 using BitSerializer::Xml::PugiXml::XmlArchive;
 
@@ -144,10 +145,16 @@ TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests format output XML
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SaveWithFormatting) {
+	TestSaveFormattedXml<XmlArchive>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST(PugiXmlArchive, SerializeClassToStream)
-{
+TEST(PugiXmlArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<XmlArchive, char>(BuildFixture<TestPointClass>());
 }
 
@@ -156,62 +163,83 @@ TEST(PugiXmlArchive, SerializeUnicodeToUtf8Stream) {
 	TestSerializeClassToStream<XmlArchive, char>(TestValue);
 }
 
-TEST(PugiXmlArchive, LoadFromUtf8StreamWithBom)
-{
-	// Arrange
-	std::stringstream inputStream(std::string({ char(0xEF), char(0xBB), char(0xBF) }) +
-		R"(<?xml version="1.0" encoding="utf-8"?><root><TestValue>Hello world!</TestValue></root>)");
-
-	// Act
-	TestClassWithSubType<std::string> actual;
-	BitSerializer::LoadObject<XmlArchive>(actual, inputStream);
-
-	// Assert
-	EXPECT_EQ("Hello world!", actual.GetValue());
+TEST(PugiXmlArchive, LoadFromUtf8Stream) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(false);
+}
+TEST(PugiXmlArchive, LoadFromUtf8StreamWithBom) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(true);
 }
 
-TEST(PugiXmlArchive, LoadFromUtf8StreamWithoutBom)
-{
-	// Arrange
-	std::stringstream inputStream(
-		std::string(R"(<?xml version="1.0" encoding="utf-8"?><root><TestValue>Hello world!</TestValue></root>)"));
-
-	// Act
-	TestClassWithSubType<std::string> actual;
-	BitSerializer::LoadObject<XmlArchive>(actual, inputStream);
-
-	// Assert
-	EXPECT_EQ("Hello world!", actual.GetValue());
+TEST(PugiXmlArchive, LoadFromUtf16LeStream) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(false);
+}
+TEST(PugiXmlArchive, LoadFromUtf16LeStreamWithBom) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(true);
 }
 
-TEST(PugiXmlArchive, SaveToUtf8StreamWithBom)
-{
-	// Arrange
-	std::stringstream outputStream;
-	TestClassWithSubType<std::string> testObj("Hello world!");
-
-	// Act
-	BitSerializer::SaveObject<XmlArchive>(testObj, outputStream);
-
-	// Assert
-	const auto result = outputStream.str();
-	EXPECT_TRUE(result.find(std::string({ char(0xEF), char(0xBB), char(0xBF) }) + R"(<?xml version)") == 0);
+TEST(PugiXmlArchive, LoadFromUtf16BeStream) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(false);
+}
+TEST(PugiXmlArchive, LoadFromUtf16BeStreamWithBom) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(true);
 }
 
-TEST(PugiXmlArchive, SaveToUtf8StreamWithoutBom)
+TEST(PugiXmlArchive, LoadFromUtf32LeStream) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(false);
+}
+TEST(PugiXmlArchive, LoadFromUtf32LeStreamWithBom) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(true);
+}
+
+TEST(PugiXmlArchive, LoadFromUtf32BeStream) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(false);
+}
+TEST(PugiXmlArchive, LoadFromUtf32BeStreamWithBom) {
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(true);
+}
+
+TEST(PugiXmlArchive, SaveToUtf8Stream) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(false);
+}
+TEST(PugiXmlArchive, SaveToUtf8StreamWithBom) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(true);
+}
+
+TEST(PugiXmlArchive, SaveToUtf16LeStream) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(false);
+}
+TEST(PugiXmlArchive, SaveToUtf16LeStreamWithBom) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(true);
+}
+
+TEST(PugiXmlArchive, SaveToUtf16BeStream) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(false);
+}
+TEST(PugiXmlArchive, SaveToUtf16BeStreamWithBom) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(true);
+}
+
+TEST(PugiXmlArchive, SaveToUtf32LeStream) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(false);
+}
+TEST(PugiXmlArchive, SaveToUtf32LeStreamWithBom) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(true);
+}
+
+TEST(PugiXmlArchive, SaveToUtf32BeStream) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(false);
+}
+TEST(PugiXmlArchive, SaveToUtf32BeStreamWithBom) {
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(true);
+}
+
+TEST(PugiXmlArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 {
-	// Arrange
-	std::stringstream outputStream;
-	TestClassWithSubType<std::string> testObj("Hello world!");
 	BitSerializer::SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.writeBom = false;
-
-	// Act
-	BitSerializer::SaveObject<XmlArchive>(testObj, outputStream, serializationOptions);
-
-	// Assert
-	const auto result = outputStream.str();
-	EXPECT_TRUE(result.find(R"(<?xml version)") == 0);
+	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::UtfType>(-1);
+	std::stringstream outputStream;
+	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
+	EXPECT_THROW(BitSerializer::SaveObject<XmlArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
 }
 
 TEST(PugiXmlArchive, SerializeClassToFile) {

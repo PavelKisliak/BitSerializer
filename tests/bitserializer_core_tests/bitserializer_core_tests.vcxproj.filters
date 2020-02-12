@@ -92,6 +92,9 @@
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_options.h">
       <Filter>CoreImpl\serialization_detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\test_helpers\common_xml_test_methods.h">
+      <Filter>TestHelpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="TestHelpers">

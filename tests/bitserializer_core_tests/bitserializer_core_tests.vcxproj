@@ -75,6 +75,7 @@
     <ClInclude Include="..\test_helpers\common_test_entities.h" />
     <ClInclude Include="..\test_helpers\common_test_methods.h" />
     <ClInclude Include="..\test_helpers\common_json_test_methods.h" />
+    <ClInclude Include="..\test_helpers\common_xml_test_methods.h" />
     <ClInclude Include="..\test_helpers\xml_test_templates.h" />
   </ItemGroup>
   <ItemGroup>

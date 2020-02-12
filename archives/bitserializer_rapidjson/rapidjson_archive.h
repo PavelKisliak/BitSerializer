@@ -634,10 +634,8 @@ private:
 		case Convert::UtfType::Utf32be:
 			return rapidjson::UTFType::kUTF32BE;
 		default:
-			break;
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
 		}
-		assert(false && "Bad UTF type");
-		return {};
 	}
 
 	RapidJsonDocument mRootJson;
@@ -651,8 +649,8 @@ private:
 /// <summary>
 /// JSON archive based on RapidJson library.
 /// Supports load/save from:
-/// - UTF-8 encoded strings (std::string)
-/// - UTF-8 encoded streams (std::istream and std::ostream)
+/// - <c>std::string</c>: UTF-8
+/// - <c>std::istream and std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
 using JsonArchive = MediaArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,

@@ -142,14 +142,15 @@ namespace BitSerializer
 	/// </summary>
 	/// <param name="object">The serializing object.</param>
 	/// <param name="path">The file path.</param>
+	/// <param name="serializationOptions">The serialization options.</param>
 	template <typename TMediaArchive, typename T, typename TString>
-	static void SaveObjectToFile(T&& object, TString&& path)
+	static void SaveObjectToFile(T&& object, TString&& path, const SerializationOptions& serializationOptions = {})
 	{
 		using preferred_stream_char_type = typename TMediaArchive::preferred_stream_char_type;
 		std::basic_ofstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
 		stream.open(std::forward<TString>(path), std::ios::out | std::ios::binary);
 		if (stream.is_open())
-			SaveObject<TMediaArchive>(std::forward<T>(object), stream);
+			SaveObject<TMediaArchive>(std::forward<T>(object), stream, serializationOptions);
 		else
 			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("Could not open file: ") + Convert::ToString(std::forward<TString>(path)));
 	}

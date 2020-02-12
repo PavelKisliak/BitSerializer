@@ -23,7 +23,7 @@ ___
 | ------ | ------ | ------ | ------ |
 | bitserializer-cpprestjson | JSON | UTF-8 | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
 | bitserializer-rapidjson | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | [RapidJson](https://github.com/Tencent/rapidjson) |
-| bitserializer-pugixml | XML | UTF-8 | [PugiXml](https://github.com/zeux/pugixml) |
+| bitserializer-pugixml | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | [PugiXml](https://github.com/zeux/pugixml) |
 
 #### Requirements:
   - C++ 17 (VS2017 or GCC8).

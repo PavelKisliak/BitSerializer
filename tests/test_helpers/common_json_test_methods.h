@@ -143,13 +143,33 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 }
 
 /// <summary>
-/// Tests loading from UTF-8 stream with BOM.
+/// Tests loading JSON from encoded stream with/without writing BOM.
 /// </summary>
-template <typename TArchive>
-void TestLoadJsonFromUtf8StreamWithBom()
+template <typename TArchive, typename TUtfTraits>
+void TestLoadJsonFromEncodedStream(const bool withBom)
 {
 	// Arrange
-	std::stringstream inputStream(std::string({ char(0xEF), char(0xBB), char(0xBF) }) + "{\"TestValue\":\"Hello world!\"}");
+	using char_type = typename TUtfTraits::char_type;
+	const std::string testAnsiJson = "{\"TestValue\":\"Hello world!\"}";
+	std::string sourceStr;
+	// Add Bom (if required)
+	if (withBom) {
+		sourceStr.append(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
+	}
+	// UTF encoding but just for ANSI range
+	for (const char ch : testAnsiJson)
+	{
+		for (size_t c = 0; c < sizeof(char_type); c++)
+		{
+			if constexpr (TUtfTraits::lowEndian) {
+				sourceStr.push_back(c ? 0 : ch);
+			}
+			else {
+				sourceStr.push_back(c == (sizeof(char_type) - 1) ? ch : 0);
+			}
+		}
+	}
+	std::stringstream inputStream(sourceStr);
 
 	// Act
 	TestClassWithSubType<std::string> actual;
@@ -160,57 +180,61 @@ void TestLoadJsonFromUtf8StreamWithBom()
 }
 
 /// <summary>
-/// Tests loading from UTF-8 stream with BOM.
+/// Tests saving JSON to encoded stream with/without writing BOM.
 /// </summary>
-template <typename TArchive>
-void TestLoadJsonFromUtf8StreamWithoutBom()
+template <typename TArchive, typename TUtfTraits>
+void TestSaveJsonToEncodedStream(const bool withBom)
 {
 	// Arrange
-	std::stringstream inputStream(std::string("{\"TestValue\":\"Hello world!\"}"));
+	using char_type = typename TUtfTraits::char_type;
+	using string_type = std::basic_string<char_type, std::char_traits<char_type>>;
+	static_assert(sizeof(TUtfTraits::bom) % sizeof(char_type) == 0);
 
-	// Act
-	TestClassWithSubType<std::string> actual;
-	BitSerializer::LoadObject<TArchive>(actual, inputStream);
+	const std::string expectedJsonInAnsi = "{\"TestValue\":\"Hello world!\"}";
+	const string_type expectedJson(std::cbegin(expectedJsonInAnsi), std::cend(expectedJsonInAnsi));
 
-	// Assert
-	EXPECT_EQ("Hello world!", actual.GetValue());
-}
-
-/// <summary>
-/// Tests saving to UTF-8 stream with writing BOM.
-/// </summary>
-template <typename TArchive>
-void TestSaveJsonToUtf8StreamWithBom()
-{
-	// Arrange
-	std::stringstream outputStream;
-	TestClassWithSubType<std::string> testObj("Hello world!");
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(testObj, outputStream);
-
-	// Assert
-	const std::string expected = std::string({ char(0xEF), char(0xBB), char(0xBF) }) + "{\"TestValue\":\"Hello world!\"}";
-	EXPECT_EQ(expected, outputStream.str());
-}
-
-/// <summary>
-/// Tests saving to UTF-8 stream with disabled writing BOM.
-/// </summary>
-template <typename TArchive>
-void TestSaveJsonToUtf8StreamWithoutBom()
-{
-	// Arrange
 	std::stringstream outputStream;
 	TestClassWithSubType<std::string> testObj("Hello world!");
 	BitSerializer::SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.writeBom = false;
+	serializationOptions.streamOptions.writeBom = withBom;
+	serializationOptions.streamOptions.encoding = TUtfTraits::utfType;
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testObj, outputStream, serializationOptions);
 
 	// Assert
-	EXPECT_EQ("{\"TestValue\":\"Hello world!\"}", outputStream.str());
+	const auto data = outputStream.str();
+	const char* dataIt = data.data();
+	auto dataSize = data.size();
+	// Test BOM	
+	if (withBom)
+	{
+		EXPECT_TRUE(data.size() > sizeof(TUtfTraits::bom));
+		std::vector<char> actualBom(dataIt, dataIt + sizeof(TUtfTraits::bom));
+		std::vector<char> expectedBom(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
+		dataIt += sizeof(TUtfTraits::bom);
+		dataSize -= sizeof(TUtfTraits::bom);
+		EXPECT_EQ(expectedBom, actualBom);
+	}
+	// UTF decoding but just for ANSI range
+	string_type actualJson;
+	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
+	if constexpr (TUtfTraits::lowEndian) {
+		actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+	}
+	else
+	{
+		for (size_t i = 0; i < targetCharCount; i++)
+		{
+			char_type ch = 0;
+			for (size_t c = 0; c < sizeof(char_type); c++) {
+				ch = (ch << 8) | dataIt[i * sizeof(char_type) + c];
+			}
+			actualJson.push_back(ch);
+		}
+	}
+	// Test JSON
+	EXPECT_EQ(expectedJson, actualJson);
 }
 
 /// <summary>

@@ -224,39 +224,97 @@ TEST(RapidJsonArchive, SaveWithFormatting)
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, SerializeClassToStream)
-{
+TEST(RapidJsonArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive, char>(BuildFixture<TestPointClass>());
 }
 
-TEST(RapidJsonArchive, SerializeUnicodeToEncodedStream)
-{
+TEST(RapidJsonArchive, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<JsonArchive, char>(TestValue);
 }
 
-TEST(RapidJsonArchive, LoadFromUtf8StreamWithBom)
-{
-	TestLoadJsonFromUtf8StreamWithBom<JsonArchive>();
+TEST(RapidJsonArchive, LoadFromUtf8StreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
 }
 
-TEST(RapidJsonArchive, LoadFromUtf8StreamWithoutBom)
-{
-	TestLoadJsonFromUtf8StreamWithoutBom<JsonArchive>();
+TEST(RapidJsonArchive, LoadFromUtf8StreamWithoutBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
 }
 
-TEST(RapidJsonArchive, SaveToUtf8StreamWithBom)
-{
-	TestSaveJsonToUtf8StreamWithBom<JsonArchive>();
+TEST(RapidJsonArchive, LoadFromUtf16LeStreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(true);
 }
 
-TEST(RapidJsonArchive, SaveToUtf8StreamWithoutBom)
-{
-	TestSaveJsonToUtf8StreamWithoutBom<JsonArchive>();
+TEST(RapidJsonArchive, LoadFromUtf16LeStreamWithotBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(false);
 }
 
-TEST(RapidJsonArchive, SerializeClassToFile)
-{
+TEST(RapidJsonArchive, LoadFromUtf16BeStreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(true);
+}
+
+TEST(RapidJsonArchive, LoadFromUtf16BeStreamWithotBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(false);
+}
+
+TEST(RapidJsonArchive, LoadFromUtf32LeStreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(true);
+}
+
+TEST(RapidJsonArchive, LoadFromUtf32LeStreamWithotBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(false);
+}
+
+TEST(RapidJsonArchive, LoadFromUtf32BeStreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(true);
+}
+
+TEST(RapidJsonArchive, LoadFromUtf32BeStreamWithotBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(false);
+}
+
+TEST(RapidJsonArchive, SaveToUtf8Stream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
+}
+
+TEST(RapidJsonArchive, SaveToUtf8StreamWithBom) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
+}
+
+TEST(RapidJsonArchive, SaveToUtf16LeStream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(false);
+}
+
+TEST(RapidJsonArchive, SaveToUtf16LeStreamWithBom) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(true);
+}
+
+TEST(RapidJsonArchive, SaveToUtf16BeStream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(false);
+}
+
+TEST(RapidJsonArchive, SaveToUtf16BeStreamWithBom) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(true);
+}
+
+TEST(RapidJsonArchive, SaveToUtf32LeStream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(false);
+}
+
+TEST(RapidJsonArchive, SaveToUtf32LeStreamWithBom) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(true);
+}
+
+TEST(RapidJsonArchive, SaveToUtf32BeStream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(false);
+}
+
+TEST(RapidJsonArchive, SaveToUtf32BeStreamWithBom) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(true);
+}
+
+TEST(RapidJsonArchive, SerializeClassToFile) {
+	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
 	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
 }
 

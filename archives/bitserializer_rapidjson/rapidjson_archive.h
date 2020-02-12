@@ -600,7 +600,7 @@ public:
 				{
 					rapidjson::OStreamWrapper osw(*arg);
 					using AutoOutputStream = rapidjson::AutoUTFOutputStream<uint32_t, rapidjson::OStreamWrapper>;
-					AutoOutputStream eos(osw, rapidjson::UTFType::kUTF8, mSerializationOptions->streamOptions.writeBom);
+					AutoOutputStream eos(osw, ToRapidUtfType(mSerializationOptions->streamOptions.encoding), mSerializationOptions->streamOptions.writeBom);
 					if (mSerializationOptions->formatOptions.enableFormat)
 					{
 						rapidjson::PrettyWriter<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
@@ -619,6 +619,27 @@ public:
 	}
 
 private:
+	static constexpr rapidjson::UTFType ToRapidUtfType(const Convert::UtfType utfType)
+	{
+		switch (utfType)
+		{
+		case Convert::UtfType::Utf8:
+			return rapidjson::UTFType::kUTF8;
+		case Convert::UtfType::Utf16le:
+			return rapidjson::UTFType::kUTF16LE;
+		case Convert::UtfType::Utf16be:
+			return rapidjson::UTFType::kUTF16BE;
+		case Convert::UtfType::Utf32le:
+			return rapidjson::UTFType::kUTF32LE;
+		case Convert::UtfType::Utf32be:
+			return rapidjson::UTFType::kUTF32BE;
+		default:
+			break;
+		}
+		assert(false && "Bad UTF type");
+		return {};
+	}
+
 	RapidJsonDocument mRootJson;
 	std::variant<decltype(nullptr), std::string*, std::ostream*> mOutput;
 	std::optional<SerializationOptions> mSerializationOptions;

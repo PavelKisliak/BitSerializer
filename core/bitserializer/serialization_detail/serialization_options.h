@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <cstdint>
+#include "bitserializer/conversion_detail/convert_utf.h"
 
 namespace BitSerializer
 {
@@ -39,6 +40,11 @@ namespace BitSerializer
 		/// Determines that BOM (Byte Order Mark) should be written to output stream (applicable for text based formats).
 		/// </summary>
 		bool writeBom = true;
+
+		/// <summary>
+		/// The encoding for output stream (applicable for formats which based on UTF encoded text).
+		/// </summary>
+		Convert::UtfType encoding = Convert::UtfType::Utf8;
 	};
 
 	/// <summary>

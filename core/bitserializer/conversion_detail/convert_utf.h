@@ -42,20 +42,10 @@ namespace BitSerializer::Convert
 	class Utf8
 	{
 	public:
-		static constexpr char Bom[] = { char(0xEF), char(0xBB), char(0xBF) };
-
-		template<class T>
-		static bool StartsWithBom(T&& inputString) 
-		{
-			auto it = std::cbegin(inputString);
-			const auto endIt = std::cend(inputString);
-			for (const char ch : Bom)
-			{
-				if (it == endIt || *it != ch) return false;
-				++it;
-			}
-			return true;
-		}
+		using char_type = char;
+		static constexpr UtfType utfType = UtfType::Utf8;
+		static constexpr char bom[] = { char(0xEF), char(0xBB), char(0xBF) };
+		static constexpr bool lowEndian = true;
 
 		template<class TInIt, typename TOutChar, typename TAllocator>
 		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const TOutChar errSym = '?')
@@ -209,4 +199,124 @@ namespace BitSerializer::Convert
 			}
 		}
 	};
+
+	
+	class Utf16Le
+	{
+	public:
+		using char_type = char16_t;
+		static constexpr UtfType utfType = UtfType::Utf16le;
+		static constexpr char bom[] = { char(0xFF), char(0xFE) };
+		static constexpr bool lowEndian = true;
+
+		// to be implemented
+	};
+
+
+	class Utf16Be
+	{
+	public:
+		using char_type = char16_t;
+		static constexpr UtfType utfType = UtfType::Utf16be;
+		static constexpr char bom[] = { char(0xFE), char(0xFF) };
+		static constexpr bool lowEndian = false;
+
+		// to be implemented
+	};
+
+
+	class Utf32Le
+	{
+	public:
+		using char_type = char32_t;
+		static constexpr UtfType utfType = UtfType::Utf32le;
+		static constexpr char bom[] = { char(0xFF), char(0xFE), char(0x00), char(0x00) };
+		static constexpr bool lowEndian = true;
+
+		// to be implemented
+	};
+
+
+	class Utf32Be
+	{
+	public:
+		using char_type = char32_t;
+		static constexpr UtfType utfType = UtfType::Utf32be;
+		static constexpr char bom[] = { char(0x00), char(0x00), char(0xFE), char(0xFF) };
+		static constexpr bool lowEndian = false;
+
+		// to be implemented
+	};
+
+	//------------------------------------------------------------------------------
+	
+	/// <summary>
+	/// Checks that passed string type starts with BOM which is specified in TUtfTraits.
+	/// </summary>
+	template<class TUtfTraits, class T>
+	static bool StartsWithBom(T&& inputString)
+	{
+		auto it = std::cbegin(inputString);
+		const auto endIt = std::cend(inputString);
+		for (const char ch : TUtfTraits::bom)
+		{
+			if (it == endIt || *it != ch) return false;
+			++it;
+		}
+		return true;
+	}
+
+	/// <summary>
+	/// Detects an encoding of stream by checking BOM.
+	/// </summary>
+	static UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)
+	{
+		static constexpr size_t readChunkSize = 4;
+
+		// Read first bytes for check BOM
+		std::string buffer(readChunkSize, 0);
+		const auto origPos = inputStream.tellg();
+		inputStream.read(buffer.data(), readChunkSize);
+
+		// Return UTF-8 when BOM does not exist
+		UtfType detectedUtf = UtfType::Utf8;
+		size_t detectedBomSize = 0;
+		if (StartsWithBom<Utf8>(buffer))
+		{
+			detectedUtf = UtfType::Utf8;
+			detectedBomSize = sizeof Utf8::bom;
+		}
+		else if (StartsWithBom<Utf16Le>(buffer))
+		{
+			detectedUtf = UtfType::Utf16le;
+			detectedBomSize = sizeof Utf16Le::bom;
+		}
+		else if (StartsWithBom<Utf16Be>(buffer))
+		{
+			detectedUtf = UtfType::Utf16be;
+			detectedBomSize = sizeof Utf16Be::bom;
+		}
+		else if (StartsWithBom<Utf32Le>(buffer))
+		{
+			detectedUtf = UtfType::Utf32le;
+			detectedBomSize = sizeof Utf32Le::bom;
+		}
+		else if (StartsWithBom<Utf32Be>(buffer))
+		{
+			detectedUtf = UtfType::Utf32be;
+			detectedBomSize = sizeof Utf32Be::bom;
+		}
+
+		// Get back to stream position
+		if (skipBomWhenFound)
+		{
+			if (readChunkSize != detectedBomSize) {
+				inputStream.seekg(origPos + std::streamoff(detectedBomSize));
+			}
+		}
+		else {
+			inputStream.seekg(origPos);
+		}
+		return detectedUtf;
+	}
 }

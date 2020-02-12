@@ -111,7 +111,7 @@ namespace PugiXmlExtensions
 	}
 
 	template <typename T>
-	void SaveValue(const pugi::xml_node& node, T& value) {
+	void SaveValue(const pugi::xml_node& node, const T& value) {
 		node.text().set(value);
 	}
 
@@ -120,7 +120,7 @@ namespace PugiXmlExtensions
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	void SaveValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	void SaveValue(const pugi::xml_node& node, const std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			node.text().set(value.c_str());

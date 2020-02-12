@@ -22,7 +22,7 @@ ___
 | BitSerializer sub-module | Format | Encoding |Based on |
 | ------ | ------ | ------ | ------ |
 | bitserializer-cpprestjson | JSON | UTF-8 | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
-| bitserializer-rapidjson | JSON | UTF-8 | [RapidJson](https://github.com/Tencent/rapidjson) |
+| bitserializer-rapidjson | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | [RapidJson](https://github.com/Tencent/rapidjson) |
 | bitserializer-pugixml | XML | UTF-8 | [PugiXml](https://github.com/zeux/pugixml) |
 
 #### Requirements:
@@ -32,10 +32,11 @@ ___
 ##### What's new in version 0.9:
 - [ ! ] Added XML serialization support (based on library PugiXml).
 - [ ! ] Add CI with builds for Win32, Win64 (VS 2017) and for Linux (GCC 8).
-- [ + ] Remove dependency from base library types for in/out text (now uses std::string everywhere).
 - [ + ] Add formatting options for output text (but formatting is not supported in CppRestJson).
+- [ + ] Add support encoding to various UTF based formats (defines in serialization options).
 - [ + ] Add optional writing the BOM to output stream/file.
-- [ + ] Add encoding to/from UTF-8 for serialization std::wstring (when needed).
+- [ + ] Remove dependency from base library types for in/out text (now uses std::string everywhere).
+- [ + ] Add UTF encoding when serializing std::wstring.
 - [ \* ] Add serialization C++ union type.
 - [ \* ] Change string type for path in archive from std::wstring to std::string (in UTF-8 encoding).
 - [ \* ] For archive based on RapidJson was changed in-memory encoding from UTF-16 to UTF-8.

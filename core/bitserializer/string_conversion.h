@@ -103,33 +103,6 @@ namespace BitSerializer::Convert
 		Detail::To(str, retVal);
 		return retVal;
 	}
-
-	/// <summary>
-	/// Detects an encoding type by checking BOM.
-	/// The BOM sequence will be skipped if it found in the stream.
-	/// </summary>
-	static UtfType DetectEncoding(std::istream& inputStream)
-	{
-		static constexpr size_t maxBomSize = 4;
-
-		// Read first bytes for check BOM
-		std::string buffer(maxBomSize, 0);
-		const auto origPos = inputStream.tellg();
-		inputStream.read(buffer.data(), maxBomSize);
-
-		if (Utf8::StartsWithBom(buffer))
-		{
-			if constexpr (maxBomSize != sizeof Utf8::Bom) {
-				inputStream.seekg(origPos + std::streamoff(sizeof Utf8::Bom));
-			}
-			return UtfType::Utf8;
-		}
-
-		// Get back to start position
-		inputStream.seekg(origPos);
-		return UtfType::Utf8;
-	}
-
 }	// namespace BitSerializer::Convert
 
 //------------------------------------------------------------------------------

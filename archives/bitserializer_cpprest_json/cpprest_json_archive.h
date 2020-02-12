@@ -554,7 +554,7 @@ public:
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
 					if (mSerializationOptions->streamOptions.writeBom) {
-						*arg << Convert::Utf8::Bom;
+						*arg << Convert::Utf8::bom;
 					}
 					mRootJson.serialize(*arg);
 				}

@@ -187,23 +187,20 @@ TEST(JsonRestCpp, SerializeUnicodeToEncodedStream) {
 	TestSerializeClassToStream<JsonArchive, char>(TestValue);
 }
 
-TEST(JsonRestCpp, LoadFromUtf8StreamWithBom) {
-	TestLoadJsonFromUtf8StreamWithBom<JsonArchive>();
+TEST(JsonRestCpp, LoadFromUtf8Stream) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
 }
 
-TEST(JsonRestCpp, LoadFromUtf8StreamWithoutBom) {
-	TestLoadJsonFromUtf8StreamWithoutBom<JsonArchive>();
+TEST(JsonRestCpp, LoadFromUtf8StreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
+}
+
+TEST(JsonRestCpp, SaveToUtf8Stream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
 }
 
 TEST(JsonRestCpp, SaveToUtf8StreamWithBom) {
-	std::ostringstream stream;
-	stream << BitSerializer::Convert::Utf8::Bom;
-	auto r = stream.str();
-	TestSaveJsonToUtf8StreamWithBom<JsonArchive>();
-}
-
-TEST(JsonRestCpp, SaveToUtf8StreamWithoutBom) {
-	TestSaveJsonToUtf8StreamWithoutBom<JsonArchive>();
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
 }
 
 TEST(JsonRestCpp, SerializeClassToFile) {

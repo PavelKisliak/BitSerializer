@@ -177,14 +177,14 @@ TEST_F(Utf8DecodeTest, ShouldDecodeAsSurrogatePairsWhenCharExceedsUtf16Range) {
 //-----------------------------------------------------------------------------
 TEST(Utf8BomDetect, ShouldReturnTrueWhenStartsWithValidBom) {
 	static const std::string testStr = { char(0xEF), char(0xBB), char(0xBF) };
-	EXPECT_TRUE(Convert::Utf8::StartsWithBom(testStr));
+	EXPECT_TRUE(Convert::StartsWithBom<Convert::Utf8>(testStr));
 }
 
 TEST(Utf8BomDetect, ShouldReturnFalseWhenBomIsNotFull) {
 	static const std::string testStr = { char(0xEF), char(0xBB), '#' };
-	EXPECT_FALSE(Convert::Utf8::StartsWithBom(testStr));
+	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf8>(testStr));
 }
 
 TEST(Utf8BomDetect, ShouldReturnFalseWhenInputDataIsEmpty) {
-	EXPECT_FALSE(Convert::Utf8::StartsWithBom(""));
+	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf8>(""));
 }

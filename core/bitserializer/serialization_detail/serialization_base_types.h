@@ -207,4 +207,60 @@ static void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 	}
 }
 
+namespace Detail
+{
+	/// <summary>
+	/// Generic function for serialization containers with key.
+	/// </summary>
+	/// <returns>Returns <c>true</c> when value successfully loaded</returns>
+	template<typename TArchive, typename TKey, typename TContainer>
+	static bool SerializeContainer(TArchive& archive, TKey&& key, TContainer& cont)
+	{
+		constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
+		static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
+
+		if constexpr (hasArrayWithKeySupport)
+		{
+			const size_t size = GetContainerSize(cont);
+			auto arrayScope = archive.OpenArrayScope(key, size);
+			if (arrayScope)
+			{
+				if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {
+					cont.resize(arrayScope->GetSize());
+				}
+				for (auto& elem : cont) {
+					Serialize(*arrayScope, elem);
+				}
+			}
+			return arrayScope.has_value();
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// Generic function for serialization containers.
+	/// </summary>
+	template<typename TArchive, typename TContainer>
+	static void SerializeContainer(TArchive& archive, TContainer& cont)
+	{
+		constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
+		static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
+
+		if constexpr (hasArraySupport)
+		{
+			const size_t size = GetContainerSize(cont);
+			auto arrayScope = archive.OpenArrayScope(size);
+			if (arrayScope)
+			{
+				if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {
+					cont.resize(arrayScope->GetSize());
+				}
+				for (auto& elem : cont) {
+					Serialize(*arrayScope, elem);
+				}
+			}
+		}
+	}
+}
+
 }	// namespace BitSerializer

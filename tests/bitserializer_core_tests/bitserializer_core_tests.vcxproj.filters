@@ -59,12 +59,6 @@
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_context.h">
       <Filter>CoreImpl\serialization_detail</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_stl_containers.h">
-      <Filter>CoreImpl\serialization_detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_stl_types.h">
-      <Filter>CoreImpl\serialization_detail</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\core\bitserializer\serialization_detail\validators.h">
       <Filter>CoreImpl\serialization_detail</Filter>
     </ClInclude>
@@ -95,6 +89,33 @@
     <ClInclude Include="..\test_helpers\common_xml_test_methods.h">
       <Filter>TestHelpers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\array.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\deque.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\forward_list.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\list.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\map.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\multimap.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\pair.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\set.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\bitserializer\types\std\vector.h">
+      <Filter>CoreImpl\types\std</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="TestHelpers">
@@ -108,6 +129,12 @@
     </Filter>
     <Filter Include="CoreImpl\serialization_detail">
       <UniqueIdentifier>{a2a93829-2390-47d6-9f3f-db7c3668a9d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreImpl\types">
+      <UniqueIdentifier>{7aaeccf5-f920-4696-b60f-6d1146f14ca1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreImpl\types\std">
+      <UniqueIdentifier>{55ec9d9f-4744-4e40-ad37-e530ebbd3287}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

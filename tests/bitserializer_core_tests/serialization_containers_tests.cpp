@@ -1,10 +1,19 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "test_helpers/common_test_methods.h"
 #include "test_helpers/archive_stub.h"
+
+#include "bitserializer/types/std/array.h"
+#include "bitserializer/types/std/vector.h"
+#include "bitserializer/types/std/deque.h"
+#include "bitserializer/types/std/list.h"
+#include "bitserializer/types/std/forward_list.h"
+#include "bitserializer/types/std/set.h"
+#include "bitserializer/types/std/map.h"
+#include "bitserializer/types/std/multimap.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL containers.

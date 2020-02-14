@@ -2,10 +2,6 @@
 * Copyright (C) 2018 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-
-// Define for suppress warning STL4015 : The std::iterator class template (used as a base class to provide typedefs) is deprecated in C++17.
-#define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
-
 #include "../test_helpers/common_test_methods.h"
 #include "../test_helpers/common_json_test_methods.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"

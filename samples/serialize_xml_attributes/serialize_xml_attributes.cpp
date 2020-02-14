@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer_pugixml/pugixml_archive.h"

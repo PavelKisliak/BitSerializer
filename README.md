@@ -38,6 +38,7 @@ ___
 - [ + ] Remove dependency from base library types for in/out text (now uses std::string everywhere).
 - [ + ] Add UTF encoding when serializing std::wstring.
 - [ \* ] Add serialization C++ union type.
+- [ \* ] Split implementation of serialization for std types into separate files.
 - [ \* ] Change string type for path in archive from std::wstring to std::string (in UTF-8 encoding).
 - [ \* ] For archive based on RapidJson was changed in-memory encoding from UTF-16 to UTF-8.
 - [ \* ] Add path into exceptions about I/O errors with files.

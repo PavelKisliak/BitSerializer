@@ -99,6 +99,73 @@ int main()
 [See full sample](samples/hello_world/hello_world.cpp)
 There is no mistake as JSON format supported any type at root level (and libraries which are used as base also supports this).
 
+#### Serialize to multiple formats
+One of the advantages of BitSerializer is the ability to serialize in several formats via one interface. In the following example shows saving an object to JSON and XML:
+```cpp
+class CPoint
+{
+public:
+	CPoint(int x, int y)
+		: x(x), y(y)
+	{ }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << MakeAutoKeyValue("x", x);
+		archive << MakeAutoKeyValue("y", y);
+	}
+
+	int x, y;
+};
+
+int main()
+{
+	auto testObj = CPoint(100, 200);
+
+	const auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testObj);
+	std::cout << "JSON: " << jsonResult << std::endl;
+
+	const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(testObj);
+	std::cout << "XML: " << xmlResult << std::endl;
+	return 0;
+}
+```
+The output result of this code:
+```
+JSON: {"x":100,"y":200}
+XML: <?xml version="1.0"?><root><x>100</x><y>200</y></root>
+```
+The code for serialization has difference only in template parameter - **JsonArchive** and **XmlArchive**.
+But here are some moments which need comments. As you can see in the XML was created node with name "root". This is auto generated name when it was not specified explicitly for root node. The library does this just to smooth out differences in the structure of formats. But you are free to set name of root node if needed:
+```cpp
+const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Point", testObj));
+```
+The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitsSerializer also alow to customize the serialization behaviour for different formats:
+```cpp
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		// Serialize as attributes when archive type is XML
+		if constexpr (TArchive::archive_type == ArchiveType::Xml)
+		{
+			archive << MakeAutoAttributeValue("x", x);
+			archive << MakeAutoAttributeValue("y", y);
+		}
+		else
+		{
+			archive << MakeAutoKeyValue("x", x);
+			archive << MakeAutoKeyValue("y", y);
+		}
+	}
+```
+With these changes, the result of this code will look like this:
+```
+JSON: {"x":100,"y":200}
+XML: <?xml version="1.0"?><Point x="100" y="200"/>
+```
+[See full sample](samples/multiformat_customization/multiformat_customization.cpp)
+
 #### Save std::map
 Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), This needs to proper serialization JavaScript objects. if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
 ```cpp

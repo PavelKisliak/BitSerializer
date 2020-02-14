@@ -72,9 +72,9 @@ Now you need just include main file of BitSerializer which implements serializat
 ```
 
 ___
-## Examples of using
+## Tutorial
 
-#### Hello world!
+### Hello world!
 ```cpp
 #include <cassert>
 #include <iostream>
@@ -99,7 +99,7 @@ int main()
 [See full sample](samples/hello_world/hello_world.cpp)
 There is no mistake as JSON format supported any type at root level (and libraries which are used as base also supports this).
 
-#### Serialize to multiple formats
+### Serialize to multiple formats
 One of the advantages of BitSerializer is the ability to serialize in several formats via one interface. In the following example shows saving an object to JSON and XML:
 ```cpp
 class CPoint
@@ -141,7 +141,7 @@ But here are some moments which need comments. As you can see in the XML was cre
 ```cpp
 const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Point", testObj));
 ```
-The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitsSerializer also alow to customize the serialization behaviour for different formats:
+The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also alow to customize the serialization behaviour for different formats:
 ```cpp
 	template <class TArchive>
 	void Serialize(TArchive& archive)
@@ -166,7 +166,7 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 ```
 [See full sample](samples/multiformat_customization/multiformat_customization.cpp)
 
-#### Save std::map
+### Save std::map
 Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types), This needs to proper serialization JavaScript objects. if you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
 ```cpp
 std::map<std::string, int> testMap = 
@@ -191,7 +191,7 @@ class YourCustomKey
 	std::wstring ToWString() const { }
 }
 ```
-#### Loading a vector of maps
+### Loading a vector of maps
 Input JSON
 ```json
 [{
@@ -209,7 +209,7 @@ std::vector<std::map<std::string, int>> testVectorOfMaps;
 const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
-#### Serializing class
+### Serializing class
 There are two ways to serialize a class:
 
   * Internal public method Serialize() - good way for your own classes.
@@ -272,7 +272,7 @@ Returns result
 ```
 For serializing a named object please use helper method MakeKeyValue(key, value). The type of key should be supported by archive, but also exists method MakeAutoKeyValue(key, value) which automatically converts to preferred key type for the archive. The good place for using this method is some common serialization code that can be used with various types of archives.
 
-#### Serializing base class
+### Serializing base class
 To serialize the base class, use the helper method BaseObject(), as in the next example.
 ```cpp
 template <class TArchive>
@@ -283,7 +283,7 @@ void Serialize(TArchive& archive)
 };
 ```
 
-#### Serializing third party class (non-intrusive serialization)
+### Serializing third party class (non-intrusive serialization)
 For serialize third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time a possibility of type serialization in the current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
 ```cpp
 #include <iostream>
@@ -349,7 +349,7 @@ int main()
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
-#### Serializing enum types
+### Serializing enum types
 To be able to serialize enum types, you must register a map with string equivalents in the your HEADER file.
 ```cpp
 // file HttpMethods.h
@@ -370,7 +370,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 } END_ENUM_MAP()
 ```
 
-#### Conditions for checking the serialization mode
+### Conditions for checking the serialization mode
 To check the current serialization mode, use two methods - IsLoading() and IsSaving(). As they are «constexpr», you will not have any overhead.
 ```cpp
 class Foo
@@ -395,7 +395,7 @@ public:
 }
 ```
 
-#### Validation of deserialized values
+### Validation of deserialized values
 
 BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
 ```cpp

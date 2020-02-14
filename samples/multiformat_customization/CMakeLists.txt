@@ -6,3 +6,8 @@ find_package(RapidJSON CONFIG REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
 find_package(pugixml CONFIG REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PUGIXML_INCLUDE_DIRS})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>
+  pugixml
+)

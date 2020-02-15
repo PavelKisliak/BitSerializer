@@ -87,7 +87,7 @@ size_t GetContainerSize(const TContainer& cont)
 }
 
 /// <summary>
-/// Checks that is input stream.
+/// Checks that it is input stream.
 /// </summary>
 template <typename T>
 struct is_input_stream
@@ -108,7 +108,7 @@ template <typename T>
 constexpr bool is_input_stream_v = is_input_stream<T>::value;
 
 /// <summary>
-/// Checks that is output stream.
+/// Checks that it is output stream.
 /// </summary>
 template <typename T>
 struct is_output_stream

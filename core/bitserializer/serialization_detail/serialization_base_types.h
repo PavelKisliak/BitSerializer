@@ -104,11 +104,13 @@ namespace BitSerializer
 	//------------------------------------------------------------------------------
 	// Serialize classes
 	//------------------------------------------------------------------------------
-	template <class TArchive, typename TKey, typename TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>) && is_serializable_class_v<TValue>, int> = 0>
+	template <class TArchive, typename TKey, typename TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
 	static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
+		// If you are trying to serialize one of known STD type, please make sure that you are included
+		// required header with implementation (from "bitserializer/types/std/").
 		constexpr auto isSerializableClass = is_serializable_class_v<TValue>;
-		static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
+		static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() defined method internally or externally (in namespace BitSerializer).");
 
 		if constexpr (isSerializableClass)
 		{
@@ -126,11 +128,13 @@ namespace BitSerializer
 		return false;
 	}
 
-	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>) && is_serializable_class_v<TValue>, int> = 0>
+	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
 	static void Serialize(TArchive& archive, TValue& value)
 	{
 		constexpr auto isSerializableClass = is_serializable_class_v<TValue>;
-		static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
+		// If you are trying to serialize one of known STD type, please make sure that you are included
+		// required header with implementation (from "bitserializer/types/std/").
+		static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() defined method internally or externally (in namespace BitSerializer).");
 
 		if constexpr (isSerializableClass)
 		{

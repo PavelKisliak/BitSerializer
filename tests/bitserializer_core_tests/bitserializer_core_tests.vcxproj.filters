@@ -104,9 +104,6 @@
     <ClInclude Include="..\..\core\bitserializer\types\std\map.h">
       <Filter>CoreImpl\types\std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\core\bitserializer\types\std\multimap.h">
-      <Filter>CoreImpl\types\std</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\core\bitserializer\types\std\pair.h">
       <Filter>CoreImpl\types\std</Filter>
     </ClInclude>

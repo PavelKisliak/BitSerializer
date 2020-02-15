@@ -73,7 +73,6 @@
     <ClInclude Include="..\..\core\bitserializer\types\std\forward_list.h" />
     <ClInclude Include="..\..\core\bitserializer\types\std\list.h" />
     <ClInclude Include="..\..\core\bitserializer\types\std\map.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\multimap.h" />
     <ClInclude Include="..\..\core\bitserializer\types\std\pair.h" />
     <ClInclude Include="..\..\core\bitserializer\types\std\set.h" />
     <ClInclude Include="..\..\core\bitserializer\types\std\vector.h" />

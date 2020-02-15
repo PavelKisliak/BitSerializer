@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -36,7 +36,7 @@ namespace BitSerializer {
 	public:
 		SerializationException(const SerializationErrorCode errorCode, const std::string& message)
 			: mErrorCode(errorCode)
-			, mMessage((Convert::ToString(errorCode) + ": " + message))
+			, mMessage(Convert::ToString(errorCode) + ": " + message)
 		{ }
 
 		SerializationErrorCode GetErrorCode() const noexcept

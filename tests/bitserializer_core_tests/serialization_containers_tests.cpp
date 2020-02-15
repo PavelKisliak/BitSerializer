@@ -13,7 +13,6 @@
 #include "bitserializer/types/std/forward_list.h"
 #include "bitserializer/types/std/set.h"
 #include "bitserializer/types/std/map.h"
-#include "bitserializer/types/std/multimap.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL containers.

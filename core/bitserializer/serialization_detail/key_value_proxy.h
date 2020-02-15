@@ -6,7 +6,6 @@
 #include "key_value.h"
 #include "attr_key_value.h"
 #include "archive_traits.h"
-#include "bitserializer/string_conversion.h"
 #include "serialization_context.h"
 
 namespace BitSerializer::KeyValueProxy

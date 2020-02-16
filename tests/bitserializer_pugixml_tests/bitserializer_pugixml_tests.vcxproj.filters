@@ -3,14 +3,4 @@
   <ItemGroup>
     <ClCompile Include="pugixml_archive_tests.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Impl">
-      <UniqueIdentifier>{6c8db3b9-a307-4807-af1b-ed265970549d}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\archives\bitserializer_pugixml\pugixml_archive.h">
-      <Filter>Impl</Filter>
-    </ClInclude>
-  </ItemGroup>
 </Project>

@@ -19,9 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\archives\bitserializer_cpprest_json\cpprest_json_archive.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="cpprest_json_archive_tests.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -6,8 +6,8 @@
 #include <vector>
 #include "bitserializer/serialization_detail/serialization_base_types.h"
 
-namespace BitSerializer {
-
+namespace BitSerializer
+{
 	namespace Detail
 	{
 		template<typename TArchive, typename TAllocator>

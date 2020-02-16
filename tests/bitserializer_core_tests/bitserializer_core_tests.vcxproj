@@ -49,33 +49,6 @@
     <IntDir>$(ProjectDir)build\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\core\bitserializer\bit_serializer.h" />
-    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_detail.h" />
-    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_enum.h" />
-    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_fundamental.h" />
-    <ClInclude Include="..\..\core\bitserializer\conversion_detail\convert_utf.h" />
-    <ClInclude Include="..\..\core\bitserializer\conversion_detail\object_traits.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\archive_traits.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\attr_key_value.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\base_object.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\errors_handling.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\key_value.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\key_value_proxy.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\media_archive_base.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\object_traits.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_base_types.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_context.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\serialization_options.h" />
-    <ClInclude Include="..\..\core\bitserializer\serialization_detail\validators.h" />
-    <ClInclude Include="..\..\core\bitserializer\string_conversion.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\array.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\deque.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\forward_list.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\list.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\map.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\pair.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\set.h" />
-    <ClInclude Include="..\..\core\bitserializer\types\std\vector.h" />
     <ClInclude Include="..\test_helpers\archive_stub.h" />
     <ClInclude Include="..\test_helpers\auto_fixture.h" />
     <ClInclude Include="..\test_helpers\common_test_entities.h" />

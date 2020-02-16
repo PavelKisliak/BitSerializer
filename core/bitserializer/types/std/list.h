@@ -10,16 +10,16 @@ namespace BitSerializer
 {
 	/// <summary>
 	/// Serialize std::list with key.
-	/// </summary>		
+	/// </summary>
 	template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
 	bool Serialize(TArchive& archive, TKey&& key, std::list<TValue, TAllocator>& cont)
 	{
 		return Detail::SerializeContainer(archive, key, cont);
 	}
-	
+
 	/// <summary>
 	/// Serialize std::list.
-	/// </summary>	
+	/// </summary>
 	template<typename TArchive, typename TValue, typename TAllocator>
 	void Serialize(TArchive& archive, std::list<TValue, TAllocator>& cont)
 	{

@@ -21,9 +21,6 @@
   <ItemGroup>
     <ClCompile Include="pugixml_archive_tests.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\archives\bitserializer_pugixml\pugixml_archive.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{313CBE60-95BB-4742-A6A9-B5859A4FD7BE}</ProjectGuid>

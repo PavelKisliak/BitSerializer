@@ -9,6 +9,7 @@
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/deque.h"
+#include "bitserializer/types/std/bitset.h"
 #include "bitserializer/types/std/list.h"
 #include "bitserializer/types/std/forward_list.h"
 #include "bitserializer/types/std/set.h"
@@ -77,6 +78,13 @@ TEST(STL_Containers, SerializeDequeOfDeques) {
 TEST(STL_Containers, SerializeDequeAsClassMember) {
 	using test_type = std::deque<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::bitset
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeBitset) {
+	TestSerializeStlContainer<ArchiveStub, std::bitset<10>>();
 }
 
 //-----------------------------------------------------------------------------

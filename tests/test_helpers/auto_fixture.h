@@ -6,10 +6,11 @@
 #include <cstdlib>
 #include <limits>
 #include <deque>
-#include <map>
-#include <set>
+#include <bitset>
 #include <list>
 #include <forward_list>
+#include <set>
+#include <map>
 #include <type_traits>
 #include "bitserializer/string_conversion.h"
 
@@ -139,6 +140,14 @@ static void BuildFixture(std::deque<T>& cont)
 	cont.resize(size);
 	for (auto& elem : cont) {
 		BuildFixture(elem);
+	}
+}
+
+template <size_t Size>
+static void BuildFixture(std::bitset<Size>& cont)
+{
+	for (size_t i = 0; i < Size; i++) {
+		cont.set(i, BuildFixture<bool>());
 	}
 }
 

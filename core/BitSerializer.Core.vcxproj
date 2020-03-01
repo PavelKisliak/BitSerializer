@@ -39,6 +39,7 @@
     <ClInclude Include="bitserializer\serialization_detail\validators.h" />
     <ClInclude Include="bitserializer\string_conversion.h" />
     <ClInclude Include="bitserializer\types\std\array.h" />
+    <ClInclude Include="bitserializer\types\std\bitset.h" />
     <ClInclude Include="bitserializer\types\std\deque.h" />
     <ClInclude Include="bitserializer\types\std\forward_list.h" />
     <ClInclude Include="bitserializer\types\std\list.h" />

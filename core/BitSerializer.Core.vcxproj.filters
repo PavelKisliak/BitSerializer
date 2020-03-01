@@ -92,5 +92,8 @@
     <ClInclude Include="bitserializer\types\std\set.h">
       <Filter>types\std</Filter>
     </ClInclude>
+    <ClInclude Include="bitserializer\types\std\bitset.h">
+      <Filter>types\std</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -9,6 +9,8 @@
 #include <bitset>
 #include <list>
 #include <forward_list>
+#include <queue>
+#include <stack>
 #include <set>
 #include <map>
 #include <type_traits>
@@ -43,7 +45,7 @@ template <typename T, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>
 static void BuildFixture(T& value)
 {
 	constexpr auto hasBuldMethod = has_buld_fixture_method_v<T>;
-	static_assert(hasBuldMethod, "Your test class should implements static method BuildFixture(ClassType&).");
+	static_assert(hasBuldMethod, "Your test class should implement static method BuildFixture(ClassType&).");
 
 	if constexpr (hasBuldMethod) {
 		T::BuildFixture(value);
@@ -172,6 +174,33 @@ static void BuildFixture(std::forward_list<T>& cont)
 }
 
 template <typename T>
+static void BuildFixture(std::queue<T>& cont)
+{
+	static constexpr int size = 7;
+	for (size_t i = 0; i < size; i++) {
+		cont.push(BuildFixture<T>());
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::priority_queue<T>& cont)
+{
+	static constexpr int size = 7;
+	for (size_t i = 0; i < size; i++) {
+		cont.push(BuildFixture<T>());
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::stack<T>& cont)
+{
+	static constexpr int size = 7;
+	for (size_t i = 0; i < size; i++) {
+		cont.push(BuildFixture<T>());
+	}
+}
+
+template <typename T>
 static void BuildFixture(std::set<T>& cont)
 {
 	static constexpr int size = 7;
@@ -196,7 +225,7 @@ static void BuildFixture(std::multiset<T>& cont)
 		// Duplicated element
 		if (i % 2 == 0)
 			BuildFixture(element);
-		cont.emplace(std::move(element));
+		cont.insert(element);
 	}
 }
 

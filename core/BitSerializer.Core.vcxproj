@@ -45,7 +45,9 @@
     <ClInclude Include="bitserializer\types\std\list.h" />
     <ClInclude Include="bitserializer\types\std\map.h" />
     <ClInclude Include="bitserializer\types\std\pair.h" />
+    <ClInclude Include="bitserializer\types\std\queue.h" />
     <ClInclude Include="bitserializer\types\std\set.h" />
+    <ClInclude Include="bitserializer\types\std\stack.h" />
     <ClInclude Include="bitserializer\types\std\vector.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

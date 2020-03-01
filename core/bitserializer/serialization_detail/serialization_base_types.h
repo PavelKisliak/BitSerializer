@@ -361,6 +361,30 @@ namespace BitSerializer
 				}
 			}
 		}
+
+		template <class TContainer>
+		typename TContainer::container_type& GetBaseContainer(TContainer& container)
+		{
+			struct Accessor : TContainer
+			{
+				static auto& Get(TContainer& cont) {
+					return cont.*(&Accessor::c);
+				}
+			};
+			return Accessor::Get(container);
+		}
+
+		template <class TContainer>
+		const typename TContainer::container_type& GetBaseContainer(const TContainer& container)
+		{
+			struct Accessor : TContainer
+			{
+				static const auto& Get(const TContainer& cont) {
+					return cont.*(&Accessor::c);
+				}
+			};
+			return Accessor::Get(container);
+		}
 	}
 
 }	// namespace BitSerializer

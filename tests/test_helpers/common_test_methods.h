@@ -176,9 +176,8 @@ void TestSerializeClassToFile(T&& value)
 /// <summary>
 /// Test template of serialization for STL containers.
 /// </summary>
-/// <param name="specialAssertFunc">The assertion function.</param>
 template <typename TArchive, typename TContainer>
-void TestSerializeStlContainer(std::optional<std::function<void(const TContainer&, const TContainer&)>> specialAssertFunc = std::nullopt)
+void TestSerializeStlContainer()
 {
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive;
@@ -191,10 +190,28 @@ void TestSerializeStlContainer(std::optional<std::function<void(const TContainer
 	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
 
 	// Assert
-	if (specialAssertFunc.has_value())
-		specialAssertFunc.value()(expected, actual);
-	else
-		EXPECT_EQ(expected, actual);
+	EXPECT_EQ(expected, actual);
+}
+
+/// <summary>
+/// Test template of serialization for STL containers with custom assert function.
+/// </summary>
+/// <param name="assertFunc">The assertion function.</param>
+template <typename TArchive, typename TContainer>
+void TestSerializeStlContainer(std::function<void(const TContainer&, const TContainer&)> assertFunc)
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive;
+	TContainer expected{};
+	::BuildFixture(expected);
+	TContainer actual{};
+
+	// Act
+	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);
+	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
+
+	// Assert
+	assertFunc(expected, actual);
 }
 
 /// <summary>

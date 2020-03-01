@@ -12,6 +12,8 @@
 #include "bitserializer/types/std/bitset.h"
 #include "bitserializer/types/std/list.h"
 #include "bitserializer/types/std/forward_list.h"
+#include "bitserializer/types/std/queue.h"
+#include "bitserializer/types/std/stack.h"
 #include "bitserializer/types/std/set.h"
 #include "bitserializer/types/std/map.h"
 
@@ -116,6 +118,42 @@ TEST(STL_Containers, SerializeForwardListOfForwardLists) {
 
 TEST(STL_Containers, SerializeForwardListAsClassMember) {
 	using test_type = std::forward_list<std::string>;
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::queue
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeQueueOfFloats) {
+	TestSerializeStlContainer<ArchiveStub, std::queue<float>>();
+}
+
+TEST(STL_Containers, SerializeQueueAsClassMember) {
+	using test_type = std::queue<std::string>;
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::priority_queue
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializePriorityQueueOfFloats)
+{
+	TestSerializeStlContainer<ArchiveStub, std::priority_queue<float>>([](
+		const std::priority_queue<float>& lhs, const std::priority_queue<float>& rhs)
+	{
+		EXPECT_EQ(BitSerializer::Detail::GetBaseContainer(lhs), BitSerializer::Detail::GetBaseContainer(rhs));
+	});
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::stack
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeStackOfFloats) {
+	TestSerializeStlContainer<ArchiveStub, std::stack<float>>();
+}
+
+TEST(STL_Containers, SerializeStackAsClassMember) {
+	using test_type = std::stack<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
 

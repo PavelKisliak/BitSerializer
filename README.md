@@ -337,6 +337,7 @@ BitSerializer has on board implementation of serialization for most popular cont
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/deque.h"
+#include "bitserializer/types/std/bitset.h"
 #include "bitserializer/types/std/list.h"
 #include "bitserializer/types/std/forward_list.h"
 #include "bitserializer/types/std/set.h"

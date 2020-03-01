@@ -136,6 +136,22 @@ TEST(STL_Containers, SerializeSetAsClassMember) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for std::multiset
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeMultiSetOfStrings) {
+	TestSerializeStlContainer<ArchiveStub, std::multiset<std::string>>();
+}
+
+TEST(STL_Containers, SerializeMultiSetOfMultiSets) {
+	TestSerializeStlContainer<ArchiveStub, std::multiset<std::multiset<int>>>();
+}
+
+TEST(STL_Containers, SerializeMultiSetAsClassMember) {
+	using test_type = std::multiset<std::string>;
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for std::map
 //-----------------------------------------------------------------------------
 TEST(STL_Containers, SerializeMapWithIntAsKey) {

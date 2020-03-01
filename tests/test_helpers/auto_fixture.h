@@ -184,6 +184,22 @@ static void BuildFixture(std::set<T>& cont)
 	}
 }
 
+template <typename T>
+static void BuildFixture(std::multiset<T>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	T element;
+	for (size_t i = 0; i < size; i++)
+	{
+		// Duplicated element
+		if (i % 2 == 0)
+			BuildFixture(element);
+		cont.emplace(std::move(element));
+	}
+}
+
 template <typename TKey, typename TValue>
 static void BuildFixture(std::map<TKey, TValue>& cont)
 {
@@ -210,6 +226,6 @@ static void BuildFixture(std::multimap<TKey, TValue>& cont)
 			BuildFixture(key);
 		TValue value;
 		BuildFixture(value);
-		cont.emplace(std::move(key), std::move(value));
+		cont.emplace(key, std::move(value));
 	}
 }

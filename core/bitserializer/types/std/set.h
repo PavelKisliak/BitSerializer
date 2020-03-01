@@ -45,7 +45,7 @@ namespace BitSerializer
 
 		if constexpr (hasArrayWithKeySupport)
 		{
-			auto arrayScope = archive.OpenArrayScope(key, cont.size());
+			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), cont.size());
 			if (arrayScope)
 				Detail::SerializeSetImpl(*arrayScope, cont);
 			return arrayScope.has_value();

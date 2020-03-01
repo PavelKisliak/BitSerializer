@@ -22,9 +22,9 @@ public:
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}
 
-	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope() { return nullptr; }
-	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(size_t arraySize) { return nullptr; }
-	std::unique_ptr<TestArchive_LoadMode> OpenAttributeScope() { return nullptr; }
+	std::optional<TestArchive_LoadMode> OpenObjectScope() { return std::nullopt; }
+	std::optional<TestArchive_LoadMode> OpenArrayScope(size_t arraySize) { return std::nullopt; }
+	std::optional<TestArchive_LoadMode> OpenAttributeScope() { return std::nullopt; }
 };
 
 /// <summary>
@@ -62,9 +62,9 @@ public:
 	template <typename TSym, typename TAllocator>
 	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {return true;}
 
-	std::unique_ptr<TestArchive_LoadMode> OpenObjectScope(const key_type& key) { return nullptr; }
-	std::unique_ptr<TestArchive_LoadMode> OpenArrayScope(const key_type& key, size_t arraySize) { return nullptr; }
-	std::unique_ptr<TestArchive_LoadMode> OpenAttributeScope(const key_type& key) { return nullptr; }
+	std::optional<TestArchive_LoadMode> OpenObjectScope(const key_type& key) { return std::nullopt; }
+	std::optional<TestArchive_LoadMode> OpenArrayScope(const key_type& key, size_t arraySize) { return std::nullopt; }
+	std::optional<TestArchive_LoadMode> OpenAttributeScope(const key_type& key) { return std::nullopt; }
 };
 
 class TestWrongArchive

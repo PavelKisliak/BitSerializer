@@ -8,7 +8,7 @@
 #include "object_traits.h"
 #include "archive_traits.h"
 #include "base_object.h"
-#include "../string_conversion.h"
+#include "bitserializer/string_conversion.h"
 
 namespace BitSerializer
 {
@@ -22,7 +22,7 @@ namespace BitSerializer
 		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
 
 		if constexpr (hasValueWithKeySupport) {
-			return archive.SerializeValue(key, value);
+			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
 		return false;
 	}
@@ -49,7 +49,7 @@ namespace BitSerializer
 		static_assert(hasStringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
 
 		if constexpr (hasStringWithKeySupport) {
-			return archive.SerializeValue(key, value);
+			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
 		return false;
 	}
@@ -74,14 +74,14 @@ namespace BitSerializer
 		if constexpr (archive.IsLoading())
 		{
 			std::string str;
-			auto result = Serialize(archive, key, str);
+			auto result = Serialize(archive, std::forward<TKey>(key), str);
 			Convert::Detail::To(str, value);
 			return result;
 		}
 		else
 		{
 			auto str = Convert::ToString(value);
-			return Serialize(archive, key, str);
+			return Serialize(archive, std::forward<TKey>(key), str);
 		}
 	}
 
@@ -119,7 +119,7 @@ namespace BitSerializer
 
 			if constexpr (hasObjectWithKeySupport)
 			{
-				auto objectScope = archive.OpenObjectScope(key);
+				auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
 				if (objectScope)
 					value.Serialize(*objectScope);
 				return objectScope.has_value();
@@ -179,7 +179,7 @@ namespace BitSerializer
 
 		if constexpr (hasArrayWithKeySupport)
 		{
-			auto arrayScope = archive.OpenArrayScope(key, ArraySize);
+			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), ArraySize);
 			if (arrayScope)
 			{
 				const auto size = archive.IsSaving() ? ArraySize : std::min(ArraySize, arrayScope->GetSize());
@@ -236,7 +236,7 @@ namespace BitSerializer
 			if constexpr (hasArrayWithKeySupport)
 			{
 				const size_t size = GetContainerSize(cont);
-				auto arrayScope = archive.OpenArrayScope(key, size);
+				auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), size);
 				if (arrayScope)
 				{
 					if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {

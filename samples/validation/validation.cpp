@@ -20,7 +20,7 @@ public:
 		{
 			if (!isLoaded || val.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
-			return L"The field must not contain spaces.";
+			return L"The field must not contain spaces";
 		});
 	}
 

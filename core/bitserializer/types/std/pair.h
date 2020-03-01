@@ -42,7 +42,7 @@ namespace BitSerializer
 	static bool Serialize(TArchive& archive, TKey&& key, std::pair<TFirst, TSecond>& pair)
 	{
 		auto pairSerializer = Detail::PairSerializer<TFirst, TSecond>(pair);
-		return Serialize(archive, key, pairSerializer);
+		return Serialize(archive, std::forward<TKey>(key), pairSerializer);
 	}
 
 	/// <summary>

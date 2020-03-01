@@ -14,7 +14,7 @@ namespace BitSerializer
 	template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
 	bool Serialize(TArchive& archive, TKey&& key, std::deque<TValue, TAllocator>& cont)
 	{
-		return Detail::SerializeContainer(archive, key, cont);
+		return Detail::SerializeContainer(archive, std::forward<TKey>(key), cont);
 	}
 	
 	/// <summary>

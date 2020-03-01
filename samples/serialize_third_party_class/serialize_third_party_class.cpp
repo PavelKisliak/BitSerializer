@@ -24,7 +24,7 @@ namespace BitSerializer
 			{ }
 
 			template <class TArchive>
-			inline void Serialize(TArchive& archive)
+			void Serialize(TArchive& archive)
 			{
 				archive << MakeAutoKeyValue(L"x", value.x);
 				archive << MakeAutoKeyValue(L"y", value.y);
@@ -35,13 +35,13 @@ namespace BitSerializer
 	}	// namespace Detail
 
 	template<typename TArchive, typename TKey>
-	inline void Serialize(TArchive& archive, TKey&& key, TestThirdPartyClass& value)
+	void Serialize(TArchive& archive, TKey&& key, TestThirdPartyClass& value)
 	{
 		auto serializer = Detail::TestThirdPartyClassSerializer(value);
 		Serialize(archive, key, serializer);
 	}
 	template<typename TArchive>
-	inline void Serialize(TArchive& archive, TestThirdPartyClass& value)
+	void Serialize(TArchive& archive, TestThirdPartyClass& value)
 	{
 		auto serializer = Detail::TestThirdPartyClassSerializer(value);
 		Serialize(archive, serializer);

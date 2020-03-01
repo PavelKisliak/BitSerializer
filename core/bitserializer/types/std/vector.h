@@ -39,7 +39,7 @@ namespace BitSerializer
 	template<typename TArchive, typename TKey, typename TValue, typename TAllocator>
 	bool Serialize(TArchive& archive, TKey&& key, std::vector<TValue, TAllocator>& cont)
 	{
-		return Detail::SerializeContainer(archive, key, cont);
+		return Detail::SerializeContainer(archive, std::forward<TKey>(key), cont);
 	}
 
 	/// <summary>
@@ -62,7 +62,7 @@ namespace BitSerializer
 
 		if constexpr (hasArrayWithKeySupport)
 		{
-			auto arrayScope = archive.OpenArrayScope(key, cont.size());
+			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), cont.size());
 			if (arrayScope)
 				Detail::SerializeVectorOfBooleansImpl(*arrayScope, cont);
 			return arrayScope.has_value();

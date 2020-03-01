@@ -20,7 +20,7 @@ namespace BitSerializer
 
 		if constexpr (hasObjectWithKeySupport)
 		{
-			auto objectScope = archive.OpenObjectScope(key);
+			auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
 			if (objectScope)
 				Detail::SerializeMapImpl(*objectScope, cont, mapLoadMode);
 			return objectScope.has_value();
@@ -83,7 +83,7 @@ namespace BitSerializer
 
 		if constexpr (hasArrayWithKeySupport)
 		{
-			auto arrayScope = archive.OpenArrayScope(key, cont.size());
+			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), cont.size());
 			if (arrayScope)
 				Detail::SerializeMultimapImpl(*arrayScope, cont);
 			return arrayScope.has_value();

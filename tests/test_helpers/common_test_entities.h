@@ -135,6 +135,21 @@ public:
 	int y = 0;
 };
 
+namespace std
+{
+	template<>
+	struct hash<TestPointClass>
+	{
+		using argument_type = TestPointClass;
+		using result_type = size_t;
+
+		result_type operator()(const argument_type& c) const noexcept
+		{
+			return static_cast<result_type>(c.x) + static_cast<result_type>(c.y);
+		}
+	};
+}
+
 //-----------------------------------------------------------------------------
 class TestClassWithInheritance : public TestPointClass
 {

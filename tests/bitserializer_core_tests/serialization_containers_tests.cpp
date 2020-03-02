@@ -16,6 +16,7 @@
 #include "bitserializer/types/std/stack.h"
 #include "bitserializer/types/std/set.h"
 #include "bitserializer/types/std/map.h"
+#include "bitserializer/types/std/unordered_map.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL containers.
@@ -219,6 +220,39 @@ TEST(STL_Containers, SerializeMapOfMaps) {
 
 TEST(STL_Containers, SerializeMapAsClassMember) {
 	using test_type = std::map<std::wstring, int>;
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::unordered_map
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeUnorderedMapWithIntAsKey) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<int, int>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedMapWithStringAsKey) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::string, int>>();
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::wstring, int>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedMapWithEnumAsKey) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestEnum, std::string>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedMapWithClassAsKey) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestPointClass, std::string>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedMapWithClassAsKeyAndClassAsValue) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestPointClass, TestPointClass>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedMapOfMaps) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::string, std::map<int, std::wstring>>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedMapAsClassMember) {
+	using test_type = std::unordered_map<std::wstring, int>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
 

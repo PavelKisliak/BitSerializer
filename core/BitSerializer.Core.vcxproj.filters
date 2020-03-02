@@ -101,5 +101,8 @@
     <ClInclude Include="bitserializer\types\std\stack.h">
       <Filter>types\std</Filter>
     </ClInclude>
+    <ClInclude Include="bitserializer\types\std\unordered_map.h">
+      <Filter>types\std</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

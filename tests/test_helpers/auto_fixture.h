@@ -243,6 +243,19 @@ static void BuildFixture(std::map<TKey, TValue>& cont)
 }
 
 template <typename TKey, typename TValue>
+static void BuildFixture(std::unordered_map<TKey, TValue>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	for (size_t i = 0; i < size; i++) {
+		TValue value;
+		BuildFixture(value);
+		cont.emplace(BuildFixture<TKey>(), std::move(value));
+	}
+}
+
+template <typename TKey, typename TValue>
 static void BuildFixture(std::multimap<TKey, TValue>& cont)
 {
 	static constexpr int size = 7;

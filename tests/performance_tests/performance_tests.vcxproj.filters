@@ -11,6 +11,7 @@
     <ClInclude Include="base_test_models.h" />
     <ClInclude Include="cpprest_json_performance_test.h" />
     <ClInclude Include="pugixml_performance_test.h" />
+    <ClInclude Include="yaml_cpp_perfomance_test.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

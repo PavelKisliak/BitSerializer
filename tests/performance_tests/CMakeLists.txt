@@ -8,6 +8,7 @@ find_package(cpprestsdk CONFIG REQUIRED)
 find_package(Boost COMPONENTS system REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
   main.cpp
@@ -15,6 +16,7 @@ add_executable(${PROJECT_NAME}
   rapid_json_performance_test.h
   cpprest_json_performance_test.h
   pugixml_performance_test.h
+  yaml_cpp_perfomance_test.h
 )
 
 find_path(CPP_REST_SDK_DIR cpprest/json.h)
@@ -32,6 +34,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
             cpprestsdk::cpprestsdk_openssl_internal
             ${Boost_SYSTEM_LIBRARY}
             pugixml
+	    yaml-cpp
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # since gcc, link with -lstdc++fs.
@@ -44,6 +47,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
             cpprestsdk::cpprestsdk_openssl_internal
             ${Boost_SYSTEM_LIBRARY}
             pugixml
+            yaml-cpp
     )
 else()
     target_link_libraries(${PROJECT_NAME}
@@ -54,5 +58,6 @@ else()
             cpprestsdk::cpprestsdk_openssl_internal
             ${Boost_SYSTEM_LIBRARY}
             pugixml
+            yaml-cpp
     )
 endif()

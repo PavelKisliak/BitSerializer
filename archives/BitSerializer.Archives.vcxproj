@@ -22,6 +22,7 @@
     <ClInclude Include="bitserializer_cpprest_json\cpprest_json_archive.h" />
     <ClInclude Include="bitserializer_pugixml\pugixml_archive.h" />
     <ClInclude Include="bitserializer_rapidjson\rapidjson_archive.h" />
+    <ClInclude Include="bitserializer_yaml_cpp\yaml_cpp_archive.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

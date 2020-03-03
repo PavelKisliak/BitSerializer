@@ -1,4 +1,4 @@
-/*******************************************************************************
+п»ї/*******************************************************************************
 * Copyright (C) 2020 by Artsiom Marozau                                        *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -97,7 +97,7 @@ TEST(YamlCppArchive, SerializeAnsiString)
 
 TEST(YamlCppArchive, SerializeUnicodeString)
 {
-	TestSerializeType<YamlArchive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeType<YamlArchive, std::wstring>(L"Test Unicode string - РџСЂРёРІРµС‚ РјРёСЂ!");
 }
 
 TEST(YamlCppArchive, SerializeEnum)
@@ -268,7 +268,7 @@ TEST(YamlCppArchive, SerializeClassToStream)
 
 TEST(YamlCppArchive, SerializeUnicodeToEncodedStream)
 {
-	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestClassWithSubType<std::wstring> TestValue(L"РџСЂРёРІРµС‚ РјРёСЂ!");
 	TestSerializeClassToStream<YamlArchive, char>(TestValue);
 }
 

@@ -217,6 +217,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 						const auto yamlValue = mNode[mIndex++];
 						return yamlValue.IsMap() ? std::make_optional<YamlObjectScope<TMode>>(yamlValue, this) : std::nullopt;
 					}
+					return std::nullopt;
 				}
 				else
 				{
@@ -237,6 +238,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 						const auto yamlValue = mNode[mIndex++];
 						return yamlValue.IsSequence() ? std::make_optional<YamlArrayScope<TMode>>(yamlValue, yamlValue.size(), this) : std::nullopt;
 					}
+					return std::nullopt;
 				}
 				else
 				{

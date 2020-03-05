@@ -112,7 +112,7 @@ int main()
 			TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel, 100000>(),
 			TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel, 20000>(),
 			TestArchivePerformance<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlPerformanceTestModel, 50000>(),
-			TestArchivePerformance<BitSerializer::Yaml::YamlCpp::YamlArchive, YamlCppPerformanceTestModel, 20000>()
+			TestArchivePerformance<BitSerializer::Yaml::YamlCpp::YamlArchive, YamlCppPerformanceTestModel, 5000>()
 		};
 	}
 	catch (const std::exception& ex) {

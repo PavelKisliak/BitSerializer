@@ -8,44 +8,9 @@
 #include "bitserializer_yaml_cpp/yaml_cpp_archive.h"
 #include "base_test_models.h"
 
-namespace YAML {
-	template <typename TKey>
-	struct convert<ModelWithBasicTypes<TKey>> {
-		static Node encode(const ModelWithBasicTypes<TKey>& rhs) {
-			Node node;
-			node["TestBoolValue"] = rhs.mTestBoolValue;
-			node["TestCharValue"] = static_cast<int>(rhs.mTestCharValue);
-			node["TestInt16Value"] = rhs.mTestInt16Value;
-			node["TestInt32Value"] = rhs.mTestInt32Value;
-			node["TestInt64Value"] = rhs.mTestInt64Value;
-			node["TestFloatValue"] = rhs.mTestFloatValue;
-			node["TestDoubleValue"] = rhs.mTestDoubleValue;
-			node["TestStringValue"] = rhs.mTestStringValue;
-			return node;
-		}
-
-		static bool decode(const Node& node, ModelWithBasicTypes<TKey>& rhs) {
-			if (!node.IsMap() || node.size() != 8) {
-				return false;
-			}
-			rhs.mTestBoolValue = node["TestBoolValue"].as<bool>();
-			rhs.mTestCharValue = static_cast<char>(node["TestCharValue"].as<int>());
-			rhs.mTestInt16Value = node["TestInt16Value"].as<int16_t>();
-			rhs.mTestInt32Value = node["TestInt32Value"].as<int32_t>();
-			rhs.mTestInt64Value = node["TestInt64Value"].as<int64_t>();
-			rhs.mTestFloatValue = node["TestFloatValue"].as<float>();
-			rhs.mTestDoubleValue = node["TestDoubleValue"].as<double>();
-			rhs.mTestStringValue = node["TestStringValue"].as<std::string>();
-			return true;
-		}
-	};
-}
-
 class YamlCppPerformanceTestModel final: public BasePerformanceTestModel<char>
 {
 public:
-	~YamlCppPerformanceTestModel() = default;
-
 	const char* GetName() override { return "YamlCpp"; }
 
 	std::string TestSave()
@@ -53,19 +18,44 @@ public:
 		auto root = YAML::Node(YAML::NodeType::Map);
 
 		// Save array of booleans
-		SerializeArray(std::cbegin(mArrayOfBooleans), std::cend(mArrayOfBooleans), root, "ArrayOfBooleans");
+		auto booleansYamlNode = root["ArrayOfBooleans"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			booleansYamlNode[i] = mArrayOfBooleans[i];
+		}
 
 		// Save array of integers
-		SerializeArray(std::cbegin(mArrayOfInts), std::cend(mArrayOfInts), root, "ArrayOfInts");
+		auto intsYamlArray = root["ArrayOfInts"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			intsYamlArray[i] = mArrayOfInts[i];
+		}
 
 		// Save array of floats
-		SerializeArray(std::cbegin(mArrayOfFloats), std::cend(mArrayOfFloats), root, "ArrayOfFloats");
+		auto floatsJsonArray = root["ArrayOfFloats"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			floatsJsonArray[i] = mArrayOfFloats[i];
+		}
 
 		// Save array of strings
-		SerializeArray(std::cbegin(mArrayOfStrings), std::cend(mArrayOfStrings), root, "ArrayOfStrings");
+		auto stringsJsonArray = root["ArrayOfStrings"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			stringsJsonArray[i] = mArrayOfStrings[i];
+		}
 
 		// Save array of objects
-		SerializeArray(std::cbegin(mArrayOfObjects), std::cend(mArrayOfObjects), root, "ArrayOfObjects");
+		auto objectsYamlArray = root["ArrayOfObjects"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i)
+		{
+			const auto& obj = mArrayOfObjects[i];
+			auto yamlObj = objectsYamlArray[i];
+			yamlObj["TestBoolValue"] = obj.mTestBoolValue;
+			yamlObj["TestCharValue"] = static_cast<short>(obj.mTestCharValue);
+			yamlObj["TestInt16Value"] = obj.mTestInt16Value;
+			yamlObj["TestInt32Value"] = obj.mTestInt32Value;
+			yamlObj["TestInt64Value"] = obj.mTestInt64Value;
+			yamlObj["TestFloatValue"] = obj.mTestFloatValue;
+			yamlObj["TestDoubleValue"] = obj.mTestDoubleValue;
+			yamlObj["TestStringValue"] = obj.mTestStringValue;
+		}
 	
 		return YAML::Dump(root);
 	}
@@ -78,41 +68,43 @@ public:
 			throw std::runtime_error("YamlCpp parse error");
 
 		// Load array of booleans
-		DeserializeArray(std::begin(mArrayOfBooleans), std::end(mArrayOfBooleans), root, "ArrayOfBooleans");
+		const auto booleansYamlArray = root["ArrayOfBooleans"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			mArrayOfBooleans[i] = booleansYamlArray[i].as<bool>();
+		}
 
 		// Load array of integers
-		DeserializeArray(std::begin(mArrayOfInts), std::end(mArrayOfInts), root, "ArrayOfInts");
-		
+		const auto integersYamlArray = root["ArrayOfInts"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			mArrayOfInts[i] = integersYamlArray[i].as<long long>();
+		}
+
 		// Load array of floats
-		DeserializeArray(std::begin(mArrayOfFloats), std::end(mArrayOfFloats), root, "ArrayOfFloats");
+		const auto floatsYamlArray = root["ArrayOfFloats"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			mArrayOfFloats[i] = floatsYamlArray[i].as<double>();
+		}
 
 		// Load array of strings
-		DeserializeArray(std::begin(mArrayOfStrings), std::end(mArrayOfStrings), root, "ArrayOfStrings");
+		const auto& stringsYamlArray = root["ArrayOfStrings"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+			mArrayOfStrings[i] = stringsYamlArray[i].as<std::string>();
+		}
 
 		// Load array of objects
-		DeserializeArray(std::begin(mArrayOfObjects), std::end(mArrayOfObjects), root, "ArrayOfObjects");
-	}
-
-private: 
-	template <typename TIter>
-	void SerializeArray(TIter first, TIter last, YAML::Node& root, const std::string& key)
-	{
-		auto seqNode = root[key] = YAML::Node(YAML::NodeType::Sequence);
-		for (; first != last; ++first)
+		const auto& objectsYamlArray = root["ArrayOfObjects"];
+		for (size_t i = 0; i < ARRAY_SIZE; ++i)
 		{
-			seqNode.push_back(*first);
-		}
-	}
-
-	template <typename TIter>
-	void DeserializeArray(TIter first, TIter last, YAML::Node& root, const std::string& key)
-	{
-		auto seqNode = root[key];
-		size_t i = 0;
-		for (; first != last; ++first)
-		{
-			(*first) = seqNode[i].as<typename std::iterator_traits<TIter>::value_type>();
-			++i;
+			auto& obj = mArrayOfObjects[i];
+			auto yamlVal = objectsYamlArray[i];
+			obj.mTestBoolValue = yamlVal["TestBoolValue"].as<bool>();
+			obj.mTestCharValue = static_cast<char>(yamlVal["TestCharValue"].as<long long>());
+			obj.mTestInt16Value = static_cast<int16_t>(yamlVal["TestInt16Value"].as<long long>());
+			obj.mTestInt32Value = static_cast<int32_t>(yamlVal["TestInt32Value"].as<long long>());
+			obj.mTestInt64Value = yamlVal["TestInt64Value"].as<long long>();
+			obj.mTestFloatValue = static_cast<float>(yamlVal["TestFloatValue"].as<double>());
+			obj.mTestDoubleValue = yamlVal["TestDoubleValue"].as<double>();
+			obj.mTestStringValue = yamlVal["TestStringValue"].as<std::string>();
 		}
 	}
 };

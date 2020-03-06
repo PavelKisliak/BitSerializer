@@ -24,7 +24,14 @@ void TestSerializeType(T&& value)
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	EXPECT_EQ(value, actual);
+	if constexpr (std::is_same_v<T, float>) {
+		EXPECT_FLOAT_EQ(value, actual);
+	}
+	else if constexpr (std::is_same_v<T, double>) {
+		EXPECT_DOUBLE_EQ(value, actual);
+	} else {
+		EXPECT_EQ(value, actual);
+	}
 }
 
 /// <summary>

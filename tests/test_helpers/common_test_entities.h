@@ -252,12 +252,22 @@ public:
 			return;
 		else
 		{
+			using TValue = std::tuple_element_t<I, std::tuple<Args...>>;
+
 			// Get class member
 			decltype(auto) expected = std::get<I>(*this);
 			decltype(auto) actual = std::get<I>(rhs);
 
 			// Assert
-			EXPECT_EQ(expected, actual);
+			if constexpr (std::is_same_v<TValue, float>) {
+				EXPECT_FLOAT_EQ(expected, actual);
+			}
+			else if constexpr (std::is_same_v<TValue, double>) {
+				EXPECT_DOUBLE_EQ(expected, actual);
+			}
+			else {
+				EXPECT_EQ(expected, actual);
+			}
 
 			// Next
 			Assert<I + 1>(rhs);

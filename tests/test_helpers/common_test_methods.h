@@ -51,8 +51,17 @@ void TestSerializeArray()
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
-		ASSERT_EQ(testArray[i], actual[i]);
+	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++)
+	{
+		if constexpr (std::is_same_v<TValue, float>) {
+			EXPECT_FLOAT_EQ(testArray[i], actual[i]);
+		}
+		else if constexpr (std::is_same_v<TValue, double>) {
+			EXPECT_DOUBLE_EQ(testArray[i], actual[i]);
+		}
+		else {
+			EXPECT_EQ(testArray[i], actual[i]);
+		}
 	}
 }
 

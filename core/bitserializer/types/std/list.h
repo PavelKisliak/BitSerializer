@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <list>
-#include "bitserializer/serialization_detail/serialization_base_types.h"
+#include "bitserializer/serialization_detail/generic_container.h"
 
 namespace BitSerializer
 {

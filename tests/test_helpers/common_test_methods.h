@@ -29,7 +29,8 @@ void TestSerializeType(T&& value)
 	}
 	else if constexpr (std::is_same_v<T, double>) {
 		EXPECT_DOUBLE_EQ(value, actual);
-	} else {
+	}
+	else {
 		EXPECT_EQ(value, actual);
 	}
 }

@@ -5,6 +5,7 @@
 #pragma once
 #include <map>
 #include "bitserializer/types/std/pair.h"
+#include "bitserializer/serialization_detail/generic_map.h"
 
 namespace BitSerializer
 {

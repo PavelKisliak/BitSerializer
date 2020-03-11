@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <unordered_map>
-#include "bitserializer/serialization_detail/serialization_base_types.h"
+#include "bitserializer/serialization_detail/generic_map.h"
 
 namespace BitSerializer
 {

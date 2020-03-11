@@ -29,6 +29,9 @@
     <ClInclude Include="bitserializer\serialization_detail\attr_key_value.h" />
     <ClInclude Include="bitserializer\serialization_detail\base_object.h" />
     <ClInclude Include="bitserializer\serialization_detail\errors_handling.h" />
+    <ClInclude Include="bitserializer\serialization_detail\generic_container.h" />
+    <ClInclude Include="bitserializer\serialization_detail\generic_map.h" />
+    <ClInclude Include="bitserializer\serialization_detail\generic_set.h" />
     <ClInclude Include="bitserializer\serialization_detail\key_value.h" />
     <ClInclude Include="bitserializer\serialization_detail\key_value_proxy.h" />
     <ClInclude Include="bitserializer\serialization_detail\media_archive_base.h" />

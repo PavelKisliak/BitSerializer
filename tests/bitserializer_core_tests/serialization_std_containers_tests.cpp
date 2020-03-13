@@ -15,6 +15,7 @@
 #include "bitserializer/types/std/queue.h"
 #include "bitserializer/types/std/stack.h"
 #include "bitserializer/types/std/set.h"
+#include "bitserializer/types/std/unordered_set.h"
 #include "bitserializer/types/std/map.h"
 #include "bitserializer/types/std/unordered_map.h"
 
@@ -175,6 +176,18 @@ TEST(STL_Containers, SerializeSetAsClassMember) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for std::unordered_set
+//-----------------------------------------------------------------------------
+TEST(STL_Containers, SerializeUnorderedSetOfStrings) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_set<std::string>>();
+}
+
+TEST(STL_Containers, SerializeUnorderedSetAsClassMember) {
+	using test_type = std::unordered_set<std::string>;
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for std::multiset
 //-----------------------------------------------------------------------------
 TEST(STL_Containers, SerializeMultiSetOfStrings) {
@@ -247,8 +260,8 @@ TEST(STL_Containers, SerializeUnorderedMapWithClassAsKeyAndClassAsValue) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestPointClass, TestPointClass>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapOfMaps) {
-	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::string, std::map<int, std::wstring>>>();
+TEST(STL_Containers, SerializeUnorderedMapOfUnorderedMaps) {
+	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::string, std::unordered_map<int, std::wstring>>>();
 }
 
 TEST(STL_Containers, SerializeUnorderedMapAsClassMember) {

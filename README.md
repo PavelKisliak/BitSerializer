@@ -14,7 +14,7 @@ ___
 - Simple syntax which is similar to serialization in the Boost library.
 - Validation of deserialized values with producing an output list of errors.
 - Support serialization for enum types (via declaring names map).
-- Support serialization for most STL containers.
+- Support serialization for all STD containers.
 - Support serialization to streams and files.
 - Encoding to various UTF formats.
 - Useful string conversion submodule (supports enums, classes, UTF encoding).
@@ -38,7 +38,8 @@ ___
 - [ + ] Add optional writing the BOM to output stream/file.
 - [ + ] Remove dependency from base library types for in/out text (now uses std::string everywhere).
 - [ + ] Add UTF encoding when serializing std::wstring.
-- [ \* ] Add serialization C++ union type.
+- [ + ] Add serialization for all STD containers which were missed before.
+- [ + ] Add serialization C++ union type.
 - [ \* ] Split implementation of serialization for std types into separate files.
 - [ \* ] Change string type for path in archive from std::wstring to std::string (in UTF-8 encoding).
 - [ \* ] For archive based on RapidJson was changed in-memory encoding from UTF-16 to UTF-8.
@@ -332,7 +333,7 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 [See full sample](samples/multiformat_customization/multiformat_customization.cpp)
 
 ### Serialization STD types
-BitSerializer has on board implementation of serialization for most popular containers from STD (not all yet, but this gap will be fixed in future). For add support of required STD type just need to include related header file.
+BitSerializer has on board serialization for all STD containers. Serialization of other STD types will be implemented in future. For add support of required STD type just need to include related header file.
 ```cpp
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/vector.h"
@@ -343,7 +344,9 @@ BitSerializer has on board implementation of serialization for most popular cont
 #include "bitserializer/types/std/queue.h"
 #include "bitserializer/types/std/stack.h"
 #include "bitserializer/types/std/set.h"
+#include "bitserializer/types/std/unordered_set.h"
 #include "bitserializer/types/std/map.h"
+#include "bitserializer/types/std/unordered_map.h"
 #include "bitserializer/types/std/pair.h"
 ```
 ### Specifics of serialization std::map

@@ -113,5 +113,8 @@
     <ClInclude Include="bitserializer\serialization_detail\generic_set.h">
       <Filter>serialization_detail</Filter>
     </ClInclude>
+    <ClInclude Include="bitserializer\types\std\unordered_set.h">
+      <Filter>types\std</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,12 +3,12 @@
   <ItemGroup>
     <ClCompile Include="serialization_archive_traits_tests.cpp" />
     <ClCompile Include="serialization_base_types_tests.cpp" />
-    <ClCompile Include="serialization_containers_tests.cpp" />
     <ClCompile Include="serialization_object_traits_tests.cpp" />
-    <ClCompile Include="serialization_stl_types_tests.cpp" />
     <ClCompile Include="string_conversion_tests.cpp" />
     <ClCompile Include="validators_tests.cpp" />
     <ClCompile Include="utf8_encoding_tests.cpp" />
+    <ClCompile Include="serialization_std_containers_tests.cpp" />
+    <ClCompile Include="serialization_std_types_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\test_helpers\archive_stub.h">

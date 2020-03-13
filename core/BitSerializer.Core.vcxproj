@@ -52,6 +52,7 @@
     <ClInclude Include="bitserializer\types\std\set.h" />
     <ClInclude Include="bitserializer\types\std\stack.h" />
     <ClInclude Include="bitserializer\types\std\unordered_map.h" />
+    <ClInclude Include="bitserializer\types\std\unordered_set.h" />
     <ClInclude Include="bitserializer\types\std\vector.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

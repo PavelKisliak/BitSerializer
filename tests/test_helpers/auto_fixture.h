@@ -12,7 +12,9 @@
 #include <queue>
 #include <stack>
 #include <set>
+#include <unordered_set>
 #include <map>
+#include <unordered_map>
 #include <type_traits>
 #include "bitserializer/string_conversion.h"
 
@@ -96,7 +98,7 @@ static void BuildFixture(std::pair<TKey, TValue>& pair)
 /// <summary>
 /// Build the test fixture - overloaded variant with return value (can't be applied to c-array types).
 /// </summary>
-/// <returns></returns>
+/// <returns>The generated fixture</returns>
 template <typename T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
 static T BuildFixture()
 {
@@ -202,6 +204,19 @@ static void BuildFixture(std::stack<T>& cont)
 
 template <typename T>
 static void BuildFixture(std::set<T>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	for (size_t i = 0; i < size; i++) {
+		T element;
+		BuildFixture(element);
+		cont.emplace(std::move(element));
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::unordered_set<T>& cont)
 {
 	static constexpr int size = 7;
 

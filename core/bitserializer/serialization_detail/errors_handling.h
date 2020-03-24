@@ -34,9 +34,13 @@ namespace BitSerializer {
 	class SerializationException : public std::exception
 	{
 	public:
-		SerializationException(const SerializationErrorCode errorCode, const std::string& message)
+		SerializationException(const SerializationErrorCode errorCode, const char* message)
 			: mErrorCode(errorCode)
 			, mMessage(Convert::ToString(errorCode) + ": " + message)
+		{ }
+
+		SerializationException(const SerializationErrorCode errorCode, const std::string& message)
+			: SerializationException(errorCode, message.c_str())
 		{ }
 
 		SerializationErrorCode GetErrorCode() const noexcept

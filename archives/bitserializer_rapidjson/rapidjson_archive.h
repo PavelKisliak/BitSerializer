@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -55,8 +55,8 @@ public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
 
-	RapidJsonScopeBase(const RapidJsonNode* node, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
-		: mNode(const_cast<RapidJsonNode*>(node))
+	RapidJsonScopeBase(RapidJsonNode* node, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
+		: mNode(node)
 		, mParent(parent)
 		, mParentKey(parentKey)
 	{ }
@@ -156,7 +156,7 @@ public:
 	using iterator = typename RapidJsonNode::ValueIterator;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
 
-	RapidJsonArrayScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
+	RapidJsonArrayScope(RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
 		: RapidJsonScopeBase<TEncoding>(node, parent, parentKey)
 		, mAllocator(allocator)
 		, mValueIt(this->mNode->GetArray().Begin())
@@ -250,11 +250,11 @@ public:
 	}
 
 protected:
-	const RapidJsonNode* NextElement()
+	RapidJsonNode* NextElement()
 	{
 		if (mValueIt == this->mNode->End())
 			return nullptr;
-		const auto& jsonValue = *mValueIt;
+		auto& jsonValue = *mValueIt;
 		++mValueIt;
 		return &jsonValue;
 	}
@@ -317,7 +317,7 @@ public:
 	using key_type = typename RapidJsonArchiveTraits<TEncoding>::key_type;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
 
-	RapidJsonObjectScope(const RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
+	RapidJsonObjectScope(RapidJsonNode* node, TAllocator& allocator, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
 		: RapidJsonScopeBase<TEncoding>(node, parent, parentKey)
 		, mAllocator(allocator)
 	{
@@ -397,22 +397,22 @@ public:
 	}
 
 protected:
-	auto FindMember(const key_type& key) const {
+	typename RapidJsonNode::MemberIterator FindMember(const key_type& key) const {
 		return this->mNode->GetObject().FindMember(key.c_str());
 	}
 
-	auto FindMember(const wchar_t* key) const {
+	typename RapidJsonNode::MemberIterator FindMember(const wchar_t* key) const {
 		return this->mNode->GetObject().FindMember(key);
 	}
 
-	const RapidJsonNode* LoadJsonValue(const key_type& key) const
+	RapidJsonNode* LoadJsonValue(const key_type& key) const
 	{
 		const auto jObject = this->mNode->GetObject();
 		auto it = jObject.FindMember(key.c_str());
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	const RapidJsonNode* LoadJsonValue(const wchar_t* key) const
+	RapidJsonNode* LoadJsonValue(const wchar_t* key) const
 	{
 		const auto jObject = this->mNode->GetObject();
 		const auto it = jObject.FindMember(key);

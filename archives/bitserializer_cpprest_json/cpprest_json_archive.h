@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -51,8 +51,8 @@ class JsonScopeBase : public JsonArchiveTraits
 public:
 	using key_type_view = std::basic_string_view<key_type::value_type>;
 
-	explicit JsonScopeBase(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
-		: mNode(const_cast<web::json::value*>(node))
+	explicit JsonScopeBase(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+		: mNode(node)
 		, mParent(parent)
 		, mParentKey(parentKey)
 	{ }
@@ -137,7 +137,7 @@ class JsonArrayScope final : public ArchiveScope<TMode>, public JsonScopeBase
 protected:
 	size_t mSize;
 public:
-	JsonArrayScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+	JsonArrayScope(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
 		, mSize(node == nullptr ? 0 : node->size())
 		, mIndex(0)
@@ -287,11 +287,11 @@ template <SerializeMode TMode>
 class JsonObjectScope final : public ArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonObjectScope(const web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+	explicit JsonObjectScope(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
 	{
 		assert(mNode->is_object());
-	};
+	}
 
 	[[nodiscard]] key_const_iterator cbegin() const {
 		return key_const_iterator(mNode->as_object().cbegin());
@@ -389,10 +389,10 @@ public:
 	}
 
 protected:
-	const web::json::value* LoadJsonValue(const key_type& key) const
+	web::json::value* LoadJsonValue(const key_type& key) const
 	{
-		const auto& jObject = mNode->as_object();
-		const auto it = jObject.find(key);
+		auto& jObject = mNode->as_object();
+		auto it = std::find_if(jObject.begin(), jObject.end(), [&key](const auto& p) { return p.first == key; });
 		return it == jObject.end() ? nullptr : &it->second;
 	}
 

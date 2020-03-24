@@ -48,7 +48,7 @@ namespace BitSerializer
 	};
 
 	/// <summary>
-	///  Contains a set of serialization options.
+	/// Contains a set of serialization options.
 	/// Some options cannot be applicable to all types of archive, in that case it will be ignored.
 	/// </summary>
 	struct SerializationOptions

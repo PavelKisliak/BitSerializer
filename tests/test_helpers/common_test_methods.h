@@ -3,7 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <optional>
 #include <experimental/filesystem>
 #include "gtest/gtest.h"
 #include "common_test_entities.h"

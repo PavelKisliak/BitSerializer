@@ -29,7 +29,7 @@ namespace BitSerializer
 		{
 			auto it = mErrorsMap.find(path);
 			if (it == mErrorsMap.end()) {
-				mErrorsMap.emplace(path, validationList);
+				mErrorsMap.emplace(std::move(path), std::move(validationList));
 			}
 			else {
 				std::move(validationList.begin(), validationList.end(), std::back_inserter(it->second));

@@ -487,46 +487,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			/// <summary>	
-			/// Serialize single fundamental value. 
-			/// </summary>
-			/// <param name="value"> [in] The value of fundamental type. </param>
-			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			void SerializeValue(T& value)
-			{
-				if constexpr (TMode == SerializeMode::Load) {
-					LoadValue(mRootNode.first_child(), value);
-				}
-				else
-				{
-					mRootNode |= ryml::SEQ;
-					mRootNode.append_child() << value;
-				}
-			}
-
-			//TODO: remove all SerializeValue methods from RootScope (YAML support only MAP and SEQ on the root of tree)
-			/// <summary>	
-			/// Serialize string value. 
-			/// </summary>
-			/// <typeparam name="TSym">		 	Type of the symbol. </typeparam>
-			/// <typeparam name="TAllocator">	Type of the allocator. </typeparam>
-			/// <param name="value">	[in] The value of string type. </param>
-			template <typename TSym, typename TAllocator>
-			void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-			{
-				if constexpr (TMode == SerializeMode::Load) {
-					LoadValue(mRootNode.first_child(), value);
-				}
-				else
-				{
-					mRootNode |= ryml::SEQ;
-					if constexpr (std::is_same_v<TSym, std::string::value_type>)
-						mRootNode.append_child() << value;
-					else
-						mRootNode.append_child() << Convert::To<std::string>(value);
-				}
-			}
-
-			/// <summary>	
 			/// Represent child node of current scope as object (map). 
 			/// </summary>
 			/// <returns> Child node wrapped in YamlObjectScope </returns>

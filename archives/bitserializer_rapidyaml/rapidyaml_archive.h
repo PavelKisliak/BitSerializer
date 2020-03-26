@@ -406,6 +406,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 		};
 
+		inline void ErrorCallback(const char* msg, size_t length, void * /*user_data*/)
+		{
+			throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg + length });
+		}
+		
 		//TODO: check below
 		//Please note that since a ryml tree uses linear storage, the complexity of operator[]
 		//is linear on the number of children of the node on which it is invoked.
@@ -436,7 +441,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
-				mRootNode = mTree.rootref();
+
+				Init();
 			}
 
 			/// <summary>	Constructor. </summary>
@@ -448,7 +454,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-				mRootNode = mTree.rootref();
+
+				Init();
 			}
 
 			/// <summary>	Constructor. </summary>
@@ -468,10 +475,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 				std::istreambuf_iterator<char> begin(inputStream);
 				std::istreambuf_iterator<char> end;
 				const std::string input(begin, end);
+				
 				//be careful when use c4::to_substr(std::string const& s). Function parse(substr buf) doesn't call copy_to_arena,
 				//so when input string out from scope (csubstr/substr just string view) you lost all data and parse will be failed.
 				mTree = ryml::parse(c4::to_csubstr(input));
-				mRootNode = mTree.rootref();
+				
+				Init();
 			}
 
 			/// <summary>	Constructor. </summary>
@@ -483,7 +492,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-				mRootNode = mTree.rootref();
+
+				Init();
 			}
 
 			/// <summary>	
@@ -547,6 +557,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 			std::optional<SerializationOptions> mSerializationOptions;
 
 		private:
+			void Init()
+			{
+				mRootNode = mTree.rootref();
+				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
+				ryml::Callbacks cb(nullptr, nullptr, nullptr, &ErrorCallback);
+				ryml::set_callbacks(cb);
+			}
+			
 			ryml::Tree mTree;
 			ryml::NodeRef mRootNode;
 		};

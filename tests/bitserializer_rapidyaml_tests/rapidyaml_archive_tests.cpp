@@ -79,13 +79,10 @@ TEST(RapidYamlArchive, SerializeArrayOfStrings)
 	TestSerializeArray<YamlArchive, std::string>();
 }
 
-//TODO: Fix test below
-/*
 TEST(RapidYamlArchive, SerializeArrayOfWStrings)
 {
 	TestSerializeArray<YamlArchive, std::wstring>();
 }
-*/
 
 TEST(RapidYamlArchive, SerializeArrayOfClasses)
 {
@@ -241,16 +238,15 @@ TEST(RapidYamlArchive, SerializeClassToFile) {
 	TestSerializeClassToFile<YamlArchive>(BuildFixture<TestPointClass>());
 }
 
-/*
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 {
-	int testInt;
+	int testInt[1];
 	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
-*/
+
 
 TEST(RapidYamlArchive, Stub) {
 	

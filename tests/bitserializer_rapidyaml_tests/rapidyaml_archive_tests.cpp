@@ -9,32 +9,31 @@
 
 using BitSerializer::Yaml::RapidYaml::YamlArchive;
 
-//TODO: remove tests for serialize single value
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeBoolean)
 {
-	TestSerializeType<YamlArchive, bool>(false);
-	TestSerializeType<YamlArchive, bool>(true);
+	TestSerializeSingleValueArray<YamlArchive, bool>(false);
+	TestSerializeSingleValueArray<YamlArchive, bool>(true);
 }
 
 TEST(RapidYamlArchive, SerializeInteger)
 {
-	TestSerializeType<YamlArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
-	TestSerializeType<YamlArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
-	TestSerializeType<YamlArchive, int64_t>(std::numeric_limits<int64_t>::min());
-	TestSerializeType<YamlArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
+	TestSerializeSingleValueArray<YamlArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
+	TestSerializeSingleValueArray<YamlArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
+	TestSerializeSingleValueArray<YamlArchive, int64_t>(std::numeric_limits<int64_t>::min());
+	TestSerializeSingleValueArray<YamlArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
 }
 
 TEST(RapidYamlArchive, SerializeFloat)
 {
-	TestSerializeType<YamlArchive, float>(::BuildFixture<float>());
+	TestSerializeSingleValueArray<YamlArchive, float>(::BuildFixture<float>());
 }
 
 TEST(RapidYamlArchive, SerializeDouble)
 {
-	TestSerializeType<YamlArchive, double>(::BuildFixture<double>());
+	TestSerializeSingleValueArray<YamlArchive, double>(::BuildFixture<double>());
 }
 
 //-----------------------------------------------------------------------------
@@ -42,17 +41,17 @@ TEST(RapidYamlArchive, SerializeDouble)
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeAnsiString)
 {
-	TestSerializeType<YamlArchive, std::string>("Test ANSI string");
+	TestSerializeSingleValueArray<YamlArchive, std::string>("Test ANSI string");
 }
 
 TEST(RapidYamlArchive, SerializeUnicodeString)
 {
-	TestSerializeType<YamlArchive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeSingleValueArray<YamlArchive, std::wstring>(L"Test Unicode string - Привет мир!");
 }
 
 TEST(RapidYamlArchive, SerializeEnum)
 {
-	TestSerializeType<YamlArchive, TestEnum>(TestEnum::Two);
+	TestSerializeSingleValueArray<YamlArchive, TestEnum>(TestEnum::Two);
 }
 
 //-----------------------------------------------------------------------------

@@ -54,6 +54,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.Archives", "a
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serialize_to_stream", "samples\serialize_to_stream\serialize_to_stream.vcxproj", "{EA1051AD-1B9B-448B-801B-5B3E1AA2EB78}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitSerializer.RapidYaml.Tests", "tests\bitserializer_rapidyaml_tests\bitserializer_rapidyaml_tests.vcxproj", "{077B40DC-AAC2-4559-B7C1-C82C6898267D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -166,6 +168,14 @@ Global
 		{EA1051AD-1B9B-448B-801B-5B3E1AA2EB78}.Release|x64.Build.0 = Release|x64
 		{EA1051AD-1B9B-448B-801B-5B3E1AA2EB78}.Release|x86.ActiveCfg = Release|Win32
 		{EA1051AD-1B9B-448B-801B-5B3E1AA2EB78}.Release|x86.Build.0 = Release|Win32
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Debug|x64.ActiveCfg = Debug|x64
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Debug|x64.Build.0 = Debug|x64
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Debug|x86.ActiveCfg = Debug|Win32
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Debug|x86.Build.0 = Debug|Win32
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Release|x64.ActiveCfg = Release|x64
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Release|x64.Build.0 = Release|x64
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Release|x86.ActiveCfg = Release|Win32
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -184,6 +194,7 @@ Global
 		{E9FD0E91-8F08-42ED-9871-5545900EA318} = {9E0F97F4-EEB2-44FF-A1BF-40FA8DA66231}
 		{80F3113C-844F-414D-BE36-5D3FF3D99466} = {9E0F97F4-EEB2-44FF-A1BF-40FA8DA66231}
 		{EA1051AD-1B9B-448B-801B-5B3E1AA2EB78} = {2528AB0C-9796-4D5A-B010-65BB140BAFBD}
+		{077B40DC-AAC2-4559-B7C1-C82C6898267D} = {D2E1CD40-39CE-437E-A71A-B9C00302747B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F41DAFDC-F7E6-4B35-BB33-54073C9FC110}

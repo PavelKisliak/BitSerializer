@@ -9,6 +9,7 @@ add_subdirectory(bitserializer_core_tests)
 add_subdirectory(bitserializer_cpprest_json_tests)
 add_subdirectory(bitserializer_rapidjson_tests)
 add_subdirectory(bitserializer_pugixml_tests)
+add_subdirectory(bitserializer_rapidyaml_tests)
 
 add_custom_target(tests DEPENDS
     performance_tests
@@ -16,4 +17,5 @@ add_custom_target(tests DEPENDS
     bitserializer_cpprest_json_tests
     bitserializer_rapidjson_tests
     bitserializer_pugixml_tests
+    bitserializer_rapidyaml_tests
 )

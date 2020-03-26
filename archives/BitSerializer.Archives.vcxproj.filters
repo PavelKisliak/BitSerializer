@@ -10,6 +10,9 @@
     <Filter Include="RapidJson">
       <UniqueIdentifier>{b5637b8e-e09c-41e0-b7f6-54fbec8e25bd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RapidYaml">
+      <UniqueIdentifier>{9415f054-643d-49ab-b88a-5267a3694d3d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitserializer_cpprest_json\cpprest_json_archive.h">
@@ -20,6 +23,9 @@
     </ClInclude>
     <ClInclude Include="bitserializer_rapidjson\rapidjson_archive.h">
       <Filter>RapidJson</Filter>
+    </ClInclude>
+    <ClInclude Include="bitserializer_rapidyaml\rapidyaml_archive.h">
+      <Filter>RapidYaml</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

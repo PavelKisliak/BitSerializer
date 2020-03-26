@@ -27,6 +27,7 @@ add_subdirectory(core)
 add_subdirectory(archives/bitserializer_cpprest_json)
 add_subdirectory(archives/bitserializer_rapidjson)
 add_subdirectory(archives/bitserializer_pugixml)
+add_subdirectory(archives/bitserializer_rapidyaml)
 
 if(BUILD_TESTS)
     include(GoogleTest)

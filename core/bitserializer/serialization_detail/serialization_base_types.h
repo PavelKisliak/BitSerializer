@@ -21,7 +21,7 @@ namespace BitSerializer
 		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
 
 		if constexpr (hasValueWithKeySupport) {
-			return archive.SerializeValue(std::forward<TKey>(key), value);
+ 			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
 		return false;
 	}

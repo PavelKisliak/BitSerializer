@@ -12,10 +12,12 @@ add_executable(${PROJECT_NAME}
     rapid_json_performance_test.h
     cpprest_json_performance_test.h
     pugixml_performance_test.h
+    rapid_yaml_perfomance_test.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::bitserializer-cpprestjson
     BitSerializer::bitserializer-rapidjson
     BitSerializer::bitserializer-pugixml
+    BitSerializer::bitserializer-rapidyaml
 )

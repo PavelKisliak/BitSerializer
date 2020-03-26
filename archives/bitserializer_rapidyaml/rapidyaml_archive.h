@@ -40,12 +40,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlScopeBase : public RapidYamlArchiveTraits
 		{
 		public:
+			using key_type_view = std::basic_string_view<key_type::value_type>;
 
 			/// <summary>	Constructor. </summary>
 			/// <param name="node">	Node represented by current scope level. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
 			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlScopeBase(const ryml::NodeRef& node, RapidYamlScopeBase* parent = nullptr, const key_type& perentKey = key_type()) noexcept
+			explicit RapidYamlScopeBase(const ryml::NodeRef& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {}) noexcept
 				: mNode(node)
 				, mParent(parent)
 				, mParentKey(perentKey)
@@ -100,7 +101,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			ryml::NodeRef mNode;
 			RapidYamlScopeBase* mParent;
-			key_type mParentKey;
+			key_type_view mParentKey;
 		};
 
 		/// <summary>
@@ -118,7 +119,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
 			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlArrayScope(const ryml::NodeRef& node, size_t size, RapidYamlScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+			explicit RapidYamlArrayScope(const ryml::NodeRef& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
 				: RapidYamlScopeBase(node, parent, perentKey)
 				, mSize(size)
 				, mIndex(0)
@@ -282,7 +283,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
 			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlObjectScope(const ryml::NodeRef& node, RapidYamlScopeBase* parent = nullptr, const key_type& perentKey = key_type())
+			explicit RapidYamlObjectScope(const ryml::NodeRef& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
 				: RapidYamlScopeBase(node, parent, perentKey)
 			{
 				assert(mNode.is_map());

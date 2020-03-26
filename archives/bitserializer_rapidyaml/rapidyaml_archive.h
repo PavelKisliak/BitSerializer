@@ -198,7 +198,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 					{
 						auto yamlValue = mNode[mIndex++];
 						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, this) : std::nullopt;
-					}			
+					}
+					return std::nullopt;
 				}
 				else
 				{
@@ -222,6 +223,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 						auto yamlValue = mNode[mIndex++];
 						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, yamlValue.num_children(), this) : std::nullopt;
 					}
+					return std::nullopt;  
 				}	
 				else
 				{

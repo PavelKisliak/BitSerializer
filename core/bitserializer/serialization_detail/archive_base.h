@@ -23,7 +23,8 @@ enum class SerializeMode
 enum class ArchiveType
 {
 	Json,
-	Xml
+	Xml,
+	Yaml
 };
 
 /// <summary>

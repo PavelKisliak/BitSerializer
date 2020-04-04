@@ -17,12 +17,13 @@
 namespace BitSerializer::Yaml::RapidYaml {
 	namespace Detail {
 
-		/// <summary>	
+		/// <summary>
 		/// YAML archive traits class.
 		/// </summary>
 		class RapidYamlArchiveTraits
 		{
 		public:
+			static constexpr ArchiveType archive_type = ArchiveType::Yaml;
 			using key_type = std::string;
 			using supported_key_types = TSupportedKeyTypes<std::string>;
 			using preferred_output_format = std::string;
@@ -30,6 +31,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			static constexpr char path_separator = '/';
 		};
 
+		// Forward declarations
 		template <SerializeMode TMode>
 		class RapidYamlObjectScope;
 
@@ -40,19 +42,24 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlScopeBase : public RapidYamlArchiveTraits
 		{
 		public:
+			using RapidYamlNode = ryml::NodeRef;
 			using key_type_view = std::basic_string_view<key_type::value_type>;
 
 			/// <summary>	Constructor. </summary>
 			/// <param name="node">	Node represented by current scope level. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
 			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlScopeBase(const ryml::NodeRef& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {}) noexcept
+			explicit RapidYamlScopeBase(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {}) noexcept
 				: mNode(node)
 				, mParent(parent)
 				, mParentKey(perentKey)
 			{ }
 
-			virtual ~RapidYamlScopeBase() {};
+			virtual ~RapidYamlScopeBase() = default;
+
+			/* disable copy */
+			RapidYamlScopeBase(const RapidYamlScopeBase&) = delete;
+			RapidYamlScopeBase& operator=(const RapidYamlScopeBase&) = delete;
 
 			/// <summary>	
 			/// Get node size (actual for sequence or map). 
@@ -74,8 +81,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 		protected:
+			RapidYamlScopeBase(RapidYamlScopeBase&&) = default;
+			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
+
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			bool LoadValue(const ryml::NodeRef& yamlValue, T& value)
+			bool LoadValue(const RapidYamlNode& yamlValue, T& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -84,11 +94,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			template <typename TSym, typename TAllocator>
-			bool LoadValue(const ryml::NodeRef& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+			bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
-				if constexpr (std::is_same_v<TSym, std::string::value_type>)				
+				if constexpr (std::is_same_v<TSym, std::string::value_type>)
 					yamlValue >> value;
 				else
 				{
@@ -99,7 +109,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return true;
 			}
 
-			ryml::NodeRef mNode;
+			RapidYamlNode mNode;
 			RapidYamlScopeBase* mParent;
 			key_type_view mParentKey;
 		};
@@ -113,13 +123,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 		{
 		public:
 
-			using iterator = ryml::NodeRef::iterator;
+			using iterator = RapidYamlNode::iterator;
 
 			/// <param name="node">	Node represented by current scope level. </param>
 			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
 			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlArrayScope(const ryml::NodeRef& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
+			explicit RapidYamlArrayScope(const RapidYamlNode& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
 				: RapidYamlScopeBase(node, parent, perentKey)
 				, mSize(size)
 				, mIndex(0)
@@ -223,7 +233,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 						auto yamlValue = mNode[mIndex++];
 						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, yamlValue.num_children(), this) : std::nullopt;
 					}
-					return std::nullopt;  
+					return std::nullopt;
 				}	
 				else
 				{
@@ -285,7 +295,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
 			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlObjectScope(const ryml::NodeRef& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
+			explicit RapidYamlObjectScope(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
 				: RapidYamlScopeBase(node, parent, perentKey)
 			{
 				assert(mNode.is_map());
@@ -406,11 +416,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 		};
 
-		inline void ErrorCallback(const char* msg, size_t length, void * /*user_data*/)
-		{
-			throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg + length });
-		}
-		
 		//TODO: check below
 		//Please note that since a ryml tree uses linear storage, the complexity of operator[]
 		//is linear on the number of children of the node on which it is invoked.
@@ -530,8 +535,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 			
-			/// <summary>	
-			/// Serialize node tree to YAML 
+			/// <summary>
+			/// Serialize node tree to YAML
 			/// </summary>
 			void Finalize()
 			{
@@ -547,10 +552,15 @@ namespace BitSerializer::Yaml::RapidYaml {
 								*arg << Convert::Utf8::bom;
 							};
 							*arg << ryml::emitrs<std::string>(mTree);
-						}					
+						}
 					}, mOutput);
 					mOutput = nullptr;
-				}		
+				}
+			}
+
+			~RapidYamlRootScope()
+			{
+				ryml::set_callbacks(mPrev);
 			}
 
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
@@ -560,13 +570,21 @@ namespace BitSerializer::Yaml::RapidYaml {
 			void Init()
 			{
 				mRootNode = mTree.rootref();
+				// TODO: is it thread safe?
+				mPrev = c4::yml::get_callbacks();
 				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
-				ryml::Callbacks cb(nullptr, nullptr, nullptr, &ErrorCallback);
+				ryml::Callbacks cb((void*)this, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
 				ryml::set_callbacks(cb);
 			}
-			
+
+			static void ErrorCallback(const char* msg, size_t length, [[maybe_unused]]void* user_data)
+			{
+				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg+length });
+			}
+
+			ryml::Callbacks mPrev;
 			ryml::Tree mTree;
-			ryml::NodeRef mRootNode;
+			RapidYamlNode mRootNode;
 		};
 		
 	}

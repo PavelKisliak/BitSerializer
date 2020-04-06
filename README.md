@@ -20,11 +20,11 @@ ___
 - Useful string conversion submodule (supports enums, classes, UTF encoding).
 
 #### Supported formats:
-| BitSerializer sub-module | Format | Encoding |Based on |
-| ------ | ------ | ------ | ------ |
-| bitserializer-cpprestjson | JSON | UTF-8 | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
-| bitserializer-rapidjson | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | [RapidJson](https://github.com/Tencent/rapidjson) |
-| bitserializer-pugixml | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | [PugiXml](https://github.com/zeux/pugixml) |
+| BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
+| ------ | ------ | ------ |:------:| ------ |
+| bitserializer-cpprestjson | JSON | UTF-8 | ❌ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
+| bitserializer-rapidjson | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
+| bitserializer-pugixml | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-7).
@@ -54,14 +54,37 @@ I understand that one of question that you should have - how much it costs from 
 
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 26 msec | 28 msec | 2 msec (-7.1%) |
-| RapidJson | JSON | Load object | 35 msec | 38 msec | 3 msec (-7.9%) |
-| C++ REST SDK | JSON | Save object | 199 msec | 200 msec | 1 msec (-0.5%) |
-| C++ REST SDK | JSON | Load object | 184 msec | 188 msec | 4 msec (-2.1%) |
-| PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec (-2.5%) |
-| PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec (-4.5%) |
+| RapidJson | JSON | Save object | 26 msec | 28 msec | 2 msec **(-7.1%)** |
+| RapidJson | JSON | Load object | 35 msec | 38 msec | 3 msec **(-7.9%)** |
+| C++ REST SDK | JSON | Save object | 199 msec | 200 msec | 1 msec **(-0.5%)** |
+| C++ REST SDK | JSON | Load object | 184 msec | 188 msec | 4 msec **(-2.1%)** |
+| PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec **(-2.5%)** |
+| PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec **(-4.5%)** |
 
-Results are depend to system hardware and compiler options, but important only differences in percentages which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
+Results are depend to system hardware and compiler options, but important only **differences in percentages** which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
+
+___
+## Table of contents
+- [How to install](#markdown-header-how-to-install)
+- [Hello world!](#markdown-header-hello-world!)
+- [Serializing class](#markdown-header-serializing-class)
+- [Serializing base class](#markdown-header-serializing-base-class)
+- [Serializing third party class](#markdown-header-serializing-third-party-class)
+- [Serializing enum types](#markdown-header-serializing-enum-types)
+- [Serialization STD types](#markdown-header-serialization-std-types)
+- [Specifics of serialization std::map](#markdown-header-specifics-of-serialization-std::map)
+- [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
+- [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
+- [Compile time checking](#markdown-header-compile-time-checking)
+- [Error handling](#markdown-header-error-handling)
+- [Thanks](#markdown-header-thanks)
+- [License](#markdown-header-license)
+
+### Details of formats and archives
+- [JSON](docs/json.md)
+- [XML](docs/xml.md)
+___
+
 
 #### How to install:
 The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
@@ -73,9 +96,6 @@ Now you need just include main file of BitSerializer which implements serializat
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 ```
-
-___
-## Tutorial
 
 ### Hello world!
 Let's get started with traditional and simple "Hello world!" example.

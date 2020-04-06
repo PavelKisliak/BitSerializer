@@ -7,6 +7,7 @@
 #include <functional>
 #include <tuple>
 #include <utility>
+#include "gtest/gtest.h"
 #include "auto_fixture.h"
 #include "bitserializer/bit_serializer.h"
 

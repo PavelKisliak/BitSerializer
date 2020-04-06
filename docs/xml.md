@@ -1,10 +1,11 @@
 ### [BitSerializer](../README.md) / XML
 
 Supported load/save XML from:
+
 - std::string: UTF-8
 - std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (with/without BOM)
 
-The BitSerializer uses as low level library PugiXml - one of fastest libraries for parse XML.
+The BitSerializer uses as low level library **PugiXml** - one of fastest libraries for parse **XML**.
 Supported base XML elements from specification 1.0 such nodes and attributes.
 
 #### How to install (VCPKG)
@@ -18,7 +19,7 @@ Include next files:
 ```
 
 ### Implementation detail
-XML format requires root named node, but BitSerializer allows to serialize objects with and without keys. When name for root node was not provided, BitSerializer uses default name "root" for objects and "array" for arrays.
+XML format requires root named node, but BitSerializer allows to serialize objects with and without keys. When name for root node was not provided, BitSerializer uses default name "**root**" for objects and "**array**" for arrays.
 ```cpp
 class CPoint
 {
@@ -55,7 +56,8 @@ This example outputs to the console:
 XML with defined root name: <?xml version="1.0"?><Point><x>10</x><y>20</y></Point>
 XML without defined root name: <?xml version="1.0"?><root><x>10</x><y>20</y></root>
 ```
-By default, PugiXml uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be wchar_t (and BitSerializer also will need the same key type too). You can use universal adapters such MakeAutoKeyValue() and MakeAutoAttributeValue() for do not care about key types but with possible performance penalty for conversion.
+
+By default, **PugiXml** uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be wchar_t (and BitSerializer also will need the same key type too). You can use universal adapters such **MakeAutoKeyValue()** and **MakeAutoAttributeValue()** for do not care about key types but with possible performance penalty for conversion.
 ```cpp
 	void Serialize(TArchive& archive)
 	{
@@ -65,7 +67,7 @@ By default, PugiXml uses 8-bit chars as keys (for nodes and attributes), but wit
 ```
 
 #### Serialization attributes
-The XML nodes perfectly fits to common BitSerialazer interface, but serialization attributes is a bit specific, for support them, BitSerializer has one more helper function - MakeAttributeValue().
+The XML nodes perfectly fits to common BitSerialazer interface, but serialization attributes is a bit specific, for support them, BitSerializer has one more helper function - **MakeAttributeValue()**.
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"

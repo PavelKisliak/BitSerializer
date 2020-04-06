@@ -66,13 +66,13 @@ Results are depend to system hardware and compiler options, but important only *
 ___
 ## Table of contents
 - [How to install](#markdown-header-how-to-install)
-- [Hello world!](#markdown-header-hello-world!)
+- [Hello world!](#markdown-header-hello-world)
 - [Serializing class](#markdown-header-serializing-class)
 - [Serializing base class](#markdown-header-serializing-base-class)
 - [Serializing third party class](#markdown-header-serializing-third-party-class)
 - [Serializing enum types](#markdown-header-serializing-enum-types)
 - [Serialization STD types](#markdown-header-serialization-std-types)
-- [Specifics of serialization std::map](#markdown-header-specifics-of-serialization-std::map)
+- [Specifics of serialization std::map](#markdown-header-specifics-of-serialization-std-map)
 - [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
 - [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
 - [Compile time checking](#markdown-header-compile-time-checking)
@@ -97,7 +97,7 @@ Now you need just include main file of BitSerializer which implements serializat
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 ```
 
-### Hello world!
+### Hello world
 Let's get started with traditional and simple "Hello world!" example.
 ```cpp
 #include <cassert>
@@ -198,8 +198,8 @@ void Serialize(TArchive& archive)
 };
 ```
 
-### Serializing third party class (non-intrusive serialization)
-For serialize a third party class, which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time a possibility of type serialization in the current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
+### Serializing third party class
+For serialize a third party class (non-intrusive serialization), which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time a possibility of type serialization in the current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -369,7 +369,7 @@ BitSerializer has on board serialization for all STD containers. Serialization o
 #include "bitserializer/types/std/unordered_map.h"
 #include "bitserializer/types/std/pair.h"
 ```
-### Specifics of serialization std::map
+### Specifics of serialization STD map
 Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types). This needs to proper serialization JavaScript objects. If you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
 ```cpp
 std::map<std::string, int> testMap = 

@@ -22,9 +22,9 @@ ___
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
-| bitserializer-cpprestjson | JSON | UTF-8 | ❌ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
-| bitserializer-rapidjson | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
-| bitserializer-pugixml | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
+| [bitserializer-cpprestjson](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ❌ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
+| [bitserializer-rapidjson](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
+| [bitserializer-pugixml](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-7).
@@ -50,7 +50,7 @@ ___
 [Full log of changes](History.md)
 
 ### Performance
-I understand that one of question that you should have - how much it costs from performance perspective? To answer this, I developed a performance test which loads/saves a test model via the BitSerializer and via the API provided by base libraries. The model for tests includes itself a different types which are supported by JSON format. The source code of the test also available [here](tests/performance_tests).
+For check performance overhead, was developed a test which serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats. The source code of the test also available [here](tests/performance_tests).
 
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
@@ -61,7 +61,7 @@ I understand that one of question that you should have - how much it costs from 
 | PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec **(-2.5%)** |
 | PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec **(-4.5%)** |
 
-Results are depend to system hardware and compiler options, but important only **differences in percentages** which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
+Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
 
 ___
 ## Table of contents

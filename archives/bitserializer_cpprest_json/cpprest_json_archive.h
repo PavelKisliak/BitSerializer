@@ -581,7 +581,7 @@ private:
 /// <remarks>
 /// The JSON-key type is depends from type utility::string_t defined in the CppRestSdk and it is different on Windows and *nix platforms.
 /// For stay your code cross compiled you can use macros _XPLATSTR("MyKey") from CppRestSdk or
-/// use BitSerializer::AutoKeyValue() but with possible small overhead for converting.
+/// use MakeAutoKeyValue() but with possible small overhead for converting.
 /// </remarks>
 using JsonArchive = MediaArchiveBase<
 	Detail::JsonArchiveTraits,

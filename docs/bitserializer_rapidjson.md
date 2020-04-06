@@ -1,4 +1,4 @@
-### [BitSerializer](../README.md) / JSON
+### [BitSerializer](../README.md) / JSON (based on RapidJson)
 
 Supported load/save JSON from:
 
@@ -19,3 +19,5 @@ Include next files:
 ```
 
 ### Implementation detail
+The JSON specification allows to store on root not just objects and arrays but also more primitive types such as string, number and boolean.
+The BitSerializer also supports this abilities, have a look to [Hello world example](../samples/hello_world/hello_world.cpp).

@@ -12,7 +12,7 @@ The BitSerializer uses as low level library [PugiXml](https://github.com/zeux/pu
 vcpkg install bitserializer-pugixml:x64-windows
 ```
 Specify required triplet for your platform instead of "x64-windows".
-Include next files:
+After installation packages just include next files:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_pugixml/pugixml_archive.h"
@@ -117,6 +117,14 @@ int main()
 ### Pretty format
 As base library (PugiXml) has the functionality for output to human readable format, the BitSerializer also allows to do this:
 ```cpp
+#include <iostream>
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/types/std/vector.h"
+#include "bitserializer_pugixml/pugixml_archive.h"
+
+using namespace BitSerializer::Xml::PugiXml;
+using namespace BitSerializer;
+
 class CPoint
 {
 public:
@@ -149,7 +157,7 @@ int main()
 }
 ```
 This code outputs to the console:
-```
+```xml
 <?xml version="1.0"?>
 <Points>
   <object x="10" y="20" />

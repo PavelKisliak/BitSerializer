@@ -66,13 +66,13 @@ Results are depend to system hardware and compiler options, but important only *
 ___
 ## Table of contents
 - [How to install](#markdown-header-how-to-install)
-- [Hello world!](#markdown-header-hello-world)
+- [Hello world](#markdown-header-hello-world)
 - [Serializing class](#markdown-header-serializing-class)
 - [Serializing base class](#markdown-header-serializing-base-class)
 - [Serializing third party class](#markdown-header-serializing-third-party-class)
 - [Serializing enum types](#markdown-header-serializing-enum-types)
 - [Serialization STD types](#markdown-header-serialization-std-types)
-- [Specifics of serialization std::map](#markdown-header-specifics-of-serialization-std-map)
+- [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
 - [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
 - [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
 - [Compile time checking](#markdown-header-compile-time-checking)
@@ -80,17 +80,20 @@ ___
 - [Thanks](#markdown-header-thanks)
 - [License](#markdown-header-license)
 
-### Details of formats and archives
-- [JSON](docs/json.md)
-- [XML](docs/xml.md)
+### Details of archives
+- [JSON archive "bitserializer-cpprestjson"](docs/bitserializer_cpprest_json.md)
+- [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
+- [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
+
 ___
 
 
 #### How to install:
 The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
 ```shell
-vcpkg install bitserializer-rapidjson bitserializer-rapidjson:x64-windows
+vcpkg install bitserializer-rapidjson:x64-windows
 ```
+Specify required triplet for your platform instead of "x64-windows".
 Now you need just include main file of BitSerializer which implements serialization and file, which implements required format (JSON for example).
 ```cpp
 #include "bitserializer/bit_serializer.h"

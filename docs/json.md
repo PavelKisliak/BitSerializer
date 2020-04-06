@@ -1,2 +1,0 @@
-### [BitSerializer](../README.md) / JSON
-

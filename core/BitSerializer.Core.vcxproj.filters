@@ -36,9 +36,6 @@
     <ClInclude Include="bitserializer\serialization_detail\attr_key_value.h">
       <Filter>serialization_detail</Filter>
     </ClInclude>
-    <ClInclude Include="bitserializer\serialization_detail\base_object.h">
-      <Filter>serialization_detail</Filter>
-    </ClInclude>
     <ClInclude Include="bitserializer\serialization_detail\errors_handling.h">
       <Filter>serialization_detail</Filter>
     </ClInclude>

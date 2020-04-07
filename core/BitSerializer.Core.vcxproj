@@ -28,7 +28,6 @@
     <ClInclude Include="bitserializer\serialization_detail\archive_base.h" />
     <ClInclude Include="bitserializer\serialization_detail\archive_traits.h" />
     <ClInclude Include="bitserializer\serialization_detail\attr_key_value.h" />
-    <ClInclude Include="bitserializer\serialization_detail\base_object.h" />
     <ClInclude Include="bitserializer\serialization_detail\errors_handling.h" />
     <ClInclude Include="bitserializer\serialization_detail\generic_container.h" />
     <ClInclude Include="bitserializer\serialization_detail\generic_map.h" />

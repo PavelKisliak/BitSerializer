@@ -6,7 +6,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "convert_fundamental.h"
 #include "convert_utf.h"
@@ -106,11 +106,11 @@ void To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, 
 //-----------------------------------------------------------------------------
 // Convert from filesystem::path to string
 //-----------------------------------------------------------------------------
-inline void To(const std::experimental::filesystem::v1::path& path, std::string& ret_Str) {
+inline void To(const std::filesystem::path& path, std::string& ret_Str) {
 	ret_Str.assign(path.generic_string());
 }
 
-inline void To(const std::experimental::filesystem::v1::path& path, std::wstring& ret_Str) {
+inline void To(const std::filesystem::path& path, std::wstring& ret_Str) {
 	ret_Str.assign(path.generic_wstring());
 }
 

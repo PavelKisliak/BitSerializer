@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <experimental/filesystem>
+#include <filesystem>
 #include "gtest/gtest.h"
 #include "common_test_entities.h"
 
@@ -178,7 +178,7 @@ template <typename TArchive, typename T>
 void TestSerializeClassToFile(T&& value)
 {
 	// Arrange
-	auto path = std::experimental::filesystem::temp_directory_path() / "TestArchive.data";
+	auto path = std::filesystem::temp_directory_path() / "TestArchive.data";
 	std::decay_t<T> actual;
 
 	// Act

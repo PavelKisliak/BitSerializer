@@ -36,7 +36,6 @@ ___
 - [ + ] Add formatting options for output text (but formatting is not supported in CppRestJson).
 - [ + ] Add support encoding to various UTF based formats (defines in serialization options).
 - [ + ] Add optional writing the BOM to output stream/file.
-- [ + ] Remove dependency from base library types for in/out text (now uses std::string everywhere).
 - [ + ] Add UTF encoding when serializing std::wstring.
 - [ + ] Add serialization for all STD containers which were missed before.
 - [ + ] Add serialization C++ union type.

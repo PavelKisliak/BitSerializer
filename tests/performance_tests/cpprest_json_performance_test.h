@@ -8,7 +8,7 @@
 #include "base_test_models.h"
 
 
-class CppRestJsonPerformanceTestModel : public BasePerformanceTestModel<utility::char_t>
+class CppRestJsonPerformanceTestModel final : public BasePerformanceTestModel<utility::char_t>
 {
 public:
 	~CppRestJsonPerformanceTestModel() = default;
@@ -46,7 +46,8 @@ public:
 
 		// Save array of objects
 		web::json::value& objectsJsonArray = rootObj[_XPLATSTR("ArrayOfObjects")] = web::json::value::array(ARRAY_SIZE);
-		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+		for (size_t i = 0; i < ARRAY_SIZE; ++i)
+		{
 			const auto& obj = mArrayOfObjects[i];
 			auto& jObj = objectsJsonArray[i] = web::json::value::object();
 			jObj[_XPLATSTR("TestBoolValue")] = web::json::value(obj.mTestBoolValue);
@@ -113,7 +114,8 @@ public:
 		// Load array of objects
 		const auto& objectsJsonArray = rootObj.find(_XPLATSTR("ArrayOfObjects"))->second.as_array();
 		i = 0;
-		for (const auto& jVal : objectsJsonArray) {
+		for (const auto& jVal : objectsJsonArray)
+		{
 			auto& obj = mArrayOfObjects[i];
 			const auto& jObj = jVal.as_object();
 			obj.mTestBoolValue = jObj.find(_XPLATSTR("TestBoolValue"))->second.as_bool();

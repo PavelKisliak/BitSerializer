@@ -9,7 +9,7 @@
 #include <optional>
 #include <variant>
 #include "bitserializer/serialization_detail/errors_handling.h"
-#include "bitserializer/serialization_detail/media_archive_base.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 // External dependency (PugiXml)
 #include "pugixml.hpp"
@@ -26,10 +26,10 @@ struct PugiXmlArchiveTraits
 	// Key type is related to PugiXml's definition PUGIXML_WCHAR_MODE
 #ifdef PUGIXML_WCHAR_MODE
 	using key_type = std::wstring;
-	using supported_key_types = SupportedKeyTypes<key_type, const wchar_t*>;
+	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*>;
 #else
 	using key_type = std::string;
-	using supported_key_types = SupportedKeyTypes<key_type, const char*>;
+	using supported_key_types = TSupportedKeyTypes<key_type, const char*>;
 #endif
 
 	using preferred_output_format = std::string;
@@ -148,7 +148,7 @@ class PugiXmlObjectScope;
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlArrayScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlArrayScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlArrayScope(const pugi::xml_node& node)
@@ -272,7 +272,7 @@ protected:
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlAttributeScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlAttributeScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlAttributeScope(const pugi::xml_node& node)
@@ -401,7 +401,7 @@ public:
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode>
-class PugiXmlObjectScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlObjectScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlObjectScope(const pugi::xml_node& node)
@@ -490,14 +490,14 @@ protected:
 /// XML root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class PugiXmlRootScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlRootScope(const std::string& inputStr)
 		: mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		pugi::xml_parse_result result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
+		const pugi::xml_parse_result result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
 		if (!result)
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
@@ -652,11 +652,11 @@ private:
 /// - <c>std::istream and std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
 /// <remarks>
-/// The JSON-key type is depends from global definition in the PugiXml 'PUGIXML_WCHAR_MODE' in the PugiXml, by default uses std::string.
+/// The XML-key type is depends from global definition in the PugiXml 'PUGIXML_WCHAR_MODE' in the PugiXml, by default uses std::string.
 /// For stay your code cross compiled you can use macros PUGIXML_TEXT("MyKey") from PugiXml or
 /// use BitSerializer::AutoKeyValue() but with possible small overhead for converting.
 /// </remarks>
-using XmlArchive = MediaArchiveBase<
+using XmlArchive = TArchiveBase<
 	Detail::PugiXmlArchiveTraits,
 	Detail::PugiXmlRootScope<SerializeMode::Load>,
 	Detail::PugiXmlRootScope<SerializeMode::Save>>;

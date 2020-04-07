@@ -8,7 +8,7 @@
 #include <optional>
 #include <variant>
 #include "bitserializer/serialization_detail/errors_handling.h"
-#include "bitserializer/serialization_detail/media_archive_base.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 // External dependency (RapidJson)
 #include "rapidjson/document.h"
@@ -31,7 +31,7 @@ struct RapidJsonArchiveTraits
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
-	using supported_key_types = SupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
+	using supported_key_types = TSupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -47,7 +47,7 @@ class RapidJsonObjectScope;
 /// <summary>
 /// Base class of JSON scope
 /// </summary>
-/// <seealso cref="MediaArchiveBase" />
+/// <seealso cref="TArchiveBase" />
 template <class TEncoding>
 class RapidJsonScopeBase : public RapidJsonArchiveTraits<TEncoding>
 {
@@ -149,7 +149,7 @@ protected:
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode, class TEncoding, class TAllocator>
-class RapidJsonArrayScope final : public ArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
+class RapidJsonArrayScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
@@ -310,7 +310,7 @@ public:
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
 template <SerializeMode TMode, class TEncoding, class TAllocator>
-class RapidJsonObjectScope final : public ArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
+class RapidJsonObjectScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
@@ -446,7 +446,7 @@ protected:
 /// JSON root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode, class TEncoding>
-class RapidJsonRootScope final : public ArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
+class RapidJsonRootScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<TEncoding>;
@@ -652,7 +652,7 @@ private:
 /// - <c>std::string</c>: UTF-8
 /// - <c>std::istream and std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
-using JsonArchive = MediaArchiveBase<
+using JsonArchive = TArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,
 	Detail::RapidJsonRootScope<SerializeMode::Load, rapidjson::UTF8<>>,
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF8<>>>;

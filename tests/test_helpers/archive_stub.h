@@ -10,7 +10,7 @@
 #include <optional>
 #include <type_traits>
 #include "bitserializer/serialization_detail/errors_handling.h"
-#include "bitserializer/serialization_detail/media_archive_base.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 
 namespace BitSerializer {
@@ -34,7 +34,7 @@ class TestIoData : public std::variant<bool, int64_t, double, std::wstring, Test
 struct ArchiveStubTraits
 {
 	using key_type = std::wstring;
-	using supported_key_types = SupportedKeyTypes<std::wstring>;
+	using supported_key_types = TSupportedKeyTypes<std::wstring>;
 	using preferred_output_format = TestIoData;
 	static constexpr char path_separator = '/';
 
@@ -50,7 +50,7 @@ class ArchiveStubObjectScope;
 /// <summary>
 /// Base class of archive stub
 /// </summary>
-/// <seealso cref="MediaArchiveBase" />
+/// <seealso cref="TArchiveBase" />
 class ArchiveStubScopeBase : public ArchiveStubTraits
 {
 public:
@@ -151,7 +151,7 @@ protected:
 /// </summary>
 /// <seealso cref="ArchiveStubScopeBase" />
 template <SerializeMode TMode>
-class ArchiveStubArrayScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
+class ArchiveStubArrayScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubArrayScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
@@ -285,7 +285,7 @@ public:
 /// </summary>
 /// <seealso cref="ArchiveStubScopeBase" />
 template <SerializeMode TMode>
-class ArchiveStubObjectScope final : public ArchiveScope<TMode> , public ArchiveStubScopeBase
+class ArchiveStubObjectScope final : public TArchiveScope<TMode> , public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubObjectScope(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
@@ -423,7 +423,7 @@ protected:
 /// Root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class ArchiveStubRootScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
+class ArchiveStubRootScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
 	explicit ArchiveStubRootScope(const TestIoData& inputData)
@@ -517,7 +517,7 @@ private:
 /// <summary>
 /// Declaration of archive stub
 /// </summary>
-using ArchiveStub = MediaArchiveBase<
+using ArchiveStub = TArchiveBase<
 	Detail::ArchiveStubTraits,
 	Detail::ArchiveStubRootScope<SerializeMode::Load>,
 	Detail::ArchiveStubRootScope<SerializeMode::Save>>;

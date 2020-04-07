@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <string>
 #include <optional>
-#include "media_archive_base.h"
+#include "archive_base.h"
 
 namespace BitSerializer {
 
@@ -18,7 +18,7 @@ struct is_serializable_class
 {
 private:
 	template <typename U>
-	static decltype(std::declval<U>().Serialize(std::declval<ArchiveScope<SerializeMode::Load>>), void(), std::true_type()) test(int);
+	static decltype(std::declval<U>().Serialize(std::declval<TArchiveScope<SerializeMode::Load>>), void(), std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);

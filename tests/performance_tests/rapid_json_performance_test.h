@@ -4,12 +4,11 @@
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
-#include "bitserializer/string_conversion.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 #include "base_test_models.h"
 
 
-class RapidJsonPerformanceTestModel : public BasePerformanceTestModel<char>
+class RapidJsonPerformanceTestModel final : public BasePerformanceTestModel<char>
 {
 public:
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
@@ -127,11 +126,12 @@ public:
 		// Load array of objects
 		const auto& objectsJsonArray = jObject.FindMember("ArrayOfObjects")->value;
 		i = 0;
-		for (auto jItem = objectsJsonArray.Begin(); jItem != objectsJsonArray.End(); ++jItem) {
+		for (auto jItem = objectsJsonArray.Begin(); jItem != objectsJsonArray.End(); ++jItem)
+		{
 			auto& obj = mArrayOfObjects[i];
 			const auto& jObj = jItem->GetObject();
 			obj.mTestBoolValue = jObj.FindMember("TestBoolValue")->value.GetBool();
-			obj.mTestCharValue = jObj.FindMember("TestCharValue")->value.GetInt();
+			obj.mTestCharValue = static_cast<char>(jObj.FindMember("TestCharValue")->value.GetInt());
 			obj.mTestInt16Value = jObj.FindMember("TestInt16Value")->value.GetInt();
 			obj.mTestInt32Value = jObj.FindMember("TestInt32Value")->value.GetInt();
 			obj.mTestInt64Value = jObj.FindMember("TestInt64Value")->value.GetInt64();

@@ -9,7 +9,7 @@
 #include "base_test_models.h"
 
 
-class PugiXmlPerformanceTestModel : public BasePerformanceTestModel<char>
+class PugiXmlPerformanceTestModel final : public BasePerformanceTestModel<char>
 {
 public:
 	const char* GetName() override { return "PugiXml"; }
@@ -115,7 +115,7 @@ public:
 		{
 			auto& obj = mArrayOfObjects[i];
 			obj.mTestBoolValue = it->child(PUGIXML_TEXT("TestBoolValue")).text().as_bool();
-			obj.mTestCharValue = it->child(PUGIXML_TEXT("TestCharValue")).text().as_int();
+			obj.mTestCharValue = static_cast<char>(it->child(PUGIXML_TEXT("TestCharValue")).text().as_int());
 			obj.mTestInt16Value = it->child(PUGIXML_TEXT("TestInt16Value")).text().as_int();
 			obj.mTestInt32Value = it->child(PUGIXML_TEXT("TestInt32Value")).text().as_int();
 			obj.mTestInt64Value = it->child(PUGIXML_TEXT("TestInt64Value")).text().as_llong();

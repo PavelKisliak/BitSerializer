@@ -9,7 +9,7 @@
 #include <optional>
 #include <variant>
 #include "bitserializer/serialization_detail/errors_handling.h"
-#include "bitserializer/serialization_detail/media_archive_base.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -38,7 +38,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 		{
 		public:
 			using key_type = std::string;
-			using supported_key_types = SupportedKeyTypes<std::string>;
+			using supported_key_types = TSupportedKeyTypes<std::string>;
 			using preferred_output_format = std::string;
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
@@ -121,7 +121,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 		/// </summary>
 		/// <seealso cref="YamlScopeBase" />
 		template <SerializeMode TMode>
-		class YamlArrayScope final: public ArchiveScope<TMode>, public YamlScopeBase
+		class YamlArrayScope final: public TArchiveScope<TMode>, public YamlScopeBase
 		{
 		public:
 
@@ -288,7 +288,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 		/// </summary>
 		/// <seealso cref="YamlScopeBase" />
 		template <SerializeMode TMode>
-		class YamlObjectScope final: public ArchiveScope<TMode>, public YamlScopeBase
+		class YamlObjectScope final: public TArchiveScope<TMode>, public YamlScopeBase
 		{
 		public:
 			/// <param name="node">	Node represented by current scope level. </param>
@@ -413,7 +413,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 		/// </summary>
 		/// <seealso cref="YamlScopeBase" />
 		template <SerializeMode TMode>
-		class YamlRootScope final: public ArchiveScope<TMode>, public YamlScopeBase
+		class YamlRootScope final : public TArchiveScope<TMode>, public YamlScopeBase
 		{
 		public:
 
@@ -598,7 +598,7 @@ namespace BitSerializer::Yaml::YamlCpp {
 	/// - <c>std::string</c>: UTF-8
 	/// - <c>std::istream and std::ostream</c>: UTF-8
 	/// </summary>
-	using YamlArchive = MediaArchiveBase<
+	using YamlArchive = TArchiveBase<
 		Detail::YamlArchiveTraits,
 		Detail::YamlRootScope<SerializeMode::Load>,
 		Detail::YamlRootScope<SerializeMode::Save>>;

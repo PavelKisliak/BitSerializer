@@ -10,7 +10,7 @@ using namespace BitSerializer;
 /// <summary>
 /// Test archive, which implements loading mode and serialization types WITHOUT keys
 /// </summary>
-class TestArchive_LoadMode : ArchiveScope<SerializeMode::Load>
+class TestArchive_LoadMode : TArchiveScope<SerializeMode::Load>
 {
 public:
 	TestArchive_LoadMode(const std::string& inputData) { }
@@ -30,7 +30,7 @@ public:
 /// <summary>
 /// Test archive, which implements save mode and serialization types WITH keys
 /// </summary>
-class TestArchive_SaveMode : ArchiveScope<SerializeMode::Save>
+class TestArchive_SaveMode : TArchiveScope<SerializeMode::Save>
 {
 public:
 	using key_type = std::string;

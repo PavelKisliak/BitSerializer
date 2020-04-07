@@ -25,6 +25,7 @@
     <ClInclude Include="bitserializer\conversion_detail\convert_fundamental.h" />
     <ClInclude Include="bitserializer\conversion_detail\convert_utf.h" />
     <ClInclude Include="bitserializer\conversion_detail\object_traits.h" />
+    <ClInclude Include="bitserializer\serialization_detail\archive_base.h" />
     <ClInclude Include="bitserializer\serialization_detail\archive_traits.h" />
     <ClInclude Include="bitserializer\serialization_detail\attr_key_value.h" />
     <ClInclude Include="bitserializer\serialization_detail\base_object.h" />
@@ -34,7 +35,6 @@
     <ClInclude Include="bitserializer\serialization_detail\generic_set.h" />
     <ClInclude Include="bitserializer\serialization_detail\key_value.h" />
     <ClInclude Include="bitserializer\serialization_detail\key_value_proxy.h" />
-    <ClInclude Include="bitserializer\serialization_detail\media_archive_base.h" />
     <ClInclude Include="bitserializer\serialization_detail\object_traits.h" />
     <ClInclude Include="bitserializer\serialization_detail\serialization_base_types.h" />
     <ClInclude Include="bitserializer\serialization_detail\serialization_context.h" />

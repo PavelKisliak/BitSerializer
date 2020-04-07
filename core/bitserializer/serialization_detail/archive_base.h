@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2020 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -30,42 +30,41 @@ enum class ArchiveType
 /// Class for provide information about supported key types in the archive.
 /// </summary>
 template <class ...KeyTypes>
-using SupportedKeyTypes = std::tuple<KeyTypes...>;
+using TSupportedKeyTypes = std::tuple<KeyTypes...>;
 
 /// <summary>
-/// Base class of scope in archive (lower level of media archive).
+/// Base class of scope in archive (lower level of archive).
 /// Implementation should have certain set of serialization methods which depending from structure of format.
 /// The format (like JSON for example) can have several levels with different allowed serialization operations.
 /// </summary>
 template <SerializeMode TMode>
-class ArchiveScope
+class TArchiveScope
 {
 public:
-	ArchiveScope() = default;
+	TArchiveScope() = default;
 
-	ArchiveScope(const ArchiveScope&) = delete;
-	ArchiveScope& operator=(const ArchiveScope&) = delete;
+	TArchiveScope(const TArchiveScope&) = delete;
+	TArchiveScope& operator=(const TArchiveScope&) = delete;
 
 	static constexpr SerializeMode GetMode() noexcept	{ return TMode; }
 	static constexpr bool IsSaving() noexcept			{ return TMode == SerializeMode::Save; }
 	static constexpr bool IsLoading() noexcept			{ return TMode == SerializeMode::Load; }
 
 protected:
-	~ArchiveScope() = default;
-	ArchiveScope(ArchiveScope&&) = default;
-	ArchiveScope& operator=(ArchiveScope&&) = default;
+	~TArchiveScope() = default;
+	TArchiveScope(TArchiveScope&&) = default;
+	TArchiveScope& operator=(TArchiveScope&&) = default;
 };
 
 /// <summary>
-/// Base class of media-archive (wrapper over archive's root scope).
-/// Scopes can be implemented as separate for load and save operations or all in one.
+/// Base class of archive.
 /// </summary>
 template <typename TArchiveTraits, class TInputArchive, class TOutputArchive>
-class MediaArchiveBase : public TArchiveTraits
+class TArchiveBase : public TArchiveTraits
 {
 public:
 	using input_archive_type = TInputArchive;
 	using output_archive_type = TOutputArchive;
 };
 
-}	// namespace BitSerializer
+}

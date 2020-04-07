@@ -9,7 +9,7 @@
 #include <variant>
 #include <optional>
 #include "bitserializer/serialization_detail/errors_handling.h"
-#include "bitserializer/serialization_detail/media_archive_base.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 // External dependency (C++ REST SDK)
 #include "cpprest/json.h"
@@ -25,10 +25,10 @@ struct JsonArchiveTraits
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 #ifdef _UTF16_STRINGS
 	using key_type = std::wstring;
-	using supported_key_types = SupportedKeyTypes<std::wstring>;
+	using supported_key_types = TSupportedKeyTypes<std::wstring>;
 #else
 	using key_type = std::string;
-	using supported_key_types = SupportedKeyTypes<std::string>;
+	using supported_key_types = TSupportedKeyTypes<std::string>;
 #endif
 	using preferred_output_format = std::string;
 	using preferred_stream_char_type = char;
@@ -45,7 +45,7 @@ class JsonObjectScope;
 /// <summary>
 /// Base class of JSON scope
 /// </summary>
-/// <seealso cref="MediaArchiveBase" />
+/// <seealso cref="TArchiveBase" />
 class JsonScopeBase : public JsonArchiveTraits
 {
 public:
@@ -132,7 +132,7 @@ protected:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonArrayScope final : public ArchiveScope<TMode>, public JsonScopeBase
+class JsonArrayScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 protected:
 	size_t mSize;
@@ -284,7 +284,7 @@ public:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonObjectScope final : public ArchiveScope<TMode>, public JsonScopeBase
+class JsonObjectScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
 	explicit JsonObjectScope(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
@@ -410,7 +410,7 @@ protected:
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
 template <SerializeMode TMode>
-class JsonRootScope final : public ArchiveScope<TMode>, public JsonScopeBase
+class JsonRootScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
 	explicit JsonRootScope(const std::string& inputStr)
@@ -583,7 +583,7 @@ private:
 /// For stay your code cross compiled you can use macros _XPLATSTR("MyKey") from CppRestSdk or
 /// use MakeAutoKeyValue() but with possible small overhead for converting.
 /// </remarks>
-using JsonArchive = MediaArchiveBase<
+using JsonArchive = TArchiveBase<
 	Detail::JsonArchiveTraits,
 	Detail::JsonRootScope<SerializeMode::Load>,
 	Detail::JsonRootScope<SerializeMode::Save>>;

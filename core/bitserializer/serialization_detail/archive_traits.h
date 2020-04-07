@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <type_traits>
-#include "media_archive_base.h"
+#include "archive_base.h"
 #include "object_traits.h"
 
 namespace BitSerializer {
@@ -15,8 +15,8 @@ namespace BitSerializer {
 template <typename T>
 struct is_archive_scope
 {
-	constexpr static bool value = std::is_base_of<ArchiveScope<SerializeMode::Load>, T>::value ||
-		std::is_base_of<ArchiveScope<SerializeMode::Save>, T>::value;
+	constexpr static bool value = std::is_base_of<TArchiveScope<SerializeMode::Load>, T>::value ||
+		std::is_base_of<TArchiveScope<SerializeMode::Save>, T>::value;
 };
 
 template <typename T>

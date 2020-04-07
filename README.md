@@ -75,6 +75,7 @@ ___
 - [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
 - [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
 - [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
+- [Serialization to streams and files](#markdown-header-serialization-to-streams-and-files)
 - [Compile time checking](#markdown-header-compile-time-checking)
 - [Error handling](#markdown-header-error-handling)
 - [Thanks](#markdown-header-thanks)
@@ -528,6 +529,57 @@ Path: /TestString
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 
+#### Serialization to streams and files
+All archives have support for serialization to streams, the differences are only in the supported set of encodings.
+```cpp
+class CPoint
+{
+public:
+	CPoint() = default;
+	CPoint(int x, int y)
+		: x(x), y(y)
+	{ }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << MakeAutoKeyValue("x", x);
+		archive << MakeAutoKeyValue("y", y);
+	}
+
+	int x = 0, y = 0;
+};
+
+int main()
+{
+	auto testObj = CPoint(100, 200);
+
+	SerializationOptions serializationOptions;
+	serializationOptions.streamOptions.encoding = Convert::UtfType::Utf8;
+	serializationOptions.streamOptions.writeBom = false;
+
+	// Save to string stream
+	std::stringstream outputStream;
+	BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions);
+	std::cout << outputStream.str() << std::endl;
+
+	// Load from string stream
+	CPoint loadedObj;
+	BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
+
+	assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);
+	return 0;
+}
+```
+[See full sample](samples/validation/serialize_to_stream.cpp)
+
+Two other API methods are used for serialization to files:
+```cpp
+	BitSerializer::SaveObjectToFile<JsonArchive>(testObj, "D:\test_obj.json");
+	BitSerializer::LoadObjectFromFile<JsonArchive>(testObj, "D:\test_obj.json");
+```
+They are just wrappers of serialization methods into streams.
+
 #### Compile time checking
 The new C++ 17 ability «if constexpr» helps to generate clear error messages.
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
@@ -563,4 +615,4 @@ Thanks
 
 License
 ----
-MIT, Copyright (C) 2018 by Pavel Kisliak
+MIT, Copyright (C) 2018-2020 by Pavel Kisliak

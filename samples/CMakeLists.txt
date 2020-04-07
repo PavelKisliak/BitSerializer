@@ -4,10 +4,12 @@ add_subdirectory(hello_world)
 add_subdirectory(validation)
 add_subdirectory(serialize_third_party_class)
 add_subdirectory(multiformat_customization)
+add_subdirectory(serialize_to_stream)
 
 add_custom_target(samples DEPENDS
 	hello_world
 	validation
 	serialize_third_party_class
 	multiformat_customization
+	serialize_to_stream
 )

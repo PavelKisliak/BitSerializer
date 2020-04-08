@@ -88,7 +88,7 @@ ___
 ___
 
 
-#### How to install:
+### How to install:
 The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
 ```shell
 vcpkg install bitserializer-rapidjson:x64-windows
@@ -528,8 +528,10 @@ Path: /TestString
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 
-#### Serialization to streams and files
-All archives have support for serialization to streams, the differences are only in the supported set of encodings.
+### Serialization to streams and files
+All archives in the BitSerializer support streams, usually it's a sequence of bytes in UTF encoding (with the exception of binary formats).
+Also supported detect/writing BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)).
+
 ```cpp
 class CPoint
 {
@@ -579,7 +581,7 @@ Two other API methods are used for serialization to files:
 ```
 They are just wrappers of serialization methods into streams.
 
-#### Compile time checking
+### Compile time checking
 The new C++ 17 ability «if constexpr» helps to generate clear error messages.
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
 ```cpp
@@ -593,7 +595,7 @@ inline void Serialize(TArchive& archive)
 };
 ```
 
-#### Error handling
+### Error handling
 ```cpp
 try
 {

@@ -4,24 +4,20 @@
 *******************************************************************************/
 #pragma once
 #include "conversion_detail/convert_detail.h"
-#include "conversion_detail/convert_utf.h"
 
-/// <summary>
-/// Type conversions to/from string
-/// </summary>
 namespace BitSerializer::Convert
 {
 	/// <summary>
-	/// Universal function for convert any value to/from string.
+	/// Universal function for convert value.
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>The converted value</returns>
 	template <typename TOut, typename TIn>
 	TOut To(TIn&& value)
 	{
-		if constexpr (std::is_convertible_v<std::decay_t<TIn>, TOut>) {
-			return std::forward<TIn>(value);
-		}
+		// Convert to the same type
+		if constexpr (std::is_same_v<std::decay<TIn>, TOut>)
+			return std::forward<TIn>(value);  // NOLINT(bugprone-suspicious-semicolon)
 
 		TOut result;
 		if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
@@ -48,12 +44,23 @@ namespace BitSerializer::Convert
 	}
 
 	/// <summary>
-	/// Overload for To() function for case when input and output strings are equal.
+	/// Overload for To() function for case when input and output types are std::string.
 	/// </summary>
 	/// <param name="value">The input string.</param>
 	/// <returns>The constant reference to input string</returns>
 	template<typename TSym, typename TAllocator>
 	const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		return value;
+	}
+
+	/// <summary>
+	/// Overload for To() function for case when input and output types are std::string_view.
+	/// </summary>
+	/// <param name="value">The input string_view.</param>
+	/// <returns>The constant reference to input string_view</returns>
+	template<typename TSym>
+	const std::basic_string_view<TSym, std::char_traits<TSym>>& To(const std::basic_string_view<TSym, std::char_traits<TSym>>& value)
 	{
 		return value;
 	}
@@ -77,33 +84,7 @@ namespace BitSerializer::Convert
 	std::wstring ToWString(TIn&& value) {
 		return To<std::wstring>(std::forward<TIn>(value));
 	}
-
-	/// <summary>
-	/// Converts ANSI string to specified value.
-	/// </summary>
-	/// <param name="str">The input string.</param>
-	/// <returns>The resulting value</returns>
-	template <typename T>
-	T FromString(const std::string& str)
-	{
-		T retVal{};
-		Detail::To(str, retVal);
-		return retVal;
-	}
-
-	/// <summary>
-	/// Converts wide string to specified value.
-	/// </summary>
-	/// <param name="str">The input string.</param>
-	/// <returns>The resulting value</returns>
-	template <typename T>
-	T FromString(const std::wstring& str)
-	{
-		T retVal;
-		Detail::To(str, retVal);
-		return retVal;
-	}
-}	// namespace BitSerializer::Convert
+}
 
 //------------------------------------------------------------------------------
 

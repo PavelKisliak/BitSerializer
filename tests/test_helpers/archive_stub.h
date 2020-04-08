@@ -138,7 +138,7 @@ protected:
 		if constexpr (std::is_same_v<TSym, std::wstring::value_type>)
 			ioData.emplace<std::wstring>(value);
 		else
-			ioData.emplace<std::wstring>(Convert::FromString<std::wstring>(value));
+			ioData.emplace<std::wstring>(Convert::ToWString(value));
 	}
 
 	TestIoData* mNode;

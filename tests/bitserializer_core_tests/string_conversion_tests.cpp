@@ -19,11 +19,11 @@ TEST(Convert, WStringToWString) {
 }
 
 TEST(Convert, StringFromString) {
-	EXPECT_EQ("Test", Convert::FromString<std::string>("Test"));
+	EXPECT_EQ("Test", Convert::To<std::string>("Test"));
 }
 
 TEST(Convert, WStringFromWString) {
-	EXPECT_EQ(L"Test", Convert::FromString<std::wstring>(L"Test"));
+	EXPECT_EQ(L"Test", Convert::To<std::wstring>(L"Test"));
 }
 
 //-----------------------------------------------------------------------------
@@ -38,11 +38,11 @@ TEST(Convert, WStringToString) {
 }
 
 TEST(Convert, StringFromWString) {
-	EXPECT_EQ("Test", Convert::FromString<std::string>(L"Test"));
+	EXPECT_EQ("Test", Convert::To<std::string>(L"Test"));
 }
 
 TEST(Convert, WStringFromString) {
-	EXPECT_EQ(L"Test", Convert::FromString<std::wstring>("Test"));
+	EXPECT_EQ(L"Test", Convert::To<std::wstring>("Test"));
 }
 
 TEST(Convert, WStringToUtf8) {
@@ -57,13 +57,13 @@ TEST(Convert, Utf8ToString) {
 // Test conversion for fundamental types
 //-----------------------------------------------------------------------------
 TEST(Convert, BoolFromString) {
-	EXPECT_EQ(false, Convert::FromString<bool>("0"));
-	EXPECT_EQ(true, Convert::FromString<bool>("1"));
+	EXPECT_EQ(false, Convert::To<bool>("0"));
+	EXPECT_EQ(true, Convert::To<bool>("1"));
 }
 
 TEST(Convert, BoolFromWString) {
-	EXPECT_EQ(false, Convert::FromString<bool>(L"0"));
-	EXPECT_EQ(true, Convert::FromString<bool>(L"1"));
+	EXPECT_EQ(false, Convert::To<bool>(L"0"));
+	EXPECT_EQ(true, Convert::To<bool>(L"1"));
 }
 
 TEST(Convert, BoolToString) {
@@ -78,8 +78,8 @@ TEST(Convert, BoolToWString) {
 
 //-----------------------------------------------------------------------------
 TEST(Convert, Int8FromString) {
-	EXPECT_EQ(-128, Convert::FromString<int8_t>("  -128  "));
-	EXPECT_EQ(127, Convert::FromString<int8_t>(L"  +127  "));
+	EXPECT_EQ(-128, Convert::To<int8_t>("  -128  "));
+	EXPECT_EQ(127, Convert::To<int8_t>(L"  +127  "));
 }
 
 TEST(Convert, Int8ToString) {
@@ -88,8 +88,8 @@ TEST(Convert, Int8ToString) {
 }
 
 TEST(Convert, UInt8FromString) {
-	EXPECT_EQ(255, Convert::FromString<uint8_t>("  255  "));
-	EXPECT_EQ(255, Convert::FromString<uint8_t>(L"  255  "));
+	EXPECT_EQ(255, Convert::To<uint8_t>("  255  "));
+	EXPECT_EQ(255, Convert::To<uint8_t>(L"  255  "));
 }
 
 TEST(Convert, UInt8ToString) {
@@ -99,8 +99,8 @@ TEST(Convert, UInt8ToString) {
 
 //-----------------------------------------------------------------------------
 TEST(Convert, Int16FromString) {
-	EXPECT_EQ(-32768, Convert::FromString<int16_t>("  -32768  "));
-	EXPECT_EQ(32767, Convert::FromString<int16_t>(L"  +32767  "));
+	EXPECT_EQ(-32768, Convert::To<int16_t>("  -32768  "));
+	EXPECT_EQ(32767, Convert::To<int16_t>(L"  +32767  "));
 }
 
 TEST(Convert, Int16ToString) {
@@ -109,8 +109,8 @@ TEST(Convert, Int16ToString) {
 }
 
 TEST(Convert, UInt16FromString) {
-	EXPECT_EQ(65535, Convert::FromString<uint16_t>("  65535  "));
-	EXPECT_EQ(65535, Convert::FromString<uint16_t>(L"  65535  "));
+	EXPECT_EQ(65535, Convert::To<uint16_t>("  65535  "));
+	EXPECT_EQ(65535, Convert::To<uint16_t>(L"  65535  "));
 }
 
 TEST(Convert, UInt16ToString) {
@@ -120,8 +120,8 @@ TEST(Convert, UInt16ToString) {
 
 //-----------------------------------------------------------------------------
 TEST(Convert, Int32FromString) {
-	EXPECT_EQ(-2147483647l, Convert::FromString<int32_t>("  -2147483647  "));
-	EXPECT_EQ(2147483647, Convert::FromString<int32_t>(L"  +2147483647  "));
+	EXPECT_EQ(-2147483647l, Convert::To<int32_t>("  -2147483647  "));
+	EXPECT_EQ(2147483647, Convert::To<int32_t>(L"  +2147483647  "));
 }
 
 TEST(Convert, Int32ToString) {
@@ -130,8 +130,8 @@ TEST(Convert, Int32ToString) {
 }
 
 TEST(Convert, UInt32FromString) {
-	EXPECT_EQ(4294967295l, Convert::FromString<uint32_t>("  4294967295  "));
-	EXPECT_EQ(4294967295l, Convert::FromString<uint32_t>(L"  4294967295  "));
+	EXPECT_EQ(4294967295l, Convert::To<uint32_t>("  4294967295  "));
+	EXPECT_EQ(4294967295l, Convert::To<uint32_t>(L"  4294967295  "));
 }
 
 TEST(Convert, UInt32ToString) {
@@ -140,8 +140,8 @@ TEST(Convert, UInt32ToString) {
 }
 
 TEST(Convert, Int64FromString) {
-	EXPECT_EQ(std::numeric_limits<int64_t>::min(), Convert::FromString<int64_t>("  -9223372036854775808  "));
-	EXPECT_EQ(std::numeric_limits<int64_t>::max(), Convert::FromString<int64_t>(L"  +9223372036854775807  "));
+	EXPECT_EQ(std::numeric_limits<int64_t>::min(), Convert::To<int64_t>("  -9223372036854775808  "));
+	EXPECT_EQ(std::numeric_limits<int64_t>::max(), Convert::To<int64_t>(L"  +9223372036854775807  "));
 }
 
 TEST(Convert, Int64ToString) {
@@ -150,8 +150,8 @@ TEST(Convert, Int64ToString) {
 }
 
 TEST(Convert, UInt64FromString) {
-	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::FromString<uint64_t>("  18446744073709551615  "));
-	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::FromString<uint64_t>(L"  18446744073709551615  "));
+	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::To<uint64_t>("  18446744073709551615  "));
+	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::To<uint64_t>(L"  18446744073709551615  "));
 }
 
 TEST(Convert, UInt64ToString) {
@@ -161,8 +161,8 @@ TEST(Convert, UInt64ToString) {
 
 //-----------------------------------------------------------------------------
 TEST(Convert, FloatFromString) {
-	EXPECT_EQ(-123.123f, Convert::FromString<float>("  -123.123  "));
-	EXPECT_EQ(-123.123f, Convert::FromString<float>(L"  -123.123  "));
+	EXPECT_EQ(-123.123f, Convert::To<float>("  -123.123  "));
+	EXPECT_EQ(-123.123f, Convert::To<float>(L"  -123.123  "));
 }
 
 TEST(Convert, FloatToString) {
@@ -172,8 +172,8 @@ TEST(Convert, FloatToString) {
 
 //-----------------------------------------------------------------------------
 TEST(Convert, DoubleFromString) {
-	EXPECT_EQ(-12345.12345, Convert::FromString<double>("  -12345.12345  "));
-	EXPECT_EQ(-12345.12345, Convert::FromString<double>(L"  -12345.12345  "));
+	EXPECT_EQ(-12345.12345, Convert::To<double>("  -12345.12345  "));
+	EXPECT_EQ(-12345.12345, Convert::To<double>(L"  -12345.12345  "));
 }
 
 TEST(Convert, DoubleToString) {
@@ -185,53 +185,53 @@ TEST(Convert, DoubleToString) {
 // Test conversion from hexadecimal numbers
 //-----------------------------------------------------------------------------
 TEST(Convert, HexUnsignedIntFromString) {
-	EXPECT_EQ(65535, Convert::FromString<unsigned int>("  0xFFFF  "));
-	EXPECT_EQ(65535, Convert::FromString<unsigned int>(L"  0Xffff  "));
+	EXPECT_EQ(65535, Convert::To<unsigned int>("  0xFFFF  "));
+	EXPECT_EQ(65535, Convert::To<unsigned int>(L"  0Xffff  "));
 }
 
 TEST(Convert, HexIntFromString) {
-	EXPECT_EQ(-32767, Convert::FromString<int>("  -0x7fff  "));
-	EXPECT_EQ(32767, Convert::FromString<int>(L"  +0X7FFF  "));
+	EXPECT_EQ(-32767, Convert::To<int>("  -0x7fff  "));
+	EXPECT_EQ(32767, Convert::To<int>(L"  +0X7FFF  "));
 }
 
 //-----------------------------------------------------------------------------
 // Test out of range exception
 //-----------------------------------------------------------------------------
 TEST(Convert, ThrowOutOfRangeExceptionForInt8) {
-	EXPECT_THROW(Convert::FromString<int8_t>("-129"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<int8_t>("128"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<uint8_t>("-1"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<uint8_t>("256"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int8_t>("-129"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int8_t>("128"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint8_t>("-1"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint8_t>("256"), std::out_of_range);
 }
 
 TEST(Convert, ThrowOutOfRangeExceptionForInt16) {
-	EXPECT_THROW(Convert::FromString<int16_t>("-32769"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<int16_t>("32768"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<uint16_t>("-1"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<uint16_t>("65536"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int16_t>("-32769"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int16_t>("32768"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint16_t>("-1"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint16_t>("65536"), std::out_of_range);
 }
 
 TEST(Convert, ThrowOutOfRangeExceptionForInt32) {
-	EXPECT_THROW(Convert::FromString<int32_t>("-2147483649"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<int32_t>("2147483648"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<uint32_t>("4294967296"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int32_t>("-2147483649"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int32_t>("2147483648"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint32_t>("4294967296"), std::out_of_range);
 }
 
 TEST(Convert, ThrowOutOfRangeExceptionForInt64) {
-	EXPECT_THROW(Convert::FromString<int64_t>("-9223372036854775809"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<int64_t>("9223372036854775808"), std::out_of_range);
-	EXPECT_THROW(Convert::FromString<uint64_t>("18446744073709551616"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int64_t>("-9223372036854775809"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int64_t>("9223372036854775808"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint64_t>("18446744073709551616"), std::out_of_range);
 }
 
 //-----------------------------------------------------------------------------
 // Test conversion for enum types
 //-----------------------------------------------------------------------------
 TEST(Convert, EnumFromString) {
-	EXPECT_EQ(TestEnum::One, Convert::FromString<TestEnum>("One"));
+	EXPECT_EQ(TestEnum::One, Convert::To<TestEnum>("One"));
 }
 
 TEST(Convert, EnumFromWString) {
-	EXPECT_EQ(TestEnum::Two, Convert::FromString<TestEnum>(L"Two"));
+	EXPECT_EQ(TestEnum::Two, Convert::To<TestEnum>(L"Two"));
 }
 
 TEST(Convert, EnumToString) {
@@ -246,12 +246,12 @@ TEST(Convert, EnumToWString) {
 // Test conversion for class types (struct, class, union)
 //-----------------------------------------------------------------------------
 TEST(Convert, ClassFromString) {
-	auto actual = Convert::FromString<TestPointClass>("100 -200");
+	auto actual = Convert::To<TestPointClass>("100 -200");
 	EXPECT_EQ(TestPointClass(100, -200), actual);
 }
 
 TEST(Convert, ClassFromWString) {
-	auto actual = Convert::FromString<TestPointClass>(L"-123 555");
+	auto actual = Convert::To<TestPointClass>(L"-123 555");
 	EXPECT_EQ(TestPointClass(-123, 555), actual);
 }
 

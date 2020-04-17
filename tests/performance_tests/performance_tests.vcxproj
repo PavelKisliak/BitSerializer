@@ -179,7 +179,6 @@
     <ClInclude Include="rapid_json_performance_test.h" />
     <ClInclude Include="base_test_models.h" />
     <ClInclude Include="cpprest_json_performance_test.h" />
-    <ClInclude Include="yaml_cpp_perfomance_test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

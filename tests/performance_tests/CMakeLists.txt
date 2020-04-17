@@ -7,7 +7,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 find_package(cpprestsdk CONFIG REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 find_package(pugixml CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
   main.cpp
@@ -15,7 +14,6 @@ add_executable(${PROJECT_NAME}
   rapid_json_performance_test.h
   cpprest_json_performance_test.h
   pugixml_performance_test.h
-  yaml_cpp_perfomance_test.h
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -23,5 +21,4 @@ target_link_libraries(${PROJECT_NAME}
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>
     cpprestsdk::cpprest
     pugixml
-    yaml-cpp
 )

@@ -10,7 +10,6 @@
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
 #include "pugixml_performance_test.h"
-#include "yaml_cpp_perfomance_test.h"
 
 using Timer = std::chrono::high_resolution_clock;
 
@@ -111,8 +110,7 @@ int main()
 		const TestArchiveMetadata metadataList[] = {
 			TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel, 100000>(),
 			TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel, 20000>(),
-			TestArchivePerformance<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlPerformanceTestModel, 50000>(),
-			TestArchivePerformance<BitSerializer::Yaml::YamlCpp::YamlArchive, YamlCppPerformanceTestModel, 5000>()
+			TestArchivePerformance<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlPerformanceTestModel, 50000>()
 		};
 	}
 	catch (const std::exception& ex) {

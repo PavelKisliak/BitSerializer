@@ -30,7 +30,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 
 # Link dependencies
-target_link_libraries(${PROJECT_NAME} INTERFACE bitserializer)
+target_link_libraries(${PROJECT_NAME} INTERFACE BitSerializer::bitserializer)
 find_package(RapidJSON CONFIG REQUIRED)
 target_include_directories(${PROJECT_NAME} INTERFACE ${RAPIDJSON_INCLUDE_DIRS})
 

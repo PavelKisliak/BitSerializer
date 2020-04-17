@@ -31,7 +31,7 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 # Link dependencies
 find_package(cpprestsdk CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} INTERFACE
-  bitserializer
+  BitSerializer::bitserializer
   cpprestsdk::cpprest
 )
 

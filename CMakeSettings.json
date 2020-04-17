@@ -13,6 +13,14 @@
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
           "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON"
         }
       ]
     },
@@ -20,7 +28,7 @@
       "name": "x86-Release",
       "generator": "Visual Studio 15 2017",
       "configurationType": "Release",
-      "inheritEnvironments": ["msvc_x86"],
+      "inheritEnvironments": [ "msvc_x86" ],
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -29,6 +37,14 @@
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
           "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON"
         }
       ]
     },
@@ -36,7 +52,7 @@
       "name": "x64-Debug",
       "generator": "Visual Studio 15 2017 Win64",
       "configurationType": "Debug",
-      "inheritEnvironments": ["msvc_x64_x64"],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -45,6 +61,14 @@
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
           "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON"
         }
       ]
     },
@@ -61,6 +85,14 @@
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
           "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON"
         }
       ]
     }

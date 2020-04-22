@@ -13,6 +13,9 @@ project(bitserializer-rapidjson
   HOMEPAGE_URL "https://bitbucket.org/Pavel_Kisliak/bitserializer"
   LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 #################################################################################
 # Target configuration
 #################################################################################

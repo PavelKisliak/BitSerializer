@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-      CACHE STRING "")
-endif()
-
 project(bitserializer-suite LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_SAMPLES "Build samples" OFF)
+
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      CACHE STRING "")
+endif()
 
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")

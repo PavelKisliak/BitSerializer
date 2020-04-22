@@ -20,5 +20,4 @@ target_link_libraries(${PROJECT_NAME}
     GTest::Main
 )
 
-enable_testing()
-add_test(RestCppJsonTests ${PROJECT_NAME})
+gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerCppRestJsonTests)

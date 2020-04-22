@@ -18,5 +18,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   GTest::Main
 )
 
-enable_testing()
-add_test(PugiXmlTests ${PROJECT_NAME})
+gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerPugiXmlTests)

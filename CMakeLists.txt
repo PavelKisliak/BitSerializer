@@ -19,16 +19,12 @@ add_subdirectory(archives/bitserializer_rapidjson)
 add_subdirectory(archives/bitserializer_pugixml)
 
 if(BUILD_TESTS)
+    include(GoogleTest)
+    enable_testing()
+    set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)
     add_subdirectory(tests)
 endif(BUILD_TESTS)
 
 if(BUILD_SAMPLES)
     add_subdirectory(samples)
 endif(BUILD_SAMPLES)
-
-add_custom_target(${PROJECT_NAME} DEPENDS
-    bitserializer
-    bitserializer-cpprestjson
-    bitserializer-rapidjson
-    bitserializer-pugixml
-)

@@ -24,5 +24,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     GTest::GTest
 )
 
-enable_testing()
-add_test(BitSerializerAllCoreTests ${PROJECT_NAME})
+gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerAllCoreTests)

@@ -25,3 +25,10 @@ endif(BUILD_TESTS)
 if(BUILD_SAMPLES)
     add_subdirectory(samples)
 endif(BUILD_SAMPLES)
+
+add_custom_target(${PROJECT_NAME} DEPENDS
+    bitserializer
+    bitserializer-cpprestjson
+    bitserializer-rapidjson
+    bitserializer-pugixml
+)

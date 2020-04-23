@@ -2,7 +2,7 @@
 # Copyright (C) 2020 by Pavel Kisliak                                           #
 # This file is part of BitSerializer library, licensed under the MIT license.   #
 #################################################################################
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -10,7 +10,6 @@ include(CMakePackageConfigHelpers)
 project(bitserializer-cpprestjson
   VERSION 0.9
   DESCRIPTION "C++ 17 library for serialization, module for support JSON (implementation based on the CppRestSDK library)"
-  HOMEPAGE_URL "https://bitbucket.org/Pavel_Kisliak/bitserializer"
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)

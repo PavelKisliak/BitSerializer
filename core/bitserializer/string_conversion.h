@@ -59,8 +59,8 @@ namespace BitSerializer::Convert
 	/// </summary>
 	/// <param name="value">The input string_view.</param>
 	/// <returns>The constant reference to input string_view</returns>
-	template<typename TSym>
-	const std::basic_string_view<TSym, std::char_traits<TSym>>& To(const std::basic_string_view<TSym, std::char_traits<TSym>>& value)
+	template<typename TSym, typename TTraits>
+	const std::basic_string_view<TSym, TTraits>& To(const std::basic_string_view<TSym, TTraits>& value)
 	{
 		return value;
 	}

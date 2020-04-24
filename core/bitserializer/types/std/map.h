@@ -52,7 +52,7 @@ namespace BitSerializer
 		template<typename TArchive, typename TMultiMap>
 		void SerializeMultimapImpl(TArchive& scope, TMultiMap& cont)
 		{
-			if constexpr (scope.IsLoading())
+			if constexpr (TArchive::IsLoading())
 			{
 				auto loadSize = scope.GetSize();
 				cont.clear();

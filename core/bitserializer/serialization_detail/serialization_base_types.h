@@ -70,7 +70,7 @@ namespace BitSerializer
 	template <class TArchive, typename TKey, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
 	static bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
-		if constexpr (archive.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			std::string str;
 			auto result = Serialize(archive, std::forward<TKey>(key), str);
@@ -87,7 +87,7 @@ namespace BitSerializer
 	template <class TArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
 	static void Serialize(TArchive& archive, TValue& value)
 	{
-		if constexpr (archive.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			std::string str;
 			Serialize(archive, str);

@@ -41,7 +41,7 @@ namespace BitSerializer
 			using TMapKey = typename TMap::key_type;
 			using TValue = typename TMap::mapped_type;
 
-			if constexpr (scope.IsSaving())
+			if constexpr (TArchive::IsSaving())
 			{
 				for (auto& elem : cont)
 				{

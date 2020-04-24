@@ -25,7 +25,7 @@ namespace BitSerializer::Detail
 			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), size);
 			if (arrayScope)
 			{
-				if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {
+				if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
 					cont.resize(arrayScope->GetSize());
 				}
 				for (auto& elem : cont) {
@@ -52,7 +52,7 @@ namespace BitSerializer::Detail
 			auto arrayScope = archive.OpenArrayScope(size);
 			if (arrayScope)
 			{
-				if constexpr (archive.IsLoading() && is_resizeable_cont_v<TContainer>) {
+				if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
 					cont.resize(arrayScope->GetSize());
 				}
 				for (auto& elem : cont) {

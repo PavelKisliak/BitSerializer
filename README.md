@@ -416,21 +416,21 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
 ### Conditions for checking the serialization mode
-To check the current serialization mode, use two methods - IsLoading() and IsSaving(). As they are «constexpr», you will not have any overhead.
+To check the current serialization mode, use two static methods - IsLoading() and IsSaving(). As they are «constexpr», you will not have any overhead.
 ```cpp
 class Foo
 public:
     template <class TArchive>
     inline void Serialize(TArchive& archive)
     {
-    	if constexpr (archive.IsLoading()) {
+    	if constexpr (TArchive::IsLoading()) {
 	        // Code which executes in loading mode
 	    }
 	    else {
     		// Code which executes in saving mode
     	}
 	
-    	if constexpr (archive.IsSaving()) {
+    	if constexpr (TArchive::IsSaving()) {
 		    // Code which executes in saving mode
 	    }
 	    else {

@@ -25,7 +25,7 @@ namespace BitSerializer::KeyValueProxy
 		const bool result = Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
 
 		// Validation when loading
-		if constexpr (archive.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			auto validationResult = keyValue.ValidateValue(result);
 			if (validationResult.has_value())

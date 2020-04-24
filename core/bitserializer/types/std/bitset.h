@@ -16,7 +16,7 @@ namespace BitSerializer
 			bool value;
 			for (size_t i = 0; i < Size; i++)
 			{
-				if constexpr (scope.IsLoading())
+				if constexpr (TArchive::IsLoading())
 				{
 					Serialize(scope, value);
 					cont.set(i, value);

@@ -75,12 +75,14 @@ The XML nodes perfectly fits to common BitSerialazer interface, but serializatio
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer_pugixml/pugixml_archive.h"
 
-using namespace BitSerializer::Xml::PugiXml;
 using namespace BitSerializer;
+using namespace BitSerializer::Xml::PugiXml;
 
 class CRectangle
 {
 public:
+	CRectangle() = default;
+
 	CRectangle(const int Width, const int Height)
 		: mType("Rectangle")
 		, mWidth(Width)

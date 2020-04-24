@@ -13,14 +13,14 @@ namespace BitSerializer
 		template<typename TArchive, typename TAllocator>
 		static void SerializeVectorOfBooleansImpl(TArchive& scope, std::vector<bool, TAllocator>& cont)
 		{
-			if constexpr (scope.IsLoading()) {
+			if constexpr (TArchive::IsLoading()) {
 				cont.resize(scope.GetSize());
 			}
 			bool value;
 			const auto size = cont.size();
 			for (size_t i = 0; i < size; i++)
 			{
-				if constexpr (scope.IsLoading()) {
+				if constexpr (TArchive::IsLoading()) {
 					Serialize(scope, value);
 					cont[i] = value;
 				}

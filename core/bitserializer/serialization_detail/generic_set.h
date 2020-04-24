@@ -16,7 +16,7 @@ namespace BitSerializer::Detail
 	{
 		using TValue = typename TSet::value_type;
 
-		if constexpr (scope.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			auto contSize = scope.GetSize();
 			cont.clear();

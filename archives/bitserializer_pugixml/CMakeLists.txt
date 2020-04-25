@@ -12,9 +12,6 @@ project(bitserializer-pugixml
   DESCRIPTION "C++ 17 library for serialization, module for support XML (implementation based on the PugiXml library)"
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 #################################################################################
 # Target configuration
 #################################################################################

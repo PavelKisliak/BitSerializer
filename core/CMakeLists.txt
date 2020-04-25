@@ -12,9 +12,6 @@ project(bitserializer
   DESCRIPTION "Core part of C++ 17 library for serialization to multiple output formats (JSON, XML, YAML)"
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 #################################################################################
 # Target configuration
 #################################################################################
@@ -29,9 +26,11 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE
-  $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} EQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} EQUAL "Clang"))
+  if(CXX_COMPILER_VERSION VERSION_LESS "0.9")
+	target_link_libraries(${PROJECT_NAME} INTERFACE stdc++fs)
+  endif()
+endif()
 
 #################################################################################
 # Installation

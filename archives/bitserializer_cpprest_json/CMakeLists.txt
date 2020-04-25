@@ -12,9 +12,6 @@ project(bitserializer-cpprestjson
   DESCRIPTION "C++ 17 library for serialization, module for support JSON (implementation based on the CppRestSDK library)"
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 #################################################################################
 # Target configuration
 #################################################################################

@@ -13,6 +13,13 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
       CACHE STRING "")
 endif()
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0")
+    message(FATAL_ERROR "BitSerializer requires at least clang-8.0")
+endif()
+if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.4")
+    message(FATAL_ERROR "BitSerializer requires at least gcc-8.4")
+endif()
+
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 

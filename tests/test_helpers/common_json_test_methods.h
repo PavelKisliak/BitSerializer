@@ -206,7 +206,7 @@ void TestSaveJsonToEncodedStream(const bool withBom)
 	const auto data = outputStream.str();
 	const char* dataIt = data.data();
 	auto dataSize = data.size();
-	// Test BOM	
+	// Test BOM
 	if (withBom)
 	{
 		EXPECT_TRUE(data.size() > sizeof(TUtfTraits::bom));

@@ -1,10 +1,3 @@
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0")
-    message(FATAL_ERROR "BitSerializer requires at least clang-8.0")
-endif()
-if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.4")
-    message(FATAL_ERROR "BitSerializer requires at least gcc-8.4")
-endif()
-
 @PACKAGE_INIT@
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")

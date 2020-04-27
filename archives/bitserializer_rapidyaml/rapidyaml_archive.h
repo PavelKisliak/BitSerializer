@@ -11,6 +11,7 @@
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 
+#include <c4/format.hpp>
 #include <ryml/ryml_std.hpp>
 #include <ryml/ryml.hpp>
 
@@ -89,7 +90,15 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
-				yamlValue >> value;
+
+				if constexpr (std::is_same_v<T, char>)
+				{
+					yamlValue >> reinterpret_cast<uint8_t&>(value);
+				}
+				else
+				{
+					yamlValue >> value;
+				}
 				return true;
 			}
 
@@ -156,8 +165,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return RapidYamlScopeBase::GetPath() + path_separator + Convert::ToString(index);
 			}
 
-			/// <summary>
-			/// Serialize single fundamental value.
+			/// <summary>	
+			/// Serialize single fundamental value. 
 			/// </summary>
 			/// <param name="value"> [in] The value of fundamental type. </param>
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -169,7 +178,19 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else {
 					assert(mIndex < GetSize());
-					mNode.append_child() << value;
+					auto yamlValue = mNode.append_child();
+					if constexpr  (std::is_same_v<T, float> || std::is_same_v<T, double>)
+					{
+						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10);
+					}
+					else if constexpr (std::is_same_v<T, char>)
+					{
+						yamlValue << static_cast<uint8_t>(value);
+					}
+					else
+					{
+						yamlValue << value;
+					}
 					mIndex++;
 				}
 			}
@@ -333,7 +354,19 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
-					yamlValue << ryml::key(key) << value;
+					yamlValue << ryml::key(key);
+					if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
+					{
+						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10);
+					}
+					else if constexpr (std::is_same_v<T, char>)
+					{
+						yamlValue << static_cast<uint8_t>(value);
+					}
+					else
+					{
+						yamlValue << value;
+					}
 					return true;
 				}
 			}

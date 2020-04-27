@@ -41,7 +41,7 @@ public:
 		floatsYamlArray << ryml::key("ArrayOfFloats");
 		floatsYamlArray |= ryml::SEQ;
 		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
-			floatsYamlArray.append_child() << mArrayOfFloats[i];
+			floatsYamlArray.append_child() << c4::fmt::fmt(mArrayOfFloats[i], std::numeric_limits<double>::max_digits10);
 		}
 
 		// Save array of strings
@@ -62,12 +62,15 @@ public:
 			auto yamlObj = objectsYamlArray.append_child();
 			yamlObj |= ryml::MAP;
 			yamlObj.append_child() << ryml::key("TestBoolValue") << obj.mTestBoolValue;
-			yamlObj.append_child() << ryml::key("TestCharValue") << obj.mTestCharValue;
+			yamlObj.append_child() << ryml::key("TestCharValue") << static_cast<uint8_t>(obj.mTestCharValue);
 			yamlObj.append_child() << ryml::key("TestInt16Value") << obj.mTestInt16Value;
 			yamlObj.append_child() << ryml::key("TestInt32Value") << obj.mTestInt32Value;
 			yamlObj.append_child() << ryml::key("TestInt64Value") << obj.mTestInt64Value;
-			yamlObj.append_child() << ryml::key("TestFloatValue") << obj.mTestFloatValue;
-			yamlObj.append_child() << ryml::key("TestDoubleValue") << obj.mTestDoubleValue;
+			//TODO: fmt_wrapper doesn't instantiated for types with const qualifier (cause explicit instantion?)
+			yamlObj.append_child() << ryml::key("TestFloatValue") 
+				<< c4::fmt::fmt(const_cast<float&>(obj.mTestFloatValue), std::numeric_limits<float>::max_digits10);
+			yamlObj.append_child() << ryml::key("TestDoubleValue") 
+				<< c4::fmt::fmt(const_cast<double&>(obj.mTestDoubleValue), std::numeric_limits<double>::max_digits10);
 			yamlObj.append_child() << ryml::key("TestStringValue") << obj.mTestStringValue;
 		}
 	
@@ -80,9 +83,9 @@ public:
 		auto root = tree.rootref();
 
 		//TODO: add parse error check
-		/*
-		if (root.IsNull())
-			throw std::runtime_error("YamlCpp parse error");*/
+		
+		//if (root.IsNull())
+		//	throw std::runtime_error("YamlCpp parse error");
 
 		// Load array of booleans
 		const auto booleansYamlArray = root["ArrayOfBooleans"];
@@ -115,7 +118,7 @@ public:
 			auto& obj = mArrayOfObjects[i];
 			auto yamlVal = objectsYamlArray[i];
 			yamlVal["TestBoolValue"] >> obj.mTestBoolValue;
-			yamlVal["TestCharValue"] >> obj.mTestCharValue;
+			yamlVal["TestCharValue"] >> reinterpret_cast<uint8_t&>(obj.mTestCharValue);
 			yamlVal["TestInt16Value"] >> obj.mTestInt16Value;
 			yamlVal["TestInt32Value"] >> obj.mTestInt32Value;
 			yamlVal["TestInt64Value"] >> obj.mTestInt64Value;

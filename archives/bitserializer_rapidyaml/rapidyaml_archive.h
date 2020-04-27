@@ -61,20 +61,20 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlScopeBase(const RapidYamlScopeBase&) = delete;
 			RapidYamlScopeBase& operator=(const RapidYamlScopeBase&) = delete;
 
-			/// <summary>	
-			/// Get node size (actual for sequence or map). 
+			/// <summary>
+			/// Get node size (actual for sequence or map).
 			/// </summary>
 			/// <returns> Non-zero value if node isn't scalar value, otherwise equal zero. </returns>
 			[[nodiscard]]
 			virtual size_t GetSize() const { return mNode.num_children(); }
 
-			/// <summary>	
-			/// Get current path in YAML. 
+			/// <summary>
+			/// Get current path in YAML.
 			/// </summary>
 			[[nodiscard]]
 			virtual std::string GetPath() const
 			{
-				std::string localPath = mParentKey.empty()
+				const auto localPath = mParentKey.empty()
 					? Convert::ToString(mParentKey)
 					: path_separator + Convert::ToString(mParentKey);
 				return mParent == nullptr ? localPath : mParent->GetPath() + localPath;
@@ -85,7 +85,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
 
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			bool LoadValue(const RapidYamlNode& yamlValue, T& value)
+			static bool LoadValue(const RapidYamlNode& yamlValue, T& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -128,17 +128,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="node">	Node represented by current scope level. </param>
 			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
-			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlArrayScope(const RapidYamlNode& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
-				: RapidYamlScopeBase(node, parent, perentKey)
+			/// <param name="parentKey">	(Optional) Actual for child node only. </param>
+			explicit RapidYamlArrayScope(const RapidYamlNode& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
+				: RapidYamlScopeBase(node, parent, parentKey)
 				, mSize(size)
 				, mIndex(0)
 			{
 				assert(mNode.is_seq());
 			}
 
-			/// <summary>	
-			/// Get node size (actual for sequence or map). 
+			/// <summary>
+			/// Get node size (actual for sequence or map).
 			/// </summary>
 			/// <returns> Non-zero value if node isn't scalar value, otherwise equal zero. </returns>
 			[[nodiscard]]
@@ -146,8 +146,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return mSize;
 			}
 
-			/// <summary>	
-			/// Get current path in YAML. 
+			/// <summary>
+			/// Get current path in YAML.
 			/// </summary>
 			[[nodiscard]]
 			std::string GetPath() const override
@@ -156,8 +156,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return RapidYamlScopeBase::GetPath() + path_separator + Convert::ToString(index);
 			}
 
-			/// <summary>	
-			/// Serialize single fundamental value. 
+			/// <summary>
+			/// Serialize single fundamental value.
 			/// </summary>
 			/// <param name="value"> [in] The value of fundamental type. </param>
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -174,8 +174,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
-			/// Serialize string value. 
+			/// <summary>
+			/// Serialize string value.
 			/// </summary>
 			/// <typeparam name="TSym">		 	Type of the symbol. </typeparam>
 			/// <typeparam name="TAllocator">	Type of the allocator. </typeparam>
@@ -197,8 +197,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
-			/// Represent child node of current scope as object (map). 
+			/// <summary>
+			/// Represent child node of current scope as object (map).
 			/// </summary>
 			/// <returns> Child node wrapped in YamlObjectScope </returns>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
@@ -221,7 +221,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
+			/// <summary>
 			/// Represent child node of current scope as array (sequence).
 			/// </summary>
 			/// <returns> Child node wrapped in YamlArrayScope </returns>
@@ -234,7 +234,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, yamlValue.num_children(), this) : std::nullopt;
 					}
 					return std::nullopt;
-				}	
+				}
 				else
 				{
 					assert(mIndex < GetSize());
@@ -260,7 +260,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			ryml::NodeRef::const_iterator mYamlIt;
 
-			key_const_iterator(ryml::NodeRef::const_iterator&& it)
+			explicit key_const_iterator(ryml::NodeRef::const_iterator&& it)
 				: mYamlIt(it) { }
 
 		public:
@@ -292,33 +292,32 @@ namespace BitSerializer::Yaml::RapidYaml {
 		{
 		public:
 			/// <param name="node">	Node represented by current scope level. </param>
-			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
-			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlObjectScope(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {})
-				: RapidYamlScopeBase(node, parent, perentKey)
+			/// <param name="parentKey">	(Optional) Actual for child node only. </param>
+			explicit RapidYamlObjectScope(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
+				: RapidYamlScopeBase(node, parent, parentKey)
 			{
 				assert(mNode.is_map());
 			};
 
-			/// <summary>	
-			/// Get key_const_iterator for beginning of object node. 
+			/// <summary>
+			/// Get key_const_iterator for beginning of object node.
 			/// </summary>
 			[[nodiscard]]
 			key_const_iterator cbegin() const {
 				return key_const_iterator(mNode.begin());
 			}
 
-			/// <summary>	
-			/// Get key_const_iterator for ending of object node. 
+			/// <summary>
+			/// Get key_const_iterator for ending of object node.
 			/// </summary>
 			[[nodiscard]]
 			key_const_iterator cend() const {
 				return key_const_iterator(mNode.end());
 			}
 
-			/// <summary>	
-			/// Serialize single fundamental value. 
+			/// <summary>
+			/// Serialize single fundamental value.
 			/// </summary>
 			/// <param name="key">  	The key of node. </param>
 			/// <param name="value"> [in] The value of fundamental type. </param>
@@ -339,8 +338,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
-			/// Serialize string value. 
+			/// <summary>
+			/// Serialize string value.
 			/// </summary>
 			/// <typeparam name="TSym">		 	Type of the symbol. </typeparam>
 			/// <typeparam name="TAllocator">	Type of the allocator. </typeparam>
@@ -359,7 +358,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
 					yamlValue << ryml::key(key);
-					if constexpr (std::is_same_v<TSym, std::string::value_type>)			
+					if constexpr (std::is_same_v<TSym, std::string::value_type>)
 						yamlValue << value;
 					else
 						yamlValue << Convert::To<std::string>(value);
@@ -367,8 +366,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
-			/// Represent child node of current scope as object (map). 
+			/// <summary>
+			/// Represent child node of current scope as object (map).
 			/// </summary>
 			/// <returns> Child node wrapped in YamlObjectScope </returns>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(const key_type& key)
@@ -390,8 +389,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
-			/// Represent child node of current scope as array (sequence). 
+			/// <summary>
+			/// Represent child node of current scope as array (sequence).
 			/// </summary>
 			/// <param name="key">			The key of node. </param>
 			/// <param name="arraySize">	Size of the array. </param>
@@ -453,7 +452,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>	Constructor. </summary>
 			/// <param name="outputStr">		   	[out] The output string. </param>
 			/// <param name="serializationOptions">	(Optional) Options for controlling the serialization. </param>
-			RapidYamlRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
+			explicit RapidYamlRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
 				: RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStr)
 				, mSerializationOptions(serializationOptions)
@@ -465,7 +464,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			/// <summary>	Constructor. </summary>
 			/// <param name="inputStream">	[in] Stream to read YAML. </param>
-			RapidYamlRootScope(std::istream& inputStream)
+			explicit RapidYamlRootScope(std::istream& inputStream)
 				: RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
 			{
@@ -491,7 +490,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>	Constructor. </summary>
 			/// <param name="outputStream">		   	[in,out] Stream to write YAML. </param>
 			/// <param name="serializationOptions">	(Optional) Options for controlling the serialization. </param>
-			RapidYamlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
+			explicit RapidYamlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
 				: RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStream)
 				, mSerializationOptions(serializationOptions)
@@ -501,8 +500,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				Init();
 			}
 
-			/// <summary>	
-			/// Represent child node of current scope as object (map). 
+			/// <summary>
+			/// Represent child node of current scope as object (map).
 			/// </summary>
 			/// <returns> Child node wrapped in YamlObjectScope </returns>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
@@ -517,16 +516,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>	
-			/// Represent child node of current scope as array (sequence). 
+			/// <summary>
+			/// Represent child node of current scope as array (sequence).
 			/// </summary>
 			/// <param name="arraySize">	Size of the array. </param>
 			/// <returns>	Child node wrapped in YamlArrayScope. </returns>
-
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
-					return mRootNode.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, mRootNode.num_children()) : std::nullopt;
+					return mRootNode.is_seq() ?
+						std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, mRootNode.num_children()) :
+						std::nullopt;
 				}
 				else
 				{
@@ -549,9 +549,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 						}
 						else if constexpr (std::is_same_v<T, std::ostream*>) {
 							if (mSerializationOptions->streamOptions.writeBom) {
-								*arg << Convert::Utf8::bom;
-							};
-							*arg << ryml::emitrs<std::string>(mTree);
+								arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
+							}
+							*arg << mTree;
 						}
 					}, mOutput);
 					mOutput = nullptr;
@@ -573,7 +573,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				// TODO: is it thread safe?
 				mPrev = c4::yml::get_callbacks();
 				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
-				ryml::Callbacks cb((void*)this, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
+				const ryml::Callbacks cb(reinterpret_cast<void*>(this), nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
 				ryml::set_callbacks(cb);
 			}
 
@@ -588,8 +588,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 		};
 		
 	}
-
-
 
 	/// <summary>
 	/// YAML archive based on rapid yaml library.

@@ -1,0 +1,64 @@
+parameters:
+# [Required] Job name
+  name: ''
+# [Required] Build agent name
+  image: ''
+# [Optional] File with list of packages to install
+  vcpkgListFile: $(Build.SourcesDirectory)/CI/azure-devops/vcpkg_list.txt
+# [Optional] Platform [x64, win32]
+  platform: 'x64'
+# [Required] VCPKG triplet
+  vcpkgTriplet: 'x64-windows'
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+  variables:
+    VCPKG_INSTALLED_PACKAGES: $(VCPKG_INSTALLATION_ROOT)/installed
+
+  steps:
+  - task: Cache@2
+    inputs:
+      key: |
+        vcpkg | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
+      restoreKeys: |
+        vcpkg | "${{ parameters.name }}"
+      path: $(VCPKG_INSTALLED_PACKAGES)
+      cacheHitVar: VCPKG_CACHE_RESTORED
+    displayName: Cache VCPKG Installed folder
+
+  - script: |
+      vcpkg install @${{ parameters.vcpkgListFile }} --triplet ${{ parameters.vcpkgTriplet }}
+    displayName: 'Install dependencies'
+    condition: ne(variables.VCPKG_CACHE_RESTORED, 'true')
+
+  - script: |
+      mkdir build
+    displayName: Make Build Directory
+
+  - task: CMake@1
+    inputs:
+      workingDirectory: 'build'
+      cmakeArgs: '-A ${{ parameters.platform }} -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+    displayName: 'Cmake - generate'
+
+  - script: |
+      cd build
+      cmake --build . --config Debug
+    displayName: 'Build [Debug]'
+
+  - script: |
+      cd build.debug
+      ctest -C Debug --output-on-failure
+    displayName: 'Run tests [Debug]'
+
+  - script: |
+      cd build
+      cmake --build . --config Release
+    displayName: 'Build [Debug]'
+
+  - script: |
+      cd build
+      ctest -C Release --output-on-failure
+    displayName: 'Run tests [Release]'

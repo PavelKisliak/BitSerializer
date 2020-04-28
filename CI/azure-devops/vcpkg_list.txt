@@ -1,0 +1,4 @@
+gtest
+cpprestsdk[core]
+rapidjson
+pugixml

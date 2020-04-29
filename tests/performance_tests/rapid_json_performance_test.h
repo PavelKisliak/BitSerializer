@@ -132,7 +132,7 @@ public:
 			const auto& jObj = jItem->GetObject();
 			obj.mTestBoolValue = jObj.FindMember("TestBoolValue")->value.GetBool();
 			obj.mTestCharValue = static_cast<char>(jObj.FindMember("TestCharValue")->value.GetInt());
-			obj.mTestInt16Value = jObj.FindMember("TestInt16Value")->value.GetInt();
+			obj.mTestInt16Value = static_cast<int16_t>(jObj.FindMember("TestInt16Value")->value.GetInt());
 			obj.mTestInt32Value = jObj.FindMember("TestInt32Value")->value.GetInt();
 			obj.mTestInt64Value = jObj.FindMember("TestInt64Value")->value.GetInt64();
 			obj.mTestFloatValue = jObj.FindMember("TestFloatValue")->value.GetFloat();

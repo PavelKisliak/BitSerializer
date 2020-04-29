@@ -116,7 +116,7 @@ public:
 			auto& obj = mArrayOfObjects[i];
 			obj.mTestBoolValue = it->child(PUGIXML_TEXT("TestBoolValue")).text().as_bool();
 			obj.mTestCharValue = static_cast<char>(it->child(PUGIXML_TEXT("TestCharValue")).text().as_int());
-			obj.mTestInt16Value = it->child(PUGIXML_TEXT("TestInt16Value")).text().as_int();
+			obj.mTestInt16Value = static_cast<int16_t>(it->child(PUGIXML_TEXT("TestInt16Value")).text().as_int());
 			obj.mTestInt32Value = it->child(PUGIXML_TEXT("TestInt32Value")).text().as_int();
 			obj.mTestInt64Value = it->child(PUGIXML_TEXT("TestInt64Value")).text().as_llong();
 			obj.mTestFloatValue = it->child(PUGIXML_TEXT("TestFloatValue")).text().as_float();

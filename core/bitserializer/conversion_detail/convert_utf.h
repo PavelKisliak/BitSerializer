@@ -44,7 +44,7 @@ namespace BitSerializer::Convert
 	public:
 		using char_type = char;
 		static constexpr UtfType utfType = UtfType::Utf8;
-		static constexpr char bom[] = { char(0xEF), char(0xBB), char(0xBF) };
+		static constexpr char bom[] = { '\xEF', '\xBB', '\xBF' };
 		static constexpr bool lowEndian = true;
 
 		template<class TInIt, typename TOutChar, typename TAllocator>
@@ -206,7 +206,7 @@ namespace BitSerializer::Convert
 	public:
 		using char_type = char16_t;
 		static constexpr UtfType utfType = UtfType::Utf16le;
-		static constexpr char bom[] = { char(0xFF), char(0xFE) };
+		static constexpr char bom[] = { '\xFF', '\xFE' };
 		static constexpr bool lowEndian = true;
 
 		// to be implemented
@@ -218,7 +218,7 @@ namespace BitSerializer::Convert
 	public:
 		using char_type = char16_t;
 		static constexpr UtfType utfType = UtfType::Utf16be;
-		static constexpr char bom[] = { char(0xFE), char(0xFF) };
+		static constexpr char bom[] = { '\xFE', '\xFF' };
 		static constexpr bool lowEndian = false;
 
 		// to be implemented
@@ -230,7 +230,7 @@ namespace BitSerializer::Convert
 	public:
 		using char_type = char32_t;
 		static constexpr UtfType utfType = UtfType::Utf32le;
-		static constexpr char bom[] = { char(0xFF), char(0xFE), char(0x00), char(0x00) };
+		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
 		static constexpr bool lowEndian = true;
 
 		// to be implemented
@@ -242,7 +242,7 @@ namespace BitSerializer::Convert
 	public:
 		using char_type = char32_t;
 		static constexpr UtfType utfType = UtfType::Utf32be;
-		static constexpr char bom[] = { char(0x00), char(0x00), char(0xFE), char(0xFF) };
+		static constexpr char bom[] = { '\x00', '\x00', '\xFE', '\xFF' };
 		static constexpr bool lowEndian = false;
 
 		// to be implemented

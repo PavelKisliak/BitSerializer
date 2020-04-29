@@ -56,7 +56,7 @@ jobs:
   - script: |
       cd build
       cmake --build . --config Release
-    displayName: 'Build [Debug]'
+    displayName: 'Build [Release]'
 
   - script: |
       cd build

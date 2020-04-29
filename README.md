@@ -89,7 +89,7 @@ ___
 
 
 ### How to install:
-The library consists of header files only, but you should install one or more third party libraries which depends on selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries will be installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
+The library consists of header files only, but you should install one or more third party libraries which depend on selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries will be installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
 ```shell
 vcpkg install bitserializer-rapidjson:x64-windows
 ```

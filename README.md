@@ -89,7 +89,7 @@ ___
 
 
 ### How to install:
-The library is contains only header files, but you should install one or more third party libraries which are depend from selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries would installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
+The library consists of header files only, but you should install one or more third party libraries which depend on selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries will be installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
 ```shell
 vcpkg install bitserializer-rapidjson:x64-windows
 ```
@@ -129,10 +129,10 @@ There is no mistake as JSON format supported any type at root level.
 ### Serializing class
 There are two ways to serialize a class:
 
-  * Internal public method Serialize() - good way for your own classes.
-  * External static method Serialize() - used for third party class (no access to sources).
+  * Internal public method `Serialize()` - good way for your own classes.
+  * External static function `Serialize()` - used for third party class (no access to sources).
 
-Next example demonstrates how to implement internal serialization method:
+Below example demonstrates how to implement internal serialization method:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_cpprest_json/cpprest_json_archive.h"
@@ -188,10 +188,10 @@ Returns result
 	]
 }
 ```
-For serializing a named object please use helper method MakeKeyValue(key, value). The type of key should be supported by archive, but also exists method MakeAutoKeyValue(key, value) which automatically converts to the preferred by archive key type. The good place for using this method is some common serialization code that can be used with various types of archives.
+For serializing a named object please use helper method `MakeKeyValue(key, value)`. The type of key should be supported by archive, but there also exists method `MakeAutoKeyValue(key, value)` which automatically converts to the preferred by archive key type. The good place for using this method is some common serialization code that can be used with various types of archives.
 
 ### Serializing base class
-To serialize the base class, use the helper method BaseObject(), as in the next example.
+To serialize the base class, use the helper method `BaseObject()`, as in the next example.
 ```cpp
 template <class TArchive>
 void Serialize(TArchive& archive)
@@ -202,7 +202,7 @@ void Serialize(TArchive& archive)
 ```
 
 ### Serializing third party class
-For serialize a third party class (non-intrusive serialization), which source cannot be modified, need to implement two types of Serialize() methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time a possibility of type serialization in the current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
+For serialize a third party class (non-intrusive serialization), which source cannot be modified, need to implement two types of `Serialize()` methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time a possibility of type serialization in the current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -389,7 +389,7 @@ Returns result
 	"Two": 2
 }
 ```
-For able to serialize std::map, which has custom type as a key, you can implement two internal methods in this type:
+For able to serialize `std::map`, which has custom type as a key, you can implement two internal methods in this type:
 ```cpp
 class YourCustomKey
 {
@@ -416,7 +416,7 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
 ### Conditions for checking the serialization mode
-To check the current serialization mode, use two static methods - IsLoading() and IsSaving(). As they are «constexpr», you will not have any overhead.
+To check the current serialization mode, use two static methods - `IsLoading()` and `IsSaving()`. As they are «constexpr», you will not have any overhead.
 ```cpp
 class Foo
 public:
@@ -453,9 +453,9 @@ if (!Context.IsValid())
     const auto& validationErrors = Context.GetValidationErrors();
 }
 ```
-Basically implemented few validators: Required, Range, MinSize, MaxSize.
+Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`.
 Validator 'Range' can be used with all types which have operators '<' and '>'.
-Validators 'MinSize' and 'MaxSize' can be applied to all values which have size() method.
+Validators `MinSize` and `MaxSize` can be applied to all values which have `size()` method.
 This list will be extended in future.
 ```cpp
 #include <iostream>

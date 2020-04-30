@@ -65,13 +65,13 @@ public:
 		}
 	}
 
-	bool mTestBoolValue;
-	char mTestCharValue;
-	int16_t mTestInt16Value;
-	int32_t mTestInt32Value;
-	int64_t mTestInt64Value;
-	float mTestFloatValue;
-	double mTestDoubleValue;
+	bool mTestBoolValue = false;
+	char mTestCharValue = 0;
+	int16_t mTestInt16Value = 0;
+	int32_t mTestInt32Value = 0;
+	int64_t mTestInt64Value = 0;
+	float mTestFloatValue = 0.f;
+	double mTestDoubleValue = 0.0;
 	string_t mTestStringValue;
 };
 

@@ -98,7 +98,7 @@ namespace BitSerializer::Convert
 					else
 					{
 						// Interrupt decoding the sequence if tail has bad signature
-						std::advance(in, std::min<size_t>(tails - i, std::distance(in, end)));
+						std::advance(in, std::min<size_t>(static_cast<size_t>(tails) - i, std::distance(in, end)));
 						sym = errSym;
 						break;
 					}

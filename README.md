@@ -8,9 +8,10 @@ ___
 - Make easy serialization for all kind of C++ types and STL containers.
 - Produce clear JSON for easy integration with Javascript.
 - Good test coverage for keep stability of project.
+- Cross-platform (Windows, Linux, MacOS).
 
 ### Main features:
-- One common interface for different kind of formats (currently JSON and XML).
+- One common interface for different kind of formats (currently supported JSON, XML and YAML).
 - Simple syntax which is similar to serialization in the Boost library.
 - Validation of deserialized values with producing an output list of errors.
 - Support serialization for enum types (via declaring names map).
@@ -25,6 +26,7 @@ ___
 | [bitserializer-cpprestjson](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ❌ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
 | [bitserializer-rapidjson](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
 | [bitserializer-pugixml](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
+| [bitserializer_rapidyaml](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-7).
@@ -32,10 +34,12 @@ ___
 
 ##### What's new in version 0.9:
 - [ ! ] Added XML serialization support (based on library PugiXml).
-- [ ! ] Add CI with builds for Win32, Win64 (VS 2017) and for Linux (GCC 8).
+- [ ! ] Added YAML serialization support (based on library RapidYaml).
+- [ ! ] Add CI with builds for Windows, Linux (GCC, Clang) and MaOS (AppleClang).
 - [ + ] Add formatting options for output text (but formatting is not supported in CppRestJson).
 - [ + ] Add support encoding to various UTF based formats (defines in serialization options).
 - [ + ] Add optional writing the BOM to output stream/file.
+- [ + ] Add ability for pretty format of output text.
 - [ + ] Add UTF encoding when serializing std::wstring.
 - [ + ] Add serialization for all STD containers which were missed before.
 - [ + ] Add serialization C++ union type.
@@ -59,6 +63,8 @@ For check performance overhead, was developed a test which serializes a model vi
 | C++ REST SDK | JSON | Load object | 184 msec | 188 msec | 4 msec **(-2.1%)** |
 | PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec **(-2.5%)** |
 | PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec **(-4.5%)** |
+| RapidYAML | YAML | Save object | 539 msec | 539 msec | 0 msec **(0%)** |
+| RapidYAML | YAML | Load object | 340 msec | 348 msec | 8 msec **(-2.3%)** |
 
 Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
 
@@ -70,6 +76,7 @@ ___
 - [Serializing base class](#markdown-header-serializing-base-class)
 - [Serializing third party class](#markdown-header-serializing-third-party-class)
 - [Serializing enum types](#markdown-header-serializing-enum-types)
+- [Serialize to multiple formats](#markdown-header-serialize-to-multiple-formats)
 - [Serialization STD types](#markdown-header-serialization-std-types)
 - [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
 - [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
@@ -84,21 +91,14 @@ ___
 - [JSON archive "bitserializer-cpprestjson"](docs/bitserializer_cpprest_json.md)
 - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
+- [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
 
 ___
 
 
-### How to install:
-The library consists of header files only, but you should install one or more third party libraries which depend on selected type of archive (please follow instructions for these libraries). The best way is to use [Vcpkg manager](https://github.com/Microsoft/vcpkg), the dependent libraries will be installed automatically. For example, if you'd like to use JSON serialization based on RapidJson, please execute this script:
-```shell
-vcpkg install bitserializer-rapidjson:x64-windows
-```
-Specify required triplet for your platform instead of "x64-windows".
-Now you need just include main file of BitSerializer which implements serialization and file, which implements required format (JSON for example).
-```cpp
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
-```
+### How to install
+The library consists of header files only, but it uses third-party libraries which should be also installed.
+The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically. Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
 
 ### Hello world
 Let's get started with traditional and simple "Hello world!" example.
@@ -441,7 +441,6 @@ public:
 ```
 
 ### Validation of deserialized values
-
 BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
 ```cpp
 archive << MakeKeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
@@ -611,6 +610,7 @@ catch (const BitSerializer::SerializationException& ex)
 
 Thanks
 ----
+- Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.
 

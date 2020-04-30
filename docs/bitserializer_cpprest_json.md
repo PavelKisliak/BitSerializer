@@ -7,15 +7,22 @@ Supported load/save JSON from:
 
 This implementation of JSON archive is based on [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) - one of most powerful library for work with HTTP.
 
-#### How to install (VCPKG)
+### How to install
+The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
+#### VCPKG
 ```shell
 vcpkg install bitserializer-cpprestjson:x64-windows
 ```
 Specify required triplet for your platform instead of "x64-windows".
-After installation packages just include next files:
+If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_cpprest_json/cpprest_json_archive.h"
+```
+If you are using Cmake, you need to link the library:
+```cmake
+find_package(bitserializer-cpprestjson CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::bitserializer-cpprestjson)
 ```
 
 ### Implementation detail

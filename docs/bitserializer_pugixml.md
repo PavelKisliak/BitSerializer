@@ -7,15 +7,22 @@ Supported load/save XML from:
 
 The BitSerializer uses as low level library [PugiXml](https://github.com/zeux/pugixml) - one of fastest libraries for parse **XML**.
 
-#### How to install (VCPKG)
+### How to install
+The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
+#### VCPKG
 ```shell
 vcpkg install bitserializer-pugixml:x64-windows
 ```
 Specify required triplet for your platform instead of "x64-windows".
-After installation packages just include next files:
+If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_pugixml/pugixml_archive.h"
+```
+If you are using Cmake, you need to link the library:
+```cmake
+find_package(bitserializer-pugixml CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::bitserializer-pugixml)
 ```
 
 ### Implementation detail

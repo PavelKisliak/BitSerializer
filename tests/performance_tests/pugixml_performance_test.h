@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
-#include "bitserializer/string_conversion.h"
+#include "bitserializer/convert.h"
 #include "bitserializer_pugixml/pugixml_archive.h"
 #include "base_test_models.h"
 

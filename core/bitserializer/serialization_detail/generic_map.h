@@ -5,7 +5,7 @@
 #pragma once
 #include <algorithm>
 #include <type_traits>
-#include "bitserializer/string_conversion.h"
+#include "bitserializer/convert.h"
 
 namespace BitSerializer
 {

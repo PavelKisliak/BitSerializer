@@ -61,7 +61,7 @@
       <Filter>serialization_detail</Filter>
     </ClInclude>
     <ClInclude Include="bitserializer\bit_serializer.h" />
-    <ClInclude Include="bitserializer\string_conversion.h" />
+    <ClInclude Include="bitserializer\convert.h" />
     <ClInclude Include="bitserializer\types\std\array.h">
       <Filter>types\std</Filter>
     </ClInclude>
@@ -113,5 +113,6 @@
     <ClInclude Include="bitserializer\serialization_detail\archive_base.h">
       <Filter>serialization_detail</Filter>
     </ClInclude>
+
   </ItemGroup>
 </Project>

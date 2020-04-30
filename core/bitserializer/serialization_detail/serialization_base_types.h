@@ -7,7 +7,7 @@
 #include <type_traits>
 #include "object_traits.h"
 #include "archive_traits.h"
-#include "bitserializer/string_conversion.h"
+#include "bitserializer/convert.h"
 
 namespace BitSerializer
 {

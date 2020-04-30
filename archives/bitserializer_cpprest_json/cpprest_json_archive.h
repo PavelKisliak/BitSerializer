@@ -11,6 +11,10 @@
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 
+//currently define cause conflict with c4core template argument
+//see: blob.hpp
+#define _TURN_OFF_PLATFORM_STRING
+
 // External dependency (C++ REST SDK)
 #include "cpprest/json.h"
 

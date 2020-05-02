@@ -9,13 +9,6 @@ add_subdirectory(bitserializer_core_tests)
 add_subdirectory(bitserializer_cpprest_json_tests)
 add_subdirectory(bitserializer_rapidjson_tests)
 add_subdirectory(bitserializer_pugixml_tests)
-add_subdirectory(bitserializer_rapidyaml_tests)
-
-add_custom_target(tests DEPENDS
-    performance_tests
-    bitserializer_core_tests
-    bitserializer_cpprest_json_tests
-    bitserializer_rapidjson_tests
-    bitserializer_pugixml_tests
-    bitserializer_rapidyaml_tests
-)
+if(BUILD_RAPIDYAML_ARCHIVE)
+    add_subdirectory(bitserializer_rapidyaml_tests)
+endif(BUILD_RAPIDYAML_ARCHIVE)

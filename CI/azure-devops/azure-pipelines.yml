@@ -70,5 +70,6 @@ jobs:
     parameters:
       name: 'MacOS_AppleClang_11'
       image: 'macOS-latest'
+      vcpkgListFile: "$(Build.SourcesDirectory)/CI/azure-devops/vcpkg_list_macos.txt"
       vcpkgTriplet: "x64-osx"
-      cmakeGenArgs: ''
+      cmakeGenArgs: '-DBUILD_RAPIDYAML_ARCHIVE=OFF'

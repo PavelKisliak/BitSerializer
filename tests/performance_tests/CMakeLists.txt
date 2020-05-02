@@ -21,3 +21,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::bitserializer-pugixml
     BitSerializer::bitserializer-rapidyaml
 )
+
+if(BUILD_RAPIDYAML_ARCHIVE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_RAPIDYAML_ARCHIVE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE BitSerializer::bitserializer-rapidyaml)
+endif(BUILD_RAPIDYAML_ARCHIVE)

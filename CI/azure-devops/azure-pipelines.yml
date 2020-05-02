@@ -45,28 +45,28 @@ jobs:
       platform: 'Win32'
       vcpkgTriplet: "x86-windows"
 
-  - template: unix-jobs-template.yml
+  - template: unix-job-template-latest-vcpkg.yml
     parameters:
       name: 'Ubuntu_GCC_8'
       image: 'ubuntu-latest'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '-DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8'
 
-  - template: unix-jobs-template.yml
+  - template: unix-job-template-latest-vcpkg.yml
     parameters:
       name: 'Ubuntu_GCC_9'
       image: 'ubuntu-latest'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '-DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
 
-  - template: unix-jobs-template.yml
+  - template: unix-job-template-latest-vcpkg.yml
     parameters:
       name: 'Ubuntu_Clang_8'
       image: 'ubuntu-latest'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8'
 
-  - template: unix-jobs-template.yml
+  - template: unix-job-template-latest-vcpkg.yml
     parameters:
       name: 'MacOS_AppleClang_11'
       image: 'macOS-latest'

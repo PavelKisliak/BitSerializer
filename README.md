@@ -63,8 +63,8 @@ For check performance overhead, was developed a test which serializes a model vi
 | C++ REST SDK | JSON | Load object | 184 msec | 188 msec | 4 msec **(-2.1%)** |
 | PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec **(-2.5%)** |
 | PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec **(-4.5%)** |
-| RapidYAML | YAML | Save object | 539 msec | 539 msec | 0 msec **(0%)** |
-| RapidYAML | YAML | Load object | 340 msec | 348 msec | 8 msec **(-2.3%)** |
+| RapidYAML | YAML | Save object | 550 msec | 549 msec | 1 msec **(-0.2%)** |
+| RapidYAML | YAML | Load object | 343 msec | 348 msec | 5 msec **(-1.4%)** |
 
 Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
 

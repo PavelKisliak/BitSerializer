@@ -455,7 +455,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		//To avoid this, you can create your own accelerator structure (eg, do a single loop at the root level
 		//to fill an std::map<csubstr,size_t> mapping key names to node indices; with a node index, a lookup is O(1),
 		//so this way you can get O(log n) lookup from a key.)
-		
+
 		/// <summary>
 		/// YAML root scope.
 		/// </summary>
@@ -518,10 +518,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 
 				//TODO: potential performance cookie monster (construct string from istream)
-				std::istreambuf_iterator<char> begin(inputStream);
-				std::istreambuf_iterator<char> end;
-				const std::string input(begin, end);
-				
+				const std::string input(std::istreambuf_iterator<char>(inputStream), {});
+
 				//be careful when use c4::to_substr(std::string const& s). Function parse(substr buf) doesn't call copy_to_arena,
 				//so when input string out from scope (csubstr/substr just string view) you lost all data and parse will be failed.
 				mTree = ryml::parse(c4::to_csubstr(input));
@@ -544,7 +542,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>
 			/// Represent child node of current scope as object (map).
 			/// </summary>
-			/// <returns> Child node wrapped in YamlObjectScope </returns>
+			/// <returns>Child node wrapped in RapidYamlObjectScope</returns>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
 			{
 				if constexpr (TMode == SerializeMode::Load) {
@@ -560,8 +558,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>
 			/// Represent child node of current scope as array (sequence).
 			/// </summary>
-			/// <param name="arraySize">	Size of the array. </param>
-			/// <returns>	Child node wrapped in YamlArrayScope. </returns>
+			/// <param name="arraySize">Size of the array.</param>
+			/// <returns>Child node wrapped in RapidYamlArrayScope.</returns>
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
@@ -614,7 +612,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				// TODO: is it thread safe?
 				mPrevCallbacks = c4::yml::get_callbacks();
 				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
-				const ryml::Callbacks cb(reinterpret_cast<void*>(this), nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
+				const ryml::Callbacks cb(this, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
 				ryml::set_callbacks(cb);
 			}
 
@@ -635,7 +633,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 	/// YAML archive based on Rapid YAML library.
 	/// Supports load/save from:
 	/// - <c>std::string</c>: UTF-8
-	/// - <c>std::istream and std::ostream</c>: UTF-8
+	/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8
 	/// </summary>
 	using YamlArchive = TArchiveBase<
 		Detail::RapidYamlArchiveTraits,

@@ -649,7 +649,7 @@ private:
 /// XML archive based on the PugiXml library.
 /// Supports load/save from:
 /// - <c>std::string</c>: UTF-8
-/// - <c>std::istream and std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
 /// <remarks>
 /// The XML-key type is depends from global definition in the PugiXml 'PUGIXML_WCHAR_MODE' in the PugiXml, by default uses std::string.

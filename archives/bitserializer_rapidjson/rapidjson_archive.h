@@ -650,7 +650,7 @@ private:
 /// JSON archive based on RapidJson library.
 /// Supports load/save from:
 /// - <c>std::string</c>: UTF-8
-/// - <c>std::istream and std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
 using JsonArchive = TArchiveBase<
 	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,

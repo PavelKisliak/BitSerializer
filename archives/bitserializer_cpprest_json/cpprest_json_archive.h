@@ -580,7 +580,7 @@ private:
 /// JSON archive based on JSON implementation from CppRestSdk library.
 /// Supports load/save from:
 /// - <c>std::string</c>: UTF-8
-/// - <c>std::istream and std::ostream</c>: UTF-8
+/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8
 /// </summary>
 /// <remarks>
 /// The JSON-key type is depends from type utility::string_t defined in the CppRestSdk and it is different on Windows and *nix platforms.

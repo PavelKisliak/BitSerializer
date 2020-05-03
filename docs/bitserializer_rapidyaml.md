@@ -30,5 +30,6 @@ Exists some issues which are related to base library implementation:
 
 - Error handling is not thread-safe as structure `ryml::Callbacks` is defined globally.
 - **Rapid YAML** does not support streams, BitSerializer handle this, but with memory overhead.
+- MacOS does not supported, as the base library does not support too.
 
-Hope that author will take care about it in future.
+Hope that author of [RapidYAML](https://github.com/biojppm/rapidyaml) will take care about it in future.

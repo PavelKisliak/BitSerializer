@@ -30,6 +30,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			using preferred_output_format = std::string;
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
+
+		protected:
+			~RapidYamlArchiveTraits() = default;
 		};
 
 		// Forward declarations
@@ -56,9 +59,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mParentKey(parentKey)
 			{ }
 
-			virtual ~RapidYamlScopeBase() = default;
-
-			/* disable copy */
 			RapidYamlScopeBase(const RapidYamlScopeBase&) = delete;
 			RapidYamlScopeBase& operator=(const RapidYamlScopeBase&) = delete;
 
@@ -82,6 +82,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 		protected:
+			~RapidYamlScopeBase() = default;
 			RapidYamlScopeBase(RapidYamlScopeBase&&) = default;
 			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
 
@@ -131,9 +132,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlArrayScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
-
-			using iterator = RapidYamlNode::iterator;
-
 			/// <param name="node">	Node represented by current scope level. </param>
 			/// <param name="size">	Size of the node represented by current scope. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
@@ -466,10 +464,20 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlRootScope final: public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
+			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
+			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
 
 			/// <summary>	Constructor. </summary>
 			/// <param name="inputStr">	Input C-like string YAML. </param>
-			explicit RapidYamlRootScope(const char* inputStr) : RapidYamlRootScope(std::string(inputStr)) {}
+			explicit RapidYamlRootScope(const char* inputStr)
+				: RapidYamlScopeBase(mRootNode)
+				, mOutput(nullptr)
+			{
+				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
+
+				mTree = ryml::parse(c4::to_csubstr(inputStr));
+				Init();
+			}
 
 			/// <summary>	Constructor. </summary>
 			/// <param name="inputStr">	Input YAML string. </param>
@@ -480,7 +488,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
-
 				Init();
 			}
 
@@ -518,7 +525,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				//be careful when use c4::to_substr(std::string const& s). Function parse(substr buf) doesn't call copy_to_arena,
 				//so when input string out from scope (csubstr/substr just string view) you lost all data and parse will be failed.
 				mTree = ryml::parse(c4::to_csubstr(input));
-				
 				Init();
 			}
 
@@ -569,7 +575,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					return std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, arraySize);
 				}
 			}
-			
+
 			/// <summary>
 			/// Serialize node tree to YAML
 			/// </summary>
@@ -599,6 +605,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 		private:
+			RapidYamlRootScope(RapidYamlRootScope&&) = default;
+			RapidYamlRootScope& operator=(RapidYamlRootScope&&) = default;
+
 			void Init()
 			{
 				mRootNode = mTree.rootref();
@@ -614,13 +623,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg+length });
 			}
 
-			ryml::Callbacks mPrevCallbacks;
 			ryml::Tree mTree;
 			RapidYamlNode mRootNode;
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
 			std::optional<SerializationOptions> mSerializationOptions;
+			ryml::Callbacks mPrevCallbacks;
 		};
-		
 	}
 
 	/// <summary>

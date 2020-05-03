@@ -26,7 +26,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		public:
 			static constexpr ArchiveType archive_type = ArchiveType::Yaml;
 			using key_type = std::string;
-			using supported_key_types = TSupportedKeyTypes<std::string>;
+			using supported_key_types = TSupportedKeyTypes<key_type>;
 			using preferred_output_format = std::string;
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
@@ -39,7 +39,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		/// <summary>
 		/// Common base class for YAML scopes.
 		/// </summary>
-		/// <seealso cref="YamlArchiveTraits" />
+		/// <seealso cref="RapidYamlArchiveTraits" />
 		class RapidYamlScopeBase : public RapidYamlArchiveTraits
 		{
 		public:
@@ -49,11 +49,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>	Constructor. </summary>
 			/// <param name="node">	Node represented by current scope level. </param>
 			/// <param name="parent">   	[in] (Optional) If non-null, the child node. </param>
-			/// <param name="perentKey">	(Optional) Actual for child node only. </param>
-			explicit RapidYamlScopeBase(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view perentKey = {}) noexcept
+			/// <param name="parentKey">	(Optional) Actual for child node only. </param>
+			explicit RapidYamlScopeBase(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {}) noexcept
 				: mNode(node)
 				, mParent(parent)
-				, mParentKey(perentKey)
+				, mParentKey(parentKey)
 			{ }
 
 			virtual ~RapidYamlScopeBase() = default;
@@ -126,7 +126,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		/// <summary>
 		/// YAML scope for serializing arrays.
 		/// </summary>
-		///	<seealso cref="YamlScopeBase" />
+		///	<seealso cref="RapidYamlScopeBase" />
 		template <SerializeMode TMode>
 		class RapidYamlArrayScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
@@ -165,8 +165,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return RapidYamlScopeBase::GetPath() + path_separator + Convert::ToString(index);
 			}
 
-			/// <summary>	
-			/// Serialize single fundamental value. 
+			/// <summary>
+			/// Serialize single fundamental value.
 			/// </summary>
 			/// <param name="value"> [in] The value of fundamental type. </param>
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -179,7 +179,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else {
 					assert(mIndex < GetSize());
 					auto yamlValue = mNode.append_child();
-					if constexpr  (std::is_same_v<T, float> || std::is_same_v<T, double>)
+					if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
 					{
 						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10);
 					}
@@ -459,7 +459,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		/// <summary>
 		/// YAML root scope.
 		/// </summary>
-		/// <seealso cref="YamlScopeBase" />
+		/// <seealso cref="RapidYamlScopeBase" />
 		template <SerializeMode TMode>
 		class RapidYamlRootScope final: public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
@@ -557,9 +557,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
-					return mRootNode.is_seq() ?
-						std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, mRootNode.num_children()) :
-						std::nullopt;
+					return mRootNode.is_seq()
+						? std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, mRootNode.num_children())
+						: std::nullopt;
 				}
 				else
 				{
@@ -593,18 +593,15 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			~RapidYamlRootScope()
 			{
-				ryml::set_callbacks(mPrev);
+				ryml::set_callbacks(mPrevCallbacks);
 			}
-
-			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-			std::optional<SerializationOptions> mSerializationOptions;
 
 		private:
 			void Init()
 			{
 				mRootNode = mTree.rootref();
 				// TODO: is it thread safe?
-				mPrev = c4::yml::get_callbacks();
+				mPrevCallbacks = c4::yml::get_callbacks();
 				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
 				const ryml::Callbacks cb(reinterpret_cast<void*>(this), nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
 				ryml::set_callbacks(cb);
@@ -615,15 +612,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg+length });
 			}
 
-			ryml::Callbacks mPrev;
+			ryml::Callbacks mPrevCallbacks;
 			ryml::Tree mTree;
 			RapidYamlNode mRootNode;
+			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
+			std::optional<SerializationOptions> mSerializationOptions;
 		};
 		
 	}
 
 	/// <summary>
-	/// YAML archive based on rapid yaml library.
+	/// YAML archive based on Rapid YAML library.
 	/// Supports load/save from:
 	/// - <c>std::string</c>: UTF-8
 	/// - <c>std::istream and std::ostream</c>: UTF-8

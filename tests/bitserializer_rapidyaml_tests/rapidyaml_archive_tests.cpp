@@ -246,8 +246,3 @@ TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 	int testInt[1];
 	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
-
-
-TEST(RapidYamlArchive, Stub) {
-	
-}

@@ -19,7 +19,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::bitserializer-cpprestjson
     BitSerializer::bitserializer-rapidjson
     BitSerializer::bitserializer-pugixml
-    BitSerializer::bitserializer-rapidyaml
 )
 
 if(BUILD_RAPIDYAML_ARCHIVE)

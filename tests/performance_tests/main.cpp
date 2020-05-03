@@ -10,7 +10,9 @@
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
 #include "pugixml_performance_test.h"
+#ifdef BUILD_RAPIDYAML_ARCHIVE
 #include "rapid_yaml_perfomance_test.h"
+#endif
 
 using Timer = std::chrono::high_resolution_clock;
 

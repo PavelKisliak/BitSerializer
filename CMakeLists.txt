@@ -21,6 +21,7 @@ if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.3")
     message(FATAL_ERROR "BitSerializer requires at least gcc-8.3")
 endif()
 
+message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 

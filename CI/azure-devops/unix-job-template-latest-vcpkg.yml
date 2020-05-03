@@ -15,19 +15,9 @@ jobs:
   pool:
     vmImage: ${{ parameters.image }}
   variables:
-    VCPKG_CACHE_DIR: $(Build.SourcesDirectory)/../vcpkg
+    VCPKG_CACHE_DIR: $(Build.SourcesDirectory)/../vcpkg/installed
 
   steps:
-  - task: Cache@2
-    inputs:
-      key: |
-        vcpkg | v3 | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
-      restoreKeys: |
-        vcpkg | v3 | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
-      path: $(VCPKG_CACHE_DIR)
-      cacheHitVar: VCPKG_CACHE_RESTORED
-    displayName: Cache VCPKG Installed folder
-
   - script: |
       echo --- Clone VCPKG ---
       cd ..
@@ -35,7 +25,21 @@ jobs:
       echo --- VCPKG: Bootstrap ---
       cd vcpkg
       ./bootstrap-vcpkg.sh
+    displayName: 'Install VCPKG'
+
+  - task: Cache@2
+    inputs:
+      key: |
+        vcpkg | v4 | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
+      restoreKeys: |
+        vcpkg | v4 | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
+      path: $(VCPKG_CACHE_DIR)
+      cacheHitVar: VCPKG_CACHE_RESTORED
+    displayName: Configure cache of packages
+
+  - script: |
       echo --- VCPKG: Install dependencies  ---
+      cd vcpkg
       ./vcpkg install @${{ parameters.vcpkgListFile }} --triplet ${{ parameters.vcpkgTriplet }}
     displayName: 'Install dependencies'
     condition: ne(variables.VCPKG_CACHE_RESTORED, 'true')

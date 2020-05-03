@@ -39,7 +39,7 @@ jobs:
 
   - script: |
       echo --- VCPKG: Install dependencies  ---
-      cd vcpkg
+      cd ../vcpkg
       ./vcpkg install @${{ parameters.vcpkgListFile }} --triplet ${{ parameters.vcpkgTriplet }}
     displayName: 'Install dependencies'
     condition: ne(variables.VCPKG_CACHE_RESTORED, 'true')

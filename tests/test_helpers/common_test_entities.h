@@ -196,8 +196,8 @@ public:
 		};
 	}
 
-	TestClassWithSubType(const std::function<void(const T&, const T&)>& specialAssertFunc)
-		: mAssertFunc(specialAssertFunc)
+	TestClassWithSubType(std::function<void(const T&, const T&)> specialAssertFunc)
+		: mAssertFunc(std::move(specialAssertFunc))
 	{ }
 
 	static void BuildFixture(TestClassWithSubType& fixture) {

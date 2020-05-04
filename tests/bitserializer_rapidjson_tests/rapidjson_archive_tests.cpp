@@ -30,12 +30,14 @@ TEST(RapidJsonArchive, SerializeInteger)
 
 TEST(RapidJsonArchive, SerializeFloat)
 {
-	TestSerializeType<JsonArchive, float>(::BuildFixture<float>());
+	TestSerializeType<JsonArchive, float>(std::numeric_limits<float>::min());
+	TestSerializeType<JsonArchive, float>(std::numeric_limits<float>::max());
 }
 
 TEST(RapidJsonArchive, SerializeDouble)
 {
-	TestSerializeType<JsonArchive, double>(::BuildFixture<double>());
+	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::min());
+	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
 }
 
 //-----------------------------------------------------------------------------
@@ -126,16 +128,17 @@ TEST(RapidJsonArchive, SerializeClassWithMemberBoolean)
 TEST(RapidJsonArchive, SerializeClassWithMemberInteger)
 {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberFloat)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<float>>());
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<double>>());
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberString)

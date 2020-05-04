@@ -75,14 +75,15 @@ TEST(PugiXmlArchive, SerializeClassWithMemberBoolean) {
 
 TEST(PugiXmlArchive, SerializeClassWithMemberInteger) {
 	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberFloat) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<float>>());
+	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberDouble) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<double>>());
+	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberString) {

@@ -136,7 +136,7 @@ namespace PugiXmlExtensions
 		return node.path();
 #endif
 	}
-} // namespace PugiXmlExtensions
+}
 
 
 // Forward declarations
@@ -164,7 +164,7 @@ public:
 	}
 
 	/// <summary>
-	/// Returns the size of stored elements (for arrays and objects).
+	/// Returns the size of stored elements.
 	/// </summary>
 	[[nodiscard]] size_t GetSize() const {
 		return std::distance(mNode.begin(), mNode.end());
@@ -365,7 +365,7 @@ protected:
 
 
 /// <summary>
-/// Constant iterator of the keys.
+/// Constant iterator for keys.
 /// </summary>
 class key_const_iterator
 {
@@ -642,7 +642,7 @@ private:
 	std::optional<SerializationOptions> mSerializationOptions;
 };
 
-} //namespace Detail
+}
 
 
 /// <summary>
@@ -661,4 +661,4 @@ using XmlArchive = TArchiveBase<
 	Detail::PugiXmlRootScope<SerializeMode::Load>,
 	Detail::PugiXmlRootScope<SerializeMode::Save>>;
 
-}	// namespace BitSerializer::Xml::PugiXml
+}

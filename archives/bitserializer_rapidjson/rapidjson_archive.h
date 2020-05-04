@@ -165,7 +165,7 @@ public:
 	}
 
 	/// <summary>
-	/// Returns the size of stored elements (for arrays and objects).
+	/// Returns the size of stored elements.
 	/// </summary>
 	[[nodiscard]] size_t GetSize() const {
 		return this->mNode->Capacity();
@@ -270,7 +270,7 @@ protected:
 };
 
 /// <summary>
-/// Constant iterator of the keys.
+/// Constant iterator for keys.
 /// </summary>
 template <class TEncoding>
 class key_const_iterator
@@ -643,7 +643,7 @@ private:
 	std::optional<SerializationOptions> mSerializationOptions;
 };
 
-} // namespace Detail
+}
 
 
 /// <summary>
@@ -657,4 +657,4 @@ using JsonArchive = TArchiveBase<
 	Detail::RapidJsonRootScope<SerializeMode::Load, rapidjson::UTF8<>>,
 	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF8<>>>;
 
-} // namespace BitSerializer::Json::RapidJson
+}

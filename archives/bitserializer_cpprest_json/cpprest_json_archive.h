@@ -11,8 +11,7 @@
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 
-//currently define cause conflict with c4core template argument
-//see: blob.hpp
+// Definition of macros 'U' causes conflict with c4core template argument (see: blob.hpp) which uses in YAML archive implementation
 #define _TURN_OFF_PLATFORM_STRING
 
 // External dependency (C++ REST SDK)
@@ -63,13 +62,6 @@ public:
 
 	JsonScopeBase(const JsonScopeBase&) = delete;
 	JsonScopeBase& operator=(const JsonScopeBase&) = delete;
-
-	/// <summary>
-	/// Returns the size of stored elements (for arrays and objects).
-	/// </summary>
-	[[nodiscard]] size_t GetSize() const {
-		return mNode->size();
-	}
 
 	/// <summary>
 	/// Gets the current path in JSON (RFC 6901 - JSON Pointer).
@@ -138,8 +130,6 @@ protected:
 template <SerializeMode TMode>
 class JsonArrayScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
-protected:
-	size_t mSize;
 public:
 	JsonArrayScope(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
 		: JsonScopeBase(node, parent, parentKey)
@@ -147,6 +137,10 @@ public:
 		, mIndex(0)
 	{
 		assert(mNode->is_array());
+	}
+
+	[[nodiscard]] size_t GetSize() const {
+		return mNode->size();
 	}
 
 	/// <summary>
@@ -248,11 +242,12 @@ protected:
 
 private:
 	size_t mIndex;
+	size_t mSize;
 };
 
 
 /// <summary>
-/// Constant iterator of the keys.
+/// Constant iterator for keys.
 /// </summary>
 class key_const_iterator
 {
@@ -573,7 +568,7 @@ private:
 	std::optional<SerializationOptions> mSerializationOptions;
 };
 
-} //namespace Detail
+}
 
 
 /// <summary>
@@ -592,4 +587,4 @@ using JsonArchive = TArchiveBase<
 	Detail::JsonRootScope<SerializeMode::Load>,
 	Detail::JsonRootScope<SerializeMode::Save>>;
 
-}	// namespace BitSerializer::Json::CppRest
+}

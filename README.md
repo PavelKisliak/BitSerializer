@@ -1,8 +1,6 @@
 # BitSerializer [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
 ___
 
-##### WORK IN PROGRESS! Next version 0.9
-
 ### Design goals:
 - Make a thin wrapper around existing libraries for have one common serialization interface.
 - Make easy serialization for all kind of C++ types and STL containers.
@@ -613,6 +611,7 @@ Thanks
 - Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.
+- Evgeniy Gorbachov.
 
 License
 ----

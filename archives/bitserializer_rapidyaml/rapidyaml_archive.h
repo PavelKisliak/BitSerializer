@@ -160,7 +160,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
 					{
-						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10);
+						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
 					}
 					else if constexpr (std::is_same_v<T, char>)
 					{
@@ -330,7 +330,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					yamlValue << ryml::key(key);
 					if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
 					{
-						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10);
+						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
 					}
 					else if constexpr (std::is_same_v<T, char>)
 					{

@@ -2,57 +2,12 @@
 * Copyright (C) 2020 by Artsiom Marozau                                        *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include "../test_helpers/common_test_methods.h"
-#include "../test_helpers/common_json_test_methods.h"
-#include "../test_helpers/common_yaml_test_methods.h"
+#include "test_helpers/common_test_methods.h"
+#include "test_helpers/common_json_test_methods.h"
+#include "test_helpers/common_yaml_test_methods.h"
 #include "bitserializer_rapidyaml/rapidyaml_archive.h"
 
-using BitSerializer::Yaml::RapidYaml::YamlArchive;
-
-//-----------------------------------------------------------------------------
-// Tests of serialization for fundamental types (at root scope of archive)
-//-----------------------------------------------------------------------------
-TEST(RapidYamlArchive, SerializeBoolean)
-{
-	TestSerializeSingleValueArray<YamlArchive, bool>(false);
-	TestSerializeSingleValueArray<YamlArchive, bool>(true);
-}
-
-TEST(RapidYamlArchive, SerializeInteger)
-{
-	TestSerializeSingleValueArray<YamlArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
-	TestSerializeSingleValueArray<YamlArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
-	TestSerializeSingleValueArray<YamlArchive, int64_t>(std::numeric_limits<int64_t>::min());
-	TestSerializeSingleValueArray<YamlArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
-}
-
-TEST(RapidYamlArchive, SerializeFloat)
-{
-	TestSerializeSingleValueArray<YamlArchive, float>(::BuildFixture<float>());
-}
-
-TEST(RapidYamlArchive, SerializeDouble)
-{
-	TestSerializeSingleValueArray<YamlArchive, double>(::BuildFixture<double>());
-}
-
-//-----------------------------------------------------------------------------
-// Tests of serialization for std::string and std::wstring (at root scope of archive)
-//-----------------------------------------------------------------------------
-TEST(RapidYamlArchive, SerializeAnsiString)
-{
-	TestSerializeSingleValueArray<YamlArchive, std::string>("Test ANSI string");
-}
-
-TEST(RapidYamlArchive, SerializeUnicodeString)
-{
-	TestSerializeSingleValueArray<YamlArchive, std::wstring>(L"Test Unicode string - Привет мир!");
-}
-
-TEST(RapidYamlArchive, SerializeEnum)
-{
-	TestSerializeSingleValueArray<YamlArchive, TestEnum>(TestEnum::Two);
-}
+using YamlArchive = BitSerializer::Yaml::RapidYaml::YamlArchive;
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for c-arrays (at root scope of archive)
@@ -124,16 +79,17 @@ TEST(RapidYamlArchive, SerializeClassWithMemberBoolean)
 TEST(RapidYamlArchive, SerializeClassWithMemberInteger)
 {
 	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberFloat)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<float>>());
+	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberDouble)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<double>>());
+	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberString)

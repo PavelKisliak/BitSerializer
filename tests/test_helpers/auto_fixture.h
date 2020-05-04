@@ -83,8 +83,25 @@ static void BuildFixture(T& value)
 template <typename TValue, size_t ArraySize>
 static void BuildFixture(TValue(&arr)[ArraySize])
 {
-	for (size_t i = 0; i < ArraySize; i++) {
-		BuildFixture(arr[i]);
+	static_assert(ArraySize != 0);
+
+	if constexpr (std::is_fundamental_v<TValue>)
+	{
+		// Using min/max values as generated elements in the array
+		if constexpr (ArraySize > 1)
+		{
+			arr[0] = std::numeric_limits<TValue>::min();
+			for (size_t i = 1; i < (ArraySize - 1); i++) {
+				BuildFixture(arr[i]);
+			}
+		}
+		arr[ArraySize-1] = std::numeric_limits<TValue>::max();
+	}
+	else
+	{
+		for (size_t i = 0; i < ArraySize; i++) {
+			BuildFixture(arr[i]);
+		}
 	}
 }
 

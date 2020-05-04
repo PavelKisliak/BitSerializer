@@ -2,37 +2,9 @@
 * Copyright (C) 2020 by Artsiom Marozau                                        *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-
 #pragma once
 #include "gtest/gtest.h"
 #include "common_test_entities.h"
-
-/// <summary>
-/// Test template of serialization for fundamental type.
-/// </summary>
-/// <param name="value">The value.</param>
-template <typename TArchive, typename T>
-void TestSerializeSingleValueArray(T&& value)
-{
-	// Arrange
-	T testArray[] {value};
-	typename TArchive::preferred_output_format outputArchive;
-	T actual[1];
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-
-	if constexpr (std::is_same_v<T, float>) {
-		EXPECT_FLOAT_EQ(testArray[0], actual[0]);
-	}
-	else if constexpr (std::is_same_v<T, double>) {
-		EXPECT_DOUBLE_EQ(testArray[0], actual[0]);
-	}
-	else {
-		EXPECT_EQ(testArray[0], actual[0]);
-	}
-}
 
 /// <summary>
 /// Tests loading YAML from encoded stream with/without writing BOM.

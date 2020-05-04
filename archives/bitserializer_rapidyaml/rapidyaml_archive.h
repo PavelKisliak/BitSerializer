@@ -89,7 +89,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			template <typename TSym, typename TAllocator>
-			bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+			static bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -103,6 +103,26 @@ namespace BitSerializer::Yaml::RapidYaml {
 					value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::move(tmp));
 				}
 				return true;
+			}
+
+			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+			static void SaveValue(RapidYamlNode& yamlValue, T& value)
+			{
+				if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
+					yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
+				else if constexpr (std::is_same_v<T, char>)
+					yamlValue << static_cast<uint8_t>(value);
+				else
+					yamlValue << value;
+			}
+
+			template <typename TSym, typename TAllocator>
+			static void SaveValue(RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+			{
+				if constexpr (std::is_same_v<TSym, std::string::value_type>)
+					yamlValue << value;
+				else
+					yamlValue << Convert::To<std::string>(value);
 			}
 
 			RapidYamlNode mNode;
@@ -145,52 +165,22 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			/// <summary>
-			/// Serialize single fundamental value.
+			/// Serialize value.
 			/// </summary>
 			/// <param name="value">The value.</param>
-			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+			template <typename T>
 			void SerializeValue(T& value)
 			{
-				if constexpr (TMode == SerializeMode::Load) {
+				if constexpr (TMode == SerializeMode::Load)
+				{
 					if (mIndex < GetSize())
 						LoadValue(mNode[mIndex++], value);
 				}
-				else {
+				else
+				{
 					assert(mIndex < GetSize());
 					auto yamlValue = mNode.append_child();
-					if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
-					{
-						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-					}
-					else if constexpr (std::is_same_v<T, char>)
-					{
-						yamlValue << static_cast<uint8_t>(value);
-					}
-					else
-					{
-						yamlValue << value;
-					}
-					mIndex++;
-				}
-			}
-
-			/// <summary>
-			/// Serialize string value.
-			/// </summary>
-			/// <param name="value">The string value.</param>
-			template <typename TSym, typename TAllocator>
-			void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-			{
-				if constexpr (TMode == SerializeMode::Load) {
-					if (mIndex < GetSize())
-						LoadValue(mNode[mIndex++], value);
-				}
-				else {
-					assert(mIndex < GetSize());
-					if constexpr (std::is_same_v<TSym, std::string::value_type>)
-						mNode.append_child() << value;
-					else
-						mNode.append_child() << Convert::To<std::string>(value);
+					SaveValue(yamlValue, value);
 					mIndex++;
 				}
 			}
@@ -200,7 +190,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// </summary>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
 			{				
-				if constexpr (TMode == SerializeMode::Load) {
+				if constexpr (TMode == SerializeMode::Load)
+				{
 					if (mIndex < mSize)
 					{
 						auto yamlValue = mNode[mIndex++];
@@ -224,7 +215,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="arraySize">The size of array (required only for save mode).</param>
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 			{
-				if constexpr (TMode == SerializeMode::Load) {
+				if constexpr (TMode == SerializeMode::Load)
+				{
 					if (mIndex < mSize)
 					{
 						auto yamlValue = mNode[mIndex++];
@@ -311,11 +303,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			/// <summary>
-			/// Serialize single fundamental value.
+			/// Serialize value.
 			/// </summary>
 			/// <param name="key">The key of child node.</param>
 			/// <param name="value">The value.</param>
-			template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+			template <typename TKey, typename T>
 			bool SerializeValue(TKey&& key, T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -328,44 +320,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
 					yamlValue << ryml::key(key);
-					if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
-					{
-						yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-					}
-					else if constexpr (std::is_same_v<T, char>)
-					{
-						yamlValue << static_cast<uint8_t>(value);
-					}
-					else
-					{
-						yamlValue << value;
-					}
-					return true;
-				}
-			}
-
-			/// <summary>
-			/// Serialize string value.
-			/// </summary>
-			/// <param name="key">The key of child node.</param>
-			/// <param name="value">String type value.</param>
-			template <typename TKey, typename TSym, typename TAllocator>
-			bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-			{
-				if constexpr (TMode == SerializeMode::Load)
-				{
-					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
-					return yamlValue.valid() ? LoadValue(yamlValue, value) : false;
-				}
-				else
-				{
-					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
-					auto yamlValue = mNode.append_child();
-					yamlValue << ryml::key(key);
-					if constexpr (std::is_same_v<TSym, std::string::value_type>)
-						yamlValue << value;
-					else
-						yamlValue << Convert::To<std::string>(value);
+					SaveValue(yamlValue, value);
 					return true;
 				}
 			}

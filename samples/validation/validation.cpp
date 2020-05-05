@@ -2,41 +2,42 @@
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer_rapidjson/rapidjson_archive.h"
 
-using namespace BitSerializer;
-using namespace BitSerializer::Json::RapidJson;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
-class TestSimpleClass
+class UserModel
 {
 public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestBool", mTestBool, Required());
-		archive << MakeKeyValue("TestInt", mTestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
-		archive << MakeKeyValue("TestString", mTestString, MaxSize(8));
-		// Sample with validation via lambda
-		archive << MakeKeyValue("TestString2", mTestString, [](const std::string& val, const bool isLoaded) -> std::optional<std::wstring>
+		using namespace BitSerializer;
+
+		archive << MakeKeyValue("Id", mId, Required());
+		archive << MakeKeyValue("Age", mAge, Required(), Range(0, 150));
+		archive << MakeKeyValue("FirstName", mFirstName, Required(), MaxSize(16));
+		archive << MakeKeyValue("LastName", mLastName, Required(), MaxSize(16));
+		// Custom validation with lambda
+		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::wstring>
 		{
-			if (!isLoaded || val.find_first_of(' ') == std::string::npos)
+			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
 			return L"The field must not contain spaces";
 		});
 	}
 
 private:
-	bool mTestBool = false;
-	int mTestInt = 0;
-	double mTestDouble = 0.0;
-	std::string mTestString;
-	std::string mTestString2;
+	uint64_t mId = 0;
+	uint16_t mAge = 0;
+	std::string mFirstName;
+	std::string mLastName;
+	std::string mNickName;
 };
 
 int main()
 {
-	auto simpleObj = TestSimpleClass();
-	auto json = "{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\", \"TestString2\" : \"1 23\" }";
-	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
+	UserModel user;
+	const auto json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+	BitSerializer::LoadObject<JsonArchive>(user, json);
 	if (!BitSerializer::Context.IsValid())
 	{
 		std::wcout << L"Validation errors: " << std::endl;

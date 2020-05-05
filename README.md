@@ -455,45 +455,42 @@ Validator 'Range' can be used with all types which have operators '<' and '>'.
 Validators `MinSize` and `MaxSize` can be applied to all values which have `size()` method.
 This list will be extended in future.
 ```cpp
-#include <iostream>
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
-using namespace BitSerializer;
-using namespace BitSerializer::Json::RapidJson;
-
-class TestSimpleClass
+class UserModel
 {
 public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("TestBool", mTestBool, Required());
-		archive << MakeKeyValue("TestInt", mTestInt, Required(), Range(0, 100));
-		archive << MakeKeyValue("TestDouble", mTestDouble, Required(), Range(-1.0, 1.0));
-		archive << MakeKeyValue("TestString", mTestString, MaxSize(8));
-		// Sample with validation via lambda
-		archive << MakeKeyValue("TestString2", mTestString, [](const std::string& val, const bool isLoaded) -> std::optional<std::wstring>
+		using namespace BitSerializer;
+
+		archive << MakeKeyValue("Id", mId, Required());
+		archive << MakeKeyValue("Age", mAge, Required(), Range(0, 150));
+		archive << MakeKeyValue("FirstName", mFirstName, Required(), MaxSize(16));
+		archive << MakeKeyValue("LastName", mLastName, Required(), MaxSize(16));
+		// Custom validation with lambda
+		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::wstring>
 		{
-			if (!isLoaded || val.find_first_of(' ') == std::string::npos)
+			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
 			return L"The field must not contain spaces";
 		});
 	}
 
 private:
-	bool mTestBool = false;
-	int mTestInt = 0;
-	double mTestDouble = 0.0;
-	std::string mTestString;
-	std::string mTestString2;
+	uint64_t mId = 0;
+	uint16_t mAge = 0;
+	std::string mFirstName;
+	std::string mLastName;
+	std::string mNickName;
 };
 
 int main()
 {
-	auto simpleObj = TestSimpleClass();
-	auto json = "{ \"TestInt\": 2000, \"TestDouble\": 1.0, \"TestString\" : \"Very looooooooong string!\", \"TestString2\" : \"1 23\" }";
-	BitSerializer::LoadObject<JsonArchive>(simpleObj, json);
+	UserModel user;
+	const auto json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+	BitSerializer::LoadObject<JsonArchive>(user, json);
 	if (!BitSerializer::Context.IsValid())
 	{
 		std::wcout << L"Validation errors: " << std::endl;
@@ -516,12 +513,14 @@ int main()
 The result of execution this code:
 ```text
 Validation errors:
-Path: /TestBool
+Path: /Age
+        Value must be between 0 and 150
+Path: /FirstName
+        The maximum size of this field should be not greater than 16
+Path: /LastName
         This field is required
-Path: /TestInt
-        Value must be between 0 and 100
-Path: /TestString
-        The maximum size of this field should be not greater than 8
+Path: /NickName
+        The field must not contain spaces
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 

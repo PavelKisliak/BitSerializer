@@ -83,7 +83,7 @@ The XML nodes perfectly fits to common BitSerialazer interface, but serializatio
 #include "bitserializer_pugixml/pugixml_archive.h"
 
 using namespace BitSerializer;
-using namespace BitSerializer::Xml::PugiXml;
+using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 
 class CRectangle
 {
@@ -105,8 +105,8 @@ public:
 	}
 
 	std::string mType;
-	int mWidth;
-	int mHeight;
+	int mWidth = 0;
+	int mHeight = 0;
 };
 
 int main()
@@ -131,7 +131,7 @@ As base library (PugiXml) has the functionality for output to human readable for
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer_pugixml/pugixml_archive.h"
 
-using namespace BitSerializer::Xml::PugiXml;
+using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 using namespace BitSerializer;
 
 class CPoint

@@ -4,7 +4,7 @@
 #include "bitserializer_pugixml/pugixml_archive.h"
 
 using namespace BitSerializer;
-using namespace BitSerializer::Xml::PugiXml;
+using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 
 class CRectangle
 {
@@ -26,8 +26,8 @@ public:
 	}
 
 	std::string mType;
-	int mWidth;
-	int mHeight;
+	int mWidth = 0;
+	int mHeight = 0;
 };
 
 int main()
@@ -38,10 +38,6 @@ int main()
 		{ 50, 25 }
 	};
 	const auto result = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Shapes", Shapes));
-#ifdef PUGIXML_WCHAR_MODE
-	std::wcout << result << std::endl;
-#else
 	std::cout << result << std::endl;
-#endif
 	return 0;
 }

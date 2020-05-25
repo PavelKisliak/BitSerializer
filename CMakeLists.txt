@@ -5,6 +5,9 @@ project(bitserializer-suite LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_CPPRESTJSON_ARCHIVE "Build CppRestJson archive" ON)
+option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" ON)
+option(BUILD_PUGIXML_ARCHIVE "Build PugiXml archive" ON)
 option(BUILD_RAPIDYAML_ARCHIVE "Build RapidYAML archive" ON)
 option(BUILD_TESTS "Build tests" OFF)
 option(BUILD_SAMPLES "Build samples" OFF)
@@ -21,17 +24,32 @@ if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.3")
     message(FATAL_ERROR "BitSerializer requires at least gcc-8.3")
 endif()
 
+message(STATUS "[Option] BUILD_CPPRESTJSON_ARCHIVE: ${BUILD_CPPRESTJSON_ARCHIVE}")
+message(STATUS "[Option] BUILD_RAPIDJSON_ARCHIVE: ${BUILD_RAPIDJSON_ARCHIVE}")
+message(STATUS "[Option] BUILD_PUGIXML_ARCHIVE: ${BUILD_PUGIXML_ARCHIVE}")
 message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 
+
 add_subdirectory(core)
-add_subdirectory(archives/bitserializer_cpprest_json)
-add_subdirectory(archives/bitserializer_rapidjson)
-add_subdirectory(archives/bitserializer_pugixml)
+
+if(BUILD_CPPRESTJSON_ARCHIVE)
+    add_subdirectory(archives/bitserializer_cpprest_json)
+endif(BUILD_CPPRESTJSON_ARCHIVE)
+
+if(BUILD_RAPIDJSON_ARCHIVE)
+    add_subdirectory(archives/bitserializer_rapidjson)
+endif(BUILD_RAPIDJSON_ARCHIVE)
+
+if(BUILD_PUGIXML_ARCHIVE)
+    add_subdirectory(archives/bitserializer_pugixml)
+endif(BUILD_PUGIXML_ARCHIVE)
+
 if(BUILD_RAPIDYAML_ARCHIVE)
     add_subdirectory(archives/bitserializer_rapidyaml)
 endif(BUILD_RAPIDYAML_ARCHIVE)
+
 
 if(BUILD_TESTS)
     include(GoogleTest)
@@ -41,5 +59,9 @@ if(BUILD_TESTS)
 endif(BUILD_TESTS)
 
 if(BUILD_SAMPLES)
-    add_subdirectory(samples)
+    if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE)
+       add_subdirectory(samples)
+    else()
+       message(WARNING "Disable build samples in connection with disabled build archives")
+    endif()
 endif(BUILD_SAMPLES)

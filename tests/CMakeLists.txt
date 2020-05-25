@@ -4,11 +4,27 @@ include_directories(
   ${CMAKE_CURRENT_LIST_DIR}
 )
 
-add_subdirectory(performance_tests)
 add_subdirectory(bitserializer_core_tests)
-add_subdirectory(bitserializer_cpprest_json_tests)
-add_subdirectory(bitserializer_rapidjson_tests)
-add_subdirectory(bitserializer_pugixml_tests)
+
+if(BUILD_CPPRESTJSON_ARCHIVE)
+    add_subdirectory(bitserializer_cpprest_json_tests)
+endif(BUILD_CPPRESTJSON_ARCHIVE)
+
+if(BUILD_RAPIDJSON_ARCHIVE)
+   add_subdirectory(bitserializer_rapidjson_tests)
+endif(BUILD_RAPIDJSON_ARCHIVE)
+
+if(BUILD_PUGIXML_ARCHIVE)
+   add_subdirectory(bitserializer_pugixml_tests)
+endif(BUILD_PUGIXML_ARCHIVE)
+
 if(BUILD_RAPIDYAML_ARCHIVE)
     add_subdirectory(bitserializer_rapidyaml_tests)
 endif(BUILD_RAPIDYAML_ARCHIVE)
+
+
+if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE)
+   add_subdirectory(performance_tests)
+else()
+   message(WARNING "Disable build performance tests in connection with disabled build archives")
+endif()

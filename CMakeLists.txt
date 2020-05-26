@@ -31,6 +31,13 @@ message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 
+if(MSVC)
+    add_compile_options(/permissive-)
+else()
+    add_compile_options(-Wall -Wextra -pedantic
+        -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable)
+endif()
+
 
 add_subdirectory(core)
 

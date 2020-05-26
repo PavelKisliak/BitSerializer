@@ -241,8 +241,8 @@ protected:
 	}
 
 private:
-	size_t mIndex;
 	size_t mSize;
+	size_t mIndex;
 };
 
 

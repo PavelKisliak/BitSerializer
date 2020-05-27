@@ -56,25 +56,25 @@ endif()
 #################################################################################
 # BitSerializer core
 #################################################################################
-add_subdirectory(core)
+add_subdirectory(include/bitserializer)
 
 #################################################################################
 # BitSerializer archives (optional)
 #################################################################################
 if(BUILD_CPPRESTJSON_ARCHIVE)
-    add_subdirectory(archives/bitserializer_cpprest_json)
+    add_subdirectory(include/bitserializer_cpprest_json)
 endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
-    add_subdirectory(archives/bitserializer_rapidjson)
+    add_subdirectory(include/bitserializer_rapidjson)
 endif()
 
 if(BUILD_PUGIXML_ARCHIVE)
-    add_subdirectory(archives/bitserializer_pugixml)
+    add_subdirectory(include/bitserializer_pugixml)
 endif()
 
 if(BUILD_RAPIDYAML_ARCHIVE)
-    add_subdirectory(archives/bitserializer_rapidyaml)
+    add_subdirectory(include/bitserializer_rapidyaml)
 endif()
 
 #################################################################################

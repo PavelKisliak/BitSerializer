@@ -8,19 +8,19 @@ add_subdirectory(bitserializer_core_tests)
 
 if(BUILD_CPPRESTJSON_ARCHIVE)
     add_subdirectory(bitserializer_cpprest_json_tests)
-endif(BUILD_CPPRESTJSON_ARCHIVE)
+endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
    add_subdirectory(bitserializer_rapidjson_tests)
-endif(BUILD_RAPIDJSON_ARCHIVE)
+endif()
 
 if(BUILD_PUGIXML_ARCHIVE)
    add_subdirectory(bitserializer_pugixml_tests)
-endif(BUILD_PUGIXML_ARCHIVE)
+endif()
 
 if(BUILD_RAPIDYAML_ARCHIVE)
     add_subdirectory(bitserializer_rapidyaml_tests)
-endif(BUILD_RAPIDYAML_ARCHIVE)
+endif()
 
 
 if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE)

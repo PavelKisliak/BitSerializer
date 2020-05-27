@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 project(bitserializer-pugixml
-  VERSION 0.9
+  VERSION 0.9.1
   DESCRIPTION "C++ 17 library for serialization, module for support XML (implementation based on the PugiXml library)"
   LANGUAGES CXX)
 

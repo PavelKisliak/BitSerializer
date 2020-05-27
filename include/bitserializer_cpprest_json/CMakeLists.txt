@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 project(bitserializer-cpprestjson
-  VERSION 0.9
+  VERSION 0.9.1
   DESCRIPTION "C++ 17 library for serialization, module for support JSON (implementation based on the CppRestSDK library)"
   LANGUAGES CXX)
 

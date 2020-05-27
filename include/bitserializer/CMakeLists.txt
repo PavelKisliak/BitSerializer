@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 project(bitserializer
-  VERSION 0.9
+  VERSION 0.9.1
   DESCRIPTION "Core part of C++ 17 library for serialization to multiple output formats (JSON, XML, YAML)"
   LANGUAGES CXX)
 

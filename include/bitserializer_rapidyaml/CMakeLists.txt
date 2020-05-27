@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 project(bitserializer-rapidyaml
-  VERSION 0.9
+  VERSION 0.9.1
   DESCRIPTION "C++ 17 library for serialization, module for support YAML (implementation based on the RapidYaml library)"
   LANGUAGES CXX)
 

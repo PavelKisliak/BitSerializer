@@ -43,11 +43,13 @@ namespace BitSerializer {
 			: SerializationException(errorCode, message.c_str())
 		{ }
 
+		[[nodiscard]]
 		SerializationErrorCode GetErrorCode() const noexcept
 		{
 			return mErrorCode;
 		}
 
+		[[nodiscard]]
 		const char* what() const noexcept override
 		{
 			return mMessage.c_str();
@@ -58,4 +60,4 @@ namespace BitSerializer {
 		std::string mMessage;
 	};
 
-}	// namespace BitSerializer
+}

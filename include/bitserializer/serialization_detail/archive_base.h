@@ -5,6 +5,7 @@
 #pragma once
 #include <tuple>
 #include "serialization_options.h"
+#include "bitserializer/conversion_detail/convert_enum.h"
 
 namespace BitSerializer {
 
@@ -26,6 +27,14 @@ enum class ArchiveType
 	Xml,
 	Yaml
 };
+
+REGISTER_ENUM_MAP(ArchiveType)
+{
+	{ ArchiveType::Json, "Json" },
+	{ ArchiveType::Xml, "Xml" },
+	{ ArchiveType::Yaml, "Yaml" }
+}
+END_ENUM_MAP()
 
 /// <summary>
 /// Class for provide information about supported key types in the archive.

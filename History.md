@@ -1,5 +1,10 @@
 # BitSerializer (History log)
 
+##### Version 0.10 (1 June 2020):
+
+- [ ! ] Changed main concept with separate library for each format to all-in-one library with components.
+- [ ! ] Changed include paths for archives (all archive implementations are now in the "bitserializer" directory).
+
 ##### Version 0.9 (5 May 2020):
 - [ ! ] Added XML serialization support (based on library PugiXml).
 - [ ! ] Added YAML serialization support (based on library RapidYaml).

@@ -11,18 +11,18 @@ This implementation of JSON archive is based on [RapidJson](https://github.com/T
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
 ```shell
-vcpkg install bitserializer-rapidjson:x64-windows
+vcpkg install bitserializer[rapidjson-archive]:x64-windows
 ```
 Specify required triplet for your platform instead of "x64-windows".
 If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 ```
 If you are using Cmake, you need to link the library:
 ```cmake
-find_package(bitserializer-rapidjson CONFIG REQUIRED)
-target_link_libraries(main PRIVATE BitSerializer::bitserializer-rapidjson)
+find_package(bitserializer CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 ```
 
 ### Implementation detail
@@ -35,7 +35,7 @@ As base library (RapidJson) has the functionality for output to human readable f
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/types/std/vector.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
 using namespace BitSerializer;
 using namespace BitSerializer::Json::RapidJson;

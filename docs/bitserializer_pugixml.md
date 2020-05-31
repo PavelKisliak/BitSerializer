@@ -11,18 +11,18 @@ The BitSerializer uses as low level library [PugiXml](https://github.com/zeux/pu
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
 ```shell
-vcpkg install bitserializer-pugixml:x64-windows
+vcpkg install bitserializer[pugixml-archive]:x64-windows
 ```
 Specify required triplet for your platform instead of "x64-windows".
 If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_pugixml/pugixml_archive.h"
+#include "bitserializer/pugixml_archive.h"
 ```
 If you are using Cmake, you need to link the library:
 ```cmake
-find_package(bitserializer-pugixml CONFIG REQUIRED)
-target_link_libraries(main PRIVATE BitSerializer::bitserializer-pugixml)
+find_package(bitserializer CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 ```
 
 ### Implementation detail
@@ -80,7 +80,7 @@ The XML nodes perfectly fits to common BitSerialazer interface, but serializatio
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/types/std/vector.h"
-#include "bitserializer_pugixml/pugixml_archive.h"
+#include "bitserializer/pugixml_archive.h"
 
 using namespace BitSerializer;
 using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
@@ -129,7 +129,7 @@ As base library (PugiXml) has the functionality for output to human readable for
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/types/std/vector.h"
-#include "bitserializer_pugixml/pugixml_archive.h"
+#include "bitserializer/pugixml_archive.h"
 
 using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 using namespace BitSerializer;

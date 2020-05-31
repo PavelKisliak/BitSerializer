@@ -11,18 +11,18 @@ This implementation of JSON archive is based on [C++ REST SDK](https://github.co
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
 ```shell
-vcpkg install bitserializer-cpprestjson:x64-windows
+vcpkg install bitserializer[cpprestjson-archive]:x64-windows
 ```
 Specify required triplet for your platform instead of "x64-windows".
 If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer/cpprestjson_archive.h"
 ```
 If you are using Cmake, you need to link the library:
 ```cmake
-find_package(bitserializer-cpprestjson CONFIG REQUIRED)
-target_link_libraries(main PRIVATE BitSerializer::bitserializer-cpprestjson)
+find_package(bitserializer CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::cpprestjson-archive)
 ```
 
 ### Implementation detail

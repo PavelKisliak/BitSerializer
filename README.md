@@ -1,4 +1,4 @@
-# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.9.1-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
+# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.10-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
 ___
 
 ### Design goals:
@@ -21,14 +21,18 @@ ___
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
-| [bitserializer-cpprestjson](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ❌ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
-| [bitserializer-rapidjson](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
-| [bitserializer-pugixml](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
-| [bitserializer_rapidyaml](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
+| [cpprestjson-archive](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ❌ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
+| [rapidjson-archive](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
+| [pugixml-archive](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
+| [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-7).
   - Dependencies which are required by selected type of archive.
+
+##### What's new in version 0.10:
+- [ ! ] Changed main concept with separate library for each format to all-in-one library with components.
+- [ ! ] Changed include paths for archives (all archive implementations are now in the "bitserializer" directory).
 
 ##### What's new in version 0.9:
 - [ ! ] Added XML serialization support (based on library PugiXml).
@@ -96,7 +100,13 @@ ___
 
 ### How to install
 The library consists of header files only, but it uses third-party libraries which should be also installed.
-The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically. Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
+The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
+#### VCPKG
+```shell
+vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive]:x64-windows
+```
+In the square brackets enumerated all available formats, install only which you need.
+Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
 
 ### Hello world
 Let's get started with traditional and simple "Hello world!" example.
@@ -104,7 +114,7 @@ Let's get started with traditional and simple "Hello world!" example.
 #include <cassert>
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer/cpprestjson_archive.h"
 
 using namespace BitSerializer::Json::CppRest;
 
@@ -133,7 +143,7 @@ There are two ways to serialize a class:
 Below example demonstrates how to implement internal serialization method:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer/cpprestjson_archive.h"
 
 using namespace BitSerializer;
 using namespace BitSerializer::Json::CppRest;
@@ -204,7 +214,7 @@ For serialize a third party class (non-intrusive serialization), which source ca
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
 class TestThirdPartyClass
 {

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/types/std/vector.h"
-#include "bitserializer_pugixml/pugixml_archive.h"
+#include "bitserializer/pugixml_archive.h"
 
 using namespace BitSerializer;
 using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;

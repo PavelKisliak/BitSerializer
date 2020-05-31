@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+if(@BUILD_CPPRESTJSON_ARCHIVE@)
+    find_dependency(cpprestsdk CONFIG REQUIRED)
+endif()
+
+if(@BUILD_RAPIDJSON_ARCHIVE@)
+    find_dependency(RapidJSON CONFIG REQUIRED)
+endif()
+
+if(@BUILD_PUGIXML_ARCHIVE@)
+    find_dependency(pugixml CONFIG REQUIRED)
+endif()
+
+if(@BUILD_RAPIDYAML_ARCHIVE@)
+    find_dependency(ryml CONFIG REQUIRED)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+check_required_components("@PROJECT_NAME@")

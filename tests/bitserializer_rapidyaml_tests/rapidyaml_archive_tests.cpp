@@ -5,7 +5,7 @@
 #include "test_helpers/common_test_methods.h"
 #include "test_helpers/common_json_test_methods.h"
 #include "test_helpers/common_yaml_test_methods.h"
-#include "bitserializer_rapidyaml/rapidyaml_archive.h"
+#include "bitserializer/rapidyaml_archive.h"
 
 using YamlArchive = BitSerializer::Yaml::RapidYaml::YamlArchive;
 

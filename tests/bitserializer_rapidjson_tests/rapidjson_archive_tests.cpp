@@ -4,7 +4,7 @@
 *******************************************************************************/
 #include "../test_helpers/common_test_methods.h"
 #include "../test_helpers/common_json_test_methods.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
 using BitSerializer::Json::RapidJson::JsonArchive;
 

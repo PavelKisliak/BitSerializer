@@ -1,7 +1,7 @@
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
-#include "bitserializer_pugixml/pugixml_archive.h"
+#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/pugixml_archive.h"
 
 using namespace BitSerializer::Xml::PugiXml;
 using namespace BitSerializer::Json::RapidJson;

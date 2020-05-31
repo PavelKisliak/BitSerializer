@@ -2,10 +2,9 @@
 * Copyright (C) 2020 by Artsiom Marozau                                        *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-
 #pragma once
 #include <stdexcept>
-#include "bitserializer_rapidyaml/rapidyaml_archive.h"
+#include "bitserializer/rapidyaml_archive.h"
 #include "base_test_models.h"
 
 class RapidYamlPerformanceTestModel final: public BasePerformanceTestModel<char>

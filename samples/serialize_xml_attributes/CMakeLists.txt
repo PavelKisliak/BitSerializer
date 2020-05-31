@@ -8,5 +8,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME} serialize_xml_attributes.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  BitSerializer::bitserializer-pugixml
+  BitSerializer::pugixml-archive
 )

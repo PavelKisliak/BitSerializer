@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer/cpprestjson_archive.h"
 #include "base_test_models.h"
 
 

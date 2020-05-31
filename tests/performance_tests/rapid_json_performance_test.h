@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 #include "base_test_models.h"
 
 

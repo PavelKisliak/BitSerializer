@@ -1,6 +1,6 @@
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_rapidjson/rapidjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 

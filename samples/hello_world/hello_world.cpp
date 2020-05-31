@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer_cpprest_json/cpprest_json_archive.h"
+#include "bitserializer/cpprestjson_archive.h"
 
 using namespace BitSerializer::Json::CppRest;
 

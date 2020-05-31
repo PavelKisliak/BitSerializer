@@ -8,5 +8,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME} serialize_third_party_class.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  BitSerializer::bitserializer-rapidjson
+  BitSerializer::rapidjson-archive
 )

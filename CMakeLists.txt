@@ -10,7 +10,13 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
       CACHE STRING "")
 endif()
 
-project(bitserializer-suite LANGUAGES CXX)
+project(bitserializer
+  VERSION 0.10.0
+  DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML)"
+  LANGUAGES CXX)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 #################################################################################
 # Options
@@ -54,28 +60,82 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 #################################################################################
+# Targets configuration
+#################################################################################
+set(BITSERIALIZER_NAMESPACE "BitSerializer")
+
 # BitSerializer core
-#################################################################################
-add_subdirectory(include/bitserializer)
+set(BITSERIALIZER_CORE_NAME "core")
+set(BITSERIALIZER_TARGETS ${BITSERIALIZER_CORE_NAME})
+add_library(${BITSERIALIZER_CORE_NAME} INTERFACE)
+add_library(${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME} ALIAS ${BITSERIALIZER_CORE_NAME})
 
-#################################################################################
-# BitSerializer archives (optional)
-#################################################################################
+target_include_directories(${BITSERIALIZER_CORE_NAME} INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+target_compile_features(${BITSERIALIZER_CORE_NAME} INTERFACE cxx_std_17)
+
+if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+      target_link_libraries(${BITSERIALIZER_CORE_NAME} INTERFACE stdc++fs)
+    endif()
+endif()
+
+# BitSerializer cpprestjson archive
 if(BUILD_CPPRESTJSON_ARCHIVE)
-    add_subdirectory(include/bitserializer_cpprest_json)
+    set(CPPRESTJSON_ARCHIVE_NAME "cpprestjson-archive")
+    add_library(${CPPRESTJSON_ARCHIVE_NAME} INTERFACE)
+    add_library(${BITSERIALIZER_NAMESPACE}::${CPPRESTJSON_ARCHIVE_NAME} ALIAS ${CPPRESTJSON_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${CPPRESTJSON_ARCHIVE_NAME})
+
+    find_package(cpprestsdk CONFIG REQUIRED)
+    target_link_libraries(${CPPRESTJSON_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+        cpprestsdk::cpprest
+    )
 endif()
 
+# BitSerializer rapidjson archive
 if(BUILD_RAPIDJSON_ARCHIVE)
-    add_subdirectory(include/bitserializer_rapidjson)
+    set(RAPIDJSON_ARCHIVE_NAME "rapidjson-archive")
+    add_library(${RAPIDJSON_ARCHIVE_NAME} INTERFACE)
+    add_library(${BITSERIALIZER_NAMESPACE}::${RAPIDJSON_ARCHIVE_NAME} ALIAS ${RAPIDJSON_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${RAPIDJSON_ARCHIVE_NAME})
+
+    target_link_libraries(${RAPIDJSON_ARCHIVE_NAME} INTERFACE ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME})
+    find_package(RapidJSON CONFIG REQUIRED)
+    target_include_directories(${RAPIDJSON_ARCHIVE_NAME} INTERFACE ${RAPIDJSON_INCLUDE_DIRS})
 endif()
 
+# BitSerializer pugixml archive
 if(BUILD_PUGIXML_ARCHIVE)
-    add_subdirectory(include/bitserializer_pugixml)
+    set(PUGIXML_ARCHIVE_NAME "pugixml-archive")
+    add_library(${PUGIXML_ARCHIVE_NAME} INTERFACE)
+    add_library(${BITSERIALIZER_NAMESPACE}::${PUGIXML_ARCHIVE_NAME} ALIAS ${PUGIXML_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${PUGIXML_ARCHIVE_NAME})
+
+    find_package(pugixml CONFIG REQUIRED)
+    target_link_libraries(${PUGIXML_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+        pugixml
+    )
 endif()
 
+# BitSerializer rapidyaml archive
 if(BUILD_RAPIDYAML_ARCHIVE)
-    add_subdirectory(include/bitserializer_rapidyaml)
+    set(RAPIDYAML_ARCHIVE_NAME "rapidyaml-archive")
+    add_library(${RAPIDYAML_ARCHIVE_NAME} INTERFACE)
+    add_library(${BITSERIALIZER_NAMESPACE}::${RAPIDYAML_ARCHIVE_NAME} ALIAS ${RAPIDYAML_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${RAPIDYAML_ARCHIVE_NAME})
+
+    find_package(ryml CONFIG REQUIRED)
+    target_link_libraries(${RAPIDYAML_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+        ryml::ryml
+    )
 endif()
+
 
 #################################################################################
 # Tests (optional)
@@ -96,4 +156,57 @@ if(BUILD_SAMPLES)
     else()
        message(WARNING "Disable build samples in connection with disabled build archives")
     endif()
+endif()
+
+#################################################################################
+# Installation
+#################################################################################
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME})
+
+install(TARGETS ${BITSERIALIZER_TARGETS}
+    EXPORT ${PROJECT_NAME}_Targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
+                                 VERSION ${PROJECT_VERSION}
+                                 COMPATIBILITY ExactVersion)
+
+configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
+
+install(EXPORT ${PROJECT_NAME}_Targets
+    FILE ${PROJECT_NAME}Targets.cmake
+    NAMESPACE ${BITSERIALIZER_NAMESPACE}::
+    DESTINATION ${INSTALL_CONFIGDIR})
+
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+              "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION ${INSTALL_CONFIGDIR})
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE)
+
+if(BUILD_CPPRESTJSON_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/cpprestjson_archive.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+endif()
+
+if(BUILD_RAPIDJSON_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidjson_archive.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+endif()
+
+if(BUILD_PUGIXML_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/pugixml_archive.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+endif()
+
+if(BUILD_RAPIDYAML_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidyaml_archive.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()

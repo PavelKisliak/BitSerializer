@@ -14,7 +14,7 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  BitSerializer::bitserializer-rapidjson
+  BitSerializer::rapidjson-archive
   GTest::GTest
   GTest::Main
 )

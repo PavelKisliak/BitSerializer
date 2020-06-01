@@ -46,17 +46,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0")
-    message(FATAL_ERROR "BitSerializer requires at least clang-8.0")
+    message(WARNING "BitSerializer requires at least clang-8.0")
 endif()
 if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.3")
-    message(FATAL_ERROR "BitSerializer requires at least gcc-8.3")
+    message(WARNING "BitSerializer requires at least gcc-8.3")
 endif()
 
 if(MSVC)
     add_compile_options(/permissive-)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wall -Wextra -pedantic
-        -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable)
+        -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-maybe-uninitialized)
 endif()
 
 #################################################################################

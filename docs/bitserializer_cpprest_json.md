@@ -10,6 +10,7 @@ This implementation of JSON archive is based on [C++ REST SDK](https://github.co
 ### How to install
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
+**Note:** Adding version 0.10 to VCPKG still [in progress](https://github.com/microsoft/vcpkg/pull/11683) (available only version 0.9).
 ```shell
 vcpkg install bitserializer[cpprestjson-archive]:x64-windows
 ```

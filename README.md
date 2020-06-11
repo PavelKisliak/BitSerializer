@@ -102,11 +102,20 @@ ___
 The library consists of header files only, but it uses third-party libraries which should be also installed.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 #### VCPKG
+**Note:** Adding version 0.10 to VCPKG still [in progress](https://github.com/microsoft/vcpkg/pull/11683) (available only version 0.9).
 ```shell
 vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive]:x64-windows
 ```
 In the square brackets enumerated all available formats, install only which you need.
-Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
+#### Conan
+The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add package to your "conanfile.txt" or 
+install via below command:
+```shell
+conan install bitserializer/0.10@
+```
+One note for current status: the recipe includes all archives which exists in the BitSerializer, but by default it installs only one dependency - **RapidJson**.
+When you need to use **cpprestjson-archive** or **pugixml-archive**, you need to add reference to these packages explicitly. The archive for support **YAML** requires **RapidYaml** library, but unfortunately it is absent in the Conan right now.
+This approach will change, when **components** feature will be released in the Conan.
 
 ### Hello world
 Let's get started with traditional and simple "Hello world!" example.

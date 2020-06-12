@@ -10,7 +10,6 @@ This implementation of JSON archive is based on [RapidJson](https://github.com/T
 ### How to install
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
-**Note:** Adding version 0.10 to VCPKG still [in progress](https://github.com/microsoft/vcpkg/pull/11683) (available only version 0.9).
 ```shell
 vcpkg install bitserializer[rapidjson-archive]:x64-windows
 ```
@@ -25,6 +24,8 @@ If you are using Cmake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 ```
+#### Conan
+Add BitSerializer's recipe "bitserializer/1.10" to your "conanfile.txt". The dependent library **RapidJson** will be automatically installed.
 
 ### Implementation detail
 The JSON specification allows to store on root not just objects and arrays, but also more primitive types such as string, number and boolean.

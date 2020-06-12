@@ -10,7 +10,6 @@ The BitSerializer uses as low level library [PugiXml](https://github.com/zeux/pu
 ### How to install
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
-**Note:** Adding version 0.10 to VCPKG still [in progress](https://github.com/microsoft/vcpkg/pull/11683) (available only version 0.9).
 ```shell
 vcpkg install bitserializer[pugixml-archive]:x64-windows
 ```
@@ -25,6 +24,14 @@ If you are using Cmake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 ```
+#### Conan
+Add BitSerializer's recipe to your "conanfile.txt" and required dependent library PugiXml.
+```
+[requires]
+pugixml/1.10
+bitserializer/1.10
+```
+This approach will change, when **components** feature will be released in the Conan (will no needs to specify dependent library explicitly).
 
 ### Implementation detail
 XML format requires root named node, but BitSerializer allows to serialize objects with and without keys.

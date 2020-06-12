@@ -10,7 +10,6 @@ This implementation of JSON archive is based on [C++ REST SDK](https://github.co
 ### How to install
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
-**Note:** Adding version 0.10 to VCPKG still [in progress](https://github.com/microsoft/vcpkg/pull/11683) (available only version 0.9).
 ```shell
 vcpkg install bitserializer[cpprestjson-archive]:x64-windows
 ```
@@ -25,6 +24,14 @@ If you are using Cmake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::cpprestjson-archive)
 ```
+#### Conan
+Add BitSerializer's recipe to your "conanfile.txt" and required dependent library CppRestJson.
+```
+[requires]
+cpprestsdk/2.10.16
+bitserializer/1.10
+```
+This approach will change, when **components** feature will be released in the Conan (will no needs to specify dependent library explicitly).
 
 ### Implementation detail
 One of the important things related to JSON implementations in CppRestSdk is character dimension on different platforms - for Windows it's 16-bit (UTF-16), for all other - 8-bit char (UTF-8). Accordingly, this affects the key type in BitSerializer, and usages of the universal adapter **MakeAutoKeyValue()** is already becoming very relevant for this archive (if you want to make your code cross platform). One more option - usages of macros from CppRestSdk: **_XPLATSTR("MyKey")**, but in this case you will lost compatibility with other type of BitSerializer archives.

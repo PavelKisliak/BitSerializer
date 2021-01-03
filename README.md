@@ -410,9 +410,10 @@ For able to serialize `std::map`, which has custom type as a key, you can implem
 class YourCustomKey
 {
 	std::string ToString() const { }
-	std::wstring ToWString() const { }
+    void FromString(const std::string& str)
 }
 ```
+When archive uses `std::wstring` as key (like **CppRestJson** on **Windows**) than need also implement such methods for `std::wstring`.
 Below more complex example with loads a vector of maps.
 ```json
 [{

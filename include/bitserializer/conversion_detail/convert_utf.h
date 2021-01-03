@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2021 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -37,6 +37,11 @@ namespace BitSerializer::Convert
 		static constexpr uint16_t HighSurrogatesEnd = 0xDBFF;
 		static constexpr uint16_t LowSurrogatesStart = 0xDC00;
 		static constexpr uint16_t LowSurrogatesEnd = 0xDFFF;
+
+		inline bool IsInSurrogatesRange(const char32_t sym) noexcept
+		{
+			return sym >= HighSurrogatesStart && sym <= LowSurrogatesEnd;
+		}
 	}
 
 	class Utf8
@@ -47,8 +52,11 @@ namespace BitSerializer::Convert
 		static constexpr char bom[] = { '\xEF', '\xBB', '\xBF' };
 		static constexpr bool lowEndian = true;
 
+		/// <summary>
+		/// Decodes UTF-8 to UTF-16 or UTF-32
+		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const TOutChar errSym = '?')
+		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 8-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
@@ -88,7 +96,7 @@ namespace BitSerializer::Convert
 				{
 					if (in == end)
 					{
-						sym = errSym;
+						sym = static_cast<unsigned char>(errSym);
 						break;
 					}
 
@@ -102,18 +110,18 @@ namespace BitSerializer::Convert
 					{
 						// Interrupt decoding the sequence if tail has bad signature
 						std::advance(in, std::min<size_t>(static_cast<size_t>(tails) - i, std::distance(in, end)));
-						sym = errSym;
+						sym = static_cast<unsigned char>(errSym);
 						break;
 					}
 					++in;
 				}
 
-				// Surrogates pairs are prohibited in the UTF8
-				if (sym >= Unicode::HighSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
+				// Surrogates pairs are prohibited in the UTF-8
+				if (Unicode::IsInSurrogatesRange(sym))
 				{
-					sym = errSym;
+					sym = static_cast<unsigned char>(errSym);
 				}
-				// Decode as surrogate pair when character exceeds UTF16 range
+				// Decode as surrogate pair when character exceeds UTF-16 range
 				else if (sizeof(TOutChar) == 2 && sym > 0xFFFF)
 				{
 					sym -= 0x10000;
@@ -128,6 +136,9 @@ namespace BitSerializer::Convert
 			}
 		}
 
+		/// <summary>
+		/// Encodes to UTF-8 from UTF-16 or UTF-32
+		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static void Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
 		{
@@ -144,10 +155,10 @@ namespace BitSerializer::Convert
 					continue;
 				}
 
-				// Handle surrogates for UTF-16 (decode before encoding to UTF8)
+				// Handle surrogates for UTF-16 (decode before encoding to UTF-8)
 				if constexpr (sizeof(InCharType) == sizeof(char16_t))
 				{
-					if (sym >= Unicode::HighSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
+					if (Unicode::IsInSurrogatesRange(sym))
 					{
 						// Low surrogate character cannot be first and should present second part
 						if (sym >= Unicode::LowSurrogatesStart || in == end)
@@ -207,8 +218,11 @@ namespace BitSerializer::Convert
 		static constexpr char bom[] = { '\xFF', '\xFE' };
 		static constexpr bool lowEndian = true;
 
+		/// <summary>
+		/// Decodes UTF-16LE to UTF-16 (actually copies 'as is') or UTF-32
+		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const TOutChar errSym = '?')
+		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
@@ -218,10 +232,10 @@ namespace BitSerializer::Convert
 				TOutChar sym = *in;
 				++in;
 
-				// Handle surrogates when decode to UTF32
+				// Handle surrogates
 				if constexpr (sizeof(TOutChar) > sizeof(char16_t))
 				{
-					if (sym >= Unicode::HighSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
+					if (Unicode::IsInSurrogatesRange(sym))
 					{
 						// Low surrogate character cannot be first and should present second part
 						if (sym >= Unicode::LowSurrogatesStart || in == end)
@@ -249,6 +263,9 @@ namespace BitSerializer::Convert
 			}
 		}
 
+		/// <summary>
+		/// Encodes to UTF-16LE from UTF-16 (actually copies 'as is') or UTF-32
+		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static void Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
 		{
@@ -282,8 +299,11 @@ namespace BitSerializer::Convert
 		static constexpr char bom[] = { '\xFE', '\xFF' };
 		static constexpr bool lowEndian = false;
 
+		/// <summary>
+		/// Decodes UTF-16BE to UTF-16 or UTF-32
+		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const TOutChar errSym = '?')
+		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
@@ -293,10 +313,10 @@ namespace BitSerializer::Convert
 				TOutChar sym = static_cast<char16_t>((*in >> 8) | (*in << 8));
 				++in;
 
-				// Handle surrogates when decode to UTF32
+				// Handle surrogates when decode to UTF-32
 				if constexpr (sizeof(TOutChar) >= sizeof(char32_t))
 				{
-					if (sym >= Unicode::HighSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
+					if (Unicode::IsInSurrogatesRange(sym))
 					{
 						// Low surrogate character cannot be first and should present second part
 						if (sym >= Unicode::LowSurrogatesStart || in == end)
@@ -324,6 +344,9 @@ namespace BitSerializer::Convert
 			}
 		}
 
+		/// <summary>
+		/// Encodes UTF-16BE from UTF-16 or UTF-32
+		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static void Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
 		{
@@ -357,7 +380,47 @@ namespace BitSerializer::Convert
 		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
 		static constexpr bool lowEndian = true;
 
-		// to be implemented
+		/// <summary>
+		/// Decodes UTF-32LE to UTF-32 (actually copies 'as is') or UTF-16
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
+		{
+			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 32-bit characters");
+			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
+
+			if constexpr (sizeof(TOutChar) == sizeof(char_type))
+			{
+				for (; in != end; ++in) {
+					outStr.push_back(static_cast<TOutChar>(*in));
+				}
+			}
+			else if constexpr (sizeof(TOutChar) == sizeof(Utf16Le::char_type))
+			{
+				Utf16Le::Encode(in, end, outStr, errSym);
+			}
+		}
+
+		/// <summary>
+		/// Encodes UTF-32LE from UTF-32 (actually copies 'as is') or UTF-16
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static void Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
+		{
+			static_assert(sizeof(TOutChar) == sizeof(char32_t), "Output string must be 32-bit characters (e.g. std::u32string)");
+
+			using TInCharType = decltype(*in);
+			if constexpr (sizeof(TInCharType) == sizeof(char_type))
+			{
+				for (; in != end; ++in) {
+					outStr.push_back(static_cast<TOutChar>(*in));
+				}
+			}
+			else if constexpr (sizeof(TInCharType) == sizeof(Utf16Le::char_type))
+			{
+				Utf16Le::Decode(in, end, outStr, errSym);
+			}
+		}
 	};
 
 
@@ -369,7 +432,75 @@ namespace BitSerializer::Convert
 		static constexpr char bom[] = { '\x00', '\x00', '\xFE', '\xFF' };
 		static constexpr bool lowEndian = false;
 
-		// to be implemented
+		/// <summary>
+		/// Decodes UTF-32BE to UTF-32 or UTF-16
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
+		{
+			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 32-bit characters");
+			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
+
+			auto swapByteOrder = [](uint32_t sym) { return (sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24); };
+			for (; in != end; ++in)
+			{
+				uint32_t sym = swapByteOrder(*in);
+				if (sym < 0x10000 || sizeof(TOutChar) == sizeof(char_type))
+				{
+					outStr.push_back(sym);
+				}
+				else
+				{
+					sym -= 0x10000;
+					outStr.push_back(static_cast<TOutChar>(Unicode::HighSurrogatesStart | (sym >> 10)));
+					outStr.push_back(static_cast<TOutChar>(Unicode::LowSurrogatesStart | (sym & 0x3FF)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// Encodes UTF-32BE from UTF-32 or UTF-16
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static void Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?')
+		{
+			static_assert(sizeof(TOutChar) == sizeof(char32_t), "Output string must be 32-bit characters (e.g. std::u32string)");
+
+			using TInCharType = decltype(*in);
+			while (in != end)
+			{
+				auto sym = static_cast<TOutChar>(*in);
+				++in;
+
+				// Handle surrogates when encoding from UTF-16
+				if constexpr (sizeof(TInCharType) == sizeof(char16_t))
+				{
+					if (Unicode::IsInSurrogatesRange(sym))
+					{
+						// Low surrogate character cannot be first and should present second part
+						if (sym >= Unicode::LowSurrogatesStart || in == end)
+						{
+							outStr.push_back(errSym);
+							continue;
+						}
+
+						// Surrogate characters are always written as pairs (low follows after high)
+						const char16_t low = *in;
+						if (low >= Unicode::LowSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
+						{
+							sym = 0x10000 + ((sym & 0x3FF) << 10 | (low & 0x3FF));
+							++in;
+						}
+						else
+						{
+							outStr.push_back(errSym);
+							continue;
+						}
+					}
+				}
+				outStr.push_back((sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24));
+			}
+		}
 	};
 
 	//------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(bitserializer_core_tests)
+project(bitserializer_conversions_tests)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,12 +10,11 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
-    serialization_archive_traits_tests.cpp
-    serialization_base_types_tests.cpp
-    serialization_object_traits_tests.cpp
-    serialization_std_containers_tests.cpp
-    serialization_std_types_tests.cpp
-    validators_tests.cpp
+    utf8_encoding_tests.cpp
+    utf16_encoding_tests.cpp
+    utf32_encoding_tests.cpp
+    detect_encodings_tests.cpp
+    string_conversion_tests.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -24,4 +23,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     GTest::GTest
 )
 
-gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerAllCoreTests)
+gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerConversionsTests)

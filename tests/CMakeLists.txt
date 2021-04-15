@@ -5,6 +5,7 @@ include_directories(
 )
 
 add_subdirectory(bitserializer_core_tests)
+add_subdirectory(bitserializer_conversions_tests)
 
 if(BUILD_CPPRESTJSON_ARCHIVE)
     add_subdirectory(bitserializer_cpprest_json_tests)

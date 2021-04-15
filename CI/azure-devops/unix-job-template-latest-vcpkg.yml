@@ -9,6 +9,8 @@ parameters:
   vcpkgTriplet: ''
 # [Optional] Cmake additional arguments for generate mode
   cmakeGenArgs: ''
+# [Optional] Install additional tools command line
+  installToolsCmd: ''
 
 jobs:
 - job: ${{ parameters.name }}
@@ -18,6 +20,12 @@ jobs:
     VCPKG_CACHE_DIR: $(Build.SourcesDirectory)/../vcpkg/installed
 
   steps:
+  - script: |
+      echo --- Install build tools ---
+      ${{ parameters.installToolsCmd }}
+    displayName: 'Install build tools'
+    condition: ne('${{ parameters.installToolsCmd }}', '')
+
   - script: |
       echo --- Clone VCPKG ---
       cd ..

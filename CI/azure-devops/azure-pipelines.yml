@@ -49,6 +49,7 @@ jobs:
     parameters:
       name: 'Ubuntu_GCC_8'
       image: 'ubuntu-latest'
+      installToolsCmd: 'sudo apt-get install gcc-8 g++-8'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '-DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8'
 
@@ -56,6 +57,7 @@ jobs:
     parameters:
       name: 'Ubuntu_GCC_9'
       image: 'ubuntu-latest'
+      installToolsCmd: 'sudo apt-get install gcc-8 g++-8'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '-DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
 
@@ -63,8 +65,9 @@ jobs:
     parameters:
       name: 'Ubuntu_Clang_8'
       image: 'ubuntu-latest'
+      installToolsCmd: 'sudo apt-get install clang-7'
       vcpkgTriplet: "x64-linux"
-      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8'
+      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-7 -DCMAKE_CXX_COMPILER=clang++-7'
 
   - template: unix-job-template-latest-vcpkg.yml
     parameters:

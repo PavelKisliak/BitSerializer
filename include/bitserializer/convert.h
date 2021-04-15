@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -16,31 +16,34 @@ namespace BitSerializer::Convert
 	TOut To(TIn&& value)
 	{
 		// Convert to the same type
-		if constexpr (std::is_same_v<std::decay<TIn>, TOut>)
-			return std::forward<TIn>(value);  // NOLINT(bugprone-suspicious-semicolon)
-
-		TOut result;
-		if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
-			// Convert to std::string, as internal implementation does not support c-strings
-			Detail::To(std::forward<std::string>(value), result);
-		}
-		else if constexpr (std::is_same_v<std::decay_t<TIn>, const wchar_t*>) {
-			// Convert to std::wstring, as internal implementation does not support c-strings
-			Detail::To(std::forward<std::wstring>(value), result);
-		}
-		else if constexpr (std::is_same_v<std::decay_t<TIn>, std::string_view>) {
-			// Convert to std::string, as internal implementation does not support string_view
-			Detail::To(std::string(value.data(), value.size()), result);
-		}
-		else if constexpr (std::is_same_v<std::decay_t<TIn>, std::wstring_view>) {
-			// Convert to std::wstring, as internal implementation does not support string_view
-			Detail::To(std::wstring(value.data(), value.size()), result);
+		if constexpr (std::is_same_v<TOut, std::decay_t<TIn>>) {
+			return value;
 		}
 		else
 		{
-			Detail::To(std::forward<TIn>(value), result);
+			TOut result;
+			if constexpr (std::is_same_v<std::decay_t<TIn>, const char*>) {
+				// Convert to std::string, as internal implementation does not support c-strings
+				Detail::To(std::forward<std::string>(value), result);
+			}
+			else if constexpr (std::is_same_v<std::decay_t<TIn>, const wchar_t*>) {
+				// Convert to std::wstring, as internal implementation does not support c-strings
+				Detail::To(std::forward<std::wstring>(value), result);
+			}
+			else if constexpr (std::is_same_v<std::decay_t<TIn>, std::string_view>) {
+				// Convert to std::string, as internal implementation does not support string_view
+				Detail::To(std::string(value.data(), value.size()), result);
+			}
+			else if constexpr (std::is_same_v<std::decay_t<TIn>, std::wstring_view>) {
+				// Convert to std::wstring, as internal implementation does not support string_view
+				Detail::To(std::wstring(value.data(), value.size()), result);
+			}
+			else
+			{
+				Detail::To(std::forward<TIn>(value), result);
+			}
+			return result;
 		}
-		return result;
 	}
 
 	/// <summary>

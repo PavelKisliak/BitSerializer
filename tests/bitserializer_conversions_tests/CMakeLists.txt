@@ -10,11 +10,15 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
+    convert_api_tests.cpp
     utf8_encoding_tests.cpp
     utf16_encoding_tests.cpp
     utf32_encoding_tests.cpp
     detect_encodings_tests.cpp
-    string_conversion_tests.cpp
+    convert_fundamentals_tests.cpp
+    convert_traits_tests.cpp
+    convert_classes_tests.cpp
+    convert_transcoding_tests.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

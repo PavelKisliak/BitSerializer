@@ -1,10 +1,9 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2021 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
-#include "test_helpers/common_test_entities.h"
-#include "bitserializer/conversion_detail/convert_utf.h"
+#include "bitserializer/convert.h"
 
 using namespace BitSerializer;
 
@@ -13,23 +12,26 @@ template <class TEncoder>
 class Utf16EncodeBaseFixture : public testing::Test
 {
 protected:
-	static std::u16string EncodeUtf16(const std::wstring& unicodeStr, const char errSym = '?')
+	template <typename TOutStr = std::u16string>
+	static TOutStr EncodeUtf16(const std::wstring& unicodeStr, const char errSym = '?')
 	{
-		std::u16string result;
+		TOutStr result;
 		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
 		return result;
 	}
 
-	static std::u16string EncodeUtf16(const std::u16string& unicodeStr, const char errSym = '?')
+	template <typename TOutStr = std::u16string>
+	static TOutStr EncodeUtf16(const std::u16string& unicodeStr, const char errSym = '?')
 	{
-		std::u16string result;
+		TOutStr result;
 		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
 		return result;
 	}
 
-	static std::u16string EncodeUtf16(const std::u32string& unicodeStr, const char errSym = '?')
+	template <typename TOutStr = std::u16string>
+	static TOutStr EncodeUtf16(const std::u32string& unicodeStr, const char errSym = '?')
 	{
-		std::u16string result;
+		TOutStr result;
 		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
 		return result;
 	}
@@ -58,9 +60,10 @@ class Utf16BeDecodeTest : public Utf16DecodeBaseFixture<Convert::Utf16Be> {};
 
 namespace 
 {
-	std::u16string SwapByteOrder(const std::u16string& str)
+	template <typename TOutputString = std::u16string>
+	TOutputString SwapByteOrder(const std::u16string& str)
 	{
-		std::u16string result;
+		TOutputString result;
 		std::transform(std::cbegin(str), std::cend(str), std::back_inserter(result), [](auto sym) -> char16_t {
 			return (sym >> 8) | (sym << 8);
 		});
@@ -71,7 +74,7 @@ namespace
 #pragma warning(push)
 #pragma warning(disable: 4566)
 //-----------------------------------------------------------------------------
-// UTF-16 LE / BE: Tests for encoding string
+// UTF-16 LE: Tests for encoding string
 //-----------------------------------------------------------------------------
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16WithAnsiChars) {
 	EXPECT_EQ(u"Hello world!", EncodeUtf16(L"Hello world!"));
@@ -88,25 +91,9 @@ TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
 	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(U"😀😎🙋"));
 }
 
-//-----------------------------------------------------------------------------
-
-TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithAnsiChars) {
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(L"Hello world!"));
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(U"Hello world!"));
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(u"Hello world!"));
-}
-
-TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithUnicodeChars) {
-	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(U"Привет мир!"));
-	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(U"世界，您好！"));
-}
-
-TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
-	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
-}
 
 //-----------------------------------------------------------------------------
-// UTF-16 LE / BE: Tests decoding string
+// UTF-16 LE: Tests decoding string
 //-----------------------------------------------------------------------------
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16WithAnsiChars) {
 	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(u"Hello world!"));
@@ -138,8 +125,29 @@ TEST_F(Utf16LeDecodeTest, ShouldPutErrorSymbolWhenNoSecondCodeInSurrogate) {
 	EXPECT_EQ(U"test_", DecodeUtf16As<std::u32string>(u"test" + notFullSurrogatePair, '_'));
 }
 
-//-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// UTF-16 BE: Tests for encoding string
+//-----------------------------------------------------------------------------
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithAnsiChars) {
+	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(L"Hello world!"));
+	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(U"Hello world!"));
+	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(u"Hello world!"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithUnicodeChars) {
+	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(U"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(U"世界，您好！"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
+	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
+}
+
+
+//-----------------------------------------------------------------------------
+// UTF-16 BE: Tests decoding string
+//-----------------------------------------------------------------------------
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16WithAnsiChars) {
 	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(SwapByteOrder(u"Hello world!")));
 	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(SwapByteOrder(u"Hello world!")));

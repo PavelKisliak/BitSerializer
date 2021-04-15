@@ -1,10 +1,9 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2021 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "test_helpers/common_test_entities.h"
-#include "bitserializer/conversion_detail/convert_utf.h"
 
 using namespace BitSerializer;
 
@@ -12,23 +11,26 @@ using namespace BitSerializer;
 class Utf8EncodeTest : public testing::Test
 {
 protected:
-	static std::string EncodeUtf8(const std::wstring& unicodeStr, const char errSym = '?')
+	template <typename TOutStr = std::string>
+	static TOutStr EncodeUtf8(const std::wstring& unicodeStr, const char errSym = '?')
 	{
-		std::string result;
+		TOutStr result;
 		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
 		return result;
 	}
 
-	static std::string EncodeUtf8(const std::u16string& unicodeStr, const char errSym = '?')
+	template <typename TOutStr = std::string>
+	static TOutStr EncodeUtf8(const std::u16string& unicodeStr, const char errSym = '?')
 	{
-		std::string result;
+		TOutStr result;
 		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
 		return result;
 	}
 
-	static std::string EncodeUtf8(const std::u32string& unicodeStr, const char errSym = '?')
+	template <typename TOutStr = std::string>
+	static TOutStr EncodeUtf8(const std::u32string& unicodeStr, const char errSym = '?')
 	{
-		std::string result;
+		TOutStr result;
 		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
 		return result;
 	}
@@ -83,6 +85,7 @@ TEST_F(Utf8EncodeTest, ShouldEncodeInvalidSurrogatePairsAsErrSym) {
 	EXPECT_EQ(u8"test?", EncodeUtf8(u"test\xD83D"));
 	EXPECT_EQ(u8"test_string", EncodeUtf8(u"test\xD83Dstring", '_'));
 }
+
 
 //-----------------------------------------------------------------------------
 // Tests for decoding string from UTF-8

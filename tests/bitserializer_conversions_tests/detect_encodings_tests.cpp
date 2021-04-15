@@ -1,10 +1,9 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2021 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
-#include "test_helpers/common_test_entities.h"
-#include "bitserializer/conversion_detail/convert_utf.h"
+#include "bitserializer/convert.h"
 
 using namespace BitSerializer;
 

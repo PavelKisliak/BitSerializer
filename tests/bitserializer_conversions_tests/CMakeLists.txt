@@ -19,6 +19,8 @@ add_executable(${PROJECT_NAME}
     convert_traits_tests.cpp
     convert_classes_tests.cpp
     convert_transcoding_tests.cpp
+    convert_std_tests.cpp
+    convert_custom_string_tests.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -27,4 +29,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     GTest::GTest
 )
 
-gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerConversionsTests)
+gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerAllCoreTests)

@@ -137,17 +137,17 @@ TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence) {
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenCroppedTwoOctetsAtEnd) {
-	const std::string croppedSequence({ char(0b11011111) });
+	const std::string croppedSequence({ static_cast<char>(0b11011111) });
 	EXPECT_EQ(U"test_", DecodeUtf8As<std::u32string>(u8"test" + croppedSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenCroppedThreeOctetsAtEnd) {
-	const std::string croppedSequence({ char(0b11101111) });
+	const std::string croppedSequence({ static_cast<char>(0b11101111) });
 	EXPECT_EQ(U"test_", DecodeUtf8As<std::u32string>(u8"test" + croppedSequence, '_'));
 }
 
 TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenCroppedFourOctetsAtEnd) {
-	const std::string croppedSequence({ char(0b11110111) });
+	const std::string croppedSequence({ static_cast<char>(0b11110111) });
 	EXPECT_EQ(U"test_", DecodeUtf8As<std::u32string>(u8"test" + croppedSequence, '_'));
 }
 

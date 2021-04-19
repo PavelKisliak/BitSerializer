@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Artsiom Marozau                                        *
+* Copyright (C) 2021 by Artsiom Marozau                                        *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once

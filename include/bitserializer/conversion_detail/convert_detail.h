@@ -1,116 +1,241 @@
-/*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+﻿/*******************************************************************************
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <string>
-#include <type_traits>
-#include <filesystem>
-
-#include "convert_fundamental.h"
 #include "convert_utf.h"
 #include "object_traits.h"
 #include "convert_enum.h"
 
-namespace BitSerializer::Convert::Detail {
-
-//------------------------------------------------------------------------------
-// Convert to types which have the same base char type
-//------------------------------------------------------------------------------
-inline void To(const char* in_str, std::string& ret_Str)				{ ret_Str = in_str; }
-inline void To(const wchar_t* in_str, std::wstring& ret_Str)			{ ret_Str = in_str; }
-inline void To(const std::string& in_str, std::string& ret_Str)			{ ret_Str = in_str; }
-inline void To(const std::wstring& in_str, std::wstring& ret_Str)		{ ret_Str = in_str; }
-
-//------------------------------------------------------------------------------
-// Convert std::string to std::wstring and vice versa (with using UTF-8 encoding)
-//------------------------------------------------------------------------------
-inline void To(const std::wstring& in_str, std::string& ret_Str)
+namespace BitSerializer::Convert::Detail
 {
-	ret_Str.reserve(ret_Str.size() + (in_str.size() * 2));
-	Utf8::Encode(in_str.begin(), in_str.end(), ret_Str);
-}
+	/// <summary>
+	/// Converts any UTF string to any other UTF format.
+	/// </summary>
+	template <typename TInSym, typename TOutSym, typename TAllocator>
+	void To(const std::basic_string_view<TInSym>& in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
+	{
+		// Assign to the same char type
+		if constexpr (sizeof(TInSym) == sizeof(TOutSym)) {
+			out.append(std::cbegin(in), std::cend(in));
+		}
+		// Decode from UTF-8 (to UTF-16 or UTF-32)
+		else if constexpr (sizeof(TInSym) == sizeof(char)) {
+			out.reserve(out.size() + in.size());
+			Utf8::Decode(in.cbegin(), in.cend(), out);
+		}
+		// Encode to UTF-8 (from UTF-16 or UTF-32)
+		else if constexpr (sizeof(TOutSym) == sizeof(char)) {
+			out.reserve(out.size() + in.size() * 2);
+			Utf8::Encode(in.cbegin(), in.cend(), out);
+		}
+		// Decode from Utf-16 to Utf-32
+		else if constexpr (sizeof(TInSym) == sizeof(char16_t)) {
+			out.reserve(out.size() + in.size());
+			Utf16Le::Decode(in.cbegin(), in.cend(), out);
+		}
+		// Encode to Utf-16 from Utf-32
+		else if constexpr (sizeof(TInSym) == sizeof(char32_t)) {
+			out.reserve(out.size() + in.size());
+			Utf16Le::Encode(in.cbegin(), in.cend(), out);
+		}
+	}
 
-inline void To(const std::string& in_str, std::wstring& ret_Str)
-{
-	ret_Str.reserve(ret_Str.size() + in_str.size());
-	Utf8::Decode(in_str.begin(), in_str.end(), ret_Str);
-}
+	//------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-// Convert enumeration types
-// Need to register your enumeration types, see detail in class ConvertEnum.
-//------------------------------------------------------------------------------
-template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-bool To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
-{
-	return ConvertEnum::ToString<T>(val, ret_Str);
-}
-template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-bool To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
-{
-	return ConvertEnum::FromString<T>(str, ret_Val);
-}
+	/// <summary>
+	/// Converts any UTF string to enum types.
+	/// </summary>
+	template <typename T, typename TSym, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	void To(const std::basic_string_view<TSym>& in, T& out) {
+		ConvertEnum::FromString<T>(in, out);
+	}
 
-//------------------------------------------------------------------------------
-// Convert fundamental types
-//------------------------------------------------------------------------------
-template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-void To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
-{
-	Fundamental::To(val, ret_Str);
-}
-template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-void To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
-{
-	Fundamental::To(str, ret_Val);
-}
+	/// <summary>
+	/// Converts enum types to any UTF string
+	/// </summary>
+	template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	void To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str) {
+		ConvertEnum::ToString<T>(val, ret_Str);
+	}
 
-//-----------------------------------------------------------------------------
-// Convert classes and unions (convert methods should be implemented in concrete classes)
-//-----------------------------------------------------------------------------
-template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
-void To(const T& classRef, std::basic_string<char, std::char_traits<char>, TAllocator>& ret_Str)
-{
-	constexpr auto isConvertible = has_to_string_v<T, std::basic_string<char, std::char_traits<char>, TAllocator>>;
-	static_assert(isConvertible, "Class should has public constant methods ToString() or static in namespace BitSerializer::Convert::Detail.");
+	//-----------------------------------------------------------------------------
 
-	if constexpr (isConvertible) {
-		ret_Str = classRef.ToString();
+	/// <summary>
+	/// Converts classes and unions to any UTF string.
+	/// Classes can have external overloads of this function or internal convert method(s) like below:
+	/// <c>
+	///     std::string ToString() const;
+	///     std::u16string ToU16String() const;
+	///     std::u32string ToU32String() const;
+	/// </c>
+	/// Instead of these return types also can be used std::basic_string<> with custom allocator.
+	/// Not all of these methods are required, but for avoid performance issues (for transcoding),
+	/// it is recommended to implement conversion methods for most commonly used types.
+	/// </summary>
+	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
+	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		constexpr auto hasGlobalToString = has_global_to_string_v<T, std::basic_string<char, std::char_traits<char>>>;
+		constexpr auto hasInternalToString = has_internal_ToString_v<T, std::basic_string<char, std::char_traits<char>>>;
+		constexpr auto hasInternalToUtf16String = has_internal_ToString_v<T, std::u16string>;
+		constexpr auto hasInternalToUtf32String = has_internal_ToString_v<T, std::u32string>;
+
+		// Read the description of this function to find out how to fix this error
+		static_assert(hasGlobalToString || hasInternalToString || hasInternalToUtf16String || hasInternalToUtf32String,
+			"Not found any conversion methods for this class, internals or externals");
+
+		if constexpr (sizeof(TSym) == sizeof(char))
+		{
+			// At first try to use conversion methods with the same char type
+			if constexpr (hasInternalToString) {
+				out.append(in.ToString());
+			} else if constexpr (hasGlobalToString) {
+				out.append(to_string(in));
+			// Otherwise use conversion methods for other encodings with transcoding to UTF-8
+			} else if constexpr (hasInternalToUtf16String) {
+				const auto utf16str = in.ToU16String();
+				Utf8::Encode(utf16str.cbegin(), utf16str.cend(), out);
+			} else if constexpr (hasInternalToUtf32String) {
+				const auto utf32str = in.ToU32String();
+				Utf8::Encode(utf32str.cbegin(), utf32str.cend(), out);
+			}
+		}
+		else if constexpr (sizeof(TSym) == sizeof(char16_t))
+		{
+			// At first try to use conversion methods with the same char type
+			if constexpr (hasInternalToUtf16String) {
+				out.append(in.ToU16String());
+			// Otherwise use conversion methods for other encodings with transcoding to UTF-16
+			} else if constexpr (hasInternalToUtf32String) {
+				const auto utf32Str = in.ToU32String();
+				Utf16Le::Encode(utf32Str.cbegin(), utf32Str.cend(), out);
+			} else if constexpr (hasInternalToString) {
+				const auto utf8Str = in.ToString();
+				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+			} else if constexpr (hasGlobalToString) {
+				const auto utf8Str = to_string(in);
+				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+			}
+		}
+		else if constexpr (sizeof(TSym) == sizeof(char32_t))
+		{
+			// At first try to use conversion methods with the same char type
+			if constexpr (hasInternalToUtf32String) {
+				out.append(in.ToU32String());
+			}
+			// Otherwise use conversion methods for other encodings with transcoding to UTF-32
+			else if constexpr (hasInternalToUtf16String) {
+				const auto utf16Str = in.ToU16String();
+				Utf16Le::Decode(utf16Str.cbegin(), utf16Str.cend(), out);
+			} else if constexpr (hasInternalToString) {
+				auto utf8Str = in.ToString();
+				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+			} else if constexpr (hasGlobalToString) {
+				auto utf8Str = to_string(in);
+				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Converts any UTF strings to classes and unions.
+	/// Classes can have external overloads of this function or internal convert method(s) like below:
+	/// <c>
+	///     void FromString(const std::string_view& str);
+	///     void FromString(const std::u16string_view& str);
+	///     void FromString(const std::u32string_view& str);
+	/// </c>
+	/// Not all of these methods are required, but for avoid performance issues (for transcoding),
+	/// it is recommended to implement conversion methods for most commonly used types.
+	/// You also could implement templated FromString method which converts any string types.
+	/// </summary>
+	template <class T, typename TSym, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
+	void To(const std::basic_string_view<TSym, std::char_traits<TSym>>& in, T& out)
+	{
+		constexpr auto hasInternalFromString_Utf8 = has_internal_FromString_v<T, std::basic_string_view<char, std::char_traits<char>>>
+			// For temporary compatibility with previous version
+			|| has_internal_FromString_v<T, std::basic_string<char, std::char_traits<char>>>;
+		constexpr auto hasInternalFromString_Utf16 = has_internal_FromString_v<T, std::basic_string_view<char16_t, std::char_traits<char16_t>>>;
+		constexpr auto hasInternalFromString_Utf32 = has_internal_FromString_v<T, std::basic_string_view<char32_t, std::char_traits<char32_t>>>;
+
+		// Read the description of this function to find out how to fix this error
+		static_assert(hasInternalFromString_Utf8 || hasInternalFromString_Utf16 || hasInternalFromString_Utf32,
+			"Not found any conversion methods for this class, internals or externals");
+
+		if constexpr (sizeof(TSym) == sizeof(char))
+		{
+			// At first try to use conversion methods with the same char type
+			if constexpr (hasInternalFromString_Utf8) {
+				out.FromString(std::string_view(static_cast<const char*>(in.data()), in.size()));
+			}
+			// Otherwise use conversion methods for other encodings with transcoding
+			else if constexpr (hasInternalFromString_Utf16)
+			{
+				std::u16string utf16Str;
+				Utf16Le::Encode(in.cbegin(), in.cend(), utf16Str);
+				out.FromString(utf16Str);
+			}
+			else if constexpr (hasInternalFromString_Utf32)
+			{
+				std::u32string utf32Str;
+				Utf32Le::Encode(in.cbegin(), in.cend(), utf32Str);
+				out.FromString(utf32Str);
+			}
+		}
+		else if constexpr (sizeof(TSym) == sizeof(char16_t))
+		{
+			// At first try to use conversion methods with the same char type
+			if constexpr (hasInternalFromString_Utf16) {
+				out.FromString(std::u16string_view(reinterpret_cast<std::u16string_view::const_pointer>(in.data()), in.size()));
+			}
+			// Otherwise use conversion methods for other encodings with transcoding
+			else if constexpr (hasInternalFromString_Utf8) {
+				std::string utf8Str;
+				Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+				out.FromString(utf8Str);
+			}
+			else if constexpr (hasInternalFromString_Utf32)
+			{
+				std::u32string utf32Str;
+				Utf32Le::Encode(in.cbegin(), in.cend(), utf32Str);
+				out.FromString(utf32Str);
+			}
+		}
+		else if constexpr (sizeof(TSym) == sizeof(char32_t))
+		{
+			// At first try to use conversion methods with the same char type
+			if constexpr (hasInternalFromString_Utf32) {
+				out.FromString(std::u32string_view(static_cast<const char32_t*>(in.data()), in.size()));
+			}
+			// Otherwise use conversion methods for other encodings with transcoding
+			if constexpr (hasInternalFromString_Utf8) {
+				std::string utf8Str;
+				Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+				out.FromString(utf8Str);
+			}
+			else if constexpr (hasInternalFromString_Utf16) {
+				std::u16string utf16Str;
+				Utf16Le::Encode(in.cbegin(), in.cend(), utf16Str);
+				out.FromString(utf16Str);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------
+
+	/// <summary>
+	/// Converts any UTF string to suitable string_view.
+	/// </summary>
+	template <typename TSym, typename TAllocator>
+	std::basic_string_view<TSym> ToStringView(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& in) {
+		return in;
+	}
+
+	/// <summary>
+	/// Converts any c-string to suitable string_view.
+	/// </summary>
+	template <typename TSym> std::basic_string_view<TSym> ToStringView(const TSym* in) {
+		return in;
 	}
 }
-
-template <class T, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
-void To(const T& classRef, std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>& ret_Str)
-{
-	constexpr auto isConvertible = has_to_string_v<T, std::basic_string<wchar_t, std::char_traits<wchar_t>, TAllocator>>;
-	static_assert(isConvertible, "Class should has public constant methods ToWString() or static in namespace BitSerializer::Convert::Detail.");
-
-	if constexpr (isConvertible) {
-		ret_Str = classRef.ToWString();
-	}
-}
-
-template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
-void To(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, T& ret_Val)
-{
-	constexpr auto isConvertible = has_from_string_v<T, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
-	static_assert(isConvertible, "Class should has public method FromString() or static in namespace BitSerializer::Convert::Detail.");
-
-	if constexpr (isConvertible) {
-		ret_Val.FromString(str);
-	}
-}
-
-//-----------------------------------------------------------------------------
-// Convert from filesystem::path to string
-//-----------------------------------------------------------------------------
-inline void To(const std::filesystem::path& path, std::string& ret_Str) {
-	ret_Str.assign(path.generic_string());
-}
-
-inline void To(const std::filesystem::path& path, std::wstring& ret_Str) {
-	ret_Str.assign(path.generic_wstring());
-}
-
-}	// BitSerializer::Convert::Detail

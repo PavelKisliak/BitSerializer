@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2021 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -633,7 +633,10 @@ private:
 		case Convert::UtfType::Utf32be:
 			return pugi::xml_encoding::encoding_utf32_be;
 		default:
-			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
+			const auto strEncodingType = Convert::TryTo<std::string>(utfType);
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding,
+				"The archive does not support encoding: " +
+				(strEncodingType.has_value() ? strEncodingType.value() : std::to_string(static_cast<int>(utfType))));
 		}
 	}
 

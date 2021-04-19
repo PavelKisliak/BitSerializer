@@ -91,7 +91,7 @@ namespace BitSerializer
 		{
 			std::string str;
 			Serialize(archive, str);
-			Convert::Detail::To(str, value);
+			Convert::Detail::To(std::string_view(str), value);
 		}
 		else
 		{

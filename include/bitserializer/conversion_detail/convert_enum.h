@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -36,15 +36,15 @@ public:
 		, mStrName(name)
 	{ }
 
-	template <typename TSym, typename TAllocator>
-	bool Equals(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str_value) const
+	template <typename TSym>
+	[[nodiscard]] bool Equals(const std::basic_string_view<TSym>& str_value) const
 	{
 		return std::equal(str_value.cbegin(), str_value.cend(), mStrName.cbegin(), mStrName.cend(), [](const TSym lhs, const char rhs) {
-			return std::tolower(static_cast<char>(lhs)) == std::tolower(static_cast<char>(rhs));
+			return std::tolower(static_cast<int>(lhs)) == std::tolower(static_cast<int>(rhs));
 		});
 	}
 
-	bool Equals(TEnum enum_value) const noexcept {
+	[[nodiscard]] bool Equals(TEnum enum_value) const noexcept {
 		return enum_value == mValue;
 	}
 
@@ -52,16 +52,16 @@ public:
 	void GetName(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str) const
 	{
 		ret_Str.clear();
-		ret_Str.append(mStrName.begin(), mStrName.end());
+		ret_Str.append(mStrName.cbegin(), mStrName.cend());
 	}
 
-	TEnum GetEnum() const noexcept {
+	[[nodiscard]] TEnum GetEnum() const noexcept {
 		return mValue;
 	}
 
 private:
 	TEnum mValue;
-	std::string mStrName;
+	std::string_view mStrName;
 };
 
 class ConvertEnum
@@ -88,38 +88,36 @@ public:
 			return true;
 
 		staticDescriptors.reserve(descriptors.size());
-		for (const auto& descr : descriptors) {
-			staticDescriptors.emplace_back(descr.first, descr.second);
+		for (const auto& descriptor : descriptors) {
+			staticDescriptors.emplace_back(descriptor.first, descriptor.second);
 		}
 		return true;
 	}
 
 	template <typename TEnum, typename TSym, typename TAllocator>
-	static bool ToString(TEnum val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
+	static void ToString(TEnum val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
 	{
 		const auto& descriptors = GetDescriptors<TEnum>();
 		auto it = std::find_if(descriptors.cbegin(), descriptors.cend(), [val](const EnumDescriptor<TEnum>& descr) {
 			return descr.Equals(val);
 		});
 		if (it == descriptors.end())
-			return false;
+			throw std::out_of_range("Invalid argument");
 
 		it->GetName(ret_Str);
-		return true;
 	}
 
-	template <typename TEnum, typename TSym, typename TAllocator>
-	static bool FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str, TEnum& ret_Val)
+	template <typename TEnum, typename TSym>
+	static void FromString(const std::basic_string_view<TSym>& str, TEnum& ret_Val)
 	{
 		const auto& descriptors = GetDescriptors<TEnum>();
 		auto it = std::find_if(descriptors.cbegin(), descriptors.cend(), [&str](const EnumDescriptor<TEnum>& descr) {
 			return descr.Equals(str);
 		});
 		if (it == descriptors.end())
-			return false;
+			throw std::out_of_range("Invalid argument");
 
 		ret_Val = it->GetEnum();
-		return true;
 	}
 
 private:
@@ -131,4 +129,4 @@ private:
 	}
 };
 
-}	// namespace BitSerializer::Convert::Detail
+}

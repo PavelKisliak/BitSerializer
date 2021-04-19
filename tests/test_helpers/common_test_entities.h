@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <cstddef>
+#include <charconv>
 #include <functional>
 #include <tuple>
 #include <utility>
@@ -49,8 +50,7 @@ union TestUnion
 
 	bool operator==(const TestUnion& rhs) const noexcept { return mIntValue == rhs.mIntValue; }
 
-	std::string ToString() const { return std::to_string(mIntValue); }
-	std::wstring ToWString() const { return std::to_wstring(mIntValue); }
+	[[nodiscard]] std::string ToString() const { return std::to_string(mIntValue); }
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
@@ -91,37 +91,17 @@ public:
 		return x < rhs.x || (!(rhs.x < x) && y < rhs.y);
 	}
 
-	std::string ToString() const {
+	[[nodiscard]] std::string ToString() const {
 		return std::to_string(x) + ' ' + std::to_string(y);
 	}
 
-	std::wstring ToWString() const {
-		return std::to_wstring(x) + L' ' + std::to_wstring(y);
-	}
-
-	template <typename TSym, typename TAllocator>
-	void FromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& str)
+	void FromString(const std::string_view& str)
 	{
-		using str_type = std::basic_string<TSym, std::char_traits<TSym>, TAllocator>;
-		typename str_type::size_type prev(0), f(0);
-		for (int i = 0; i < 2; ++i)
+		const auto next = str.find_first_of(' ');
+		if (next != std::string_view::npos)
 		{
-			prev = f = str.find_first_not_of(' ', f);
-			if (prev != str_type::npos)
-			{
-				f = str.find_first_of(' ', f);
-				switch (i)
-				{
-				case 0:
-					x = std::stoi(str.substr(prev, f - prev));
-					break;
-				case 1:
-					y = std::stoi(str.substr(prev, f - prev));
-					break;
-				default: ;
-				}
-			}
-			else break;
+			std::from_chars(str.data(), str.data() + str.size(), x);
+			std::from_chars(str.data() + next + 1, str.data() + str.size(), y);
 		}
 	}
 

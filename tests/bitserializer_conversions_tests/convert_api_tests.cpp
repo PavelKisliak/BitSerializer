@@ -13,16 +13,22 @@ using namespace BitSerializer;
 TEST(ConvertApi, ShouldConvertFromRawCString) {
 	EXPECT_EQ(-100500, Convert::To<int32_t>(std::string_view("  -100500  ")));
 	EXPECT_EQ(-100500, Convert::To<int32_t>(std::wstring_view(L"  -100500  ")));
+	EXPECT_EQ(-100500, Convert::To<int32_t>(std::u16string_view(u"  -100500  ")));
+	EXPECT_EQ(-100500, Convert::To<int32_t>(std::u32string_view(U"  -100500  ")));
 }
 
 TEST(ConvertApi, ShouldConvertFromStringView) {
 	EXPECT_EQ(-100500, Convert::To<int32_t>(std::string_view("  -100500  ")));
 	EXPECT_EQ(-100500, Convert::To<int32_t>(std::wstring_view(L"  -100500  ")));
+	EXPECT_EQ(-100500, Convert::To<int32_t>(std::u16string_view(u"  -100500  ")));
+	EXPECT_EQ(-100500, Convert::To<int32_t>(std::u32string_view(U"  -100500  ")));
 }
 
 TEST(ConvertApi, ShouldConvertStdString) {
 	EXPECT_EQ(100500, Convert::To<int32_t>(std::string("  100500  ")));
 	EXPECT_EQ(100500, Convert::To<int32_t>(std::wstring(L"  100500  ")));
+	EXPECT_EQ(100500, Convert::To<int32_t>(std::u16string(u"  100500  ")));
+	EXPECT_EQ(100500, Convert::To<int32_t>(std::u32string(U"  100500  ")));
 }
 
 TEST(ConvertApi, ShouldReturnTheSamePointerWhenConvertToSameType) {
@@ -32,6 +38,27 @@ TEST(ConvertApi, ShouldReturnTheSamePointerWhenConvertToSameType) {
 
 TEST(ConvertApi, ShouldReturnTheSameValueWhenConvertToSameType) {
 	EXPECT_EQ(500, Convert::To<int>(500));
+}
+
+TEST(ConvertApi, ShouldThrowExceptionWhenBadArgument) {
+	EXPECT_THROW(Convert::To<bool>("-1"), std::out_of_range);
+}
+
+//-----------------------------------------------------------------------------
+// Test TryTo<>()
+//-----------------------------------------------------------------------------
+TEST(ConvertApi, TryToShouldReturnConvertedValue) {
+	EXPECT_TRUE(Convert::TryTo<int>("0").has_value());
+	EXPECT_EQ(500, Convert::TryTo<int>("500").value());
+}
+
+TEST(ConvertApi, TryToShouldReturnEmptyWhenOccurredError) {
+	EXPECT_FALSE(Convert::TryTo<bool>("-1"));
+}
+
+TEST(ConvertApi, TryToShouldNoThrowExceptions) {
+	EXPECT_NO_THROW(Convert::TryTo<bool>("-1"));
+	EXPECT_NO_THROW(Convert::TryTo<char>("10000"));
 }
 
 //-----------------------------------------------------------------------------
@@ -54,20 +81,8 @@ TEST(ConvertApi, ConvertClassToStream) {
 	EXPECT_EQ("543 -345", oss.str());
 }
 
-TEST(ConvertApi, ConvertClassToWStream) {
-	std::wostringstream oss;
-	oss << TestPointClass(543, -345);
-	EXPECT_EQ(L"543 -345", oss.str());
-}
-
 TEST(ConvertApi, ConvertEnumToStream) {
 	std::ostringstream oss;
 	oss << TestEnum::Five;
 	EXPECT_EQ("Five", oss.str());
-}
-
-TEST(ConvertApi, ConvertEnumToWStream) {
-	std::wostringstream oss;
-	oss << TestEnum::Five;
-	EXPECT_EQ(L"Five", oss.str());
 }

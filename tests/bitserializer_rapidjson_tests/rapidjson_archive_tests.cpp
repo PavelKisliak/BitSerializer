@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "../test_helpers/common_test_methods.h"
@@ -41,16 +41,19 @@ TEST(RapidJsonArchive, SerializeDouble)
 }
 
 //-----------------------------------------------------------------------------
-// Tests of serialization for std::string and std::wstring (at root scope of archive)
+// Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, SerializeAnsiString)
+TEST(RapidJsonArchive, SerializeUtf8Sting)
 {
 	TestSerializeType<JsonArchive, std::string>("Test ANSI string");
+	TestSerializeType<JsonArchive, std::string>(u8"Test UTF8 string - Привет мир!");
 }
 
 TEST(RapidJsonArchive, SerializeUnicodeString)
 {
-	TestSerializeType<JsonArchive, std::wstring>(L"Test Unicode string - Привет мир!");
+	TestSerializeType<JsonArchive, std::wstring>(L"Test wide string - Привет мир!");
+	TestSerializeType<JsonArchive, std::u16string>(u"Test UTF-16 string - Привет мир!");
+	TestSerializeType<JsonArchive, std::u32string>(U"Test UTF-32 string - Привет мир!");
 }
 
 TEST(RapidJsonArchive, SerializeEnum)
@@ -83,9 +86,11 @@ TEST(RapidJsonArchive, SerializeArrayOfStrings)
 	TestSerializeArray<JsonArchive, std::string>();
 }
 
-TEST(RapidJsonArchive, SerializeArrayOfWStrings)
+TEST(RapidJsonArchive, SerializeArrayOfUnicodeStrings)
 {
 	TestSerializeArray<JsonArchive, std::wstring>();
+	TestSerializeArray<JsonArchive, std::u16string>();
+	TestSerializeArray<JsonArchive, std::u32string>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfClasses)
@@ -143,7 +148,7 @@ TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
 
 TEST(RapidJsonArchive, SerializeClassWithMemberString)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassHierarchy)
@@ -321,7 +326,7 @@ TEST(RapidJsonArchive, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ThrowExceptionWhenBadSyntaxInSource)
 {
-	int testInt;
+	int testInt = 0;
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
 

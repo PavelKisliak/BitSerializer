@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "bitserializer/pugixml_archive.h"
@@ -33,8 +33,10 @@ TEST(PugiXmlArchive, SerializeArrayOfStrings) {
 	TestSerializeArray<XmlArchive, std::string>();
 }
 
-TEST(PugiXmlArchive, SerializeArrayOfWStrings) {
+TEST(PugiXmlArchive, SerializeArrayOfUnicodeStrings) {
 	TestSerializeArray<XmlArchive, std::wstring>();
+	TestSerializeArray<XmlArchive, std::u16string>();
+	TestSerializeArray<XmlArchive, std::u32string>();
 }
 
 TEST(PugiXmlArchive, SerializeArrayOfClasses) {
@@ -87,7 +89,7 @@ TEST(PugiXmlArchive, SerializeClassWithMemberDouble) {
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberString) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(PugiXmlArchive, SerializeClassHierarchy) {

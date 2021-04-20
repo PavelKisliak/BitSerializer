@@ -34,9 +34,11 @@ TEST(RapidYamlArchive, SerializeArrayOfStrings)
 	TestSerializeArray<YamlArchive, std::string>();
 }
 
-TEST(RapidYamlArchive, SerializeArrayOfWStrings)
+TEST(RapidYamlArchive, SerializeArrayOfUnicodeStrings)
 {
 	TestSerializeArray<YamlArchive, std::wstring>();
+	TestSerializeArray<YamlArchive, std::u16string>();
+	TestSerializeArray<YamlArchive, std::u32string>();
 }
 
 TEST(RapidYamlArchive, SerializeArrayOfClasses)
@@ -94,7 +96,7 @@ TEST(RapidYamlArchive, SerializeClassWithMemberDouble)
 
 TEST(RapidYamlArchive, SerializeClassWithMemberString)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(RapidYamlArchive, SerializeClassHierarchy)

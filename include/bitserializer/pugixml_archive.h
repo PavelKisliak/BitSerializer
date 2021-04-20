@@ -618,7 +618,7 @@ public:
 	}
 
 private:
-	static constexpr pugi::xml_encoding ToPugiUtfType(const Convert::UtfType utfType)
+	static pugi::xml_encoding ToPugiUtfType(const Convert::UtfType utfType)
 	{
 		switch (utfType)
 		{

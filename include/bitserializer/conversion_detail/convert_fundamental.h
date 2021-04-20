@@ -132,8 +132,8 @@ namespace BitSerializer::Convert::Detail
 
 	namespace _formatTemplates
 	{
-		template <typename T> constexpr const char* _get() { throw; }
-		template <typename T> constexpr const wchar_t* _getW() { throw; }
+		template <typename T> const char* _get() { throw; }
+		template <typename T> const wchar_t* _getW() { throw; }
 
 		template <>	constexpr const char* _get<float>() { return "%.6g"; }
 		template <>	constexpr const wchar_t* _getW<float>() { return L"%.6g"; }

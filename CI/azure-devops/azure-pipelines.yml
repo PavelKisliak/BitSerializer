@@ -65,9 +65,9 @@ jobs:
     parameters:
       name: 'Ubuntu_Clang_8'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install clang-7'
+      installToolsCmd: 'sudo apt-get install clang-8'
       vcpkgTriplet: "x64-linux"
-      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-7 -DCMAKE_CXX_COMPILER=clang++-7'
+      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8'
 
   - template: unix-job-template-latest-vcpkg.yml
     parameters:

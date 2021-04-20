@@ -619,7 +619,7 @@ public:
 	}
 
 private:
-	static constexpr rapidjson::UTFType ToRapidUtfType(const Convert::UtfType utfType)
+	static rapidjson::UTFType ToRapidUtfType(const Convert::UtfType utfType)
 	{
 		switch (utfType)
 		{

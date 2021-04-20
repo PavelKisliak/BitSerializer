@@ -75,15 +75,15 @@ TEST(ConvertFundamentals, UInt16ToString) {
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, Int32FromString) {
 	EXPECT_EQ(0, Convert::To<int32_t>("  -0  "));
-	EXPECT_EQ(-2147483647, Convert::To<int32_t>(u"  -2147483647  "));
+	EXPECT_EQ(-2147483648, Convert::To<int32_t>(u"  -2147483648  "));
 	EXPECT_EQ(2147483647, Convert::To<int32_t>(L"  2147483647  "));
 	EXPECT_EQ(2147483647, Convert::To<int32_t>(U"  2147483647  "));
 }
 
 TEST(ConvertFundamentals, Int32ToString) {
 	EXPECT_EQ("0", Convert::ToString(0));
-	EXPECT_EQ(u"-2147483648", Convert::To<std::u16string>(-2147483648));
-	EXPECT_EQ(U"2147483647", Convert::To<std::u32string>(2147483647));
+	EXPECT_EQ(u"-2147483648", Convert::To<std::u16string>(int32_t(-2147483648)));
+	EXPECT_EQ(U"2147483647", Convert::To<std::u32string>(int32_t(2147483647)));
 }
 
 TEST(ConvertFundamentals, UInt32FromString) {

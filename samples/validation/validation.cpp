@@ -17,11 +17,11 @@ public:
 		archive << MakeKeyValue("FirstName", mFirstName, Required(), MaxSize(16));
 		archive << MakeKeyValue("LastName", mLastName, Required(), MaxSize(16));
 		// Custom validation with lambda
-		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::wstring>
+		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
 		{
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
-			return L"The field must not contain spaces";
+			return "The field must not contain spaces";
 		});
 	}
 
@@ -36,7 +36,7 @@ private:
 int main()
 {
 	UserModel user;
-	const auto json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
 	BitSerializer::LoadObject<JsonArchive>(user, json);
 	if (!BitSerializer::Context.IsValid())
 	{
@@ -47,7 +47,7 @@ int main()
 			std::cout << "Path: " << keyErrors.first << std::endl;
 			for (const auto& err : keyErrors.second)
 			{
-				std::wcout << L"\t" << err << std::endl;
+				std::cout << "\t" << err << std::endl;
 			}
 		}
 	}

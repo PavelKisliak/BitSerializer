@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -26,7 +26,7 @@ class TestValidatorClass
 {
 public:
 	template <class TValue>
-	std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const noexcept {
+	std::optional<std::string> operator() (const TValue& value, const bool isLoaded) const noexcept {
 		return std::nullopt;
 	}
 };

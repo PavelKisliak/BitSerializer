@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,7 +8,7 @@
 
 namespace BitSerializer
 {
-	using ValidationErrors = std::vector<std::wstring>;
+	using ValidationErrors = std::vector<std::string>;
 	using ValidationMap = std::map<std::string, ValidationErrors>;
 
 	/// <summary>
@@ -17,8 +17,8 @@ namespace BitSerializer
 	class SerializationContext
 	{
 	public:
-		bool IsValid() const noexcept								{ return mErrorsMap.empty(); }
-		const ValidationMap& GetValidationErrors() const noexcept	{ return mErrorsMap; }
+		[[nodiscard]] bool IsValid() const noexcept								{ return mErrorsMap.empty(); }
+		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept	{ return mErrorsMap; }
 
 		void OnStartSerialization()
 		{
@@ -44,5 +44,4 @@ namespace BitSerializer
 	/// The serialization context, contains validation information, etc...
 	/// </summary>
 	thread_local static SerializationContext Context;
-
-}	// namespace BitSerializer
+}

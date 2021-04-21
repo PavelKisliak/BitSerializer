@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -17,12 +17,12 @@ namespace BitSerializer
 	{
 	public:
 		template <class TValue>
-		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const noexcept
+		std::optional<std::string> operator() (const TValue& value, const bool isLoaded) const noexcept
 		{
 			if (isLoaded)
 				return std::nullopt;
 
-			return L"This field is required";
+			return "This field is required";
 		}
 	};
 
@@ -40,14 +40,14 @@ namespace BitSerializer
 		{
 		}
 
-		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const
+		std::optional<std::string> operator() (const TValue& value, const bool isLoaded) const
 		{
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded)
 				return std::nullopt;
 
 			if (value < mMin || value > mMax)
-				return L"Value must be between " + Convert::ToWString(mMin) + L" and " + Convert::ToWString(mMax);
+				return "Value must be between " + Convert::ToString(mMin) + " and " + Convert::ToString(mMax);
 
 			return std::nullopt;
 		}
@@ -70,7 +70,7 @@ namespace BitSerializer
 		}
 
 		template <class TValue>
-		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const
+		std::optional<std::string> operator() (const TValue& value, const bool isLoaded) const
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
@@ -84,7 +84,7 @@ namespace BitSerializer
 				if (value.size() >= mMinSize)
 					return std::nullopt;
 
-				return L"The minimum size of this field should be " + Convert::ToWString(mMinSize);
+				return "The minimum size of this field should be " + Convert::ToString(mMinSize);
 			}
 			return std::nullopt;
 		}
@@ -105,7 +105,7 @@ namespace BitSerializer
 		}
 
 		template <class TValue>
-		std::optional<std::wstring> operator() (const TValue& value, const bool isLoaded) const
+		std::optional<std::string> operator() (const TValue& value, const bool isLoaded) const
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
 			static_assert(hasSizeMethod, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");
@@ -119,7 +119,7 @@ namespace BitSerializer
 				if (value.size() <= mMaxSize)
 					return std::nullopt;
 
-				return L"The maximum size of this field should be not greater than " + Convert::ToWString(mMaxSize);
+				return "The maximum size of this field should be not greater than " + Convert::ToString(mMaxSize);
 			}
 			return std::nullopt;
 		}
@@ -128,4 +128,4 @@ namespace BitSerializer
 		size_t mMaxSize;
 	};
 
-}	// namespace BitSerializer
+}

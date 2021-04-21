@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -136,7 +136,7 @@ struct is_validator
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_same_v<std::optional<std::wstring>,
+	static std::enable_if_t<std::is_same_v<std::optional<std::string>,
 		decltype(std::declval<TObj>().operator()(std::declval<const TValue&>(), std::declval<const bool>()))>, std::true_type> test(int);
 
 	template <typename>
@@ -150,4 +150,4 @@ public:
 template <typename T, typename TValue>
 constexpr bool is_validator_v = is_validator<T, TValue>::value;
 
-}	// namespace BitSerializer
+}

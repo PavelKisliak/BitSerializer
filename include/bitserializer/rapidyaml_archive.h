@@ -516,13 +516,29 @@ namespace BitSerializer::Yaml::RapidYaml {
 				// ToDo: isn't thread safe (check in new versions of RapidYAML)
 				mPrevCallbacks = c4::yml::get_callbacks();
 				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
-				const ryml::Callbacks cb(this, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
-				ryml::set_callbacks(cb);
+
+				// Keep compatibility with old RYML (pre-release versions)
+				using old_error_callback = void (*)(const char* msg, size_t msg_len, void* user_data);
+				if constexpr (std::is_constructible_v<ryml::Callbacks, void*, ryml::pfn_allocate, ryml::pfn_free, old_error_callback>)
+				{
+					const ryml::Callbacks cb(this, nullptr, nullptr, &RapidYamlRootScope::OldErrorCallback);
+					ryml::set_callbacks(cb);
+				}
+				else
+				{
+					const ryml::Callbacks cb(this, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
+					ryml::set_callbacks(cb);
+				}
 			}
 
-			static void ErrorCallback(const char* msg, size_t length, [[maybe_unused]]void* user_data)
+			static void OldErrorCallback(const char* msg, size_t length, [[maybe_unused]]void* user_data)
 			{
 				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg+length });
+			}
+
+			static void ErrorCallback(const char* msg, size_t length, ryml::Location location, [[maybe_unused]] void* user_data)
+			{
+				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg + length });
 			}
 
 			ryml::Tree mTree;

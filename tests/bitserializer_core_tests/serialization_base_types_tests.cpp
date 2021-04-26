@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -37,19 +37,24 @@ TEST(BaseTypes, SerializeDouble) {
 	TestSerializeType<ArchiveStub, double>(::BuildFixture<double>());
 }
 
+//-----------------------------------------------------------------------------
+// Tests of serialization any of std::string (at root scope of archive)
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, SerializeUtf8Sting)
+{
+	TestSerializeType<ArchiveStub, std::string>("Test ANSI string");
+	TestSerializeType<ArchiveStub, std::string>(u8"Test UTF8 string - Привет мир!");
+}
+
+TEST(BaseTypes, SerializeUnicodeString)
+{
+	TestSerializeType<ArchiveStub, std::wstring>(L"Test wide string - Привет мир!");
+	TestSerializeType<ArchiveStub, std::u16string>(u"Test UTF-16 string - Привет мир!");
+	TestSerializeType<ArchiveStub, std::u32string>(U"Test UTF-32 string - Привет мир!");
+}
+
 TEST(BaseTypes, SerializeEnum) {
 	TestSerializeType<ArchiveStub, TestEnum>(TestEnum::Two);
-}
-
-//-----------------------------------------------------------------------------
-// Tests of serialization for std::string and std::wstring (at root scope of archive)
-//-----------------------------------------------------------------------------
-TEST(BaseTypes, SerializeString) {
-	TestSerializeType<ArchiveStub, std::string>("Test ANSI string");
-}
-
-TEST(BaseTypes, SerializeWString) {
-	TestSerializeType<ArchiveStub, std::wstring>(L"Test wide string");
 }
 
 //-----------------------------------------------------------------------------
@@ -152,6 +157,79 @@ TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
 
 TEST(BaseTypes, ShouldIterateKeysInObjectScope) {
 	TestIterateKeysInObjectScope<ArchiveStub>();
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for classes with globally defined SerializeObject() function
+//-----------------------------------------------------------------------------
+class TestGlobalSerializeObjectFixture
+{
+public:
+	static void BuildFixture(TestGlobalSerializeObjectFixture& fixture) {
+		::BuildFixture(fixture.value);
+	}
+
+	void Assert(const TestGlobalSerializeObjectFixture& rhs) const {
+		EXPECT_EQ(value, rhs.value);
+	}
+
+	bool operator==(const TestGlobalSerializeObjectFixture& rhs) const noexcept {
+		return value == rhs.value;
+	}
+
+	int value = 0;
+};
+
+template<typename TArchive>
+void SerializeObject(TArchive& archive, TestGlobalSerializeObjectFixture& fixture)
+{
+	archive << MakeAutoKeyValue("Value", fixture.value);
+}
+
+TEST(BaseTypes, ShouldSerializeClassViaGlobalSerializeObject) {
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestGlobalSerializeObjectFixture>());
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<TestGlobalSerializeObjectFixture>>());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for classes which represents list of objects with globally defined SerializeArray() function
+//-----------------------------------------------------------------------------
+class TestGlobalSerializeArrayFixture
+{
+public:
+	static void BuildFixture(TestGlobalSerializeArrayFixture& fixture) {
+		::BuildFixture(fixture.values);
+	}
+
+	void Assert(const TestGlobalSerializeArrayFixture& rhs) const {
+		for (size_t c = 0; c < sizeof values / sizeof(int); c++) {
+			EXPECT_EQ(values[c], rhs.values[c]);
+		}
+	}
+
+	bool operator==(const TestGlobalSerializeArrayFixture& rhs) const noexcept {
+		for (size_t c = 0; c < sizeof values / sizeof(int); c++) {
+			if (values[c] != rhs.values[c]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	int values[3];
+};
+
+template<typename TArchive>
+void SerializeArray(TArchive& archive, TestGlobalSerializeArrayFixture& fixture)
+{
+	for (int& value : fixture.values) {
+		archive << value;
+	}
+}
+
+TEST(BaseTypes, ShouldSerializeArrayViaGlobalSerializeArray) {
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestGlobalSerializeArrayFixture>());
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<TestGlobalSerializeArrayFixture>>());
 }
 
 //-----------------------------------------------------------------------------

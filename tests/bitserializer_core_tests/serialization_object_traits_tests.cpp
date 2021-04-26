@@ -20,6 +20,12 @@ public:
 	void Serialize(TArchive& archive) { }
 };
 
+class TestExtSerializableClass { };
+template <class TArchive> void SerializeObject(TArchive& archive, TestExtSerializableClass& value) { }
+
+class TestExtSerializableArray { };
+template <class TArchive> void SerializeArray(TArchive& archive, TestExtSerializableArray& value) { }
+
 class TestNotSerializableClass { };
 
 class TestValidatorClass
@@ -31,58 +37,74 @@ public:
 	}
 };
 
+//-----------------------------------------------------------------------------
+
 TEST(SerializationObjectTraits, ShouldCheckThatClassHasSerializeMethod) {
-	bool testResult1 = is_serializable_class_v<TestSerializableClass>;
+	const bool testResult1 = has_serialize_method_v<TestSerializableClass>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_serializable_class_v<TestNotSerializableClass>;
+	const bool testResult2 = has_serialize_method_v<TestNotSerializableClass>;
+	EXPECT_FALSE(testResult2);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatClassHasExtSerializeMethod) {
+	const bool testResult1 = has_global_serialize_object_v<TestExtSerializableClass>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = has_global_serialize_object_v<TestNotSerializableClass>;
+	EXPECT_FALSE(testResult2);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatArrayHasExtSerializeMethod) {
+	const bool testResult1 = has_global_serialize_array_v<TestExtSerializableArray>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = has_global_serialize_array_v<TestNotSerializableClass>;
 	EXPECT_FALSE(testResult2);
 }
 
 TEST(SerializationObjectTraits, ShouldCheckThatContainerHasResizeMethod) {
-	bool testResult1 = is_resizeable_cont_v<std::vector<int>>;
+	const bool testResult1 = is_resizeable_cont_v<std::vector<int>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_resizeable_cont_v<std::array<int, 5>>;
+	const bool testResult2 = is_resizeable_cont_v<std::array<int, 5>>;
 	EXPECT_FALSE(testResult2);
 }
 
 TEST(SerializationObjectTraits, ShouldCheckThatContainerHasSizeMethod) {
-	bool testResult1 = has_size_v<std::list<int>>;
+	const bool testResult1 = has_size_v<std::list<int>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = has_size_v<std::forward_list<int>>;
+	const bool testResult2 = has_size_v<std::forward_list<int>>;
 	EXPECT_FALSE(testResult2);
 }
 
 TEST(SerializationObjectTraits, ShouldGetContainerSizeForVector) {
 	static constexpr size_t expectedSize = 10;
-	std::vector<int> testContainer(expectedSize);
-	auto actual = GetContainerSize(testContainer);
+	const std::vector<int> testContainer(expectedSize);
+	const auto actual = GetContainerSize(testContainer);
 	EXPECT_EQ(expectedSize, actual);
 }
 
 TEST(SerializationObjectTraits, ShouldGetContainerSizeForForwardList) {
 	static constexpr size_t expectedSize = 10;
-	std::forward_list<int> testContainer(expectedSize);
-	auto actual = GetContainerSize(testContainer);
+	const std::forward_list<int> testContainer(expectedSize);
+	const auto actual = GetContainerSize(testContainer);
 	EXPECT_EQ(expectedSize, actual);
 }
 
 TEST(SerializationObjectTraits, ShouldCheckThatIsInputStream) {
-	bool testResult1 = is_input_stream_v<std::istringstream>;
+	const bool testResult1 = is_input_stream_v<std::istringstream>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_input_stream_v<std::wistringstream>;
+	const bool testResult2 = is_input_stream_v<std::wistringstream>;
 	EXPECT_TRUE(testResult2);
 
-	bool testResult3 = is_input_stream_v<std::ostringstream>;
+	const bool testResult3 = is_input_stream_v<std::ostringstream>;
 	EXPECT_FALSE(testResult3);
 }
 
 TEST(SerializationObjectTraits, ShouldCheckThatIsOutputStream) {
-	bool testResult1 = is_output_stream_v<std::ostringstream>;
+	const bool testResult1 = is_output_stream_v<std::ostringstream>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_output_stream_v<std::wostringstream>;
+	const bool testResult2 = is_output_stream_v<std::wostringstream>;
 	EXPECT_TRUE(testResult2);
 
-	bool testResult3 = is_output_stream_v<std::istringstream>;
+	const bool testResult3 = is_output_stream_v<std::istringstream>;
 	EXPECT_FALSE(testResult3);
 }
 

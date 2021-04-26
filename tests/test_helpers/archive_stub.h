@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -23,8 +23,9 @@ class TestIoData;
 class TestIoDataObject : public std::map<std::wstring, TestIoData> { };
 class TestIoDataArray : public std::vector<TestIoData> {
 public:
-	TestIoDataArray(size_t size)
-		: std::vector<TestIoData>(size)	{ }
+	explicit TestIoDataArray(const size_t expectedSize) {
+		reserve(expectedSize);
+	}
 };
 class TestIoData : public std::variant<bool, int64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
 
@@ -238,9 +239,17 @@ public:
 protected:
 	TestIoData& NextElement()
 	{
-		assert(mIndex < GetSize());
 		auto& archiveArray = std::get<TestIoDataArray>(*mNode);
-		return archiveArray.at(mIndex++);
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			assert(mIndex < GetSize());
+			return archiveArray.at(mIndex++);
+		}
+		else
+		{
+			mIndex++;
+			return archiveArray.emplace_back(TestIoData());
+		}
 	}
 
 private:

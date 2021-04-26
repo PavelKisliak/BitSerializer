@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -22,16 +22,19 @@ namespace BitSerializer::KeyValueProxy
 		constexpr auto hasSupportKeyType = BitSerializer::is_type_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
 		static_assert(hasSupportKeyType, "BitSerializer. The archive doesn't support this key type.");
 
-		const bool result = Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
-
-		// Validation when loading
-		if constexpr (TArchive::IsLoading())
+		if constexpr (hasSupportKeyType)
 		{
-			auto validationResult = keyValue.ValidateValue(result);
-			if (validationResult.has_value())
+			const bool result = Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
+
+			// Validation when loading
+			if constexpr (TArchive::IsLoading())
 			{
-				auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
-				Context.AddValidationErrors(std::move(path), std::move(*validationResult));
+				auto validationResult = keyValue.ValidateValue(result);
+				if (validationResult.has_value())
+				{
+					auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
+					Context.AddValidationErrors(std::move(path), std::move(*validationResult));
+				}
 			}
 		}
 	}
@@ -69,5 +72,4 @@ namespace BitSerializer::KeyValueProxy
 		else
 			SplitAndSerialize(archive, keyValue.template AdaptAndMoveToBaseAttributeValue<typename TArchive::key_type>());
 	}
-
-}	// namespace BitSerializer::KeyValueProxy
+}

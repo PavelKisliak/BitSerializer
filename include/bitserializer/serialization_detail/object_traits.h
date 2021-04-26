@@ -11,10 +11,10 @@
 namespace BitSerializer {
 
 /// <summary>
-/// Checks that the class is serializable - has method Serialize().
+/// Checks that the class is serializable - has internal Serialize() method.
 /// </summary>
 template <typename T>
-struct is_serializable_class
+struct has_serialize_method
 {
 private:
 	template <typename U>
@@ -29,7 +29,52 @@ public:
 };
 
 template <typename T>
-constexpr bool is_serializable_class_v = is_serializable_class<T>::value;
+constexpr bool has_serialize_method_v = has_serialize_method<T>::value;
+
+
+/// <summary>
+/// Checks that the class is serializable - has globally defined SerializeObject() function.
+/// </summary>
+template <typename T>
+struct has_global_serialize_object
+{
+private:
+	template <typename TObj>
+	static std::enable_if_t<std::is_same_v<decltype(SerializeObject(std::declval<TArchiveScope<SerializeMode::Load>>, std::declval<TObj&>())), void>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool has_global_serialize_object_v = has_global_serialize_object<T>::value;
+
+
+/// <summary>
+/// Checks that the class is serializable - has globally defined SerializeArray() function.
+/// </summary>
+template <typename T>
+struct has_global_serialize_array
+{
+private:
+	template <typename TObj>
+	static std::enable_if_t<std::is_same_v<decltype(SerializeArray(std::declval<TArchiveScope<SerializeMode::Load>>, std::declval<TObj&>())), void>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool has_global_serialize_array_v = has_global_serialize_array<T>::value;
+
 
 /// <summary>
 /// Checks that the container is resizable, by checking existence of resize() method.
@@ -52,6 +97,7 @@ public:
 template <typename T>
 constexpr bool is_resizeable_cont_v = is_resizeable_cont<T>::value;
 
+
 /// <summary>
 /// Checks that the container has size() method.
 /// </summary>
@@ -73,10 +119,10 @@ public:
 template <typename T>
 constexpr bool has_size_v = has_size<T>::value;
 
+
 /// <summary>
 /// Gets the size of the container.
 /// </summary>
-/// <returns></returns>
 template <typename TContainer>
 size_t GetContainerSize(const TContainer& cont)
 {
@@ -85,6 +131,7 @@ size_t GetContainerSize(const TContainer& cont)
 	else
 		return std::distance(std::begin(cont), std::end(cont));
 }
+
 
 /// <summary>
 /// Checks that it is input stream.
@@ -107,6 +154,7 @@ public:
 template <typename T>
 constexpr bool is_input_stream_v = is_input_stream<T>::value;
 
+
 /// <summary>
 /// Checks that it is output stream.
 /// </summary>
@@ -127,6 +175,7 @@ public:
 
 template <typename T>
 constexpr bool is_output_stream_v = is_output_stream<T>::value;
+
 
 /// <summary>
 /// Checks that it is a validator

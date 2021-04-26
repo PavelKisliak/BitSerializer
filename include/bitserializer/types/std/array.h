@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -9,20 +9,11 @@
 namespace BitSerializer
 {
 	/// <summary>
-	/// Serialize std::array with key.
-	/// </summary>
-	template<typename TArchive, typename TKey, typename TValue, size_t ArraySize>
-	bool Serialize(TArchive& archive, TKey&& key, std::array<TValue, ArraySize>& cont)
-	{
-		return Detail::SerializeContainer(archive, std::forward<TKey>(key), cont);
-	}
-
-	/// <summary>
-	/// Serialize std::array.
+	/// Serializes std::array.
 	/// </summary>
 	template<typename TArchive, typename TValue, size_t ArraySize>
-	void Serialize(TArchive& archive, std::array<TValue, ArraySize>& cont)
+	void SerializeArray(TArchive& archive, std::array<TValue, ArraySize>& cont)
 	{
-		Detail::SerializeContainer(archive, cont);
+		return Detail::SerializeContainer(archive, cont);
 	}
 }

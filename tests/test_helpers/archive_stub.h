@@ -268,7 +268,7 @@ class key_const_iterator
 	TestIoDataObject::const_iterator mJsonIt;
 
 	key_const_iterator(TestIoDataObject::const_iterator it)
-		: mJsonIt(std::move(it)) { }
+		: mJsonIt(it) { }
 
 public:
 	bool operator==(const key_const_iterator& rhs) const {

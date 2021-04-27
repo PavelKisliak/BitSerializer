@@ -1,4 +1,4 @@
-# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.10-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
+# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.12-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
 ___
 
 ### Design goals:
@@ -218,7 +218,17 @@ void Serialize(TArchive& archive)
 ```
 
 ### Serializing third party class
-For serialize a third party class (non-intrusive serialization), which source cannot be modified, need to implement two types of `Serialize()` methods in the namespace BitSerializer. The first method responsible to serialize a value with key, the second - without. This is a basic concept of BitSerializer which helps to control at compile time a possibility of type serialization in the current level of archive. For example, you can serialize any type to a root level of JSON, but you can't do it with key. In other case, when you in the object scope of JSON, you can serialize values only with keys.
+As alternative for internal Serialize() method also exists aproach with defining global functions, it will be usufull in next cases:
+ - Sources of serializing class cannot be modified (for example from third party library).
+ - When class represents list of some values (such as std::vector), currently there is no alternative with internal method.
+ - When you would like to override internal serialization, globally defined functions have higher priority.
+ - When you strongly follow single responsibility principle and wouldn't like to include serialization code into class.
+
+You need to implement one of below functions in any namespace:
+ - SerializeObject() - when you would like to represent your class as object in a target format (e.g. JSON object).
+ - SerializeArray() - when you would like to represent your class as array in a target format (e.g. JSON array).
+
+The example below shows how to implement the most commonly used external function SerializeObject().
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -231,44 +241,34 @@ public:
 		: x(x), y(y)
 	{ }
 
-	int x, y;
+	int x;
+
+	int GetY() const noexcept { return y; }
+	void SetY(int y) noexcept { this->y = y; }
+
+private:
+	int y;
 };
 
-namespace BitSerializer
+template<typename TArchive>
+void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
-	namespace Detail
-	{
-		class TestThirdPartyClassSerializer
-		{
-		public:
-			TestThirdPartyClassSerializer(TestThirdPartyClass& value)
-				: value(value)
-			{ }
+	using namespace BitSerializer;
 
-			template <class TArchive>
-			void Serialize(TArchive& archive)
-			{
-				archive << MakeAutoKeyValue(L"x", value.x);
-				archive << MakeAutoKeyValue(L"y", value.y);
-			}
+	// Serialize public property
+	archive << MakeAutoKeyValue("x", testThirdPartyClass.x);
 
-			TestThirdPartyClass& value;
-		};
-	}	// namespace Detail
-
-	template<typename TArchive, typename TKey>
-	void Serialize(TArchive& archive, TKey&& key, TestThirdPartyClass& value)
-	{
-		auto serializer = Detail::TestThirdPartyClassSerializer(value);
-		Serialize(archive, key, serializer);
+	// Serialize private property
+	if constexpr (TArchive::IsLoading()) {
+		int y = 0;
+		archive << MakeAutoKeyValue("y", y);
+		testThirdPartyClass.SetY(y);
 	}
-	template<typename TArchive>
-	void Serialize(TArchive& archive, TestThirdPartyClass& value)
-	{
-		auto serializer = Detail::TestThirdPartyClassSerializer(value);
-		Serialize(archive, serializer);
+	else {
+		const int y = testThirdPartyClass.GetY();
+		archive << MakeAutoKeyValue("y", y);
 	}
-}	// namespace BitSerializer
+}
 
 
 using namespace BitSerializer::Json::RapidJson;
@@ -276,7 +276,7 @@ using namespace BitSerializer::Json::RapidJson;
 int main()
 {
 	auto testObj = TestThirdPartyClass(100, 200);
-	auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
+	const auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
 	std::cout << result << std::endl;
 	return 0;
 }
@@ -389,7 +389,7 @@ BitSerializer has on board serialization for all STD containers. Serialization o
 #include "bitserializer/types/std/pair.h"
 ```
 ### Specifics of serialization STD map
-Due to the fact that the map key is used as a key in JSON, it must be convertible to a string (by default supported all of fundamental types). This needs to proper serialization JavaScript objects. If you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
+Due to the fact that the map key is used as a key (in JSON for example), it must be convertible to a string (by default supported all of fundamental types). This needs to proper serialization JavaScript objects. If you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
 ```cpp
 std::map<std::string, int> testMap = 
 	{ { "One", 1 },{ "Two", 2 },{ "Three", 3 },{ "Four", 4 },{ "Five", 5 } };
@@ -410,7 +410,7 @@ For able to serialize `std::map`, which has custom type as a key, you can implem
 class YourCustomKey
 {
 	std::string ToString() const { }
-    void FromString(const std::string& str)
+    void FromString(const std::string_view& str)
 }
 ```
 When archive uses `std::wstring` as key (like **CppRestJson** on **Windows**) than need also implement such methods for `std::wstring`.
@@ -489,11 +489,11 @@ public:
 		archive << MakeKeyValue("FirstName", mFirstName, Required(), MaxSize(16));
 		archive << MakeKeyValue("LastName", mLastName, Required(), MaxSize(16));
 		// Custom validation with lambda
-		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::wstring>
+		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
 		{
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
-			return L"The field must not contain spaces";
+			return "The field must not contain spaces";
 		});
 	}
 
@@ -508,7 +508,7 @@ private:
 int main()
 {
 	UserModel user;
-	const auto json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
 	BitSerializer::LoadObject<JsonArchive>(user, json);
 	if (!BitSerializer::Context.IsValid())
 	{
@@ -519,7 +519,7 @@ int main()
 			std::cout << "Path: " << keyErrors.first << std::endl;
 			for (const auto& err : keyErrors.second)
 			{
-				std::wcout << L"\t" << err << std::endl;
+				std::cout << "\t" << err << std::endl;
 			}
 		}
 	}

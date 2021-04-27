@@ -9,44 +9,34 @@ public:
 		: x(x), y(y)
 	{ }
 
-	int x, y;
+	int x;
+
+	int GetY() const noexcept { return y; }
+	void SetY(int y) noexcept { this->y = y; }
+
+private:
+	int y;
 };
 
-namespace BitSerializer
+template<typename TArchive>
+void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
-	namespace Detail
-	{
-		class TestThirdPartyClassSerializer
-		{
-		public:
-			TestThirdPartyClassSerializer(TestThirdPartyClass& value)
-				: value(value)
-			{ }
+	using namespace BitSerializer;
 
-			template <class TArchive>
-			void Serialize(TArchive& archive)
-			{
-				archive << MakeAutoKeyValue(L"x", value.x);
-				archive << MakeAutoKeyValue(L"y", value.y);
-			}
+	// Serialize public property
+	archive << MakeAutoKeyValue("x", testThirdPartyClass.x);
 
-			TestThirdPartyClass& value;
-		};
-	}	// namespace Detail
-
-	template<typename TArchive, typename TKey>
-	void Serialize(TArchive& archive, TKey&& key, TestThirdPartyClass& value)
-	{
-		auto serializer = Detail::TestThirdPartyClassSerializer(value);
-		Serialize(archive, key, serializer);
+	// Serialize private property
+	if constexpr (TArchive::IsLoading()) {
+		int y = 0;
+		archive << MakeAutoKeyValue("y", y);
+		testThirdPartyClass.SetY(y);
 	}
-	template<typename TArchive>
-	void Serialize(TArchive& archive, TestThirdPartyClass& value)
-	{
-		auto serializer = Detail::TestThirdPartyClassSerializer(value);
-		Serialize(archive, serializer);
+	else {
+		const int y = testThirdPartyClass.GetY();
+		archive << MakeAutoKeyValue("y", y);
 	}
-}	// namespace BitSerializer
+}
 
 
 using namespace BitSerializer::Json::RapidJson;

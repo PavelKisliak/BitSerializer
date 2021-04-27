@@ -125,7 +125,7 @@ namespace BitSerializer
 
 			if constexpr (hasObjectWithKeySupport)
 			{
-				// Globally defined methods have higher priority
+				// Globally defined functions have higher priority over internal ones
 				if constexpr (hasGlobalSerializeObject) {
 					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
 					if (objectScope) {

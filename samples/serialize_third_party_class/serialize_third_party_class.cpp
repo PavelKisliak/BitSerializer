@@ -2,6 +2,9 @@
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/rapidjson_archive.h"
 
+using namespace BitSerializer;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+
 class TestThirdPartyClass
 {
 public:
@@ -21,8 +24,6 @@ private:
 template<typename TArchive>
 void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
-	using namespace BitSerializer;
-
 	// Serialize public property
 	archive << MakeAutoKeyValue("x", testThirdPartyClass.x);
 
@@ -38,8 +39,6 @@ void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass
 	}
 }
 
-
-using namespace BitSerializer::Json::RapidJson;
 
 int main()
 {

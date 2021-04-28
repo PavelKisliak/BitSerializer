@@ -18,7 +18,7 @@ struct has_serialize_method
 {
 private:
 	template <typename U>
-	static decltype(std::declval<U>().Serialize(std::declval<TArchiveScope<SerializeMode::Load>>), void(), std::true_type()) test(int);
+	static decltype(std::declval<U>().Serialize(std::declval<TArchiveScope<SerializeMode::Load>&()>), std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -40,7 +40,7 @@ struct has_global_serialize_object
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_same_v<decltype(SerializeObject(std::declval<TArchiveScope<SerializeMode::Load>>, std::declval<TObj&>())), void>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<decltype(SerializeObject(std::declval<TArchiveScope<SerializeMode::Load>&>(), std::declval<TObj&>())), void>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -62,7 +62,7 @@ struct has_global_serialize_array
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_same_v<decltype(SerializeArray(std::declval<TArchiveScope<SerializeMode::Load>>, std::declval<TObj&>())), void>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<decltype(SerializeArray(std::declval<TArchiveScope<SerializeMode::Load>&>(), std::declval<TObj&>())), void>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);

@@ -3,9 +3,9 @@
 #include "bitserializer/rapidjson_archive.h"
 #include "bitserializer/pugixml_archive.h"
 
-using namespace BitSerializer::Xml::PugiXml;
-using namespace BitSerializer::Json::RapidJson;
 using namespace BitSerializer;
+using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
 class CPoint
 {

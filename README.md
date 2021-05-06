@@ -16,7 +16,7 @@ ___
 - Support serialization for all STD containers.
 - Support serialization to streams and files.
 - Encoding to various UTF formats.
-- Useful string conversion submodule (supports enums, classes, UTF encoding).
+- Useful [string conversion submodule](docs\bitserializer_convert.md) (supports enums, classes, UTF encoding).
 
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
@@ -27,7 +27,7 @@ ___
 | [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | ✖ | [RapidYAML](https://github.com/biojppm/rapidyaml) |
 
 #### Requirements:
-  - C++ 17 (VS2017, GCC-8, CLang-7).
+  - C++ 17 (VS2017, GCC-8, CLang-8).
   - Dependencies which are required by selected type of archive.
 
 ##### What's new in version 0.10:
@@ -68,12 +68,13 @@ For check performance overhead, was developed a test which serializes a model vi
 | RapidYAML | YAML | Save object | 550 msec | 549 msec | 1 msec **(-0.2%)** |
 | RapidYAML | YAML | Load object | 343 msec | 348 msec | 5 msec **(-1.4%)** |
 
-Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The JSON implementation from C++ REST SDK has worse result, but need to say that on Windows platform it uses UTF-16 in memory when other libraries UTF-8.
+Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries.
 
 ___
 ## Table of contents
 - [How to install](#markdown-header-how-to-install)
 - [Hello world](#markdown-header-hello-world)
+- [Unicode support](#markdown-header-unicode-support)
 - [Serializing class](#markdown-header-serializing-class)
 - [Serializing base class](#markdown-header-serializing-base-class)
 - [Serializing third party class](#markdown-header-serializing-third-party-class)
@@ -124,7 +125,7 @@ Let's get started with traditional and simple "Hello world!" example.
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/cpprestjson_archive.h"
 
-using namespace BitSerializer::Json::CppRest;
+using JsonArchive = BitSerializer::Json::CppRest::JsonArchive;
 
 int main()
 {
@@ -140,21 +141,46 @@ int main()
 }
 ```
 [See full sample](samples/hello_world/hello_world.cpp)
-There is no mistake as JSON format supported any type at root level.
+There is no mistake as JSON format supported any type (object, array, number or string) at root level.
+
+### Unicode support
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of std::basic_string types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using MakeAutoKeyValue()), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually std::string (UTF-8). In the example below, we show how BitSerializer allow to play with string types:
+```cpp
+class TestUnicodeClass
+{
+public:
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		// Serialize UTF-8 string with key in UTF-16
+		archive << MakeAutoKeyValue(u"Utf16Key", mUtf8StringValue);
+
+		// Serialize UTF-16 string with key in UTF-32
+		archive << MakeAutoKeyValue(U"Utf32Key", mUtf16StringValue);
+
+		// Serialize UTF-32 string with key in UTF-8
+		archive << MakeAutoKeyValue(u8"Utf8Key", mUtf32StringValue);
+	};
+
+private:
+	std::string mUtf8StringValue;
+	std::u16string mUtf16StringValue;
+	std::u32string mUtf32StringValue;
+};
+```
 
 ### Serializing class
 There are two ways to serialize a class:
 
   * Internal public method `Serialize()` - good way for your own classes.
-  * External static function `Serialize()` - used for third party class (no access to sources).
+  * External static function `SerializeObject()` - used for third party class (no access to sources).
 
 Below example demonstrates how to implement internal serialization method:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/cpprestjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
-using namespace BitSerializer;
-using namespace BitSerializer::Json::CppRest;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
 class TestSimpleClass
 {
@@ -174,9 +200,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue(L"TestBool", testBool);
-		archive << MakeKeyValue(L"TestString", testString);
-		archive << MakeKeyValue(L"TestTwoDimensionArray", testTwoDimensionArray);
+		using namespace BitSerializer;
+		archive << MakeKeyValue("TestBool", testBool);
+		archive << MakeKeyValue("TestString", testString);
+		archive << MakeKeyValue("TestTwoDimensionArray", testTwoDimensionArray);
 	};
 
 private:
@@ -388,10 +415,10 @@ BitSerializer has on board serialization for all STD containers. Serialization o
 #include "bitserializer/types/std/pair.h"
 ```
 ### Specifics of serialization STD map
-Due to the fact that the map key is used as a key (in JSON for example), it must be convertible to a string (by default supported all of fundamental types). This needs to proper serialization JavaScript objects. If you want to use your own class as a key, you can add conversion methods to it. You also can implement specialized serialization for your type of map in extreme cases.
+Due to the fact that the map key is used as a key (in JSON for example), it must be convertible to a string (by default supported all of fundamental types).
 ```cpp
 std::map<std::string, int> testMap = 
-	{ { "One", 1 },{ "Two", 2 },{ "Three", 3 },{ "Four", 4 },{ "Five", 5 } };
+	{ { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };
 auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testMap);
 ```
 Returns result
@@ -404,16 +431,8 @@ Returns result
 	"Two": 2
 }
 ```
-For able to serialize `std::map`, which has custom type as a key, you can implement two internal methods in this type:
-```cpp
-class YourCustomKey
-{
-	std::string ToString() const { }
-    void FromString(const std::string_view& str)
-}
-```
-When archive uses `std::wstring` as key (like **CppRestJson** on **Windows**) than need also implement such methods for `std::wstring`.
-Below more complex example with loads a vector of maps.
+
+Below is a more complex example, where loading a vector of maps from JSON.
 ```json
 [{
 	"One": 1,
@@ -431,28 +450,37 @@ const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
+If you want to use your own class as a key, you should add conversion methods to it. There are several options with internal and external functions, please look details [here](docs\bitserializer_convert.md). You also can override serialization function `SerializeObject()` for your type of map. For example, you can implement two internal methods in your type:
+```cpp
+class YourCustomKey
+{
+	std::string ToString() const { }
+	void FromString(const std::string_view& str)
+}
+```
+
 ### Conditions for checking the serialization mode
 To check the current serialization mode, use two static methods - `IsLoading()` and `IsSaving()`. As they are «constexpr», you will not have any overhead.
 ```cpp
 class Foo
 public:
-    template <class TArchive>
-    inline void Serialize(TArchive& archive)
-    {
-    	if constexpr (TArchive::IsLoading()) {
-	        // Code which executes in loading mode
-	    }
-	    else {
-    		// Code which executes in saving mode
-    	}
+	template <class TArchive>
+	inline void Serialize(TArchive& archive)
+	{
+		if constexpr (TArchive::IsLoading()) {
+			// Code which executes in loading mode
+		}
+		else {
+			// Code which executes in saving mode
+		}
 	
-    	if constexpr (TArchive::IsSaving()) {
-		    // Code which executes in saving mode
-	    }
-	    else {
-    		// Code which executes in loading mode
-    	}
-    }
+		if constexpr (TArchive::IsSaving()) {
+			// Code which executes in saving mode
+		}
+		else {
+			// Code which executes in loading mode
+		}
+	}
 }
 ```
 
@@ -628,8 +656,9 @@ Thanks
 - Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.
-- Evgeniy Gorbachov.
+- Evgeniy Gorbachov for help with implementation STD types serialization.
+- Mateusz Pusz for code review and useful advices.
 
 License
 ----
-MIT, Copyright (C) 2018-2020 by Pavel Kisliak
+MIT, Copyright (C) 2018-2021 by Pavel Kisliak

@@ -3,7 +3,7 @@
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/cpprestjson_archive.h"
 
-using namespace BitSerializer::Json::CppRest;
+using JsonArchive = BitSerializer::Json::CppRest::JsonArchive;
 
 int main()
 {

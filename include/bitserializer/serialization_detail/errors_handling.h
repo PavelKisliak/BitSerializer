@@ -1,9 +1,9 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <exception>
+#include <stdexcept>
 #include <string>
 #include "bitserializer/convert.h"
 
@@ -30,13 +30,13 @@ namespace BitSerializer {
 	/// <summary>
 	/// Serialization exception
 	/// </summary>
-	/// <seealso cref="std::exception" />
-	class SerializationException : public std::exception
+	/// <seealso cref="std::runtime_error" />
+	class SerializationException : public std::runtime_error
 	{
 	public:
 		SerializationException(const SerializationErrorCode errorCode, const char* message)
-			: mErrorCode(errorCode)
-			, mMessage(Convert::ToString(errorCode) + ": " + message)
+			: std::runtime_error(Convert::ToString(errorCode) + ": " + message)
+			, mErrorCode(errorCode)
 		{ }
 
 		SerializationException(const SerializationErrorCode errorCode, const std::string& message)
@@ -49,15 +49,8 @@ namespace BitSerializer {
 			return mErrorCode;
 		}
 
-		[[nodiscard]]
-		const char* what() const noexcept override
-		{
-			return mMessage.c_str();
-		}
-
 	private:
 		SerializationErrorCode mErrorCode;
-		std::string mMessage;
 	};
 
 }

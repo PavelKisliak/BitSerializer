@@ -65,7 +65,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		T result;
 		static constexpr size_t bufSize = 64;
-		const auto size = (in.size() < bufSize) ? in.size() : bufSize - 1;
+		const size_t size = (in.size() < bufSize) ? in.size() : bufSize - 1;
 		if constexpr (std::is_same_v<char, TSym>) {
 			// Copy to temporary buffer for prepare null-terminated c-string
 			TSym buf[bufSize];

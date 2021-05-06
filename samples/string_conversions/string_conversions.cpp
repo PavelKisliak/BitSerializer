@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <charconv>
 #include "bitserializer/convert.h"
 
@@ -66,8 +66,8 @@ int main()
 	std::cout << "Conversion to float result: " << f1 << std::endl;
 
 	// Convert from one UTF string to another (there is used "syntax sugar" function ToString() which is equivalent to Convert::To<std::string>)
-	const auto u8Str = Convert::ToString(u"Привет мир!");
-	assert(u8"Привет мир!" == u8Str);
+	const auto u8Str = Convert::ToString(u"РџСЂРёРІРµС‚ РјРёСЂ!");
+	assert(u8"РџСЂРёРІРµС‚ РјРёСЂ!" == u8Str);
 
 	// Conversion with error handling (overflow, parse errors, etc)
 	if (auto result = Convert::TryTo<char>("500")) {

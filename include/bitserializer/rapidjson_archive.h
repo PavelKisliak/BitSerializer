@@ -275,7 +275,7 @@ protected:
 		this->mNode->PushBack(std::forward<T>(value), mAllocator);
 	}
 
-	void SaveJsonValue(nullptr_t&) const
+	void SaveJsonValue(std::nullptr_t&) const
 	{
 		assert(this->mNode->Size() < this->mNode->Capacity());
 		this->mNode->PushBack(RapidJsonNode(), mAllocator);

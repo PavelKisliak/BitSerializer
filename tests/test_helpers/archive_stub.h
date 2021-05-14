@@ -27,7 +27,7 @@ public:
 		reserve(expectedSize);
 	}
 };
-class TestIoData : public std::variant<nullptr_t, bool, int64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
+class TestIoData : public std::variant<std::nullptr_t, bool, int64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
 
 /// <summary>
 /// The traits of archive stub 
@@ -110,9 +110,9 @@ protected:
 		}
 		else if constexpr (std::is_null_pointer_v<T>)
 		{
-			if (std::holds_alternative<nullptr_t>(ioData))
+			if (std::holds_alternative<std::nullptr_t>(ioData))
 			{
-				value = std::get<nullptr_t>(ioData);
+				value = std::get<std::nullptr_t>(ioData);
 				return true;
 			}
 		}
@@ -127,7 +127,7 @@ protected:
 		else if constexpr (std::is_floating_point_v<T>)
 			ioData.emplace<double>(value);
 		else if constexpr (std::is_null_pointer_v<T>)
-			ioData.emplace<nullptr_t>(value);
+			ioData.emplace<std::nullptr_t>(value);
 	}
 
 	template <typename TSym, typename TAllocator>

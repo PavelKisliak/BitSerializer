@@ -38,7 +38,7 @@ TEST(BaseTypes, SerializeDouble) {
 }
 
 TEST(BaseTypes, SerializeNullptr) {
-	TestSerializeType<ArchiveStub, nullptr_t>(nullptr);
+	TestSerializeType<ArchiveStub, std::nullptr_t>(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -79,7 +79,7 @@ TEST(BaseTypes, SerializeArrayOfFloats) {
 }
 
 TEST(BaseTypes, SerializeArrayOfNullptrs) {
-	TestSerializeArray<ArchiveStub, nullptr_t>();
+	TestSerializeArray<ArchiveStub, std::nullptr_t>();
 }
 
 TEST(BaseTypes, SerializeArrayOfStrings) {
@@ -139,7 +139,7 @@ TEST(BaseTypes, SerializeClassWithMemberDouble) {
 }
 
 TEST(BaseTypes, SerializeClassWithMemberNullptr) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<nullptr_t>>());
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberString) {

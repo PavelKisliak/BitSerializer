@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -16,9 +16,9 @@ public:
 	TestArchive_LoadMode(const std::string& inputData) { }
 	TestArchive_LoadMode(std::istream& inputData) { }
 
-	bool SerializeValue(bool& value) { }
-	bool SerializeValue(int& value) { }
-	bool SerializeValue(nullptr_t&) { }
+	bool SerializeValue(bool& value) { return true; }
+	bool SerializeValue(int& value) { return true; }
+	bool SerializeValue(std::nullptr_t&) { return true; }
 
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}
@@ -59,7 +59,7 @@ public:
 
 	bool SerializeValue(const key_type& key, bool& value) { return true; }
 	bool SerializeValue(const key_type& key, int& value) { return true; }
-	bool SerializeValue(const key_type& key, nullptr_t&) { return true; }
+	bool SerializeValue(const key_type& key, std::nullptr_t&) { return true; }
 
 	template <typename TSym, typename TAllocator>
 	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {return true;}
@@ -109,7 +109,7 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValue) {
 	EXPECT_TRUE(testResult1);
 	bool testResult2 = can_serialize_value_v<TestArchive_LoadMode, int>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_value_v<TestArchive_LoadMode, nullptr_t>;
+	bool testResult3 = can_serialize_value_v<TestArchive_LoadMode, std::nullptr_t>;
 	EXPECT_TRUE(testResult3);
 	bool testResult4 = can_serialize_value_v<TestWrongArchive, int>;
 	EXPECT_FALSE(testResult4);
@@ -120,7 +120,7 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValueWithKey)
 	EXPECT_TRUE(testResult1);
 	bool testResult2 = can_serialize_value_with_key_v<TestArchive_SaveMode, int, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_value_with_key_v<TestArchive_SaveMode, nullptr_t, TestArchive_SaveMode::key_type>;
+	bool testResult3 = can_serialize_value_with_key_v<TestArchive_SaveMode, std::nullptr_t, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult3);
 	bool testResult4 = can_serialize_value_with_key_v<TestWrongArchive, int, TestArchive_SaveMode::key_type>;
 	EXPECT_FALSE(testResult4);

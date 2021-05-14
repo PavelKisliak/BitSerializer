@@ -36,7 +36,7 @@ TEST(JsonRestCpp, SerializeDouble) {
 
 TEST(JsonRestCpp, SerializeNullptr)
 {
-	TestSerializeType<JsonArchive, nullptr_t>(nullptr);
+	TestSerializeType<JsonArchive, std::nullptr_t>(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -76,7 +76,7 @@ TEST(JsonRestCpp, SerializeArrayOfFloats) {
 
 TEST(JsonRestCpp, SerializeArrayOfNullptrs)
 {
-	TestSerializeArray<JsonArchive, nullptr_t>();
+	TestSerializeArray<JsonArchive, std::nullptr_t>();
 }
 
 TEST(JsonRestCpp, SerializeArrayOfStrings) {
@@ -136,7 +136,7 @@ TEST(JsonRestCpp, SerializeClassWithMemberDouble) {
 
 TEST(JsonRestCpp, SerializeClassWithMemberNullptr)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<nullptr_t>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(JsonRestCpp, SerializeClassWithMemberString) {

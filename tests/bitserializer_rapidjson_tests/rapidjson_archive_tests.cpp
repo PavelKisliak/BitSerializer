@@ -42,7 +42,7 @@ TEST(RapidJsonArchive, SerializeDouble)
 
 TEST(RapidJsonArchive, SerializeNullptr)
 {
-	TestSerializeType<JsonArchive, nullptr_t>(nullptr);
+	TestSerializeType<JsonArchive, std::nullptr_t>(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ TEST(RapidJsonArchive, SerializeArrayOfFloats)
 
 TEST(RapidJsonArchive, SerializeArrayOfNullptrs)
 {
-	TestSerializeArray<JsonArchive, nullptr_t>();
+	TestSerializeArray<JsonArchive, std::nullptr_t>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfStrings)
@@ -158,7 +158,7 @@ TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
 
 TEST(RapidJsonArchive, SerializeClassWithMemberNullptr)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<nullptr_t>>());
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberString)

@@ -42,9 +42,9 @@ namespace BitSerializer
 	// Serialize nullptr type
 	//-----------------------------------------------------------------------------
 	template <typename TArchive, typename TKey>
-	bool Serialize(TArchive& archive, TKey&& key, nullptr_t& value)
+	bool Serialize(TArchive& archive, TKey&& key, std::nullptr_t& value)
 	{
-		constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, nullptr_t, TKey>;
+		constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, std::nullptr_t, TKey>;
 		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize nullptr type with key on this level.");
 
 		if constexpr (hasValueWithKeySupport) {
@@ -54,9 +54,9 @@ namespace BitSerializer
 	}
 
 	template <typename TArchive>
-	bool Serialize(TArchive& archive, nullptr_t& value)
+	bool Serialize(TArchive& archive, std::nullptr_t& value)
 	{
-		constexpr auto hasValueTypeSupport = can_serialize_value_v<TArchive, nullptr_t>;
+		constexpr auto hasValueTypeSupport = can_serialize_value_v<TArchive, std::nullptr_t>;
 		static_assert(hasValueTypeSupport, "BitSerializer. The archive doesn't support serialize nullptr type without key on this level.");
 
 		if constexpr (hasValueTypeSupport) {

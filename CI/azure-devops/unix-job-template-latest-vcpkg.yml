@@ -20,6 +20,16 @@ jobs:
     VCPKG_CACHE_DIR: $(Build.SourcesDirectory)/../vcpkg/installed
 
   steps:
+  - task: Cache@2
+    inputs:
+      key: |
+        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
+      restoreKeys: |
+        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
+      path: $(VCPKG_CACHE_DIR)
+      cacheHitVar: VCPKG_CACHE_RESTORED
+    displayName: Configure cache of VCPKG packages
+
   - script: |
       echo --- Install build tools ---
       ${{ parameters.installToolsCmd }}
@@ -34,16 +44,6 @@ jobs:
       cd vcpkg
       ./bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
-
-  - task: Cache@2
-    inputs:
-      key: |
-        vcpkg | v4 | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
-      restoreKeys: |
-        vcpkg | v4 | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
-      path: $(VCPKG_CACHE_DIR)
-      cacheHitVar: VCPKG_CACHE_RESTORED
-    displayName: Configure cache of packages
 
   - script: |
       echo --- VCPKG: Install dependencies  ---
@@ -76,8 +76,9 @@ jobs:
 
   - script: |
       cd build.debug
-      ctest -C Debug --output-on-failure
+      ctest -C Debug -T test --output-on-failure
     displayName: 'Run tests [Debug]'
+    continueOnError: true
 
   - script: |
       cd build.release
@@ -85,6 +86,27 @@ jobs:
     displayName: 'Build [Release]'
 
   - script: |
-      cd build.debug
-      ctest -C Release --output-on-failure
+      cd build.release
+      ctest -C Release -T test --output-on-failure
     displayName: 'Run tests [Release]'
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Testing/**/Test.xml'
+      searchFolder: '$(System.DefaultWorkingDirectory)/build.debug'
+      testRunTitle: '${{ parameters.name }} [Debug]'
+      buildPlatform: 'x64'
+      buildConfiguration: 'Debug'
+    displayName: 'Publish Test results [Debug]'
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Testing/**/Test.xml'
+      searchFolder: '$(System.DefaultWorkingDirectory)/build.release'
+      testRunTitle: '${{ parameters.name }} [Release]'
+      buildPlatform: 'x64'
+      buildConfiguration: 'Release'
+    displayName: 'Publish Test results [Release]'

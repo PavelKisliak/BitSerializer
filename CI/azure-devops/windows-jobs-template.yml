@@ -21,12 +21,12 @@ jobs:
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | "${{ parameters.name }}" | ${{ parameters.vcpkgListFile }}
+        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
       restoreKeys: |
-        vcpkg | "${{ parameters.name }}"
+        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
       path: $(VCPKG_INSTALLED_PACKAGES)
       cacheHitVar: VCPKG_CACHE_RESTORED
-    displayName: Cache VCPKG Installed folder
+    displayName: Configure cache of VCPKG packages
 
   - script: |
       vcpkg install @${{ parameters.vcpkgListFile }} --triplet ${{ parameters.vcpkgTriplet }}
@@ -49,9 +49,20 @@ jobs:
     displayName: 'Build [Debug]'
 
   - script: |
-      cd build.debug
-      ctest -C Debug --output-on-failure
+      cd build
+      ctest -C Debug -T test --output-on-failure
     displayName: 'Run tests [Debug]'
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Testing/**/Test.xml'
+      searchFolder: '$(System.DefaultWorkingDirectory)/build'
+      testRunTitle: '${{ parameters.name }} [Debug]'
+      buildPlatform: '${{ parameters.platform }}'
+      buildConfiguration: 'Debug'
+    displayName: 'Publish Test results [Debug]'
 
   - script: |
       cd build
@@ -60,5 +71,17 @@ jobs:
 
   - script: |
       cd build
-      ctest -C Release --output-on-failure
+      ctest -C Release -T test --output-on-failure
     displayName: 'Run tests [Release]'
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Testing/**/Test.xml'
+      searchFolder: '$(System.DefaultWorkingDirectory)/build'
+      testRunTitle: '${{ parameters.name }} [Release]'
+      buildPlatform: '${{ parameters.platform }}'
+      buildConfiguration: 'Release'
+    displayName: 'Publish Test results [Release]'
+

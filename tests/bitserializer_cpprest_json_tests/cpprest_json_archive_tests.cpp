@@ -34,6 +34,11 @@ TEST(JsonRestCpp, SerializeDouble) {
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
 }
 
+TEST(JsonRestCpp, SerializeNullptr)
+{
+	TestSerializeType<JsonArchive, nullptr_t>(nullptr);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -67,6 +72,11 @@ TEST(JsonRestCpp, SerializeArrayOfIntegers) {
 TEST(JsonRestCpp, SerializeArrayOfFloats) {
 	TestSerializeArray<JsonArchive, float>();
 	TestSerializeArray<JsonArchive, double>();
+}
+
+TEST(JsonRestCpp, SerializeArrayOfNullptrs)
+{
+	TestSerializeArray<JsonArchive, nullptr_t>();
 }
 
 TEST(JsonRestCpp, SerializeArrayOfStrings) {
@@ -122,6 +132,11 @@ TEST(JsonRestCpp, SerializeClassWithMemberFloat) {
 
 TEST(JsonRestCpp, SerializeClassWithMemberDouble) {
 	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+}
+
+TEST(JsonRestCpp, SerializeClassWithMemberNullptr)
+{
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<nullptr_t>>());
 }
 
 TEST(JsonRestCpp, SerializeClassWithMemberString) {

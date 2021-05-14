@@ -1,15 +1,15 @@
 /*******************************************************************************
-* Copyright (C) 2021 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cassert>
+#include <optional>
 #include <type_traits>
 #include <utility>
 #include <variant>
-#include <optional>
-#include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/errors_handling.h"
 
 // Definition of macros 'U' causes conflict with c4core template argument (see: blob.hpp) which uses in YAML archive implementation
 #define _TURN_OFF_PLATFORM_STRING
@@ -80,28 +80,39 @@ protected:
 	JsonScopeBase& operator=(JsonScopeBase&&) = default;
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	static bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
+	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
 	{
-		if (!jsonValue.is_number())
-			return false;
-
 		if constexpr (std::is_integral_v<T>)
 		{
-			if constexpr (std::is_same_v<T, int64_t>) {
-				value = jsonValue.as_number().to_int64();
+			if (jsonValue.is_number())
+			{
+				if constexpr (std::is_same_v<T, int64_t>) {
+					value = jsonValue.as_number().to_int64();
+				}
+				else if constexpr (std::is_same_v<T, uint64_t>) {
+					value = jsonValue.as_number().to_uint64();
+				}
+				else {
+					value = static_cast<T>(jsonValue.as_integer());
+				}
+				return true;
 			}
-			else if constexpr (std::is_same_v<T, uint64_t>) {
-				value = jsonValue.as_number().to_uint64();
-			}
-			else {
-				value = static_cast<T>(jsonValue.as_integer());
+			if (jsonValue.is_boolean()) {
+				value = jsonValue.as_bool();
+				return true;
 			}
 		}
-		else
+		else if constexpr (std::is_floating_point_v<T>)
 		{
-			value = static_cast<T>(jsonValue.as_double());
+			if (jsonValue.is_number()) {
+				value = static_cast<T>(jsonValue.as_double());
+				return true;
+			}
 		}
-		return true;
+		else if constexpr (std::is_null_pointer_v<T>) {
+			return jsonValue.is_null();
+		}
+		return false;
 	}
 
 	template <typename TSym, typename TAllocator>
@@ -152,40 +163,33 @@ public:
 		return JsonScopeBase::GetPath() + path_separator + Convert::ToString(index);
 	}
 
-	void SerializeValue(bool& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mIndex < mSize) {
-				const auto& jsonValue = (*mNode)[mIndex++];
-				if (jsonValue.is_boolean())
-					value = jsonValue.as_bool();
-			}
-		}
-		else
-		{
-			SaveJsonValue(web::json::value(value));
-		}
-	}
-
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(T& value)
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			if (mIndex < mSize)
-				LoadFundamentalValue((*mNode)[mIndex++], value);
+			if (mIndex < mSize) {
+				return LoadFundamentalValue((*mNode)[mIndex++], value);
+			}
 		}
 		else {
-			SaveJsonValue(web::json::value(value));
+			if constexpr (std::is_arithmetic_v<T>) {
+				SaveJsonValue(web::json::value(value));
+			}
+			else {
+				SaveJsonValue(web::json::value::null());
+			}
+			return true;
 		}
+		return false;
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			if (mIndex < mSize)
-				LoadString((*mNode)[mIndex++], value);
+			if (mIndex < mSize) {
+				return LoadString((*mNode)[mIndex++], value);
+			}
 		}
 		else
 		{
@@ -193,7 +197,9 @@ public:
 				SaveJsonValue(web::json::value(value));
 			else
 				SaveJsonValue(web::json::value(Convert::To<utility::string_t>(value)));
+			return true;
 		}
+		return false;
 	}
 
 	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
@@ -300,26 +306,7 @@ public:
 		return key_const_iterator(mNode->as_object().cend());
 	}
 
-	bool SerializeValue(const key_type& key, bool& value) const
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr && jsonValue->is_boolean())
-			{
-				value = jsonValue->as_bool();
-				return true;
-			}
-			return false;
-		}
-		else
-		{
-			SaveJsonValue(key, web::json::value::boolean(value));
-			return true;
-		}
-	}
-
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(const key_type& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -329,7 +316,12 @@ public:
 		}
 		else
 		{
-			SaveJsonValue(key, web::json::value::number(value));
+			if constexpr (std::is_arithmetic_v<T>) {
+				SaveJsonValue(key, web::json::value::number(value));
+			}
+			else {
+				SaveJsonValue(key, web::json::value());
+			}
 			return true;
 		}
 	}
@@ -423,7 +415,7 @@ public:
 #else
 		mRootJson = web::json::value::parse(inputStr, error);
 #endif
-		if (mRootJson.is_null()) {
+		if (error) {
 			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
 	}
@@ -448,7 +440,7 @@ public:
 
 		std::error_code error;
 		mRootJson = web::json::value::parse(inputStream, error);
-		if (mRootJson.is_null()) {
+		if (error) {
 			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
 		}
 	}
@@ -461,46 +453,54 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	void SerializeValue(bool& value)
+	bool SerializeValue(bool& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mRootJson.is_boolean())
+			if (mRootJson.is_boolean()) {
 				value = mRootJson.as_bool();
+				return true;
+			}
+			return false;
 		}
 		else
 		{
-			assert(mRootJson.is_null());
 			mRootJson = web::json::value::boolean(value);
+			return true;
 		}
 	}
 
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(T& value)
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			LoadFundamentalValue(mRootJson, value);
+			return LoadFundamentalValue(mRootJson, value);
 		}
 		else
 		{
-			assert(mRootJson.is_null());
-			mRootJson = web::json::value::number(value);
+			if constexpr (std::is_arithmetic_v<T>) {
+				mRootJson = web::json::value::number(value);
+			}
+			else {
+				mRootJson = web::json::value::null();
+			}
+			return true;
 		}
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			LoadString(mRootJson, value);
+			return LoadString(mRootJson, value);
 		}
 		else
 		{
-			assert(mRootJson.is_null());
 			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
 				mRootJson = web::json::value(value);
 			else
 				mRootJson = web::json::value(Convert::To<utility::string_t>(value));
+			return true;
 		}
 	}
 
@@ -511,7 +511,6 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.is_null());
 			mRootJson = web::json::value::object();
 			return std::make_optional<JsonObjectScope<TMode>>(&mRootJson);
 		}
@@ -524,7 +523,6 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.is_null());
 			mRootJson = web::json::value::array(arraySize);
 			return std::make_optional<JsonArrayScope<TMode>>(&mRootJson);
 		}

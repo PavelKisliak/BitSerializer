@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -27,14 +27,42 @@ namespace BitSerializer
 	}
 
 	template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
-	void Serialize(TArchive& archive, TValue& value)
+	bool Serialize(TArchive& archive, TValue& value)
 	{
 		constexpr auto hasValueTypeSupport = can_serialize_value_v<TArchive, TValue>;
 		static_assert(hasValueTypeSupport, "BitSerializer. The archive doesn't support serialize fundamental type without key on this level.");
 
 		if constexpr (hasValueTypeSupport) {
-			archive.SerializeValue(value);
+			return archive.SerializeValue(value);
 		}
+		return false;
+	}
+
+	//-----------------------------------------------------------------------------
+	// Serialize nullptr type
+	//-----------------------------------------------------------------------------
+	template <typename TArchive, typename TKey>
+	bool Serialize(TArchive& archive, TKey&& key, nullptr_t& value)
+	{
+		constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, nullptr_t, TKey>;
+		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize nullptr type with key on this level.");
+
+		if constexpr (hasValueWithKeySupport) {
+			return archive.SerializeValue(std::forward<TKey>(key), value);
+		}
+		return false;
+	}
+
+	template <typename TArchive>
+	bool Serialize(TArchive& archive, nullptr_t& value)
+	{
+		constexpr auto hasValueTypeSupport = can_serialize_value_v<TArchive, nullptr_t>;
+		static_assert(hasValueTypeSupport, "BitSerializer. The archive doesn't support serialize nullptr type without key on this level.");
+
+		if constexpr (hasValueTypeSupport) {
+			return archive.SerializeValue(value);
+		}
+		return false;
 	}
 
 	//------------------------------------------------------------------------------
@@ -54,14 +82,15 @@ namespace BitSerializer
 	}
 
 	template <class TArchive, typename TSym, typename TAllocator>
-	void Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		constexpr auto hasStringSupport = can_serialize_value_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
 		static_assert(hasStringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
 
 		if constexpr (hasStringSupport) {
-			archive.SerializeValue(value);
+			return archive.SerializeValue(value);
 		}
+		return false;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -73,9 +102,12 @@ namespace BitSerializer
 		if constexpr (TArchive::IsLoading())
 		{
 			std::string str;
-			auto result = Serialize(archive, std::forward<TKey>(key), str);
-			Convert::Detail::To(str, value);
-			return result;
+			if (Serialize(archive, std::forward<TKey>(key), str))
+			{
+				Convert::Detail::To(str, value);
+				return true;
+			}
+			return false;
 		}
 		else
 		{
@@ -85,18 +117,22 @@ namespace BitSerializer
 	}
 
 	template <class TArchive, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
-	void Serialize(TArchive& archive, TValue& value)
+	bool Serialize(TArchive& archive, TValue& value)
 	{
 		if constexpr (TArchive::IsLoading())
 		{
 			std::string str;
-			Serialize(archive, str);
-			Convert::Detail::To(std::string_view(str), value);
+			if (Serialize(archive, str)) {
+				Convert::Detail::To(std::string_view(str), value);
+				return true;
+			}
+			return false;
 		}
 		else
 		{
+			// ToDo: add exceptions handling
 			auto str = Convert::ToString(value);
-			Serialize(archive, str);
+			return Serialize(archive, str);
 		}
 	}
 

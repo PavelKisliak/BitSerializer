@@ -1,15 +1,15 @@
 /*******************************************************************************
-* Copyright (C) 2021 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cassert>
+#include <optional>
 #include <sstream>
 #include <type_traits>
-#include <optional>
 #include <variant>
-#include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/errors_handling.h"
 
 // External dependency (PugiXml)
 #include "pugixml.hpp"
@@ -171,7 +171,7 @@ public:
 	}
 
 	template<typename T>
-	void SerializeValue(T& value)
+	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -179,14 +179,18 @@ public:
 			{
 				PugiXmlExtensions::LoadValue(*mValueIt, value);
 				++mValueIt;
+				return true;
 			}
 		}
 		else
 		{
 			auto child = mNode.append_child(GetKeyByValueType<T>());
-			if (!child.empty())
+			if (!child.empty()) {
 				PugiXmlExtensions::SaveValue(child, value);
+				return true;
+			}
 		}
+		return false;
 	}
 
 	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
@@ -497,7 +501,7 @@ public:
 		: mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		const pugi::xml_parse_result result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
+		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
 		if (!result)
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}

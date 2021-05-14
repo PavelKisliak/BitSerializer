@@ -16,8 +16,9 @@ public:
 	TestArchive_LoadMode(const std::string& inputData) { }
 	TestArchive_LoadMode(std::istream& inputData) { }
 
-	void SerializeValue(bool& value) { }
-	void SerializeValue(int& value) { }
+	bool SerializeValue(bool& value) { }
+	bool SerializeValue(int& value) { }
+	bool SerializeValue(nullptr_t&) { }
 
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {}
@@ -58,6 +59,7 @@ public:
 
 	bool SerializeValue(const key_type& key, bool& value) { return true; }
 	bool SerializeValue(const key_type& key, int& value) { return true; }
+	bool SerializeValue(const key_type& key, nullptr_t&) { return true; }
 
 	template <typename TSym, typename TAllocator>
 	bool SerializeString(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value) {return true;}
@@ -107,8 +109,10 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValue) {
 	EXPECT_TRUE(testResult1);
 	bool testResult2 = can_serialize_value_v<TestArchive_LoadMode, int>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_value_v<TestWrongArchive, int>;
-	EXPECT_FALSE(testResult3);
+	bool testResult3 = can_serialize_value_v<TestArchive_LoadMode, nullptr_t>;
+	EXPECT_TRUE(testResult3);
+	bool testResult4 = can_serialize_value_v<TestWrongArchive, int>;
+	EXPECT_FALSE(testResult4);
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValueWithKey) {
@@ -116,8 +120,10 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeValueWithKey)
 	EXPECT_TRUE(testResult1);
 	bool testResult2 = can_serialize_value_with_key_v<TestArchive_SaveMode, int, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = can_serialize_value_with_key_v<TestWrongArchive, int, TestArchive_SaveMode::key_type>;
-	EXPECT_FALSE(testResult3);
+	bool testResult3 = can_serialize_value_with_key_v<TestArchive_SaveMode, nullptr_t, TestArchive_SaveMode::key_type>;
+	EXPECT_TRUE(testResult3);
+	bool testResult4 = can_serialize_value_with_key_v<TestWrongArchive, int, TestArchive_SaveMode::key_type>;
+	EXPECT_FALSE(testResult4);
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeObject) {

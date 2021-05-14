@@ -1,24 +1,24 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2021 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <type_traits>
 #include <optional>
+#include <type_traits>
 #include <variant>
-#include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/errors_handling.h"
 
 // External dependency (RapidJson)
 #include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include <rapidjson/stream.h>
 #include "rapidjson/encodings.h"
-#include "rapidjson/error/en.h"
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/ostreamwrapper.h>
+#include "rapidjson/istreamwrapper.h"
+#include "rapidjson/ostreamwrapper.h"
 #include "rapidjson/prettywriter.h"
+#include "rapidjson/stream.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/error/en.h"
 
 namespace BitSerializer::Json::RapidJson {
 namespace Detail {
@@ -80,41 +80,44 @@ protected:
 	RapidJsonScopeBase(RapidJsonScopeBase&&) = default;
 	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) = default;
 
-	static bool LoadValue(const RapidJsonNode& jsonValue, bool& value)
+	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	bool LoadValue(const RapidJsonNode& jsonValue, T& value)
 	{
-		if (jsonValue.IsBool()) {
-			value = jsonValue.GetBool();
-			return true;
+		if constexpr (std::is_integral_v<T>)
+		{
+			if (jsonValue.IsNumber())
+			{
+				if constexpr (std::is_same_v<T, int64_t>) {
+					value = jsonValue.GetInt64();
+				}
+				else if constexpr (std::is_same_v<T, uint64_t>) {
+					value = jsonValue.GetUint64();
+				}
+				else {
+					value = static_cast<T>(jsonValue.GetInt());
+				}
+				return true;
+			}
+			if (jsonValue.IsBool()) {
+				value = jsonValue.GetBool();
+				return true;
+			}
+		}
+		else if constexpr (std::is_floating_point_v<T>)
+		{
+			if (jsonValue.IsNumber()) {
+				value = static_cast<T>(jsonValue.GetDouble());
+				return true;
+			}
+		}
+		else if constexpr (std::is_null_pointer_v<T>) {
+			return jsonValue.IsNull();
 		}
 		return false;
 	}
 
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	static bool LoadValue(const RapidJsonNode& jsonValue, T& value)
-	{
-		if (!jsonValue.IsNumber())
-			return false;
-
-		if constexpr (std::is_integral_v<T>)
-		{
-			if constexpr (std::is_same_v<T, int64_t>) {
-				value = jsonValue.GetInt64();
-			}
-			else if constexpr (std::is_same_v<T, uint64_t>) {
-				value = jsonValue.GetUint64();
-			}
-			else {
-				value = static_cast<T>(jsonValue.GetInt());
-			}
-		}
-		else {
-			value = static_cast<T>(jsonValue.GetDouble());
-		}
-		return true;
-	}
-
 	template <typename TSym, typename TAllocator>
-	static bool LoadValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool LoadValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if (!jsonValue.IsString())
 			return false;
@@ -127,11 +130,11 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator, typename TRapidAllocator>
-	static RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
+	RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
 	{
 		using TargetSymType = typename TEncoding::Ch;
 		if constexpr (std::is_same_v<TSym, TargetSymType>)
-			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
+			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()));
 		else {
 			const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
 			return RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), allocator);
@@ -186,30 +189,36 @@ public:
 			+ Convert::ToString(index == 0 ? 0 : index - 1);
 	}
 
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(T& value)
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr)
-				this->LoadValue(*jsonValue, value);
+			if (jsonValue != nullptr) {
+				return this->LoadValue(*jsonValue, value);
+			}
+			return false;
 		}
 		else {
-			SaveJsonValue(RapidJsonNode(value));
+			SaveJsonValue(value);
+			return true;
 		}
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr)
-				this->LoadValue(*jsonValue, value);
+			if (jsonValue != nullptr) {
+				return this->LoadValue(*jsonValue, value);
+			}
+			return false;
 		}
 		else {
 			SaveJsonValue(RapidJsonScopeBase<TEncoding>::MakeRapidJsonNodeFromString(value, mAllocator));
+			return true;
 		}
 	}
 
@@ -259,10 +268,17 @@ protected:
 		return &jsonValue;
 	}
 
-	void SaveJsonValue(RapidJsonNode&& jsonValue) const
+	template <typename T>
+	void SaveJsonValue(T&& value) const
 	{
 		assert(this->mNode->Size() < this->mNode->Capacity());
-		this->mNode->PushBack(jsonValue.Move(), mAllocator);
+		this->mNode->PushBack(std::forward<T>(value), mAllocator);
+	}
+
+	void SaveJsonValue(nullptr_t&) const
+	{
+		assert(this->mNode->Size() < this->mNode->Capacity());
+		this->mNode->PushBack(RapidJsonNode(), mAllocator);
 	}
 
 	TAllocator& mAllocator;
@@ -332,7 +348,7 @@ public:
 		return key_const_iterator<TEncoding>(this->mNode->GetObject().end());
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -341,7 +357,12 @@ public:
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value);
 		}
 		else {
-			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
+			if constexpr (std::is_arithmetic_v<T>) {
+				return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
+			}
+			else {
+				return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode());
+			}
 		}
 	}
 
@@ -490,15 +511,14 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(T& value)
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			this->LoadValue(mRootJson, value);
+			return this->LoadValue(mRootJson, value);
 		}
 		else
 		{
-			assert(mRootJson.IsNull());
 			if constexpr (std::is_same_v<T, bool>) {
 				mRootJson.SetBool(value);
 			}
@@ -514,27 +534,30 @@ public:
 					mRootJson.SetInt(value);
 				}
 			}
-			else {
+			else if constexpr (std::is_floating_point_v<T>) {
 				mRootJson.SetDouble(value);
+			} else {
+				mRootJson.SetNull();
 			}
+			return true;
 		}
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			this->LoadValue(mRootJson, value);
+			return this->LoadValue(mRootJson, value);
 		}
 		else
 		{
-			assert(mRootJson.IsNull());
 			if constexpr (std::is_same_v<TSym, char_type>)
 				mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
 			else {
 				const auto str = Convert::To<std::basic_string<char_type, std::char_traits<char_type>>>(value);
 				mRootJson.SetString(str.data(), static_cast<rapidjson::SizeType>(str.size()), mRootJson.GetAllocator());
 			}
+			return true;
 		}
 	}
 
@@ -548,7 +571,6 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.IsNull());
 			mRootJson.SetArray().Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
 			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator());
 		}
@@ -564,7 +586,6 @@ public:
 		}
 		else
 		{
-			assert(mRootJson.IsNull());
 			mRootJson.SetObject();
 			return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator());
 		}

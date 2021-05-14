@@ -62,7 +62,7 @@ struct can_serialize_value
 {
 private:
 	template <typename TObj, typename TVal>
-	static std::enable_if_t<std::is_void_v<decltype(std::declval<TObj>().SerializeValue(std::declval<TVal&>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_same_v<bool, decltype(std::declval<TObj>().SerializeValue(std::declval<TVal&>()))>, std::true_type> test(int);
 
 	template <typename, typename>
 	static std::false_type test(...);

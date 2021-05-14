@@ -40,6 +40,11 @@ TEST(RapidJsonArchive, SerializeDouble)
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
 }
 
+TEST(RapidJsonArchive, SerializeNullptr)
+{
+	TestSerializeType<JsonArchive, nullptr_t>(nullptr);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -79,6 +84,11 @@ TEST(RapidJsonArchive, SerializeArrayOfFloats)
 {
 	TestSerializeArray<JsonArchive, float>();
 	TestSerializeArray<JsonArchive, double>();
+}
+
+TEST(RapidJsonArchive, SerializeArrayOfNullptrs)
+{
+	TestSerializeArray<JsonArchive, nullptr_t>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfStrings)
@@ -144,6 +154,11 @@ TEST(RapidJsonArchive, SerializeClassWithMemberFloat)
 TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
 {
 	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+}
+
+TEST(RapidJsonArchive, SerializeClassWithMemberNullptr)
+{
+	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<nullptr_t>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberString)

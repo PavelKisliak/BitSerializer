@@ -37,6 +37,10 @@ TEST(BaseTypes, SerializeDouble) {
 	TestSerializeType<ArchiveStub, double>(::BuildFixture<double>());
 }
 
+TEST(BaseTypes, SerializeNullptr) {
+	TestSerializeType<ArchiveStub, nullptr_t>(nullptr);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -72,6 +76,10 @@ TEST(BaseTypes, SerializeArrayOfIntegers) {
 TEST(BaseTypes, SerializeArrayOfFloats) {
 	TestSerializeArray<ArchiveStub, float>();
 	TestSerializeArray<ArchiveStub, double>();
+}
+
+TEST(BaseTypes, SerializeArrayOfNullptrs) {
+	TestSerializeArray<ArchiveStub, nullptr_t>();
 }
 
 TEST(BaseTypes, SerializeArrayOfStrings) {
@@ -128,6 +136,10 @@ TEST(BaseTypes, SerializeClassWithMemberFloat) {
 
 TEST(BaseTypes, SerializeClassWithMemberDouble) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<double>>());
+}
+
+TEST(BaseTypes, SerializeClassWithMemberNullptr) {
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<nullptr_t>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberString) {
@@ -215,7 +227,7 @@ public:
 		}
 		return true;
 	}
-	
+
 	int values[3];
 };
 

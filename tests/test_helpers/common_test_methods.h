@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -28,6 +28,9 @@ void TestSerializeType(T&& value)
 	}
 	else if constexpr (std::is_same_v<T, double>) {
 		EXPECT_DOUBLE_EQ(value, actual);
+	}
+	else if constexpr (std::is_null_pointer_v<T>) {
+		// Ignore comparing nullptr types (gtest fails such comparison)
 	}
 	else {
 		EXPECT_EQ(value, actual);
@@ -58,6 +61,9 @@ void TestSerializeArray()
 		}
 		else if constexpr (std::is_same_v<TValue, double>) {
 			EXPECT_DOUBLE_EQ(testArray[i], actual[i]);
+		}
+		else if constexpr (std::is_null_pointer_v<TValue>) {
+			// Ignore comparing nullptr types (gtest fails such comparison)
 		}
 		else {
 			EXPECT_EQ(testArray[i], actual[i]);

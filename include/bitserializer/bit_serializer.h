@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -132,7 +132,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			LoadObject<TArchive>(std::forward<T>(object), stream);
 		else
-			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("File not found: ") + Convert::ToString(std::forward<TString>(path)));
+			throw SerializationException(SerializationErrorCode::InputOutputError, "File not found: " + Convert::ToString(std::forward<TString>(path)));
 	}
 
 	/// <summary>
@@ -150,7 +150,7 @@ namespace BitSerializer
 		if (stream.is_open())
 			SaveObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
 		else
-			throw SerializationException(SerializationErrorCode::InputOutputError, std::string("Could not open file: ") + Convert::ToString(std::forward<TString>(path)));
+			throw SerializationException(SerializationErrorCode::InputOutputError, "Could not open file: " + Convert::ToString(std::forward<TString>(path)));
 	}
 
 } // namespace BitSerializer

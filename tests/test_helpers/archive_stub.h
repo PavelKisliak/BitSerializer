@@ -27,7 +27,7 @@ public:
 		reserve(expectedSize);
 	}
 };
-class TestIoData : public std::variant<bool, int64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
+class TestIoData : public std::variant<nullptr_t, bool, int64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
 
 /// <summary>
 /// The traits of archive stub 
@@ -100,11 +100,19 @@ protected:
 				return true;
 			}
 		}
-		else
+		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (std::holds_alternative<double>(ioData))
 			{
 				value = static_cast<T>(std::get<double>(ioData));
+				return true;
+			}
+		}
+		else if constexpr (std::is_null_pointer_v<T>)
+		{
+			if (std::holds_alternative<nullptr_t>(ioData))
+			{
+				value = std::get<nullptr_t>(ioData);
 				return true;
 			}
 		}
@@ -118,6 +126,8 @@ protected:
 			ioData.emplace<int64_t>(value);
 		else if constexpr (std::is_floating_point_v<T>)
 			ioData.emplace<double>(value);
+		else if constexpr (std::is_null_pointer_v<T>)
+			ioData.emplace<nullptr_t>(value);
 	}
 
 	template <typename TSym, typename TAllocator>
@@ -172,36 +182,44 @@ public:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		TestIoData& ioData = NextElement();
 		if constexpr (TMode == SerializeMode::Load)
-			LoadString(ioData, value);
-		else
+			return LoadString(ioData, value);
+		else {
 			SaveString(ioData, value);
+			return true;
+		}
 	}
 
-	void SerializeValue(bool& value)
+	bool SerializeValue(bool& value)
 	{
 		TestIoData& ioData = NextElement();
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (std::holds_alternative<bool>(ioData))
+			if (std::holds_alternative<bool>(ioData)) {
 				value = std::get<bool>(ioData);
+				return true;
+			}
+			return false;
 		}
 		else {
 			ioData.emplace<bool>(value);
+			return true;
 		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(T& value)
+	bool SerializeValue(T& value)
 	{
 		TestIoData& ioData = NextElement();
 		if constexpr (TMode == SerializeMode::Load)
-			LoadFundamentalValue(ioData, value);
-		else
+			return LoadFundamentalValue(ioData, value);
+		else {
 			SaveFundamentalValue(ioData, value);
+			return true;
+		}
 	}
 
 	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()
@@ -456,35 +474,42 @@ public:
 	{
 	}
 
-	void SerializeValue(bool& value) const
+	bool SerializeValue(bool& value) const
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			if (std::holds_alternative<bool>(*mInputData)) {
 				value = std::get<bool>(*mInputData);
+				return true;
 			}
+			return false;
 		}
 		else {
 			mOutputData->emplace<bool>(value);
+			return true;
 		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SerializeValue(T& value)
+	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
-			LoadFundamentalValue(*mInputData, value);
-		else
+			return LoadFundamentalValue(*mInputData, value);
+		else {
 			SaveFundamentalValue(*mOutputData, value);
+			return true;
+		}
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
-			LoadString(*mInputData, value);
-		else
+			return LoadString(*mInputData, value);
+		else {
 			SaveString(*mOutputData, value);
+			return true;
+		}
 	}
 
 	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()

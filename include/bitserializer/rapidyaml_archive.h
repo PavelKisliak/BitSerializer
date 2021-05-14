@@ -76,7 +76,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
 
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			static bool LoadValue(const RapidYamlNode& yamlValue, T& value)
+			bool LoadValue(const RapidYamlNode& yamlValue, T& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -169,12 +169,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// </summary>
 			/// <param name="value">The value.</param>
 			template <typename T>
-			void SerializeValue(T& value)
+			bool SerializeValue(T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					if (mIndex < GetSize())
-						LoadValue(mNode[mIndex++], value);
+					if (mIndex < GetSize()) {
+						return LoadValue(mNode[mIndex++], value);
+					}
 				}
 				else
 				{
@@ -182,7 +183,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					SaveValue(yamlValue, value);
 					mIndex++;
+					return true;
 				}
+				return false;
 			}
 
 			/// <summary>

@@ -21,7 +21,7 @@ REGISTER_ENUM_MAP(Number)
 	{ Number::Three, "Three" },
 	{ Number::Four, "Four" },
 	{ Number::Five, "Five" }
-} END_ENUM_MAP();
+} END_ENUM_MAP()
 
 
 class CPoint3D

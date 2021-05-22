@@ -79,31 +79,3 @@ namespace BitSerializer::Convert
 		}
 	}
 }
-
-//------------------------------------------------------------------------------
-
-/// <summary>
-/// Global operator << for out class to std::ostream.
-/// </summary>
-/// <param name="stream">The stream.</param>
-/// <param name="value">The value.</param>
-template <typename TIn, std::enable_if_t<((std::is_class_v<TIn> || std::is_union_v<TIn>) &&
-	BitSerializer::Convert::Detail::has_internal_ToString_v<TIn, std::basic_string<char, std::char_traits<char>>>), int> = 0>
-std::ostream& operator<<(std::ostream& stream, const TIn& value) {
-	stream << value.ToString();
-	return stream;
-}
-
-/// <summary>
-/// Global operator << for out registered enum type to streams.
-/// </summary>
-/// <param name="stream">The stream.</param>
-/// <param name="value">The value.</param>
-template <typename TIn, typename TSym, std::enable_if_t<std::is_enum_v<TIn>, int> = 0>
-std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, const TIn& value)
-{
-	std::basic_string<TSym, std::char_traits<TSym>> str;
-	BitSerializer::Convert::Detail::ConvertEnum::ToString(value, str);
-	stream << str;
-	return stream;
-}

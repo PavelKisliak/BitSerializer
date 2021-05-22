@@ -12,8 +12,8 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 TEST(ConvertEnums, EnumFromCStr) {
 	EXPECT_EQ(TestEnum::One, Convert::To<TestEnum>("One"));
-	EXPECT_EQ(TestEnum::Two, Convert::To<TestEnum>(u"Two"));
-	EXPECT_EQ(TestEnum::Three, Convert::To<TestEnum>(U"Three"));
+	EXPECT_EQ(TestEnum::Two, Convert::To<TestEnum>(u"TWO"));
+	EXPECT_EQ(TestEnum::Three, Convert::To<TestEnum>(U"three"));
 }
 
 TEST(ConvertEnums, EnumToString) {
@@ -33,6 +33,36 @@ TEST(ConvertEnums, ConvertEnumToWStream) {
 	oss << TestEnum::Five;
 	EXPECT_EQ(L"Five", oss.str());
 }
+
+TEST(ConvertEnums, ConvertEnumFromStream) {
+	std::stringstream stream("Utf-16le");
+	Convert::UtfType actual;
+	stream >> actual;
+	EXPECT_EQ(Convert::UtfType::Utf16le, actual);
+}
+
+TEST(ConvertEnums, ConvertEnumFromWStream) {
+	std::wstringstream stream(L"Utf-16le");
+	Convert::UtfType actual;
+	stream >> actual;
+	EXPECT_EQ(Convert::UtfType::Utf16le, actual);
+}
+
+TEST(ConvertEnums, ConvertEnumFromStreamWithSkipSpaces) {
+	std::stringstream stream("\t\t  UTF-8 ");
+	Convert::UtfType actual;
+	stream >> actual;
+	EXPECT_EQ(Convert::UtfType::Utf8, actual);
+}
+
+TEST(ConvertEnums, ConvertEnumChainFromStream) {
+	std::stringstream stream("UTF-8 UTF-32LE");
+	Convert::UtfType actualEnum1, actualEnum2;
+	stream >> actualEnum1 >> actualEnum2;
+	EXPECT_EQ(Convert::UtfType::Utf8, actualEnum1);
+	EXPECT_EQ(Convert::UtfType::Utf32le, actualEnum2);
+}
+
 
 //-----------------------------------------------------------------------------
 // Test conversion for class types (struct, class, union)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -28,7 +28,8 @@ REGISTER_ENUM_MAP(TestEnum)
 	{ TestEnum::Three,	"Three" },
 	{ TestEnum::Four,	"Four" },
 	{ TestEnum::Five,	"Five" }
-} END_ENUM_MAP();
+} END_ENUM_MAP()
+DECLARE_ENUM_STREAM_OPS(TestEnum)
 
 //-----------------------------------------------------------------------------
 union TestUnion

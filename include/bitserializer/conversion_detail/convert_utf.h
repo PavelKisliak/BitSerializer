@@ -13,7 +13,7 @@ namespace BitSerializer::Convert
 	/// <summary>
 	/// UTF encoding type.
 	/// </summary>
-	enum class UtfType : unsigned char
+	enum class UtfType
 	{
 		Utf8,
 		Utf16le,
@@ -29,7 +29,8 @@ namespace BitSerializer::Convert
 		{ UtfType::Utf16be, "UTF-16BE" },
 		{ UtfType::Utf32le, "UTF-32LE" },
 		{ UtfType::Utf32be, "UTF-32BE" }
-	} END_ENUM_MAP();
+	} END_ENUM_MAP()
+	DECLARE_ENUM_STREAM_OPS(UtfType)
 
 	namespace Unicode
 	{

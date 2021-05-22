@@ -87,7 +87,7 @@ REGISTER_ENUM_MAP(Number)
 	{ Number::Three, "Three" },
 	{ Number::Four, "Four" },
 	{ Number::Five, "Five" }
-} END_ENUM_MAP();
+} END_ENUM_MAP()
 
 
 int main()
@@ -99,6 +99,12 @@ int main()
 	return EXIT_SUCCESS;
 }
 ```
+
+Additionally, you can declare functions for support input/output streams using `DECLARE_ENUM_STREAM_OPS` macro, as shown below:
+```cpp
+DECLARE_ENUM_STREAM_OPS(EnumType)
+```
+In comparison with macro `REGISTER_ENUM_MAP` you should take care to include the header file in which you declared this.
 
 ### Conversion custom classes
 There are several ways to convert custom classes from/to strings:

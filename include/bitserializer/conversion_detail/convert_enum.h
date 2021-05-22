@@ -24,6 +24,30 @@
 	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::ConvertEnum::Register<enumType>(
 #define END_ENUM_MAP() ); }
 
+/// <summary>
+/// Macro that declares I/O streams operators for enum (need to register a map of strings via REGISTER_ENUM_MAP before).
+/// </summary>
+#define DECLARE_ENUM_STREAM_OPS(enumType) namespace { \
+	template <typename TSym> \
+	std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, enumType value) \
+	{ \
+		std::basic_string<TSym, std::char_traits<TSym>> str; \
+		BitSerializer::Convert::Detail::ConvertEnum::ToString(value, str); \
+		return stream << str; \
+	} \
+	template <class TSym, class TTraits = std::char_traits<TSym>> \
+	std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, BitSerializer::Convert::UtfType& value) \
+	{ \
+	TSym sym; std::basic_string<TSym, TTraits> str; \
+	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = stream.get()) { \
+		str.push_back(sym); \
+	} \
+	BitSerializer::Convert::Detail::ConvertEnum::FromString(std::basic_string_view<TSym>(str), value); \
+	return stream; \
+	} \
+}
+
+
 namespace BitSerializer::Convert::Detail {
 
 template <typename TEnum>
@@ -73,10 +97,10 @@ public:
 	template <typename TEnum>
 	static const enum_descriptors<TEnum>& GetDescriptors() noexcept
 	{
-		const auto& descriptors = GetDescriptorsImpl<TEnum>();
+		auto& descriptors = GetDescriptorsImpl<TEnum>();
 		// Make sure, that type is registered
 		assert(!descriptors.empty());
-		return const_cast<enum_descriptors<TEnum>&>(descriptors);
+		return descriptors;
 	}
 
 	template <typename TEnum>

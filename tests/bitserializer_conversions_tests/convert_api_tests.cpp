@@ -71,18 +71,3 @@ TEST(ConvertApi, ToString) {
 TEST(ConvertApi, ToWString) {
 	EXPECT_EQ(L"500", Convert::ToWString(500));
 }
-
-//-----------------------------------------------------------------------------
-// Test conversion of classes and enums to ostringstream
-//-----------------------------------------------------------------------------
-TEST(ConvertApi, ConvertClassToStream) {
-	std::ostringstream oss;
-	oss << TestPointClass(543, -345);
-	EXPECT_EQ("543 -345", oss.str());
-}
-
-TEST(ConvertApi, ConvertEnumToStream) {
-	std::ostringstream oss;
-	oss << TestEnum::Five;
-	EXPECT_EQ("Five", oss.str());
-}

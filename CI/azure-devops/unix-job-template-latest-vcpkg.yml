@@ -3,8 +3,8 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
-# [Optional] File with list of packages to install
-  vcpkgListFile: $(Build.SourcesDirectory)/CI/azure-devops/vcpkg_list.txt
+# [Optional] Directory with cached packages
+  vcpkgCacheDir: /home/vsts/.cache/vcpkg/archives/
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
 # [Optional] Cmake additional arguments for generate mode
@@ -16,20 +16,8 @@ jobs:
 - job: ${{ parameters.name }}
   pool:
     vmImage: ${{ parameters.image }}
-  variables:
-    VCPKG_CACHE_DIR: $(Build.SourcesDirectory)/../vcpkg/installed
 
   steps:
-  - task: Cache@2
-    inputs:
-      key: |
-        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
-      restoreKeys: |
-        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
-      path: $(VCPKG_CACHE_DIR)
-      cacheHitVar: VCPKG_CACHE_RESTORED
-    displayName: Configure cache of VCPKG packages
-
   - script: |
       echo --- Install build tools ---
       ${{ parameters.installToolsCmd }}
@@ -37,7 +25,7 @@ jobs:
     condition: ne('${{ parameters.installToolsCmd }}', '')
 
   - script: |
-      echo --- Clone VCPKG ---
+      echo --- Clone latest VCPKG ---
       cd ..
       git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
       echo --- VCPKG: Bootstrap ---
@@ -45,12 +33,15 @@ jobs:
       ./bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 
-  - script: |
-      echo --- VCPKG: Install dependencies  ---
-      cd ../vcpkg
-      ./vcpkg install @${{ parameters.vcpkgListFile }} --triplet ${{ parameters.vcpkgTriplet }}
-    displayName: 'Install dependencies'
-    condition: ne(variables.VCPKG_CACHE_RESTORED, 'true')
+  - task: Cache@2
+    inputs:
+      key: |
+        vcpkg | v4 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+      restoreKeys: |
+        vcpkg | v4 | ${{ parameters.name }}
+      path: ${{ parameters.vcpkgCacheDir }}
+      cacheHitVar: VCPKG_CACHE_RESTORED
+    displayName: Configure cache of VCPKG packages
 
   - script: |
       mkdir build.debug

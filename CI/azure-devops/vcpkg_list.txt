@@ -1,5 +1,0 @@
-gtest
-cpprestsdk[core]
-rapidjson
-pugixml
-ryml

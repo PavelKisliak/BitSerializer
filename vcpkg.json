@@ -1,0 +1,19 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "bitserializer",
+    "version": "0.12.0",
+    "dependencies": [
+        "cpprestsdk",
+        "rapidjson",
+        "pugixml",
+        {
+            "name": "ryml",
+            "platform": "!(arm|arm64|osx)"
+        },
+        "gtest"
+    ],
+    "builtin-baseline": "7c55ecac266fc3e554bc315053dc45c11ec811af",
+    "overrides": [
+        { "name": "gtest", "version": "1.10.0" }
+    ]
+}

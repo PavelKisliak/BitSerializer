@@ -3,8 +3,6 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
-# [Optional] File with list of packages to install
-  vcpkgListFile: $(Build.SourcesDirectory)/CI/azure-devops/vcpkg_list.txt
 # [Optional] Platform [x64, win32]
   platform: 'x64'
 # [Required] VCPKG triplet
@@ -15,23 +13,27 @@ jobs:
   pool:
     vmImage: ${{ parameters.image }}
   variables:
-    VCPKG_INSTALLED_PACKAGES: $(VCPKG_INSTALLATION_ROOT)/installed
+    VCPKG_CACHE_DIR: C:\Users\VssAdministrator\AppData\Local\vcpkg\archives
 
   steps:
+  - script: |
+      echo --- Clone latest VCPKG ---
+      cd ..
+      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
+      echo --- VCPKG: Bootstrap ---
+      cd vcpkg
+      bootstrap-vcpkg
+    displayName: 'Install VCPKG'
+
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
+        vcpkg | v5 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v4 | ${{ parameters.name }} | ${{ parameters.vcpkgListFile }}
-      path: $(VCPKG_INSTALLED_PACKAGES)
+        vcpkg | v5 | ${{ parameters.name }}
+      path: $(VCPKG_CACHE_DIR)
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
-
-  - script: |
-      vcpkg install @${{ parameters.vcpkgListFile }} --triplet ${{ parameters.vcpkgTriplet }}
-    displayName: 'Install dependencies'
-    condition: ne(variables.VCPKG_CACHE_RESTORED, 'true')
 
   - script: |
       mkdir build
@@ -40,7 +42,7 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: '-A ${{ parameters.platform }} -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+      cmakeArgs: '-A ${{ parameters.platform }} -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
     displayName: 'Cmake - generate'
 
   - script: |

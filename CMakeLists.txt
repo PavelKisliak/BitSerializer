@@ -9,6 +9,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       CACHE STRING "")
 endif()
+set(VCPKG_FEATURE_FLAGS "versions")
 
 project(bitserializer
   VERSION 0.10.0
@@ -105,7 +106,7 @@ if(BUILD_RAPIDJSON_ARCHIVE)
 
     target_link_libraries(${RAPIDJSON_ARCHIVE_NAME} INTERFACE ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME})
     find_package(RapidJSON CONFIG REQUIRED)
-    target_include_directories(${RAPIDJSON_ARCHIVE_NAME} INTERFACE ${RAPIDJSON_INCLUDE_DIRS})
+    target_include_directories(${RAPIDJSON_ARCHIVE_NAME} INTERFACE $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE_DIRS}>)
 endif()
 
 # BitSerializer pugixml archive

@@ -3,12 +3,12 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cstddef>
 #include <charconv>
+#include <cstddef>
 #include <functional>
 #include <tuple>
 #include <utility>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "auto_fixture.h"
 #include "bitserializer/bit_serializer.h"
 
@@ -30,6 +30,7 @@ REGISTER_ENUM_MAP(TestEnum)
 	{ TestEnum::Five,	"Five" }
 } END_ENUM_MAP()
 DECLARE_ENUM_STREAM_OPS(TestEnum)
+
 
 //-----------------------------------------------------------------------------
 union TestUnion

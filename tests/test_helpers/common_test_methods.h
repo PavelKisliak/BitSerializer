@@ -4,8 +4,9 @@
 *******************************************************************************/
 #pragma once
 #include <filesystem>
-#include "gtest/gtest.h"
+#include <optional>
 #include "common_test_entities.h"
+
 
 /// <summary>
 /// Test template of serialization for fundamental type.
@@ -175,6 +176,38 @@ void TestSerializeClassToStream(T&& value)
 	// Assert
 	value.Assert(actual);
 }
+
+/// <summary>
+/// Test template of serialization for class with std::optional as member.
+/// </summary>
+template <typename TArchive, typename TValue>
+void TestSerializeOptionalAsClassMember(const std::optional<TValue>& initValue = BuildFixture<TValue>())
+{
+	// Arrange
+	TestClassWithSubType<std::optional<TValue>> expected(initValue);
+	TestClassWithSubType<std::optional<TValue>> actual(initValue.has_value() ? std::optional<TValue>() : std::optional<TValue>(TValue()));
+	typename TArchive::preferred_output_format outputArchive;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(expected, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	ASSERT_EQ(initValue.has_value(), actual.GetValue().has_value());
+	if (initValue.has_value())
+	{
+		if constexpr (std::is_same_v<TValue, float>) {
+			EXPECT_FLOAT_EQ(expected.GetValue().value(), actual.GetValue().value());
+		}
+		else if constexpr (std::is_same_v<TValue, double>) {
+			EXPECT_DOUBLE_EQ(expected.GetValue().value(), actual.GetValue().value());
+		}
+		else {
+			EXPECT_EQ(expected.GetValue().value(), actual.GetValue().value());
+		}
+	}
+}
+
 
 /// <summary>
 /// Test template of serialization to file.

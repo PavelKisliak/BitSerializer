@@ -5,6 +5,7 @@
 #pragma once
 #include <cstdlib>
 #include <limits>
+#include <optional>
 #include <deque>
 #include <bitset>
 #include <list>
@@ -22,7 +23,7 @@
 /// Checks that the class has BuildFixture() method.
 /// </summary>
 template <typename T>
-struct has_buld_fixture_method
+struct has_build_fixture_method
 {
 private:
 	template <typename U>
@@ -37,7 +38,7 @@ public:
 };
 
 template <typename T>
-constexpr bool has_buld_fixture_method_v = has_buld_fixture_method<T>::value;
+constexpr bool has_build_fixture_method_v = has_build_fixture_method<T>::value;
 
 /// <summary>
 /// Builds the test fixture for classes (they must have static method BuildFixture()).
@@ -46,10 +47,10 @@ constexpr bool has_buld_fixture_method_v = has_buld_fixture_method<T>::value;
 template <typename T, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
 static void BuildFixture(T& value)
 {
-	constexpr auto hasBuldMethod = has_buld_fixture_method_v<T>;
-	static_assert(hasBuldMethod, "Your test class should implement static method BuildFixture(ClassType&).");
+	constexpr auto hasBuildMethod = has_build_fixture_method_v<T>;
+	static_assert(hasBuildMethod, "Your test class should implement static method BuildFixture(ClassType&).");
 
-	if constexpr (hasBuldMethod) {
+	if constexpr (hasBuildMethod) {
 		T::BuildFixture(value);
 	}
 }
@@ -82,7 +83,6 @@ static void BuildFixture(T& value)
 /// Builds the test fixture for array of types.
 /// </summary>
 /// <param name="arr">The arr.</param>
-/// <returns></returns>
 template <typename TValue, size_t ArraySize>
 static void BuildFixture(TValue(&arr)[ArraySize])
 {
@@ -108,11 +108,26 @@ static void BuildFixture(TValue(&arr)[ArraySize])
 	}
 }
 
+/// <summary>
+/// Builds the test fixture for std::pair value.
+/// </summary>
+/// <param name="pair">The pair.</param>
 template <typename TKey, typename TValue>
 static void BuildFixture(std::pair<TKey, TValue>& pair)
 {
 	BuildFixture(pair.first);
 	BuildFixture(pair.second);
+}
+
+/// <summary>
+/// Builds the test fixture for std::optional value.
+/// </summary>
+/// <param name="optionalValue">The optional value.</param>
+template <typename TValue>
+static void BuildFixture(std::optional<TValue>& optionalValue)
+{
+	optionalValue = TValue();
+	BuildFixture(optionalValue.value());
 }
 
 /// <summary>

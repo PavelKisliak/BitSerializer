@@ -3,9 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <string>
-#include <iterator>
 #include <algorithm>
+#include <istream>
+#include <iterator>
+#include <string>
 #include "convert_enum.h"
 
 namespace BitSerializer::Convert

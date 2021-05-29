@@ -6,10 +6,6 @@ trigger:
     - History.md
 
 pr:
-  branches:
-    include:
-    - master
-    - dev
   paths:
     exclude:
     - docs/*

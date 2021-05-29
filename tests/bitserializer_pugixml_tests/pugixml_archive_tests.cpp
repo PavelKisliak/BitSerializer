@@ -29,6 +29,10 @@ TEST(PugiXmlArchive, SerializeArrayOfFloats) {
 	TestSerializeArray<XmlArchive, double>();
 }
 
+TEST(PugiXmlArchive, SerializeArrayOfNullptrs) {
+	TestSerializeArray<XmlArchive, std::nullptr_t>();
+}
+
 TEST(PugiXmlArchive, SerializeArrayOfStrings) {
 	TestSerializeArray<XmlArchive, std::string>();
 }
@@ -88,6 +92,10 @@ TEST(PugiXmlArchive, SerializeClassWithMemberDouble) {
 	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
+TEST(PugiXmlArchive, SerializeClassWithMemberNullptr) {
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+}
+
 TEST(PugiXmlArchive, SerializeClassWithMemberString) {
 	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
@@ -130,6 +138,10 @@ TEST(PugiXmlArchive, SerializeAttributesWithIntegers) {
 
 TEST(PugiXmlArchive, SerializeAttributesWithFloats) {
 	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<float, double>>());
+}
+
+TEST(PugiXmlArchive, SerializeAttributesWithNullptr) {
+	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<std::nullptr_t>>());
 }
 
 TEST(PugiXmlArchive, SerializeAttributesWithString) {

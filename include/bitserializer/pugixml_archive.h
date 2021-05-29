@@ -92,7 +92,7 @@ namespace PugiXmlExtensions
 			else
 				value = static_cast<T>(node.text().as_int());
 		}
-		else
+		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if constexpr (std::is_same_v<T, float>)
 				value = node.text().as_float();
@@ -114,6 +114,8 @@ namespace PugiXmlExtensions
 	void SaveValue(const pugi::xml_node& node, const T& value) {
 		node.text().set(value);
 	}
+
+	inline void SaveValue(const pugi::xml_node& node, const std::nullptr_t& value) {}
 
 	inline void SaveValue(const pugi::xml_node& node, const pugi::char_t* value) {
 		node.text().set(value);
@@ -292,14 +294,15 @@ public:
 		return PugiXmlExtensions::GetPath(mNode);
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
-			if (attr.empty())
-				return false;
+			if (attr.empty()) {
+				return std::is_null_pointer_v<T>;
+			}
 
 			if constexpr (std::is_same_v<T, bool>) {
 				value = attr.as_bool();
@@ -315,7 +318,7 @@ public:
 				else
 					value = static_cast<T>(attr.as_int());
 			}
-			else
+			else if constexpr (std::is_floating_point_v<T>)
 			{
 				if constexpr (std::is_same_v<T, float>)
 					value = attr.as_float();
@@ -329,7 +332,9 @@ public:
 			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
 			if (attr.empty())
 				return false;
-			attr.set_value(value);
+			if constexpr (!std::is_null_pointer_v<T>) {
+				attr.set_value(value);
+			}
 			return true;
 		}
 	}

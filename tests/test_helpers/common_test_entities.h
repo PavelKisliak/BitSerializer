@@ -97,7 +97,7 @@ public:
 		return std::to_string(x) + ' ' + std::to_string(y);
 	}
 
-	void FromString(const std::string_view& str)
+	void FromString(std::string_view str)
 	{
 		const auto next = str.find_first_of(' ');
 		if (next != std::string_view::npos)

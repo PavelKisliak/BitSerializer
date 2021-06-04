@@ -131,7 +131,7 @@ public:
 		return std::to_string(x) + ' ' + std::to_string(y) + ' ' + std::to_string(z);
 	}
 
-	void FromString(const std::string_view& str)
+	void FromString(std::string_view str)
 	{
 		size_t offset = 0;
 		for (int* value : { &x, &y, &z })
@@ -164,13 +164,13 @@ int main()
 ```
 The important point is that you can implement just pair of methods for `std::string`, all other string types will be also automatically supported as well, but you can implement them to avoid the performance overhead when transcoding:
 - `std::u16string ToU16String();`
-- `void FromString(const std::u16string_view&);`
+- `void FromString(std::u16string_view);`
 - `std::u32string ToU32String();`
-- `void FromString(const std::u32string_view&);`
+- `void FromString(std::u32string_view);`
 
 As an alternative to internal methods, you can achieve the same by implementing two global functions in any namespace:
 - `void To(const CPoint3D& in, std::string& out);`
-- `void To(const std::string_view& in, CPoint3D& out);`
+- `void To(std::string_view in, CPoint3D& out);`
 Optionally, they can be overridden for conversions any other string types (when you are worried about performance).
 As an examples, you also can see the conversion implementation for [filesystem::path](include\bitserializer\conversion_detail\convert_std.h).
 

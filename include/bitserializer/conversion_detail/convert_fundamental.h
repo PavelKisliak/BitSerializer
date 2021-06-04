@@ -19,7 +19,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF string to integer types.
 	/// </summary>
 	template <typename T, typename TSym, std::enable_if_t<(std::is_integral_v<T>), int> = 0>
-	void To(const std::basic_string_view<TSym>& in, T& out)
+	void To(std::basic_string_view<TSym> in, T& out)
 	{
 		const auto* it = in.data();
 		const auto* end = it + in.size();
@@ -61,7 +61,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF string to floating types.
 	/// </summary>
 	template <typename T, typename TSym, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
-	void To(const std::basic_string_view<TSym>& in, T& out)
+	void To(std::basic_string_view<TSym> in, T& out)
 	{
 		T result;
 		static constexpr size_t bufSize = 64;
@@ -97,7 +97,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF string to boolean.
 	/// </summary>
 	template <typename TSym>
-	void To(const std::basic_string_view<TSym>& in, bool& ret_Val)
+	void To(std::basic_string_view<TSym> in, bool& ret_Val)
 	{
 		int32_t result = 0;
 		To(in, result);

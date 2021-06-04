@@ -73,7 +73,7 @@ public:
 	explicit Utf8InternalConvertFixture(std::string expectedValue) noexcept : value(std::move(expectedValue)) { }
 
 	[[nodiscard]] std::string ToString() const { return value; }
-	void FromString(const std::string_view& str) { value = str; }
+	void FromString(std::string_view str) { value = str; }
 
 	std::string value;
 };
@@ -100,7 +100,7 @@ public:
 	explicit Utf16InternalConvertFixture(std::u16string expectedValue) noexcept : value(std::move(expectedValue)) { }
 
 	[[nodiscard]] std::u16string ToU16String() const { return value; }
-	void FromString(const std::u16string_view& str) { value = str; }
+	void FromString(std::u16string_view str) { value = str; }
 
 	std::u16string value;
 };
@@ -127,7 +127,7 @@ public:
 	explicit Utf32InternalConvertFixture(std::u32string expectedValue) noexcept : value(std::move(expectedValue)) { }
 
 	[[nodiscard]] std::u32string ToU32String() const { return value; }
-	void FromString(const std::u32string_view& str) { value = str; }
+	void FromString(std::u32string_view str) { value = str; }
 	std::u32string value;
 };
 
@@ -165,7 +165,7 @@ static std::errc To(const Utf8ExternalConvertFixture& in, std::string& out)
 }
 
 // ReSharper disable once CppDeclaratorNeverUsed
-static std::errc To(const std::string_view& in, Utf8ExternalConvertFixture& out)
+static std::errc To(std::string_view in, Utf8ExternalConvertFixture& out)
 {
 	out.value = in;
 	return std::errc();

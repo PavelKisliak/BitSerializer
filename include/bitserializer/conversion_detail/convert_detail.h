@@ -47,7 +47,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF string to enum types.
 	/// </summary>
 	template <typename T, typename TSym, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	void To(const std::basic_string_view<TSym>& in, T& out) {
+	void To(std::basic_string_view<TSym> in, T& out) {
 		ConvertEnum::FromString<T>(in, out);
 	}
 
@@ -142,9 +142,9 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF strings to classes and unions.
 	/// Classes can have external overloads of this function or internal convert method(s) like below:
 	/// <c>
-	///     void FromString(const std::string_view& str);
-	///     void FromString(const std::u16string_view& str);
-	///     void FromString(const std::u32string_view& str);
+	///     void FromString(std::string_view str);
+	///     void FromString(std::u16string_view str);
+	///     void FromString(std::u32string_view str);
 	/// </c>
 	/// Not all of these methods are required, but for avoid performance issues (for transcoding),
 	/// it is recommended to implement conversion methods for most commonly used types.

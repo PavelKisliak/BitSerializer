@@ -37,7 +37,7 @@ public:
 		return std::to_string(x) + ' ' + std::to_string(y) + ' ' + std::to_string(z);
 	}
 
-	void FromString(const std::string_view& str)
+	void FromString(std::string_view str)
 	{
 		size_t offset = 0;
 		for (int* value : { &x, &y, &z })

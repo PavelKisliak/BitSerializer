@@ -13,13 +13,13 @@ class CCustomString  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	CCustomString() = default;
-	explicit CCustomString(const std::string_view& str) : mInternalString(str) { }
+	explicit CCustomString(std::string_view str) : mInternalString(str) { }
 
 	[[nodiscard]] const std::string& ToGenericString() const {
 		return mInternalString;
 	}
 
-	void Append(const std::string_view& str) {
+	void Append(std::string_view str) {
 		mInternalString.append(str);
 	}
 

@@ -144,7 +144,7 @@ int main()
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of std::basic_string types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using MakeAutoKeyValue()), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually std::string (UTF-8). In the example below, we show how BitSerializer allow to play with string types:
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of std::basic_string types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using MakeAutoKeyValue()), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually std::string (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
 ```cpp
 class TestUnicodeClass
 {
@@ -247,7 +247,7 @@ void Serialize(TArchive& archive)
 ### Serializing third party class
 As alternative for internal Serialize() method also exists aproach with defining global functions, it will be usufull in next cases:
  - Sources of serializing class cannot be modified (for example from third party library).
- - When class represents list of some values (such as std::vector), currently there is no alternative with internal method.
+ - When class represents list of some values (such as std::vector).
  - When you would like to override internal serialization, globally defined functions have higher priority.
  - When you strongly follow single responsibility principle and wouldn't like to include serialization code into class.
 
@@ -455,7 +455,7 @@ If you want to use your own class as a key, you should add conversion methods to
 class YourCustomKey
 {
 	std::string ToString() const { }
-	void FromString(const std::string_view& str)
+	void FromString(std::string_view str)
 }
 ```
 

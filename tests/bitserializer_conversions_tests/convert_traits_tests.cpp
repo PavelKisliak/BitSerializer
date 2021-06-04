@@ -17,8 +17,8 @@ public:
 	std::u16string ToU16String() const { return std::u16string(); }
 	std::u32string ToU32String() const { return std::u32string(); }
 
-	void FromString(const std::string_view& str) { }
-	void FromString(const std::wstring_view& str) { }
+	void FromString(std::string_view str) { }
+	void FromString(std::wstring_view str) { }
 };
 
 /// <summary>

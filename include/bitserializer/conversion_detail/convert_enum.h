@@ -61,7 +61,7 @@ public:
 	{ }
 
 	template <typename TSym>
-	[[nodiscard]] bool Equals(const std::basic_string_view<TSym>& str_value) const
+	[[nodiscard]] bool Equals(std::basic_string_view<TSym> str_value) const
 	{
 		return std::equal(str_value.cbegin(), str_value.cend(), mStrName.cbegin(), mStrName.cend(), [](const TSym lhs, const char rhs) {
 			return std::tolower(static_cast<int>(lhs)) == std::tolower(static_cast<int>(rhs));
@@ -132,7 +132,7 @@ public:
 	}
 
 	template <typename TEnum, typename TSym>
-	static void FromString(const std::basic_string_view<TSym>& str, TEnum& ret_Val)
+	static void FromString(std::basic_string_view<TSym> str, TEnum& ret_Val)
 	{
 		const auto& descriptors = GetDescriptors<TEnum>();
 		auto it = std::find_if(descriptors.cbegin(), descriptors.cend(), [&str](const EnumDescriptor<TEnum>& descr) {

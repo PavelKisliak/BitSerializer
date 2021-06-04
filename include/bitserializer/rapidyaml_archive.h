@@ -31,6 +31,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
 
+			static constexpr char nullValue[] = "null";
+			static constexpr char nullValueAlt[] = "~";
+
 		protected:
 			~RapidYamlArchiveTraits() = default;
 		};
@@ -81,10 +84,18 @@ namespace BitSerializer::Yaml::RapidYaml {
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
 
-				if constexpr (std::is_same_v<T, char>)
-					yamlValue >> reinterpret_cast<uint8_t&>(value);
-				else
-					yamlValue >> value;
+				const bool isNullValue = IsNullYamlValue(yamlValue.val());
+				if constexpr (std::is_null_pointer_v<T>) {
+					return isNullValue;
+				}
+				else {
+					if (isNullValue)
+						return false;
+					if constexpr (std::is_same_v<T, char>)
+						yamlValue >> reinterpret_cast<uint8_t&>(value);
+					else
+						yamlValue >> value;
+				}
 				return true;
 			}
 
@@ -108,7 +119,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			static void SaveValue(RapidYamlNode& yamlValue, T& value)
 			{
-				if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
+				if constexpr (std::is_null_pointer_v<T>) {
+					yamlValue << nullValue;
+				} else if constexpr (std::is_floating_point_v<T>)
 					yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
 				else if constexpr (std::is_same_v<T, char>)
 					yamlValue << static_cast<uint8_t>(value);
@@ -123,6 +136,15 @@ namespace BitSerializer::Yaml::RapidYaml {
 					yamlValue << value;
 				else
 					yamlValue << Convert::To<std::string>(value);
+			}
+
+			static bool IsNullYamlValue(c4::csubstr str)
+			{
+				return std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt)) ||
+					std::equal(str.begin(), str.end(), std::cbegin(nullValue), std::cend(nullValue),
+						[](const char lhs, const char rhs) {
+							return std::tolower(static_cast<int>(lhs)) == std::tolower(static_cast<int>(rhs));
+				});
 			}
 
 			RapidYamlNode mNode;

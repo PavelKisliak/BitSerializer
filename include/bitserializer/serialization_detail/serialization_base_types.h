@@ -171,7 +171,7 @@ namespace BitSerializer
 				}
 				else if constexpr (hasGlobalSerializeArray) {
 					size_t arraySize = 0;
-					if constexpr (TArchive::IsLoading() && has_size_v<TValue>) {
+					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
 						arraySize = value.size();
 					}
 					auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);

@@ -237,6 +237,9 @@ protected:
 	template <typename T>
 	static constexpr const pugi::char_t* GetKeyByValueType() noexcept
 	{
+		if constexpr (std::is_null_pointer_v<T>)
+			return PUGIXML_TEXT("null");
+
 		if constexpr (std::is_same_v<T, bool>)
 			return PUGIXML_TEXT("bool");
 

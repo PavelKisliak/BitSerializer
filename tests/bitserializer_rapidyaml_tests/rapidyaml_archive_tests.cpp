@@ -29,6 +29,11 @@ TEST(RapidYamlArchive, SerializeArrayOfFloats)
 	TestSerializeArray<YamlArchive, double>();
 }
 
+TEST(RapidYamlArchive, SerializeArrayOfNullptrs)
+{
+	TestSerializeArray<YamlArchive, std::nullptr_t>();
+}
+
 TEST(RapidYamlArchive, SerializeArrayOfStrings)
 {
 	TestSerializeArray<YamlArchive, std::string>();
@@ -92,6 +97,11 @@ TEST(RapidYamlArchive, SerializeClassWithMemberFloat)
 TEST(RapidYamlArchive, SerializeClassWithMemberDouble)
 {
 	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+}
+
+TEST(RapidYamlArchive, SerializeClassWithMemberNullptr)
+{
+	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberString)

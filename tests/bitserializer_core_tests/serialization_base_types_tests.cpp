@@ -266,10 +266,21 @@ TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenSaving) {
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returned from archive methods).
 //-----------------------------------------------------------------------------
-TEST(BaseTypes, ShouldCollectErrorAboutRequiredNamedValues) {
+TEST(BaseTypes, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<bool>>();
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<int>>();
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<TestPointClass>>();
+}
+
+TEST(BaseTypes, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
+{
+	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
+	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
+	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
+	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
+	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
+	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
+	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
 }

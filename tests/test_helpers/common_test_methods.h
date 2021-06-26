@@ -309,6 +309,29 @@ void TestValidationForNamedValues()
 }
 
 /// <summary>
+/// Test template of validation for loading not compatible types (e.g. number from string).
+/// </summary>
+template <typename TArchive, class TSourceType, class TTargetType>
+void TestValidationForNotCompatibleTypes()
+{
+	// Arrange
+	TSourceType sourceObj = BuildFixture<TSourceType>();
+	typename TArchive::preferred_output_format outputArchive;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
+	const bool saveResult = BitSerializer::Context.IsValid();
+	TTargetType targetObj{};
+	BitSerializer::LoadObject<TArchive>(targetObj, outputArchive);
+	const bool loadResult = BitSerializer::Context.IsValid();
+
+	// Assert
+	ASSERT_TRUE(saveResult);
+	ASSERT_FALSE(loadResult);
+	targetObj.Assert();
+}
+
+/// <summary>
 /// Template for test iterating keys in the object scope.
 /// </summary>
 template <typename TArchive>

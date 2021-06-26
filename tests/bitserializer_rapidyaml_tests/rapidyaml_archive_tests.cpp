@@ -166,13 +166,24 @@ TEST(RapidYamlArchive, ShouldReturnPathInArrayScopeWhenSaving)
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
-TEST(RapidYamlArchive, ShouldCollectErrorAboutRequiredNamedValues)
+TEST(RapidYamlArchive, ShouldCollectErrorsAboutRequiredNamedValues)
 {
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<bool>>();
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<int>>();
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<TestPointClass>>();
+}
+
+TEST(RapidYamlArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
+{
+	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
+	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
+	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
+	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
+	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
+	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
+	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -211,6 +222,6 @@ TEST(RapidYamlArchive, SerializeClassToFile) {
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 {
-	int testInt[1];
-	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
+	int testInt[2];
+	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "- 10\n - 20"), BitSerializer::SerializationException);
 }

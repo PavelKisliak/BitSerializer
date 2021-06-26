@@ -368,6 +368,30 @@ private:
 	TestType mExistArrayField[3];
 };
 
+template <typename TestType>
+class TestClassForCheckCompatibleTypes
+{
+public:
+	static void BuildFixture(TestClassForCheckCompatibleTypes<TestType>& fixture)
+	{
+		::BuildFixture(fixture.mTestField);
+	}
+
+	void Assert() const
+	{
+		EXPECT_EQ(1, BitSerializer::Context.GetValidationErrors().size());
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::MakeAutoKeyValue("TestField", mTestField, BitSerializer::Required());
+	}
+
+private:
+	TestType mTestField;
+};
+
 //-----------------------------------------------------------------------------
 template <class ...Args>
 class TestClassWithAttributes : public std::tuple<Args...>

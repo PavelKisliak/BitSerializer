@@ -189,12 +189,23 @@ TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenSaving) {
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
-TEST(JsonRestCpp, ShouldCollectErrorAboutRequiredNamedValues) {
+TEST(JsonRestCpp, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
+}
+
+TEST(JsonRestCpp, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
+{
+	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
+	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
+	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
+	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
+	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
+	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
+	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
 }
 
 //-----------------------------------------------------------------------------

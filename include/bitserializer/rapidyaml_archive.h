@@ -91,10 +91,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else {
 					if (isNullValue)
 						return false;
-					if constexpr (std::is_same_v<T, char>)
-						yamlValue >> reinterpret_cast<uint8_t&>(value);
-					else
-						yamlValue >> value;
+					try
+					{
+						if constexpr (std::is_same_v<T, char>)
+							yamlValue >> reinterpret_cast<uint8_t&>(value);
+						else
+							yamlValue >> value;
+					}
+					catch (...) {
+						return false;
+					}
 				}
 				return true;
 			}
@@ -417,8 +423,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
-				mTree = ryml::parse(c4::to_csubstr(inputStr));
 				Init();
+				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
 			explicit RapidYamlRootScope(const std::string& inputStr)
@@ -427,8 +433,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
-				mTree = ryml::parse(c4::to_csubstr(inputStr));
 				Init();
+				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
 			explicit RapidYamlRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
@@ -452,10 +458,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 					throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
 				}
 
+				Init();
 				// ToDo: base library does not support std::stream (check in new versions)
 				const std::string input(std::istreambuf_iterator<char>(inputStream), {});
 				mTree = ryml::parse(c4::to_csubstr(input));
-				Init();
 			}
 
 			explicit RapidYamlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})

@@ -3,7 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cstdint>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -94,19 +93,55 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
-	/// Converts any UTF string to boolean.
+	/// Converts any UTF string to boolean. Supports conversion from "0|1" and "true|false" strings.
 	/// </summary>
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, bool& ret_Val)
 	{
-		int32_t result = 0;
-		To(in, result);
-		
-		if (result < 0) {
-			throw std::out_of_range("Argument out of range");
+		const auto* startIt = in.data();
+		const auto* endIt = startIt + in.size();
+
+		// ReSharper disable once CppPossiblyErroneousEmptyStatements
+		for (; (startIt != endIt) && (*startIt == 0x20 || *startIt == 0x09); ++startIt);	// Skip spaces
+
+		const auto size = endIt - startIt;
+		if (size >= 1)
+		{
+			if (*startIt == '1' && (size == 1 || !std::isdigit(startIt[1])))
+			{
+				ret_Val = true;
+				return;
+			}
+
+			if (*startIt == '0' && (size == 1 || !std::isdigit(startIt[1])))
+			{
+				ret_Val = false;
+				return;
+			}
+
+			if (size >= 4 &&
+				(startIt[0] == 't' || startIt[0] == 'T') &&
+				(startIt[1] == 'r' || startIt[1] == 'R') &&
+				(startIt[2] == 'u' || startIt[2] == 'U') &&
+				(startIt[3] == 'e' || startIt[3] == 'E'))
+			{
+				ret_Val = true;
+				return;
+			}
+
+			if (size >= 5 &&
+				(startIt[0] == 'f' || startIt[0] == 'F') &&
+				(startIt[1] == 'a' || startIt[1] == 'A') &&
+				(startIt[2] == 'l' || startIt[2] == 'L') &&
+				(startIt[3] == 's' || startIt[3] == 'S') &&
+				(startIt[4] == 'e' || startIt[4] == 'E'))
+			{
+				ret_Val = false;
+				return;
+			}
 		}
 
-		ret_Val = result ? true : false;
+		throw std::out_of_range("Argument out of range");
 	}
 
 	//------------------------------------------------------------------------------
@@ -181,10 +216,18 @@ namespace BitSerializer::Convert::Detail
 
 	/// <summary>
 	/// Converts boolean type to any UTF string.
+	/// The output representation is "true|false", please cast your boolean type to <int> if you would like to represent it as "1|0".
 	/// </summary>
-	template <class T, typename TSym, typename TAllocator>
+	template <typename TSym, typename TAllocator>
 	void To(const bool& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		out.push_back(in ? '1' : '0');
+		if (in)
+		{
+			out.append({ static_cast<TSym>('t'), static_cast<TSym>('r'), static_cast<TSym>('u'), static_cast<TSym>('e') });
+		}
+		else
+		{
+			out.append({ static_cast<TSym>('f'), static_cast<TSym>('a'), static_cast<TSym>('l'), static_cast<TSym>('s'), static_cast<TSym>('e') });
+		}
 	}
 }

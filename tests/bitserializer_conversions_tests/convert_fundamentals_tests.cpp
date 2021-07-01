@@ -166,6 +166,12 @@ TEST(ConvertFundamentals, Int64FromStringWithBigNumberShouldThrowException) {
 	EXPECT_THROW(Convert::To<int64_t>("9223372036854775808"), std::out_of_range);
 }
 
+TEST(ConvertFundamentals, Int64FromStringWithWrongTextShouldThrowException) {
+	EXPECT_THROW(Convert::To<int64_t>("test"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int64_t>(u"`150"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int64_t>(U"x45.4"), std::out_of_range);
+}
+
 TEST(ConvertFundamentals, Int64ToString) {
 	EXPECT_EQ("0", Convert::ToString(0));
 	EXPECT_EQ(u"-9223372036854775808", Convert::To<std::u16string>(std::numeric_limits<int64_t>::min()));
@@ -183,6 +189,12 @@ TEST(ConvertFundamentals, UInt64FromStringWithBigNumberShouldThrowException) {
 	EXPECT_THROW(Convert::To<uint64_t>("18446744073709551616"), std::out_of_range);
 }
 
+TEST(ConvertFundamentals, UInt64FromStringWithWrongTextShouldThrowException) {
+	EXPECT_THROW(Convert::To<uint64_t>("test"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint64_t>(u"`150"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint64_t>(U"x45.4"), std::out_of_range);
+}
+
 TEST(ConvertFundamentals, UInt64ToString) {
 	EXPECT_EQ("0", Convert::ToString(0ull));
 	EXPECT_EQ(u"9223372036854775808", Convert::To<std::u16string>(9223372036854775808ull));
@@ -194,6 +206,12 @@ TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(0.f, Convert::To<float>("  0  "));
 	EXPECT_EQ(123.123f, Convert::To<float>(u"  123.123  "));
 	EXPECT_EQ(-123.123f, Convert::To<float>(U"  -123.123  "));
+}
+
+TEST(ConvertFundamentals, FloatFromStringWithWrongTextShouldThrowException) {
+	EXPECT_THROW(Convert::To<float>("test"), std::out_of_range);
+	EXPECT_THROW(Convert::To<float>(u"#150"), std::out_of_range);
+	EXPECT_THROW(Convert::To<float>(U"x45.4"), std::out_of_range);
 }
 
 TEST(ConvertFundamentals, FloatToString) {
@@ -209,6 +227,12 @@ TEST(ConvertFundamentals, DoubleFromString) {
 	EXPECT_EQ(-1234567.1234567, Convert::To<double>(U"  -1234567.1234567  "));
 }
 
+TEST(ConvertFundamentals, DoubleFromStringWithWrongTextShouldThrowException) {
+	EXPECT_THROW(Convert::To<double>("test"), std::out_of_range);
+	EXPECT_THROW(Convert::To<double>(u"#150"), std::out_of_range);
+	EXPECT_THROW(Convert::To<double>(U"x45.4"), std::out_of_range);
+}
+
 TEST(ConvertFundamentals, DoubleToString) {
 	EXPECT_EQ("0", Convert::ToString(0.0));
 	EXPECT_EQ(u"-1234567.1234567", Convert::To<std::u16string>(-1234567.1234567));
@@ -221,6 +245,12 @@ TEST(ConvertFundamentals, LongDoubleFromString) {
 	EXPECT_EQ(0.0L, Convert::To<long double>("  0  "));
 	EXPECT_EQ(3.14159265358979L, Convert::To<long double>(u"  3.14159265358979  "));
 	EXPECT_EQ(-3.14159265358979L, Convert::To<long double>(U"  -3.14159265358979  "));
+}
+
+TEST(ConvertFundamentals, LongDoubleFromStringWithWrongTextShouldThrowException) {
+	EXPECT_THROW(Convert::To<long double>("test"), std::out_of_range);
+	EXPECT_THROW(Convert::To<long double>(u"#150"), std::out_of_range);
+	EXPECT_THROW(Convert::To<long double>(U"x45.4"), std::out_of_range);
 }
 
 TEST(ConvertFundamentals, LongDoubleToString) {

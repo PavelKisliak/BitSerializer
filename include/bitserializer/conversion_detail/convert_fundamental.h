@@ -43,17 +43,17 @@ namespace BitSerializer::Convert::Detail
 
 	namespace _stdWrappers
 	{
-		template <typename T> T _fromStr(const char*) { throw; }
-		template <typename T> T _fromStr(const wchar_t*) { throw; }
+		template <typename T> T _fromStr(const char*, char**) { throw; }
+		template <typename T> T _fromStr(const wchar_t*, wchar_t**) { throw; }
 
-		template <>	inline float _fromStr<float>(const char* str) { return std::strtof(str, nullptr); }
-		template <>	inline float _fromStr<float>(const wchar_t* str) { return std::wcstof(str, nullptr); }
+		template <>	inline float _fromStr<float>(const char* str, char** out_strEnd) { return std::strtof(str, out_strEnd); }
+		template <>	inline float _fromStr<float>(const wchar_t* str, wchar_t** out_strEnd) { return std::wcstof(str, out_strEnd); }
 
-		template <>	inline double _fromStr<double>(const char* str) { return std::strtod(str, nullptr); }
-		template <>	inline double _fromStr<double>(const wchar_t* str) { return std::wcstod(str, nullptr); }
+		template <>	inline double _fromStr<double>(const char* str, char** out_strEnd) { return std::strtod(str, out_strEnd); }
+		template <>	inline double _fromStr<double>(const wchar_t* str, wchar_t** out_strEnd) { return std::wcstod(str, out_strEnd); }
 
-		template <>	inline long double _fromStr<long double>(const char* str) { return std::strtold(str, nullptr); }
-		template <>	inline long double _fromStr<long double>(const wchar_t* str) { return std::wcstold(str, nullptr); }
+		template <>	inline long double _fromStr<long double>(const char* str, char** out_strEnd) { return std::strtold(str, out_strEnd); }
+		template <>	inline long double _fromStr<long double>(const wchar_t* str, wchar_t** out_strEnd) { return std::wcstold(str, out_strEnd); }
 	}
 
 	/// <summary>
@@ -63,6 +63,8 @@ namespace BitSerializer::Convert::Detail
 	void To(std::basic_string_view<TSym> in, T& out)
 	{
 		T result;
+		// ReSharper disable once CppInitializedValueIsAlwaysRewritten
+		bool isError = false;
 		static constexpr size_t bufSize = 64;
 		const size_t size = (in.size() < bufSize) ? in.size() : bufSize - 1;
 		if constexpr (std::is_same_v<char, TSym>) {
@@ -70,26 +72,32 @@ namespace BitSerializer::Convert::Detail
 			TSym buf[bufSize];
 			std::memcpy(buf, in.data(), size);
 			buf[size] = 0;
-			result = _stdWrappers::_fromStr<T>(buf);
+			char* endPos = nullptr;
+			result = _stdWrappers::_fromStr<T>(buf, &endPos);
+			isError = buf == endPos;
 		}
 		else if constexpr (sizeof(TSym) == sizeof(wchar_t)) {
 			wchar_t buf[bufSize];
 			std::wmemcpy(buf, reinterpret_cast<wchar_t const*>(in.data()), size);
 			buf[size] = 0;
-			result = _stdWrappers::_fromStr<T>(buf);
+			wchar_t* endPos = nullptr;
+			result = _stdWrappers::_fromStr<T>(buf, &endPos);
+			isError = buf == endPos;
 		}
 		else
 		{
 			std::string utf8Str;
 			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
-			result = _stdWrappers::_fromStr<T>(utf8Str.c_str());
+			char* endPos = nullptr;
+			result = _stdWrappers::_fromStr<T>(utf8Str.c_str(), &endPos);
+			isError = utf8Str.data() == endPos;
 		}
 
-		if (errno == ERANGE) {
+		if (isError) {
 			throw std::out_of_range("Argument out of range");
 		}
 
-		out = static_cast<T>(result);
+		out = result;
 	}
 
 	/// <summary>

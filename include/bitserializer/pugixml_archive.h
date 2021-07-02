@@ -75,39 +75,29 @@ namespace PugiXmlExtensions
 	}
 
 	template <typename T>
-	void LoadValue(const pugi::xml_node& node, T& value)
+	bool LoadValue(const pugi::xml_node& node, T& value)
 	{
-		if constexpr (std::is_same_v<T, bool>)
+		auto result = Convert::TryTo<T>(node.text().as_string());
+		if (result)
 		{
-			value = node.text().as_bool();
+			value = result.value();
+			return true;
 		}
-		else if constexpr (std::is_integral_v<T>)
-		{
-			if constexpr (std::is_same_v<T, int64_t>)
-				value = node.text().as_llong();
-			else if constexpr (std::is_same_v<T, uint64_t>)
-				value = node.text().as_ullong();
-			else if constexpr (std::is_unsigned_v<T>)
-				value = static_cast<T>(node.text().as_uint());
-			else
-				value = static_cast<T>(node.text().as_int());
-		}
-		else if constexpr (std::is_floating_point_v<T>)
-		{
-			if constexpr (std::is_same_v<T, float>)
-				value = node.text().as_float();
-			else if constexpr (std::is_same_v<T, double>)
-				value = node.text().as_double();
-		}
+		return false;
+	}
+
+	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&) {
+		return node.empty();
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	void LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			value = node.text().as_string();
 		else
 			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(node.text().as_string());
+		return true;
 	}
 
 	template <typename T>
@@ -179,9 +169,9 @@ public:
 		{
 			if (mValueIt != mValueIt->end())
 			{
-				PugiXmlExtensions::LoadValue(*mValueIt, value);
+				auto result = PugiXmlExtensions::LoadValue(*mValueIt, value);
 				++mValueIt;
-				return true;
+				return result;
 			}
 		}
 		else
@@ -199,7 +189,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mValueIt != mValueIt->end())
+			if (mValueIt != mValueIt->end() && mValueIt->first_child().type() == pugi::node_element)
 			{
 				auto arrayScope = std::make_optional<PugiXmlArrayScope<TMode>>(*mValueIt);
 				++mValueIt;
@@ -218,7 +208,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mValueIt != mValueIt->end())
+			if (mValueIt != mValueIt->end() && mValueIt->first_child().type() == pugi::node_element)
 			{
 				auto objectScope = std::make_optional<PugiXmlObjectScope<TMode>>(*mValueIt);
 				++mValueIt;
@@ -445,8 +435,7 @@ public:
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			if (child.empty())
 				return false;
-			PugiXmlExtensions::LoadValue(child, value);
-			return true;
+			return PugiXmlExtensions::LoadValue(child, value);
 		}
 		else
 		{
@@ -464,7 +453,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+			return child.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child) : std::nullopt;
 		}
 		else
 		{
@@ -479,7 +468,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto node = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
+			return node.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node) : std::nullopt;
 		}
 		else
 		{
@@ -548,7 +537,8 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return mRootXml.first_child().empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(mRootXml.first_child());
+			auto childNode = mRootXml.first_child();
+			return childNode.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(childNode) : std::nullopt;
 		}
 		else
 		{
@@ -563,7 +553,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto node = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
+			return node.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node) : std::nullopt;
 		}
 		else
 		{
@@ -574,8 +564,10 @@ public:
 
 	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope()
 	{
-		if constexpr (TMode == SerializeMode::Load) {
-			return mRootXml.first_child().empty() ?  std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(mRootXml.first_child());
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto node = mRootXml.first_child();
+			return node.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(node) : std::nullopt;
 		}
 		else
 		{
@@ -589,7 +581,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+			return child.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child) : std::nullopt;
 		}
 		else
 		{

@@ -151,12 +151,23 @@ TEST(PugiXmlArchive, SerializeAttributesWithString) {
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
-TEST(PugiXmlArchive, ShouldCollectErrorAboutRequiredNamedValues) {
+TEST(PugiXmlArchive, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<bool>>();
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<int>>();
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<TestPointClass>>();
+}
+
+TEST(PugiXmlArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
+{
+	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
+	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
+	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
+	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
+	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
+	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
+	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
 }
 
 //-----------------------------------------------------------------------------

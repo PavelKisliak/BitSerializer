@@ -29,15 +29,15 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::array
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeArrayOfInts) {
+TEST(STD_Containers, SerializeArrayOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::array<int, 7>>();
 }
 
-TEST(STL_Containers, SerializeArrayOfArrays) {
+TEST(STD_Containers, SerializeArrayOfArrays) {
 	TestSerializeStlContainer<ArchiveStub, std::array<std::array<int, 7>, 3>>();
 }
 
-TEST(STL_Containers, SerializeArrayAsClassMember) {
+TEST(STD_Containers, SerializeArrayAsClassMember) {
 	using test_type = std::array<std::string, 7>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -45,24 +45,24 @@ TEST(STL_Containers, SerializeArrayAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::vector
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeVectorOfInts) {
+TEST(STD_Containers, SerializeVectorOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::vector<int>>();
 }
 
-TEST(STL_Containers, SerializeVectorOfVectors) {
+TEST(STD_Containers, SerializeVectorOfVectors) {
 	TestSerializeStlContainer<ArchiveStub, std::vector<std::vector<int>>>();
 }
 
-TEST(STL_Containers, SerializeVectorAsClassMember) {
+TEST(STD_Containers, SerializeVectorAsClassMember) {
 	using test_type = std::vector<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
 
-TEST(STL_Containers, SerializeVectorOBooleans) {
+TEST(STD_Containers, SerializeVectorOBooleans) {
 	TestSerializeStlContainer<ArchiveStub, std::vector<bool>>();
 }
 
-TEST(STL_Containers, SerializeVectorOBooleansAsClassMember) {
+TEST(STD_Containers, SerializeVectorOBooleansAsClassMember) {
 	using test_type = std::vector<bool>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -70,15 +70,15 @@ TEST(STL_Containers, SerializeVectorOBooleansAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::deque
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeDequeOfFloats) {
+TEST(STD_Containers, SerializeDequeOfFloats) {
 	TestSerializeStlContainer<ArchiveStub, std::deque<float>>();
 }
 
-TEST(STL_Containers, SerializeDequeOfDeques) {
+TEST(STD_Containers, SerializeDequeOfDeques) {
 	TestSerializeStlContainer<ArchiveStub, std::deque<std::deque<int>>>();
 }
 
-TEST(STL_Containers, SerializeDequeAsClassMember) {
+TEST(STD_Containers, SerializeDequeAsClassMember) {
 	using test_type = std::deque<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -86,22 +86,22 @@ TEST(STL_Containers, SerializeDequeAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::bitset
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeBitset) {
+TEST(STD_Containers, SerializeBitset) {
 	TestSerializeStlContainer<ArchiveStub, std::bitset<10>>();
 }
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::list
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeListOfInts) {
+TEST(STD_Containers, SerializeListOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::list<int>>();
 }
 
-TEST(STL_Containers, SerializeListOfLists) {
+TEST(STD_Containers, SerializeListOfLists) {
 	TestSerializeStlContainer<ArchiveStub, std::list<std::list<int>>>();
 }
 
-TEST(STL_Containers, SerializeListAsClassMember) {
+TEST(STD_Containers, SerializeListAsClassMember) {
 	using test_type = std::list<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -109,15 +109,15 @@ TEST(STL_Containers, SerializeListAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::forward_list
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeForwardListOfInts) {
+TEST(STD_Containers, SerializeForwardListOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::forward_list<int>>();
 }
 
-TEST(STL_Containers, SerializeForwardListOfForwardLists) {
+TEST(STD_Containers, SerializeForwardListOfForwardLists) {
 	TestSerializeStlContainer<ArchiveStub, std::forward_list<std::forward_list<int>>>();
 }
 
-TEST(STL_Containers, SerializeForwardListAsClassMember) {
+TEST(STD_Containers, SerializeForwardListAsClassMember) {
 	using test_type = std::forward_list<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -125,11 +125,11 @@ TEST(STL_Containers, SerializeForwardListAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::queue
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeQueueOfFloats) {
+TEST(STD_Containers, SerializeQueueOfFloats) {
 	TestSerializeStlContainer<ArchiveStub, std::queue<float>>();
 }
 
-TEST(STL_Containers, SerializeQueueAsClassMember) {
+TEST(STD_Containers, SerializeQueueAsClassMember) {
 	using test_type = std::queue<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -137,7 +137,7 @@ TEST(STL_Containers, SerializeQueueAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::priority_queue
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializePriorityQueueOfFloats)
+TEST(STD_Containers, SerializePriorityQueueOfFloats)
 {
 	TestSerializeStlContainer<ArchiveStub, std::priority_queue<float>>([](
 		const std::priority_queue<float>& lhs, const std::priority_queue<float>& rhs)
@@ -149,11 +149,11 @@ TEST(STL_Containers, SerializePriorityQueueOfFloats)
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::stack
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeStackOfFloats) {
+TEST(STD_Containers, SerializeStackOfFloats) {
 	TestSerializeStlContainer<ArchiveStub, std::stack<float>>();
 }
 
-TEST(STL_Containers, SerializeStackAsClassMember) {
+TEST(STD_Containers, SerializeStackAsClassMember) {
 	using test_type = std::stack<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -161,15 +161,15 @@ TEST(STL_Containers, SerializeStackAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::set
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeSetOfStrings) {
+TEST(STD_Containers, SerializeSetOfStrings) {
 	TestSerializeStlContainer<ArchiveStub, std::set<std::string>>();
 }
 
-TEST(STL_Containers, SerializeSetOfSets) {
+TEST(STD_Containers, SerializeSetOfSets) {
 	TestSerializeStlContainer<ArchiveStub, std::set<std::set<int>>>();
 }
 
-TEST(STL_Containers, SerializeSetAsClassMember) {
+TEST(STD_Containers, SerializeSetAsClassMember) {
 	using test_type = std::set<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -177,11 +177,11 @@ TEST(STL_Containers, SerializeSetAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unordered_set
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeUnorderedSetOfStrings) {
+TEST(STD_Containers, SerializeUnorderedSetOfStrings) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_set<std::string>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedSetAsClassMember) {
+TEST(STD_Containers, SerializeUnorderedSetAsClassMember) {
 	using test_type = std::unordered_set<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -189,15 +189,15 @@ TEST(STL_Containers, SerializeUnorderedSetAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::multiset
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeMultiSetOfStrings) {
+TEST(STD_Containers, SerializeMultiSetOfStrings) {
 	TestSerializeStlContainer<ArchiveStub, std::multiset<std::string>>();
 }
 
-TEST(STL_Containers, SerializeMultiSetOfMultiSets) {
+TEST(STD_Containers, SerializeMultiSetOfMultiSets) {
 	TestSerializeStlContainer<ArchiveStub, std::multiset<std::multiset<int>>>();
 }
 
-TEST(STL_Containers, SerializeMultiSetAsClassMember) {
+TEST(STD_Containers, SerializeMultiSetAsClassMember) {
 	using test_type = std::multiset<std::string>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -205,32 +205,32 @@ TEST(STL_Containers, SerializeMultiSetAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::map
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeMapWithIntAsKey) {
+TEST(STD_Containers, SerializeMapWithIntAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::map<int, int>>();
 }
 
-TEST(STL_Containers, SerializeMapWithStringAsKey) {
+TEST(STD_Containers, SerializeMapWithStringAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::map<std::string, int>>();
 	TestSerializeStlContainer<ArchiveStub, std::map<std::wstring, int>>();
 }
 
-TEST(STL_Containers, SerializeMapWithEnumAsKey) {
+TEST(STD_Containers, SerializeMapWithEnumAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::map<TestEnum, std::string>>();
 }
 
-TEST(STL_Containers, SerializeMapWithClassAsKey) {
+TEST(STD_Containers, SerializeMapWithClassAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::map<TestPointClass, std::string>>();
 }
 
-TEST(STL_Containers, SerializeMapWithClassAsKeyAndClassAsValue) {
+TEST(STD_Containers, SerializeMapWithClassAsKeyAndClassAsValue) {
 	TestSerializeStlContainer<ArchiveStub, std::map<TestPointClass, TestPointClass>>();
 }
 
-TEST(STL_Containers, SerializeMapOfMaps) {
+TEST(STD_Containers, SerializeMapOfMaps) {
 	TestSerializeStlContainer<ArchiveStub, std::map<std::string, std::map<int, std::wstring>>>();
 }
 
-TEST(STL_Containers, SerializeMapAsClassMember) {
+TEST(STD_Containers, SerializeMapAsClassMember) {
 	using test_type = std::map<std::wstring, int>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -238,32 +238,32 @@ TEST(STL_Containers, SerializeMapAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unordered_map
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeUnorderedMapWithIntAsKey) {
+TEST(STD_Containers, SerializeUnorderedMapWithIntAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<int, int>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapWithStringAsKey) {
+TEST(STD_Containers, SerializeUnorderedMapWithStringAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::string, int>>();
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::wstring, int>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapWithEnumAsKey) {
+TEST(STD_Containers, SerializeUnorderedMapWithEnumAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestEnum, std::string>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapWithClassAsKey) {
+TEST(STD_Containers, SerializeUnorderedMapWithClassAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestPointClass, std::string>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapWithClassAsKeyAndClassAsValue) {
+TEST(STD_Containers, SerializeUnorderedMapWithClassAsKeyAndClassAsValue) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<TestPointClass, TestPointClass>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapOfUnorderedMaps) {
+TEST(STD_Containers, SerializeUnorderedMapOfUnorderedMaps) {
 	TestSerializeStlContainer<ArchiveStub, std::unordered_map<std::string, std::unordered_map<int, std::wstring>>>();
 }
 
-TEST(STL_Containers, SerializeUnorderedMapAsClassMember) {
+TEST(STD_Containers, SerializeUnorderedMapAsClassMember) {
 	using test_type = std::unordered_map<std::wstring, int>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -271,12 +271,12 @@ TEST(STL_Containers, SerializeUnorderedMapAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::multimap
 //-----------------------------------------------------------------------------
-TEST(STL_Containers, SerializeMultimapMapWithIntAsKey) {
+TEST(STD_Containers, SerializeMultimapMapWithIntAsKey) {
 	using test_type = std::multimap<int, int>;
 	TestSerializeStlContainer<ArchiveStub, test_type>(AssertMultimap<test_type>);
 }
 
-TEST(STL_Containers, SerializeMultimapMapAsClassMember) {
+TEST(STD_Containers, SerializeMultimapMapAsClassMember) {
 	using test_type = std::multimap<int, int>;
 	auto fixture = TestClassWithSubType<test_type>(AssertMultimap<test_type>);
 	BuildFixture(fixture);

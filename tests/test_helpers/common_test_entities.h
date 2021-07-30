@@ -10,6 +10,7 @@
 #include <utility>
 #include <gtest/gtest.h>
 #include "auto_fixture.h"
+#include "gtest_asserts.h"
 #include "bitserializer/bit_serializer.h"
 
 //-----------------------------------------------------------------------------
@@ -170,17 +171,27 @@ template <typename T>
 class TestClassWithSubType
 {
 public:
-	TestClassWithSubType(T initValue = {})
+	TestClassWithSubType()
+	{
+		::BuildFixture(mTestValue);
+		mAssertFunc = [](const T& expected, const T& actual) {
+			GTestExpectEq(expected, actual);
+		};
+	}
+
+	explicit TestClassWithSubType(T initValue)
 		: mTestValue(std::move(initValue))
 	{
 		mAssertFunc = [](const T& expected, const T& actual) {
-			ASSERT_EQ(expected, actual);
+			GTestExpectEq(expected, actual);
 		};
 	}
 
 	TestClassWithSubType(std::function<void(const T&, const T&)> specialAssertFunc)
 		: mAssertFunc(std::move(specialAssertFunc))
-	{ }
+	{
+		::BuildFixture(mTestValue);
+	}
 
 	static void BuildFixture(TestClassWithSubType& fixture) {
 		::BuildFixture(fixture.mTestValue);
@@ -242,15 +253,7 @@ public:
 			decltype(auto) actual = std::get<I>(rhs);
 
 			// Assert
-			if constexpr (std::is_same_v<TValue, float>) {
-				EXPECT_FLOAT_EQ(expected, actual);
-			}
-			else if constexpr (std::is_same_v<TValue, double>) {
-				EXPECT_DOUBLE_EQ(expected, actual);
-			}
-			else {
-				EXPECT_EQ(expected, actual);
-			}
+			GTestExpectEq(expected, actual);
 
 			// Next
 			Assert<I + 1>(rhs);
@@ -316,7 +319,7 @@ public:
 	void Assert(const TestClassWithSubTwoDimArray& rhs) const {
 		for (size_t i = 0; i < ArraySize1; i++) {
 			for (size_t c = 0; c < ArraySize2; c++) {
-				ASSERT_EQ(mTestTwoDimArray[i][c], rhs.mTestTwoDimArray[i][c]);
+				GTestExpectEq(mTestTwoDimArray[i][c], rhs.mTestTwoDimArray[i][c]);
 			}
 		}
 	}

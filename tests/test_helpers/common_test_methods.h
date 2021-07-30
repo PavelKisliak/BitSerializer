@@ -24,18 +24,7 @@ void TestSerializeType(T&& value)
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	if constexpr (std::is_same_v<T, float>) {
-		EXPECT_FLOAT_EQ(value, actual);
-	}
-	else if constexpr (std::is_same_v<T, double>) {
-		EXPECT_DOUBLE_EQ(value, actual);
-	}
-	else if constexpr (std::is_null_pointer_v<T>) {
-		// Ignore comparing nullptr types (gtest fails such comparison)
-	}
-	else {
-		EXPECT_EQ(value, actual);
-	}
+	GTestExpectEq(value, actual);
 }
 
 /// <summary>
@@ -57,18 +46,7 @@ void TestSerializeArray()
 	// Assert
 	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++)
 	{
-		if constexpr (std::is_same_v<TValue, float>) {
-			EXPECT_FLOAT_EQ(testArray[i], actual[i]);
-		}
-		else if constexpr (std::is_same_v<TValue, double>) {
-			EXPECT_DOUBLE_EQ(testArray[i], actual[i]);
-		}
-		else if constexpr (std::is_null_pointer_v<TValue>) {
-			// Ignore comparing nullptr types (gtest fails such comparison)
-		}
-		else {
-			EXPECT_EQ(testArray[i], actual[i]);
-		}
+		GTestExpectEq(testArray[i], actual[i]);
 	}
 }
 
@@ -90,7 +68,7 @@ void TestSerializeArrayWithKey()
 
 	// Assert
 	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
-		ASSERT_EQ(testArray[i], actual[i]);
+		GTestExpectEq(testArray[i], actual[i]);
 	}
 }
 
@@ -113,7 +91,7 @@ void TestSerializeTwoDimensionalArray()
 	// Assert
 	for (size_t i = 0; i < ArraySize1; i++) {
 		for (size_t c = 0; c < ArraySize2; c++) {
-			ASSERT_EQ(testArray[i][c], actual[i][c]);
+			GTestExpectEq(testArray[i][c], actual[i][c]);
 		}
 	}
 }
@@ -176,38 +154,6 @@ void TestSerializeClassToStream(T&& value)
 	// Assert
 	value.Assert(actual);
 }
-
-/// <summary>
-/// Test template of serialization for class with std::optional as member.
-/// </summary>
-template <typename TArchive, typename TValue>
-void TestSerializeOptionalAsClassMember(const std::optional<TValue>& initValue = BuildFixture<TValue>())
-{
-	// Arrange
-	TestClassWithSubType<std::optional<TValue>> expected(initValue);
-	TestClassWithSubType<std::optional<TValue>> actual(initValue.has_value() ? std::optional<TValue>() : std::optional<TValue>(TValue()));
-	typename TArchive::preferred_output_format outputArchive;
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(expected, outputArchive);
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-
-	// Assert
-	ASSERT_EQ(initValue.has_value(), actual.GetValue().has_value());
-	if (initValue.has_value())
-	{
-		if constexpr (std::is_same_v<TValue, float>) {
-			EXPECT_FLOAT_EQ(expected.GetValue().value(), actual.GetValue().value());
-		}
-		else if constexpr (std::is_same_v<TValue, double>) {
-			EXPECT_DOUBLE_EQ(expected.GetValue().value(), actual.GetValue().value());
-		}
-		else {
-			EXPECT_EQ(expected.GetValue().value(), actual.GetValue().value());
-		}
-	}
-}
-
 
 /// <summary>
 /// Test template of serialization to file.

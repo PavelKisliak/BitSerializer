@@ -7,6 +7,7 @@
 
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/memory.h"
 
 //-----------------------------------------------------------------------------
 // Serialization tests for STL types.
@@ -19,12 +20,12 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::pair
 //-----------------------------------------------------------------------------
-TEST(STL_Types, SerializePair) {
+TEST(STD_Types, SerializePair) {
 	auto pair = BuildFixture<std::pair<std::string, int>>();
 	TestSerializeType<ArchiveStub>(pair);
 }
 
-TEST(STL_Types, SerializePairAsClassMember) {
+TEST(STD_Types, SerializePairAsClassMember) {
 	TestClassWithSubType<std::pair<std::string, int>> testEntity;
 	BuildFixture(testEntity);
 	TestSerializeClass<ArchiveStub>(testEntity);
@@ -33,21 +34,42 @@ TEST(STL_Types, SerializePairAsClassMember) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::optional
 //-----------------------------------------------------------------------------
-TEST(STL_Types, SerializeOptional) {
+TEST(STD_Types, SerializeOptional) {
 	std::optional<std::string> testValue = "test";
 	TestSerializeType<ArchiveStub>(testValue);
 }
 
-TEST(STL_Types, SerializeOptionalWithNull) {
+TEST(STD_Types, SerializeOptionalWithNull) {
 	std::optional<int> testValue;
 	TestSerializeType<ArchiveStub>(testValue);
 }
 
-TEST(STL_Types, SerializeOptionalAsClassMember) {
-	TestSerializeOptionalAsClassMember<ArchiveStub, float>();
-	TestSerializeOptionalAsClassMember<ArchiveStub, TestPointClass>();
+TEST(STD_Types, SerializeOptionalAsClassMember) {
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::optional<float>>());
 }
 
-TEST(STL_Types, SerializeOptionalAsClassMemberWithNull) {
-	TestSerializeOptionalAsClassMember<ArchiveStub, int>(std::nullopt);
+TEST(STD_Types, SerializeOptionalAsClassMemberWithNull) {
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::optional<float>>(std::nullopt));
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::unique_ptr
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeUniquePtr) {
+	auto testValue = std::make_unique<std::string>("test");
+	TestSerializeType<ArchiveStub>(testValue);
+}
+
+TEST(STD_Types, SerializeUniquePtrWithNull) {
+	std::unique_ptr<std::string> testValue;
+	TestSerializeType<ArchiveStub>(testValue);
+}
+
+TEST(STD_Types, SerializeUniquePtrAsClassMember) {
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::unique_ptr<std::string>>());
+}
+
+TEST(STD_Types, SerializeUniquePtrAsClassMemberWithNull) {
+	using TestType = std::unique_ptr<std::string>;
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::unique_ptr<std::string>>(TestType()));
 }

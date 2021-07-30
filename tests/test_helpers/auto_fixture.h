@@ -1,11 +1,12 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cstdlib>
 #include <limits>
 #include <optional>
+#include <memory>
 #include <deque>
 #include <bitset>
 #include <list>
@@ -27,7 +28,7 @@ struct has_build_fixture_method
 {
 private:
 	template <typename U>
-	static decltype(T::BuildFixture(std::declval<T&>()), void(), std::true_type()) test(int);
+	static decltype(T::BuildFixture(std::declval<T&>()), std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -128,6 +129,17 @@ static void BuildFixture(std::optional<TValue>& optionalValue)
 {
 	optionalValue = TValue();
 	BuildFixture(optionalValue.value());
+}
+
+/// <summary>
+/// Builds the test fixture for std::unique_ptr value.
+/// </summary>
+/// <param name="uniquePtr">The reference to unique pointer.</param>
+template <typename TValue>
+static void BuildFixture(std::unique_ptr<TValue>& uniquePtr)
+{
+	uniquePtr = std::make_unique<TValue>();
+	BuildFixture(*uniquePtr);
 }
 
 /// <summary>

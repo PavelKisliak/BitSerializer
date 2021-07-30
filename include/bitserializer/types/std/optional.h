@@ -19,10 +19,11 @@ namespace BitSerializer
 			if (!optionalValue.has_value()) {
 				optionalValue = TValue();
 			}
-			if (!Serialize(archive, std::forward<TKey>(key), optionalValue.value())) {
-				optionalValue = std::nullopt;
+			if (Serialize(archive, std::forward<TKey>(key), optionalValue.value())) {
+				return true;
 			}
-			return true;
+			optionalValue = std::nullopt;
+			return false;
 		}
 		else
 		{
@@ -43,10 +44,11 @@ namespace BitSerializer
 			if (!optionalValue.has_value()) {
 				optionalValue = TValue();
 			}
-			if (!Serialize(archive, optionalValue.value())) {
-				optionalValue = std::nullopt;
+			if (Serialize(archive, optionalValue.value())) {
+				return true;
 			}
-			return true;
+			optionalValue = std::nullopt;
+			return false;
 		}
 		else
 		{

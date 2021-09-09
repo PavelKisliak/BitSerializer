@@ -73,3 +73,25 @@ TEST(STD_Types, SerializeUniquePtrAsClassMemberWithNull) {
 	using TestType = std::unique_ptr<std::string>;
 	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::unique_ptr<std::string>>(TestType()));
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::shared_ptr
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeSharedPtr) {
+	auto testValue = std::make_shared<std::string>("test");
+	TestSerializeType<ArchiveStub>(testValue);
+}
+
+TEST(STD_Types, SerializeSharedPtrWithNull) {
+	std::shared_ptr<std::string> testValue;
+	TestSerializeType<ArchiveStub>(testValue);
+}
+
+TEST(STD_Types, SerializeSharedPtrAsClassMember) {
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::shared_ptr<std::string>>());
+}
+
+TEST(STD_Types, SerializeSharedPtrAsClassMemberWithNull) {
+	using TestType = std::shared_ptr<std::string>;
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::shared_ptr<std::string>>(TestType()));
+}

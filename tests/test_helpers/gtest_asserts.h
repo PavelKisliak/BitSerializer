@@ -35,6 +35,16 @@ void GTestExpectEq(const std::unique_ptr<TValue>& expected, const std::unique_pt
 }
 
 template <typename TValue>
+void GTestExpectEq(const std::shared_ptr<TValue>& expected, const std::shared_ptr<TValue>& actual)
+{
+	ASSERT_EQ(!expected, !actual);
+	if (expected)
+	{
+		GTestExpectEq(*expected, *actual);
+	}
+}
+
+template <typename TValue>
 void GTestExpectEq(const std::optional<TValue>& expected, const std::optional<TValue>& actual)
 {
 	ASSERT_EQ(expected.has_value(), actual.has_value());

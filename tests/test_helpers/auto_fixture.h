@@ -143,6 +143,17 @@ static void BuildFixture(std::unique_ptr<TValue>& uniquePtr)
 }
 
 /// <summary>
+/// Builds the test fixture for std::shared_ptr value.
+/// </summary>
+/// <param name="sharedPtr">The reference to shared pointer.</param>
+template <typename TValue>
+static void BuildFixture(std::shared_ptr<TValue>& sharedPtr)
+{
+	sharedPtr = std::make_shared<TValue>();
+	BuildFixture(*sharedPtr);
+}
+
+/// <summary>
 /// Build the test fixture - overloaded variant with return value (can't be applied to c-array types).
 /// </summary>
 /// <returns>The generated fixture</returns>

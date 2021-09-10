@@ -14,6 +14,6 @@ namespace BitSerializer
 	template<typename TArchive, typename TValue, size_t ArraySize>
 	void SerializeArray(TArchive& archive, std::array<TValue, ArraySize>& cont)
 	{
-		return Detail::SerializeContainer(archive, cont);
+		Detail::SerializeContainer(archive, cont);
 	}
 }

@@ -1,9 +1,8 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <type_traits>
 #include "object_traits.h"
 #include "archive_traits.h"
 
@@ -14,50 +13,38 @@ namespace BitSerializer::Detail
 	/// </summary>
 	/// <returns>Returns <c>true</c> when value successfully loaded</returns>
 	template<typename TArchive, typename TKey, typename TContainer>
-	static bool SerializeContainer(TArchive& archive, TKey&& key, TContainer& cont)
+	static void SerializeContainer(TArchive& arrayScope, TKey&& key, TContainer& cont)
 	{
 		constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 		static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
 		if constexpr (hasArrayWithKeySupport)
 		{
-			const size_t size = GetContainerSize(cont);
-			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), size);
-			if (arrayScope)
-			{
-				if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
-					cont.resize(arrayScope->GetSize());
-				}
-				for (auto& elem : cont) {
-					Serialize(*arrayScope, elem);
-				}
+			if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
+				cont.resize(arrayScope.GetSize());
 			}
-			return arrayScope.has_value();
+			for (auto& elem : cont) {
+				Serialize(arrayScope, elem);
+			}
 		}
-		return false;
 	}
 
 	/// <summary>
 	/// Generic function for serialization containers.
 	/// </summary>
 	template<typename TArchive, typename TContainer>
-	static void SerializeContainer(TArchive& archive, TContainer& cont)
+	static void SerializeContainer(TArchive& arrayScope, TContainer& cont)
 	{
 		constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
 		static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 
 		if constexpr (hasArraySupport)
 		{
-			const size_t size = GetContainerSize(cont);
-			auto arrayScope = archive.OpenArrayScope(size);
-			if (arrayScope)
-			{
-				if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
-					cont.resize(arrayScope->GetSize());
-				}
-				for (auto& elem : cont) {
-					Serialize(*arrayScope, elem);
-				}
+			if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
+				cont.resize(arrayScope.GetSize());
+			}
+			for (auto& elem : cont) {
+				Serialize(arrayScope, elem);
 			}
 		}
 	}

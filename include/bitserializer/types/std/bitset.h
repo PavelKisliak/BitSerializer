@@ -14,7 +14,7 @@ namespace BitSerializer
 	template<typename TArchive, size_t Size>
 	void SerializeArray(TArchive& archive, std::bitset<Size>& cont)
 	{
-		bool value;
+		bool value = false;
 		for (size_t i = 0; i < Size; i++)
 		{
 			if constexpr (TArchive::IsLoading())

@@ -129,7 +129,7 @@ int main()
 	return 0;
 }
 ```
-[See full sample](samples/serialize_xml_attributes/serialize_xml_attributes.cpp)
+[See full sample](../samples/serialize_xml_attributes/serialize_xml_attributes.cpp)
 
 ### Pretty format
 As base library (PugiXml) has the functionality for output to human readable format, the BitSerializer also allows to do this:

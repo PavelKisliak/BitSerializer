@@ -172,7 +172,7 @@ As an alternative to internal methods, you can achieve the same by implementing 
 - `void To(const CPoint3D& in, std::string& out);`
 - `void To(std::string_view in, CPoint3D& out);`
 Optionally, they can be overridden for conversions any other string types (when you are worried about performance).
-As an examples, you also can see the conversion implementation for [filesystem::path](include\bitserializer\conversion_detail\convert_std.h).
+As an examples, you also can see the conversion implementation for [filesystem::path](../include/bitserializer/conversion_detail/convert_std.h).
 
 ### UTF encoding
 In addition to simple UTF conversion via Convert::To() function, there is also exists set of classes with more granular API for all kind of formats:

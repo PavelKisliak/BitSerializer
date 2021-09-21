@@ -156,40 +156,43 @@ namespace BitSerializer
 			static_assert(!(hasGlobalSerializeObject && hasGlobalSerializeArray),
 				"BitSerializer. Only one function from SerializeObject() or SerializeArray() should be defined for particular type.");
 
-			constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
-			static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
-
-			if constexpr (hasObjectWithKeySupport)
+			// Globally defined functions have higher priority over internal ones
+			if constexpr (hasGlobalSerializeObject)
 			{
-				// Globally defined functions have higher priority over internal ones
-				if constexpr (hasGlobalSerializeObject)
-				{
-					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
-					if (objectScope) {
-						SerializeObject(*objectScope, value);
-					}
-					return objectScope.has_value();
+				constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
+				static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
+
+				auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
+				if (objectScope) {
+					SerializeObject(*objectScope, value);
 				}
-				else if constexpr (hasGlobalSerializeArray)
-				{
-					size_t arraySize = 0;
-					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
-						arraySize = value.size();
-					}
-					auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
-					if (arrayScope) {
-						SerializeArray(*arrayScope, value);
-					}
-					return arrayScope.has_value();
+				return objectScope.has_value();
+			}
+			else if constexpr (hasGlobalSerializeArray)
+			{
+				constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
+				static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
+
+				size_t arraySize = 0;
+				if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
+					arraySize = value.size();
 				}
-				else if constexpr (hasSerializeMethod)
-				{
-					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
-					if (objectScope) {
-						value.Serialize(*objectScope);
-					}
-					return objectScope.has_value();
+				auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
+				if (arrayScope) {
+					SerializeArray(*arrayScope, value);
 				}
+				return arrayScope.has_value();
+			}
+			else if constexpr (hasSerializeMethod)
+			{
+				constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
+				static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
+
+				auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
+				if (objectScope) {
+					value.Serialize(*objectScope);
+				}
+				return objectScope.has_value();
 			}
 		}
 		return false;
@@ -212,36 +215,39 @@ namespace BitSerializer
 			static_assert(!(hasGlobalSerializeObject && hasGlobalSerializeArray),
 				"BitSerializer. Only one function from SerializeObject() or SerializeArray() should be defined.");
 
-			constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
-			static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize class without key on this level.");
-
-			if constexpr (hasObjectSupport)
+			// Globally defined methods have higher priority
+			if constexpr (hasGlobalSerializeObject)
 			{
-				// Globally defined methods have higher priority
-				if constexpr (hasGlobalSerializeObject)
-				{
-					auto objectScope = archive.OpenObjectScope();
-					if (objectScope) {
-						SerializeObject(*objectScope, value);
-					}
+				constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
+				static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize class without key on this level.");
+
+				auto objectScope = archive.OpenObjectScope();
+				if (objectScope) {
+					SerializeObject(*objectScope, value);
 				}
-				else if constexpr (hasGlobalSerializeArray)
-				{
-					size_t arraySize = 0;
-					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
-						arraySize = value.size();
-					}
-					auto arrayScope = archive.OpenArrayScope(arraySize);
-					if (arrayScope) {
-						SerializeArray(*arrayScope, value);
-					}
+			}
+			else if constexpr (hasGlobalSerializeArray)
+			{
+				constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
+				static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
+
+				size_t arraySize = 0;
+				if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
+					arraySize = value.size();
 				}
-				else if constexpr (hasSerializeMethod)
-				{
-					auto objectScope = archive.OpenObjectScope();
-					if (objectScope) {
-						value.Serialize(*objectScope);
-					}
+				auto arrayScope = archive.OpenArrayScope(arraySize);
+				if (arrayScope) {
+					SerializeArray(*arrayScope, value);
+				}
+			}
+			else if constexpr (hasSerializeMethod)
+			{
+				constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
+				static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize class without key on this level.");
+
+				auto objectScope = archive.OpenObjectScope();
+				if (objectScope) {
+					value.Serialize(*objectScope);
 				}
 			}
 		}
@@ -284,7 +290,7 @@ namespace BitSerializer
 	}
 
 	//-----------------------------------------------------------------------------
-	// Serialize arrays
+	// Serialize C-arrays
 	//-----------------------------------------------------------------------------
 	template<typename TArchive, typename TKey, typename TValue, size_t ArraySize>
 	bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])

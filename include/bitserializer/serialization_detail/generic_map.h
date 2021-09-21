@@ -56,7 +56,6 @@ namespace BitSerializer
 			}
 			else
 			{
-				auto loadSize = scope.GetSize();
 				if (mapLoadMode == MapLoadMode::Clean)
 					cont.clear();
 				auto hint = cont.begin();

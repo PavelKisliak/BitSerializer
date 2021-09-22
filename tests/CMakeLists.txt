@@ -12,11 +12,11 @@ if(BUILD_CPPRESTJSON_ARCHIVE)
 endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
-   add_subdirectory(bitserializer_rapidjson_tests)
+    add_subdirectory(bitserializer_rapidjson_tests)
 endif()
 
 if(BUILD_PUGIXML_ARCHIVE)
-   add_subdirectory(bitserializer_pugixml_tests)
+    add_subdirectory(bitserializer_pugixml_tests)
 endif()
 
 if(BUILD_RAPIDYAML_ARCHIVE)

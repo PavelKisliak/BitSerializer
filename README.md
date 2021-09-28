@@ -16,7 +16,7 @@ ___
 - Support serialization for all STD containers.
 - Support serialization to streams and files.
 - Encoding to various UTF formats.
-- Useful [string conversion submodule](docs\bitserializer_convert.md) (supports enums, classes, UTF encoding).
+- Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, UTF encoding).
 
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
@@ -79,7 +79,8 @@ ___
 - [Serializing base class](#markdown-header-serializing-base-class)
 - [Serializing third party class](#markdown-header-serializing-third-party-class)
 - [Serializing enum types](#markdown-header-serializing-enum-types)
-- [Serialize to multiple formats](#markdown-header-serialize-to-multiple-formats)
+- [Serializing classes as primitive types like number or string](#markdown-header-serializing-classes-as-primitive-types-like-number-or-string)
+- [Serializing to multiple formats](#markdown-header-serializing-to-multiple-formats)
 - [Serialization STD types](#markdown-header-serialization-std-types)
 - [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
 - [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
@@ -309,6 +310,124 @@ int main()
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
+### Serializing classes as primitive types like number or string
+This chapter describes how to implement serialization for classes which should be represented in the output format as base types, like number, boolean or string. Let's imagine that you would like to implement serialization of your own `std::string` alternative, which is called `CMyString`. For this purpose you need two global functions with the following signatures:
+```cpp
+template <class TArchive, typename TKey>
+bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
+
+template <class TArchive>
+bool Serialize(TArchive& archive, CMyString& value)
+```
+These two functions are neccessary for serialization any type with and without **key** into the output archive. For example, object in the JSON format, has named properties, but JSON-array can contain only values.
+The BitSerializer's archives works with `std::basic_string<>`, so you need to convert your custom string before serialize. The best way is to implement string conversion methods as required by BitSerialzer ([see more](docs/bitserializer_convert.md)), this will also help you get the ability to serialize `std::map`, where the custom string is used as the key.
+This all looks a little more complicated than serializing the object, but the code is pretty simple, please have a look at the example below:
+```cpp
+#include <iostream>
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/types/std/vector.h"
+#include "bitserializer/types/std/map.h"
+
+using namespace BitSerializer;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+
+// Some custom string type
+class CMyString
+{
+public:
+	CMyString() = default;
+	CMyString(const char* str) : mString(str) { }
+
+	bool operator<(const CMyString& rhs) const { return this->mString < rhs.mString; }
+
+	// Required methods for conversion from/to std::string (can be implemented as external functions)
+	std::string ToString() const { return mString; }
+	void FromString(std::string_view str) { mString = str; }
+
+private:
+	std::string mString;
+};
+
+// Serializes CMyString with key
+template <class TArchive, typename TKey>
+bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
+{
+	constexpr auto hasStringWithKeySupport = can_serialize_value_with_key_v<TArchive, std::string, TKey>;
+	static_assert(hasStringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
+
+	if constexpr (hasStringWithKeySupport)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::string str;
+			if (archive.SerializeValue(std::forward<TKey>(key), str))
+			{
+				value.FromString(str);
+				return true;
+			}
+		}
+		else
+		{
+			std::string str = value.ToString();
+			return archive.SerializeValue(std::forward<TKey>(key), str);
+		}
+	}
+	return false;
+}
+
+// Serializes CMyString without key
+template <class TArchive>
+bool Serialize(TArchive& archive, CMyString& value)
+{
+	constexpr auto hasStringSupport = can_serialize_value_v<TArchive, std::string>;
+	static_assert(hasStringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
+
+	if constexpr (hasStringSupport)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::string str;
+			if (archive.SerializeValue(str))
+			{
+				value.FromString(str);
+				return true;
+			}
+		}
+		else
+		{
+			std::string str = value.ToString();
+			return archive.SerializeValue(str);
+		}
+	}
+	return false;
+}
+
+int main()
+{
+	// Save list of custom strings to JSON
+	std::vector<CMyString> srcStrList = { "Red", "Green", "Blue" };
+	std::string jsonResult;
+	SerializationOptions serializationOptions;
+	serializationOptions.formatOptions.enableFormat = true;
+	BitSerializer::SaveObject<JsonArchive>(srcStrList, jsonResult, serializationOptions);
+	std::cout << "Saved JSON: " << jsonResult << std::endl;
+
+	// Load JSON-object to std::map based on custom strings
+	std::map<CMyString, CMyString> mapResult;
+	const std::string srcJson = R"({ "Background": "Blue", "PenColor": "White", "PenSize": "3", "PenOpacity": "50" })";
+	BitSerializer::LoadObject<JsonArchive>(mapResult, srcJson);
+	std::cout << std::endl << "Loaded map: " << std::endl;
+	for (const auto& val : mapResult)
+	{
+		std::cout << "\t" << val.first.ToString() << ": " << val.second.ToString() << std::endl;
+	}
+
+	return 0;
+}
+```
+[See full sample](samples/serialize_custom_string/serialize_custom_string.cpp)
+
 ### Serializing enum types
 To be able to serialize enum types, you must register a map with string equivalents in the your HEADER file.
 ```cpp
@@ -330,7 +449,7 @@ REGISTER_ENUM_MAP(HttpMethod)
 } END_ENUM_MAP()
 ```
 
-### Serialize to multiple formats
+### Serializing to multiple formats
 One of the advantages of BitSerializer is the ability to serialize in several formats via one interface. In the following example shows saving an object to JSON and XML:
 ```cpp
 class CPoint
@@ -665,4 +784,4 @@ Thanks
 
 License
 ----
-MIT, Copyright (C) 2018-2021 by Pavel Kisliak
+MIT, Copyright (C) 2018-2021 by Pavel Kisliak, made in Belarus 🇧🇾

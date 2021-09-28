@@ -7,6 +7,7 @@ endif()
 if(BUILD_RAPIDJSON_ARCHIVE)
     add_subdirectory(validation)
     add_subdirectory(serialize_third_party_class)
+    add_subdirectory(serialize_custom_string)
     add_subdirectory(serialize_to_stream)
 endif()
 

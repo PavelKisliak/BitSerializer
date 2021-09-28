@@ -11,10 +11,11 @@ String conversion submodule of **BitSerializer** library. Basically, it is just 
 
 ### Conversion fundamental types
 The library provides several public functions for convert types:
-- `TOut To<TOut>(TIn&& value)` may throw exceptions.
-- `std::optional<TOut> TryTo<TOut>(TIn&& value)` throws nothing.
-- `std::string ToString(TIn&& value)` just "syntax sugar" for To<std::string>().
-- `std::wstring ToWString(TIn&& value)` just "syntax sugar" for To<std::wstring>().
+
+- `TOut To<TOut>(TIn&& value)` may throw exceptions
+- `std::optional<TOut> TryTo<TOut>(TIn&& value)` throws nothing
+- `std::string ToString(TIn&& value)` just "syntax sugar" for `To<std::string>()`
+- `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
 
 Under the hood, integer types converts via modern `std::from_chars()`, but any other via functions from older C++ (there is a delay in their implentation by GCC and CLANG compilers).
 ```cpp
@@ -43,10 +44,12 @@ int main()
 
 ### Transcoding strings
 The **BitSerializer::Convert** module provides an easy way to transcode strings from one UTF to another. There is used internal implementation because STD does not provide such functionality (`<codecvt>` was deprecated in C++ 17). By default, the library assumes that:
+
 - `std::string` is UTF-8 (encoding with code pages is not supported)
 - `std::wstring` is UTF-16 or UTF-32 (depending on the platform)
 - `std::u16string` is UTF-16
 - `std::u32string` is UTF-32
+
 ```cpp
 #include "bitserializer/convert.h"
 
@@ -108,9 +111,11 @@ In comparison with macro `REGISTER_ENUM_MAP` you should take care to include the
 
 ### Conversion custom classes
 There are several ways to convert custom classes from/to strings:
+
 - Implementation pair of internal string conversion methods `ToString()` and `FromString()`.
 - Implementation external function(s) `To(in, out)` (in any namespace).
 - Implementation external function in STD style `to_string()`, but there is no backward conversion.
+
 ```cpp
 #include <iostream>
 #include <charconv>
@@ -163,19 +168,23 @@ int main()
 }
 ```
 The important point is that you can implement just pair of methods for `std::string`, all other string types will be also automatically supported as well, but you can implement them to avoid the performance overhead when transcoding:
+
 - `std::u16string ToU16String();`
 - `void FromString(std::u16string_view);`
 - `std::u32string ToU32String();`
 - `void FromString(std::u32string_view);`
 
 As an alternative to internal methods, you can achieve the same by implementing two global functions in any namespace:
+
 - `void To(const CPoint3D& in, std::string& out);`
 - `void To(std::string_view in, CPoint3D& out);`
+
 Optionally, they can be overridden for conversions any other string types (when you are worried about performance).
 As an examples, you also can see the conversion implementation for [filesystem::path](../include/bitserializer/conversion_detail/convert_std.h).
 
 ### UTF encoding
-In addition to simple UTF conversion via Convert::To() function, there is also exists set of classes with more granular API for all kind of formats:
+In addition to simple UTF conversion via `Convert::To()` function, there is also exists set of classes with more granular API for all kind of formats:
+
 - `Convert::Utf8`
 - `Convert::Utf16Le`
 - `Convert::Utf16Be`
@@ -183,6 +192,7 @@ In addition to simple UTF conversion via Convert::To() function, there is also e
 - `Convert::Utf32Be`
 
 They all have the same API:
+
 - `void Decode(beginIt, endIt, outStr, errSym)`
 - `void Encode(beginIt, endIt, outStr, errSym)`
 

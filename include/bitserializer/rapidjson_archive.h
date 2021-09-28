@@ -134,7 +134,7 @@ protected:
 	{
 		using TargetSymType = typename TEncoding::Ch;
 		if constexpr (std::is_same_v<TSym, TargetSymType>)
-			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()));
+			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
 		else {
 			const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
 			return RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), allocator);

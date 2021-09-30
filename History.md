@@ -1,5 +1,29 @@
 # BitSerializer (History log)
 
+##### What's new in version 0.44 (1 October 2021):
+
+- [ ! ] Changed minimum requirement for CLang compiler from version 7 to 8.
+- [ ! ] API breaking change - global `Serialize()` function should now return `bool`.
+- [ ! ] API breaking change - validation messages now storing in UTF-8, function GetValidationErrors() returns vector of `std::string`.
+- [ ! ] Simplified implementing non-intrusive serialization, now only one global function should be defined (compatibility is preserved).
+- [ ! ] Internal string conversion method `FromString()` now should have as argument any of `std::string_view` types instead of `std::string`.
+- [ - ] Internal string conversion method `ToWString()` was deprecated, please implement `ToU16String()` and/or `ToU32String()` when you needed.
+- [ + ] Conversion sub-module: added support for globally defined function `To(in, out)` for user's classes.
+- [ + ] Conversion sub-module: added support for globally defined function `to_string(in)` for user's classes.
+- [ + ] Implemented internal encoders for UTF-16 and UTF-32 (in the previous version there was only UTF-8).
+- [ + ] Added support for `std::u16string` and `std::u32string` in the convert sub-module.
+- [ + ] Added support serialization of `std::u16string` and `std::u32string` and ability to use them as keys.
+- [ + ] Added support serialization for C++ nullptr type (uses for serialization smart pointers).
+- [ + ] Added support serialization for std::optional type, std::unique_ptr and std::shared_ptr.
+- [ + ] Added new samples "string_conversions", "serialize_custom_string" and "serialize_map_to_yaml".
+- [ + ] Added documentation for [string conversion submodule](docs/bitserializer_convert.md).
+- [ * ] Removed streams operators for enum and classes, now need to explicitly declare them via macro DECLARE_ENUM_STREAM_OPS.
+- [ * ] Update compatibility with new version of RapidYaml library v.0.1.0.
+- [ * ] Fixed handling YAML parse errors (previously was called abort() in the RapidYaml library).
+- [ * ] Fixed handling errors when loading incompatible types in PugiXml archive.
+- [ * ] Fixed saving temporary strings in RapidJson archive.
+- [ * ] Conversion sub-module: boolean type will be converted to "true|false" strings (please cast to <int> if you expect "1|0").
+
 ##### Version 0.10 (1 June 2020):
 
 - [ ! ] Changed main concept with separate library for each format to all-in-one library with components.

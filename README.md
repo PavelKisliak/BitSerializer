@@ -1,4 +1,4 @@
-# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.12-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
+# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.44-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
 ___
 
 ### Design goals:
@@ -27,30 +27,31 @@ ___
 | [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | ✖ | [RapidYAML](https://github.com/biojppm/rapidyaml) |
 
 #### Requirements:
-  - C++ 17 (VS2017, GCC-8, CLang-8).
+  - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
   - Dependencies which are required by selected type of archive.
 
-##### What's new in version 0.10:
-- [ ! ] Changed main concept with separate library for each format to all-in-one library with components.
-- [ ! ] Changed include paths for archives (all archive implementations are now in the "bitserializer" directory).
-
-##### What's new in version 0.9:
-- [ ! ] Added XML serialization support (based on library PugiXml).
-- [ ! ] Added YAML serialization support (based on library RapidYaml).
-- [ ! ] Add CI with builds for Windows, Linux (GCC, Clang) and MaOS (AppleClang).
-- [ + ] Add formatting options for output text (but formatting is not supported in CppRestJson).
-- [ + ] Add support encoding to various UTF based formats (defines in serialization options).
-- [ + ] Add optional writing the BOM to output stream/file.
-- [ + ] Add ability for pretty format of output text.
-- [ + ] Add UTF encoding when serializing std::wstring.
-- [ + ] Add serialization for all STD containers which were missed before.
-- [ + ] Add serialization C++ union type.
-- [ \* ] Split implementation of serialization for std types into separate files.
-- [ \* ] Change string type for path in archive from std::wstring to std::string (in UTF-8 encoding).
-- [ \* ] For archive based on RapidJson was changed in-memory encoding from UTF-16 to UTF-8.
-- [ \* ] Add path into exceptions about I/O errors with files.
-- [ \* ] Fix registration enum types not in global namespace.
-- [ \* ] Add constants with library version.
+##### What's new in version 0.44:
+- [ ! ] Changed minimum requirement for CLang compiler from version 7 to 8.
+- [ ! ] API breaking change - global `Serialize()` function should now return `bool`.
+- [ ! ] API breaking change - validation messages now storing in UTF-8, function GetValidationErrors() returns vector of `std::string`.
+- [ ! ] Simplified implementing non-intrusive serialization, now only one global function should be defined (compatibility is preserved).
+- [ ! ] Internal string conversion method `FromString()` now should have as argument any of `std::string_view` types instead of `std::string`.
+- [ - ] Internal string conversion method `ToWString()` was deprecated, please implement `ToU16String()` and/or `ToU32String()` when you needed.
+- [ + ] Conversion sub-module: added support for globally defined function `To(in, out)` for user's classes.
+- [ + ] Conversion sub-module: added support for globally defined function `to_string(in)` for user's classes.
+- [ + ] Implemented internal encoders for UTF-16 and UTF-32 (in the previous version there was only UTF-8).
+- [ + ] Added support for `std::u16string` and `std::u32string` in the convert sub-module.
+- [ + ] Added support serialization of `std::u16string` and `std::u32string` and ability to use them as keys.
+- [ + ] Added support serialization for C++ nullptr type (uses for serialization smart pointers).
+- [ + ] Added support serialization for std::optional type, std::unique_ptr and std::shared_ptr.
+- [ + ] Added new samples "string_conversions", "serialize_custom_string" and "serialize_map_to_yaml".
+- [ + ] Added documentation for [string conversion submodule](docs/bitserializer_convert.md).
+- [ * ] Removed streams operators for enum and classes, now need to explicitly declare them via macro DECLARE_ENUM_STREAM_OPS.
+- [ * ] Update compatibility with new version of RapidYaml library v.0.1.0.
+- [ * ] Fixed handling YAML parse errors (previously was called abort() in the RapidYaml library).
+- [ * ] Fixed handling errors when loading incompatible types in PugiXml archive.
+- [ * ] Fixed saving temporary strings in RapidJson archive.
+- [ * ] Conversion sub-module: boolean type will be converted to "true|false" strings (please cast to <int> if you expect "1|0").
 
 [Full log of changes](History.md)
 

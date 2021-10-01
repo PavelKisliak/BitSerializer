@@ -539,7 +539,7 @@ BitSerializer has on board serialization for all STD containers. Serialization o
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
 ### Specifics of serialization STD map
-Due to the fact that the map key is used as a key (in JSON for example), it must be convertible to a string (by default supported all of fundamental types).
+Due to the fact that the map key is used as a key (in JSON for example), it must be convertible to `std::string` (by default supported all of fundamental types).
 ```cpp
 std::map<std::string, int> testMap = 
 	{ { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };

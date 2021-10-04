@@ -128,7 +128,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				if constexpr (std::is_null_pointer_v<T>) {
 					yamlValue << nullValue;
 				} else if constexpr (std::is_floating_point_v<T>)
-					yamlValue << c4::fmt::fmt(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
+					yamlValue << c4::fmt::real(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
 				else if constexpr (std::is_same_v<T, char>)
 					yamlValue << static_cast<uint8_t>(value);
 				else

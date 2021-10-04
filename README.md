@@ -47,7 +47,7 @@ ___
 - [ + ] Added new samples "string_conversions", "serialize_custom_string" and "serialize_map_to_yaml".
 - [ + ] Added documentation for [string conversion submodule](docs/bitserializer_convert.md).
 - [ * ] Removed streams operators for enum and classes, now need to explicitly declare them via macro DECLARE_ENUM_STREAM_OPS.
-- [ * ] Update compatibility with new version of RapidYaml library v.0.1.0.
+- [ * ] Update compatibility with new version of RapidYaml library v.0.2.0.
 - [ * ] Fixed handling YAML parse errors (previously was called abort() in the RapidYaml library).
 - [ * ] Fixed handling errors when loading incompatible types in PugiXml archive.
 - [ * ] Fixed saving temporary strings in RapidJson archive.
@@ -66,8 +66,8 @@ For check performance overhead, was developed a test which serializes a model vi
 | C++ REST SDK | JSON | Load object | 184 msec | 188 msec | 4 msec **(-2.1%)** |
 | PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec **(-2.5%)** |
 | PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec **(-4.5%)** |
-| RapidYAML | YAML | Save object | 550 msec | 549 msec | 1 msec **(-0.2%)** |
-| RapidYAML | YAML | Load object | 343 msec | 348 msec | 5 msec **(-1.4%)** |
+| RapidYAML | YAML | Save object | 493 msec | 495 msec | 2 msec **(-0.4%)** |
+| RapidYAML | YAML | Load object | 139 msec | 144 msec | 5 msec **(-3.5%)** |
 
 Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries.
 

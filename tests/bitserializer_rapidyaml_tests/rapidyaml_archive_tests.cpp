@@ -223,5 +223,5 @@ TEST(RapidYamlArchive, SerializeClassToFile) {
 TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 {
 	int testInt[2];
-	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "- 10\n - 20"), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "- 10\n20"), BitSerializer::SerializationException);
 }

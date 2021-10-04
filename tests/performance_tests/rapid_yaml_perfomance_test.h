@@ -40,7 +40,7 @@ public:
 		floatsYamlArray << ryml::key("ArrayOfFloats");
 		floatsYamlArray |= ryml::SEQ;
 		for (size_t i = 0; i < ARRAY_SIZE; ++i) {
-			floatsYamlArray.append_child() << c4::fmt::fmt(mArrayOfFloats[i], std::numeric_limits<double>::max_digits10);
+			floatsYamlArray.append_child() << c4::fmt::real(mArrayOfFloats[i], std::numeric_limits<double>::max_digits10);
 		}
 
 		// Save array of strings
@@ -67,12 +67,12 @@ public:
 			yamlObj.append_child() << ryml::key("TestInt64Value") << obj.mTestInt64Value;
 			//TODO: fmt_wrapper doesn't instantiated for types with const qualifier (cause explicit instantion?)
 			yamlObj.append_child() << ryml::key("TestFloatValue") 
-				<< c4::fmt::fmt(const_cast<float&>(obj.mTestFloatValue), std::numeric_limits<float>::max_digits10);
+				<< c4::fmt::real(const_cast<float&>(obj.mTestFloatValue), std::numeric_limits<float>::max_digits10);
 			yamlObj.append_child() << ryml::key("TestDoubleValue") 
-				<< c4::fmt::fmt(const_cast<double&>(obj.mTestDoubleValue), std::numeric_limits<double>::max_digits10);
+				<< c4::fmt::real(const_cast<double&>(obj.mTestDoubleValue), std::numeric_limits<double>::max_digits10);
 			yamlObj.append_child() << ryml::key("TestStringValue") << obj.mTestStringValue;
 		}
-	
+
 		return ryml::emitrs<std::string>(tree);
 	}
 

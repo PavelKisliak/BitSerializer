@@ -7,7 +7,7 @@ parameters:
   vcpkgCacheDir: /home/vsts/.cache/vcpkg/archives/
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
-# [Optional] Cmake additional arguments for generate mode
+# [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Install additional tools command line
   installToolsCmd: ''
@@ -51,13 +51,13 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build.debug'
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
     displayName: 'Cmake - generate debug'
 
   - task: CMake@1
     inputs:
       workingDirectory: 'build.release'
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
     displayName: 'Cmake - generate release'
 
   - script: |

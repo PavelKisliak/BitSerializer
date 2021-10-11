@@ -7,6 +7,8 @@ parameters:
   platform: 'x64'
 # [Required] VCPKG triplet
   vcpkgTriplet: 'x64-windows'
+# [Optional] Cmake additional arguments for CMake generate mode
+  cmakeGenArgs: ''
 
 jobs:
 - job: ${{ parameters.name }}
@@ -42,7 +44,7 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: '-A ${{ parameters.platform }} -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+      cmakeArgs: '-A ${{ parameters.platform }} ${{ parameters.cmakeGenArgs }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
     displayName: 'Cmake - generate'
 
   - script: |

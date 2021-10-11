@@ -22,16 +22,16 @@ include(CMakePackageConfigHelpers)
 #################################################################################
 # Options
 #################################################################################
-option(BUILD_CPPRESTJSON_ARCHIVE "Build CppRestJson archive" ON)
+option(BUILD_CPPRESTJSON_ARCHIVE "Build CppRestJson archive" OFF)
 message(STATUS "[Option] BUILD_CPPRESTJSON_ARCHIVE: ${BUILD_CPPRESTJSON_ARCHIVE}")
 
-option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" ON)
+option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDJSON_ARCHIVE: ${BUILD_RAPIDJSON_ARCHIVE}")
 
-option(BUILD_PUGIXML_ARCHIVE "Build PugiXml archive" ON)
+option(BUILD_PUGIXML_ARCHIVE "Build PugiXml archive" OFF)
 message(STATUS "[Option] BUILD_PUGIXML_ARCHIVE: ${BUILD_PUGIXML_ARCHIVE}")
 
-option(BUILD_RAPIDYAML_ARCHIVE "Build RapidYAML archive" ON)
+option(BUILD_RAPIDYAML_ARCHIVE "Build RapidYAML archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 
 option(BUILD_TESTS "Build tests" OFF)

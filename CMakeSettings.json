@@ -21,6 +21,22 @@
         {
           "name": "BUILD_SAMPLES",
           "value": "ON"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON"
         }
       ]
     },
@@ -44,6 +60,22 @@
         },
         {
           "name": "BUILD_SAMPLES",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
           "value": "ON"
         }
       ]
@@ -69,6 +101,22 @@
         {
           "name": "BUILD_SAMPLES",
           "value": "ON"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON"
         }
       ]
     },
@@ -92,6 +140,22 @@
         },
         {
           "name": "BUILD_SAMPLES",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
           "value": "ON"
         }
       ]

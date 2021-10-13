@@ -246,8 +246,6 @@ public:
 			return;
 		else
 		{
-			using TValue = std::tuple_element_t<I, std::tuple<Args...>>;
-
 			// Get class member
 			decltype(auto) expected = std::get<I>(*this);
 			decltype(auto) actual = std::get<I>(rhs);

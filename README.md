@@ -106,8 +106,22 @@ The library consists of header files only, but it uses third-party libraries whi
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
 #### VCPKG
+Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
+```json
+{
+    "dependencies": [
+        {
+            "name": "bitserializer",
+            "features": [ "cpprestjson-archive", "rapidjson-archive", "pugixml-archive", "rapidyaml-archive" ],
+            "version>=": "0.44"
+        }
+    ]
+}
+```
+Enumerate features which you need, by default all are disabled.
+Alternatively, you can install the library via the command line:
 ```shell
-vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive]:x64-windows
+vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
 #### Conan

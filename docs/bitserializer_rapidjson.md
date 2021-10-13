@@ -10,10 +10,18 @@ This implementation of JSON archive is based on [RapidJson](https://github.com/T
 ### How to install
 The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
 #### VCPKG
-```shell
-vcpkg install bitserializer[rapidjson-archive]:x64-windows
+Add BitSerializer to manifest file (`vcpkg.json`) with `rapidjson-archive` feature:
+```json
+{
+    "dependencies": [
+        {
+            "name": "bitserializer",
+            "features": [ "rapidjson-archive" ],
+            "version>=": "0.44"
+        }
+    ]
+}
 ```
-Specify required triplet for your platform instead of "x64-windows".
 If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"

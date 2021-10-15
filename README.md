@@ -125,13 +125,21 @@ vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archiv
 ```
 In the square brackets enumerated all available formats, install only which you need.
 #### Conan
-The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add package to your "conanfile.txt" or 
-install via below command:
-```shell
-conan install bitserializer/0.10@
+The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
-One note for current status: the recipe includes all archives which exists in the BitSerializer, but by default it installs only one dependency - **RapidJson**.
-When you need to use **cpprestjson-archive** or **pugixml-archive**, you need to add reference to these packages explicitly. This approach will change, when **components** feature will be released in the Conan.
+[requires]
+bitserializer/0.44
+
+[options]
+bitserializer:with_cpprestsdk=True
+bitserializer:with_rapidjson=True
+bitserializer:with_pugixml=True
+```
+Or just install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
+```shell
+conan install bitserializer/0.44@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True --build missing
+```
+The YAML archive is not available yet in Conan.
 
 ### Hello world
 Let's get started with traditional and simple "Hello world!" example.
@@ -256,7 +264,7 @@ template <class TArchive>
 void Serialize(TArchive& archive)
 {
 	archive << BaseObject<MyBaseClass>(*this);
-	archive << MakeKeyValue(L"TestInt", TestInt);
+	archive << MakeKeyValue("TestInt", TestInt);
 };
 ```
 
@@ -584,7 +592,7 @@ Below is a more complex example, where loading a vector of maps from JSON.
 Code:
 ```cpp
 std::vector<std::map<std::string, int>> testVectorOfMaps;
-const std::wstring inputJson = L"[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
+const std::string inputJson = "[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
@@ -771,7 +779,7 @@ inline void Serialize(TArchive& archive)
     // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
     archive << testBool;
     // Proper use
-	archive << MakeKeyValue(L"testString", testString);
+	archive << MakeKeyValue("testString", testString);
 };
 ```
 

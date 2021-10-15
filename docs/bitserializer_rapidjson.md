@@ -33,7 +33,15 @@ find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 ```
 #### Conan
-Add BitSerializer's recipe "bitserializer/1.10" to your "conanfile.txt". The dependent library **RapidJson** will be automatically installed.
+Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_rapidjson` option:
+```
+[requires]
+bitserializer/0.44
+
+[options]
+bitserializer:with_rapidjson=True
+```
+The dependent library **RapidJson** will be automatically installed.
 
 ### Implementation detail
 The JSON specification allows to store on root not just objects and arrays, but also more primitive types such as string, number and boolean.

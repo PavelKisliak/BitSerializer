@@ -33,13 +33,15 @@ find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::cpprestjson-archive)
 ```
 #### Conan
-Add BitSerializer's recipe to your "conanfile.txt" and required dependent library CppRestJson.
+Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_cpprestsdk` option:
 ```
 [requires]
-cpprestsdk/2.10.16
-bitserializer/1.10
+bitserializer/0.44
+
+[options]
+bitserializer:with_cpprestsdk=True
 ```
-This approach will change, when **components** feature will be released in the Conan (will no needs to specify dependent library explicitly).
+The dependent library **CppRestSdk** will be automatically installed.
 
 ### Implementation detail
 One of the important things related to JSON implementations in CppRestSdk is character dimension on different platforms - for Windows it's 16-bit (UTF-16), for all other - 8-bit char (UTF-8). Accordingly, this affects the key type in BitSerializer, and usages of the universal adapter **MakeAutoKeyValue()** is already becoming very relevant for this archive (if you want to make your code cross platform). One more option - usages of macros from CppRestSdk: **_XPLATSTR("MyKey")**, but in this case you will lost compatibility with other type of BitSerializer archives.

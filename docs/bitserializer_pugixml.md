@@ -33,13 +33,15 @@ find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 ```
 #### Conan
-Add BitSerializer's recipe to your "conanfile.txt" and required dependent library PugiXml.
+Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_pugixml` option:
 ```
 [requires]
-pugixml/1.10
-bitserializer/1.10
+bitserializer/0.44
+
+[options]
+bitserializer:with_pugixml=True
 ```
-This approach will change, when **components** feature will be released in the Conan (will no needs to specify dependent library explicitly).
+The dependent library **PugiXml** will be automatically installed.
 
 ### Implementation detail
 XML format requires root named node, but BitSerializer allows to serialize objects with and without keys.

@@ -17,7 +17,7 @@ The library provides several public functions for convert types:
 - `std::string ToString(TIn&& value)` just "syntax sugar" for `To<std::string>()`
 - `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
 
-Under the hood, integer types converts via modern `std::from_chars()`, but any other via functions from older C++ (there is a delay in their implentation by GCC and CLANG compilers).
+Under the hood, integer types are converting via modern `std::from_chars()`, but any other via functions from older C++ (there is a delay in their implementation by GCC and CLANG compilers).
 ```cpp
 #include "bitserializer/convert.h"
 
@@ -107,7 +107,7 @@ Additionally, you can declare functions for support input/output streams using `
 ```cpp
 DECLARE_ENUM_STREAM_OPS(EnumType)
 ```
-In comparison with macro `REGISTER_ENUM_MAP` you should take care to include the header file in which you declared this.
+In comparison with macro `REGISTER_ENUM_MAP` you have to take care of including the header file in which you declared this.
 
 ### Conversion custom classes
 There are several ways to convert custom classes from/to strings:
@@ -197,4 +197,5 @@ They all have the same API:
 - `void Encode(beginIt, endIt, outStr, errSym)`
 
 There is also exists a function which will help to detect UTF encoding by BOM:
-`UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)`
+
+- `UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)`

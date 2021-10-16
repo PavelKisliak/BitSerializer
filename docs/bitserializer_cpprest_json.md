@@ -8,7 +8,7 @@ Supported load/save JSON from:
 This implementation of JSON archive is based on [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) - one of most powerful library for work with HTTP.
 
 ### How to install
-The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
+The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should take care of the dependencies yourself).
 #### VCPKG
 Add BitSerializer to manifest file (`vcpkg.json`) with `cpprestjson-archive` feature:
 ```json

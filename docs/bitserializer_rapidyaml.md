@@ -8,7 +8,7 @@ Supported load/save **YAML** from:
 This implementation of **YAML** archive is based on [RapidYAML](https://github.com/biojppm/rapidyaml), which shows good performance in comparison with **YamlCpp**.
 
 ### How to install
-The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should care about dependencies by yourself).
+The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should take care of the dependencies yourself).
 #### VCPKG
 Add BitSerializer to manifest file (`vcpkg.json`) with `rapidyaml-archive` feature:
 ```json
@@ -36,7 +36,7 @@ target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
 The **YAML** archive requires **RapidYaml** library, but unfortunately it is not available in the Conan right now.
 
 ### Implementation detail
-One of unique features in **YAML** is **dictionaries**, which slightly advanced than in **JSON**, it allows to make sequence with named objects, for example:
+One of unique features in **YAML** is **dictionaries**, are a little more advanced than **JSON**, it allows to make sequence with named objects, for example:
 ```yaml
 - shape1: { type: square, width: 100, height: 100 }
 - shape2: { type: circle, rarius: 50 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -156,10 +156,20 @@ public:
 	}
 
 	/// <summary>
-	/// Returns the size of stored elements.
+	/// Returns the estimated number of items to load (for reserving the size of containers).
 	/// </summary>
-	[[nodiscard]] size_t GetSize() const {
+	[[nodiscard]] size_t GetEstimatedSize() const {
 		return std::distance(mNode.begin(), mNode.end());
+	}
+
+	/// <summary>
+	/// Returns `true` when all no more values to load.
+	/// </summary>
+	[[nodiscard]]
+	bool IsEnd() const
+	{
+		static_assert(TMode == SerializeMode::Load);
+		return mValueIt == mNode.end();
 	}
 
 	template<typename T>
@@ -167,17 +177,13 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mValueIt != mValueIt->end())
-			{
-				auto result = PugiXmlExtensions::LoadValue(*mValueIt, value);
-				++mValueIt;
-				return result;
-			}
+			return PugiXmlExtensions::LoadValue(LoadNextItem(), value);
 		}
 		else
 		{
 			auto child = mNode.append_child(GetKeyByValueType<T>());
-			if (!child.empty()) {
+			if (!child.empty())
+			{
 				PugiXmlExtensions::SaveValue(child, value);
 				return true;
 			}
@@ -189,11 +195,10 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mValueIt != mValueIt->end() && mValueIt->first_child().type() == pugi::node_element)
+			auto xmlNode = LoadNextItem();
+			if (xmlNode.first_child().type() == pugi::node_element)
 			{
-				auto arrayScope = std::make_optional<PugiXmlArrayScope<TMode>>(*mValueIt);
-				++mValueIt;
-				return arrayScope;
+				return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode);
 			}
 			return std::nullopt;
 		}
@@ -208,11 +213,10 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mValueIt != mValueIt->end() && mValueIt->first_child().type() == pugi::node_element)
+			auto xmlNode = LoadNextItem();
+			if (xmlNode.first_child().type() == pugi::node_element)
 			{
-				auto objectScope = std::make_optional<PugiXmlObjectScope<TMode>>(*mValueIt);
-				++mValueIt;
-				return objectScope;
+				return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode);
 			}
 			return std::nullopt;
 		}
@@ -224,6 +228,18 @@ public:
 	}
 
 protected:
+	pugi::xml_node LoadNextItem()
+	{
+		static_assert(TMode == SerializeMode::Load);
+		if (mValueIt != mValueIt->end())
+		{
+			auto xmlNode = *mValueIt;
+			++mValueIt;
+			return xmlNode;
+		}
+		throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
+	}
+
 	template <typename T>
 	static constexpr const pugi::char_t* GetKeyByValueType() noexcept
 	{

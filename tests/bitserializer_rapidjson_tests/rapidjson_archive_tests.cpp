@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "../test_helpers/common_test_methods.h"
@@ -111,24 +111,6 @@ TEST(RapidJsonArchive, SerializeArrayOfClasses)
 TEST(RapidJsonArchive, SerializeTwoDimensionalArray)
 {
 	TestSerializeTwoDimensionalArray<JsonArchive, int32_t>();
-}
-
-TEST(RapidJsonArchive, ShouldLoadToArrayWithLesserAmountOfElements)
-{
-	TestSerializeArray<JsonArchive, bool, 7, 5>();
-	TestSerializeArray<JsonArchive, int, 7, 5>();
-	TestSerializeArray<JsonArchive, double, 7, 5>();
-	TestSerializeArray<JsonArchive, std::string, 7, 5>();
-	TestSerializeArray<JsonArchive, TestPointClass, 7, 5>();
-}
-
-TEST(RapidJsonArchive, ShouldLoadToArrayWithBiggerAmountOfElements)
-{
-	TestSerializeArray<JsonArchive, bool, 5, 7>();
-	TestSerializeArray<JsonArchive, int, 5, 7>();
-	TestSerializeArray<JsonArchive, double, 5, 7>();
-	TestSerializeArray<JsonArchive, std::string, 5, 7>();
-	TestSerializeArray<JsonArchive, TestPointClass, 5, 7>();
 }
 
 //-----------------------------------------------------------------------------

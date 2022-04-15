@@ -1,12 +1,12 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <algorithm>
 #include <type_traits>
 #include "object_traits.h"
 #include "archive_traits.h"
+#include "errors_handling.h"
 #include "bitserializer/convert.h"
 
 namespace BitSerializer
@@ -199,7 +199,7 @@ namespace BitSerializer
 	}
 
 	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
-	void Serialize(TArchive& archive, TValue& value)
+	bool Serialize(TArchive& archive, TValue& value)
 	{
 		constexpr auto hasSerializeMethod = has_serialize_method_v<TValue>;
 		constexpr auto hasGlobalSerializeObject = has_global_serialize_object_v<TValue>;
@@ -225,6 +225,7 @@ namespace BitSerializer
 				if (objectScope) {
 					SerializeObject(*objectScope, value);
 				}
+				return objectScope.has_value();
 			}
 			else if constexpr (hasGlobalSerializeArray)
 			{
@@ -239,6 +240,7 @@ namespace BitSerializer
 				if (arrayScope) {
 					SerializeArray(*arrayScope, value);
 				}
+				return arrayScope.has_value();
 			}
 			else if constexpr (hasSerializeMethod)
 			{
@@ -249,8 +251,10 @@ namespace BitSerializer
 				if (objectScope) {
 					value.Serialize(*objectScope);
 				}
+				return objectScope.has_value();
 			}
 		}
+		return false;
 	}
 
 	/// <summary>
@@ -292,6 +296,38 @@ namespace BitSerializer
 	//-----------------------------------------------------------------------------
 	// Serialize C-arrays
 	//-----------------------------------------------------------------------------
+	namespace Detail
+	{
+		/// <summary>
+		/// Generic function for serialization arrays with fixed size (like native C-arrays and std::array).
+		/// </summary>
+		template<typename TArchive, typename TIterator>
+		void SerializeFixedSizeArray(TArchive& arrayScope, TIterator startIt, TIterator endIt)
+		{
+			if constexpr (arrayScope.IsLoading())
+			{
+				auto it = startIt;
+				for (; it != endIt && !arrayScope.IsEnd(); ++it)
+				{
+					Serialize(arrayScope, *it);
+				}
+
+				if (it - startIt != endIt - startIt || !arrayScope.IsEnd())
+				{
+					throw SerializationException(SerializationErrorCode::OutOfRange,
+						"Target array with fixed size does not match the number of loading items");
+				}
+			}
+			else
+			{
+				for (auto it = startIt; it != endIt; ++it)
+				{
+					Serialize(arrayScope, *it);
+				}
+			}
+		}
+	}
+
 	template<typename TArchive, typename TKey, typename TValue, size_t ArraySize>
 	bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])
 	{
@@ -303,10 +339,7 @@ namespace BitSerializer
 			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), ArraySize);
 			if (arrayScope)
 			{
-				const auto size = archive.IsSaving() ? ArraySize : std::min(ArraySize, arrayScope->GetSize());
-				for (size_t i = 0; i < size; i++) {
-					Serialize(*arrayScope, cont[i]);
-				}
+				Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
 			}
 			return arrayScope.has_value();
 		}
@@ -314,7 +347,7 @@ namespace BitSerializer
 	}
 
 	template<typename TArchive, typename TValue, size_t ArraySize>
-	void Serialize(TArchive& archive, TValue(&cont)[ArraySize])
+	bool Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 	{
 		constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
 		static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
@@ -324,11 +357,10 @@ namespace BitSerializer
 			auto arrayScope = archive.OpenArrayScope(ArraySize);
 			if (arrayScope)
 			{
-				const auto size = archive.IsSaving() ? ArraySize : std::min(ArraySize, arrayScope->GetSize());
-				for (size_t i = 0; i < size; i++) {
-					Serialize(*arrayScope, cont[i]);
-				}
+				Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
 			}
+			return arrayScope.has_value();
 		}
+		return false;
 	}
 }

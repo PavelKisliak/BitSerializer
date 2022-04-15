@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -60,20 +60,6 @@ public:
 		, mParent(parent)
 		, mParentKey(parentKey)
 	{ }
-
-	/// <summary>
-	/// Returns the size of stored elements (for arrays and objects).
-	/// </summary>
-	/// <returns></returns>
-	[[nodiscard]] size_t GetSize() const {
-		if (std::holds_alternative<TestIoDataObject>(*mNode)) {
-			return std::get<TestIoDataObject>(*mNode).size();
-		}
-		if (std::holds_alternative<TestIoDataArray>(*mNode)) {
-			return std::get<TestIoDataArray>(*mNode).size();
-		}
-		return 0;
-	}
 
 	/// <summary>
 	/// Gets the current path
@@ -173,6 +159,14 @@ public:
 	}
 
 	/// <summary>
+	/// Returns the estimated number of items to load (for reserving the size of containers).
+	/// </summary>
+	[[nodiscard]] size_t GetEstimatedSize() const
+	{
+		return 0;
+	}
+
+	/// <summary>
 	/// Gets the current path
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const override
@@ -181,92 +175,118 @@ public:
 		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(index);
 	}
 
+	/// <summary>
+	/// Returns `true` when all no more values to load.
+	/// </summary>
+	[[nodiscard]]
+	bool IsEnd() const
+	{
+		static_assert(TMode == SerializeMode::Load);
+		return mIndex == std::get<TestIoDataArray>(*mNode).size();
+	}
+
 	template <typename TSym, typename TAllocator>
 	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		TestIoData& ioData = NextElement();
-		if constexpr (TMode == SerializeMode::Load)
-			return LoadString(ioData, value);
-		else {
-			SaveString(ioData, value);
-			return true;
+		if (TestIoData* ioData = LoadNextItem())
+		{
+			if constexpr (TMode == SerializeMode::Load)
+				return LoadString(*ioData, value);
+			else {
+				SaveString(*ioData, value);
+				return true;
+			}
 		}
+		return false;
 	}
 
 	bool SerializeValue(bool& value)
 	{
-		TestIoData& ioData = NextElement();
-		if constexpr (TMode == SerializeMode::Load)
+		if (TestIoData* ioData = LoadNextItem())
 		{
-			if (std::holds_alternative<bool>(ioData)) {
-				value = std::get<bool>(ioData);
+			if constexpr (TMode == SerializeMode::Load)
+			{
+				if (std::holds_alternative<bool>(*ioData)) {
+					value = std::get<bool>(*ioData);
+					return true;
+				}
+				return false;
+			}
+			else {
+				ioData->emplace<bool>(value);
 				return true;
 			}
-			return false;
 		}
-		else {
-			ioData.emplace<bool>(value);
-			return true;
-		}
+		return false;
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
-		TestIoData& ioData = NextElement();
-		if constexpr (TMode == SerializeMode::Load)
-			return LoadFundamentalValue(ioData, value);
-		else {
-			SaveFundamentalValue(ioData, value);
-			return true;
+		if (TestIoData* ioData = LoadNextItem())
+		{
+			if constexpr (TMode == SerializeMode::Load)
+				return LoadFundamentalValue(*ioData, value);
+			else {
+				SaveFundamentalValue(*ioData, value);
+				return true;
+			}
 		}
+		return false;
 	}
 
 	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()
 	{
-		TestIoData& ioData = NextElement();
-		if constexpr (TMode == SerializeMode::Load)
+		if (TestIoData* ioData = LoadNextItem())
 		{
-			return std::holds_alternative<TestIoDataObject>(ioData)
-				? std::make_optional<ArchiveStubObjectScope<TMode>>(&ioData, this)
-				: std::nullopt;
+			if constexpr (TMode == SerializeMode::Load)
+			{
+				return std::holds_alternative<TestIoDataObject>(*ioData)
+					? std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, this)
+					: std::nullopt;
+			}
+			else
+			{
+				ioData->emplace<TestIoDataObject>(TestIoDataObject());
+				return std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, this);
+			}
 		}
-		else
-		{
-			ioData.emplace<TestIoDataObject>(TestIoDataObject());
-			return std::make_optional<ArchiveStubObjectScope<TMode>>(&ioData, this);
-		}
+		return std::nullopt;
 	}
 
 	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
-		TestIoData& ioData = NextElement();
-		if constexpr (TMode == SerializeMode::Load)
+		if (TestIoData* ioData = LoadNextItem())
 		{
-			return std::holds_alternative<TestIoDataArray>(ioData)
-				? std::make_optional<ArchiveStubArrayScope<TMode>>(&ioData, this)
-				: std::nullopt;
+			if constexpr (TMode == SerializeMode::Load)
+			{
+				return std::holds_alternative<TestIoDataArray>(*ioData)
+					? std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, this)
+					: std::nullopt;
+			}
+			else
+			{
+				ioData->emplace<TestIoDataArray>(TestIoDataArray(arraySize));
+				return std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, this);
+			}
 		}
-		else
-		{
-			ioData.emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-			return std::make_optional<ArchiveStubArrayScope<TMode>>(&ioData, this);
-		}
+		return std::nullopt;
 	}
 
 protected:
-	TestIoData& NextElement()
+	TestIoData* LoadNextItem()
 	{
 		auto& archiveArray = std::get<TestIoDataArray>(*mNode);
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			assert(mIndex < GetSize());
-			return archiveArray.at(mIndex++);
+			return mIndex < std::get<TestIoDataArray>(*mNode).size()
+				? &archiveArray.at(mIndex++)
+				: nullptr;
 		}
 		else
 		{
 			mIndex++;
-			return archiveArray.emplace_back(TestIoData());
+			return &archiveArray.emplace_back(TestIoData());
 		}
 	}
 

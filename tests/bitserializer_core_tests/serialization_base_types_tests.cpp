@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -98,20 +98,20 @@ TEST(BaseTypes, SerializeTwoDimensionalArray) {
 	TestSerializeTwoDimensionalArray<ArchiveStub, int32_t>();
 }
 
-TEST(BaseTypes, ShouldLoadToArrayWithLesserAmountOfElements) {
-	TestSerializeArray<ArchiveStub, bool, 7, 5>();
-	TestSerializeArray<ArchiveStub, int64_t, 7, 5>();
-	TestSerializeArray<ArchiveStub, double, 7, 5>();
-	TestSerializeArray<ArchiveStub, std::string, 7, 5>();
-	TestSerializeArray<ArchiveStub, TestPointClass, 7, 5>();
+TEST(BaseTypes, ShouldThrowExceptionWhenLoadToArrayWithLesserAmountOfElements) {
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, bool, 7, 5>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, int64_t, 7, 5>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, double, 7, 5>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, std::string, 7, 5>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, TestPointClass, 7, 5>()), BitSerializer::SerializationException);
 }
 
-TEST(BaseTypes, ShouldLoadToArrayWithBiggerAmountOfElements) {
-	TestSerializeArray<ArchiveStub, bool, 5, 7>();
-	TestSerializeArray<ArchiveStub, int64_t, 5, 7>();
-	TestSerializeArray<ArchiveStub, double, 5, 7>();
-	TestSerializeArray<ArchiveStub, std::string, 5, 7>();
-	TestSerializeArray<ArchiveStub, TestPointClass, 5, 7>();
+TEST(BaseTypes, ShouldThrowExceptionWhenLoadToArrayWithBiggerAmountOfElements) {
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, bool, 5, 7>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, int64_t, 5, 7>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, double, 5, 7>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, std::string, 5, 7>()), BitSerializer::SerializationException);
+	EXPECT_THROW((TestSerializeArray<ArchiveStub, TestPointClass, 5, 7>()), BitSerializer::SerializationException);
 }
 
 //-----------------------------------------------------------------------------

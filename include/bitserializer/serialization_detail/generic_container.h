@@ -1,50 +1,47 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "object_traits.h"
-#include "archive_traits.h"
 
 namespace BitSerializer::Detail
 {
-	/// <summary>
-	/// Generic function for serialization containers with key.
-	/// </summary>
-	/// <returns>Returns <c>true</c> when value successfully loaded</returns>
-	template<typename TArchive, typename TKey, typename TContainer>
-	static void SerializeContainer(TArchive& arrayScope, TKey&& key, TContainer& cont)
-	{
-		constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
-		static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
-
-		if constexpr (hasArrayWithKeySupport)
-		{
-			if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
-				cont.resize(arrayScope.GetSize());
-			}
-			for (auto& elem : cont) {
-				Serialize(arrayScope, elem);
-			}
-		}
-	}
-
 	/// <summary>
 	/// Generic function for serialization containers.
 	/// </summary>
 	template<typename TArchive, typename TContainer>
 	static void SerializeContainer(TArchive& arrayScope, TContainer& cont)
 	{
-		constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
-		static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
-
-		if constexpr (hasArraySupport)
+		if constexpr (arrayScope.IsLoading())
 		{
-			if constexpr (TArchive::IsLoading() && is_resizeable_cont_v<TContainer>) {
-				cont.resize(arrayScope.GetSize());
+			// Resize container when is known approximate size
+			if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0)
+			{
+				cont.resize(estimatedSize);
 			}
-			for (auto& elem : cont) {
-				Serialize(arrayScope, elem);
+
+			// Load existing items
+			size_t loadedItems = 0;
+			for (auto it = cont.begin(); it != cont.end() && !arrayScope.IsEnd(); ++it, ++loadedItems)
+			{
+				Serialize(arrayScope, *it);
+			}
+			// Load all left items
+			for (; !arrayScope.IsEnd(); ++loadedItems)
+			{
+				using ValueType = typename TContainer::value_type;
+				ValueType value;
+				Serialize(arrayScope, value);
+				cont.push_back(std::move(value));
+			}
+			// Resize container for case when loaded less items than estimated
+			cont.resize(loadedItems);
+		}
+		else
+		{
+			for (auto& value : cont)
+			{
+				Serialize(arrayScope, value);
 			}
 		}
 	}

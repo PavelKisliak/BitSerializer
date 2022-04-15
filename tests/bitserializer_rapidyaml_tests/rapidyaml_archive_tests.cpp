@@ -56,24 +56,6 @@ TEST(RapidYamlArchive, SerializeTwoDimensionalArray)
 	TestSerializeTwoDimensionalArray<YamlArchive, int32_t>();
 }
 
-TEST(RapidYamlArchive, ShouldLoadToArrayWithLesserAmountOfElements)
-{
-	TestSerializeArray<YamlArchive, bool, 7, 5>();
-	TestSerializeArray<YamlArchive, int, 7, 5>();
-	TestSerializeArray<YamlArchive, double, 7, 5>();
-	TestSerializeArray<YamlArchive, std::string, 7, 5>();
-	TestSerializeArray<YamlArchive, TestPointClass, 7, 5>();
-}
-
-TEST(RapidYamlArchive, ShouldLoadToArrayWithBiggerAmountOfElements)
-{
-	TestSerializeArray<YamlArchive, bool, 5, 7>();
-	TestSerializeArray<YamlArchive, int, 5, 7>();
-	TestSerializeArray<YamlArchive, double, 5, 7>();
-	TestSerializeArray<YamlArchive, std::string, 5, 7>();
-	TestSerializeArray<YamlArchive, TestPointClass, 5, 7>();
-}
-
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------

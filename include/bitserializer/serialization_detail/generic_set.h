@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -18,10 +18,9 @@ namespace BitSerializer::Detail
 
 		if constexpr (TArchive::IsLoading())
 		{
-			auto contSize = scope.GetSize();
 			cont.clear();
 			auto hint = cont.begin();
-			for (size_t c = 0; c < contSize; c++)
+			while (!scope.IsEnd())
 			{
 				TValue value;
 				Serialize(scope, value);
@@ -30,7 +29,8 @@ namespace BitSerializer::Detail
 		}
 		else
 		{
-			for (const TValue& elem : cont) {
+			for (auto& elem : cont)
+			{
 				Serialize(scope, const_cast<TValue&>(elem));
 			}
 		}

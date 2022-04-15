@@ -51,22 +51,6 @@ TEST(PugiXmlArchive, SerializeTwoDimensionalArray) {
 	TestSerializeTwoDimensionalArray<XmlArchive, int32_t>();
 }
 
-TEST(PugiXmlArchive, ShouldLoadToArrayWithLesserAmountOfElements) {
-	TestSerializeArray<XmlArchive, bool, 7, 5>();
-	TestSerializeArray<XmlArchive, int, 7, 5>();
-	TestSerializeArray<XmlArchive, double, 7, 5>();
-	TestSerializeArray<XmlArchive, std::string, 7, 5>();
-	TestSerializeArray<XmlArchive, TestPointClass, 7, 5>();
-}
-
-TEST(PugiXmlArchive, ShouldLoadToArrayWithBiggerAmountOfElements) {
-	TestSerializeArray<XmlArchive, bool, 5, 7>();
-	TestSerializeArray<XmlArchive, int, 5, 7>();
-	TestSerializeArray<XmlArchive, double, 5, 7>();
-	TestSerializeArray<XmlArchive, std::string, 5, 7>();
-	TestSerializeArray<XmlArchive, TestPointClass, 5, 7>();
-}
-
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------

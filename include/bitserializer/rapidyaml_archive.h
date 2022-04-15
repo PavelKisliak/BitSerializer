@@ -166,7 +166,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlArrayScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
-			explicit RapidYamlArrayScope(const RapidYamlNode& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
+			RapidYamlArrayScope(const RapidYamlNode& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
 				: RapidYamlScopeBase(node, parent, parentKey)
 				, mSize(size)
 				, mIndex(0)
@@ -175,11 +175,21 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			/// <summary>
-			/// Get array size.
+			/// Returns the estimated number of items to load (for reserving the size of containers).
 			/// </summary>
 			[[nodiscard]]
-			size_t GetSize() const {
+			size_t GetEstimatedSize() const {
 				return mSize;
+			}
+
+			/// <summary>
+			/// Returns `true` when all no more values to load.
+			/// </summary>
+			[[nodiscard]]
+			bool IsEnd() const
+			{
+				static_assert(TMode == SerializeMode::Load);
+				return mIndex == mSize;
 			}
 
 			/// <summary>
@@ -201,13 +211,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					if (mIndex < GetSize()) {
-						return LoadValue(mNode[mIndex++], value);
+					if (mIndex < GetEstimatedSize()) {
+						return LoadValue(LoadNextItem(), value);
 					}
 				}
 				else
 				{
-					assert(mIndex < GetSize());
+					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					SaveValue(yamlValue, value);
 					mIndex++;
@@ -225,14 +235,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					if (mIndex < mSize)
 					{
-						auto yamlValue = mNode[mIndex++];
+						auto yamlValue = LoadNextItem();
 						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, this) : std::nullopt;
 					}
 					return std::nullopt;
 				}
 				else
 				{
-					assert(mIndex < GetSize());
+					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::MAP;
 					mIndex++;
@@ -250,14 +260,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					if (mIndex < mSize)
 					{
-						auto yamlValue = mNode[mIndex++];
+						auto yamlValue = LoadNextItem();
 						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, yamlValue.num_children(), this) : std::nullopt;
 					}
 					return std::nullopt;
 				}
 				else
 				{
-					assert(mIndex < GetSize());
+					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::SEQ;
 					mIndex++;
@@ -266,6 +276,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 		private:
+			auto LoadNextItem()
+			{
+				static_assert(TMode == SerializeMode::Load);
+				if (mIndex < mSize)
+				{
+					return mNode[mIndex++];
+				}
+				throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
+			}
+
 			size_t mSize;
 			size_t mIndex;
 		};

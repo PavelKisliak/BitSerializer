@@ -1,10 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <array>
-#include "bitserializer/serialization_detail/generic_container.h"
+#include "bitserializer/serialization_detail/serialization_base_types.h"
 
 namespace BitSerializer
 {
@@ -14,6 +14,6 @@ namespace BitSerializer
 	template<typename TArchive, typename TValue, size_t ArraySize>
 	void SerializeArray(TArchive& archive, std::array<TValue, ArraySize>& cont)
 	{
-		Detail::SerializeContainer(archive, cont);
+		Detail::SerializeFixedSizeArray(archive, std::begin(cont), std::end(cont));
 	}
 }

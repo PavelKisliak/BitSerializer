@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "test_helpers/common_test_methods.h"
@@ -49,6 +49,11 @@ TEST(STD_Containers, SerializeVectorOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::vector<int>>();
 }
 
+TEST(STD_Containers, SerializeVectorWhenTargetContainerIsNotEmpty) {
+	TestLoadToNotEmptyContainer<ArchiveStub, std::vector<float>>(1);
+	TestLoadToNotEmptyContainer<ArchiveStub, std::vector<float>>(10);
+}
+
 TEST(STD_Containers, SerializeVectorOfVectors) {
 	TestSerializeStlContainer<ArchiveStub, std::vector<std::vector<int>>>();
 }
@@ -58,11 +63,16 @@ TEST(STD_Containers, SerializeVectorAsClassMember) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
 
-TEST(STD_Containers, SerializeVectorOBooleans) {
+TEST(STD_Containers, SerializeVectorOfBooleans) {
 	TestSerializeStlContainer<ArchiveStub, std::vector<bool>>();
 }
 
-TEST(STD_Containers, SerializeVectorOBooleansAsClassMember) {
+TEST(STD_Containers, SerializeVectorOfBooleansWhenTargetContainerIsNotEmpty) {
+	TestLoadToNotEmptyContainer<ArchiveStub, std::vector<bool>>(1);
+	TestLoadToNotEmptyContainer<ArchiveStub, std::vector<bool>>(10);
+}
+
+TEST(STD_Containers, SerializeVectorOfBooleansAsClassMember) {
 	using test_type = std::vector<bool>;
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
@@ -71,7 +81,12 @@ TEST(STD_Containers, SerializeVectorOBooleansAsClassMember) {
 // Tests of serialization for std::deque
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeDequeOfFloats) {
-	TestSerializeStlContainer<ArchiveStub, std::deque<float>>();
+	TestSerializeStlContainer<ArchiveStub, std::deque<int>>();
+}
+
+TEST(STD_Containers, SerializeDequeWhenTargetContainerIsNotEmpty) {
+	TestLoadToNotEmptyContainer<ArchiveStub, std::deque<float>>(1);
+	TestLoadToNotEmptyContainer<ArchiveStub, std::deque<float>>(10);
 }
 
 TEST(STD_Containers, SerializeDequeOfDeques) {
@@ -97,6 +112,11 @@ TEST(STD_Containers, SerializeListOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::list<int>>();
 }
 
+TEST(STD_Containers, SerializeListWhenTargetContainerIsNotEmpty) {
+	TestLoadToNotEmptyContainer<ArchiveStub, std::list<float>>(1);
+	TestLoadToNotEmptyContainer<ArchiveStub, std::list<float>>(10);
+}
+
 TEST(STD_Containers, SerializeListOfLists) {
 	TestSerializeStlContainer<ArchiveStub, std::list<std::list<int>>>();
 }
@@ -111,6 +131,11 @@ TEST(STD_Containers, SerializeListAsClassMember) {
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeForwardListOfInts) {
 	TestSerializeStlContainer<ArchiveStub, std::forward_list<int>>();
+}
+
+TEST(STD_Containers, SerializeForwardListWhenTargetContainerIsNotEmpty) {
+	TestLoadToNotEmptyContainer<ArchiveStub, std::forward_list<float>>(1);
+	TestLoadToNotEmptyContainer<ArchiveStub, std::forward_list<float>>(10);
 }
 
 TEST(STD_Containers, SerializeForwardListOfForwardLists) {

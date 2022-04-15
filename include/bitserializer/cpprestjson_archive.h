@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -150,8 +150,21 @@ public:
 		assert(mNode->is_array());
 	}
 
-	[[nodiscard]] size_t GetSize() const {
+	/// <summary>
+	/// Returns the estimated number of items to load (for reserving the size of containers).
+	/// </summary>
+	[[nodiscard]] size_t GetEstimatedSize() const {
 		return mNode->size();
+	}
+
+	/// <summary>
+	/// Returns `true` when all no more values to load.
+	/// </summary>
+	[[nodiscard]]
+	bool IsEnd() const
+	{
+		static_assert(TMode == SerializeMode::Load);
+		return mIndex == mSize;
 	}
 
 	/// <summary>
@@ -167,11 +180,10 @@ public:
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			if (mIndex < mSize) {
-				return LoadFundamentalValue((*mNode)[mIndex++], value);
-			}
+			return LoadFundamentalValue(LoadNextItem(), value);
 		}
-		else {
+		else
+		{
 			if constexpr (std::is_arithmetic_v<T>) {
 				SaveJsonValue(web::json::value(value));
 			}
@@ -180,16 +192,13 @@ public:
 			}
 			return true;
 		}
-		return false;
 	}
 
 	template <typename TSym, typename TAllocator>
 	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			if (mIndex < mSize) {
-				return LoadString((*mNode)[mIndex++], value);
-			}
+			return LoadString(LoadNextItem(), value);
 		}
 		else
 		{
@@ -199,18 +208,15 @@ public:
 				SaveJsonValue(web::json::value(Convert::To<utility::string_t>(value)));
 			return true;
 		}
-		return false;
 	}
 
 	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mIndex < mSize)
-			{
-				auto& jsonValue = (*mNode)[mIndex++];
-				if (jsonValue.is_object())
-					return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this);
+			auto& jsonValue = LoadNextItem();
+			if (jsonValue.is_object()) {
+				return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this);
 			}
 			return std::nullopt;
 		}
@@ -225,10 +231,9 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (mIndex < mSize) {
-				auto& jsonValue = (*mNode)[mIndex++];
-				if (jsonValue.is_array())
-					return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);
+			auto& jsonValue = LoadNextItem();
+			if (jsonValue.is_array()) {
+				return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);
 			}
 			return std::nullopt;
 		}
@@ -240,9 +245,18 @@ public:
 	}
 
 protected:
+	web::json::value& LoadNextItem()
+	{
+		static_assert(TMode == SerializeMode::Load);
+		if (mIndex < mSize) {
+			return (*mNode)[mIndex++];
+		}
+		throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
+	}
+
 	web::json::value& SaveJsonValue(web::json::value&& jsonValue)
 	{
-		assert(mIndex < GetSize());
+		assert(mIndex < GetEstimatedSize());
 		return (*mNode)[mIndex++] = std::move(jsonValue);
 	}
 

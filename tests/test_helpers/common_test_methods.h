@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -185,6 +185,26 @@ void TestSerializeStlContainer()
 	TContainer expected{};
 	::BuildFixture(expected);
 	TContainer actual{};
+
+	// Act
+	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);
+	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
+
+	// Assert
+	EXPECT_EQ(expected, actual);
+}
+
+/// <summary>
+/// Template for test loading to not empty container.
+/// </summary>
+template <typename TArchive, typename TContainer>
+void TestLoadToNotEmptyContainer(size_t targetContainerSize)
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive;
+	TContainer expected{};
+	::BuildFixture(expected);
+	TContainer actual(targetContainerSize);
 
 	// Act
 	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,8 +7,8 @@
 #include <string>
 #include "bitserializer/convert.h"
 
-namespace BitSerializer {
-
+namespace BitSerializer
+{
 	/// <summary>
 	/// Serialization error code
 	/// </summary>
@@ -16,14 +16,16 @@ namespace BitSerializer {
 	{
 		ParsingError,
 		InputOutputError,
-		UnsupportedEncoding
+		UnsupportedEncoding,
+		OutOfRange
 	};
 
 	REGISTER_ENUM_MAP(SerializationErrorCode)
 	{
 		{ SerializationErrorCode::ParsingError, "Parsing error" },
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },
-		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" }
+		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" },
+		{ SerializationErrorCode::OutOfRange, "Out of range" }
 	}
 	END_ENUM_MAP()
 

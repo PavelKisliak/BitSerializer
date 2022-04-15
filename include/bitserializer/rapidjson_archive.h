@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -168,10 +168,19 @@ public:
 	}
 
 	/// <summary>
-	/// Returns the size of stored elements.
+	/// Returns the estimated number of items to load (for reserving the size of containers).
 	/// </summary>
-	[[nodiscard]] size_t GetSize() const {
+	[[nodiscard]] size_t GetEstimatedSize() const {
 		return this->mNode->Capacity();
+	}
+
+	/// <summary>
+	/// Returns `true` when all no more values to load.
+	/// </summary>
+	bool IsEnd()
+	{
+		static_assert(TMode == SerializeMode::Load);
+		return mValueIt == this->mNode->GetArray().End();
 	}
 
 	/// <summary>
@@ -194,13 +203,10 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr) {
-				return this->LoadValue(*jsonValue, value);
-			}
-			return false;
+			return this->LoadValue(LoadNextItem(), value);
 		}
-		else {
+		else
+		{
 			SaveJsonValue(value);
 			return true;
 		}
@@ -209,14 +215,12 @@ public:
 	template <typename TSym, typename TStrAllocator>
 	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
-		if constexpr (TMode == SerializeMode::Load) {
-			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr) {
-				return this->LoadValue(*jsonValue, value);
-			}
-			return false;
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			return this->LoadValue(LoadNextItem(), value);
 		}
-		else {
+		else 
+		{
 			SaveJsonValue(RapidJsonScopeBase<TEncoding>::MakeRapidJsonNodeFromString(value, mAllocator));
 			return true;
 		}
@@ -226,9 +230,10 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr && jsonValue->IsObject())
-				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this);
+			auto& jsonValue = LoadNextItem();
+			if (jsonValue.IsObject()) {
+				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this);
+			}
 			return std::nullopt;
 		}
 		else
@@ -243,9 +248,10 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = NextElement();
-			if (jsonValue != nullptr && jsonValue->IsArray())
-				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this);
+			auto& jsonValue = LoadNextItem();
+			if (jsonValue.IsArray()) {
+				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this);
+			}
 			return std::nullopt;
 		}
 		else
@@ -259,13 +265,16 @@ public:
 	}
 
 protected:
-	RapidJsonNode* NextElement()
+	RapidJsonNode& LoadNextItem()
 	{
-		if (mValueIt == this->mNode->End())
-			return nullptr;
-		auto& jsonValue = *mValueIt;
-		++mValueIt;
-		return &jsonValue;
+		static_assert(TMode == SerializeMode::Load);
+		if (mValueIt != this->mNode->End())
+		{
+			auto& jsonValue = *mValueIt;
+			++mValueIt;
+			return jsonValue;
+		}
+		throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
 	}
 
 	template <typename T>
@@ -338,7 +347,7 @@ public:
 		, mAllocator(allocator)
 	{
 		assert(this->mNode->IsObject());
-	};
+	}
 
 	[[nodiscard]] key_const_iterator<TEncoding> cbegin() const {
 		return key_const_iterator<TEncoding>(this->mNode->GetObject().begin());

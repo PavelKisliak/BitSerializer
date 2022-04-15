@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -57,13 +57,6 @@ TEST(SerializationObjectTraits, ShouldCheckThatArrayHasExtSerializeMethod) {
 	const bool testResult1 = has_global_serialize_array_v<TestExtSerializableArray>;
 	EXPECT_TRUE(testResult1);
 	const bool testResult2 = has_global_serialize_array_v<TestNotSerializableClass>;
-	EXPECT_FALSE(testResult2);
-}
-
-TEST(SerializationObjectTraits, ShouldCheckThatContainerHasResizeMethod) {
-	const bool testResult1 = is_resizeable_cont_v<std::vector<int>>;
-	EXPECT_TRUE(testResult1);
-	const bool testResult2 = is_resizeable_cont_v<std::array<int, 5>>;
 	EXPECT_FALSE(testResult2);
 }
 

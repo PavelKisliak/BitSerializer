@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -27,14 +27,15 @@ namespace BitSerializer
 		using TMultiMap = std::multimap<TMapKey, TValue, TComparer, TAllocator>;
 		if constexpr (TArchive::IsLoading())
 		{
-			auto loadSize = archive.GetSize();
 			cont.clear();
 			auto hint = cont.begin();
-			for (size_t c = 0; c < loadSize; c++)
+			for (bool isLoaded = true; isLoaded;)
 			{
 				typename TMultiMap::value_type pair;
-				Serialize(archive, pair);
-				hint = cont.emplace_hint(hint, std::move(pair));
+				if (isLoaded = Serialize(archive, pair); isLoaded)
+				{
+					hint = cont.emplace_hint(hint, std::move(pair));
+				}
 			}
 		}
 		else

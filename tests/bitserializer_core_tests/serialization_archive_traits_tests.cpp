@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -26,6 +26,8 @@ public:
 	std::optional<TestArchive_LoadMode> OpenObjectScope() { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenArrayScope(size_t arraySize) { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenAttributeScope() { return std::nullopt; }
+
+	size_t GetEstimatedSize() const { return 0; }
 };
 
 /// <summary>

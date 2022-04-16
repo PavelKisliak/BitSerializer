@@ -75,6 +75,19 @@ public:
 protected:
 	~ArchiveStubScopeBase() = default;
 
+	/// <summary>
+	/// Returns the size of stored elements (for arrays and objects).
+	/// </summary>
+	[[nodiscard]] size_t GetSize() const {
+		if (std::holds_alternative<TestIoDataObject>(*mNode)) {
+			return std::get<TestIoDataObject>(*mNode).size();
+		}
+		if (std::holds_alternative<TestIoDataArray>(*mNode)) {
+			return std::get<TestIoDataArray>(*mNode).size();
+		}
+		return 0;
+	}
+
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool LoadFundamentalValue(const TestIoData& ioData, T& value)
 	{
@@ -279,7 +292,7 @@ protected:
 		auto& archiveArray = std::get<TestIoDataArray>(*mNode);
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return mIndex < std::get<TestIoDataArray>(*mNode).size()
+			return mIndex < GetSize()
 				? &archiveArray.at(mIndex++)
 				: nullptr;
 		}

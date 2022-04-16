@@ -12,7 +12,7 @@ namespace BitSerializer::Detail
 	template<typename TArchive, typename TContainer>
 	static void SerializeContainer(TArchive& arrayScope, TContainer& cont)
 	{
-		if constexpr (arrayScope.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			// Resize container when is known approximate size
 			if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0)

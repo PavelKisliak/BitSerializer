@@ -23,7 +23,7 @@ namespace BitSerializer
 	template<typename TArchive, typename TAllocator>
 	void SerializeArray(TArchive& archive, std::vector<bool, TAllocator>& cont)
 	{
-		if constexpr (archive.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			// Resize container when is known approximate size
 			if (const auto estimatedSize = archive.GetEstimatedSize(); estimatedSize != 0)

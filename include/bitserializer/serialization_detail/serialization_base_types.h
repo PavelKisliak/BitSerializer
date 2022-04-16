@@ -304,7 +304,7 @@ namespace BitSerializer
 		template<typename TArchive, typename TIterator>
 		void SerializeFixedSizeArray(TArchive& arrayScope, TIterator startIt, TIterator endIt)
 		{
-			if constexpr (arrayScope.IsLoading())
+			if constexpr (TArchive::IsLoading())
 			{
 				auto it = startIt;
 				for (; it != endIt && !arrayScope.IsEnd(); ++it)

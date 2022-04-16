@@ -13,7 +13,7 @@ namespace BitSerializer
 	template<typename TArchive, typename TValue, typename TAllocator>
 	void SerializeArray(TArchive& arrayScope, std::forward_list<TValue, TAllocator>& cont)
 	{
-		if constexpr (arrayScope.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			if (const auto estimatedSize = arrayScope.GetEstimatedSize())
 			{

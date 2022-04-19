@@ -162,37 +162,46 @@ namespace BitSerializer
 				constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
 				static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
 
-				auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
-				if (objectScope) {
-					SerializeObject(*objectScope, value);
+				if constexpr (hasObjectWithKeySupport)
+				{
+					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
+					if (objectScope) {
+						SerializeObject(*objectScope, value);
+					}
+					return objectScope.has_value();
 				}
-				return objectScope.has_value();
 			}
 			else if constexpr (hasGlobalSerializeArray)
 			{
 				constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
 				static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
-				size_t arraySize = 0;
-				if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
-					arraySize = value.size();
+				if constexpr (hasArrayWithKeySupport)
+				{
+					size_t arraySize = 0;
+					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
+						arraySize = value.size();
+					}
+					auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
+					if (arrayScope) {
+						SerializeArray(*arrayScope, value);
+					}
+					return arrayScope.has_value();
 				}
-				auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
-				if (arrayScope) {
-					SerializeArray(*arrayScope, value);
-				}
-				return arrayScope.has_value();
 			}
 			else if constexpr (hasSerializeMethod)
 			{
 				constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
 				static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
 
-				auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
-				if (objectScope) {
-					value.Serialize(*objectScope);
+				if constexpr (hasObjectWithKeySupport)
+				{
+					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
+					if (objectScope) {
+						value.Serialize(*objectScope);
+					}
+					return objectScope.has_value();
 				}
-				return objectScope.has_value();
 			}
 		}
 		return false;
@@ -221,37 +230,46 @@ namespace BitSerializer
 				constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
 				static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize class without key on this level.");
 
-				auto objectScope = archive.OpenObjectScope();
-				if (objectScope) {
-					SerializeObject(*objectScope, value);
+				if constexpr (hasObjectSupport)
+				{
+					auto objectScope = archive.OpenObjectScope();
+					if (objectScope) {
+						SerializeObject(*objectScope, value);
+					}
+					return objectScope.has_value();
 				}
-				return objectScope.has_value();
 			}
 			else if constexpr (hasGlobalSerializeArray)
 			{
 				constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
 				static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 
-				size_t arraySize = 0;
-				if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
-					arraySize = value.size();
+				if constexpr (hasArraySupport)
+				{
+					size_t arraySize = 0;
+					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
+						arraySize = value.size();
+					}
+					auto arrayScope = archive.OpenArrayScope(arraySize);
+					if (arrayScope) {
+						SerializeArray(*arrayScope, value);
+					}
+					return arrayScope.has_value();
 				}
-				auto arrayScope = archive.OpenArrayScope(arraySize);
-				if (arrayScope) {
-					SerializeArray(*arrayScope, value);
-				}
-				return arrayScope.has_value();
 			}
 			else if constexpr (hasSerializeMethod)
 			{
 				constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
 				static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize class without key on this level.");
 
-				auto objectScope = archive.OpenObjectScope();
-				if (objectScope) {
-					value.Serialize(*objectScope);
+				if constexpr (hasObjectSupport)
+				{
+					auto objectScope = archive.OpenObjectScope();
+					if (objectScope) {
+						value.Serialize(*objectScope);
+					}
+					return objectScope.has_value();
 				}
-				return objectScope.has_value();
 			}
 		}
 		return false;

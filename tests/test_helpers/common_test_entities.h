@@ -338,35 +338,29 @@ class TestClassForCheckValidation
 public:
 	static void BuildFixture(TestClassForCheckValidation<TestType>& fixture)
 	{
-		::BuildFixture(fixture.mExistSingleField);
-		::BuildFixture(fixture.mExistArrayField);
+		::BuildFixture(fixture.mExistField);
 	}
 
 	void Assert() const
 	{
-		EXPECT_EQ(2, BitSerializer::Context.GetValidationErrors().size());
+		EXPECT_EQ(1, BitSerializer::Context.GetValidationErrors().size());
 	}
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeAutoKeyValue(L"ExistSingleField", mExistSingleField, BitSerializer::Required());
-		archive << BitSerializer::MakeAutoKeyValue(L"ExistArrayField", mExistArrayField, BitSerializer::Required());
+		archive << BitSerializer::MakeAutoKeyValue("ExistField", mExistField, BitSerializer::Required());
 
-		// Trying to load not exist fields
+		// Trying to load not existing field
 		if (archive.IsLoading())
 		{
-			TestType notExistSingleField{};
-			TestType notExistArrayField[3];
-
-			archive << BitSerializer::MakeAutoKeyValue(L"NotExistSingleField", notExistSingleField, BitSerializer::Required());
-			archive << BitSerializer::MakeAutoKeyValue(L"NotExistArrayField", notExistArrayField, BitSerializer::Required());
+			TestType notExistField{};
+			archive << BitSerializer::MakeAutoKeyValue(L"NotExistingField", notExistField, BitSerializer::Required());
 		}
 	}
 
 private:
-	TestType mExistSingleField;
-	TestType mExistArrayField[3];
+	TestType mExistField;
 };
 
 template <typename TestType>

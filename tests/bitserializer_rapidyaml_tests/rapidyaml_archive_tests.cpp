@@ -155,6 +155,7 @@ TEST(RapidYamlArchive, ShouldCollectErrorsAboutRequiredNamedValues)
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<int[3]>>();
 }
 
 TEST(RapidYamlArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)

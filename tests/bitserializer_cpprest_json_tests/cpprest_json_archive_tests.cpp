@@ -179,6 +179,7 @@ TEST(JsonRestCpp, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int[3]>>();
 }
 
 TEST(JsonRestCpp, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)

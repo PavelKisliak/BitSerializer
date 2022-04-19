@@ -141,6 +141,7 @@ TEST(PugiXmlArchive, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<double>>();
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<std::string>>();
 	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<int[3]>>();
 }
 
 TEST(PugiXmlArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)

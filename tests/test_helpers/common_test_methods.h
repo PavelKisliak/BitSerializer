@@ -259,7 +259,8 @@ template <typename TArchive, class T>
 void TestValidationForNamedValues()
 {
 	// Arrange
-	T testObj = BuildFixture<T>();
+	T testObj[1];
+	BuildFixture(testObj);
 	typename TArchive::preferred_output_format outputArchive;
 
 	// Act
@@ -271,7 +272,7 @@ void TestValidationForNamedValues()
 	// Assert
 	ASSERT_TRUE(saveResult);
 	ASSERT_FALSE(loadResult);
-	testObj.Assert();
+	testObj[0].Assert();
 }
 
 /// <summary>
@@ -281,20 +282,21 @@ template <typename TArchive, class TSourceType, class TTargetType>
 void TestValidationForNotCompatibleTypes()
 {
 	// Arrange
-	TSourceType sourceObj = BuildFixture<TSourceType>();
+	TSourceType sourceObj[1];
+	BuildFixture(sourceObj);
 	typename TArchive::preferred_output_format outputArchive;
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
 	const bool saveResult = BitSerializer::Context.IsValid();
-	TTargetType targetObj{};
+	TTargetType targetObj[1];
 	BitSerializer::LoadObject<TArchive>(targetObj, outputArchive);
 	const bool loadResult = BitSerializer::Context.IsValid();
 
 	// Assert
 	ASSERT_TRUE(saveResult);
 	ASSERT_FALSE(loadResult);
-	targetObj.Assert();
+	targetObj[0].Assert();
 }
 
 /// <summary>

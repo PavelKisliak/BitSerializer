@@ -34,6 +34,9 @@ message(STATUS "[Option] BUILD_PUGIXML_ARCHIVE: ${BUILD_PUGIXML_ARCHIVE}")
 option(BUILD_RAPIDYAML_ARCHIVE "Build RapidYAML archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 
+option(BUILD_RAPIDYAML_ARCHIVE "Build CSV archive" OFF)
+message(STATUS "[Option] BUILD_CSV_ARCHIVE: ${BUILD_CSV_ARCHIVE}")
+
 option(BUILD_TESTS "Build tests" OFF)
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 
@@ -59,6 +62,10 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wall -Wextra -pedantic
         -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-maybe-uninitialized)
 endif()
+
+include_directories(
+  "${CMAKE_CURRENT_LIST_DIR}/include"
+)
 
 #################################################################################
 # Targets configuration
@@ -137,6 +144,18 @@ if(BUILD_RAPIDYAML_ARCHIVE)
     )
 endif()
 
+# BitSerializer CSV archive
+if(BUILD_CSV_ARCHIVE)
+    set(CSV_ARCHIVE_NAME "csv-archive")
+    add_library(${CSV_ARCHIVE_NAME} STATIC "src/csv_archive.cpp")
+    add_library(${BITSERIALIZER_NAMESPACE}::${CSV_ARCHIVE_NAME} ALIAS ${CSV_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${CSV_ARCHIVE_NAME})
+
+    target_link_libraries(${CSV_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    )
+endif()
+
 
 #################################################################################
 # Tests (optional)
@@ -152,7 +171,7 @@ endif()
 # Samples (optional)
 #################################################################################
 if(BUILD_SAMPLES)
-    if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE)
+    if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_CSV_ARCHIVE)
        add_subdirectory(samples)
     else()
        message(WARNING "Disable build samples in connection with disabled build archives")
@@ -189,25 +208,31 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         DESTINATION ${INSTALL_CONFIGDIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE)
 
 if(BUILD_CPPRESTJSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/cpprestjson_archive.h
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidjson_archive.h
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_PUGIXML_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/pugixml_archive.h
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_RAPIDYAML_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidyaml_archive.h
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+endif()
+
+if(BUILD_CSV_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/csv_archive.h
+            LIBRARY ${CMAKE_INSTALL_LIBDIR}/bitserializer
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()

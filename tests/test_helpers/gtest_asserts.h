@@ -53,3 +53,12 @@ void GTestExpectEq(const std::optional<TValue>& expected, const std::optional<TV
 		GTestExpectEq(expected.value(), actual.value());
 	}
 }
+
+template<typename TValue, size_t ArraySize>
+void GTestExpectEq(TValue(&expected)[ArraySize], TValue(&actual)[ArraySize])
+{
+	for (int i = 0; i < ArraySize; ++i)
+	{
+		GTestExpectEq(expected[i], actual[i]);
+	}
+}

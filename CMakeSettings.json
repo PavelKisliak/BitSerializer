@@ -37,6 +37,10 @@
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
           "value": "ON"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "ON"
         }
       ]
     },
@@ -76,6 +80,10 @@
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
           "value": "ON"
         }
       ]
@@ -117,6 +125,10 @@
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
           "value": "ON"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "ON"
         }
       ]
     },
@@ -156,6 +168,10 @@
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
           "value": "ON"
         }
       ]

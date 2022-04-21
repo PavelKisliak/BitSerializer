@@ -23,4 +23,8 @@ if(BUILD_RAPIDYAML_ARCHIVE)
     add_subdirectory(serialize_map_to_yaml)
 endif()
 
+if(BUILD_CSV_ARCHIVE)
+    add_subdirectory(serialize_to_csv)
+endif()
+
 add_subdirectory(string_conversions)

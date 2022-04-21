@@ -156,6 +156,30 @@ void TestSerializeClassToStream(T&& value)
 }
 
 /// <summary>
+/// Test template of serialization for array with using streams.
+/// </summary>
+template <typename TArchive, typename TStreamElem, typename T, size_t ArraySize = 7>
+void TestSerializeArrayToStream()
+{
+	// Arrange
+	T testArray[ArraySize];
+	BuildFixture(testArray);
+	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
+	string_stream_type outputStream;
+	T actual[ArraySize];
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(testArray, outputStream);
+	BitSerializer::LoadObject<TArchive>(actual, outputStream);
+
+	// Assert
+	for (size_t i = 0; i < ArraySize; i++)
+	{
+		testArray[i].Assert(actual[i]);
+	}
+}
+
+/// <summary>
 /// Test template of serialization to file.
 /// </summary>
 /// <param name="value">The value.</param>

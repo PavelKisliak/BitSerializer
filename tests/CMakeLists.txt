@@ -23,8 +23,12 @@ if(BUILD_RAPIDYAML_ARCHIVE)
     add_subdirectory(bitserializer_rapidyaml_tests)
 endif()
 
+if(BUILD_CSV_ARCHIVE)
+    add_subdirectory(bitserializer_csv_tests)
+endif()
 
-if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE)
+
+if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE AND BUILD_CSV_ARCHIVE)
    add_subdirectory(performance_tests)
 else()
    message(WARNING "Disable build performance tests in connection with disabled build archives")

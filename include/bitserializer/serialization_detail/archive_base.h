@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -25,14 +25,16 @@ enum class ArchiveType
 {
 	Json,
 	Xml,
-	Yaml
+	Yaml,
+	Csv
 };
 
 REGISTER_ENUM_MAP(ArchiveType)
 {
 	{ ArchiveType::Json, "Json" },
 	{ ArchiveType::Xml, "Xml" },
-	{ ArchiveType::Yaml, "Yaml" }
+	{ ArchiveType::Yaml, "Yaml" },
+	{ ArchiveType::Csv, "Csv" }
 }
 END_ENUM_MAP()
 

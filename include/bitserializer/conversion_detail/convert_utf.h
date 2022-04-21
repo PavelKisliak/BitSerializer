@@ -542,6 +542,7 @@ namespace BitSerializer::Convert
 		std::string buffer(readChunkSize, 0);
 		const auto origPos = inputStream.tellg();
 		inputStream.read(buffer.data(), readChunkSize);
+		const size_t actualBytesCount = inputStream.gcount();
 
 		// Return UTF-8 when BOM does not exist
 		UtfType detectedUtf = UtfType::Utf8;
@@ -575,7 +576,7 @@ namespace BitSerializer::Convert
 		// Get back to stream position
 		if (skipBomWhenFound)
 		{
-			if (readChunkSize != detectedBomSize) {
+			if (actualBytesCount != detectedBomSize) {
 				inputStream.seekg(origPos + std::streamoff(detectedBomSize));
 			}
 		}

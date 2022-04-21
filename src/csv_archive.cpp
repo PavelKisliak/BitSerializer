@@ -241,6 +241,11 @@ namespace BitSerializer::Csv::Detail
 		, mSeparator(separator)
 		, mChunkSize(chunkSize)
 	{
+		const auto utfType = Convert::DetectEncoding(inputStream);
+		if (utfType != Convert::UtfType::Utf8) {
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
+		}
+
 		ReadNextChunk();
 
 		if (withHeader)
@@ -506,11 +511,25 @@ namespace BitSerializer::Csv::Detail
 
 	//------------------------------------------------------------------------------
 
-	CCsvStreamWriter::CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator)
+	CCsvStreamWriter::CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator, const StreamOptions& streamOptions)
 		: mOutputStream(outputStream)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
-	{ }
+		, mStreamOptions(streamOptions)
+	{
+		if (mStreamOptions.encoding != Convert::UtfType::Utf8)
+		{
+			const auto strEncodingType = Convert::TryTo<std::string>(streamOptions.encoding);
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding,
+				"The archive does not support encoding: " +
+				(strEncodingType.has_value() ? strEncodingType.value() : std::to_string(static_cast<int>(streamOptions.encoding))));
+		}
+
+		if (mStreamOptions.writeBom)
+		{
+			mOutputStream.write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
+		}
+	}
 
 	void CCsvStreamWriter::WriteValue(std::string_view key, const std::string& value)
 	{

@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
   csv_reader_tests.cpp
   csv_writer_fixture.h
   csv_writer_tests.cpp
+  csv_archive_fixture.h
   csv_archive_tests.cpp
 )
 

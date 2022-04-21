@@ -195,9 +195,8 @@ TEST(RapidYamlArchive, SaveToUtf8StreamWithBom) {
 	TestSaveYamlToEncodedStream<YamlArchive, BitSerializer::Convert::Utf8>(true);
 }
 
-TEST(RapidYamlArchive, SerializeClassToFile) {
-	TestSerializeClassToFile<YamlArchive>(BuildFixture<TestPointClass>());
-	TestSerializeClassToFile<YamlArchive>(BuildFixture<TestPointClass>());
+TEST(RapidYamlArchive, SerializeToFile) {
+	TestSerializeArrayToFile<YamlArchive>();
 }
 
 //-----------------------------------------------------------------------------

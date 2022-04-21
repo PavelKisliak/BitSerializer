@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "../test_helpers/common_test_methods.h"
-#include "bitserializer/csv_archive.h"
+#include "csv_archive_fixture.h"
 
 using namespace BitSerializer;
 using BitSerializer::Csv::CsvArchive;
@@ -12,7 +12,7 @@ using BitSerializer::Csv::CsvArchive;
 //-----------------------------------------------------------------------------
 // Tests of serialization for c-arrays (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(CsvArchive, SerializeArrayOfClasses)
+TEST_F(CsvArchiveTests, SerializeArrayOfClasses)
 {
 	TestSerializeArray<CsvArchive, TestPointClass>();
 }
@@ -20,7 +20,7 @@ TEST(CsvArchive, SerializeArrayOfClasses)
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------
-TEST(CsvArchive, ShouldReturnPathInArrayScopeWhenLoading)
+TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenLoading)
 {
 	// Arrange
 	TestPointClass testList[3];
@@ -46,7 +46,7 @@ TEST(CsvArchive, ShouldReturnPathInArrayScopeWhenLoading)
 	}
 }
 
-TEST(CsvArchive, ShouldReturnPathInArrayScopeWhenSaving)
+TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 {
 	// Arrange
 	TestPointClass testList[3];
@@ -71,12 +71,12 @@ TEST(CsvArchive, ShouldReturnPathInArrayScopeWhenSaving)
 //-----------------------------------------------------------------------------
 // Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
 //-----------------------------------------------------------------------------
-TEST(CsvArchive, ShouldCollectErrorsAboutRequiredNamedValues)
+TEST_F(CsvArchiveTests, ShouldCollectErrorsAboutRequiredNamedValues)
 {
 	TestValidationForNamedValues<CsvArchive, TestClassForCheckValidation<int>>();
 }
 
-TEST(CsvArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
+TEST_F(CsvArchiveTests, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
 {
 	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
 	TestValidationForNotCompatibleTypes<CsvArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
@@ -85,103 +85,105 @@ TEST(CsvArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST(CsvArchive, SerializeArrayToStream) {
+TEST_F(CsvArchiveTests, SerializeArrayToStream) {
 	TestSerializeArrayToStream<CsvArchive, char, TestPointClass>();
 }
 
-//TEST(CsvArchive, SerializeUnicodeToEncodedStream) {
+//TEST_F(CsvArchiveTests, SerializeUnicodeToEncodedStream) {
 //	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 //	TestSerializeClassToStream<CsvArchive, char>(TestValue);
 //}
-//
-//TEST(CsvArchive, LoadFromUtf8Stream) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf8>(false);
+
+TEST_F(CsvArchiveTests, LoadFromUtf8Stream) {
+	TestLoadCsvFromEncodedStream<Convert::Utf8>(false);
+}
+TEST_F(CsvArchiveTests, LoadFromUtf8StreamWithBom) {
+	TestLoadCsvFromEncodedStream<Convert::Utf8>(true);
+}
+//TEST_F(CsvArchiveTests, LoadFromUtf16LeStream) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(false);
 //}
-//TEST(CsvArchive, LoadFromUtf8StreamWithBom) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf8>(true);
-//}
-//
-//TEST(CsvArchive, LoadFromUtf16LeStream) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(false);
-//}
-//TEST(CsvArchive, LoadFromUtf16LeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(true);
-//}
-//
-//TEST(CsvArchive, LoadFromUtf16BeStream) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(false);
-//}
-//TEST(CsvArchive, LoadFromUtf16BeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(true);
+//TEST_F(CsvArchiveTests, LoadFromUtf16LeStreamWithBom) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(true);
 //}
 //
-//TEST(CsvArchive, LoadFromUtf32LeStream) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(false);
+//TEST_F(CsvArchiveTests, LoadFromUtf16BeStream) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(false);
 //}
-//TEST(CsvArchive, LoadFromUtf32LeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(true);
-//}
-//
-//TEST(CsvArchive, LoadFromUtf32BeStream) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(false);
-//}
-//TEST(CsvArchive, LoadFromUtf32BeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(true);
+//TEST_F(CsvArchiveTests, LoadFromUtf16BeStreamWithBom) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(true);
 //}
 //
-//TEST(CsvArchive, SaveToUtf8Stream) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf8>(false);
+//TEST_F(CsvArchiveTests, LoadFromUtf32LeStream) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(false);
 //}
-//TEST(CsvArchive, SaveToUtf8StreamWithBom) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf8>(true);
-//}
-//
-//TEST(CsvArchive, SaveToUtf16LeStream) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(false);
-//}
-//TEST(CsvArchive, SaveToUtf16LeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(true);
+//TEST_F(CsvArchiveTests, LoadFromUtf32LeStreamWithBom) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(true);
 //}
 //
-//TEST(CsvArchive, SaveToUtf16BeStream) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(false);
+//TEST_F(CsvArchiveTests, LoadFromUtf32BeStream) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(false);
 //}
-//TEST(CsvArchive, SaveToUtf16BeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(true);
+//TEST_F(CsvArchiveTests, LoadFromUtf32BeStreamWithBom) {
+//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(true);
 //}
-//
-//TEST(CsvArchive, SaveToUtf32LeStream) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(false);
+
+TEST_F(CsvArchiveTests, SaveToUtf8Stream) {
+	TestSaveCsvToEncodedStream<Convert::Utf8>(false);
+}
+TEST_F(CsvArchiveTests, SaveToUtf8StreamWithBom) {
+	TestSaveCsvToEncodedStream<Convert::Utf8>(true);
+}
+
+//TEST_F(CsvArchiveTests, SaveToUtf16LeStream) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(false);
 //}
-//TEST(CsvArchive, SaveToUtf32LeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(true);
-//}
-//
-//TEST(CsvArchive, SaveToUtf32BeStream) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(false);
-//}
-//TEST(CsvArchive, SaveToUtf32BeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(true);
-//}
-//
-//TEST(CsvArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
-//{
-//	BitSerializer::SerializationOptions serializationOptions;
-//	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::UtfType>(-1);
-//	std::stringstream outputStream;
-//	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
-//	EXPECT_THROW(BitSerializer::SaveObject<CsvArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
+//TEST_F(CsvArchiveTests, SaveToUtf16LeStreamWithBom) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(true);
 //}
 //
-//TEST(CsvArchive, SerializeClassToFile) {
-//	TestSerializeClassToFile<CsvArchive>(BuildFixture<TestPointClass>());
-//	TestSerializeClassToFile<CsvArchive>(BuildFixture<TestPointClass>());
+//TEST_F(CsvArchiveTests, SaveToUtf16BeStream) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(false);
 //}
+//TEST_F(CsvArchiveTests, SaveToUtf16BeStreamWithBom) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(true);
+//}
+//
+//TEST_F(CsvArchiveTests, SaveToUtf32LeStream) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(false);
+//}
+//TEST_F(CsvArchiveTests, SaveToUtf32LeStreamWithBom) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(true);
+//}
+//
+//TEST_F(CsvArchiveTests, SaveToUtf32BeStream) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(false);
+//}
+//TEST_F(CsvArchiveTests, SaveToUtf32BeStreamWithBom) {
+//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(true);
+//}
+
+TEST_F(CsvArchiveTests, ThrowExceptionWhenUnsupportedStreamEncoding)
+{
+	// Arrange
+	SerializationOptions serializationOptions;
+	serializationOptions.streamOptions.encoding = static_cast<Convert::UtfType>(-1);
+	std::stringstream outputStream;
+	TestPointClass testArray[1];
+	BuildFixture(testArray);
+
+	// Act / Assert
+	EXPECT_THROW(BitSerializer::SaveObject<CsvArchive>(testArray, outputStream, serializationOptions), BitSerializer::SerializationException);
+}
+
+TEST_F(CsvArchiveTests, SerializeToFile) {
+	TestSerializeArrayToFile<CsvArchive>();
+}
 
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------
-TEST(CsvArchive, ThrowExceptionWhenBadSyntaxInSource)
+TEST_F(CsvArchiveTests, ThrowExceptionWhenBadSyntaxInSource)
 {
 	TestPointClass testList[1];
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x,y\n10"), BitSerializer::SerializationException);

@@ -253,8 +253,8 @@ TEST(PugiXmlArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 	EXPECT_THROW(BitSerializer::SaveObject<XmlArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
 }
 
-TEST(PugiXmlArchive, SerializeClassToFile) {
-	TestSerializeClassToFile<XmlArchive>(BuildFixture<TestPointClass>());
+TEST(PugiXmlArchive, SerializeToFile) {
+	TestSerializeArrayToFile<XmlArchive>();
 }
 
 //-----------------------------------------------------------------------------

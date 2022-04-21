@@ -158,7 +158,7 @@ void TestSerializeClassToStream(T&& value)
 /// <summary>
 /// Test template of serialization for array with using streams.
 /// </summary>
-template <typename TArchive, typename TStreamElem, typename T, size_t ArraySize = 7>
+template <typename TArchive, typename TStreamElem, typename T, size_t ArraySize = 3>
 void TestSerializeArrayToStream()
 {
 	// Arrange
@@ -170,6 +170,7 @@ void TestSerializeArrayToStream()
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputStream);
+	std::string str = outputStream.str();
 	BitSerializer::LoadObject<TArchive>(actual, outputStream);
 
 	// Assert
@@ -182,20 +183,23 @@ void TestSerializeArrayToStream()
 /// <summary>
 /// Test template of serialization to file.
 /// </summary>
-/// <param name="value">The value.</param>
-template <typename TArchive, typename T>
-void TestSerializeClassToFile(T&& value)
+template <typename TArchive, size_t ArraySize = 3>
+void TestSerializeArrayToFile()
 {
 	// Arrange
 	auto path = std::filesystem::temp_directory_path() / "TestArchive.data";
-	std::decay_t<T> actual;
+	TestPointClass testArray[ArraySize], actual[ArraySize];
+	BuildFixture(testArray);
 
 	// Act
-	BitSerializer::SaveObjectToFile<TArchive>(value, path);
+	BitSerializer::SaveObjectToFile<TArchive>(testArray, path);
 	BitSerializer::LoadObjectFromFile<TArchive>(actual, path);
 
 	// Assert
-	value.Assert(actual);
+	for (size_t i = 0; i < ArraySize; i++)
+	{
+		testArray[i].Assert(actual[i]);
+	}
 }
 
 /// <summary>

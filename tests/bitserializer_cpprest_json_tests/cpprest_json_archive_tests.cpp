@@ -221,8 +221,8 @@ TEST(JsonRestCpp, SaveToUtf8StreamWithBom) {
 	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
 }
 
-TEST(JsonRestCpp, SerializeClassToFile) {
-	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
+TEST(JsonRestCpp, SerializeToFile) {
+	TestSerializeArrayToFile<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

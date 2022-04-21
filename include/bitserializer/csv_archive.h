@@ -83,7 +83,7 @@ private:
 class CCsvStreamWriter final : public ICsvWriter
 {
 public:
-	CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator = ',');
+	CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator = ',', const StreamOptions& streamOptions = {});
 
 	void SetEstimatedSize(size_t size) override { /* Not required for stream */ }
 	void WriteValue(std::string_view key, const std::string& value) override;
@@ -94,6 +94,7 @@ private:
 	std::ostream& mOutputStream;
 	const bool mWithHeader;
 	const char mSeparator;
+	const StreamOptions mStreamOptions;
 
 	std::string mCsvHeader;
 	std::string mCurrentRow;
@@ -199,7 +200,7 @@ public:
 	{ }
 
 	CsvWriteRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-		: mCsvWriter(CCsvStreamWriter(outputStream, true))
+		: mCsvWriter(CCsvStreamWriter(outputStream, true, ',', serializationOptions.streamOptions))
 		, mSerializationOptions(serializationOptions)
 	{ }
 

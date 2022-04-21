@@ -325,9 +325,8 @@ TEST(RapidJsonArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 	EXPECT_THROW(BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
 }
 
-TEST(RapidJsonArchive, SerializeClassToFile) {
-	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
-	TestSerializeClassToFile<JsonArchive>(BuildFixture<TestPointClass>());
+TEST(RapidJsonArchive, SerializeToFile) {
+	TestSerializeArrayToFile<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

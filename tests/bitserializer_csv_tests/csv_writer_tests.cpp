@@ -62,14 +62,14 @@ TYPED_TEST(CsvWriterTest, ShouldWriteWithCustomSeparator)
 TYPED_TEST(CsvWriterTest, ShouldWriteWithEscapingSeparator)
 {
 	// Arrange
-	this->PrepareCsvReader(true, ';');
+	this->PrepareCsvReader(true, ',');
 
 	// Act
-	this->mCsvWriter->WriteValue("Name;1", "1;2;3");
+	this->mCsvWriter->WriteValue("Name,1", "1,2,3");
 	this->mCsvWriter->NextLine();
 
 	// Assert
-	const std::string expectedCsv = "\"Name;1\"\r\n\"1;2;3\"\r\n";
+	const std::string expectedCsv = "\"Name,1\"\r\n\"1,2,3\"\r\n";
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
@@ -148,4 +148,20 @@ TYPED_TEST(CsvWriterTest, ShouldThrowExceptionWhenMismatchNumberOfValuesInRows)
 	this->mCsvWriter->NextLine();
 	this->mCsvWriter->WriteValue("Name1", "Value1");
 	EXPECT_THROW(this->mCsvWriter->WriteValue("Name2", "Value2"), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(CsvWriterTest, ShouldWriteBomWhenOutputToStream)
+{
+	// Arrange
+	this->PrepareCsvReader(true, ',', true);
+
+	// Act / Assert
+	this->mCsvWriter->WriteValue("Name1", "Value1");
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = this->IsStreamWriter()
+		? "\xEF\xBB\xBFName1\r\nValue1\r\n"
+		: "Name1\r\nValue1\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
 }

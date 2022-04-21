@@ -11,7 +11,8 @@ template <class TWriter>
 class CsvWriterTest : public ::testing::Test
 {
 public:
-	void PrepareCsvReader(bool withHeader, char separator = ',')
+	void PrepareCsvReader(bool withHeader, char separator = ',',
+		bool writeBom = false, BitSerializer::Convert::UtfType utfType = BitSerializer::Convert::UtfType::Utf8)
 	{
 		if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CCsvStringWriter>)
 		{
@@ -20,8 +21,11 @@ public:
 		}
 		else if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CCsvStreamWriter>)
 		{
+			BitSerializer::StreamOptions streamOptions;
+			streamOptions.writeBom = writeBom;
+			streamOptions.encoding = utfType;
 			mResult = std::ostringstream();
-			mCsvWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult), withHeader, separator);
+			mCsvWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult), withHeader, separator, streamOptions);
 		}
 	}
 
@@ -39,6 +43,11 @@ public:
 				return arg.str();
 			}
 		}, mResult);
+	}
+
+	[[nodiscard]] bool IsStreamWriter() const
+	{
+		return std::holds_alternative<std::ostringstream>(mResult);
 	}
 
 protected:

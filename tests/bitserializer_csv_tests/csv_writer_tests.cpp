@@ -20,12 +20,12 @@ TYPED_TEST(CsvWriterTest, ShouldWriteHeaderWithValues)
 	this->PrepareCsvReader(true);
 
 	// Act
-	this->mCsvWriter->WriteValue("Name1", "Value1");
-	this->mCsvWriter->WriteValue("Name2", "Value2");
+	this->mCsvWriter->WriteValue("Name1", "12");
+	this->mCsvWriter->WriteValue("Name2", "512");
 	this->mCsvWriter->NextLine();
 
 	// Assert
-	const std::string expectedCsv = "Name1,Name2\r\nValue1,Value2\r\n";
+	const std::string expectedCsv = "Name1,Name2\r\n12,512\r\n";
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
@@ -35,12 +35,12 @@ TYPED_TEST(CsvWriterTest, ShouldSkipHeaderWhenItDisabled)
 	this->PrepareCsvReader(false);
 
 	// Act
-	this->mCsvWriter->WriteValue("Name1", "Value1");
-	this->mCsvWriter->WriteValue("Name2", "Value2");
+	this->mCsvWriter->WriteValue("Name1", "100");
+	this->mCsvWriter->WriteValue("Name2", "5");
 	this->mCsvWriter->NextLine();
 
 	// Assert
-	const std::string expectedCsv = "Value1,Value2\r\n";
+	const std::string expectedCsv = "100,5\r\n";
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
@@ -144,10 +144,11 @@ TYPED_TEST(CsvWriterTest, ShouldThrowExceptionWhenMismatchNumberOfValuesInRows)
 	this->PrepareCsvReader(false);
 
 	// Act / Assert
-	this->mCsvWriter->WriteValue("Name1", "Value1");
+	this->mCsvWriter->WriteValue("Name1", "1");
 	this->mCsvWriter->NextLine();
-	this->mCsvWriter->WriteValue("Name1", "Value1");
-	EXPECT_THROW(this->mCsvWriter->WriteValue("Name2", "Value2"), BitSerializer::SerializationException);
+	this->mCsvWriter->WriteValue("Name1", "10");
+	this->mCsvWriter->WriteValue("Name2", "100");
+	EXPECT_THROW(this->mCsvWriter->NextLine(), BitSerializer::SerializationException);
 }
 
 TYPED_TEST(CsvWriterTest, ShouldWriteBomWhenOutputToStream)

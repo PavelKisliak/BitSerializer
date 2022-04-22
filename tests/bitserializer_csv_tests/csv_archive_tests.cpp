@@ -85,14 +85,17 @@ TEST_F(CsvArchiveTests, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST_F(CsvArchiveTests, SerializeArrayToStream) {
-	TestSerializeArrayToStream<CsvArchive, char, TestPointClass>();
+TEST_F(CsvArchiveTests, SerializeArrayToStream)
+{
+	TestClassWithSubType<std::string> testArray[3];
+	BuildFixture(testArray);
+	TestSerializeArrayToStream<CsvArchive, char>(testArray);
 }
 
-//TEST_F(CsvArchiveTests, SerializeUnicodeToEncodedStream) {
-//	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-//	TestSerializeClassToStream<CsvArchive, char>(TestValue);
-//}
+TEST_F(CsvArchiveTests, SerializeUnicodeToEncodedStream) {
+	TestClassWithSubType<std::wstring> TestArray[1] = { TestClassWithSubType<std::wstring>(L"Привет мир!") };
+	TestSerializeArrayToStream<CsvArchive, char>(TestArray);
+}
 
 TEST_F(CsvArchiveTests, LoadFromUtf8Stream) {
 	TestLoadCsvFromEncodedStream<Convert::Utf8>(false);
@@ -101,31 +104,31 @@ TEST_F(CsvArchiveTests, LoadFromUtf8StreamWithBom) {
 	TestLoadCsvFromEncodedStream<Convert::Utf8>(true);
 }
 //TEST_F(CsvArchiveTests, LoadFromUtf16LeStream) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(false);
+//	TestLoadCsvFromEncodedStream<Convert::Utf16Le>(false);
 //}
 //TEST_F(CsvArchiveTests, LoadFromUtf16LeStreamWithBom) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(true);
+//	TestLoadCsvFromEncodedStream<Convert::Utf16Le>(true);
 //}
-//
+
 //TEST_F(CsvArchiveTests, LoadFromUtf16BeStream) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(false);
+//	TestLoadCsvFromEncodedStream<Convert::Utf16Be>(false);
 //}
 //TEST_F(CsvArchiveTests, LoadFromUtf16BeStreamWithBom) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(true);
+//	TestLoadCsvFromEncodedStream<Convert::Utf16Be>(true);
 //}
 //
 //TEST_F(CsvArchiveTests, LoadFromUtf32LeStream) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(false);
+//	TestLoadCsvFromEncodedStream<Convert::Utf32Le>(false);
 //}
 //TEST_F(CsvArchiveTests, LoadFromUtf32LeStreamWithBom) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(true);
+//	TestLoadCsvFromEncodedStream<Convert::Utf32Le>(true);
 //}
 //
 //TEST_F(CsvArchiveTests, LoadFromUtf32BeStream) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(false);
+//	TestLoadCsvFromEncodedStream<Convert::Utf32Be>(false);
 //}
 //TEST_F(CsvArchiveTests, LoadFromUtf32BeStreamWithBom) {
-//	TestLoadCsvFromEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(true);
+//	TestLoadCsvFromEncodedStream<Convert::Utf32Be>(true);
 //}
 
 TEST_F(CsvArchiveTests, SaveToUtf8Stream) {
@@ -136,31 +139,31 @@ TEST_F(CsvArchiveTests, SaveToUtf8StreamWithBom) {
 }
 
 //TEST_F(CsvArchiveTests, SaveToUtf16LeStream) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(false);
+//	TestSaveCsvToEncodedStream<Convert::Utf16Le>(false);
 //}
 //TEST_F(CsvArchiveTests, SaveToUtf16LeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Le>(true);
+//	TestSaveCsvToEncodedStream<Convert::Utf16Le>(true);
 //}
 //
 //TEST_F(CsvArchiveTests, SaveToUtf16BeStream) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(false);
+//	TestSaveCsvToEncodedStream<Convert::Utf16Be>(false);
 //}
 //TEST_F(CsvArchiveTests, SaveToUtf16BeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf16Be>(true);
+//	TestSaveCsvToEncodedStream<Convert::Utf16Be>(true);
 //}
 //
 //TEST_F(CsvArchiveTests, SaveToUtf32LeStream) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(false);
+//	TestSaveCsvToEncodedStream<Convert::Utf32Le>(false);
 //}
 //TEST_F(CsvArchiveTests, SaveToUtf32LeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Le>(true);
+//	TestSaveCsvToEncodedStream<Convert::Utf32Le>(true);
 //}
 //
 //TEST_F(CsvArchiveTests, SaveToUtf32BeStream) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(false);
+//	TestSaveCsvToEncodedStream<Convert::Utf32Be>(false);
 //}
 //TEST_F(CsvArchiveTests, SaveToUtf32BeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<CsvArchive, BitSerializer::Convert::Utf32Be>(true);
+//	TestSaveCsvToEncodedStream<Convert::Utf32Be>(true);
 //}
 
 TEST_F(CsvArchiveTests, ThrowExceptionWhenUnsupportedStreamEncoding)

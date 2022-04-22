@@ -76,6 +76,7 @@ private:
 	std::string mCsvHeader;
 	std::string mCurrentRow;
 	size_t mRowIndex = 0;
+	size_t mValueIndex = 0;
 	size_t mEstimatedSize = 0;
 	size_t mPrevValuesCount = 0;
 };
@@ -99,6 +100,7 @@ private:
 	std::string mCsvHeader;
 	std::string mCurrentRow;
 	size_t mRowIndex = 0;
+	size_t mValueIndex = 0;
 	size_t mPrevValuesCount = 0;
 };
 
@@ -143,7 +145,7 @@ public:
 		}
 		else
 		{
-			mCsvWriter->WriteValue(Convert::ToString(value));
+			mCsvWriter->WriteValue(std::forward<TKey>(key), Convert::ToString(value));
 		}
 		return true;
 	}
@@ -151,7 +153,7 @@ public:
 	template <typename TKey>
 	bool SerializeValue(TKey&& key, std::nullptr_t&)
 	{
-		mCsvWriter->WriteValue(Convert::Detail::ToStringView(key), "");
+		mCsvWriter->WriteValue(std::forward<TKey>(key), "");
 		return true;
 	}
 

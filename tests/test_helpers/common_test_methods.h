@@ -159,11 +159,9 @@ void TestSerializeClassToStream(T&& value)
 /// Test template of serialization for array with using streams.
 /// </summary>
 template <typename TArchive, typename TStreamElem, typename T, size_t ArraySize = 3>
-void TestSerializeArrayToStream()
+void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 {
 	// Arrange
-	T testArray[ArraySize];
-	BuildFixture(testArray);
 	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
 	string_stream_type outputStream;
 	T actual[ArraySize];

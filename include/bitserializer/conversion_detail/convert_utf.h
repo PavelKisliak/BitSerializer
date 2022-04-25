@@ -442,73 +442,86 @@ namespace BitSerializer::Convert
 		static constexpr bool lowEndian = false;
 
 		/// <summary>
-		/// Decodes UTF-32BE to UTF-32 or UTF-16
+		/// Decodes UTF-32BE to UTF-32, UTF-16 or UTF-8
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static void Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?') noexcept
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 32-bit characters");
-			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
+			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
 
-			auto swapByteOrder = [](uint32_t sym) { return (sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24); };
-			for (; in != end; ++in)
+			auto swapByteOrder = [](char_type sym) {
+				return (sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24);
+			};
+
+			if constexpr (sizeof(TOutChar) == sizeof(char))
 			{
-				uint32_t sym = swapByteOrder(*in);
-				if (sym < 0x10000 || sizeof(TOutChar) == sizeof(char_type))
-				{
-					outStr.push_back(sym);
+				const size_t totalSize = end - in;
+				std::u32string tempStr;
+				tempStr.resize(end - in);
+				for (size_t i = 0; i < totalSize; ++i, ++in) {
+					tempStr[i] = swapByteOrder(*in);
 				}
-				else
+				Utf8::Encode(tempStr.cbegin(), tempStr.cend(), outStr, errSym);
+			}
+			else
+			{
+				for (; in != end; ++in)
 				{
-					sym -= 0x10000;
-					outStr.push_back(static_cast<TOutChar>(Unicode::HighSurrogatesStart | (sym >> 10)));
-					outStr.push_back(static_cast<TOutChar>(Unicode::LowSurrogatesStart | (sym & 0x3FF)));
+					uint32_t sym = swapByteOrder(*in);
+					if (sym < 0x10000 || sizeof(TOutChar) == sizeof(char_type))
+					{
+						outStr.push_back(sym);
+					}
+					else
+					{
+						sym -= 0x10000;
+						outStr.push_back(static_cast<TOutChar>(Unicode::HighSurrogatesStart | (sym >> 10)));
+						outStr.push_back(static_cast<TOutChar>(Unicode::LowSurrogatesStart | (sym & 0x3FF)));
+					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// Encodes UTF-32BE from UTF-32 or UTF-16
+		/// Encodes UTF-32BE from UTF-32, UTF-16 or UTF-8
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static void Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, const char errSym = '?') noexcept
 		{
 			using TInCharType = decltype(*in);
-			static_assert(sizeof(TInCharType) == sizeof(char16_t) || sizeof(TInCharType) == sizeof(char32_t), "Input stream should represents sequence of 16 or 32-bit characters");
+			static_assert(sizeof(TInCharType) == sizeof(char) || sizeof(TInCharType) == sizeof(char16_t) || sizeof(TInCharType) == sizeof(char32_t), "Input stream should represents sequence of 16 or 32-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char_type), "Output string must be 32-bit characters (e.g. std::u32string)");
 
-			while (in != end)
+			auto swapByteOrder = [](char_type sym) {
+				return (sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24);
+			};
+
+			const size_t startOutPos = outStr.size();
+			using TInCharType = decltype(*in);
+			if constexpr (sizeof(TInCharType) == sizeof(char_type))
 			{
-				auto sym = static_cast<TOutChar>(*in);
-				++in;
-
-				// Handle surrogates when encoding from UTF-16
-				if constexpr (sizeof(TInCharType) == sizeof(char16_t))
-				{
-					if (Unicode::IsInSurrogatesRange(sym))
-					{
-						// Low surrogate character cannot be first and should present second part
-						if (sym >= Unicode::LowSurrogatesStart || in == end)
-						{
-							outStr.push_back(errSym);
-							continue;
-						}
-
-						// Surrogate characters are always written as pairs (low follows after high)
-						const char16_t low = *in;
-						if (low >= Unicode::LowSurrogatesStart && sym <= Unicode::LowSurrogatesEnd)
-						{
-							sym = 0x10000 + ((sym & 0x3FF) << 10 | (low & 0x3FF));
-							++in;
-						}
-						else
-						{
-							outStr.push_back(errSym);
-							continue;
-						}
-					}
+				for (; in != end; ++in) {
+					outStr.push_back(static_cast<TOutChar>(swapByteOrder(*in)));
 				}
-				outStr.push_back((sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24));
+			}
+			else
+			{
+				if constexpr (sizeof(TInCharType) == sizeof(Utf16Le::char_type))
+				{
+					Utf16Le::Decode(in, end, outStr, errSym);
+				}
+				else if constexpr (sizeof(TInCharType) == sizeof(Utf8::char_type))
+				{
+					Utf8::Decode(in, end, outStr, errSym);
+				}
+
+				// Reverse byte order
+				const auto totalSize = outStr.size();
+				for (size_t i = startOutPos; i < totalSize; ++i)
+				{
+					outStr[i] = swapByteOrder(outStr[i]);
+				}
 			}
 		}
 	};

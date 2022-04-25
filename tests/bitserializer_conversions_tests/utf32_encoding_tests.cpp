@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -90,15 +90,16 @@ TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromAnsi) {
 
 TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf8) {
 	EXPECT_EQ(U"Привет мир!", EncodeUtf32(u8"Привет мир!"));
+	EXPECT_EQ(U"世界，您好！", EncodeUtf32(u8"世界，您好！"));
 }
 
 TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf16) {
-	EXPECT_EQ(U"Привет мир!", EncodeUtf32(L"Привет мир!"));
+	EXPECT_EQ(U"Привет мир!", EncodeUtf32(u"Привет мир!"));
 	EXPECT_EQ(U"世界，您好！", EncodeUtf32(u"世界，您好！"));
 }
 
 TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf16Surrogates) {
-	EXPECT_EQ(U"😀😎🙋", EncodeUtf32(L"😀😎🙋"));
+	EXPECT_EQ(U"😀😎🙋", EncodeUtf32(u"😀😎🙋"));
 }
 
 TEST_F(Utf32LeEncodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {
@@ -115,19 +116,22 @@ TEST_F(Utf32LeEncodeTest, ShouldPutErrorSymbolWhenNoSecondCodeInSurrogate) {
 //-----------------------------------------------------------------------------
 // UTF-32 LE: Tests decoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32WithAnsiChars) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf32As<std::wstring>(U"Hello world!"));
-	EXPECT_EQ(u"Hello world!", DecodeUtf32As<std::u16string>(U"Hello world!"));
-	EXPECT_EQ(U"Hello world!", DecodeUtf32As<std::u32string>(U"Hello world!"));
+TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToAnsi) {
+	EXPECT_EQ("Hello world!", DecodeUtf32As<std::string>(U"Hello world!"));
 }
 
-TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32WithUnicodeChars) {
+TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf8) {
 	EXPECT_EQ(u8"Привет мир!", DecodeUtf32As<std::string>(U"Привет мир!"));
-	EXPECT_EQ(L"Привет мир!", DecodeUtf32As<std::wstring>(U"Привет мир!"));
+	EXPECT_EQ(u8"世界，您好！", DecodeUtf32As<std::string>(U"世界，您好！"));
+}
+
+TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf16) {
+	EXPECT_EQ(u"Hello world!", DecodeUtf32As<std::u16string>(U"Hello world!"));
+	EXPECT_EQ(u"Привет мир!", DecodeUtf32As<std::u16string>(U"Привет мир!"));
 	EXPECT_EQ(u"世界，您好！", DecodeUtf32As<std::u16string>(U"世界，您好！"));
 }
 
-TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32WithSurrogates) {
+TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf16WithSurrogates) {
 	EXPECT_EQ(u"😀😎🙋", DecodeUtf32As<std::u16string>(U"😀😎🙋"));
 }
 
@@ -135,32 +139,49 @@ TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32WithSurrogates) {
 //-----------------------------------------------------------------------------
 // UTF-32 BE: Tests for encoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32FromUtf16) {
-	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(L"Привет мир!"));
+TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromAnsi) {
+	EXPECT_EQ(SwapByteOrder(U"Hello world!"), EncodeUtf32("Hello world!"));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf8) {
+	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(u8"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(u8"世界，您好！"));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf16) {
+	EXPECT_EQ(SwapByteOrder(U"Hello world!"), EncodeUtf32(u"Hello world!"));
+	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(u"Привет мир!"));
 	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(u"世界，您好！"));
 }
 
-TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32FromUtf16Surrogates) {
-	EXPECT_EQ(SwapByteOrder(U"😀😎🙋"), EncodeUtf32(L"😀😎🙋"));
+TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf16WithSurrogates) {
+	EXPECT_EQ(SwapByteOrder(U"😀😎🙋"), EncodeUtf32(u"😀😎🙋"));
 }
-
 
 //-----------------------------------------------------------------------------
 // UTF-32 BE: Tests decoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32WithAnsiChars) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf32As<std::wstring>(SwapByteOrder(U"Hello world!")));
-	EXPECT_EQ(u"Hello world!", DecodeUtf32As<std::u16string>(SwapByteOrder(U"Hello world!")));
-	EXPECT_EQ(U"Hello world!", DecodeUtf32As<std::u32string>(SwapByteOrder(U"Hello world!")));
+TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToAnsi) {
+	EXPECT_EQ("Hello world!", DecodeUtf32As<std::string>(SwapByteOrder(U"Hello world!")));
 }
 
-TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32WithUnicodeChars) {
-	EXPECT_EQ(L"Привет мир!", DecodeUtf32As<std::wstring>(SwapByteOrder(U"Привет мир!")));
+TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf8) {
+	EXPECT_EQ(u8"Привет мир!", DecodeUtf32As<std::string>(SwapByteOrder(U"Привет мир!")));
+	EXPECT_EQ(u8"世界，您好！", DecodeUtf32As<std::string>(SwapByteOrder(U"世界，您好！")));
+}
+
+TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf16) {
+	EXPECT_EQ(u"Hello world!", DecodeUtf32As<std::u16string>(SwapByteOrder(U"Hello world!")));
+	EXPECT_EQ(u"Привет мир!", DecodeUtf32As<std::u16string>(SwapByteOrder(U"Привет мир!")));
 	EXPECT_EQ(u"世界，您好！", DecodeUtf32As<std::u16string>(SwapByteOrder(U"世界，您好！")));
 }
 
-TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32WithSurrogates) {
+TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf16WithSurrogates) {
 	EXPECT_EQ(u"😀😎🙋", DecodeUtf32As<std::u16string>(SwapByteOrder(U"😀😎🙋")));
+}
+
+TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf32Le) {
+	EXPECT_EQ(U"Hello world!", DecodeUtf32As<std::u32string>(SwapByteOrder(U"Hello world!")));
 }
 
 #pragma warning(pop)

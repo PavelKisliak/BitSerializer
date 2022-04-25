@@ -598,4 +598,26 @@ namespace BitSerializer::Convert
 		}
 		return detectedUtf;
 	}
+
+	static void WriteBom(std::ostream& outputStream, UtfType encoding)
+	{
+		switch (encoding)
+		{
+		case UtfType::Utf8:
+			outputStream.write(Utf8::bom, sizeof Utf8::bom);
+			break;
+		case UtfType::Utf16le:
+			outputStream.write(Utf16Le::bom, sizeof Utf16Le::bom);
+			break;
+		case UtfType::Utf16be:
+			outputStream.write(Utf16Be::bom, sizeof Utf16Be::bom);
+			break;
+		case UtfType::Utf32le:
+			outputStream.write(Utf32Le::bom, sizeof Utf32Le::bom);
+			break;
+		case UtfType::Utf32be:
+			outputStream.write(Utf32Be::bom, sizeof Utf32Be::bom);
+			break;
+		}
+	}
 }

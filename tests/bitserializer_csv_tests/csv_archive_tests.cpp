@@ -138,45 +138,32 @@ TEST_F(CsvArchiveTests, SaveToUtf8StreamWithBom) {
 	TestSaveCsvToEncodedStream<Convert::Utf8>(true);
 }
 
-//TEST_F(CsvArchiveTests, SaveToUtf16LeStream) {
-//	TestSaveCsvToEncodedStream<Convert::Utf16Le>(false);
-//}
-//TEST_F(CsvArchiveTests, SaveToUtf16LeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<Convert::Utf16Le>(true);
-//}
-//
-//TEST_F(CsvArchiveTests, SaveToUtf16BeStream) {
-//	TestSaveCsvToEncodedStream<Convert::Utf16Be>(false);
-//}
-//TEST_F(CsvArchiveTests, SaveToUtf16BeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<Convert::Utf16Be>(true);
-//}
-//
-//TEST_F(CsvArchiveTests, SaveToUtf32LeStream) {
-//	TestSaveCsvToEncodedStream<Convert::Utf32Le>(false);
-//}
-//TEST_F(CsvArchiveTests, SaveToUtf32LeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<Convert::Utf32Le>(true);
-//}
-//
-//TEST_F(CsvArchiveTests, SaveToUtf32BeStream) {
-//	TestSaveCsvToEncodedStream<Convert::Utf32Be>(false);
-//}
-//TEST_F(CsvArchiveTests, SaveToUtf32BeStreamWithBom) {
-//	TestSaveCsvToEncodedStream<Convert::Utf32Be>(true);
-//}
+TEST_F(CsvArchiveTests, SaveToUtf16LeStream) {
+	TestSaveCsvToEncodedStream<Convert::Utf16Le>(false);
+}
+TEST_F(CsvArchiveTests, SaveToUtf16LeStreamWithBom) {
+	TestSaveCsvToEncodedStream<Convert::Utf16Le>(true);
+}
 
-TEST_F(CsvArchiveTests, ThrowExceptionWhenUnsupportedStreamEncoding)
-{
-	// Arrange
-	SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.encoding = static_cast<Convert::UtfType>(-1);
-	std::stringstream outputStream;
-	TestPointClass testArray[1];
-	BuildFixture(testArray);
+TEST_F(CsvArchiveTests, SaveToUtf16BeStream) {
+	TestSaveCsvToEncodedStream<Convert::Utf16Be>(false);
+}
+TEST_F(CsvArchiveTests, SaveToUtf16BeStreamWithBom) {
+	TestSaveCsvToEncodedStream<Convert::Utf16Be>(true);
+}
 
-	// Act / Assert
-	EXPECT_THROW(BitSerializer::SaveObject<CsvArchive>(testArray, outputStream, serializationOptions), BitSerializer::SerializationException);
+TEST_F(CsvArchiveTests, SaveToUtf32LeStream) {
+	TestSaveCsvToEncodedStream<Convert::Utf32Le>(false);
+}
+TEST_F(CsvArchiveTests, SaveToUtf32LeStreamWithBom) {
+	TestSaveCsvToEncodedStream<Convert::Utf32Le>(true);
+}
+
+TEST_F(CsvArchiveTests, SaveToUtf32BeStream) {
+	TestSaveCsvToEncodedStream<Convert::Utf32Be>(false);
+}
+TEST_F(CsvArchiveTests, SaveToUtf32BeStreamWithBom) {
+	TestSaveCsvToEncodedStream<Convert::Utf32Be>(true);
 }
 
 TEST_F(CsvArchiveTests, SerializeToFile) {

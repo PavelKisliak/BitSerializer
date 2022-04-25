@@ -71,6 +71,48 @@ namespace
 
 		return result;
 	}
+
+	void WriteToStreamWithEncoding(std::string_view str, std::ostream& outputStream, Convert::UtfType encoding)
+	{
+		switch (encoding)
+		{
+		case Convert::UtfType::Utf8:
+			outputStream.write(str.data(), static_cast<std::streamsize>(str.size()));
+			break;
+		case Convert::UtfType::Utf16le:
+			{
+				std::u16string u16LeStr;
+				Convert::Utf16Le::Encode(str.cbegin(), str.cend(), u16LeStr);
+				outputStream.write(reinterpret_cast<const char*>(u16LeStr.data()),
+					static_cast<std::streamsize>(u16LeStr.size() * sizeof std::u16string::value_type));
+				break;
+			}
+		case Convert::UtfType::Utf16be:
+			{
+				std::u16string u16BeStr;
+				Convert::Utf16Be::Encode(str.cbegin(), str.cend(), u16BeStr);
+				outputStream.write(reinterpret_cast<const char*>(u16BeStr.data()),
+					static_cast<std::streamsize>(u16BeStr.size() * sizeof std::u16string::value_type));
+				break;
+			}
+		case Convert::UtfType::Utf32le:
+			{
+				std::u32string u32LeStr;
+				Convert::Utf32Le::Encode(str.cbegin(), str.cend(), u32LeStr);
+				outputStream.write(reinterpret_cast<const char*>(u32LeStr.data()),
+					static_cast<std::streamsize>(u32LeStr.size() * sizeof std::u32string::value_type));
+				break;
+			}
+		case Convert::UtfType::Utf32be:
+			{
+				std::u32string u32BeStr;
+				Convert::Utf32Be::Encode(str.cbegin(), str.cend(), u32BeStr);
+				outputStream.write(reinterpret_cast<const char*>(u32BeStr.data()),
+					static_cast<std::streamsize>(u32BeStr.size() * sizeof std::u32string::value_type));
+				break;
+			}
+		}
+	}
 }
 
 
@@ -521,17 +563,9 @@ namespace BitSerializer::Csv::Detail
 		, mSeparator(separator)
 		, mStreamOptions(streamOptions)
 	{
-		if (mStreamOptions.encoding != Convert::UtfType::Utf8)
-		{
-			const auto strEncodingType = Convert::TryTo<std::string>(streamOptions.encoding);
-			throw SerializationException(SerializationErrorCode::UnsupportedEncoding,
-				"The archive does not support encoding: " +
-				(strEncodingType.has_value() ? strEncodingType.value() : std::to_string(static_cast<int>(streamOptions.encoding))));
-		}
-
 		if (mStreamOptions.writeBom)
 		{
-			mOutputStream.write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
+			WriteBom(mOutputStream, mStreamOptions.encoding);
 		}
 	}
 
@@ -569,12 +603,12 @@ namespace BitSerializer::Csv::Detail
 			if (mWithHeader)
 			{
 				mCsvHeader.append({ '\r', '\n' });
-				mOutputStream.write(mCsvHeader.data(), static_cast<std::streamsize>(mCsvHeader.size()));
+				WriteToStreamWithEncoding(mCsvHeader, mOutputStream, mStreamOptions.encoding);
 			}
 		}
 
 		mCurrentRow.append({ '\r', '\n' });
-		mOutputStream.write(mCurrentRow.data(), static_cast<std::streamsize>(mCurrentRow.size()));
+		WriteToStreamWithEncoding(mCurrentRow, mOutputStream, mStreamOptions.encoding);
 
 		++mRowIndex;
 		mPrevValuesCount = mValueIndex;

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -13,26 +13,34 @@ class Utf16EncodeBaseFixture : public testing::Test
 {
 protected:
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::wstring& unicodeStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::string& srcStr, const char errSym = '?')
 	{
 		TOutStr result;
-		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
 		return result;
 	}
 
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::u16string& unicodeStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::wstring& srcStr, const char errSym = '?')
 	{
 		TOutStr result;
-		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
 		return result;
 	}
 
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::u32string& unicodeStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::u16string& srcStr, const char errSym = '?')
 	{
 		TOutStr result;
-		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
+		return result;
+	}
+
+	template <typename TOutStr = std::u16string>
+	static TOutStr EncodeUtf16(const std::u32string& srcStr, const char errSym = '?')
+	{
+		TOutStr result;
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
 		return result;
 	}
 };
@@ -76,18 +84,39 @@ namespace
 //-----------------------------------------------------------------------------
 // UTF-16 LE: Tests for encoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16WithAnsiChars) {
-	EXPECT_EQ(u"Hello world!", EncodeUtf16(L"Hello world!"));
-	EXPECT_EQ(u"Hello world!", EncodeUtf16(U"Hello world!"));
-	EXPECT_EQ(u"Hello world!", EncodeUtf16(u"Hello world!"));
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromAnsi) {
+	EXPECT_EQ(u"Hello world!", EncodeUtf16("Hello world!"));
 }
 
-TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16WithUnicodeChars) {
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf8) {
+	EXPECT_EQ(u"Привет мир!", EncodeUtf16(u8"Привет мир!"));
+	EXPECT_EQ(u"世界，您好！", EncodeUtf16(u8"世界，您好！"));
+}
+
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf8Surrogates) {
+	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(u8"😀😎🙋"));
+}
+
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf16) {
+	EXPECT_EQ(u"Привет мир!", EncodeUtf16(u"Привет мир!"));
+	EXPECT_EQ(u"世界，您好！", EncodeUtf16(u"世界，您好！"));
+}
+
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf16Surrogates) {
+	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(u"😀😎🙋"));
+}
+
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromWString) {
+	EXPECT_EQ(u"Привет мир!", EncodeUtf16(L"Привет мир!"));
+	EXPECT_EQ(u"世界，您好！", EncodeUtf16(L"世界，您好！"));
+}
+
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf32) {
 	EXPECT_EQ(u"Привет мир!", EncodeUtf16(U"Привет мир!"));
 	EXPECT_EQ(u"世界，您好！", EncodeUtf16(U"世界，您好！"));
 }
 
-TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
+TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf32Surrogates) {
 	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(U"😀😎🙋"));
 }
 
@@ -95,24 +124,39 @@ TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
 //-----------------------------------------------------------------------------
 // UTF-16 LE: Tests decoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16WithAnsiChars) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(u"Hello world!"));
-	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(u"Hello world!"));
-	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(u"Hello world!"));
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToAnsi) {
+	EXPECT_EQ("Hello world!", DecodeUtf16As<std::string>(u"Hello world!"));
 }
 
-TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16WithUnicodeChars) {
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf8) {
+	EXPECT_EQ(u8"Привет мир!", DecodeUtf16As<std::string>(u"Привет мир!"));
+	EXPECT_EQ(u8"世界，您好！", DecodeUtf16As<std::string>(u"世界，您好！"));
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf16) {
+	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(u"Hello world!"));
+	EXPECT_EQ(u"Привет мир!", DecodeUtf16As<std::u16string>(u"Привет мир!"));
+	EXPECT_EQ(u"世界，您好！", DecodeUtf16As<std::u16string>(u"世界，您好！"));
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf16WithSurrogates) {
+	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(u"😀😎🙋"));
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToWString) {
+	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(u"Hello world!"));
+	EXPECT_EQ(L"Привет мир!", DecodeUtf16As<std::wstring>(u"Привет мир!"));
+	EXPECT_EQ(L"世界，您好！", DecodeUtf16As<std::wstring>(u"世界，您好！"));
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf32) {
+	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(u"Hello world!"));
 	EXPECT_EQ(U"Привет мир!", DecodeUtf16As<std::u32string>(u"Привет мир!"));
 	EXPECT_EQ(U"世界，您好！", DecodeUtf16As<std::u32string>(u"世界，您好！"));
 }
 
-TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16WithSurrogates) {
+TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf32WithSurrogates) {
 	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(u"😀😎🙋"));
-}
-
-TEST_F(Utf16LeDecodeTest, ShouldLeaveSurrogatesWhenTargetStringIsUtf16) {
-	EXPECT_EQ(L"😀😎🙋", DecodeUtf16As<std::wstring>(u"😀😎🙋"));
-	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(u"😀😎🙋"));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {
@@ -129,18 +173,39 @@ TEST_F(Utf16LeDecodeTest, ShouldPutErrorSymbolWhenNoSecondCodeInSurrogate) {
 //-----------------------------------------------------------------------------
 // UTF-16 BE: Tests for encoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithAnsiChars) {
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(L"Hello world!"));
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(U"Hello world!"));
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16(u"Hello world!"));
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromAnsi) {
+	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16("Hello world!"));
 }
 
-TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithUnicodeChars) {
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8) {
+	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(u8"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(u8"世界，您好！"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8Surrogates) {
+	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(u8"😀😎🙋"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16) {
+	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(u"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(u"世界，您好！"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16Surrogates) {
+	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(u"😀😎🙋"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromWString) {
+	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(L"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(L"世界，您好！"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32) {
 	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(U"Привет мир!"));
 	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(U"世界，您好！"));
 }
 
-TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
+TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32Surrogates) {
 	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
 }
 
@@ -148,24 +213,39 @@ TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16WithSurrogates) {
 //-----------------------------------------------------------------------------
 // UTF-16 BE: Tests decoding string
 //-----------------------------------------------------------------------------
-TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16WithAnsiChars) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(SwapByteOrder(u"Hello world!")));
-	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(SwapByteOrder(u"Hello world!")));
-	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(SwapByteOrder(u"Hello world!")));
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToAnsi) {
+	EXPECT_EQ("Hello world!", DecodeUtf16As<std::string>(SwapByteOrder(u"Hello world!")));
 }
 
-TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16WithUnicodeChars) {
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf8) {
+	EXPECT_EQ(u8"Привет мир!", DecodeUtf16As<std::string>(SwapByteOrder(u"Привет мир!")));
+	EXPECT_EQ(u8"世界，您好！", DecodeUtf16As<std::string>(SwapByteOrder(u"世界，您好！")));
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16Le) {
+	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(SwapByteOrder(u"Hello world!")));
+	EXPECT_EQ(u"Привет мир!", DecodeUtf16As<std::u16string>(SwapByteOrder(u"Привет мир!")));
+	EXPECT_EQ(u"世界，您好！", DecodeUtf16As<std::u16string>(SwapByteOrder(u"世界，您好！")));
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16LeWithSurrogates) {
+	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(SwapByteOrder(u"😀😎🙋")));
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToWString) {
+	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(SwapByteOrder(u"Hello world!")));
+	EXPECT_EQ(L"Привет мир!", DecodeUtf16As<std::wstring>(SwapByteOrder(u"Привет мир!")));
+	EXPECT_EQ(L"世界，您好！", DecodeUtf16As<std::wstring>(SwapByteOrder(u"世界，您好！")));
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32) {
+	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(SwapByteOrder(u"Hello world!")));
 	EXPECT_EQ(U"Привет мир!", DecodeUtf16As<std::u32string>(SwapByteOrder(u"Привет мир!")));
 	EXPECT_EQ(U"世界，您好！", DecodeUtf16As<std::u32string>(SwapByteOrder(u"世界，您好！")));
 }
 
-TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16WithSurrogates) {
+TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32WithSurrogates) {
 	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(SwapByteOrder(u"😀😎🙋")));
-}
-
-TEST_F(Utf16BeDecodeTest, ShouldLeaveSurrogatesWhenTargetStringIsUtf16) {
-	EXPECT_EQ(L"😀😎🙋", DecodeUtf16As<std::wstring>(SwapByteOrder(u"😀😎🙋")));
-	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(SwapByteOrder(u"😀😎🙋")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {

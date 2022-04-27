@@ -102,6 +102,16 @@ TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf16Surrogates) {
 	EXPECT_EQ(U"😀😎🙋", EncodeUtf32(u"😀😎🙋"));
 }
 
+TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromWString) {
+	EXPECT_EQ(U"Привет мир!", EncodeUtf32(L"Привет мир!"));
+	EXPECT_EQ(U"世界，您好！", EncodeUtf32(L"世界，您好！"));
+}
+
+TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf32AsIs) {
+	EXPECT_EQ(U"Привет мир!", EncodeUtf32(U"Привет мир!"));
+	EXPECT_EQ(U"世界，您好！", EncodeUtf32(U"世界，您好！"));
+}
+
 TEST_F(Utf32LeEncodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {
 	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
 	EXPECT_EQ(U"__test__", EncodeUtf32(wrongStartCodes + u"test" + wrongStartCodes, '_'));
@@ -135,6 +145,16 @@ TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf16WithSurrogates) {
 	EXPECT_EQ(u"😀😎🙋", DecodeUtf32As<std::u16string>(U"😀😎🙋"));
 }
 
+TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToWString) {
+	EXPECT_EQ(L"Hello world!", DecodeUtf32As<std::wstring>(U"Hello world!"));
+	EXPECT_EQ(L"Привет мир!", DecodeUtf32As<std::wstring>(U"Привет мир!"));
+	EXPECT_EQ(L"世界，您好！", DecodeUtf32As<std::wstring>(U"世界，您好！"));
+}
+
+TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf32AsIs) {
+	EXPECT_EQ(U"Привет мир!", DecodeUtf32As<std::u32string>(U"Привет мир!"));
+	EXPECT_EQ(U"世界，您好！", DecodeUtf32As<std::u32string>(U"世界，您好！"));
+}
 
 //-----------------------------------------------------------------------------
 // UTF-32 BE: Tests for encoding string
@@ -156,6 +176,16 @@ TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf16) {
 
 TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf16WithSurrogates) {
 	EXPECT_EQ(SwapByteOrder(U"😀😎🙋"), EncodeUtf32(u"😀😎🙋"));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromWString) {
+	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(L"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(L"世界，您好！"));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf32Le) {
+	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(U"Привет мир!"));
+	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(U"世界，您好！"));
 }
 
 //-----------------------------------------------------------------------------
@@ -180,8 +210,15 @@ TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf16WithSurrogates) {
 	EXPECT_EQ(u"😀😎🙋", DecodeUtf32As<std::u16string>(SwapByteOrder(U"😀😎🙋")));
 }
 
+TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToWString) {
+	EXPECT_EQ(L"Hello world!", DecodeUtf32As<std::wstring>(SwapByteOrder(U"Hello world!")));
+	EXPECT_EQ(L"Привет мир!", DecodeUtf32As<std::wstring>(SwapByteOrder(U"Привет мир!")));
+	EXPECT_EQ(L"世界，您好！", DecodeUtf32As<std::wstring>(SwapByteOrder(U"世界，您好！")));
+}
+
 TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf32Le) {
-	EXPECT_EQ(U"Hello world!", DecodeUtf32As<std::u32string>(SwapByteOrder(U"Hello world!")));
+	EXPECT_EQ(U"Привет мир!", DecodeUtf32As<std::u32string>(SwapByteOrder(U"Привет мир!")));
+	EXPECT_EQ(U"世界，您好！", DecodeUtf32As<std::u32string>(SwapByteOrder(U"世界，您好！")));
 }
 
 #pragma warning(pop)

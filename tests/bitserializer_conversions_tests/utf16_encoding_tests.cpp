@@ -13,34 +13,38 @@ class Utf16EncodeBaseFixture : public testing::Test
 {
 protected:
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::string& srcStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::string& srcStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::wstring& srcStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::wstring& srcStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::u16string& srcStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::u16string& srcStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 
 	template <typename TOutStr = std::u16string>
-	static TOutStr EncodeUtf16(const std::u32string& srcStr, const char errSym = '?')
+	static TOutStr EncodeUtf16(const std::u32string& srcStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, errSym);
+		TEncoder::Encode(srcStr.begin(), srcStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 };
@@ -55,10 +59,11 @@ class Utf16DecodeBaseFixture : public testing::Test
 {
 protected:
 	template <typename TOutputString>
-	static TOutputString DecodeUtf16As(const std::u16string& utf16Str, const char errSym = '?')
+	static TOutputString DecodeUtf16As(const std::u16string& utf16Str, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::ThrowException,
+		const typename TOutputString::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutputString::value_type>())
 	{
 		TOutputString result;
-		TEncoder::Decode(utf16Str.begin(), utf16Str.end(), result, errSym);
+		TEncoder::Decode(utf16Str.begin(), utf16Str.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 };
@@ -120,6 +125,19 @@ TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf32Surrogates) {
 	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(U"😀😎🙋"));
 }
 
+TEST_F(Utf16LeEncodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	constexpr std::u32string_view testStr = U"test";
+
+	// Act
+	std::u16string actualStr;
+	const auto actualIt = Convert::Utf16Le::Encode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
+}
+
 
 //-----------------------------------------------------------------------------
 // UTF-16 LE: Tests decoding string
@@ -159,16 +177,90 @@ TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf32WithSurrogates) {
 	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(u"😀😎🙋"));
 }
 
-TEST_F(Utf16LeDecodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {
+TEST_F(Utf16LeDecodeTest, ShouldPutErrorMarkWhenSurrogateStartsWithWrongCode) {
 	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
-	EXPECT_EQ(U"__test__", DecodeUtf16As<std::u32string>(wrongStartCodes + u"test" + wrongStartCodes, '_'));
+	EXPECT_EQ(U"☐☐test☐☐", DecodeUtf16As<std::u32string>(wrongStartCodes + u"test" + wrongStartCodes, Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
-TEST_F(Utf16LeDecodeTest, ShouldPutErrorSymbolWhenNoSecondCodeInSurrogate) {
+TEST_F(Utf16LeDecodeTest, ShouldPutErrorMarkWhenNoSecondCodeInSurrogate) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"test_", DecodeUtf16As<std::u32string>(u"test" + notFullSurrogatePair, '_'));
+	EXPECT_EQ(U"☐test", DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
+TEST_F(Utf16LeDecodeTest, ShouldPutCustomErrorMarkWhenError) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_EQ(U"<ERROR>test", DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::WriteErrorMark, U"<ERROR>"));
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldHandlePolicyThrowException) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_THROW(DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldHandlePolicySkip) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_EQ(U"test", DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::Skip));
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	constexpr std::u16string_view testStr = u"test";
+
+	// Act
+	std::u32string actualStr;
+	const auto actualIt = Convert::Utf16Le::Decode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf8)
+{
+	// Arrange
+	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string testStr = u"test_тест" + croppedSequence;
+	const size_t expectedPos = testStr.size() - croppedSequence.size();
+
+	// Act
+	std::string actual;
+	const size_t actualPos = Convert::Utf16Le::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+
+	// Assert
+	EXPECT_EQ(expectedPos, actualPos);
+	EXPECT_EQ(u8"test_тест", actual);
+}
+TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf16)
+{
+	// Arrange
+	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string testStr = u"test_тест" + croppedSequence;
+	const size_t expectedPos = testStr.size() - croppedSequence.size();
+
+	// Act
+	std::u16string actual;
+	const size_t actualPos = Convert::Utf16Le::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+
+	// Assert
+	EXPECT_EQ(expectedPos, actualPos);
+	EXPECT_EQ(u"test_тест", actual);
+}
+
+TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf32)
+{
+	// Arrange
+	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string testStr = u"test_тест" + croppedSequence;
+	const size_t expectedPos = testStr.size() - croppedSequence.size();
+
+	// Act
+	std::u32string actual;
+	const size_t actualPos = Convert::Utf16Le::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+
+	// Assert
+	EXPECT_EQ(expectedPos, actualPos);
+	EXPECT_EQ(U"test_тест", actual);
+}
 
 //-----------------------------------------------------------------------------
 // UTF-16 BE: Tests for encoding string
@@ -207,6 +299,19 @@ TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32) {
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32Surrogates) {
 	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
+}
+
+TEST_F(Utf16BeEncodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	constexpr std::u32string_view testStr = U"test";
+
+	// Act
+	std::u16string actualStr;
+	const auto actualIt = Convert::Utf16Be::Encode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
 }
 
 
@@ -248,14 +353,86 @@ TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32WithSurrogates) {
 	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(SwapByteOrder(u"😀😎🙋")));
 }
 
-TEST_F(Utf16BeDecodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {
+TEST_F(Utf16BeDecodeTest, ShouldPutErrorMarkWhenSurrogateStartsWithWrongCode) {
 	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
-	EXPECT_EQ(U"__test__", DecodeUtf16As<std::u32string>(SwapByteOrder(wrongStartCodes + u"test" + wrongStartCodes), '_'));
+	EXPECT_EQ(U"☐☐test☐☐",
+		DecodeUtf16As<std::u32string>(SwapByteOrder(wrongStartCodes + u"test" + wrongStartCodes), Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
-TEST_F(Utf16BeDecodeTest, ShouldPutErrorSymbolWhenNoSecondCodeInSurrogate) {
+TEST_F(Utf16BeDecodeTest, ShouldPutErrorMarkWhenNoSecondCodeInSurrogate) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"test_", DecodeUtf16As<std::u32string>(SwapByteOrder(u"test" + notFullSurrogatePair), '_'));
+	EXPECT_EQ(U"☐test", DecodeUtf16As<std::u32string>(SwapByteOrder(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::WriteErrorMark));
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldHandlePolicyThrowException) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_THROW(DecodeUtf16As<std::u32string>(SwapByteOrder(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldHandlePolicySkip) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_EQ(U"test", DecodeUtf16As<std::u32string>(SwapByteOrder(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::Skip));
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	const std::u16string testStr = SwapByteOrder(u"test");
+
+	// Act
+	std::u32string actualStr;
+	const auto actualIt = Convert::Utf16Be::Decode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf8)
+{
+	// Arrange
+	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string testStr = SwapByteOrder(u"test_тест" + croppedSequence);
+	const size_t expectedPos = testStr.size() - croppedSequence.size();
+
+	// Act
+	std::string actual;
+	const size_t actualPos = Convert::Utf16Be::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+
+	// Assert
+	EXPECT_EQ(expectedPos, actualPos);
+	EXPECT_EQ(u8"test_тест", actual);
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf16)
+{
+	// Arrange
+	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string testStr = SwapByteOrder(u"test_тест" + croppedSequence);
+	const size_t expectedPos = testStr.size() - croppedSequence.size();
+
+	// Act
+	std::u16string actual;
+	const size_t actualPos = Convert::Utf16Be::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+
+	// Assert
+	EXPECT_EQ(expectedPos, actualPos);
+	EXPECT_EQ(u"test_тест", actual);
+}
+
+TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf32)
+{
+	// Arrange
+	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string testStr = SwapByteOrder(u"test_тест" + croppedSequence);
+	const size_t expectedPos = testStr.size() - croppedSequence.size();
+
+	// Act
+	std::u32string actual;
+	const size_t actualPos = Convert::Utf16Be::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+
+	// Assert
+	EXPECT_EQ(expectedPos, actualPos);
+	EXPECT_EQ(U"test_тест", actual);
 }
 
 #pragma warning(pop)

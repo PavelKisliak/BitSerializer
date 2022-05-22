@@ -13,34 +13,38 @@ class Utf32EncodeBaseFixture : public testing::Test
 {
 protected:
 	template <typename TOutStr = std::u32string>
-	static TOutStr EncodeUtf32(const std::string& utf8string, const char errSym = '?')
+	static TOutStr EncodeUtf32(const std::string& utf8string, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(utf8string.begin(), utf8string.end(), result, errSym);
+		TEncoder::Encode(utf8string.begin(), utf8string.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 
 	template <typename TOutStr = std::u32string>
-	static TOutStr EncodeUtf32(const std::wstring& unicodeStr, const char errSym = '?')
+	static TOutStr EncodeUtf32(const std::wstring& unicodeStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 
 	template <typename TOutStr = std::u32string>
-	static TOutStr EncodeUtf32(const std::u16string& unicodeStr, const char errSym = '?')
+	static TOutStr EncodeUtf32(const std::u16string& unicodeStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type * errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 
 	template <typename TOutStr = std::u32string>
-	static TOutStr EncodeUtf32(const std::u32string& unicodeStr, const char errSym = '?')
+	static TOutStr EncodeUtf32(const std::u32string& unicodeStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
+		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
 	{
 		TOutStr result;
-		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, errSym);
+		TEncoder::Encode(unicodeStr.begin(), unicodeStr.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 };
@@ -55,10 +59,11 @@ class Utf32DecodeBaseFixture : public testing::Test
 {
 protected:
 	template <typename TOutputString>
-	static TOutputString DecodeUtf32As(const std::u32string& Utf32Str, const char errSym = '?')
+	static TOutputString DecodeUtf32As(const std::u32string& Utf32Str, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::ThrowException,
+		const typename TOutputString::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutputString::value_type>())
 	{
 		TOutputString result;
-		TEncoder::Decode(Utf32Str.begin(), Utf32Str.end(), result, errSym);
+		TEncoder::Decode(Utf32Str.begin(), Utf32Str.end(), result, encodePolicy, errorMark);
 		return result;
 	}
 };
@@ -112,14 +117,37 @@ TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf32AsIs) {
 	EXPECT_EQ(U"世界，您好！", EncodeUtf32(U"世界，您好！"));
 }
 
-TEST_F(Utf32LeEncodeTest, ShouldPutErrorSymbolWhenSurrogateStartsWithWrongCode) {
+TEST_F(Utf32LeEncodeTest, ShouldPutErrorMarkWhenSurrogateStartsWithWrongCode) {
 	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
-	EXPECT_EQ(U"__test__", EncodeUtf32(wrongStartCodes + u"test" + wrongStartCodes, '_'));
+	EXPECT_EQ(U"☐☐test☐☐", EncodeUtf32(wrongStartCodes + u"test" + wrongStartCodes, Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
-TEST_F(Utf32LeEncodeTest, ShouldPutErrorSymbolWhenNoSecondCodeInSurrogate) {
+TEST_F(Utf32LeEncodeTest, ShouldPutErrorMarkWhenNoSecondCodeInSurrogate) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"test_", EncodeUtf32(u"test" + notFullSurrogatePair, '_'));
+	EXPECT_EQ(U"☐test", EncodeUtf32(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::WriteErrorMark));
+}
+
+TEST_F(Utf32LeEncodeTest, ShouldHandlePolicyThrowException) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_THROW(EncodeUtf32(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
+}
+
+TEST_F(Utf32LeEncodeTest, ShouldHandlePolicySkip) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_EQ(U"test", EncodeUtf32(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::Skip));
+}
+
+TEST_F(Utf32LeEncodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	constexpr std::u16string_view testStr = u"test";
+
+	// Act
+	std::u32string actualStr;
+	const auto actualIt = Convert::Utf32Le::Encode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
 }
 
 
@@ -156,6 +184,19 @@ TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf32AsIs) {
 	EXPECT_EQ(U"世界，您好！", DecodeUtf32As<std::u32string>(U"世界，您好！"));
 }
 
+TEST_F(Utf32LeDecodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	constexpr std::u32string_view testStr = U"test";
+
+	// Act
+	std::u16string actualStr;
+	const auto actualIt = Convert::Utf32Le::Decode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
+}
+
 //-----------------------------------------------------------------------------
 // UTF-32 BE: Tests for encoding string
 //-----------------------------------------------------------------------------
@@ -186,6 +227,39 @@ TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromWString) {
 TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf32Le) {
 	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(U"Привет мир!"));
 	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(U"世界，您好！"));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldPutErrorMarkWhenSurrogateStartsWithWrongCode) {
+	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
+	EXPECT_EQ(SwapByteOrder(U"☐☐test☐☐"), EncodeUtf32(wrongStartCodes + u"test" + wrongStartCodes, Convert::EncodeErrorPolicy::WriteErrorMark));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldPutErrorMarkWhenNoSecondCodeInSurrogate) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_EQ(SwapByteOrder(U"☐test"), EncodeUtf32(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::WriteErrorMark));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldHandlePolicyThrowException) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_THROW(EncodeUtf32(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldHandlePolicySkip) {
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	EXPECT_EQ(SwapByteOrder(U"test"), EncodeUtf32(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::Skip));
+}
+
+TEST_F(Utf32BeEncodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	constexpr std::u16string_view testStr = u"test";
+
+	// Act
+	std::u32string actualStr;
+	const auto actualIt = Convert::Utf32Be::Encode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
 }
 
 //-----------------------------------------------------------------------------
@@ -219,6 +293,19 @@ TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToWString) {
 TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf32Le) {
 	EXPECT_EQ(U"Привет мир!", DecodeUtf32As<std::u32string>(SwapByteOrder(U"Привет мир!")));
 	EXPECT_EQ(U"世界，您好！", DecodeUtf32As<std::u32string>(SwapByteOrder(U"世界，您好！")));
+}
+
+TEST_F(Utf32BeDecodeTest, ShouldReturnIteratorToEnd)
+{
+	// Arrange
+	const std::u32string testStr = SwapByteOrder(U"test");
+
+	// Act
+	std::u32string actualStr;
+	const auto actualIt = Convert::Utf32Be::Decode(testStr.cbegin(), testStr.cend(), actualStr);
+
+	// Assert
+	EXPECT_TRUE(actualIt == testStr.cend());
 }
 
 #pragma warning(pop)

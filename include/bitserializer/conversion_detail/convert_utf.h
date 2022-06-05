@@ -418,16 +418,24 @@ namespace BitSerializer::Convert
 	class Utf16Be
 	{
 		template <typename TBaseIt>
-		class U16BeConstIterator : public TBaseIt
+		class U16BeConstIterator
 		{
 		public:
-			explicit U16BeConstIterator(TBaseIt it) noexcept
-				: TBaseIt(std::move(it))
+			explicit U16BeConstIterator(TBaseIt it)
+				: mBaseIt(std::move(it))
 			{ }
 
-			typename TBaseIt::value_type operator*() const noexcept {
-				return (TBaseIt::operator*() >> 8) | (TBaseIt::operator*() << 8);
+			char16_t operator*() const noexcept {
+				return (*mBaseIt >> 8) | (*mBaseIt << 8);
 			}
+
+			bool operator==(const TBaseIt& rhs) const { return mBaseIt == rhs; }
+			bool operator!=(const TBaseIt& rhs) const { return mBaseIt != rhs; }
+			TBaseIt& operator++() { return ++mBaseIt; }
+			operator const TBaseIt& () const { return mBaseIt; }
+
+		private:
+			TBaseIt mBaseIt;
 		};
 
 	public:
@@ -538,16 +546,24 @@ namespace BitSerializer::Convert
 	class Utf32Be
 	{
 		template <typename TBaseIt>
-		class U32BeConstIterator : public TBaseIt
+		class U32BeConstIterator
 		{
 		public:
-			explicit U32BeConstIterator(TBaseIt it) noexcept
-				: TBaseIt(std::move(it))
+			explicit U32BeConstIterator(TBaseIt it)
+				: mBaseIt(std::move(it))
 			{ }
 
-			typename TBaseIt::value_type operator*() const noexcept {
-				return (TBaseIt::operator*() >> 24) | ((TBaseIt::operator*() << 8) & 0x00FF0000) | ((TBaseIt::operator*() >> 8) & 0x0000FF00) | (TBaseIt::operator*() << 24);
+			auto operator*() const noexcept {
+				return (*mBaseIt >> 24) | ((*mBaseIt << 8) & 0x00FF0000) | ((*mBaseIt >> 8) & 0x0000FF00) | (*mBaseIt << 24);
 			}
+
+			bool operator==(const TBaseIt& rhs) const { return mBaseIt == rhs; }
+			bool operator!=(const TBaseIt& rhs) const { return mBaseIt != rhs; }
+			TBaseIt& operator++() noexcept { return ++mBaseIt; }
+			operator const TBaseIt&() const { return mBaseIt; }
+
+		private:
+			TBaseIt mBaseIt;
 		};
 
 	public:

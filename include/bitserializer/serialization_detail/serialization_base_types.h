@@ -330,7 +330,7 @@ namespace BitSerializer
 					Serialize(arrayScope, *it);
 				}
 
-				if (it - startIt != endIt - startIt || !arrayScope.IsEnd())
+				if (it != endIt || !arrayScope.IsEnd())
 				{
 					throw SerializationException(SerializationErrorCode::OutOfRange,
 						"Target array with fixed size does not match the number of loading items");

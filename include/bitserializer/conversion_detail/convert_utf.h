@@ -4,9 +4,11 @@
 *******************************************************************************/
 #pragma once
 #include <algorithm>
+#include <cassert>
 #include <istream>
 #include <iterator>
 #include <string>
+#include <cstring>
 #include "convert_enum.h"
 
 namespace BitSerializer::Convert
@@ -641,7 +643,7 @@ namespace BitSerializer::Convert
 
 		// Return UTF-8 when BOM does not exist
 		UtfType detectedUtf = UtfType::Utf8;
-		size_t detectedBomSize = 0;
+		std::streamsize detectedBomSize = 0;
 		if (StartsWithBom<Utf8>(buffer))
 		{
 			detectedUtf = UtfType::Utf8;
@@ -681,6 +683,45 @@ namespace BitSerializer::Convert
 		return detectedUtf;
 	}
 
+
+	/// <summary>
+	/// Detects encoding of string
+	/// </summary>
+	static UtfType DetectEncoding(std::string_view inputString, size_t& out_dataOffset)
+	{
+		if (StartsWithBom<Utf8>(inputString))
+		{
+			out_dataOffset = sizeof Utf8::bom;
+			return UtfType::Utf8;
+		}
+		else if (StartsWithBom<Utf32Le>(inputString))
+		{
+			out_dataOffset = sizeof Utf32Le::bom;
+			return UtfType::Utf32le;
+		}
+		else if (StartsWithBom<Utf32Be>(inputString))
+		{
+			out_dataOffset = sizeof Utf32Be::bom;
+			return UtfType::Utf32be;
+		}
+		else if (StartsWithBom<Utf16Le>(inputString))
+		{
+			out_dataOffset = sizeof Utf16Le::bom;
+			return UtfType::Utf16le;
+		}
+		else if (StartsWithBom<Utf16Be>(inputString))
+		{
+			out_dataOffset = sizeof Utf16Be::bom;
+			return UtfType::Utf16be;
+		}
+		// Return UTF-8 when BOM does not exist
+		return UtfType::Utf8;
+	}
+
+
+	/// <summary>
+	/// Writes BOM (Byte order mark) to output stream
+	/// </summary>
 	static void WriteBom(std::ostream& outputStream, UtfType encoding)
 	{
 		switch (encoding)
@@ -702,4 +743,143 @@ namespace BitSerializer::Convert
 			break;
 		}
 	}
+
+
+	/// <summary>
+	/// Allows to read streams in various UTF encodings with automatic detection.
+	/// </summary>
+	template <typename TTargetUtfType, size_t ChunkSize = 256>
+	class CEncodedStreamReader
+	{
+	public:
+		using utf_type = TTargetUtfType;
+		using target_char_type = typename TTargetUtfType::char_type;
+		static constexpr size_t chunk_size = ChunkSize;
+
+		CEncodedStreamReader(std::istream& inputStream, EncodeErrorPolicy encodeErrorPolicy = EncodeErrorPolicy::WriteErrorMark,
+			const target_char_type* errorMark = Detail::GetDefaultErrorMark<target_char_type>())
+			: mInputStream(inputStream)
+			, mEncodeErrorPolicy(encodeErrorPolicy)
+			, mErrorMark(errorMark)
+		{
+			static_assert((ChunkSize % 4) == 0, "Chunk size size must be a multiple of 4");
+			static_assert(std::is_same_v<TTargetUtfType, Utf8> || std::is_same_v<TTargetUtfType, Utf16Le> || std::is_same_v<TTargetUtfType, Utf32Le>, 
+				"TTargetUtfType can be only UTF-8, UTF-16Le or UTF-32Le");
+
+			if (ReadNextEncodedChunk())
+			{
+				size_t bomSize = 0;
+				mUtfType = DetectEncoding(std::string_view(mStartDataPtr, mEndDataPtr - mStartDataPtr), bomSize);
+				mStartDataPtr += bomSize;
+			}
+		}
+
+		template<typename TAllocator>
+		bool ReadChunk(std::basic_string<target_char_type, std::char_traits<target_char_type>, TAllocator>& outStr)
+		{
+			if (IsEnd())
+			{
+				return false;
+			}
+
+			if (!ReadNextEncodedChunk() && mStartDataPtr == mEndDataPtr)
+			{
+				return false;
+			}
+
+			const auto prevOutSize = outStr.size();
+			switch (mUtfType)
+			{
+			case UtfType::Utf8:
+				if constexpr (std::is_same_v<TTargetUtfType, Utf8>)
+				{
+					outStr.append(mStartDataPtr, mEndDataPtr);
+					mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+				}
+				else
+				{
+					mStartDataPtr = TTargetUtfType::Encode(mStartDataPtr, mEndDataPtr, outStr, mEncodeErrorPolicy, mErrorMark);
+				}
+				break;
+			case UtfType::Utf16le:
+				mStartDataPtr = reinterpret_cast<char*>(Utf16Le::Decode(
+					reinterpret_cast<Utf16Le::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<Utf16Le::char_type>(), outStr, mEncodeErrorPolicy, mErrorMark));
+				break;
+			case UtfType::Utf16be:
+				mStartDataPtr = reinterpret_cast<char*>(Utf16Be::Decode(
+					reinterpret_cast<Utf16Be::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<Utf16Be::char_type>(), outStr, mEncodeErrorPolicy, mErrorMark));
+				break;
+			case UtfType::Utf32le:
+				mStartDataPtr = reinterpret_cast<char*>(Utf32Le::Decode(
+					reinterpret_cast<Utf32Le::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<Utf32Le::char_type>(), outStr, mEncodeErrorPolicy, mErrorMark));
+				break;
+			case UtfType::Utf32be:
+				mStartDataPtr = reinterpret_cast<char*>(Utf32Be::Decode(
+					reinterpret_cast<Utf32Be::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<Utf32Be::char_type>(), outStr, mEncodeErrorPolicy, mErrorMark));
+				break;
+			default:
+				break;
+			}
+			assert(mStartDataPtr <= mEndDataPtr);
+
+			// Process as error when left few not decoded bytes at the end of stream (not complete UTF sequence)
+			if (mInputStream.eof() && mStartDataPtr != mEndDataPtr)
+			{
+				Detail::HandleEncodingError(outStr, mEncodeErrorPolicy, mErrorMark);
+				mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+			}
+
+			return prevOutSize != outStr.size();
+		}
+
+		[[nodiscard]] bool IsEnd() const {
+			return mStartDataPtr == mEndDataPtr && mInputStream.eof();
+		}
+
+		[[nodiscard]] UtfType GetSourceUtfType() const noexcept {
+			return mUtfType;
+		}
+
+	private:
+		CEncodedStreamReader(const CEncodedStreamReader&) = delete;
+		CEncodedStreamReader(CEncodedStreamReader&& encodedStreamReader) = delete;
+		CEncodedStreamReader& operator=(const CEncodedStreamReader&) = delete;
+		CEncodedStreamReader& operator=(CEncodedStreamReader&&) = delete;
+
+		template <typename T>
+		T* GetAlignedEndDataPtr() noexcept {
+			return reinterpret_cast<T*>(mEndDataPtr - ((mEndDataPtr - mStartDataPtr) % sizeof(T)));
+		}
+
+		bool ReadNextEncodedChunk()
+		{
+			if (mStartDataPtr == mEndBufferPtr)
+			{
+				mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+			}
+			else if (mStartDataPtr != mEncodedBuffer)
+			{
+				// Squeeze buffer
+				std::memcpy(mEncodedBuffer, mStartDataPtr, mEndDataPtr - mStartDataPtr);
+				mEndDataPtr -= mStartDataPtr - mEncodedBuffer;
+				mStartDataPtr = mEncodedBuffer;
+			}
+
+			// Read next chunk
+			mInputStream.read(mEndDataPtr, static_cast<std::streamsize>(mEndBufferPtr - mEndDataPtr));
+			const auto readedBytes = mInputStream.gcount();
+			mEndDataPtr += readedBytes;
+			assert(mStartDataPtr >= mEncodedBuffer && mStartDataPtr <= mEndDataPtr);
+			return readedBytes != 0;
+		}
+
+		UtfType mUtfType;
+		std::istream& mInputStream;
+		EncodeErrorPolicy mEncodeErrorPolicy;
+		const target_char_type* mErrorMark;
+		char mEncodedBuffer[ChunkSize];
+		char* const mEndBufferPtr = mEncodedBuffer + ChunkSize;
+		char* mStartDataPtr = mEncodedBuffer;
+		char* mEndDataPtr = mEncodedBuffer;
+	};
 }

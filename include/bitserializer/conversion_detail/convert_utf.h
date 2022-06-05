@@ -637,7 +637,7 @@ namespace BitSerializer::Convert
 		std::string buffer(readChunkSize, 0);
 		const auto origPos = inputStream.tellg();
 		inputStream.read(buffer.data(), readChunkSize);
-		const size_t actualBytesCount = inputStream.gcount();
+		const auto actualBytesCount = inputStream.gcount();
 
 		// Return UTF-8 when BOM does not exist
 		UtfType detectedUtf = UtfType::Utf8;
@@ -646,16 +646,6 @@ namespace BitSerializer::Convert
 		{
 			detectedUtf = UtfType::Utf8;
 			detectedBomSize = sizeof Utf8::bom;
-		}
-		else if (StartsWithBom<Utf16Le>(buffer))
-		{
-			detectedUtf = UtfType::Utf16le;
-			detectedBomSize = sizeof Utf16Le::bom;
-		}
-		else if (StartsWithBom<Utf16Be>(buffer))
-		{
-			detectedUtf = UtfType::Utf16be;
-			detectedBomSize = sizeof Utf16Be::bom;
 		}
 		else if (StartsWithBom<Utf32Le>(buffer))
 		{
@@ -666,6 +656,16 @@ namespace BitSerializer::Convert
 		{
 			detectedUtf = UtfType::Utf32be;
 			detectedBomSize = sizeof Utf32Be::bom;
+		}
+		else if (StartsWithBom<Utf16Le>(buffer))
+		{
+			detectedUtf = UtfType::Utf16le;
+			detectedBomSize = sizeof Utf16Le::bom;
+		}
+		else if (StartsWithBom<Utf16Be>(buffer))
+		{
+			detectedUtf = UtfType::Utf16be;
+			detectedBomSize = sizeof Utf16Be::bom;
 		}
 
 		// Get back to stream position

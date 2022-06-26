@@ -20,10 +20,8 @@ public:
 		}
 		else if constexpr (std::is_same_v<TReader, BitSerializer::Csv::Detail::CCsvStreamReader>)
 		{
-			// Use 1 byte as chunk size for detect all possible cases
-			constexpr size_t chunkSize = 1;
 			mInputStream = std::make_optional<std::istringstream>(mTestCsv);
-			mCsvReader = std::make_shared<TReader>(mInputStream.value(), withHeader, separator, chunkSize);
+			mCsvReader = std::make_shared<TReader>(mInputStream.value(), withHeader, separator);
 		}
 	}
 

@@ -268,7 +268,7 @@ private:
 class CCsvStreamReader final : public ICsvReader
 {
 public:
-	CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',', size_t chunkSize = 128);
+	CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',');
 
 	[[nodiscard]] size_t GetCurrentIndex() const override { return mRowIndex; }
 	[[nodiscard]] bool IsEnd() const override;
@@ -278,14 +278,12 @@ public:
 
 private:
 	bool ParseLine(std::vector<std::string>& out_values);
-	bool ReadNextChunk();
 	void RemoveParsedStringPart();
 
-	std::istream& mInput;
-	std::string mBuffer;
+	Convert::CEncodedStreamReader<Convert::Utf8> mEncodedStreamReader;
+	std::string mDecodedBuffer;
 	const bool mWithHeader;
 	const char mSeparator;
-	const size_t mChunkSize;
 
 	std::vector<std::string> mHeader;
 	std::vector<std::string> mRowValues;
@@ -422,12 +420,12 @@ class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<Ser
 {
 public:
 	explicit CsvReadRootScope(const std::string& encodedInputStr, const SerializationOptions& serializationOptions = {})
-		: mCsvReader(CCsvStringReader(encodedInputStr, true, ','))
+		: mCsvReader(std::in_place_type<Csv::Detail::CCsvStringReader>, encodedInputStr, true, ',')
 		, mSerializationOptions(serializationOptions)
 	{ }
 
 	explicit CsvReadRootScope(std::istream& encodedInputStream, const SerializationOptions& serializationOptions = {})
-		: mCsvReader(CCsvStreamReader(encodedInputStream, true, ','))
+		: mCsvReader(std::in_place_type<Csv::Detail::CCsvStreamReader>, encodedInputStream, true, ',')
 		, mSerializationOptions(serializationOptions)
 	{ }
 

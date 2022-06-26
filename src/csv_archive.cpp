@@ -1,4 +1,5 @@
 #include "bitserializer/csv_archive.h"
+#include <algorithm>
 
 using namespace BitSerializer;
 
@@ -84,7 +85,7 @@ namespace
 				std::u16string u16LeStr;
 				Convert::Utf16Le::Encode(str.cbegin(), str.cend(), u16LeStr);
 				outputStream.write(reinterpret_cast<const char*>(u16LeStr.data()),
-					static_cast<std::streamsize>(u16LeStr.size() * sizeof std::u16string::value_type));
+					static_cast<std::streamsize>(u16LeStr.size() * sizeof(std::u16string::value_type)));
 				break;
 			}
 		case Convert::UtfType::Utf16be:
@@ -92,7 +93,7 @@ namespace
 				std::u16string u16BeStr;
 				Convert::Utf16Be::Encode(str.cbegin(), str.cend(), u16BeStr);
 				outputStream.write(reinterpret_cast<const char*>(u16BeStr.data()),
-					static_cast<std::streamsize>(u16BeStr.size() * sizeof std::u16string::value_type));
+					static_cast<std::streamsize>(u16BeStr.size() * sizeof(std::u16string::value_type)));
 				break;
 			}
 		case Convert::UtfType::Utf32le:
@@ -100,7 +101,7 @@ namespace
 				std::u32string u32LeStr;
 				Convert::Utf32Le::Encode(str.cbegin(), str.cend(), u32LeStr);
 				outputStream.write(reinterpret_cast<const char*>(u32LeStr.data()),
-					static_cast<std::streamsize>(u32LeStr.size() * sizeof std::u32string::value_type));
+					static_cast<std::streamsize>(u32LeStr.size() * sizeof(std::u32string::value_type)));
 				break;
 			}
 		case Convert::UtfType::Utf32be:
@@ -108,7 +109,7 @@ namespace
 				std::u32string u32BeStr;
 				Convert::Utf32Be::Encode(str.cbegin(), str.cend(), u32BeStr);
 				outputStream.write(reinterpret_cast<const char*>(u32BeStr.data()),
-					static_cast<std::streamsize>(u32BeStr.size() * sizeof std::u32string::value_type));
+					static_cast<std::streamsize>(u32BeStr.size() * sizeof(std::u32string::value_type)));
 				break;
 			}
 		}
@@ -279,19 +280,11 @@ namespace BitSerializer::Csv::Detail
 
 	//------------------------------------------------------------------------------
 
-	CCsvStreamReader::CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator, size_t chunkSize)
-		: mInput(inputStream)
+	CCsvStreamReader::CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator)
+		: mEncodedStreamReader(inputStream)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
-		, mChunkSize(chunkSize)
 	{
-		const auto utfType = Convert::DetectEncoding(inputStream);
-		if (utfType != Convert::UtfType::Utf8) {
-			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
-		}
-
-		ReadNextChunk();
-
 		if (withHeader)
 		{
 			if (ParseLine(mHeader))
@@ -307,7 +300,7 @@ namespace BitSerializer::Csv::Detail
 
 	bool CCsvStreamReader::IsEnd() const
 	{
-		return mCurrentPos >= mBuffer.size() && mInput.eof();
+		return mCurrentPos >= mDecodedBuffer.size() && mEncodedStreamReader.IsEnd();
 	}
 
 	bool CCsvStreamReader::ReadValue(std::string_view key, std::string& value)
@@ -379,7 +372,7 @@ namespace BitSerializer::Csv::Detail
 		out_values.clear();
 		const size_t startLinePos = mCurrentPos;
 
-		if (mInput.eof() && mCurrentPos >= mBuffer.size())
+		if (IsEnd())
 		{
 			return false;
 		}
@@ -393,17 +386,18 @@ namespace BitSerializer::Csv::Detail
 
 			while (true)
 			{
-				if (mCurrentPos == mBuffer.size())
+				if (mCurrentPos == mDecodedBuffer.size())
 				{
-					if (!ReadNextChunk())
+					if (!mEncodedStreamReader.ReadChunk(mDecodedBuffer))
 					{
-						endValuePos = mBuffer.size();
+						// When reached end of file
+						endValuePos = mDecodedBuffer.size();
 						isEndLine = true;
 						break;
 					}
 				}
 
-				const char sym = mBuffer[mCurrentPos];
+				const char sym = mDecodedBuffer[mCurrentPos];
 				if (sym == '"')
 				{
 					++valueQuotesCount;
@@ -428,9 +422,9 @@ namespace BitSerializer::Csv::Detail
 					break;
 				}
 				// End of file (RFC: The last record in the file may or may not have an ending line break)
-				else if (mCurrentPos + 1 == mBuffer.size() && mInput.eof())
+				else if (mCurrentPos + 1 == mDecodedBuffer.size() && mEncodedStreamReader.IsEnd())
 				{
-					endValuePos = mCurrentPos = mBuffer.size();
+					endValuePos = mCurrentPos = mDecodedBuffer.size();
 					isEndLine = true;
 					break;
 				}
@@ -443,11 +437,11 @@ namespace BitSerializer::Csv::Detail
 				if (valueQuotesCount)
 				{
 					out_values.emplace_back(
-						UnescapeValue(std::string_view(mBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
+						UnescapeValue(std::string_view(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
 				}
 				else
 				{
-					out_values.emplace_back(mBuffer.data() + startValuePos, endValuePos - startValuePos);
+					out_values.emplace_back(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos);
 				}
 			}
 		}
@@ -456,33 +450,21 @@ namespace BitSerializer::Csv::Detail
 		RemoveParsedStringPart();
 
 		// When entire buffer has been parsed, need to read next chunk for detect end of file
-		if (mCurrentPos == mBuffer.size())
+		if (mCurrentPos == mDecodedBuffer.size())
 		{
-			ReadNextChunk();
+			mCurrentPos = 0;
+			mDecodedBuffer.clear();
+			mEncodedStreamReader.ReadChunk(mDecodedBuffer);
 		}
 
 		return !out_values.empty();
-	}
-
-	bool CCsvStreamReader::ReadNextChunk()
-	{
-		if (mInput.eof())
-		{
-			return false;
-		}
-
-		const size_t prevSize = mBuffer.size();
-		mBuffer.resize(prevSize + mChunkSize);
-		mInput.read(&mBuffer[prevSize], static_cast<std::streamsize>(mChunkSize));
-		mBuffer.resize(prevSize + mInput.gcount());
-		return prevSize != mBuffer.size();
 	}
 
 	void CCsvStreamReader::RemoveParsedStringPart()
 	{
 		if (mCurrentPos)
 		{
-			mBuffer.erase(0, mCurrentPos);
+			mDecodedBuffer.erase(0, mCurrentPos);
 			mCurrentPos = 0;
 		}
 	}

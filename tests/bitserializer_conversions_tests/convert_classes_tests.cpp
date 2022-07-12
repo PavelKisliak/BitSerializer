@@ -34,32 +34,32 @@ TEST(ConvertEnums, ConvertEnumToWStream) {
 }
 
 TEST(ConvertEnums, ConvertEnumFromStream) {
-	std::stringstream stream("Utf-16le");
-	Convert::UtfType actual;
+	std::stringstream stream("Five");
+	TestEnum actual;
 	stream >> actual;
-	EXPECT_EQ(Convert::UtfType::Utf16le, actual);
+	EXPECT_EQ(TestEnum::Five, actual);
 }
 
 TEST(ConvertEnums, ConvertEnumFromWStream) {
-	std::wstringstream stream(L"Utf-16le");
-	Convert::UtfType actual;
+	std::wstringstream stream(L"Two");
+	TestEnum actual;
 	stream >> actual;
-	EXPECT_EQ(Convert::UtfType::Utf16le, actual);
+	EXPECT_EQ(TestEnum::Two, actual);
 }
 
 TEST(ConvertEnums, ConvertEnumFromStreamWithSkipSpaces) {
-	std::stringstream stream("\t\t  UTF-8 ");
-	Convert::UtfType actual;
+	std::stringstream stream("\t\t  Three ");
+	TestEnum actual;
 	stream >> actual;
-	EXPECT_EQ(Convert::UtfType::Utf8, actual);
+	EXPECT_EQ(TestEnum::Three, actual);
 }
 
 TEST(ConvertEnums, ConvertEnumChainFromStream) {
-	std::stringstream stream("UTF-8 UTF-32LE");
-	Convert::UtfType actualEnum1, actualEnum2;
+	std::stringstream stream("One Two");
+	TestEnum actualEnum1, actualEnum2;
 	stream >> actualEnum1 >> actualEnum2;
-	EXPECT_EQ(Convert::UtfType::Utf8, actualEnum1);
-	EXPECT_EQ(Convert::UtfType::Utf32le, actualEnum2);
+	EXPECT_EQ(TestEnum::One, actualEnum1);
+	EXPECT_EQ(TestEnum::Two, actualEnum2);
 }
 
 

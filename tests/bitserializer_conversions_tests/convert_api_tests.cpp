@@ -71,3 +71,19 @@ TEST(ConvertApi, ToString) {
 TEST(ConvertApi, ToWString) {
 	EXPECT_EQ(L"500", Convert::ToWString(500));
 }
+
+//-----------------------------------------------------------------------------
+// Test registration of stream operations for Convert::UtfType
+//-----------------------------------------------------------------------------
+TEST(ConvertApi, ConvertUtfTypeToStream) {
+	std::ostringstream oss;
+	oss << BitSerializer::Convert::UtfType::Utf16le;
+	EXPECT_EQ("UTF-16LE", oss.str());
+}
+
+TEST(ConvertApi, ConvertUtfTypeFromStream) {
+	std::stringstream stream("UTF-32LE");
+	BitSerializer::Convert::UtfType actual;
+	stream >> actual;
+	EXPECT_EQ(BitSerializer::Convert::UtfType::Utf32le, actual);
+}

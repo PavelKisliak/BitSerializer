@@ -36,7 +36,7 @@
 		return stream << str; \
 	} \
 	template <class TSym, class TTraits = std::char_traits<TSym>> \
-	std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, BitSerializer::Convert::UtfType& value) \
+	std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enumType& value) \
 	{ \
 	TSym sym; std::basic_string<TSym, TTraits> str; \
 	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = stream.get()) { \

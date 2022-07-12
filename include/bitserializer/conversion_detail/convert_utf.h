@@ -33,7 +33,6 @@ namespace BitSerializer::Convert
 		{ UtfType::Utf32le, "UTF-32LE" },
 		{ UtfType::Utf32be, "UTF-32BE" }
 	} END_ENUM_MAP()
-	DECLARE_ENUM_STREAM_OPS(UtfType)
 
 	namespace Unicode
 	{
@@ -883,3 +882,5 @@ namespace BitSerializer::Convert
 		char* mEndDataPtr = mEncodedBuffer;
 	};
 }
+
+DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::UtfType)

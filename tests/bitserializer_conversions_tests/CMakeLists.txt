@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     utf8_encoding_tests.cpp
     utf16_encoding_tests.cpp
     utf32_encoding_tests.cpp
+    detect_encodings_fixture.h
     detect_encodings_tests.cpp
     encoded_stream_reader_fixture.h
     encoded_stream_reader_tests.cpp

@@ -1,116 +1,116 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "detect_encodings_fixture.h"
 
 using namespace BitSerializer;
 
-//-----------------------------------------------------------------------------
-// Tests of UTF encodings detection by BOM (Byte Order Mark)
-//-----------------------------------------------------------------------------
-// Common tests for different encoding types
-//-----------------------------------------------------------------------------
-TEST(UtfDetectEncodingsTest, ShouldReturnFalseWhenInputDataIsEmpty) {
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf8>(""));
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf32Be>(""));
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf32Le>(""));
-}
+using testing::Types;
+typedef Types<Convert::Utf8, Convert::Utf16Le, Convert::Utf16Be, Convert::Utf32Le, Convert::Utf32Be> Implementations;
 
-TEST(UtfDetectEncodingsTest, ShouldReturnUtf8WhenNoBom) {
-	std::stringstream strStream;
-	strStream << "test_text";
-	EXPECT_EQ(Convert::UtfType::Utf8, Convert::DetectEncoding(strStream));
-}
+TYPED_TEST_SUITE(DetectEncodingTest, Implementations);
 
-TEST(UtfDetectEncodingsTest, ShouldSkipBomWhenFoundWhenPassedTrue) {
-	const std::string expectedText = "test_text";
-	std::stringstream strStream;
-	strStream << "\xEF\xBB\xBF" << expectedText;
-	Convert::DetectEncoding(strStream, true);
-
-	const std::string actualText(std::istreambuf_iterator<char>(strStream), {});
-	EXPECT_EQ(expectedText, actualText);
-}
-
-TEST(UtfDetectEncodingsTest, ShouldNotSkipBomWhenPassedFalse) {
-	const std::string expectedText = "\xEF\xBB\xBFtest_text";
-	std::stringstream strStream;
-	strStream << expectedText;
-	Convert::DetectEncoding(strStream, false);
-
-	const std::string actualText(std::istreambuf_iterator<char>(strStream), {});
-	EXPECT_EQ(expectedText, actualText);
-}
 
 //-----------------------------------------------------------------------------
-// UTF-8 detect
+// Tests for detecting BOM (Byte Order Mark)
 //-----------------------------------------------------------------------------
-TEST(UtfDetectEncodingsTest, Utf8_ShouldReturnTrueWhenStartsWithValidBom) {
-	static const std::string testStr = "\xEF\xBB\xBF";
-	EXPECT_TRUE(Convert::StartsWithBom<Convert::Utf8>(testStr));
+TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenInputDataIsEmpty) {
+	EXPECT_FALSE(Convert::StartsWithBom<typename TestFixture::utf_type>(""));
 }
 
-TEST(UtfDetectEncodingsTest, Utf8_ShouldReturnFalseWhenBomIsNotFull) {
-	static const std::string testStr = "\xEF\xBB_test";
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf8>(testStr));
+TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenNoBom) {
+	EXPECT_FALSE(Convert::StartsWithBom<typename TestFixture::utf_type>("test"));
 }
 
-TEST(UtfDetectEncodingsTest, Utf8_ShouldDetectEncoding) {
-	std::stringstream strStream;
-	strStream << "\xEF\xBB\xBF_test";
-	EXPECT_EQ(Convert::UtfType::Utf8, Convert::DetectEncoding(strStream));
+TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenBomIsNotFull)
+{
+	// Arrange
+	this->AppendBom(TestFixture::utf_type::bom);
+	this->mEncodedBuffer.pop_back();
+
+	// Act / Assert
+	EXPECT_FALSE(Convert::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
+}
+
+TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentOnlyBom)
+{
+	// Arrange
+	this->AppendBom(TestFixture::utf_type::bom);
+
+	// Act / Assert
+	EXPECT_TRUE(Convert::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
+}
+
+TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentBomAndText)
+{
+	// Arrange
+	this->AppendBom(TestFixture::utf_type::bom);
+	this->PrepareEncodedData(U"test!");
+
+	// Act / Assert
+	EXPECT_TRUE(Convert::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
 }
 
 //-----------------------------------------------------------------------------
-// UTF-16 LE detect
+// Tests for detecting UTF encoding
 //-----------------------------------------------------------------------------
-TEST(UtfDetectEncodingsTest, Utf16Le_ShouldReturnTrueWhenStartsWithValidBom) {
-	static const std::string testStr = "\xFF\xFE";
-	EXPECT_TRUE(Convert::StartsWithBom<Convert::Utf16Le>(testStr));
+TYPED_TEST(DetectEncodingTest, ShouldDetectInString_WithBom)
+{
+	this->AppendBom(TestFixture::utf_type::bom);
+	this->PrepareEncodedData(U"Hello world!");
+	this->TestDetectInString();
 }
 
-TEST(UtfDetectEncodingsTest, Utf16Le_ShouldReturnFalseWhenBomIsNotFull) {
-	static const std::string testStr = "\xFF-";
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf16Le>(testStr));
+//TYPED_TEST(DetectEncodingTest, ShouldDetectInString_En)
+//{
+//	this->PrepareEncodedData(U"Hello world!");
+//	this->TestDetectInString();
+//}
+
+//TYPED_TEST(DetectEncodingTest, ShouldDetectInString_Ru)
+//{
+//	this->PrepareEncodedData(U"Привет мир!");
+//	this->TestDetectInString();
+//}
+//
+//TYPED_TEST(DetectEncodingTest, ShouldDetectInString_Cn)
+//{
+//	this->PrepareEncodedData(U"世界，您好！");
+//	this->TestDetectInString();
+//}
+
+TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_BomWithSkip)
+{
+	this->AppendBom(TestFixture::utf_type::bom);
+	this->PrepareEncodedData(U"Hello world!");
+	this->TestDetectInStream();
 }
 
-//-----------------------------------------------------------------------------
-// UTF-16 BE detect
-//-----------------------------------------------------------------------------
-TEST(UtfDetectEncodingsTest, Utf16Be_ShouldReturnTrueWhenStartsWithValidBom) {
-	static const std::string testStr = "\xFE\xFF";
-	EXPECT_TRUE(Convert::StartsWithBom<Convert::Utf16Be>(testStr));
+TYPED_TEST(DetectEncodingTest, ShouldNoSkipBomInStream_BomWithNoSkip)
+{
+	this->AppendBom(TestFixture::utf_type::bom);
+	this->PrepareEncodedData(U"Hello world!");
+	this->TestDetectInStream(false);
 }
 
-TEST(UtfDetectEncodingsTest, Utf16Be_ShouldReturnFalseWhenBomIsNotFull) {
-	static const std::string testStr = "\xFE-";
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf16Be>(testStr));
-}
+//TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_En)
+//{
+//	this->PrepareEncodedData(U"Hello world!");
+//	this->TestDetectInStream();
+//}
 
-//-----------------------------------------------------------------------------
-// UTF-32 LE detect
-//-----------------------------------------------------------------------------
-TEST(UtfDetectEncodingsTest, Utf32Le_ShouldReturnTrueWhenStartsWithValidBom) {
-	static const std::string testStr = { char(0xFF), char(0xFE), char(0x00), char(0x00) };
-	EXPECT_TRUE(Convert::StartsWithBom<Convert::Utf32Le>(testStr));
-}
-
-TEST(UtfDetectEncodingsTest, Utf32Le_ShouldReturnFalseWhenBomIsNotFull) {
-	static const std::string testStr = { char(0xFF), char(0xFE), char(0x00), '-' };
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf32Le>(testStr));
-}
-
-//-----------------------------------------------------------------------------
-// UTF-32 BE detect
-//-----------------------------------------------------------------------------
-TEST(UtfDetectEncodingsTest, Utf32Be_ShouldReturnTrueWhenStartsWithValidBom) {
-	static const std::string testStr = { char(0x00), char(0x00), char(0xFE), char(0xFF) };
-	EXPECT_TRUE(Convert::StartsWithBom<Convert::Utf32Be>(testStr));
-}
-
-TEST(UtfDetectEncodingsTest, Utf32Be_ShouldReturnFalseWhenBomIsNotFull) {
-	static const std::string testStr = { char(0x00), char(0x00), char(0xFE) };
-	EXPECT_FALSE(Convert::StartsWithBom<Convert::Utf32Be>(testStr));
-}
+//TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_Ru)
+//{
+//	this->PrepareEncodedData(U"Привет мир!");
+//	this->TestDetectInStream();
+//}
+//
+//TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_Cn)
+//{
+//	this->PrepareEncodedData(U"世界，您好！");
+//	this->TestDetectInStream();
+//}
+//

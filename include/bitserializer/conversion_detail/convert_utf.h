@@ -627,56 +627,121 @@ namespace BitSerializer::Convert
 		return true;
 	}
 
+
 	/// <summary>
-	/// Detects an encoding of stream by checking BOM.
+	/// Detects encoding of string.
+	/// </summary>
+	static UtfType DetectEncoding(std::string_view inputString, size_t& out_dataOffset)
+	{
+		if (inputString.empty())
+		{
+			out_dataOffset = 0;
+			return UtfType::Utf8;
+		}
+
+		out_dataOffset = 0;
+		UtfType utfType = UtfType::Utf8;
+		if (StartsWithBom<Utf8>(inputString))
+		{
+			out_dataOffset = sizeof Utf8::bom;
+			utfType = UtfType::Utf8;
+		}
+		else if (StartsWithBom<Utf32Le>(inputString))
+		{
+			out_dataOffset = sizeof Utf32Le::bom;
+			utfType = UtfType::Utf32le;
+		}
+		else if (StartsWithBom<Utf32Be>(inputString))
+		{
+			out_dataOffset = sizeof Utf32Be::bom;
+			utfType = UtfType::Utf32be;
+		}
+		else if (StartsWithBom<Utf16Le>(inputString))
+		{
+			out_dataOffset = sizeof Utf16Le::bom;
+			utfType = UtfType::Utf16le;
+		}
+		else if (StartsWithBom<Utf16Be>(inputString))
+		{
+			out_dataOffset = sizeof Utf16Be::bom;
+			utfType = UtfType::Utf16be;
+		}
+		else
+		{
+			// Analysis data
+			for (size_t i = 0; i < inputString.size(); ++i)
+			{
+				// Detecting UTF-32 (LE/BE)
+				if (i % sizeof(Utf32Le::char_type) == 0 && i + sizeof(Utf32Le::char_type) < inputString.size())
+				{
+					if (const uint32_t sym = *reinterpret_cast<const uint32_t*>(&inputString[i]); sym != 0)
+					{
+						if ((sym & 0b11111111111111110000000000000000) == 0)
+						{
+							utfType = UtfType::Utf32le;
+							break;
+						}
+						else if ((sym & 0b00000000000000001111111111111111) == 0)
+						{
+							utfType = UtfType::Utf32be;
+							break;
+						}
+					}
+				}
+				// Detecting UTF-16 (LE/BE)
+				if (i % sizeof(Utf16Le::char_type) == 0 && i + sizeof(Utf16Le::char_type) < inputString.size())
+				{
+					if (const uint16_t sym = *reinterpret_cast<const uint16_t*>(&inputString[i]); sym != 0)
+					{
+						if ((sym & 0b1111111100000000) == 0)
+						{
+							utfType = UtfType::Utf16le;
+							break;
+						}
+						else if ((sym & 0b0000000011111111) == 0)
+						{
+							utfType = UtfType::Utf16be;
+							break;
+						}
+					}
+				}
+			}
+		}
+		return utfType;
+	}
+
+
+	/// <summary>
+	/// Detects an encoding of stream.
 	/// </summary>
 	static UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)
 	{
-		static constexpr size_t readChunkSize = 4;
-
-		// Read first bytes for check BOM
-		std::string buffer(readChunkSize, 0);
+		// Read first characters to temporary buffer
+		static constexpr size_t tempBufferSize = 128;
+		char buffer[tempBufferSize];
 		const auto origPos = inputStream.tellg();
-		inputStream.read(buffer.data(), readChunkSize);
-		const auto actualBytesCount = inputStream.gcount();
+		inputStream.read(buffer, tempBufferSize);
+		const auto readBytesCount = inputStream.gcount();
 
-		// Return UTF-8 when BOM does not exist
-		UtfType detectedUtf = UtfType::Utf8;
-		std::streamsize detectedBomSize = 0;
-		if (StartsWithBom<Utf8>(buffer))
-		{
-			detectedUtf = UtfType::Utf8;
-			detectedBomSize = sizeof Utf8::bom;
-		}
-		else if (StartsWithBom<Utf32Le>(buffer))
-		{
-			detectedUtf = UtfType::Utf32le;
-			detectedBomSize = sizeof Utf32Le::bom;
-		}
-		else if (StartsWithBom<Utf32Be>(buffer))
-		{
-			detectedUtf = UtfType::Utf32be;
-			detectedBomSize = sizeof Utf32Be::bom;
-		}
-		else if (StartsWithBom<Utf16Le>(buffer))
-		{
-			detectedUtf = UtfType::Utf16le;
-			detectedBomSize = sizeof Utf16Le::bom;
-		}
-		else if (StartsWithBom<Utf16Be>(buffer))
-		{
-			detectedUtf = UtfType::Utf16be;
-			detectedBomSize = sizeof Utf16Be::bom;
-		}
+		// Detect encoding
+		size_t dataOffset = 0;
+		auto detectedUtf = DetectEncoding(std::string_view(buffer, readBytesCount), dataOffset);
 
 		// Get back to stream position
+		if (inputStream.eof())
+		{
+			// Need reset EOF for able to rewind stream
+			inputStream.clear();
+		}
 		if (skipBomWhenFound)
 		{
-			if (actualBytesCount != detectedBomSize) {
-				inputStream.seekg(origPos + std::streamoff(detectedBomSize));
+			if (readBytesCount != dataOffset)
+			{
+				inputStream.seekg(origPos + std::streamoff(dataOffset));
 			}
 		}
-		else {
+		else
+		{
 			inputStream.seekg(origPos);
 		}
 		return detectedUtf;
@@ -684,42 +749,7 @@ namespace BitSerializer::Convert
 
 
 	/// <summary>
-	/// Detects encoding of string
-	/// </summary>
-	static UtfType DetectEncoding(std::string_view inputString, size_t& out_dataOffset)
-	{
-		if (StartsWithBom<Utf8>(inputString))
-		{
-			out_dataOffset = sizeof Utf8::bom;
-			return UtfType::Utf8;
-		}
-		else if (StartsWithBom<Utf32Le>(inputString))
-		{
-			out_dataOffset = sizeof Utf32Le::bom;
-			return UtfType::Utf32le;
-		}
-		else if (StartsWithBom<Utf32Be>(inputString))
-		{
-			out_dataOffset = sizeof Utf32Be::bom;
-			return UtfType::Utf32be;
-		}
-		else if (StartsWithBom<Utf16Le>(inputString))
-		{
-			out_dataOffset = sizeof Utf16Le::bom;
-			return UtfType::Utf16le;
-		}
-		else if (StartsWithBom<Utf16Be>(inputString))
-		{
-			out_dataOffset = sizeof Utf16Be::bom;
-			return UtfType::Utf16be;
-		}
-		// Return UTF-8 when BOM does not exist
-		return UtfType::Utf8;
-	}
-
-
-	/// <summary>
-	/// Writes BOM (Byte order mark) to output stream
+	/// Writes BOM (Byte order mark) to output stream.
 	/// </summary>
 	static void WriteBom(std::ostream& outputStream, UtfType encoding)
 	{

@@ -55,7 +55,7 @@ TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentBomAndText)
 }
 
 //-----------------------------------------------------------------------------
-// Tests for detecting UTF encoding
+// Tests for detecting UTF encoding in string (via detect BOM and data analysis)
 //-----------------------------------------------------------------------------
 TYPED_TEST(DetectEncodingTest, ShouldDetectInString_WithBom)
 {
@@ -64,53 +64,32 @@ TYPED_TEST(DetectEncodingTest, ShouldDetectInString_WithBom)
 	this->TestDetectInString();
 }
 
-//TYPED_TEST(DetectEncodingTest, ShouldDetectInString_En)
-//{
-//	this->PrepareEncodedData(U"Hello world!");
-//	this->TestDetectInString();
-//}
+TYPED_TEST(DetectEncodingTest, ShouldDetectInString_NoBom)
+{
+	this->PrepareEncodedData(U"Hello world!");
+	this->TestDetectInString();
+}
 
-//TYPED_TEST(DetectEncodingTest, ShouldDetectInString_Ru)
-//{
-//	this->PrepareEncodedData(U"Привет мир!");
-//	this->TestDetectInString();
-//}
-//
-//TYPED_TEST(DetectEncodingTest, ShouldDetectInString_Cn)
-//{
-//	this->PrepareEncodedData(U"世界，您好！");
-//	this->TestDetectInString();
-//}
 
-TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_BomWithSkip)
+//-----------------------------------------------------------------------------
+// Tests for detecting UTF encoding in stream (via detect BOM and data analysis)
+//-----------------------------------------------------------------------------
+TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_BomSkip)
 {
 	this->AppendBom(TestFixture::utf_type::bom);
 	this->PrepareEncodedData(U"Hello world!");
 	this->TestDetectInStream();
 }
 
-TYPED_TEST(DetectEncodingTest, ShouldNoSkipBomInStream_BomWithNoSkip)
+TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_BomNoSkip)
 {
 	this->AppendBom(TestFixture::utf_type::bom);
 	this->PrepareEncodedData(U"Hello world!");
 	this->TestDetectInStream(false);
 }
 
-//TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_En)
-//{
-//	this->PrepareEncodedData(U"Hello world!");
-//	this->TestDetectInStream();
-//}
-
-//TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_Ru)
-//{
-//	this->PrepareEncodedData(U"Привет мир!");
-//	this->TestDetectInStream();
-//}
-//
-//TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_Cn)
-//{
-//	this->PrepareEncodedData(U"世界，您好！");
-//	this->TestDetectInStream();
-//}
-//
+TYPED_TEST(DetectEncodingTest, ShouldDetectInStream_NoBom)
+{
+	this->PrepareEncodedData(U"Hello world!");
+	this->TestDetectInStream();
+}

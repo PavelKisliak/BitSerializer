@@ -21,7 +21,7 @@ public:
 	[[nodiscard]] std::string GetArchiveName() const override { return "PugiXml"; }
 	[[nodiscard]] bool IsUseNativeLib() const override { return true; }
 
-	void SaveModelViaNativeLib() override
+	size_t SaveModelViaNativeLib() override
 	{
 		pugi::xml_document mDoc;
 		auto rootNode =  mDoc.append_child(PUGIXML_TEXT("root"));
@@ -68,9 +68,10 @@ public:
 		out_string_stream_t stream;
 		mDoc.save(stream, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
 		mNativeLibOutputData = stream.str();
+		return mNativeLibOutputData.size();
 	}
 
-	void LoadModelViaNativeLib() override
+	size_t LoadModelViaNativeLib() override
 	{
 		pugi::xml_document mDoc;
 		const auto result = mDoc.load_buffer(mNativeLibOutputData.data(), mNativeLibOutputData.size(), pugi::parse_default, pugi::encoding_auto);
@@ -131,6 +132,8 @@ public:
 			obj.mTestStringValue = it->child(PUGIXML_TEXT("TestStringValue")).text().as_string();
 			++i;
 		}
+
+		return mNativeLibOutputData.size();
 	}
 
 	void Assert() const override

@@ -45,34 +45,36 @@ public:
 	/// </summary>
 	virtual void Prepare()
 	{
-		BuildFixture<TModel>(mSourceTestModel);
+		BuildFixture(mSourceTestModel);
 	}
 
 	/// <summary>
 	/// Saves model via BitSerializer.
 	/// </summary>
-	virtual void SaveModelViaBitSerializer()
+	virtual size_t SaveModelViaBitSerializer()
 	{
 		mBitSerializerOutputData = BitSerializer::SaveObject<archive_t>(mSourceTestModel);
+		return std::size(mBitSerializerOutputData);
 	}
 
 	/// <summary>
 	/// Saves model via library which uses as base for BitSerializer's archive.
 	/// </summary>
-	virtual void SaveModelViaNativeLib() {}
+	virtual size_t SaveModelViaNativeLib() { return 0; }
 
 	/// <summary>
 	/// Loads model via BitSerializer.
 	/// </summary>
-	virtual void LoadModelViaBitSerializer()
+	virtual size_t LoadModelViaBitSerializer()
 	{
 		BitSerializer::LoadObject<TArchive>(mBitSerializerModel, mBitSerializerOutputData);
+		return std::size(mBitSerializerOutputData);
 	}
 
 	/// <summary>
 	/// Loads model via library which uses as base for BitSerializer's archive.
 	/// </summary>
-	virtual void LoadModelViaNativeLib() {}
+	virtual size_t LoadModelViaNativeLib() { return 0; }
 
 	/// <summary>
 	/// Asserts loaded data (BitSerilizer and native library implementations).
@@ -80,7 +82,10 @@ public:
 	/// </summary>
 	virtual void Assert() const
 	{
-		mSourceTestModel.Assert(mBitSerializerModel);
+		if constexpr (has_assert_method_v<TModel>)
+		{
+			mSourceTestModel.Assert(mBitSerializerModel);
+		}
 	}
 
 protected:

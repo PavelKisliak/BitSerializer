@@ -24,7 +24,7 @@ public:
 	[[nodiscard]] std::string GetArchiveName() const override { return "CppRestJson"; }
 	[[nodiscard]] bool IsUseNativeLib() const override { return true; }
 
-	void SaveModelViaNativeLib() override
+	size_t SaveModelViaNativeLib() override
 	{
 		web::json::value rootJson = web::json::value::object();
 		auto& rootObj = rootJson.as_object();
@@ -75,9 +75,10 @@ public:
 #else
 		mNativeLibOutputData = rootJson.serialize();
 #endif
+		return mNativeLibOutputData.size();
 	}
 
-	void LoadModelViaNativeLib() override
+	size_t LoadModelViaNativeLib() override
 	{
 #ifdef _UTF16_STRINGS
 		auto rootJson = web::json::value::parse(utility::conversions::to_string_t(mNativeLibOutputData));
@@ -137,6 +138,8 @@ public:
 			obj.mTestStringValue = jObj.find(_XPLATSTR("TestStringValue"))->second.as_string();
 			++i;
 		}
+
+		return mNativeLibOutputData.size();
 	}
 
 	void Assert() const override

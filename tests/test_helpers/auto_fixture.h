@@ -21,14 +21,14 @@
 #include "bitserializer/convert.h"
 
 /// <summary>
-/// Checks that the class has BuildFixture() method.
+/// Checks that the class has static BuildFixture() method.
 /// </summary>
 template <typename T>
 struct has_build_fixture_method
 {
 private:
 	template <typename U>
-	static decltype(T::BuildFixture(std::declval<T&>()), std::true_type()) test(int);
+	static decltype(U::BuildFixture(std::declval<U&>()), std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -40,6 +40,27 @@ public:
 
 template <typename T>
 constexpr bool has_build_fixture_method_v = has_build_fixture_method<T>::value;
+
+/// <summary>
+/// Checks that the class has Assert() method.
+/// </summary>
+template <typename T>
+struct has_assert_method
+{
+private:
+	template <typename U>
+	static decltype(std::declval<U>().Assert(std::declval<const U&>()), std::true_type()) test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool has_assert_method_v = has_assert_method<T>::value;
 
 /// <summary>
 /// Builds the test fixture for classes (they must have static method BuildFixture()).

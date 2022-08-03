@@ -21,7 +21,7 @@ public:
 	[[nodiscard]] std::string GetArchiveName() const override { return "RapidYaml"; }
 	[[nodiscard]] bool IsUseNativeLib() const override { return true; }
 
-	void SaveModelViaNativeLib() override
+	size_t SaveModelViaNativeLib() override
 	{
 		ryml::Tree tree;
 		auto root = tree.rootref();
@@ -83,9 +83,10 @@ public:
 		}
 
 		mNativeLibOutputData = ryml::emitrs<std::string>(tree);
+		return mNativeLibOutputData.size();
 	}
 
-	void LoadModelViaNativeLib() override
+	size_t LoadModelViaNativeLib() override
 	{
 		auto tree = ryml::parse(c4::to_csubstr(mNativeLibOutputData));
 		auto root = tree.rootref();
@@ -129,6 +130,8 @@ public:
 			yamlVal["TestDoubleValue"] >> obj.mTestDoubleValue;
 			yamlVal["TestStringValue"] >> obj.mTestStringValue;
 		}
+
+		return mNativeLibOutputData.size();
 	}
 
 	void Assert() const override

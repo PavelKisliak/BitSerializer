@@ -25,7 +25,7 @@ public:
 	[[nodiscard]] std::string GetArchiveName() const override { return "RapidJson"; }
 	[[nodiscard]] bool IsUseNativeLib() const override { return true; }
 
-	void SaveModelViaNativeLib() override
+	size_t SaveModelViaNativeLib() override
 	{
 		RapidJsonDocument jsonDoc;
 		auto& allocator = jsonDoc.GetAllocator();
@@ -88,9 +88,10 @@ public:
 		rapidjson::Writer<StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>> writer(buffer);
 		jsonDoc.Accept(writer);
 		mNativeLibOutputData = buffer.GetString();
+		return mNativeLibOutputData.size();
 	}
 
-	void LoadModelViaNativeLib() override
+	size_t LoadModelViaNativeLib() override
 	{
 		RapidJsonDocument jsonDoc;
 		if (jsonDoc.Parse(mNativeLibOutputData.data(), mNativeLibOutputData.size()).HasParseError())
@@ -146,6 +147,8 @@ public:
 			obj.mTestStringValue = jObj.FindMember("TestStringValue")->value.GetString();
 			++i;
 		}
+
+		return mNativeLibOutputData.size();
 	}
 
 	void Assert() const override

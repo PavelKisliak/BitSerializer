@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     cpprest_json_performance_test.h
     pugixml_performance_test.h
     rapid_yaml_performance_test.h
+    csv_performance_test.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -21,4 +22,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::rapidjson-archive
     BitSerializer::pugixml-archive
     BitSerializer::rapidyaml-archive
+    BitSerializer::csv-archive
 )

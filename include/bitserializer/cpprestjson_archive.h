@@ -331,7 +331,7 @@ public:
 		else
 		{
 			if constexpr (std::is_arithmetic_v<T>) {
-				SaveJsonValue(key, web::json::value::number(value));
+				SaveJsonValue(key, web::json::value(value));
 			}
 			else {
 				SaveJsonValue(key, web::json::value());

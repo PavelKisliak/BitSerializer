@@ -4,6 +4,7 @@ trigger:
     - docs/*
     - README.md
     - History.md
+    - CMakeSettings.json
 
 pr:
   paths:
@@ -11,6 +12,7 @@ pr:
     - docs/*
     - README.md
     - History.md
+    - CMakeSettings.json
 
 variables:
 - name: CmakeGenOptions
@@ -18,22 +20,6 @@ variables:
   readonly: true
 
 jobs:
-  - template: windows-jobs-template.yml
-    parameters:
-      name: 'Windows_VS2017_x64'
-      image: 'vs2017-win2016'
-      platform: 'x64'
-      vcpkgTriplet: "x64-windows"
-      cmakeGenArgs: '$(CmakeGenOptions)'
-
-  - template: windows-jobs-template.yml
-    parameters:
-      name: 'Windows_VS2017_Win32'
-      image: 'vs2017-win2016'
-      platform: 'Win32'
-      vcpkgTriplet: "x86-windows"
-      cmakeGenArgs: '$(CmakeGenOptions)'
-
   - template: windows-jobs-template.yml
     parameters:
       name: 'Windows_VS2019_x64'

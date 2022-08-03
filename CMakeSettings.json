@@ -12,35 +12,43 @@
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         }
       ]
     },
@@ -56,35 +64,43 @@
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         }
       ]
     },
@@ -100,35 +116,43 @@
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         }
       ]
     },
@@ -144,35 +168,267 @@
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON"
+          "value": "ON",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "Linux-GCC8-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "Linux-GCC8-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "Linux-Clang8-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "Linux-Clang8-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_TESTS",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "ON",
+          "type": "STRING"
         }
       ]
     }

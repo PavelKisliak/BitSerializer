@@ -83,13 +83,13 @@ static void BuildFixture(T& value)
 /// <summary>
 /// Builds the test fixture for array of types.
 /// </summary>
-/// <param name="arr">The arr.</param>
+/// <param name="arr">The array.</param>
 template <typename TValue, size_t ArraySize>
 static void BuildFixture(TValue(&arr)[ArraySize])
 {
 	static_assert(ArraySize != 0);
 
-	if constexpr (std::is_fundamental_v<TValue>)
+	if constexpr (std::is_arithmetic_v<TValue>)
 	{
 		// Using min/max values as generated elements in the array
 		if constexpr (ArraySize > 1)

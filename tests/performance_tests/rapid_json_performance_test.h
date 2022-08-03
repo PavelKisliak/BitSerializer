@@ -1,25 +1,31 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
 #include "bitserializer/rapidjson_archive.h"
+#include "archive_base_perf_test.h"
 #include "base_test_models.h"
 
 
-class RapidJsonPerformanceTestModel final : public BasePerformanceTestModel<char>
+using RapidJsonTestModel = TestModelWithSubArrays<char>;
+using RapidJsonBasePerfTest = CArchiveBasePerfTest<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonTestModel, char>;
+
+class CRapidJsonPerformanceTest final : public RapidJsonBasePerfTest
 {
 public:
+	using model_t = RapidJsonTestModel;
+	using base_class_t = RapidJsonBasePerfTest;
+
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF8<>>;
 	using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
 
-	~RapidJsonPerformanceTestModel() = default;
+	[[nodiscard]] std::string GetArchiveName() const override { return "RapidJson"; }
+	[[nodiscard]] bool IsUseNativeLib() const override { return true; }
 
-	const char* GetName() override { return "RapidJson"; }
-
-	std::string TestSave()
+	void SaveModelViaNativeLib() override
 	{
 		RapidJsonDocument jsonDoc;
 		auto& allocator = jsonDoc.GetAllocator();
@@ -27,40 +33,40 @@ public:
 
 		// Save array of booleans
 		auto booleansJsonArray = RapidJsonNode(rapidjson::kArrayType);
-		booleansJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
-		for (auto item : mArrayOfBooleans) {
+		booleansJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
+		for (auto item : mSourceTestModel.mArrayOfBooleans) {
 			booleansJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
 		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfBooleans"), booleansJsonArray.Move(), allocator);
 
 		// Save array of integers
 		auto intsJsonArray = RapidJsonNode(rapidjson::kArrayType);
-		intsJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
-		for (auto item : mArrayOfInts) {
+		intsJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
+		for (auto item : mSourceTestModel.mArrayOfInts) {
 			intsJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
 		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfInts"), intsJsonArray.Move(), allocator);
 
 		// Save array of floats
 		auto floatsJsonArray = RapidJsonNode(rapidjson::kArrayType);
-		floatsJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
-		for (auto item : mArrayOfFloats) {
+		floatsJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
+		for (auto item : mSourceTestModel.mArrayOfDoubles) {
 			floatsJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfFloats"), floatsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfDoubles"), floatsJsonArray.Move(), allocator);
 
 		// Save array of strings
 		auto stringsJsonArray = RapidJsonNode(rapidjson::kArrayType);
-		stringsJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
-		for (const auto& item : mArrayOfStrings) {
+		stringsJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
+		for (const auto& item : mSourceTestModel.mArrayOfStrings) {
 			stringsJsonArray.PushBack(RapidJsonNode::StringRefType(item.data(), static_cast<rapidjson::SizeType>(item.size())), allocator);
 		}
 		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfStrings"), stringsJsonArray.Move(), allocator);
 
 		// Save array of objects
 		auto objectsJsonArray = RapidJsonNode(rapidjson::kArrayType);
-		objectsJsonArray.Reserve(static_cast<rapidjson::SizeType>(ARRAY_SIZE), allocator);
-		for (const auto& item : mArrayOfObjects)
+		objectsJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
+		for (const auto& item : mSourceTestModel.mArrayOfObjects)
 		{
 			RapidJsonNode jsonObject(rapidjson::kObjectType);
 			jsonObject.AddMember("TestBoolValue", item.mTestBoolValue, allocator);
@@ -81,13 +87,13 @@ public:
 		StringBuffer buffer;
 		rapidjson::Writer<StringBuffer, rapidjson::UTF8<>, rapidjson::UTF8<>> writer(buffer);
 		jsonDoc.Accept(writer);
-		return buffer.GetString();
+		mNativeLibOutputData = buffer.GetString();
 	}
 
-	void TestLoad(const std::string& json)
+	void LoadModelViaNativeLib() override
 	{
 		RapidJsonDocument jsonDoc;
-		if (jsonDoc.Parse(json.data(), json.size()).HasParseError())
+		if (jsonDoc.Parse(mNativeLibOutputData.data(), mNativeLibOutputData.size()).HasParseError())
 			throw std::runtime_error("RapidJson parse error");
 		const auto& jObject = jsonDoc.GetObject();
 
@@ -95,7 +101,7 @@ public:
 		const auto& booleansJsonArray = jObject.FindMember("ArrayOfBooleans")->value;
 		int i = 0;
 		for (auto jItem = booleansJsonArray.Begin(); jItem != booleansJsonArray.End(); ++jItem) {
-			mArrayOfBooleans[i] = jItem->GetBool();
+			mNativeLibModel.mArrayOfBooleans[i] = jItem->GetBool();
 			++i;
 		}
 
@@ -103,15 +109,15 @@ public:
 		const auto& integersJsonArray = jObject.FindMember("ArrayOfInts")->value;
 		i = 0;
 		for (auto jItem = integersJsonArray.Begin(); jItem != integersJsonArray.End(); ++jItem) {
-			mArrayOfInts[i] = jItem->GetInt64();
+			mNativeLibModel.mArrayOfInts[i] = jItem->GetInt64();
 			++i;
 		}
 
 		// Load array of floats
-		const auto& floatsJsonArray = jObject.FindMember("ArrayOfFloats")->value;
+		const auto& floatsJsonArray = jObject.FindMember("ArrayOfDoubles")->value;
 		i = 0;
 		for (auto jItem = floatsJsonArray.Begin(); jItem != floatsJsonArray.End(); ++jItem) {
-			mArrayOfFloats[i] = jItem->GetDouble();
+			mNativeLibModel.mArrayOfDoubles[i] = jItem->GetDouble();
 			++i;
 		}
 
@@ -119,7 +125,7 @@ public:
 		const auto& stringsJsonArray = jObject.FindMember("ArrayOfStrings")->value;
 		i = 0;
 		for (auto jItem = stringsJsonArray.Begin(); jItem != stringsJsonArray.End(); ++jItem) {
-			mArrayOfStrings[i] = jItem->GetString();
+			mNativeLibModel.mArrayOfStrings[i] = jItem->GetString();
 			++i;
 		}
 
@@ -128,7 +134,7 @@ public:
 		i = 0;
 		for (auto jItem = objectsJsonArray.Begin(); jItem != objectsJsonArray.End(); ++jItem)
 		{
-			auto& obj = mArrayOfObjects[i];
+			auto& obj = mNativeLibModel.mArrayOfObjects[i];
 			const auto& jObj = jItem->GetObject();
 			obj.mTestBoolValue = jObj.FindMember("TestBoolValue")->value.GetBool();
 			obj.mTestCharValue = static_cast<char>(jObj.FindMember("TestCharValue")->value.GetInt());
@@ -141,4 +147,17 @@ public:
 			++i;
 		}
 	}
+
+	void Assert() const override
+	{
+		base_class_t::Assert();
+
+		mSourceTestModel.Assert(mNativeLibModel);
+		// Output JSON from BitSerializer and base library should be equal
+		assert(mNativeLibOutputData == mBitSerializerOutputData);
+	}
+
+	private:
+		model_t mNativeLibModel;
+		output_format_t mNativeLibOutputData;
 };

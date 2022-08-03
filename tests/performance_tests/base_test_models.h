@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,14 +7,18 @@
 #include <string>
 #include "test_helpers/common_test_methods.h"
 
-template <typename TKey>
-class ModelWithBasicTypes
+
+/// <summary>
+/// Test model with set of basic types.
+/// </summary>
+template <typename TKeyCharType>
+class TestModelWithBasicTypes
 {
 public:
-	using char_t = TKey;
-	using string_t = std::basic_string<TKey, std::char_traits<TKey>>;
+	using key_char_t = TKeyCharType;
+	using string_t = std::basic_string<TKeyCharType, std::char_traits<TKeyCharType>>;
 
-	static void BuildFixture(ModelWithBasicTypes& fixture)
+	static void BuildFixture(TestModelWithBasicTypes& fixture)
 	{
 		::BuildFixture(fixture.mTestBoolValue);
 		::BuildFixture(fixture.mTestCharValue);
@@ -26,7 +30,7 @@ public:
 		::BuildFixture(fixture.mTestStringValue);
 	}
 
-	void Assert(const ModelWithBasicTypes& rhs) const
+	void Assert(const TestModelWithBasicTypes& rhs) const
 	{
 		assert(mTestBoolValue == rhs.mTestBoolValue);
 		assert(mTestCharValue == rhs.mTestCharValue);
@@ -41,7 +45,7 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		if constexpr (std::is_same_v<TKey, char>)
+		if constexpr (std::is_same_v<TKeyCharType, char>)
 		{
 			archive << BitSerializer::MakeKeyValue("TestBoolValue", mTestBoolValue);
 			archive << BitSerializer::MakeKeyValue("TestCharValue", mTestCharValue);
@@ -75,37 +79,35 @@ public:
 	string_t mTestStringValue;
 };
 
-template <typename TKey>
-class BasePerformanceTestModel
+
+/// <summary>
+/// Complex test model with sub arrays of basic and object types.
+/// </summary>
+template <typename TKeyCharType>
+class TestModelWithSubArrays
 {
 public:
 	static constexpr size_t ARRAY_SIZE = 30;
 
-	using char_t = TKey;
-	using string_t = std::basic_string<TKey, std::char_traits<TKey>>;
-	using out_string_stream_t = std::basic_ostringstream<TKey, std::char_traits<TKey>, std::allocator<TKey>>;
-	using in_string_stream_t = std::basic_ostringstream<TKey, std::char_traits<TKey>, std::allocator<TKey>>;
+	using key_char_t = TKeyCharType;
+	using string_t = std::basic_string<TKeyCharType, std::char_traits<TKeyCharType>>;
 
-	virtual ~BasePerformanceTestModel() = default;
-
-	virtual const char* GetName() = 0;
-
-	static void BuildFixture(BasePerformanceTestModel& fixture)
+	static void BuildFixture(TestModelWithSubArrays& fixture)
 	{
 		::BuildFixture(fixture.mArrayOfBooleans);
 		::BuildFixture(fixture.mArrayOfInts);
-		::BuildFixture(fixture.mArrayOfFloats);
+		::BuildFixture(fixture.mArrayOfDoubles);
 		::BuildFixture(fixture.mArrayOfStrings);
 		::BuildFixture(fixture.mArrayOfObjects);
 	}
 
-	void Assert(const BasePerformanceTestModel& rhs) const
+	void Assert(const TestModelWithSubArrays& rhs) const
 	{
 		for (size_t i=0; i<ARRAY_SIZE; ++i)
 		{
 			assert(mArrayOfBooleans[i] == rhs.mArrayOfBooleans[i]);
 			assert(mArrayOfInts[i] == rhs.mArrayOfInts[i]);
-			assert(mArrayOfFloats[i] == rhs.mArrayOfFloats[i]);
+			assert(mArrayOfDoubles[i] == rhs.mArrayOfDoubles[i]);
 			assert(mArrayOfStrings[i] == rhs.mArrayOfStrings[i]);
 			mArrayOfObjects[i].Assert(rhs.mArrayOfObjects[i]);
 		}
@@ -114,11 +116,11 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		if constexpr (std::is_same_v<TKey, char>)
+		if constexpr (std::is_same_v<TKeyCharType, char>)
 		{
 			archive << BitSerializer::MakeKeyValue("ArrayOfBooleans", mArrayOfBooleans);
 			archive << BitSerializer::MakeKeyValue("ArrayOfInts", mArrayOfInts);
-			archive << BitSerializer::MakeKeyValue("ArrayOfFloats", mArrayOfFloats);
+			archive << BitSerializer::MakeKeyValue("ArrayOfDoubles", mArrayOfDoubles);
 			archive << BitSerializer::MakeKeyValue("ArrayOfStrings", mArrayOfStrings);
 			archive << BitSerializer::MakeKeyValue("ArrayOfObjects", mArrayOfObjects);
 		}
@@ -126,16 +128,15 @@ public:
 		{
 			archive << BitSerializer::MakeKeyValue(L"ArrayOfBooleans", mArrayOfBooleans);
 			archive << BitSerializer::MakeKeyValue(L"ArrayOfInts", mArrayOfInts);
-			archive << BitSerializer::MakeKeyValue(L"ArrayOfFloats", mArrayOfFloats);
+			archive << BitSerializer::MakeKeyValue(L"ArrayOfDoubles", mArrayOfDoubles);
 			archive << BitSerializer::MakeKeyValue(L"ArrayOfStrings", mArrayOfStrings);
 			archive << BitSerializer::MakeKeyValue(L"ArrayOfObjects", mArrayOfObjects);
 		}
 	}
 
-protected:
 	bool mArrayOfBooleans[ARRAY_SIZE] = {};
 	int64_t mArrayOfInts[ARRAY_SIZE] = {};
-	double mArrayOfFloats[ARRAY_SIZE] = {};
+	double mArrayOfDoubles[ARRAY_SIZE] = {};
 	string_t mArrayOfStrings[ARRAY_SIZE];
-	ModelWithBasicTypes<TKey> mArrayOfObjects[ARRAY_SIZE] = {};
+	TestModelWithBasicTypes<TKeyCharType> mArrayOfObjects[ARRAY_SIZE] = {};
 };

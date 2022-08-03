@@ -1,8 +1,7 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include <cassert>
 #include <iostream>
 #include <chrono>
 #include <cmath>
@@ -10,7 +9,7 @@
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
 #include "pugixml_performance_test.h"
-#include "rapid_yaml_perfomance_test.h"
+#include "rapid_yaml_performance_test.h"
 
 constexpr auto DefaultArchiveTestTimeSec = 60;
 
@@ -19,21 +18,22 @@ using Timer = std::chrono::high_resolution_clock;
 struct TestArchiveMetadata
 {
 	TestArchiveMetadata() = default;
-	explicit TestArchiveMetadata(const char* name)
-		: mName(name), mMinSaveTime(0), mMinLoadTime(0), mMinNativeSaveTime(0), mMinNativeLoadTime(0) {}
+	explicit TestArchiveMetadata(std::string name)
+		: mName(std::move(name)), mMinSaveTime(0), mMinLoadTime(0), mMinNativeSaveTime(0), mMinNativeLoadTime(0) {}
 
-	const char* mName;
+	std::string mName;
 	std::chrono::nanoseconds mMinSaveTime;
 	std::chrono::nanoseconds mMinLoadTime;
 	std::chrono::nanoseconds mMinNativeSaveTime;
 	std::chrono::nanoseconds mMinNativeLoadTime;
 };
 
-template <class TArchive, class TPerformanceTestModel, int TestTimeSec = DefaultArchiveTestTimeSec>
+template <class TPerformanceTest, int TestTimeSec = DefaultArchiveTestTimeSec>
 TestArchiveMetadata TestArchivePerformance()
 {
-	auto origModel = BuildFixture<TPerformanceTestModel>();
-	TestArchiveMetadata metadata(origModel.GetName());
+	TPerformanceTest performanceTest;
+	performanceTest.Prepare();
+	TestArchiveMetadata metadata(performanceTest.GetArchiveName());
 
 	int percent = -1;
 	bool needVerify = true;
@@ -53,47 +53,37 @@ TestArchiveMetadata TestArchivePerformance()
 
 		// Save model via BitSerializer
 		auto startTime = Timer::now();
-		const auto bitSerializerSaveResult = BitSerializer::SaveObject<TArchive>(origModel);
+		performanceTest.SaveModelViaBitSerializer();
 		const auto saveTime = Timer::now() - startTime;
 		if (metadata.mMinSaveTime == std::chrono::nanoseconds(0) || metadata.mMinSaveTime > saveTime) metadata.mMinSaveTime = saveTime;
 
 		// Load model via BitSerializer
-		TPerformanceTestModel testModelForBitSerializer;
 		startTime = Timer::now();
-		BitSerializer::LoadObject<TArchive>(testModelForBitSerializer, bitSerializerSaveResult);
+		performanceTest.LoadModelViaBitSerializer();
 		const auto loadTime = Timer::now() - startTime;
 		if (metadata.mMinLoadTime == std::chrono::nanoseconds(0) || metadata.mMinLoadTime > loadTime) metadata.mMinLoadTime = loadTime;
 
-		// Save model via native code
-		startTime = Timer::now();
-		auto nativeCodeSaveResult = origModel.TestSave();
-		const auto nativeSaveTime = Timer::now() - startTime;
-		if (metadata.mMinNativeSaveTime == std::chrono::nanoseconds(0) || metadata.mMinNativeSaveTime > nativeSaveTime) metadata.mMinNativeSaveTime = nativeSaveTime;
-
-		// Check an identity of two results (for test saver via native code)
-		if (needVerify)
+		// Test serialization via native library
+		if (performanceTest.IsUseNativeLib())
 		{
-			using NativeOutputType = decltype(origModel.TestSave());
-			if constexpr (std::is_same_v<NativeOutputType, typename TArchive::preferred_output_format>) {
-				assert(nativeCodeSaveResult == bitSerializerSaveResult);
-			}
-			else {
-				assert(nativeCodeSaveResult == BitSerializer::Convert::To<NativeOutputType>(bitSerializerSaveResult));
-			}
+			// Save model via native code
+			startTime = Timer::now();
+			performanceTest.SaveModelViaNativeLib();
+			const auto nativeSaveTime = Timer::now() - startTime;
+			if (metadata.mMinNativeSaveTime == std::chrono::nanoseconds(0) || metadata.mMinNativeSaveTime > nativeSaveTime) metadata.mMinNativeSaveTime = nativeSaveTime;
+
+			// Load model via native code
+			startTime = Timer::now();
+			performanceTest.LoadModelViaNativeLib();
+			const auto nativeLoadTime = Timer::now() - startTime;
+			if (metadata.mMinNativeLoadTime == std::chrono::nanoseconds(0) || metadata.mMinNativeLoadTime > nativeLoadTime) metadata.mMinNativeLoadTime = nativeLoadTime;
 		}
 
-		// Load model via native code
-		TPerformanceTestModel testModelForNativeCode;
-		startTime = Timer::now();
-		testModelForNativeCode.TestLoad(nativeCodeSaveResult);
-		const auto nativeLoadTime = Timer::now() - startTime;
-		if (metadata.mMinNativeLoadTime == std::chrono::nanoseconds(0) || metadata.mMinNativeLoadTime > nativeLoadTime) metadata.mMinNativeLoadTime = nativeLoadTime;
-
-		// Check integrity (for test loader via native code)
+		// Check integrity (for test serialization via native library)
 		if (needVerify)
 		{
 			needVerify = false;
-			testModelForNativeCode.Assert(origModel);
+			performanceTest.Assert();
 		}
 	}
 
@@ -121,10 +111,10 @@ int main()
 	{
 		std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
 		const TestArchiveMetadata metadataList[] = {
-			  TestArchivePerformance<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonPerformanceTestModel>()
-			, TestArchivePerformance<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonPerformanceTestModel>()
-			, TestArchivePerformance<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlPerformanceTestModel>()
-			, TestArchivePerformance<BitSerializer::Yaml::RapidYaml::YamlArchive, RapidYamlPerformanceTestModel>()
+			  TestArchivePerformance<CRapidJsonPerformanceTest>()
+			, TestArchivePerformance<CCppRestJsonPerformanceTest>()
+			, TestArchivePerformance<CPugiXmlPerformanceTest>()
+			, TestArchivePerformance<CRapidYamlPerformanceTest>()
 		};
 	}
 	catch (const std::exception& ex) {

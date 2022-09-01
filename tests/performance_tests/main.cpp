@@ -137,7 +137,7 @@ TestArchiveMetadata TestArchivePerformance()
 	{
 		const size_t loadNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibLoadTest.Time.count() * metadata.BaseLibLoadTest.ProcessedChars;
 		const auto diffLoadPercent = std::round((loadCharsSpeed / (loadNativeLibSpeed / 100.0) - 100) * 10) / 10;
-		std::cout << loadNativeLibSpeed / 1024 << " | difference: " << diffLoadPercent << "%)" << std::endl;
+		std::cout << loadNativeLibSpeed / 1024 << " | difference: " << diffLoadPercent << "%" << std::endl;
 	}
 	else
 	{

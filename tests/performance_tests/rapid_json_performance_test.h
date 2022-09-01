@@ -37,7 +37,7 @@ public:
 		for (auto item : mSourceTestModel.mArrayOfBooleans) {
 			booleansJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfBooleans"), booleansJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfBooleans"), std::move(booleansJsonArray), allocator);
 
 		// Save array of integers
 		auto intsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -45,7 +45,7 @@ public:
 		for (auto item : mSourceTestModel.mArrayOfInts) {
 			intsJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfInts"), intsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfInts"), std::move(intsJsonArray), allocator);
 
 		// Save array of floats
 		auto floatsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -53,7 +53,7 @@ public:
 		for (auto item : mSourceTestModel.mArrayOfDoubles) {
 			floatsJsonArray.PushBack(RapidJsonNode(item), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfDoubles"), floatsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfDoubles"), std::move(floatsJsonArray), allocator);
 
 		// Save array of strings
 		auto stringsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -61,7 +61,7 @@ public:
 		for (const auto& item : mSourceTestModel.mArrayOfStrings) {
 			stringsJsonArray.PushBack(RapidJsonNode::StringRefType(item.data(), static_cast<rapidjson::SizeType>(item.size())), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfStrings"), stringsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfStrings"), std::move(stringsJsonArray), allocator);
 
 		// Save array of objects
 		auto objectsJsonArray = RapidJsonNode(rapidjson::kArrayType);
@@ -79,9 +79,9 @@ public:
 			jsonObject.AddMember("TestStringValue", RapidJsonNode::StringRefType(
 				item.mTestStringValue.data(), static_cast<rapidjson::SizeType>(item.mTestStringValue.size())), allocator);
 
-			objectsJsonArray.PushBack(jsonObject.Move(), allocator);
+			objectsJsonArray.PushBack(std::move(jsonObject), allocator);
 		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfObjects"), objectsJsonArray.Move(), allocator);
+		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfObjects"), std::move(objectsJsonArray), allocator);
 
 		// Build
 		StringBuffer buffer;

@@ -2,6 +2,7 @@ trigger:
   paths:
     exclude:
     - docs/*
+    - cpp.hint
     - README.md
     - History.md
     - CMakeSettings.json

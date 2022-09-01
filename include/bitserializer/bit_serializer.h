@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -19,6 +19,11 @@ namespace BitSerializer
 
 		static constexpr uint32_t Full = Major * 100 + Minor * 10 + Maintenance;
 	};
+
+	/// <summary>
+	/// Default serialization options, it would be a good idea to configure them at startup time.
+	/// </summary>
+	static SerializationOptions DefaultOptions;
 
 	/// <summary>
 	/// Loads the object from one of archive supported data type (strings, binary data).
@@ -67,7 +72,7 @@ namespace BitSerializer
 	/// <param name="output">The output array.</param>
 	/// <param name="serializationOptions">The serialization options.</param>
 	template <typename TArchive, typename T, typename TOutput, std::enable_if_t<!is_output_stream_v<TOutput>, int> = 0>
-	static void SaveObject(T&& object, TOutput& output, const SerializationOptions& serializationOptions = {})
+	static void SaveObject(T&& object, TOutput& output, const SerializationOptions& serializationOptions = DefaultOptions)
 	{
 		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type_v<typename TArchive::output_archive_type, TOutput>;
 		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive does not support save to passed stream type.");
@@ -88,7 +93,7 @@ namespace BitSerializer
 	/// <param name="output">The output stream.</param>
 	/// <param name="serializationOptions">The serialization options.</param>
 	template <typename TArchive, typename T, typename TStreamElem>
-	static void SaveObject(T&& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output, const SerializationOptions& serializationOptions = {})
+	static void SaveObject(T&& object, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>& output, const SerializationOptions& serializationOptions = DefaultOptions)
 	{
 		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::basic_ostream<TStreamElem, std::char_traits<TStreamElem>>>;
 		static_assert(hasOutputDataTypeSupport, "BitSerializer. The archive does not support save to passed stream type.");
@@ -109,7 +114,7 @@ namespace BitSerializer
 	/// <param name="serializationOptions">The serialization options.</param>
 	/// <returns>The output string or binary array that is used in archive by default.</returns>
 	template <typename TArchive, typename T, typename TOutput = typename TArchive::preferred_output_format>
-	static TOutput SaveObject(T&& object, const SerializationOptions& serializationOptions = {})
+	static TOutput SaveObject(T&& object, const SerializationOptions& serializationOptions = DefaultOptions)
 	{
 		typename TArchive::preferred_output_format output;
 		SaveObject<TArchive>(std::forward<T>(object), output, serializationOptions);
@@ -142,7 +147,7 @@ namespace BitSerializer
 	/// <param name="path">The file path.</param>
 	/// <param name="serializationOptions">The serialization options.</param>
 	template <typename TArchive, typename T, typename TString>
-	static void SaveObjectToFile(T&& object, TString&& path, const SerializationOptions& serializationOptions = {})
+	static void SaveObjectToFile(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions)
 	{
 		using preferred_stream_char_type = typename TArchive::preferred_stream_char_type;
 		std::basic_ofstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;

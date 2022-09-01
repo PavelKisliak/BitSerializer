@@ -437,9 +437,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
 			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
 
-			explicit RapidYamlRootScope(const char* inputStr)
+			explicit RapidYamlRootScope(const char* inputStr, const SerializationOptions& serializationOptions = {})
 				: RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
+				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
@@ -447,9 +448,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
-			explicit RapidYamlRootScope(const std::string& inputStr)
+			explicit RapidYamlRootScope(const std::string& inputStr, const SerializationOptions& serializationOptions = {})
 				: RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
+				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
@@ -467,9 +469,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 				Init();
 			}
 
-			explicit RapidYamlRootScope(std::istream& inputStream)
+			explicit RapidYamlRootScope(std::istream& inputStream, const SerializationOptions& serializationOptions = {})
 				: RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
+				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
@@ -542,7 +545,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 						}
 						else if constexpr (std::is_same_v<T, std::ostream*>)
 						{
-							if (mSerializationOptions->streamOptions.writeBom) {
+							if (mSerializationOptions.streamOptions.writeBom) {
 								arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
 							}
 							*arg << mTree;
@@ -595,7 +598,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			ryml::Tree mTree;
 			RapidYamlNode mRootNode;
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-			std::optional<SerializationOptions> mSerializationOptions;
+			SerializationOptions mSerializationOptions;
 			ryml::Callbacks mPrevCallbacks;
 		};
 	}

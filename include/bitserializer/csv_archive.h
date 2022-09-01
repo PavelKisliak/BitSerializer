@@ -328,6 +328,7 @@ public:
 				if (auto result = Convert::TryTo<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(strValue); result.has_value())
 				{
 					value = std::move(result.value());
+					return true;
 				}
 			}
 		}

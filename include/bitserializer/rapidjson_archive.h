@@ -484,9 +484,10 @@ protected:
 	using char_type = typename TEncoding::Ch;
 
 public:
-	explicit RapidJsonRootScope(const std::string& encodedInputStr)
+	explicit RapidJsonRootScope(const std::string& encodedInputStr, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		if (mRootJson.Parse(encodedInputStr.data(), encodedInputStr.length()).HasParseError())
@@ -501,9 +502,10 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit RapidJsonRootScope(std::istream& encodedInputStream)
+	explicit RapidJsonRootScope(std::istream& encodedInputStream, const SerializationOptions& serializationOptions = {})
 		: RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		rapidjson::IStreamWrapper isw(encodedInputStream);
@@ -608,15 +610,14 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				assert(mSerializationOptions);
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
 					StringBuffer buffer;
-					if (mSerializationOptions->formatOptions.enableFormat)
+					if (mSerializationOptions.formatOptions.enableFormat)
 					{
 						rapidjson::PrettyWriter<StringBuffer, TEncoding, rapidjson::UTF8<>> writer(buffer);
-						writer.SetIndent(mSerializationOptions->formatOptions.paddingChar, mSerializationOptions->formatOptions.paddingCharNum);
+						writer.SetIndent(mSerializationOptions.formatOptions.paddingChar, mSerializationOptions.formatOptions.paddingCharNum);
 						mRootJson.Accept(writer);
 					}
 					else
@@ -630,11 +631,11 @@ public:
 				{
 					rapidjson::OStreamWrapper osw(*arg);
 					using AutoOutputStream = rapidjson::AutoUTFOutputStream<uint32_t, rapidjson::OStreamWrapper>;
-					AutoOutputStream eos(osw, ToRapidUtfType(mSerializationOptions->streamOptions.encoding), mSerializationOptions->streamOptions.writeBom);
-					if (mSerializationOptions->formatOptions.enableFormat)
+					AutoOutputStream eos(osw, ToRapidUtfType(mSerializationOptions.streamOptions.encoding), mSerializationOptions.streamOptions.writeBom);
+					if (mSerializationOptions.formatOptions.enableFormat)
 					{
 						rapidjson::PrettyWriter<AutoOutputStream, TEncoding, rapidjson::AutoUTF<uint32_t>> writer(eos);
-						writer.SetIndent(mSerializationOptions->formatOptions.paddingChar, mSerializationOptions->formatOptions.paddingCharNum);
+						writer.SetIndent(mSerializationOptions.formatOptions.paddingChar, mSerializationOptions.formatOptions.paddingCharNum);
 						mRootJson.Accept(writer);
 					}
 					else
@@ -673,7 +674,7 @@ private:
 
 	RapidJsonDocument mRootJson;
 	std::variant<decltype(nullptr), std::string*, std::ostream*> mOutput;
-	std::optional<SerializationOptions> mSerializationOptions;
+	SerializationOptions mSerializationOptions;
 };
 
 }

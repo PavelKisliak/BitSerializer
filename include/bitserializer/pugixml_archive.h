@@ -510,8 +510,9 @@ template <SerializeMode TMode>
 class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlRootScope(const std::string& inputStr)
+	explicit PugiXmlRootScope(const std::string& inputStr, const SerializationOptions& serializationOptions = {})
 		: mOutput(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
@@ -526,8 +527,9 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit PugiXmlRootScope(std::istream& inputStream)
+	explicit PugiXmlRootScope(std::istream& inputStream, const SerializationOptions& serializationOptions = {})
 		: mOutput(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load(inputStream);
@@ -614,10 +616,9 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				assert(mSerializationOptions);
-				unsigned int flags = mSerializationOptions->formatOptions.enableFormat ? pugi::format_indent : pugi::format_raw;
-				const pugi::string_t indent(mSerializationOptions->formatOptions.paddingCharNum, mSerializationOptions->formatOptions.paddingChar);
-				assert(!mSerializationOptions->formatOptions.enableFormat || !indent.empty());
+				unsigned int flags = mSerializationOptions.formatOptions.enableFormat ? pugi::format_indent : pugi::format_raw;
+				const pugi::string_t indent(mSerializationOptions.formatOptions.paddingCharNum, mSerializationOptions.formatOptions.paddingChar);
+				assert(!mSerializationOptions.formatOptions.enableFormat || !indent.empty());
 
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
@@ -629,8 +630,8 @@ public:
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
-					flags |= mSerializationOptions->streamOptions.writeBom ? pugi::format_write_bom : 0;
-					mRootXml.save(*arg, indent.c_str(), flags, ToPugiUtfType(mSerializationOptions->streamOptions.encoding));
+					flags |= mSerializationOptions.streamOptions.writeBom ? pugi::format_write_bom : 0;
+					mRootXml.save(*arg, indent.c_str(), flags, ToPugiUtfType(mSerializationOptions.streamOptions.encoding));
 				}
 			}, mOutput);
 			mOutput = nullptr;
@@ -662,7 +663,7 @@ private:
 
 	pugi::xml_document mRootXml;
 	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-	std::optional<SerializationOptions> mSerializationOptions;
+	SerializationOptions mSerializationOptions;
 };
 
 }

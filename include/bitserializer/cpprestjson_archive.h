@@ -418,9 +418,10 @@ template <SerializeMode TMode>
 class JsonRootScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonRootScope(const std::string& inputStr)
+	explicit JsonRootScope(const std::string& inputStr, const SerializationOptions& serializationOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
@@ -442,9 +443,10 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit JsonRootScope(std::istream& inputStream)
+	explicit JsonRootScope(std::istream& inputStream, const SerializationOptions& serializationOptions = {})
 		: JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
+		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto utfType = Convert::DetectEncoding(inputStream);
@@ -550,8 +552,7 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				assert(mSerializationOptions);
-				assert(!mSerializationOptions->formatOptions.enableFormat && "CppRestJson does not support formatting");
+				assert(!mSerializationOptions.formatOptions.enableFormat && "CppRestJson does not support formatting");
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					if constexpr (std::is_same_v<std::remove_pointer_t<T>, decltype(mRootJson.serialize())>) {
@@ -564,7 +565,7 @@ public:
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
-					if (mSerializationOptions->streamOptions.writeBom) {
+					if (mSerializationOptions.streamOptions.writeBom) {
 						arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
 					}
 					mRootJson.serialize(*arg);
@@ -577,7 +578,7 @@ public:
 private:
 	web::json::value mRootJson;
 	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-	std::optional<SerializationOptions> mSerializationOptions;
+	SerializationOptions mSerializationOptions;
 };
 
 }

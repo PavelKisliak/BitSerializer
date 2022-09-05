@@ -31,8 +31,8 @@ template <typename TArchive, typename TInput>
 struct is_archive_support_input_data_type
 {
 	constexpr static bool value = is_input_stream_v<TInput>
-		? std::is_constructible_v<TArchive, TInput&>
-		: std::is_constructible_v<TArchive, const TInput&>;
+		? std::is_constructible_v<TArchive, TInput&, SerializationContext&>
+		: std::is_constructible_v<TArchive, const TInput&, SerializationContext&>;
 };
 
 template <typename TArchive, typename TInput>
@@ -46,7 +46,7 @@ constexpr bool is_archive_support_input_data_type_v = is_archive_support_input_d
 template <typename TArchive, typename TOutput>
 struct is_archive_support_output_data_type
 {
-	constexpr static bool value = std::is_constructible_v<TArchive, TOutput&>;
+	constexpr static bool value = std::is_constructible_v<TArchive, TOutput&, SerializationContext&>;
 };
 
 template <typename TArchive, typename TOutput>

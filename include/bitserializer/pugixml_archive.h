@@ -143,8 +143,9 @@ template <SerializeMode TMode>
 class PugiXmlArrayScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlArrayScope(const pugi::xml_node& node)
-		: mNode(node)
+	explicit PugiXmlArrayScope(const pugi::xml_node& node, SerializationContext& serializationContext)
+		: TArchiveScope<TMode>(serializationContext)
+		, mNode(node)
 		, mValueIt(mNode.begin())
 	{ }
 
@@ -198,14 +199,14 @@ public:
 			auto xmlNode = LoadNextItem();
 			if (xmlNode.first_child().type() == pugi::node_element)
 			{
-				return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode);
+				return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto node = mNode.append_child(PUGIXML_TEXT("array"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
+			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -216,14 +217,14 @@ public:
 			auto xmlNode = LoadNextItem();
 			if (xmlNode.first_child().type() == pugi::node_element)
 			{
-				return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode);
+				return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto node = mNode.append_child(PUGIXML_TEXT("object"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node);
+			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -290,8 +291,9 @@ template <SerializeMode TMode>
 class PugiXmlAttributeScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlAttributeScope(const pugi::xml_node& node)
-		: mNode(node)
+	explicit PugiXmlAttributeScope(const pugi::xml_node& node, SerializationContext& serializationContext)
+		: TArchiveScope<TMode>(serializationContext)
+		, mNode(node)
 	{
 		assert(mNode.type() == pugi::node_element);
 	}
@@ -422,8 +424,9 @@ template <SerializeMode TMode>
 class PugiXmlObjectScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlObjectScope(const pugi::xml_node& node)
-		: mNode(node)
+	explicit PugiXmlObjectScope(const pugi::xml_node& node, SerializationContext& serializationContext)
+		: TArchiveScope<TMode>(serializationContext)
+		, mNode(node)
 	{
 		assert(mNode.type() == pugi::node_element);
 	}
@@ -469,12 +472,12 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			return child.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child) : std::nullopt;
+			return child.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -484,18 +487,18 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto node = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			return node.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node) : std::nullopt;
+			return node.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			auto node = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
+			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
 	std::optional<PugiXmlAttributeScope<TMode>> OpenAttributeScope()
 	{
-		return std::make_optional<PugiXmlAttributeScope<TMode>>(mNode);
+		return std::make_optional<PugiXmlAttributeScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext());
 	}
 
 protected:
@@ -510,9 +513,9 @@ template <SerializeMode TMode>
 class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlRootScope(const std::string& inputStr, const SerializationOptions& serializationOptions = {})
-		: mOutput(nullptr)
-		, mSerializationOptions(serializationOptions)
+	explicit PugiXmlRootScope(const std::string& inputStr, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
@@ -520,16 +523,16 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	PugiXmlRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
-		: mOutput(&outputStr)
-		, mSerializationOptions(serializationOptions)
+	PugiXmlRootScope(std::string& outputStr, SerializationContext& serializationContext)
+		: TArchiveScope<TMode>(serializationContext)
+		, mOutput(&outputStr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit PugiXmlRootScope(std::istream& inputStream, const SerializationOptions& serializationOptions = {})
-		: mOutput(nullptr)
-		, mSerializationOptions(serializationOptions)
+	explicit PugiXmlRootScope(std::istream& inputStream, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load(inputStream);
@@ -537,9 +540,9 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	PugiXmlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-		: mOutput(&outputStream)
-		, mSerializationOptions(serializationOptions)
+	PugiXmlRootScope(std::ostream& outputStream, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, mOutput(&outputStream)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -556,12 +559,12 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto childNode = mRootXml.first_child();
-			return childNode.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(childNode) : std::nullopt;
+			return childNode.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(childNode, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			auto node = mRootXml.append_child(PUGIXML_TEXT("array"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
+			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -571,12 +574,12 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto node = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
-			return node.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node) : std::nullopt;
+			return node.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			auto node = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node);
+			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -585,12 +588,12 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto node = mRootXml.first_child();
-			return node.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(node) : std::nullopt;
+			return node.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			auto node = mRootXml.append_child(PUGIXML_TEXT("root"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node);
+			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -599,12 +602,12 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
-			return child.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child) : std::nullopt;
+			return child.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			auto child = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child);
+			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -616,9 +619,10 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				unsigned int flags = mSerializationOptions.formatOptions.enableFormat ? pugi::format_indent : pugi::format_raw;
-				const pugi::string_t indent(mSerializationOptions.formatOptions.paddingCharNum, mSerializationOptions.formatOptions.paddingChar);
-				assert(!mSerializationOptions.formatOptions.enableFormat || !indent.empty());
+				auto& options = TArchiveScope<TMode>::GetOptions();
+				unsigned int flags = options.formatOptions.enableFormat ? pugi::format_indent : pugi::format_raw;
+				const pugi::string_t indent(options.formatOptions.paddingCharNum, options.formatOptions.paddingChar);
+				assert(!options.formatOptions.enableFormat || !indent.empty());
 
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
@@ -630,8 +634,8 @@ public:
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
-					flags |= mSerializationOptions.streamOptions.writeBom ? pugi::format_write_bom : 0;
-					mRootXml.save(*arg, indent.c_str(), flags, ToPugiUtfType(mSerializationOptions.streamOptions.encoding));
+					flags |= options.streamOptions.writeBom ? pugi::format_write_bom : 0;
+					mRootXml.save(*arg, indent.c_str(), flags, ToPugiUtfType(options.streamOptions.encoding));
 				}
 			}, mOutput);
 			mOutput = nullptr;
@@ -663,7 +667,6 @@ private:
 
 	pugi::xml_document mRootXml;
 	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-	SerializationOptions mSerializationOptions;
 };
 
 }

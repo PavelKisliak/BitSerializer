@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <tuple>
-#include "serialization_options.h"
+#include "serialization_context.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 
 namespace BitSerializer {
@@ -53,19 +53,33 @@ template <SerializeMode TMode>
 class TArchiveScope
 {
 public:
-	TArchiveScope() = default;
+	TArchiveScope() : mSerializationContext(Context) {
+		throw std::runtime_error("Internal error: default ctor of TArchiveScope should not be used");
+	}
+
+	explicit TArchiveScope(SerializationContext& serializationContext)
+		: mSerializationContext(serializationContext)
+	{
+		if (mSerializationContext.GetOptions() == nullptr) {
+			throw std::runtime_error("Internal error: serialization options is NULL");
+		}
+	}
 
 	TArchiveScope(const TArchiveScope&) = delete;
 	TArchiveScope& operator=(const TArchiveScope&) = delete;
 
-	static constexpr SerializeMode GetMode() noexcept	{ return TMode; }
-	static constexpr bool IsSaving() noexcept			{ return TMode == SerializeMode::Save; }
-	static constexpr bool IsLoading() noexcept			{ return TMode == SerializeMode::Load; }
+	static constexpr SerializeMode GetMode() noexcept			{ return TMode; }
+	static constexpr bool IsSaving() noexcept					{ return TMode == SerializeMode::Save; }
+	static constexpr bool IsLoading() noexcept					{ return TMode == SerializeMode::Load; }
+	SerializationContext& GetContext() const noexcept			{ return mSerializationContext; }
+	const SerializationOptions& GetOptions() const noexcept		{ return *mSerializationContext.GetOptions(); }
 
 protected:
 	~TArchiveScope() = default;
 	TArchiveScope(TArchiveScope&&) = default;
 	TArchiveScope& operator=(TArchiveScope&&) = default;
+
+	SerializationContext& mSerializationContext;
 };
 
 /// <summary>
@@ -79,4 +93,4 @@ public:
 	using output_archive_type = TOutputArchive;
 };
 
-}
+} // namespace BitSerializer

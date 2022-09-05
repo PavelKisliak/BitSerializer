@@ -42,6 +42,8 @@ void TestGetPathInJsonObjectScopeWhenSaving()
 	// Arrange
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
+	BitSerializer::SerializationOptions options;
+	BitSerializer::Context.OnStartSerialization(&options);
 	typename TArchive::output_archive_type outputArchive(outputData);
 
 	// Act / Assert
@@ -69,6 +71,8 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
+	BitSerializer::SerializationOptions options;
+	BitSerializer::Context.OnStartSerialization(&options);
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
 
 	// Act / Assert
@@ -111,6 +115,8 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 	size_t array1stLevelSize = 3, array2stLevelSize = 5;
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
+	BitSerializer::SerializationOptions options;
+	BitSerializer::Context.OnStartSerialization(&options);
 	typename TArchive::output_archive_type outputArchive(outputData);
 
 	// Act / Assert

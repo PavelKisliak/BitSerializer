@@ -8,6 +8,7 @@
 #include <vector>
 #include <cctype>
 #include <algorithm>
+#include <stdexcept>
 
 /// <summary>
 /// Registers a map of strings equivalents for enum type.

@@ -166,8 +166,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlArrayScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
-			RapidYamlArrayScope(const RapidYamlNode& node, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
-				: RapidYamlScopeBase(node, parent, parentKey)
+			RapidYamlArrayScope(const RapidYamlNode& node, SerializationContext& serializationContext, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(node, parent, parentKey)
 				, mSize(size)
 				, mIndex(0)
 			{
@@ -236,7 +237,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					if (mIndex < mSize)
 					{
 						auto yamlValue = LoadNextItem();
-						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, this) : std::nullopt;
+						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this) : std::nullopt;
 					}
 					return std::nullopt;
 				}
@@ -246,7 +247,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::MAP;
 					mIndex++;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, this);
+					return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this);
 				}
 			}
 
@@ -261,7 +262,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					if (mIndex < mSize)
 					{
 						auto yamlValue = LoadNextItem();
-						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, yamlValue.num_children(), this) : std::nullopt;
+						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this) : std::nullopt;
 					}
 					return std::nullopt;
 				}
@@ -271,7 +272,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::SEQ;
 					mIndex++;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, arraySize, this);
+					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), arraySize, this);
 				}
 			}
 
@@ -331,8 +332,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlObjectScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
-			explicit RapidYamlObjectScope(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
-				: RapidYamlScopeBase(node, parent, parentKey)
+			RapidYamlObjectScope(const RapidYamlNode& node, SerializationContext& serializationContext, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(node, parent, parentKey)
 			{
 				assert(mNode.is_map());
 			}
@@ -387,7 +389,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
 					if (yamlValue.valid())
-						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, this, key) : std::nullopt;
+						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key) : std::nullopt;
 					return std::nullopt;
 				}
 				else
@@ -396,7 +398,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::yml::key(key);
 					yamlValue |= ryml::MAP;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, this, key);
+					return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key);
 				}
 			}
 
@@ -412,7 +414,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
 					if (yamlValue.valid())
-						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, yamlValue.num_children(), this, key) : std::nullopt;
+						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this, key) : std::nullopt;
 					return std::nullopt;
 				}
 				else
@@ -421,7 +423,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::yml::key(key);
 					yamlValue |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, arraySize, this, key);
+					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), arraySize, this, key);
 				}
 			}
 		};
@@ -437,10 +439,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
 			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
 
-			explicit RapidYamlRootScope(const char* inputStr, const SerializationOptions& serializationOptions = {})
-				: RapidYamlScopeBase(mRootNode)
+			explicit RapidYamlRootScope(const char* inputStr, SerializationContext& serializationContext = Context)
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
-				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
@@ -448,10 +450,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
-			explicit RapidYamlRootScope(const std::string& inputStr, const SerializationOptions& serializationOptions = {})
-				: RapidYamlScopeBase(mRootNode)
+			explicit RapidYamlRootScope(const std::string& inputStr, SerializationContext& serializationContext = Context)
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
-				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
@@ -459,20 +461,20 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
-			explicit RapidYamlRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
-				: RapidYamlScopeBase(mRootNode)
+			explicit RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext = Context)
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStr)
-				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 
 				Init();
 			}
 
-			explicit RapidYamlRootScope(std::istream& inputStream, const SerializationOptions& serializationOptions = {})
-				: RapidYamlScopeBase(mRootNode)
+			explicit RapidYamlRootScope(std::istream& inputStream, SerializationContext& serializationContext = Context)
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
-				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
@@ -487,10 +489,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = ryml::parse(c4::to_csubstr(input));
 			}
 
-			explicit RapidYamlRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-				: RapidYamlScopeBase(mRootNode)
+			explicit RapidYamlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
+				: TArchiveScope<TMode>(serializationContext)
+				, RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStream)
-				, mSerializationOptions(serializationOptions)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 
@@ -503,12 +505,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
 			{
 				if constexpr (TMode == SerializeMode::Load) {
-					return mRootNode.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode) : std::nullopt;
+					return mRootNode.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 				}
 				else
 				{
 					mRootNode |= ryml::MAP;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode);
+					return std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext());
 				}
 			}
 
@@ -520,13 +522,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load) {
 					return mRootNode.is_seq()
-						? std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, mRootNode.num_children())
+						? std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext(), mRootNode.num_children())
 						: std::nullopt;
 				}
 				else
 				{
 					mRootNode |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, arraySize);
+					return std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext(), arraySize);
 				}
 			}
 
@@ -540,12 +542,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 					std::visit([this](auto&& arg)
 					{
 						using T = std::decay_t<decltype(arg)>;
+						auto& options = TArchiveScope<TMode>::GetOptions();
 						if constexpr (std::is_same_v<T, std::string*>) {
 							*arg = ryml::emitrs<std::string>(mTree);
 						}
 						else if constexpr (std::is_same_v<T, std::ostream*>)
 						{
-							if (mSerializationOptions.streamOptions.writeBom) {
+							if (options.streamOptions.writeBom) {
 								arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
 							}
 							*arg << mTree;
@@ -598,7 +601,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			ryml::Tree mTree;
 			RapidYamlNode mRootNode;
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-			SerializationOptions mSerializationOptions;
 			ryml::Callbacks mPrevCallbacks;
 		};
 	}

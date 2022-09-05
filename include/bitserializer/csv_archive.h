@@ -112,8 +112,9 @@ private:
 class CCsvWriteObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CCsvWriteObjectScope(ICsvWriter* csvWriter)
-		: mCsvWriter(csvWriter)
+	explicit CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext)
+		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		, mCsvWriter(csvWriter)
 	{ }
 
 	~CCsvWriteObjectScope()
@@ -168,8 +169,9 @@ private:
 class CsvWriteArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CsvWriteArrayScope(ICsvWriter* csvWriter)
-		: mCsvWriter(csvWriter)
+	explicit CsvWriteArrayScope(ICsvWriter* csvWriter, SerializationContext& serializationContext)
+		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		, mCsvWriter(csvWriter)
 	{ }
 
 	/// <summary>
@@ -182,7 +184,7 @@ public:
 
 	std::optional<CCsvWriteObjectScope> OpenObjectScope()
 	{
-		return std::make_optional<CCsvWriteObjectScope>(mCsvWriter);
+		return std::make_optional<CCsvWriteObjectScope>(mCsvWriter, GetContext());
 	}
 
 private:
@@ -196,14 +198,14 @@ private:
 class CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CsvWriteRootScope(std::string& encodedOutputStr, const SerializationOptions& serializationOptions = {})
-		: mCsvWriter(CCsvStringWriter(encodedOutputStr, true))
-		, mSerializationOptions(serializationOptions)
+	explicit CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext = Context)
+		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		, mCsvWriter(CCsvStringWriter(encodedOutputStr, true))
 	{ }
 
-	CsvWriteRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-		: mCsvWriter(CCsvStreamWriter(outputStream, true, ',', serializationOptions.streamOptions))
-		, mSerializationOptions(serializationOptions)
+	CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext = Context)
+		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		, mCsvWriter(CCsvStreamWriter(outputStream, true, ',', serializationContext.GetOptions()->streamOptions))
 	{ }
 
 	/// <summary>
@@ -218,7 +220,7 @@ public:
 	{
 		auto csvWriter = GetWriter();
 		csvWriter->SetEstimatedSize(arraySize);
-		return std::make_optional<CsvWriteArrayScope>(csvWriter);
+		return std::make_optional<CsvWriteArrayScope>(csvWriter, GetContext());
 	}
 
 	void Finalize() const { /* Not required */ }
@@ -233,7 +235,6 @@ private:
 	}
 
 	std::variant<CCsvStringWriter, CCsvStreamWriter> mCsvWriter;
-	SerializationOptions mSerializationOptions;
 };
 
 //------------------------------------------------------------------------------
@@ -302,8 +303,9 @@ private:
 class CCsvReadObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	CCsvReadObjectScope(ICsvReader* csvReader)
-		: mCsvReader(csvReader)
+	CCsvReadObjectScope(ICsvReader* csvReader, SerializationContext& serializationContext)
+		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		, mCsvReader(csvReader)
 	{ }
 
 	/// <summary>
@@ -373,8 +375,9 @@ private:
 class CsvReadArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	CsvReadArrayScope(ICsvReader* csvReader)
-		: mCsvReader(csvReader)
+	CsvReadArrayScope(ICsvReader* csvReader, SerializationContext& serializationContext)
+		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		, mCsvReader(csvReader)
 	{ }
 
 	/// <summary>
@@ -404,7 +407,7 @@ public:
 	{
 		if (mCsvReader->ParseNextRow())
 		{
-			return std::make_optional<CCsvReadObjectScope>(mCsvReader);
+			return std::make_optional<CCsvReadObjectScope>(mCsvReader, GetContext());
 		}
 		return std::nullopt;
 	}
@@ -420,14 +423,14 @@ private:
 class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	explicit CsvReadRootScope(const std::string& encodedInputStr, const SerializationOptions& serializationOptions = {})
-		: mCsvReader(std::in_place_type<Csv::Detail::CCsvStringReader>, encodedInputStr, true, ',')
-		, mSerializationOptions(serializationOptions)
+	explicit CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext = Context)
+		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		, mCsvReader(std::in_place_type<Csv::Detail::CCsvStringReader>, encodedInputStr, true, ',')
 	{ }
 
-	explicit CsvReadRootScope(std::istream& encodedInputStream, const SerializationOptions& serializationOptions = {})
-		: mCsvReader(std::in_place_type<Csv::Detail::CCsvStreamReader>, encodedInputStream, true, ',')
-		, mSerializationOptions(serializationOptions)
+	explicit CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext = Context)
+		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		, mCsvReader(std::in_place_type<Csv::Detail::CCsvStreamReader>, encodedInputStream, true, ',')
 	{ }
 
 	/// <summary>
@@ -440,7 +443,7 @@ public:
 
 	std::optional<CsvReadArrayScope> OpenArrayScope(size_t arraySize)
 	{
-		return std::make_optional<CsvReadArrayScope>(GetReader());
+		return std::make_optional<CsvReadArrayScope>(GetReader(), GetContext());
 	}
 
 	void Finalize() const { /* Not required */ }
@@ -455,7 +458,6 @@ private:
 	}
 
 	std::variant<CCsvStringReader, CCsvStreamReader> mCsvReader;
-	SerializationOptions mSerializationOptions;
 };
 
 }

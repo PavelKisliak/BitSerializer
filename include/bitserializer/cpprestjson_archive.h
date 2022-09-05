@@ -142,8 +142,9 @@ template <SerializeMode TMode>
 class JsonArrayScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	JsonArrayScope(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
-		: JsonScopeBase(node, parent, parentKey)
+	JsonArrayScope(web::json::value* node, SerializationContext& serializationContext, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+		: TArchiveScope<TMode>(serializationContext)
+		, JsonScopeBase(node, parent, parentKey)
 		, mSize(node == nullptr ? 0 : node->size())
 		, mIndex(0)
 	{
@@ -216,14 +217,14 @@ public:
 		{
 			auto& jsonValue = LoadNextItem();
 			if (jsonValue.is_object()) {
-				return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this);
+				return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::object());
-			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this);
+			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
 		}
 	}
 
@@ -233,14 +234,14 @@ public:
 		{
 			auto& jsonValue = LoadNextItem();
 			if (jsonValue.is_array()) {
-				return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);
+				return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
-			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this);
+			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
 		}
 	}
 
@@ -306,8 +307,9 @@ template <SerializeMode TMode>
 class JsonObjectScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonObjectScope(web::json::value* node, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
-		: JsonScopeBase(node, parent, parentKey)
+	explicit JsonObjectScope(web::json::value* node, SerializationContext& serializationContext, JsonScopeBase* parent = nullptr, key_type_view parentKey = {})
+		: TArchiveScope<TMode>(serializationContext)
+		, JsonScopeBase(node, parent, parentKey)
 	{
 		assert(mNode->is_object());
 	}
@@ -366,14 +368,14 @@ public:
 			if (jsonValue != nullptr && jsonValue->is_object())
 			{
 				decltype(auto) node = const_cast<web::json::value*>(jsonValue);
-				return std::make_optional<JsonObjectScope<TMode>>(node, this, key);
+				return std::make_optional<JsonObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext(), this, key);
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::object());
-			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this, key);
+			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this, key);
 		}
 	}
 
@@ -383,13 +385,13 @@ public:
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->is_array())
-				return std::make_optional<JsonArrayScope<TMode>>(jsonValue, this, key);
+				return std::make_optional<JsonArrayScope<TMode>>(jsonValue, TArchiveScope<TMode>::GetContext(), this, key);
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
-			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this, key);
+			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this, key);
 		}
 	}
 
@@ -418,10 +420,10 @@ template <SerializeMode TMode>
 class JsonRootScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonRootScope(const std::string& inputStr, const SerializationOptions& serializationOptions = {})
-		: JsonScopeBase(&mRootJson)
+	explicit JsonRootScope(const std::string& inputStr, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
-		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		std::error_code error;
@@ -435,18 +437,18 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(std::string& outputStr, const SerializationOptions& serializationOptions = {})
-		: JsonScopeBase(&mRootJson)
+	explicit JsonRootScope(std::string& outputStr, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, JsonScopeBase(&mRootJson)
 		, mOutput(&outputStr)
-		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit JsonRootScope(std::istream& inputStream, const SerializationOptions& serializationOptions = {})
-		: JsonScopeBase(&mRootJson)
+	explicit JsonRootScope(std::istream& inputStream, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
-		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto utfType = Convert::DetectEncoding(inputStream);
@@ -461,10 +463,10 @@ public:
 		}
 	}
 
-	JsonRootScope(std::ostream& outputStream, const SerializationOptions& serializationOptions = {})
-		: JsonScopeBase(&mRootJson)
+	JsonRootScope(std::ostream& outputStream, SerializationContext& serializationContext = Context)
+		: TArchiveScope<TMode>(serializationContext)
+		, JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)
-		, mSerializationOptions(serializationOptions)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
@@ -523,24 +525,24 @@ public:
 	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson) : std::nullopt;
+			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			mRootJson = web::json::value::object();
-			return std::make_optional<JsonObjectScope<TMode>>(&mRootJson);
+			return std::make_optional<JsonObjectScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
 	std::optional<JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return mRootJson.is_array() ? std::make_optional<JsonArrayScope<TMode>>(&mRootJson) : std::nullopt;
+			return mRootJson.is_array() ? std::make_optional<JsonArrayScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext()) : std::nullopt;
 		}
 		else
 		{
 			mRootJson = web::json::value::array(arraySize);
-			return std::make_optional<JsonArrayScope<TMode>>(&mRootJson);
+			return std::make_optional<JsonArrayScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -552,7 +554,8 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				assert(!mSerializationOptions.formatOptions.enableFormat && "CppRestJson does not support formatting");
+				auto& options = TArchiveScope<TMode>::GetOptions();
+				assert(!options.formatOptions.enableFormat && "CppRestJson does not support formatting");
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					if constexpr (std::is_same_v<std::remove_pointer_t<T>, decltype(mRootJson.serialize())>) {
@@ -565,7 +568,7 @@ public:
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
-					if (mSerializationOptions.streamOptions.writeBom) {
+					if (options.streamOptions.writeBom) {
 						arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
 					}
 					mRootJson.serialize(*arg);
@@ -578,7 +581,6 @@ public:
 private:
 	web::json::value mRootJson;
 	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-	SerializationOptions mSerializationOptions;
 };
 
 }

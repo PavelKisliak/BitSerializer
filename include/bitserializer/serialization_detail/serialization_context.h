@@ -1,10 +1,11 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <map>
 #include <vector>
+#include "serialization_options.h"
 
 namespace BitSerializer
 {
@@ -12,7 +13,7 @@ namespace BitSerializer
 	using ValidationMap = std::map<std::string, ValidationErrors>;
 
 	/// <summary>
-	/// Serialization context - stores validation results and something other which would be need in future.
+	/// Serialization context - stores all necessary information about current serialization session (options, validation errors).
 	/// </summary>
 	class SerializationContext
 	{
@@ -20,8 +21,9 @@ namespace BitSerializer
 		[[nodiscard]] bool IsValid() const noexcept								{ return mErrorsMap.empty(); }
 		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept	{ return mErrorsMap; }
 
-		void OnStartSerialization()
+		void OnStartSerialization(const SerializationOptions* serializationOptions)
 		{
+			mSerializationOptions = serializationOptions;
 			mErrorsMap.clear();
 		}
 
@@ -36,8 +38,13 @@ namespace BitSerializer
 			}
 		}
 
+		const SerializationOptions* GetOptions() const noexcept {
+			return mSerializationOptions;
+		}
+
 	private:
 		ValidationMap mErrorsMap;
+		const SerializationOptions* mSerializationOptions = nullptr;
 	};
 
 	/// <summary>

@@ -53,6 +53,8 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 	::BuildFixture(testList);
 
 	std::string outputData;
+	BitSerializer::SerializationOptions options;
+	BitSerializer::Context.OnStartSerialization(&options);
 	CsvArchive::output_archive_type outputArchive(outputData);
 
 	// Act / Assert

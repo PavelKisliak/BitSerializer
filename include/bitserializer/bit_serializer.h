@@ -39,8 +39,9 @@ namespace BitSerializer
 
 		if constexpr (hasInputDataTypeSupport)
 		{
-			Context.OnStartSerialization();
-			typename TArchive::input_archive_type archive(input, serializationOptions);
+			SerializationContext& context = Context;
+			context.OnStartSerialization(&serializationOptions);
+			typename TArchive::input_archive_type archive(input, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
 		}
@@ -60,8 +61,9 @@ namespace BitSerializer
 
 		if constexpr (hasInputDataTypeSupport)
 		{
-			Context.OnStartSerialization();
-			typename TArchive::input_archive_type archive(input, serializationOptions);
+			SerializationContext& context = Context;
+			context.OnStartSerialization(&serializationOptions);
+			typename TArchive::input_archive_type archive(input, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
 		}
@@ -81,8 +83,9 @@ namespace BitSerializer
 
 		if constexpr (hasOutputDataTypeSupport)
 		{
-			Context.OnStartSerialization();
-			typename TArchive::output_archive_type archive(output, serializationOptions);
+			SerializationContext& context = Context;
+			context.OnStartSerialization(&serializationOptions);
+			typename TArchive::output_archive_type archive(output, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
 		}
@@ -102,8 +105,9 @@ namespace BitSerializer
 
 		if constexpr (hasOutputDataTypeSupport)
 		{
-			Context.OnStartSerialization();
-			typename TArchive::output_archive_type archive(output, serializationOptions);
+			SerializationContext& context = Context;
+			context.OnStartSerialization(&serializationOptions);
+			typename TArchive::output_archive_type archive(output, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
 		}
@@ -138,7 +142,7 @@ namespace BitSerializer
 		std::basic_ifstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
 		stream.open(std::forward<TString>(path), std::ios::in | std::ios::binary);
 		if (stream.is_open())
-			LoadObject<TArchive>(std::forward<T>(object), stream);
+			LoadObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
 		else
 			throw SerializationException(SerializationErrorCode::InputOutputError, "File not found: " + Convert::ToString(std::forward<TString>(path)));
 	}

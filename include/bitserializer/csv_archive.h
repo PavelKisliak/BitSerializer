@@ -198,14 +198,14 @@ private:
 class CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext = Context)
+	explicit CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(CCsvStringWriter(encodedOutputStr, true))
 	{ }
 
-	CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext = Context)
+	CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
-		, mCsvWriter(CCsvStreamWriter(outputStream, true, ',', serializationContext.GetOptions()->streamOptions))
+		, mCsvWriter(CCsvStreamWriter(outputStream, true, ',', serializationContext.GetOptions().streamOptions))
 	{ }
 
 	/// <summary>
@@ -423,12 +423,12 @@ private:
 class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	explicit CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext = Context)
+	explicit CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(std::in_place_type<Csv::Detail::CCsvStringReader>, encodedInputStr, true, ',')
 	{ }
 
-	explicit CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext = Context)
+	explicit CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(std::in_place_type<Csv::Detail::CCsvStreamReader>, encodedInputStream, true, ',')
 	{ }

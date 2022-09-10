@@ -420,7 +420,7 @@ template <SerializeMode TMode>
 class JsonRootScope final : public TArchiveScope<TMode>, public JsonScopeBase
 {
 public:
-	explicit JsonRootScope(const std::string& inputStr, SerializationContext& serializationContext = Context)
+	explicit JsonRootScope(const std::string& inputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
@@ -437,7 +437,7 @@ public:
 		}
 	}
 
-	explicit JsonRootScope(std::string& outputStr, SerializationContext& serializationContext = Context)
+	explicit JsonRootScope(std::string& outputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, JsonScopeBase(&mRootJson)
 		, mOutput(&outputStr)
@@ -445,7 +445,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit JsonRootScope(std::istream& inputStream, SerializationContext& serializationContext = Context)
+	explicit JsonRootScope(std::istream& inputStream, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, JsonScopeBase(&mRootJson)
 		, mOutput(nullptr)
@@ -463,7 +463,7 @@ public:
 		}
 	}
 
-	JsonRootScope(std::ostream& outputStream, SerializationContext& serializationContext = Context)
+	JsonRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, JsonScopeBase(&mRootJson)
 		, mOutput(&outputStream)

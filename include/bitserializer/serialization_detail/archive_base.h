@@ -53,17 +53,9 @@ template <SerializeMode TMode>
 class TArchiveScope
 {
 public:
-	TArchiveScope() : mSerializationContext(Context) {
-		throw std::runtime_error("Internal error: default ctor of TArchiveScope should not be used");
-	}
-
 	explicit TArchiveScope(SerializationContext& serializationContext)
 		: mSerializationContext(serializationContext)
-	{
-		if (mSerializationContext.GetOptions() == nullptr) {
-			throw std::runtime_error("Internal error: serialization options is NULL");
-		}
-	}
+	{ }
 
 	TArchiveScope(const TArchiveScope&) = delete;
 	TArchiveScope& operator=(const TArchiveScope&) = delete;
@@ -72,7 +64,7 @@ public:
 	static constexpr bool IsSaving() noexcept					{ return TMode == SerializeMode::Save; }
 	static constexpr bool IsLoading() noexcept					{ return TMode == SerializeMode::Load; }
 	SerializationContext& GetContext() const noexcept			{ return mSerializationContext; }
-	const SerializationOptions& GetOptions() const noexcept		{ return *mSerializationContext.GetOptions(); }
+	const SerializationOptions& GetOptions() const noexcept		{ return mSerializationContext.GetOptions(); }
 
 protected:
 	~TArchiveScope() = default;

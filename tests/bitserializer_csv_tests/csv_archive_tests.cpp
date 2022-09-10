@@ -30,7 +30,9 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenLoading)
 	BitSerializer::SaveObject<CsvArchive>(testList, outputData);
 
 	// Act / Assert
-	CsvArchive::input_archive_type inputArchive(outputData);
+	SerializationOptions options;
+	SerializationContext context(options);
+	CsvArchive::input_archive_type inputArchive(outputData, context);
 	ASSERT_EQ(inputArchive.GetPath(), "");
 
 	auto rootArrayScope = inputArchive.OpenArrayScope(3);
@@ -53,9 +55,9 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 	::BuildFixture(testList);
 
 	std::string outputData;
-	BitSerializer::SerializationOptions options;
-	BitSerializer::Context.OnStartSerialization(&options);
-	CsvArchive::output_archive_type outputArchive(outputData);
+	SerializationOptions options;
+	SerializationContext context(options);
+	CsvArchive::output_archive_type outputArchive(outputData, context);
 
 	// Act / Assert
 	auto rootArrayScope = outputArchive.OpenArrayScope(3);

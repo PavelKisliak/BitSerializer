@@ -341,11 +341,6 @@ public:
 		::BuildFixture(fixture.mExistField);
 	}
 
-	void Assert() const
-	{
-		EXPECT_EQ(1, BitSerializer::Context.GetValidationErrors().size());
-	}
-
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
@@ -370,11 +365,6 @@ public:
 	static void BuildFixture(TestClassForCheckCompatibleTypes<TestType>& fixture)
 	{
 		::BuildFixture(fixture.mTestField);
-	}
-
-	void Assert() const
-	{
-		EXPECT_EQ(1, BitSerializer::Context.GetValidationErrors().size());
 	}
 
 	template <class TArchive>

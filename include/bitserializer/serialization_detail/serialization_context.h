@@ -6,31 +6,27 @@
 #include <map>
 #include <vector>
 #include "serialization_options.h"
+#include "errors_handling.h"
 
 namespace BitSerializer
 {
-	using ValidationErrors = std::vector<std::string>;
-	using ValidationMap = std::map<std::string, ValidationErrors>;
-
 	/// <summary>
 	/// Serialization context - stores all necessary information about current serialization session (options, validation errors).
 	/// </summary>
 	class SerializationContext
 	{
 	public:
-		[[nodiscard]] bool IsValid() const noexcept								{ return mErrorsMap.empty(); }
-		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept	{ return mErrorsMap; }
+		explicit SerializationContext(const SerializationOptions& serializationOptions)
+			: mSerializationOptions(serializationOptions)
+		{ }
 
-		void OnStartSerialization(const SerializationOptions* serializationOptions)
-		{
-			mSerializationOptions = serializationOptions;
-			mErrorsMap.clear();
+		[[nodiscard]] const SerializationOptions& GetOptions() const noexcept {
+			return mSerializationOptions;
 		}
 
 		void AddValidationErrors(std::string&& path, ValidationErrors&& validationList)
 		{
-			auto it = mErrorsMap.find(path);
-			if (it == mErrorsMap.end()) {
+			if (const auto it = mErrorsMap.find(path); it == mErrorsMap.end()) {
 				mErrorsMap.emplace(std::move(path), std::move(validationList));
 			}
 			else {
@@ -38,17 +34,15 @@ namespace BitSerializer
 			}
 		}
 
-		const SerializationOptions* GetOptions() const noexcept {
-			return mSerializationOptions;
+		void OnFinishSerialization()
+		{
+			if (!mErrorsMap.empty()) {
+				throw ValidationException(std::move(mErrorsMap));
+			}
 		}
 
 	private:
 		ValidationMap mErrorsMap;
-		const SerializationOptions* mSerializationOptions = nullptr;
+		const SerializationOptions& mSerializationOptions;
 	};
-
-	/// <summary>
-	/// The serialization context, contains validation information, etc...
-	/// </summary>
-	thread_local static SerializationContext Context;
 }

@@ -635,13 +635,9 @@ BitSerializer allows to add an arbitrary number of validation rules to the named
 ```cpp
 archive << MakeKeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
 ```
-After deserialize, you can check the status in context and get errors:
-```cpp
-if (!Context.IsValid())
-{
-    const auto& validationErrors = Context.GetValidationErrors();
-}
-```
+For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization when all errors have been collected.
+The map of validation errors can be get by calling method `GetValidationErrors()`, it contains paths to fields with errors lists.
+
 Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`.
 Validator 'Range' can be used with all types which have operators '<' and '>'.
 Validators `MinSize` and `MaxSize` can be applied to all values which have `size()` method.
@@ -682,11 +678,14 @@ int main()
 {
 	UserModel user;
 	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
-	BitSerializer::LoadObject<JsonArchive>(user, json);
-	if (!BitSerializer::Context.IsValid())
+	try
 	{
-		std::wcout << L"Validation errors: " << std::endl;
-		const auto& validationErrors = BitSerializer::Context.GetValidationErrors();
+		BitSerializer::LoadObject<JsonArchive>(user, json);
+	}
+	catch (BitSerializer::ValidationException& ex)
+	{
+		const auto& validationErrors = ex.GetValidationErrors();
+		std::cout << "Validation errors: " << std::endl;
 		for (const auto& keyErrors : validationErrors)
 		{
 			std::cout << "Path: " << keyErrors.first << std::endl;
@@ -695,6 +694,10 @@ int main()
 				std::cout << "\t" << err << std::endl;
 			}
 		}
+	}
+	catch (std::exception& ex)
+	{
+		std::cout << ex.what();
 	}
 
 	return EXIT_SUCCESS;

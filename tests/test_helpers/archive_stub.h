@@ -488,7 +488,7 @@ template <SerializeMode TMode>
 class ArchiveStubRootScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
 {
 public:
-	explicit ArchiveStubRootScope(const TestIoData& inputData, SerializationContext& serializationContext = Context)
+	explicit ArchiveStubRootScope(const TestIoData& inputData, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, ArchiveStubScopeBase(&inputData)
 		, mOutputData(nullptr)
@@ -497,7 +497,7 @@ public:
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 	}
 
-	explicit ArchiveStubRootScope(TestIoData& outputData, SerializationContext& serializationContext = Context)
+	explicit ArchiveStubRootScope(TestIoData& outputData, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, ArchiveStubScopeBase(&outputData)
 		, mOutputData(&outputData)

@@ -439,7 +439,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
 			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
 
-			explicit RapidYamlRootScope(const char* inputStr, SerializationContext& serializationContext = Context)
+			explicit RapidYamlRootScope(const char* inputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
@@ -450,7 +450,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
-			explicit RapidYamlRootScope(const std::string& inputStr, SerializationContext& serializationContext = Context)
+			explicit RapidYamlRootScope(const std::string& inputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
@@ -461,7 +461,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = ryml::parse(c4::to_csubstr(inputStr));
 			}
 
-			explicit RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext = Context)
+			explicit RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStr)
@@ -471,7 +471,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				Init();
 			}
 
-			explicit RapidYamlRootScope(std::istream& inputStream, SerializationContext& serializationContext = Context)
+			explicit RapidYamlRootScope(std::istream& inputStream, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)

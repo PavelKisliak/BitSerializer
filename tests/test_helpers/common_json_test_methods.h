@@ -20,7 +20,9 @@ void TestGetPathInJsonObjectScopeWhenLoading()
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
 
 	// Act / Assert
-	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData));
+	BitSerializer::SerializationOptions options;
+	BitSerializer::SerializationContext context(options);
+	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 	ASSERT_EQ(inputArchive.GetPath(), "");
 	auto objScope = inputArchive.OpenObjectScope();
 	ASSERT_TRUE(objScope.has_value());
@@ -43,8 +45,8 @@ void TestGetPathInJsonObjectScopeWhenSaving()
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	BitSerializer::SerializationOptions options;
-	BitSerializer::Context.OnStartSerialization(&options);
-	typename TArchive::output_archive_type outputArchive(outputData);
+	BitSerializer::SerializationContext context(options);
+	typename TArchive::output_archive_type outputArchive(outputData, context);
 
 	// Act / Assert
 	ASSERT_EQ(outputArchive.GetPath(), "");
@@ -71,12 +73,12 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
-	BitSerializer::SerializationOptions options;
-	BitSerializer::Context.OnStartSerialization(&options);
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
 
 	// Act / Assert
-	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData));
+	BitSerializer::SerializationOptions options;
+	BitSerializer::SerializationContext context(options);
+	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 	ASSERT_EQ(inputArchive.GetPath(), "");
 	auto objScope = inputArchive.OpenObjectScope();
 	ASSERT_TRUE(objScope.has_value());
@@ -116,8 +118,8 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	BitSerializer::SerializationOptions options;
-	BitSerializer::Context.OnStartSerialization(&options);
-	typename TArchive::output_archive_type outputArchive(outputData);
+	BitSerializer::SerializationContext context(options);
+	typename TArchive::output_archive_type outputArchive(outputData, context);
 
 	// Act / Assert
 	ASSERT_EQ(outputArchive.GetPath(), "");

@@ -13,8 +13,12 @@ using namespace BitSerializer;
 class TestArchive_LoadMode : TArchiveScope<SerializeMode::Load>
 {
 public:
-	TestArchive_LoadMode(const std::string& inputData, SerializationContext&) { }
-	TestArchive_LoadMode(std::istream& inputData, SerializationContext&) { }
+	TestArchive_LoadMode(const std::string& inputData, SerializationContext& context) 
+		: TArchiveScope<SerializeMode::Load>(context)
+	{ }
+	TestArchive_LoadMode(std::istream& inputData, SerializationContext& context)
+		: TArchiveScope<SerializeMode::Load>(context)
+	{ }
 
 	bool SerializeValue(bool& value) { return true; }
 	bool SerializeValue(int& value) { return true; }
@@ -48,8 +52,11 @@ public:
 		}
 	};
 
-	TestArchive_SaveMode(std::string& outputData, SerializationContext&) { }
-	TestArchive_SaveMode(std::ostream& inputData, SerializationContext&) { }
+	TestArchive_SaveMode(std::string& outputData, SerializationContext& context)
+		: TArchiveScope<SerializeMode::Save>(context) { }
+	TestArchive_SaveMode(std::ostream& inputData, SerializationContext& context)
+		: TArchiveScope<SerializeMode::Save>(context)
+	{ }
 
 	key_const_iterator cbegin() const {
 		return key_const_iterator();

@@ -513,7 +513,7 @@ template <SerializeMode TMode>
 class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	explicit PugiXmlRootScope(const std::string& inputStr, SerializationContext& serializationContext = Context)
+	explicit PugiXmlRootScope(const std::string& inputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, mOutput(nullptr)
 	{
@@ -530,7 +530,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit PugiXmlRootScope(std::istream& inputStream, SerializationContext& serializationContext = Context)
+	explicit PugiXmlRootScope(std::istream& inputStream, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, mOutput(nullptr)
 	{
@@ -540,7 +540,7 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
 	}
 
-	PugiXmlRootScope(std::ostream& outputStream, SerializationContext& serializationContext = Context)
+	PugiXmlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, mOutput(&outputStream)
 	{

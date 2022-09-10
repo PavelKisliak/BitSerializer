@@ -17,7 +17,8 @@ namespace BitSerializer
 		ParsingError,
 		InputOutputError,
 		UnsupportedEncoding,
-		OutOfRange
+		OutOfRange,
+		FailedValidation
 	};
 
 	REGISTER_ENUM_MAP(SerializationErrorCode)
@@ -25,9 +26,13 @@ namespace BitSerializer
 		{ SerializationErrorCode::ParsingError, "Parsing error" },
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },
 		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" },
-		{ SerializationErrorCode::OutOfRange, "Out of range" }
+		{ SerializationErrorCode::OutOfRange, "Out of range" },
+		{ SerializationErrorCode::FailedValidation, "Failed validation" }
 	}
 	END_ENUM_MAP()
+
+	using ValidationErrors = std::vector<std::string>;
+	using ValidationMap = std::map<std::string, ValidationErrors>;
 
 	/// <summary>
 	/// Serialization exception
@@ -36,6 +41,11 @@ namespace BitSerializer
 	class SerializationException : public std::runtime_error
 	{
 	public:
+		explicit SerializationException(const SerializationErrorCode errorCode)
+			: std::runtime_error(Convert::ToString(errorCode))
+			, mErrorCode(errorCode)
+		{ }
+
 		SerializationException(const SerializationErrorCode errorCode, const char* message)
 			: std::runtime_error(Convert::ToString(errorCode) + ": " + message)
 			, mErrorCode(errorCode)
@@ -53,6 +63,32 @@ namespace BitSerializer
 
 	private:
 		SerializationErrorCode mErrorCode;
+	};
+
+	/// <summary>
+	/// validation exception
+	/// </summary>
+	/// <seealso cref="SerializationException" />
+	class ValidationException : public SerializationException
+	{
+	public:
+		ValidationException(ValidationMap&& validationErrors)
+			: SerializationException(SerializationErrorCode::FailedValidation)
+			, mValidationMap(std::move(validationErrors))
+		{ }
+
+		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept
+		{
+			return mValidationMap;
+		}
+
+		[[nodiscard]] ValidationMap&& TakeValidationErrors() noexcept
+		{
+			return std::move(mValidationMap);
+		}
+
+	private:
+		ValidationMap mValidationMap;
 	};
 
 }

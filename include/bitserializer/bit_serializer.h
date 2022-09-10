@@ -7,7 +7,7 @@
 #include "serialization_detail/serialization_base_types.h"
 #include "serialization_detail/key_value_proxy.h"
 #include "serialization_detail/validators.h"
-#include "serialization_detail/errors_handling.h"
+#include "serialization_detail/serialization_context.h"
 
 namespace BitSerializer
 {
@@ -39,11 +39,11 @@ namespace BitSerializer
 
 		if constexpr (hasInputDataTypeSupport)
 		{
-			SerializationContext& context = Context;
-			context.OnStartSerialization(&serializationOptions);
+			SerializationContext context(serializationOptions);
 			typename TArchive::input_archive_type archive(input, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
+			context.OnFinishSerialization();
 		}
 	}
 
@@ -61,11 +61,11 @@ namespace BitSerializer
 
 		if constexpr (hasInputDataTypeSupport)
 		{
-			SerializationContext& context = Context;
-			context.OnStartSerialization(&serializationOptions);
+			SerializationContext context(serializationOptions);
 			typename TArchive::input_archive_type archive(input, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
+			context.OnFinishSerialization();
 		}
 	}
 
@@ -83,11 +83,11 @@ namespace BitSerializer
 
 		if constexpr (hasOutputDataTypeSupport)
 		{
-			SerializationContext& context = Context;
-			context.OnStartSerialization(&serializationOptions);
+			SerializationContext context(serializationOptions);
 			typename TArchive::output_archive_type archive(output, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
+			context.OnFinishSerialization();
 		}
 	}
 
@@ -105,11 +105,11 @@ namespace BitSerializer
 
 		if constexpr (hasOutputDataTypeSupport)
 		{
-			SerializationContext& context = Context;
-			context.OnStartSerialization(&serializationOptions);
+			SerializationContext context(serializationOptions);
 			typename TArchive::output_archive_type archive(output, context);
 			KeyValueProxy::SplitAndSerialize(archive, std::forward<T>(object));
 			archive.Finalize();
+			context.OnFinishSerialization();
 		}
 	}
 

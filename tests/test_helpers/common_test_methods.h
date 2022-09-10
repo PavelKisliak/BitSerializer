@@ -290,15 +290,21 @@ void TestValidationForNamedValues()
 	typename TArchive::preferred_output_format outputArchive;
 
 	// Act
+	bool result = false;
 	BitSerializer::SaveObject<TArchive>(testObj, outputArchive);
-	const bool saveResult = BitSerializer::Context.IsValid();
-	BitSerializer::LoadObject<TArchive>(testObj, outputArchive);
-	const bool loadResult = BitSerializer::Context.IsValid();
+	try
+	{
+		BitSerializer::LoadObject<TArchive>(testObj, outputArchive);
+		result = true;
+	}
+	catch (BitSerializer::ValidationException& ex)
+	{
+		// Assert
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
+		EXPECT_EQ(1, ex.GetValidationErrors().size());
+	}
 
-	// Assert
-	ASSERT_TRUE(saveResult);
-	ASSERT_FALSE(loadResult);
-	testObj[0].Assert();
+	EXPECT_FALSE(result);
 }
 
 /// <summary>
@@ -313,16 +319,22 @@ void TestValidationForNotCompatibleTypes()
 	typename TArchive::preferred_output_format outputArchive;
 
 	// Act
+	bool result = false;
 	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
-	const bool saveResult = BitSerializer::Context.IsValid();
-	TTargetType targetObj[1];
-	BitSerializer::LoadObject<TArchive>(targetObj, outputArchive);
-	const bool loadResult = BitSerializer::Context.IsValid();
+	try
+	{
+		TTargetType targetObj[1];
+		BitSerializer::LoadObject<TArchive>(targetObj, outputArchive);
+		result = true;
+	}
+	catch (BitSerializer::ValidationException& ex)
+	{
+		// Assert
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
+		EXPECT_EQ(1, ex.GetValidationErrors().size());
+	}
 
-	// Assert
-	ASSERT_TRUE(saveResult);
-	ASSERT_FALSE(loadResult);
-	targetObj[0].Assert();
+	EXPECT_FALSE(result);
 }
 
 /// <summary>
@@ -340,7 +352,9 @@ void TestIterateKeysInObjectScope()
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
-	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData));
+	BitSerializer::SerializationOptions options;
+	BitSerializer::SerializationContext context(options);
+	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 
 	// Act / Assert
 	auto objScope = inputArchive.OpenObjectScope();

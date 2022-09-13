@@ -721,7 +721,7 @@ namespace BitSerializer::Convert
 		char buffer[tempBufferSize];
 		const auto origPos = inputStream.tellg();
 		inputStream.read(buffer, tempBufferSize);
-		const auto readBytesCount = inputStream.gcount();
+		const size_t readBytesCount = static_cast<size_t>(inputStream.gcount());
 
 		// Detect encoding
 		size_t dataOffset = 0;

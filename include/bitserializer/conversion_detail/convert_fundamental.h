@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -26,18 +26,26 @@ namespace BitSerializer::Convert::Detail
 		// ReSharper disable once CppPossiblyErroneousEmptyStatements
 		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it);	// Skip spaces
 
+		std::from_chars_result result;
 		if constexpr (sizeof(TSym) == sizeof(char)) {
 			// Uses from_chars only for convert only integers as GCC does not support floating types
-			if (std::from_chars(it, end, out).ec != std::errc()) {
-				throw std::out_of_range("Argument out of range");
-			}
+			result = std::from_chars(it, end, out);
 		}
 		else {
 			std::string utf8Str;
 			Utf8::Encode(it, end, utf8Str);
-			if (std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out).ec != std::errc()) {
+			result = std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out);
+		}
+
+		if (result.ec != std::errc())
+		{
+			if (result.ec == std::errc::result_out_of_range) {
 				throw std::out_of_range("Argument out of range");
 			}
+			else if (result.ec == std::errc::invalid_argument) {
+				throw std::invalid_argument("Input string is not a number");
+			}
+			throw std::runtime_error("Unknown error");
 		}
 	}
 
@@ -63,26 +71,27 @@ namespace BitSerializer::Convert::Detail
 	void To(std::basic_string_view<TSym> in, T& out)
 	{
 		T result;
-		// ReSharper disable once CppInitializedValueIsAlwaysRewritten
-		bool isError = false;
+		bool isNaN;
 		static constexpr size_t bufSize = 64;
 		const size_t size = (in.size() < bufSize) ? in.size() : bufSize - 1;
-		if constexpr (std::is_same_v<char, TSym>) {
+		if constexpr (std::is_same_v<char, TSym>)
+		{
 			// Copy to temporary buffer for prepare null-terminated c-string
-			TSym buf[bufSize];
+			char buf[bufSize];
 			std::memcpy(buf, in.data(), size);
 			buf[size] = 0;
 			char* endPos = nullptr;
 			result = _stdWrappers::_fromStr<T>(buf, &endPos);
-			isError = buf == endPos;
+			isNaN = buf == endPos;
 		}
-		else if constexpr (sizeof(TSym) == sizeof(wchar_t)) {
+		else if constexpr (sizeof(TSym) == sizeof(wchar_t))
+		{
 			wchar_t buf[bufSize];
 			std::wmemcpy(buf, reinterpret_cast<wchar_t const*>(in.data()), size);
 			buf[size] = 0;
 			wchar_t* endPos = nullptr;
 			result = _stdWrappers::_fromStr<T>(buf, &endPos);
-			isError = buf == endPos;
+			isNaN = buf == endPos;
 		}
 		else
 		{
@@ -90,13 +99,15 @@ namespace BitSerializer::Convert::Detail
 			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 			char* endPos = nullptr;
 			result = _stdWrappers::_fromStr<T>(utf8Str.c_str(), &endPos);
-			isError = utf8Str.data() == endPos;
+			isNaN = utf8Str.data() == endPos;
 		}
 
-		if (isError) {
+		if (errno == ERANGE) {
 			throw std::out_of_range("Argument out of range");
 		}
-
+		if (isNaN) {
+			throw std::invalid_argument("Input string is not a number");
+		}
 		out = result;
 	}
 
@@ -115,16 +126,21 @@ namespace BitSerializer::Convert::Detail
 		const auto size = endIt - startIt;
 		if (size >= 1)
 		{
-			if (*startIt == '1' && (size == 1 || !std::isdigit(startIt[1])))
+			if (std::isdigit(*startIt))
 			{
-				ret_Val = true;
-				return;
-			}
+				if (*startIt == '1' && (size == 1 || !std::isdigit(startIt[1])))
+				{
+					ret_Val = true;
+					return;
+				}
 
-			if (*startIt == '0' && (size == 1 || !std::isdigit(startIt[1])))
-			{
-				ret_Val = false;
-				return;
+				if (*startIt == '0' && (size == 1 || !std::isdigit(startIt[1])))
+				{
+					ret_Val = false;
+					return;
+				}
+
+				throw std::out_of_range("Argument out of range");
 			}
 
 			if (size >= 4 &&
@@ -149,7 +165,7 @@ namespace BitSerializer::Convert::Detail
 			}
 		}
 
-		throw std::out_of_range("Argument out of range");
+		throw std::invalid_argument("Input string is not a boolean");
 	}
 
 	//------------------------------------------------------------------------------
@@ -161,10 +177,10 @@ namespace BitSerializer::Convert::Detail
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		if constexpr (std::is_same_v<char, TSym>) {
-			out = std::to_string(in);
+			out.append(std::to_string(in));
 		}
 		else if constexpr (std::is_same_v<TSym, wchar_t>) {
-			out = std::to_wstring(in);
+			out.append(std::to_wstring(in));
 		}
 		else
 		{
@@ -195,19 +211,11 @@ namespace BitSerializer::Convert::Detail
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		constexpr auto bufSize = std::numeric_limits<T>::digits + 1;
-		if constexpr (std::is_same_v<char, TSym>) {
-			char buf[bufSize];
-			const int result = snprintf(buf, bufSize, _formatTemplates::_get<T>(), in);
-			if (result == -1) {
-				throw std::out_of_range("Argument out of range");
-			}
-			out.append(std::cbegin(buf), std::cbegin(buf) + result);
-		}
-		else if constexpr (sizeof(TSym) == sizeof(wchar_t)) {
+		if constexpr (sizeof(TSym) == sizeof(wchar_t)) {
 			wchar_t buf[bufSize];
 			const int result = swprintf(buf, bufSize, _formatTemplates::_getW<T>(), in);
-			if (result == -1) {
-				throw std::out_of_range("Argument out of range");
+			if (result < 0 || result >= bufSize) {
+				throw std::overflow_error("Internal error");
 			}
 			out.append(std::cbegin(buf), std::cbegin(buf) + result);
 		}
@@ -215,10 +223,15 @@ namespace BitSerializer::Convert::Detail
 		{
 			char buf[bufSize];
 			const int result = snprintf(buf, bufSize, _formatTemplates::_get<T>(), in);
-			if (result == -1) {
-				throw std::out_of_range("Argument out of range");
+			if (result < 0 || result >= bufSize) {
+				throw std::overflow_error("Internal error");
 			}
-			Utf8::Decode(buf, buf + result, out);
+			if constexpr (std::is_same_v<char, TSym>) {
+				out.append(std::cbegin(buf), std::cbegin(buf) + result);
+			}
+			else {
+				Utf8::Decode(buf, buf + result, out);
+			}
 		}
 	}
 

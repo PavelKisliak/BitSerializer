@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -17,7 +17,7 @@ TEST(ConvertFundamentals, BoolFromStringWithDigit) {
 }
 
 TEST(ConvertFundamentals, BoolFromStringWithNegativeDigitShouldThrowException) {
-	EXPECT_THROW(Convert::To<bool>("-1"), std::out_of_range);
+	EXPECT_THROW(Convert::To<bool>("-1"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, BoolFromStringWithBigNumberShouldThrowException) {
@@ -37,8 +37,8 @@ TEST(ConvertFundamentals, BoolFromStringWithTrueFalse) {
 }
 
 TEST(ConvertFundamentals, BoolFromStringWithWrongTextShouldThrowException) {
-	EXPECT_THROW(Convert::To<bool>("test"), std::out_of_range);
-	EXPECT_THROW(Convert::To<bool>(",true"), std::out_of_range);
+	EXPECT_THROW(Convert::To<bool>("test"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>(",true"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, BoolToString) {
@@ -72,7 +72,6 @@ TEST(ConvertFundamentals, UInt8FromString) {
 }
 
 TEST(ConvertFundamentals, UInt8FromStringWithBigNumberShouldThrowException) {
-	EXPECT_THROW(Convert::To<uint8_t>("-1"), std::out_of_range);
 	EXPECT_THROW(Convert::To<uint8_t>("256"), std::out_of_range);
 }
 
@@ -107,7 +106,6 @@ TEST(ConvertFundamentals, UInt16FromString) {
 }
 
 TEST(ConvertFundamentals, UInt16FromStringWithBigNumberShouldThrowException) {
-	EXPECT_THROW(Convert::To<uint16_t>("-1"), std::out_of_range);
 	EXPECT_THROW(Convert::To<uint16_t>("65536"), std::out_of_range);
 }
 
@@ -166,10 +164,14 @@ TEST(ConvertFundamentals, Int64FromStringWithBigNumberShouldThrowException) {
 	EXPECT_THROW(Convert::To<int64_t>("9223372036854775808"), std::out_of_range);
 }
 
+TEST(ConvertFundamentals, Int64FromEmptyStringShouldThrowException) {
+	EXPECT_THROW(Convert::To<int64_t>(""), std::invalid_argument);
+}
+
 TEST(ConvertFundamentals, Int64FromStringWithWrongTextShouldThrowException) {
-	EXPECT_THROW(Convert::To<int64_t>("test"), std::out_of_range);
-	EXPECT_THROW(Convert::To<int64_t>(u"`150"), std::out_of_range);
-	EXPECT_THROW(Convert::To<int64_t>(U"x45.4"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int64_t>("test"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<int64_t>(u"`150"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<int64_t>(U"x45.4"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, Int64ToString) {
@@ -189,10 +191,14 @@ TEST(ConvertFundamentals, UInt64FromStringWithBigNumberShouldThrowException) {
 	EXPECT_THROW(Convert::To<uint64_t>("18446744073709551616"), std::out_of_range);
 }
 
+TEST(ConvertFundamentals, UInt64FromEmptyStringShouldThrowException) {
+	EXPECT_THROW(Convert::To<uint64_t>(""), std::invalid_argument);
+}
+
 TEST(ConvertFundamentals, UInt64FromStringWithWrongTextShouldThrowException) {
-	EXPECT_THROW(Convert::To<uint64_t>("test"), std::out_of_range);
-	EXPECT_THROW(Convert::To<uint64_t>(u"`150"), std::out_of_range);
-	EXPECT_THROW(Convert::To<uint64_t>(U"x45.4"), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint64_t>("test"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<uint64_t>(u"`150"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<uint64_t>(U"x45.4"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, UInt64ToString) {
@@ -208,10 +214,14 @@ TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(-123.123f, Convert::To<float>(U"  -123.123  "));
 }
 
+TEST(ConvertFundamentals, FloatFromEmptyStringShouldThrowException) {
+	EXPECT_THROW(Convert::To<float>(""), std::invalid_argument);
+}
+
 TEST(ConvertFundamentals, FloatFromStringWithWrongTextShouldThrowException) {
-	EXPECT_THROW(Convert::To<float>("test"), std::out_of_range);
-	EXPECT_THROW(Convert::To<float>(u"#150"), std::out_of_range);
-	EXPECT_THROW(Convert::To<float>(U"x45.4"), std::out_of_range);
+	EXPECT_THROW(Convert::To<float>("test"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<float>(u"#150"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<float>(U"x45.4"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, FloatToString) {
@@ -227,10 +237,14 @@ TEST(ConvertFundamentals, DoubleFromString) {
 	EXPECT_EQ(-1234567.1234567, Convert::To<double>(U"  -1234567.1234567  "));
 }
 
+TEST(ConvertFundamentals, DoubleFromEmptyStringShouldThrowException) {
+	EXPECT_THROW(Convert::To<double>(""), std::invalid_argument);
+}
+
 TEST(ConvertFundamentals, DoubleFromStringWithWrongTextShouldThrowException) {
-	EXPECT_THROW(Convert::To<double>("test"), std::out_of_range);
-	EXPECT_THROW(Convert::To<double>(u"#150"), std::out_of_range);
-	EXPECT_THROW(Convert::To<double>(U"x45.4"), std::out_of_range);
+	EXPECT_THROW(Convert::To<double>("test"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<double>(u"#150"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<double>(U"x45.4"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, DoubleToString) {
@@ -247,10 +261,14 @@ TEST(ConvertFundamentals, LongDoubleFromString) {
 	EXPECT_EQ(-3.14159265358979L, Convert::To<long double>(U"  -3.14159265358979  "));
 }
 
+TEST(ConvertFundamentals, LongDoubleFromEmptyStringShouldThrowException) {
+	EXPECT_THROW(Convert::To<long double>(""), std::invalid_argument);
+}
+
 TEST(ConvertFundamentals, LongDoubleFromStringWithWrongTextShouldThrowException) {
-	EXPECT_THROW(Convert::To<long double>("test"), std::out_of_range);
-	EXPECT_THROW(Convert::To<long double>(u"#150"), std::out_of_range);
-	EXPECT_THROW(Convert::To<long double>(U"x45.4"), std::out_of_range);
+	EXPECT_THROW(Convert::To<long double>("test"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<long double>(u"#150"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<long double>(U"x45.4"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, LongDoubleToString) {

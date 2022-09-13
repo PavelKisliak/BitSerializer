@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -41,8 +41,13 @@ TEST(ConvertApi, ShouldReturnTheSameValueWhenConvertToSameType) {
 }
 
 TEST(ConvertApi, ShouldThrowExceptionWhenBadArgument) {
-	EXPECT_THROW(Convert::To<bool>("-1"), std::out_of_range);
+	EXPECT_THROW(Convert::To<bool>("test"), std::invalid_argument);
 }
+
+TEST(ConvertApi, ShouldThrowExceptionWhenOverflow) {
+	EXPECT_THROW(Convert::To<bool>("5"), std::out_of_range);
+}
+
 
 //-----------------------------------------------------------------------------
 // Test TryTo<>()

@@ -44,7 +44,7 @@ public:
 		{
 			offset = str.find_first_not_of(' ', offset);
 			if (offset == std::string_view::npos) {
-				throw std::out_of_range("Bad argument");
+				throw std::invalid_argument("Bad argument");
 			}
 
 			const auto r = std::from_chars(str.data() + offset, str.data() + str.size(), *value);

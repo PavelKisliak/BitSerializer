@@ -25,7 +25,7 @@ using namespace BitSerializer;
 
 int main()
 {
-	// Conversion fundamental types (this function may throw "std::out_of_range" exception)
+	// Conversion fundamental types (this function may throw exception)
 	const auto u32Str = Convert::To<std::u32string>(3.14159f);
 	const auto f1 = Convert::To<float>(u32Str);
 	std::cout << "Conversion to float result: " << f1 << std::endl;
@@ -143,7 +143,7 @@ public:
 		{
 			offset = str.find_first_not_of(' ', offset);
 			if (offset == std::string_view::npos) {
-				throw std::out_of_range("Bad argument");
+				throw std::invalid_argument("Bad argument");
 			}
 
 			const auto r = std::from_chars(str.data() + offset, str.data() + str.size(), *value);
@@ -196,6 +196,7 @@ They all have the same API:
 - `void Decode(beginIt, endIt, outStr, errSym)`
 - `void Encode(beginIt, endIt, outStr, errSym)`
 
-There is also exists a function which will help to detect UTF encoding by BOM:
+There are also exists two functions for detect the UTF encoding:
 
 - `UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)`
+- `UtfType DetectEncoding(std::string_view inputString, size_t& out_dataOffset)`

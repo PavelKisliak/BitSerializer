@@ -183,3 +183,17 @@ TEST_F(CsvArchiveTests, ThrowExceptionWhenBadSyntaxInSource)
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x,y\n10"), BitSerializer::SerializationException);
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x\n10,20"), BitSerializer::SerializationException);
 }
+
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenNumberOverflow)
+{
+	TestClassWithSubType<uint16_t> sourceObj[1] = { TestClassWithSubType<uint16_t>(std::numeric_limits<uint8_t>::max() + 1) };
+	TestClassWithSubType<uint8_t, true> targetObj[1];
+	TestOverflowNumberPolicy<CsvArchive>(OverflowNumberPolicy::ThrowError, sourceObj, targetObj);
+}
+
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflow)
+{
+	TestClassWithSubType<uint16_t> sourceObj[1] = { TestClassWithSubType<uint16_t>(std::numeric_limits<uint8_t>::max() + 1) };
+	TestClassWithSubType<uint8_t, true> targetObj[1];
+	TestOverflowNumberPolicy<CsvArchive>(OverflowNumberPolicy::Skip, sourceObj, targetObj);
+}

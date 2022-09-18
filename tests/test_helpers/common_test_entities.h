@@ -167,7 +167,7 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-template <typename T>
+template <typename T, bool RequiredValidator = false>
 class TestClassWithSubType
 {
 public:
@@ -203,10 +203,15 @@ public:
 
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeAutoKeyValue("TestValue", mTestValue);
+		if constexpr (RequiredValidator == true) {
+			archive << BitSerializer::MakeAutoKeyValue("TestValue", mTestValue, BitSerializer::Required());
+		}
+		else {
+			archive << BitSerializer::MakeAutoKeyValue("TestValue", mTestValue);
+		}
 	}
 
-	const T& GetValue() const { return mTestValue; }
+	[[nodiscard]] const T& GetValue() const { return mTestValue; }
 
 private:
 	T mTestValue;

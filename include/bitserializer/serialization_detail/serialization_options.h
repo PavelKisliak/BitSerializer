@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -48,6 +48,18 @@ namespace BitSerializer
 	};
 
 	/// <summary>
+	/// Policy for case when size of target type is not enough for loading number.
+	/// For example, when loading number is 500 but target type is char.
+	/// </summary>
+	enum class OverflowNumberPolicy
+	{
+		// Value will be skipped, but can be handled by Required() validator.
+		Skip,
+		// Will be thrown exception `SerializationErrorCode::Overflow` when size of target type is not enough for loading value.
+		ThrowError
+	};
+
+	/// <summary>
 	/// Contains a set of serialization options.
 	/// Some options cannot be applicable to all types of archive, in that case it will be ignored.
 	/// </summary>
@@ -62,6 +74,11 @@ namespace BitSerializer
 		/// Contains a set of options for output stream.
 		/// </summary>
 		StreamOptions streamOptions;
-	};
 
-}	// namespace BitSerializer
+		/// <summary>
+		/// Policy for case when size of target type is not enough for loading number.
+		/// For example, when loading number is 500 but target type is char.
+		/// </summary>
+		OverflowNumberPolicy overflowNumberPolicy = OverflowNumberPolicy::ThrowError;
+	};
+}

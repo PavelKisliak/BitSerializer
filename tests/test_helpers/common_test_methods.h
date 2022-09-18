@@ -338,6 +338,31 @@ void TestValidationForNotCompatibleTypes()
 }
 
 /// <summary>
+/// Template for test overflow target value when deserialization.
+/// </summary>
+template <typename TArchive, class TSourceType, class TTargetType>
+void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumberPolicy, TSourceType& sourceObj, TTargetType& targetObj)
+{
+	// Arrange
+	BitSerializer::SerializationOptions options;
+	options.overflowNumberPolicy = overflowNumberPolicy;
+	typename TArchive::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
+
+	// Act / Assert
+	switch (overflowNumberPolicy)
+	{
+	case BitSerializer::OverflowNumberPolicy::ThrowError:
+		EXPECT_THROW(BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options), BitSerializer::SerializationException);
+		break;
+
+	case BitSerializer::OverflowNumberPolicy::Skip:
+		EXPECT_THROW(BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options), BitSerializer::ValidationException);
+		break;
+	}
+}
+
+/// <summary>
 /// Template for test iterating keys in the object scope.
 /// </summary>
 template <typename TArchive>
@@ -352,7 +377,7 @@ void TestIterateKeysInObjectScope()
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
-	BitSerializer::SerializationOptions options;
+	const BitSerializer::SerializationOptions options;
 	BitSerializer::SerializationContext context(options);
 	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 

@@ -343,10 +343,23 @@ public:
 		std::string strValue;
 		if (mCsvReader->ReadValue(key, strValue))
 		{
-			if (auto result = Convert::TryTo<T>(strValue); result.has_value())
+			try
 			{
-				value = result.value();
+				value = Convert::To<T>(strValue);
 				return true;
+			}
+			catch (const std::out_of_range&)
+			{
+				if (GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow,
+						std::string("The size of target field '") + key + "' is not sufficient to deserialize number " + strValue +
+						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+				}
+			}
+			catch (...)
+			{
+				// Ignore for now
 			}
 		}
 		return false;

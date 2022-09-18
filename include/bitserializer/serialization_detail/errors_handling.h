@@ -18,6 +18,7 @@ namespace BitSerializer
 		InputOutputError,
 		UnsupportedEncoding,
 		OutOfRange,
+		Overflow,
 		FailedValidation
 	};
 
@@ -27,6 +28,7 @@ namespace BitSerializer
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },
 		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" },
 		{ SerializationErrorCode::OutOfRange, "Out of range" },
+		{ SerializationErrorCode::Overflow, "Overflow" },
 		{ SerializationErrorCode::FailedValidation, "Failed validation" }
 	}
 	END_ENUM_MAP()

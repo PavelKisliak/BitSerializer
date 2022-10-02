@@ -184,16 +184,50 @@ TEST_F(CsvArchiveTests, ThrowExceptionWhenBadSyntaxInSource)
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x\n10,20"), BitSerializer::SerializationException);
 }
 
-TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenNumberOverflow)
-{
-	TestClassWithSubType<uint16_t> sourceObj[1] = { TestClassWithSubType<uint16_t>(std::numeric_limits<uint8_t>::max() + 1) };
-	TestClassWithSubType<uint8_t, true> targetObj[1];
-	TestOverflowNumberPolicy<CsvArchive>(OverflowNumberPolicy::ThrowError, sourceObj, targetObj);
+//-----------------------------------------------------------------------------
+
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<CsvArchive, int32_t, bool>(OverflowNumberPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowInt8) {
+	TestOverflowNumberPolicy<CsvArchive, int16_t, int8_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<CsvArchive, uint16_t, uint8_t>(OverflowNumberPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowInt16) {
+	TestOverflowNumberPolicy<CsvArchive, int32_t, int16_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<CsvArchive, uint32_t, uint16_t>(OverflowNumberPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowInt32) {
+	TestOverflowNumberPolicy<CsvArchive, int64_t, int32_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<CsvArchive, uint64_t, uint32_t>(OverflowNumberPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowFloat) {
+	TestOverflowNumberPolicy<CsvArchive, double, float>(OverflowNumberPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<CsvArchive, float, uint32_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<CsvArchive, double, uint32_t>(OverflowNumberPolicy::ThrowError);
 }
 
-TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflow)
-{
-	TestClassWithSubType<uint16_t> sourceObj[1] = { TestClassWithSubType<uint16_t>(std::numeric_limits<uint8_t>::max() + 1) };
-	TestClassWithSubType<uint8_t, true> targetObj[1];
-	TestOverflowNumberPolicy<CsvArchive>(OverflowNumberPolicy::Skip, sourceObj, targetObj);
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<CsvArchive, int32_t, bool>(OverflowNumberPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflowInt8) {
+	TestOverflowNumberPolicy<CsvArchive, int16_t, int8_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<CsvArchive, uint16_t, uint8_t>(OverflowNumberPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflowInt16) {
+	TestOverflowNumberPolicy<CsvArchive, int32_t, int16_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<CsvArchive, uint32_t, uint16_t>(OverflowNumberPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflowInt32) {
+	TestOverflowNumberPolicy<CsvArchive, int64_t, int32_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<CsvArchive, uint64_t, uint32_t>(OverflowNumberPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflowFloat) {
+	TestOverflowNumberPolicy<CsvArchive, double, float>(OverflowNumberPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<CsvArchive, float, uint32_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<CsvArchive, double, uint32_t>(OverflowNumberPolicy::Skip);
 }

@@ -174,6 +174,10 @@ TEST(ConvertFundamentals, Int64FromStringWithWrongTextShouldThrowException) {
 	EXPECT_THROW(Convert::To<int64_t>(U"x45.4"), std::invalid_argument);
 }
 
+TEST(ConvertFundamentals, Int64FromStringWithFloatShouldThrowException) {
+	EXPECT_THROW(Convert::To<int64_t>("-3.14"), std::out_of_range);
+}
+
 TEST(ConvertFundamentals, Int64ToString) {
 	EXPECT_EQ("0", Convert::ToString(0));
 	EXPECT_EQ(u"-9223372036854775808", Convert::To<std::u16string>(std::numeric_limits<int64_t>::min()));
@@ -199,6 +203,10 @@ TEST(ConvertFundamentals, UInt64FromStringWithWrongTextShouldThrowException) {
 	EXPECT_THROW(Convert::To<uint64_t>("test"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<uint64_t>(u"`150"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<uint64_t>(U"x45.4"), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, UInt64FromStringWithFloatShouldThrowException) {
+	EXPECT_THROW(Convert::To<uint64_t>("3.14"), std::out_of_range);
 }
 
 TEST(ConvertFundamentals, UInt64ToString) {

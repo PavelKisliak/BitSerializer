@@ -42,10 +42,16 @@ namespace BitSerializer::Convert::Detail
 			if (result.ec == std::errc::result_out_of_range) {
 				throw std::out_of_range("Argument out of range");
 			}
-			else if (result.ec == std::errc::invalid_argument) {
+			if (result.ec == std::errc::invalid_argument) {
 				throw std::invalid_argument("Input string is not a number");
 			}
 			throw std::runtime_error("Unknown error");
+		}
+
+		// Check that next character is not decimal point (converting float to integer is not allowed)
+		if (result.ptr != static_cast<const void*>(end) && *result.ptr == '.')
+		{
+			throw std::out_of_range("Argument out of range");
 		}
 	}
 

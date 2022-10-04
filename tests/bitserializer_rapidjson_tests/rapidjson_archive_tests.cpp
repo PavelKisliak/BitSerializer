@@ -30,14 +30,30 @@ TEST(RapidJsonArchive, SerializeInteger)
 
 TEST(RapidJsonArchive, SerializeFloat)
 {
-	TestSerializeType<JsonArchive, float>(std::numeric_limits<float>::min());
-	TestSerializeType<JsonArchive, float>(std::numeric_limits<float>::max());
+	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
+	TestSerializeType<JsonArchive, float>(0.f);
+	TestSerializeType<JsonArchive, float>(3.141592654f);
+	TestSerializeType<JsonArchive, float>(-3.141592654f);
 }
 
 TEST(RapidJsonArchive, SerializeDouble)
 {
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::min());
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
+}
+
+TEST(RapidJsonArchive, ShouldAllowToLoadBooleanFromInteger)
+{
+	bool actual = false;
+	BitSerializer::LoadObject<JsonArchive>(actual, "1");
+	EXPECT_EQ(true, actual);
+}
+
+TEST(RapidJsonArchive, ShouldAllowToLoadFloatFromInteger)
+{
+	float actual = 0;
+	BitSerializer::LoadObject<JsonArchive>(actual, "100");
+	EXPECT_EQ(100, actual);
 }
 
 TEST(RapidJsonArchive, SerializeNullptr)
@@ -82,7 +98,12 @@ TEST(RapidJsonArchive, SerializeArrayOfIntegers)
 
 TEST(RapidJsonArchive, SerializeArrayOfFloats)
 {
-	TestSerializeArray<JsonArchive, float>();
+	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
+	TestSerializeVector<JsonArchive, float>({ -3.141592654f, 0.0f, -3.141592654f });
+}
+
+TEST(RapidJsonArchive, SerializeArrayOfDoubles)
+{
 	TestSerializeArray<JsonArchive, double>();
 }
 
@@ -130,7 +151,8 @@ TEST(RapidJsonArchive, SerializeClassWithMemberInteger)
 
 TEST(RapidJsonArchive, SerializeClassWithMemberFloat)
 {
-	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
+	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
+	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(-3.141592654f, 0.0f, -3.141592654f));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
@@ -337,5 +359,52 @@ TEST(RapidJsonArchive, ThrowExceptionWhenBadSyntaxInSource)
 	int testInt = 0;
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
+
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenOverflowInt8) {
+	TestOverflowNumberPolicy<JsonArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenOverflowInt16) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenOverflowInt32) {
+	TestOverflowNumberPolicy<JsonArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenOverflowFloat) {
+	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<JsonArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenNumberOverflowInt8) {
+	TestOverflowNumberPolicy<JsonArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenNumberOverflowInt16) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenNumberOverflowInt32) {
+	TestOverflowNumberPolicy<JsonArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenNumberOverflowFloat) {
+	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<JsonArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+
 
 #pragma warning(pop)

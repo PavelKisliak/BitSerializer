@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <optional>
 #include "common_test_entities.h"
+#include "bitserializer/types/std/vector.h"
 
 
 /// <summary>
@@ -45,6 +46,30 @@ void TestSerializeArray()
 
 	// Assert
 	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++)
+	{
+		GTestExpectEq(testArray[i], actual[i]);
+	}
+}
+
+/// <summary>
+/// Test template of serialization for vector.
+/// </summary>
+template<typename TArchive, typename TValue>
+void TestSerializeVector(std::initializer_list<TValue> testValues)
+{
+	// Arrange
+	std::vector<TValue> testArray = { std::move(testValues) };
+	BuildFixture(testArray);
+	typename TArchive::preferred_output_format outputArchive;
+	std::vector<TValue> actual;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	ASSERT_EQ(testArray.size(), actual.size());
+	for (size_t i = 0; i < testArray.size(); i++)
 	{
 		GTestExpectEq(testArray[i], actual[i]);
 	}
@@ -341,9 +366,42 @@ void TestValidationForNotCompatibleTypes()
 /// Template for test overflow target value when deserialization.
 /// </summary>
 template <typename TArchive, class TSourceType, class TTargetType>
-void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumberPolicy, TSourceType& sourceObj, TTargetType& targetObj)
+void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumberPolicy)
 {
 	// Arrange
+	static_assert(std::is_arithmetic_v<TSourceType> && std::is_arithmetic_v<TTargetType>);
+	static_assert(sizeof (TSourceType) >= sizeof (TTargetType));
+
+	TSourceType testValue;
+	if constexpr (std::is_floating_point_v<TTargetType>)
+	{
+		if constexpr (std::is_floating_point_v<TTargetType>) {
+			testValue = TSourceType(std::numeric_limits<TTargetType>::max()) * 1.00001;
+		}
+		else {
+			testValue = std::numeric_limits<TSourceType>::min();
+		}
+	}
+	else
+	{
+		if constexpr (std::is_floating_point_v<TSourceType>)
+		{
+			// Test cast from floating point number to integer
+			testValue = TSourceType(3.141592654f);
+		}
+		else
+		{
+			if constexpr (std::is_signed_v<TTargetType>) {
+				testValue = TSourceType(std::numeric_limits<TTargetType>::min()) - 1;
+			}
+			else {
+				testValue = TSourceType(std::numeric_limits<TTargetType>::max()) + 1;
+			}
+		}
+	}
+	TestClassWithSubType<TSourceType> sourceObj[1] = { TestClassWithSubType<TSourceType>(testValue) };
+	TestClassWithSubType<TTargetType, true> targetObj[1];
+
 	BitSerializer::SerializationOptions options;
 	options.overflowNumberPolicy = overflowNumberPolicy;
 	typename TArchive::preferred_output_format outputArchive;

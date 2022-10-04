@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <tuple>
+#include <limits>
 #include "serialization_context.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 
@@ -60,11 +61,12 @@ public:
 	TArchiveScope(const TArchiveScope&) = delete;
 	TArchiveScope& operator=(const TArchiveScope&) = delete;
 
-	static constexpr SerializeMode GetMode() noexcept			{ return TMode; }
-	static constexpr bool IsSaving() noexcept					{ return TMode == SerializeMode::Save; }
-	static constexpr bool IsLoading() noexcept					{ return TMode == SerializeMode::Load; }
-	SerializationContext& GetContext() const noexcept			{ return mSerializationContext; }
-	const SerializationOptions& GetOptions() const noexcept		{ return mSerializationContext.GetOptions(); }
+	static constexpr SerializeMode GetMode() noexcept	{ return TMode; }
+	static constexpr bool IsSaving() noexcept			{ return TMode == SerializeMode::Save; }
+	static constexpr bool IsLoading() noexcept			{ return TMode == SerializeMode::Load; }
+
+	[[nodiscard]] SerializationContext& GetContext() const noexcept			{ return mSerializationContext; }
+	[[nodiscard]] const SerializationOptions& GetOptions() const noexcept	{ return mSerializationContext.GetOptions(); }
 
 protected:
 	~TArchiveScope() = default;
@@ -85,4 +87,53 @@ public:
 	using output_archive_type = TOutputArchive;
 };
 
-} // namespace BitSerializer
+
+namespace Detail
+{
+	/// <summary>
+	/// Casts numbers according to policy.
+	/// </summary>
+	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource> && std::is_arithmetic_v<TTarget>, int> = 0>
+	bool SafeNumberCast(TSource sourceValue, TTarget& targetValue, OverflowNumberPolicy overflowNumberPolicy)
+	{
+		bool result = true;
+		if constexpr (std::is_same_v<TSource, TTarget>)
+		{
+			targetValue = sourceValue;
+		}
+		else if constexpr (std::is_floating_point_v<TSource>)
+		{
+			if constexpr (std::is_floating_point_v<TTarget>)
+			{
+				if (result = sizeof(TTarget) > sizeof(TSource)
+					|| (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()); result)
+				{
+					targetValue = static_cast<TTarget>(sourceValue);
+				}
+			}
+			else {
+				// The number with floating point cannot be converted to an integer without lost precision
+				result = false;
+			}
+		}
+		else
+		{
+			TTarget value = static_cast<TTarget>(sourceValue);
+			if (result = static_cast<TSource>(value) == sourceValue; result) {
+				targetValue = value;
+			}
+		}
+		  
+		if (!result)
+		{
+			if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::Overflow,
+					std::string("The size of target field is not sufficient to deserialize number " + Convert::ToString(sourceValue)));
+			}
+		}
+		return result;
+	}
+}
+
+}

@@ -171,6 +171,8 @@ template <typename T, bool RequiredValidator = false>
 class TestClassWithSubType
 {
 public:
+	using value_type = T;
+
 	TestClassWithSubType()
 	{
 		::BuildFixture(mTestValue);

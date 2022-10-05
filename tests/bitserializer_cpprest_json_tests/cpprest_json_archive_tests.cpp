@@ -33,6 +33,20 @@ TEST(JsonRestCpp, SerializeDouble) {
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
 }
 
+TEST(JsonRestCpp, ShouldAllowToLoadBooleanFromInteger)
+{
+	bool actual = false;
+	BitSerializer::LoadObject<JsonArchive>(actual, "1");
+	EXPECT_EQ(true, actual);
+}
+
+TEST(JsonRestCpp, ShouldAllowToLoadFloatFromInteger)
+{
+	float actual = 0;
+	BitSerializer::LoadObject<JsonArchive>(actual, "100");
+	EXPECT_EQ(100, actual);
+}
+
 TEST(JsonRestCpp, SerializeNullptr)
 {
 	TestSerializeType<JsonArchive, std::nullptr_t>(nullptr);
@@ -231,4 +245,50 @@ TEST(JsonRestCpp, SerializeToFile) {
 TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt = 0;
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
+}
+
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowInt8) {
+	TestOverflowNumberPolicy<JsonArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowInt16) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowInt32) {
+	TestOverflowNumberPolicy<JsonArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowFloat) {
+	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<JsonArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<JsonArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+
+TEST(JsonRestCpp, ThrowValidationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenNumberOverflowInt8) {
+	TestOverflowNumberPolicy<JsonArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenNumberOverflowInt16) {
+	TestOverflowNumberPolicy<JsonArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenNumberOverflowInt32) {
+	TestOverflowNumberPolicy<JsonArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenNumberOverflowFloat) {
+	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<JsonArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<JsonArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
 }

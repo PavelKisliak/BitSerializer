@@ -80,33 +80,28 @@ protected:
 	JsonScopeBase& operator=(JsonScopeBase&&) = default;
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value)
+	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value, OverflowNumberPolicy overflowNumberPolicy)
 	{
+		using BitSerializer::Detail::SafeNumberCast;
 		if constexpr (std::is_integral_v<T>)
 		{
 			if (jsonValue.is_number())
 			{
-				if constexpr (std::is_same_v<T, int64_t>) {
-					value = jsonValue.as_number().to_int64();
+				if (jsonValue.is_integer())
+				{
+					return SafeNumberCast(jsonValue.as_number().is_uint64()
+						? jsonValue.as_number().to_uint64() : jsonValue.as_number().to_int64(), value, overflowNumberPolicy);
 				}
-				else if constexpr (std::is_same_v<T, uint64_t>) {
-					value = jsonValue.as_number().to_uint64();
-				}
-				else {
-					value = static_cast<T>(jsonValue.as_integer());
-				}
-				return true;
+				return SafeNumberCast(jsonValue.as_double(), value, overflowNumberPolicy);
 			}
 			if (jsonValue.is_boolean()) {
-				value = jsonValue.as_bool();
-				return true;
+				return SafeNumberCast(jsonValue.as_bool(), value, overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (jsonValue.is_number()) {
-				value = static_cast<T>(jsonValue.as_double());
-				return true;
+				return SafeNumberCast(jsonValue.as_double(), value, overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_null_pointer_v<T>) {
@@ -181,7 +176,7 @@ public:
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			return LoadFundamentalValue(LoadNextItem(), value);
+			return LoadFundamentalValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
 		}
 		else
 		{
@@ -217,14 +212,14 @@ public:
 		{
 			auto& jsonValue = LoadNextItem();
 			if (jsonValue.is_object()) {
-				return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
+				return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this->GetContext(), this);
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::object());
-			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
+			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this->GetContext(), this);
 		}
 	}
 
@@ -234,14 +229,14 @@ public:
 		{
 			auto& jsonValue = LoadNextItem();
 			if (jsonValue.is_array()) {
-				return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
+				return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this->GetContext(), this);
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(web::json::value::array(arraySize));
-			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this);
+			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this->GetContext(), this);
 		}
 	}
 
@@ -328,7 +323,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
-			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value);
+			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value, this->GetOptions().overflowNumberPolicy);
 		}
 		else
 		{
@@ -368,14 +363,14 @@ public:
 			if (jsonValue != nullptr && jsonValue->is_object())
 			{
 				decltype(auto) node = const_cast<web::json::value*>(jsonValue);
-				return std::make_optional<JsonObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext(), this, key);
+				return std::make_optional<JsonObjectScope<TMode>>(node, this->GetContext(), this, key);
 			}
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::object());
-			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this, key);
+			return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this->GetContext(), this, key);
 		}
 	}
 
@@ -385,13 +380,13 @@ public:
 		{
 			auto* jsonValue = LoadJsonValue(key);
 			if (jsonValue != nullptr && jsonValue->is_array())
-				return std::make_optional<JsonArrayScope<TMode>>(jsonValue, TArchiveScope<TMode>::GetContext(), this, key);
+				return std::make_optional<JsonArrayScope<TMode>>(jsonValue, this->GetContext(), this, key);
 			return std::nullopt;
 		}
 		else
 		{
 			auto& jsonValue = SaveJsonValue(key, web::json::value::array(arraySize));
-			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, TArchiveScope<TMode>::GetContext(), this, key);
+			return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this->GetContext(), this, key);
 		}
 	}
 
@@ -471,32 +466,18 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	bool SerializeValue(bool& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (mRootJson.is_boolean()) {
-				value = mRootJson.as_bool();
-				return true;
-			}
-			return false;
-		}
-		else
-		{
-			mRootJson = web::json::value::boolean(value);
-			return true;
-		}
-	}
-
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return LoadFundamentalValue(mRootJson, value);
+			return LoadFundamentalValue(mRootJson, value, this->GetOptions().overflowNumberPolicy);
 		}
 		else
 		{
-			if constexpr (std::is_arithmetic_v<T>) {
+			if constexpr (std::is_same_v<T, bool>) {
+				mRootJson = web::json::value::boolean(value);
+			}
+			else if constexpr (std::is_arithmetic_v<T>) {
 				mRootJson = web::json::value::number(value);
 			}
 			else {
@@ -525,24 +506,24 @@ public:
 	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson, this->GetContext()) : std::nullopt;
 		}
 		else
 		{
 			mRootJson = web::json::value::object();
-			return std::make_optional<JsonObjectScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext());
+			return std::make_optional<JsonObjectScope<TMode>>(&mRootJson, this->GetContext());
 		}
 	}
 
 	std::optional<JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return mRootJson.is_array() ? std::make_optional<JsonArrayScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			return mRootJson.is_array() ? std::make_optional<JsonArrayScope<TMode>>(&mRootJson, this->GetContext()) : std::nullopt;
 		}
 		else
 		{
 			mRootJson = web::json::value::array(arraySize);
-			return std::make_optional<JsonArrayScope<TMode>>(&mRootJson, TArchiveScope<TMode>::GetContext());
+			return std::make_optional<JsonArrayScope<TMode>>(&mRootJson, this->GetContext());
 		}
 	}
 
@@ -554,8 +535,7 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				auto& options = TArchiveScope<TMode>::GetOptions();
-				assert(!options.formatOptions.enableFormat && "CppRestJson does not support formatting");
+				assert(!this->GetOptions().formatOptions.enableFormat && "CppRestJson does not support formatting");
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
 					if constexpr (std::is_same_v<std::remove_pointer_t<T>, decltype(mRootJson.serialize())>) {
@@ -568,7 +548,7 @@ public:
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
-					if (options.streamOptions.writeBom) {
+					if (this->GetOptions().streamOptions.writeBom) {
 						arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
 					}
 					mRootJson.serialize(*arg);

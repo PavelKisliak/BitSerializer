@@ -411,11 +411,28 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 	switch (overflowNumberPolicy)
 	{
 	case BitSerializer::OverflowNumberPolicy::ThrowError:
-		EXPECT_THROW(BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options), BitSerializer::SerializationException);
+		try
+		{
+			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+			EXPECT_TRUE(false);
+		}
+		catch (const BitSerializer::SerializationException& ex)
+		{
+			EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
+		}
 		break;
 
 	case BitSerializer::OverflowNumberPolicy::Skip:
-		EXPECT_THROW(BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options), BitSerializer::ValidationException);
+		try
+		{
+			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+			EXPECT_TRUE(false);
+		}
+		catch (const BitSerializer::ValidationException& ex)
+		{
+			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
+			EXPECT_EQ(1, ex.GetValidationErrors().size());
+		}
 		break;
 	}
 }

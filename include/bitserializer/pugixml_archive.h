@@ -75,23 +75,34 @@ namespace PugiXmlExtensions
 	}
 
 	template <typename T>
-	bool LoadValue(const pugi::xml_node& node, T& value)
+	bool LoadValue(const pugi::xml_node& node, T& value, OverflowNumberPolicy overflowNumberPolicy)
 	{
-		auto result = Convert::TryTo<T>(node.text().as_string());
-		if (result)
+		try
 		{
-			value = result.value();
+			value = Convert::To<T>(node.text().as_string());
 			return true;
+		}
+		catch (const std::out_of_range&)
+		{
+			if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::Overflow,
+					std::string("The size of target field is not sufficient to deserialize number ") + node.text().as_string());
+			}
+		}
+		catch (...)
+		{
+			// Ignore for now
 		}
 		return false;
 	}
 
-	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&) {
+	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&, OverflowNumberPolicy overflowNumberPolicy) {
 		return node.empty();
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value, OverflowNumberPolicy overflowNumberPolicy)
 	{
 		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			value = node.text().as_string();
@@ -178,7 +189,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return PugiXmlExtensions::LoadValue(LoadNextItem(), value);
+			return PugiXmlExtensions::LoadValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
 		}
 		else
 		{
@@ -454,7 +465,7 @@ public:
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			if (child.empty())
 				return false;
-			return PugiXmlExtensions::LoadValue(child, value);
+			return PugiXmlExtensions::LoadValue(child, value, this->GetOptions().overflowNumberPolicy);
 		}
 		else
 		{

@@ -109,6 +109,20 @@ TEST(PugiXmlArchive, ShouldIterateKeysInObjectScope) {
 	TestIterateKeysInObjectScope<XmlArchive>();
 }
 
+TEST(PugiXmlArchive, ShouldAllowToLoadBooleanFromInteger)
+{
+	TestClassWithSubType<bool> actual(false);
+	BitSerializer::LoadObject<XmlArchive>(actual, "<root><TestValue>1</TestValue></root>");
+	EXPECT_EQ(true, actual.GetValue());
+}
+
+TEST(PugiXmlArchive, ShouldAllowToLoadFloatFromInteger)
+{
+	TestClassWithSubType<float> actual(0);
+	BitSerializer::LoadObject<XmlArchive>(actual, "<root><TestValue>100</TestValue></root>");
+	EXPECT_EQ(100, actual.GetValue());
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for attributes
 //-----------------------------------------------------------------------------
@@ -263,4 +277,50 @@ TEST(PugiXmlArchive, SerializeToFile) {
 TEST(PugiXmlArchive, ThrowExceptionWhenBadSyntaxInSource) {
 	auto fixture = BuildFixture<TestClassWithSubTypes<std::string>>();
 	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, PUGIXML_TEXT("<root>Hello")), BitSerializer::SerializationException);
+}
+
+TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<XmlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowInt8) {
+	TestOverflowNumberPolicy<XmlArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<XmlArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowInt16) {
+	TestOverflowNumberPolicy<XmlArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<XmlArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowInt32) {
+	TestOverflowNumberPolicy<XmlArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<XmlArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowFloat) {
+	TestOverflowNumberPolicy<XmlArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<XmlArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<XmlArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<XmlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenNumberOverflowInt8) {
+	TestOverflowNumberPolicy<XmlArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<XmlArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenNumberOverflowInt16) {
+	TestOverflowNumberPolicy<XmlArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<XmlArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenNumberOverflowInt32) {
+	TestOverflowNumberPolicy<XmlArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<XmlArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenNumberOverflowFloat) {
+	TestOverflowNumberPolicy<XmlArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<XmlArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<XmlArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
 }

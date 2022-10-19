@@ -90,9 +90,15 @@ TEST(RapidJsonArchive, SerializeArrayOfBooleans)
 	TestSerializeArray<JsonArchive, bool>();
 }
 
+TEST(RapidJsonArchive, SerializeArrayOfChars)
+{
+	TestSerializeArray<JsonArchive, char>();
+	TestSerializeArray<JsonArchive, unsigned char>();
+}
+
 TEST(RapidJsonArchive, SerializeArrayOfIntegers)
 {
-	TestSerializeArray<JsonArchive, int8_t>();
+	TestSerializeArray<JsonArchive, uint16_t>();
 	TestSerializeArray<JsonArchive, int64_t>();
 }
 

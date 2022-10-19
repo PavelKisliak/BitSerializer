@@ -17,9 +17,15 @@ TEST(RapidYamlArchive, SerializeArrayOfBooleans)
 	TestSerializeArray<YamlArchive, bool>();
 }
 
+TEST(RapidYamlArchive, SerializeArrayOfChars)
+{
+	TestSerializeArray<YamlArchive, char>();
+	TestSerializeArray<YamlArchive, unsigned char>();
+}
+
 TEST(RapidYamlArchive, SerializeArrayOfIntegers)
 {
-	TestSerializeArray<YamlArchive, int8_t>();
+	TestSerializeArray<YamlArchive, uint16_t>();
 	TestSerializeArray<YamlArchive, int64_t>();
 }
 

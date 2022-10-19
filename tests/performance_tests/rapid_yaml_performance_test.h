@@ -71,7 +71,7 @@ public:
 			auto yamlObj = objectsYamlArray.append_child();
 			yamlObj |= ryml::MAP;
 			yamlObj.append_child() << ryml::key("TestBoolValue") << obj.mTestBoolValue;
-			yamlObj.append_child() << ryml::key("TestCharValue") << static_cast<uint8_t>(obj.mTestCharValue);
+			yamlObj.append_child() << ryml::key("TestCharValue") << static_cast<int16_t>(obj.mTestCharValue);
 			yamlObj.append_child() << ryml::key("TestInt16Value") << obj.mTestInt16Value;
 			yamlObj.append_child() << ryml::key("TestInt32Value") << obj.mTestInt32Value;
 			yamlObj.append_child() << ryml::key("TestInt64Value") << obj.mTestInt64Value;
@@ -116,13 +116,16 @@ public:
 		}
 
 		// Load array of objects
+		int16_t temp;
 		const auto& objectsYamlArray = root["ArrayOfObjects"];
 		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i)
 		{
 			auto& obj = mNativeLibModel.mArrayOfObjects[i];
 			auto yamlVal = objectsYamlArray[i];
 			yamlVal["TestBoolValue"] >> obj.mTestBoolValue;
-			yamlVal["TestCharValue"] >> reinterpret_cast<uint8_t&>(obj.mTestCharValue);
+			yamlVal["TestCharValue"] >> temp;
+			obj.mTestCharValue = static_cast<char>(temp);
+			yamlVal["TestCharValue"] >> reinterpret_cast<int16_t&>(obj.mTestCharValue);
 			yamlVal["TestInt16Value"] >> obj.mTestInt16Value;
 			yamlVal["TestInt32Value"] >> obj.mTestInt32Value;
 			yamlVal["TestInt64Value"] >> obj.mTestInt64Value;

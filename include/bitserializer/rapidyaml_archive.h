@@ -94,7 +94,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 					try
 					{
 						if constexpr (std::is_same_v<T, char>)
-							yamlValue >> reinterpret_cast<uint8_t&>(value);
+						{
+							int16_t t;
+							yamlValue >> t;
+							value = static_cast<T>(t);
+						}
 						else
 							yamlValue >> value;
 					}
@@ -127,12 +131,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (std::is_null_pointer_v<T>) {
 					yamlValue << nullValue;
-				} else if constexpr (std::is_floating_point_v<T>)
+				} else if constexpr (std::is_floating_point_v<T>) {
 					yamlValue << c4::fmt::real(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-				else if constexpr (std::is_same_v<T, char>)
-					yamlValue << static_cast<uint8_t>(value);
-				else
+				} else if constexpr (std::is_same_v<T, char>) {
+					// Need to extend size of type for prevent save as character
+					yamlValue << static_cast<int16_t>(value);
+				} else {
 					yamlValue << value;
+				}
 			}
 
 			template <typename TSym, typename TAllocator>
@@ -149,7 +155,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt)) ||
 					std::equal(str.begin(), str.end(), std::cbegin(nullValue), std::cend(nullValue),
 						[](const char lhs, const char rhs) {
-							return std::tolower(static_cast<int>(lhs)) == std::tolower(static_cast<int>(rhs));
+							return std::tolower(lhs) == std::tolower(rhs);
 				});
 			}
 

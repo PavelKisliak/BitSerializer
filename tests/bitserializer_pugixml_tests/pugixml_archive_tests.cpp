@@ -19,8 +19,15 @@ TEST(PugiXmlArchive, SerializeArrayOfBooleans) {
 	TestSerializeArray<XmlArchive, bool>();
 }
 
-TEST(PugiXmlArchive, SerializeArrayOfIntegers) {
-	TestSerializeArray<XmlArchive, int8_t>();
+TEST(PugiXmlArchive, SerializeArrayOfChars)
+{
+	TestSerializeArray<XmlArchive, char>();
+	TestSerializeArray<XmlArchive, unsigned char>();
+}
+
+TEST(PugiXmlArchive, SerializeArrayOfIntegers)
+{
+	TestSerializeArray<XmlArchive, uint16_t>();
 	TestSerializeArray<XmlArchive, int64_t>();
 }
 

@@ -77,8 +77,15 @@ TEST(JsonRestCpp, SerializeArrayOfBooleans) {
 	TestSerializeArray<JsonArchive, bool>();
 }
 
-TEST(JsonRestCpp, SerializeArrayOfIntegers) {
-	TestSerializeArray<JsonArchive, int8_t>();
+TEST(JsonRestCpp, SerializeArrayOfChars)
+{
+	TestSerializeArray<JsonArchive, char>();
+	TestSerializeArray<JsonArchive, unsigned char>();
+}
+
+TEST(JsonRestCpp, SerializeArrayOfIntegers)
+{
+	TestSerializeArray<JsonArchive, uint16_t>();
 	TestSerializeArray<JsonArchive, int64_t>();
 }
 

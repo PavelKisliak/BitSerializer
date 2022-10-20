@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2020 by Artsiom Marozau                                        *
+* Copyright (C) 2020-2022 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "test_helpers/common_test_methods.h"
@@ -128,6 +128,20 @@ TEST(RapidYamlArchive, ShouldIterateKeysInObjectScope)
 	TestIterateKeysInObjectScope<YamlArchive>();
 }
 
+TEST(RapidYamlArchive, ShouldAllowToLoadBooleanFromInteger)
+{
+	TestClassWithSubType<bool> actual(false);
+	BitSerializer::LoadObject<YamlArchive>(actual, "TestValue: 1");
+	EXPECT_EQ(true, actual.GetValue());
+}
+
+TEST(RapidYamlArchive, ShouldAllowToLoadFloatFromInteger)
+{
+	TestClassWithSubType<float> actual(0);
+	BitSerializer::LoadObject<YamlArchive>(actual, "TestValue: 100");
+	EXPECT_EQ(100, actual.GetValue());
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------
@@ -212,4 +226,50 @@ TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 {
 	int testInt[2];
 	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "- 10\n20"), BitSerializer::SerializationException);
+}
+
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<YamlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowInt8) {
+	TestOverflowNumberPolicy<YamlArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<YamlArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowInt16) {
+	TestOverflowNumberPolicy<YamlArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<YamlArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowInt32) {
+	TestOverflowNumberPolicy<YamlArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<YamlArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowFloat) {
+	TestOverflowNumberPolicy<YamlArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<YamlArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<YamlArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::ThrowError);
+}
+
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<YamlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenNumberOverflowInt8) {
+	TestOverflowNumberPolicy<YamlArchive, int16_t, int8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<YamlArchive, uint16_t, uint8_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenNumberOverflowInt16) {
+	TestOverflowNumberPolicy<YamlArchive, int32_t, int16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<YamlArchive, uint32_t, uint16_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenNumberOverflowInt32) {
+	TestOverflowNumberPolicy<YamlArchive, int64_t, int32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<YamlArchive, uint64_t, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenNumberOverflowFloat) {
+	TestOverflowNumberPolicy<YamlArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<YamlArchive, float, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<YamlArchive, double, uint32_t>(BitSerializer::OverflowNumberPolicy::Skip);
 }

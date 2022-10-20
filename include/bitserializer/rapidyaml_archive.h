@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2021 by Artsiom Marozau                                        *
+* Copyright (C) 2020-2022 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -79,7 +79,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
 
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			bool LoadValue(const RapidYamlNode& yamlValue, T& value)
+			bool LoadValue(const RapidYamlNode& yamlValue, T& value, OverflowNumberPolicy overflowNumberPolicy)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -91,37 +91,40 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else {
 					if (isNullValue)
 						return false;
+
+					const auto str = std::string_view(yamlValue.val().data(), yamlValue.val().size());
 					try
 					{
-						if constexpr (std::is_same_v<T, char>)
-						{
-							int16_t t;
-							yamlValue >> t;
-							value = static_cast<T>(t);
-						}
-						else
-							yamlValue >> value;
+						value = Convert::To<T>(str);
+						return true;
 					}
-					catch (...) {
-						return false;
+					catch (const std::out_of_range&)
+					{
+						if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+						{
+							throw SerializationException(SerializationErrorCode::Overflow,
+								std::string("The size of target field is not sufficient to deserialize number ").append(str));
+						}
+					}
+					catch (...)
+					{
+						// Ignore for now
 					}
 				}
-				return true;
+				return false;
 			}
 
 			template <typename TSym, typename TAllocator>
-			static bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+			static bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, OverflowNumberPolicy overflowNumberPolicy)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
 
+				const auto str = yamlValue.val();
 				if constexpr (std::is_same_v<TSym, std::string::value_type>)
-					yamlValue >> value;
-				else
-				{
-					std::string tmp;
-					yamlValue >> tmp;
-					value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::move(tmp));
+					value.assign(str.data(), str.size());
+				else {
+					value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::string_view(str.data(), str.size()));
 				}
 				return true;
 			}
@@ -219,7 +222,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					if (mIndex < GetEstimatedSize()) {
-						return LoadValue(LoadNextItem(), value);
+						return LoadValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
 					}
 				}
 				else
@@ -372,7 +375,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
-					return yamlValue.valid() ? LoadValue(yamlValue, value) : false;
+					return yamlValue.valid() ? LoadValue(yamlValue, value, this->GetOptions().overflowNumberPolicy) : false;
 				}
 				else
 				{

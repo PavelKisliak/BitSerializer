@@ -17,38 +17,38 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     },
@@ -69,38 +69,38 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     },
@@ -121,38 +121,38 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "True",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "True",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "True",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "True",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "True",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -173,38 +173,38 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     },
@@ -229,38 +229,38 @@
       "variables": [
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     },
@@ -285,38 +285,38 @@
       "variables": [
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     },
@@ -341,38 +341,38 @@
       "variables": [
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     },
@@ -397,38 +397,38 @@
       "variables": [
         {
           "name": "BUILD_TESTS",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "ON",
-          "type": "STRING"
+          "value": "TRUE",
+          "type": "BOOL"
         }
       ]
     }

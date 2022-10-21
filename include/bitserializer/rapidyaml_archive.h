@@ -567,11 +567,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			~RapidYamlRootScope()
-			{
-				ryml::set_callbacks(mPrevCallbacks);
-			}
-
 		private:
 			RapidYamlRootScope(RapidYamlRootScope&&) = default;
 			RapidYamlRootScope& operator=(RapidYamlRootScope&&) = default;
@@ -579,27 +574,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 			void Init()
 			{
 				mRootNode = mTree.rootref();
-				// ToDo: isn't thread safe (check in new versions of RapidYAML)
-				mPrevCallbacks = c4::yml::get_callbacks();
-				c4::set_error_flags(c4::ON_ERROR_CALLBACK);
-
-				// Keep compatibility with old RYML (pre-release versions)
-				using old_error_callback = void (*)(const char* msg, size_t msg_len, void* user_data);
-				if constexpr (std::is_constructible_v<ryml::Callbacks, void*, ryml::pfn_allocate, ryml::pfn_free, old_error_callback>)
+				// Set RapidYaml error handler
+				if (c4::yml::get_callbacks().m_error != &RapidYamlRootScope::ErrorCallback)
 				{
-					const ryml::Callbacks cb(this, nullptr, nullptr, &RapidYamlRootScope::OldErrorCallback);
-					ryml::set_callbacks(cb);
+					ryml::set_callbacks(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+					c4::set_error_flags(c4::ON_ERROR_CALLBACK);
 				}
-				else
-				{
-					const ryml::Callbacks cb(this, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback);
-					ryml::set_callbacks(cb);
-				}
-			}
-
-			static void OldErrorCallback(const char* msg, size_t length, [[maybe_unused]]void* user_data)
-			{
-				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg+length });
 			}
 
 			static void ErrorCallback(const char* msg, size_t length, ryml::Location location, [[maybe_unused]] void* user_data)
@@ -610,7 +590,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			ryml::Tree mTree;
 			RapidYamlNode mRootNode;
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
-			ryml::Callbacks mPrevCallbacks;
 		};
 	}
 

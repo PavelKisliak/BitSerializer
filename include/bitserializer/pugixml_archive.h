@@ -75,7 +75,7 @@ namespace PugiXmlExtensions
 	}
 
 	template <typename T>
-	bool LoadValue(const pugi::xml_node& node, T& value, OverflowNumberPolicy overflowNumberPolicy)
+	bool LoadValue(const pugi::xml_node& node, T& value, const SerializationOptions& serializationOptions)
 	{
 		try
 		{
@@ -84,25 +84,29 @@ namespace PugiXmlExtensions
 		}
 		catch (const std::out_of_range&)
 		{
-			if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 			{
 				throw SerializationException(SerializationErrorCode::Overflow,
-					std::string("The size of target field is not sufficient to deserialize number ") + node.text().as_string());
+					std::string("The size of target field is not sufficient to deserialize number: ") + node.text().as_string());
 			}
 		}
 		catch (...)
 		{
-			// Ignore for now
+			if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::MismatchedTypes,
+					std::string("The type of target field does not match the value being loaded: ") + node.text().as_string());
+			}
 		}
 		return false;
 	}
 
-	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&, OverflowNumberPolicy overflowNumberPolicy) {
+	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&, const SerializationOptions& serializationOptions) {
 		return node.empty();
 	}
 
 	template <typename TSym, typename TStrAllocator>
-	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value, OverflowNumberPolicy overflowNumberPolicy)
+	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value, const SerializationOptions& serializationOptions)
 	{
 		if constexpr (std::is_same_v<TSym, pugi::char_t>)
 			value = node.text().as_string();
@@ -189,7 +193,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return PugiXmlExtensions::LoadValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
+			return PugiXmlExtensions::LoadValue(LoadNextItem(), value, this->GetOptions());
 		}
 		else
 		{
@@ -465,7 +469,7 @@ public:
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
 			if (child.empty())
 				return false;
-			return PugiXmlExtensions::LoadValue(child, value, this->GetOptions().overflowNumberPolicy);
+			return PugiXmlExtensions::LoadValue(child, value, this->GetOptions());
 		}
 		else
 		{

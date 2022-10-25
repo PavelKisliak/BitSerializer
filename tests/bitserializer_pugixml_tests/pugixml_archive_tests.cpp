@@ -154,29 +154,6 @@ TEST(PugiXmlArchive, SerializeAttributesWithString) {
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
-//-----------------------------------------------------------------------------
-TEST(PugiXmlArchive, ShouldCollectErrorsAboutRequiredNamedValues) {
-	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<bool>>();
-	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<int>>();
-	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<double>>();
-	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<std::string>>();
-	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<TestPointClass>>();
-	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<int[3]>>();
-}
-
-TEST(PugiXmlArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
-{
-	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
-	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
-	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
-	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
-	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
-	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
-	TestValidationForNotCompatibleTypes<XmlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
-}
-
-//-----------------------------------------------------------------------------
 // Tests format output XML
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SaveWithFormatting) {
@@ -286,6 +263,38 @@ TEST(PugiXmlArchive, ThrowExceptionWhenBadSyntaxInSource) {
 	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, PUGIXML_TEXT("<root>Hello")), BitSerializer::SerializationException);
 }
 
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<bool>>();
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<int>>();
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<double>>();
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<std::string>>();
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<XmlArchive, TestClassForCheckValidation<int[3]>>();
+}
+
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<XmlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<XmlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<XmlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<XmlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<XmlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<XmlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<XmlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
 }

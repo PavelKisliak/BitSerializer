@@ -79,7 +79,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
 
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			bool LoadValue(const RapidYamlNode& yamlValue, T& value, OverflowNumberPolicy overflowNumberPolicy)
+			bool LoadValue(const RapidYamlNode& yamlValue, T& value, const SerializationOptions& serializationOptions)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -100,22 +100,26 @@ namespace BitSerializer::Yaml::RapidYaml {
 					}
 					catch (const std::out_of_range&)
 					{
-						if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+						if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 						{
 							throw SerializationException(SerializationErrorCode::Overflow,
-								std::string("The size of target field is not sufficient to deserialize number ").append(str));
+								std::string("The size of target field is not sufficient to deserialize number: ").append(str));
 						}
 					}
 					catch (...)
 					{
-						// Ignore for now
+						if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+						{
+							throw SerializationException(SerializationErrorCode::MismatchedTypes,
+								std::string("The type of target field does not match the value being loaded: ").append(str));
+						}
 					}
 				}
 				return false;
 			}
 
 			template <typename TSym, typename TAllocator>
-			static bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, OverflowNumberPolicy overflowNumberPolicy)
+			static bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, const SerializationOptions& serializationOptions)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -222,7 +226,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					if (mIndex < GetEstimatedSize()) {
-						return LoadValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
+						return LoadValue(LoadNextItem(), value, this->GetOptions());
 					}
 				}
 				else
@@ -375,7 +379,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
-					return yamlValue.valid() ? LoadValue(yamlValue, value, this->GetOptions().overflowNumberPolicy) : false;
+					return yamlValue.valid() ? LoadValue(yamlValue, value, this->GetOptions()) : false;
 				}
 				else
 				{

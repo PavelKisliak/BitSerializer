@@ -166,30 +166,6 @@ TEST(RapidYamlArchive, ShouldReturnPathInArrayScopeWhenSaving)
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
-//-----------------------------------------------------------------------------
-TEST(RapidYamlArchive, ShouldCollectErrorsAboutRequiredNamedValues)
-{
-	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<bool>>();
-	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<int>>();
-	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<double>>();
-	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<std::string>>();
-	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<TestPointClass>>();
-	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<int[3]>>();
-}
-
-TEST(RapidYamlArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
-{
-	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
-	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
-	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
-	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
-	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
-	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
-	TestValidationForNotCompatibleTypes<YamlArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
-}
-
-//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeClassToStream) {
@@ -227,6 +203,39 @@ TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 	int testInt[2];
 	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "- 10\n20"), BitSerializer::SerializationException);
 }
+
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<bool>>();
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<int>>();
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<double>>();
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<std::string>>();
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<int[3]>>();
+}
+
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<YamlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<YamlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
 
 TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<YamlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);

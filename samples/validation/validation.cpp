@@ -19,6 +19,7 @@ public:
 		// Custom validation with lambda
 		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
 		{
+			// Loaded string should has text without spaces or should be NULL
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
 			return "The field must not contain spaces";

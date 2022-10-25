@@ -48,14 +48,32 @@ namespace BitSerializer
 	};
 
 	/// <summary>
-	/// Policy for case when size of target type is not enough for loading number.
-	/// For example, when loading number is 500 but target type is char.
+	/// Policy for case when type of target field does not match the value being loaded.
 	/// </summary>
 	enum class OverflowNumberPolicy
 	{
-		// Value will be skipped, but can be handled by Required() validator.
+		/// <summary>
+		/// Value will be skipped, but can be handled by Required() validator.
+		/// </summary>
 		Skip,
-		// Will be thrown exception `SerializationErrorCode::Overflow` when size of target type is not enough for loading value.
+		/// <summary>
+		/// Will be thrown SerializationException with error code `SerializationErrorCode::Overflow` when size of target type is not enough for loading value.
+		/// </summary>
+		ThrowError
+	};
+
+	/// <summary>
+	/// Policy for case when a type from the archive (source format, like JSON) does not match to the target value.
+	/// </summary>
+	enum class MismatchedTypesPolicy
+	{
+		/// <summary>
+		/// Value will be skipped, but can be handled by Required() validator.
+		/// </summary>
+		Skip,
+		/// <summary>
+		/// Will be thrown SerializationException with error code `SerializationErrorCode::MismatchedTypes`.
+		/// </summary>
 		ThrowError
 	};
 
@@ -79,6 +97,14 @@ namespace BitSerializer
 		/// Policy for case when size of target type is not enough for loading number.
 		/// For example, when loading number is 500 but target type is char.
 		/// </summary>
+		/// <seealso cref="OverflowNumberPolicy" />
 		OverflowNumberPolicy overflowNumberPolicy = OverflowNumberPolicy::ThrowError;
+
+		/// <summary>
+		/// Policy for case when type of target field does not match the value being loaded.
+		/// For example, when loading string, but target type is number.
+		/// </summary>
+		/// <seealso cref="MismatchedTypesPolicy" />
+		MismatchedTypesPolicy mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
 	};
 }

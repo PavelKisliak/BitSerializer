@@ -335,6 +335,7 @@ void TestValidationForNamedValues()
 /// <summary>
 /// Test template of validation for loading not compatible types (e.g. number from string).
 /// </summary>
+///	ToDo: Remove after add testing MismatchedTypes policy to other archives
 template <typename TArchive, class TSourceType, class TTargetType>
 void TestValidationForNotCompatibleTypes()
 {
@@ -423,6 +424,53 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 		break;
 
 	case BitSerializer::OverflowNumberPolicy::Skip:
+		try
+		{
+			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+			EXPECT_TRUE(false);
+		}
+		catch (const BitSerializer::ValidationException& ex)
+		{
+			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
+			EXPECT_EQ(1, ex.GetValidationErrors().size());
+		}
+		break;
+	}
+}
+
+/// <summary>
+/// Template for test loading mismatched types (e.g. number from string).
+/// </summary>
+template <typename TArchive, class TSourceType, class TTargetType>
+void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
+{
+	// Arrange
+	static_assert(!std::is_same_v<TSourceType, TTargetType>);
+
+	TestClassWithSubType<TSourceType> sourceObj[1];
+	TestClassWithSubType<TTargetType, true> targetObj[1];
+
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = mismatchedTypesPolicy;
+	typename TArchive::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
+
+	// Act / Assert
+	switch (mismatchedTypesPolicy)
+	{
+	case BitSerializer::MismatchedTypesPolicy::ThrowError:
+		try
+		{
+			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+			EXPECT_TRUE(false);
+		}
+		catch (const BitSerializer::SerializationException& ex)
+		{
+			EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		}
+		break;
+
+	case BitSerializer::MismatchedTypesPolicy::Skip:
 		try
 		{
 			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);

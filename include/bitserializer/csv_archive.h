@@ -353,13 +353,18 @@ public:
 				if (GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::Overflow,
-						std::string("The size of target field '") + key + "' is not sufficient to deserialize number " + strValue +
+						std::string("The size of target field '") + key + "' is not sufficient to deserialize number: " + strValue +
 						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}
 			catch (...)
 			{
-				// Ignore for now
+				if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						std::string("The type of target field '") + key + "' does not match the value being loaded: " + strValue +
+						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+				}
 			}
 		}
 		return false;

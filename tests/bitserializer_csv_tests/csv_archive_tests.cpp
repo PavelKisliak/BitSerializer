@@ -73,20 +73,6 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
-//-----------------------------------------------------------------------------
-TEST_F(CsvArchiveTests, ShouldCollectErrorsAboutRequiredNamedValues)
-{
-	TestValidationForNamedValues<CsvArchive, TestClassForCheckValidation<int>>();
-}
-
-TEST_F(CsvArchiveTests, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
-{
-	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
-	TestValidationForNotCompatibleTypes<CsvArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
-}
-
-//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, SerializeArrayToStream)
@@ -182,6 +168,32 @@ TEST_F(CsvArchiveTests, ThrowExceptionWhenBadSyntaxInSource)
 	TestPointClass testList[1];
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x,y\n10"), BitSerializer::SerializationException);
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x\n10,20"), BitSerializer::SerializationException);
+}
+
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenMissedRequiredValue) {
+	TestValidationForNamedValues<CsvArchive, TestClassForCheckValidation<int>>();
+}
+
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<CsvArchive, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
+}
+TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<CsvArchive, std::string, int32_t>(MismatchedTypesPolicy::Skip);
+}
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

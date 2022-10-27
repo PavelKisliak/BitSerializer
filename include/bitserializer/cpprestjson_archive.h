@@ -168,8 +168,7 @@ public:
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const override
 	{
-		const auto index = mIndex == 0 ? 0 : mIndex - 1;
-		return JsonScopeBase::GetPath() + path_separator + Convert::ToString(index);
+		return JsonScopeBase::GetPath() + path_separator + Convert::ToString(mIndex);
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>

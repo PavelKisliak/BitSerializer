@@ -212,8 +212,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			[[nodiscard]]
 			std::string GetPath() const override
 			{
-				const auto index = mIndex == 0 ? 0 : mIndex - 1;
-				return RapidYamlScopeBase::GetPath() + path_separator + Convert::ToString(index);
+				return RapidYamlScopeBase::GetPath() + path_separator + Convert::ToString(mIndex);
 			}
 
 			/// <summary>

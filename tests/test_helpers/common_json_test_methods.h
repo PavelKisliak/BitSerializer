@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -67,7 +67,7 @@ template <typename TArchive>
 void TestGetPathInJsonArrayScopeWhenLoading()
 {
 	// Arrange
-	using TestType = TestClassWithSubTwoDimArray<TestClassWithSubType<int>>;
+	using TestType = TestClassWithSubTwoDimArray<int>;
 	TestType testObj;
 	::BuildFixture(testObj);
 
@@ -98,11 +98,11 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 
 		for (size_t i = 0; i < TestType::Array2stLevelSize; i++)
 		{
-			subArrayScope->SerializeValue(loadValue);
 			auto expectedPath = expectedObjectPath
-				+ TArchive::path_separator + BitSerializer::Convert::ToString(k)
+				+ TArchive::path_separator + BitSerializer::Convert::ToString(k+1)
 				+ TArchive::path_separator + BitSerializer::Convert::ToString(i);
 			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
+			ASSERT_TRUE(subArrayScope->SerializeValue(loadValue));
 		}
 	}
 }
@@ -114,7 +114,7 @@ template <typename TArchive>
 void TestGetPathInJsonArrayScopeWhenSaving()
 {
 	// Arrange
-	size_t array1stLevelSize = 3, array2stLevelSize = 5;
+	constexpr size_t array1stLevelSize = 3, array2stLevelSize = 5;
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
 	BitSerializer::SerializationOptions options;
@@ -143,8 +143,8 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 		{
 			subArrayScope->SerializeValue(saveValue);
 			auto expectedPath = expectedObjectPath
-				+ TArchive::path_separator + BitSerializer::Convert::ToString(k)
-				+ TArchive::path_separator + BitSerializer::Convert::ToString(i);
+				+ TArchive::path_separator + BitSerializer::Convert::ToString(k + 1)
+				+ TArchive::path_separator + BitSerializer::Convert::ToString(i + 1);
 			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
 		}
 	}

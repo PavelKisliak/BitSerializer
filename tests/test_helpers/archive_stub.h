@@ -185,8 +185,7 @@ public:
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const override
 	{
-		auto index = mIndex == 0 ? 0 : mIndex - 1;
-		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(index);
+		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(mIndex);
 	}
 
 	/// <summary>

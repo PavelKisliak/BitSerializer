@@ -192,9 +192,7 @@ public:
 			index = std::distance(this->mNode->Begin(), mValueIt);
 		else
 			index = this->mNode->GetArray().Size();
-		return RapidJsonScopeBase<TEncoding>::GetPath()
-			+ RapidJsonArchiveTraits<TEncoding>::path_separator
-			+ Convert::ToString(index == 0 ? 0 : index - 1);
+		return RapidJsonScopeBase<TEncoding>::GetPath() + RapidJsonArchiveTraits<TEncoding>::path_separator + Convert::ToString(index);
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>

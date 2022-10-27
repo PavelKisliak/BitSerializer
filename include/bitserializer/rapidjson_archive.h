@@ -81,7 +81,7 @@ protected:
 	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) = default;
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadValue(const RapidJsonNode& jsonValue, T& value, OverflowNumberPolicy overflowNumberPolicy)
+	bool LoadValue(const RapidJsonNode& jsonValue, T& value, const SerializationOptions& serializationOptions)
 	{
 		using BitSerializer::Detail::SafeNumberCast;
 		if constexpr (std::is_integral_v<T>)
@@ -89,27 +89,33 @@ protected:
 			if (jsonValue.IsNumber())
 			{
 				if (jsonValue.IsInt64()) {
-					return SafeNumberCast(jsonValue.GetInt64(), value, overflowNumberPolicy);
+					return SafeNumberCast(jsonValue.GetInt64(), value, serializationOptions.overflowNumberPolicy);
 				}
 				if (jsonValue.IsUint64()) {
-					return SafeNumberCast(jsonValue.GetUint64(), value, overflowNumberPolicy);
+					return SafeNumberCast(jsonValue.GetUint64(), value, serializationOptions.overflowNumberPolicy);
 				}
 				if (jsonValue.IsDouble()) {
-					return SafeNumberCast(jsonValue.GetDouble(), value, overflowNumberPolicy);
+					return SafeNumberCast(jsonValue.GetDouble(), value, serializationOptions.overflowNumberPolicy);
 				}
 			}
 			if (jsonValue.IsBool()) {
-				return SafeNumberCast(jsonValue.GetBool(), value, overflowNumberPolicy);
+				return SafeNumberCast(jsonValue.GetBool(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (jsonValue.IsNumber()) {
-				return SafeNumberCast(jsonValue.GetDouble(), value, overflowNumberPolicy);
+				return SafeNumberCast(jsonValue.GetDouble(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_null_pointer_v<T>) {
 			return jsonValue.IsNull();
+		}
+
+		if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
 		}
 		return false;
 	}
@@ -200,7 +206,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return this->LoadValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
+			return this->LoadValue(LoadNextItem(), value, this->GetOptions());
 		}
 		else
 		{
@@ -361,7 +367,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
-			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions().overflowNumberPolicy);
+			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else {
 			if constexpr (std::is_arithmetic_v<T>) {
@@ -524,7 +530,7 @@ public:
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return this->LoadValue(mRootJson, value, this->GetOptions().overflowNumberPolicy);
+			return this->LoadValue(mRootJson, value, this->GetOptions());
 		}
 		else
 		{

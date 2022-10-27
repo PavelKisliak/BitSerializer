@@ -231,30 +231,6 @@ TEST(RapidJsonArchive, ShouldReturnPathInArrayScopeWhenSaving)
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
-//-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, ShouldCollectErrorsAboutRequiredNamedValues)
-{
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int[3]>>();
-}
-
-TEST(RapidJsonArchive, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
-{
-	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
-}
-
-//-----------------------------------------------------------------------------
 // Tests format output JSON
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SaveWithFormatting)
@@ -365,6 +341,39 @@ TEST(RapidJsonArchive, ThrowExceptionWhenBadSyntaxInSource)
 	int testInt = 0;
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
+
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int[3]>>();
+}
+
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
 
 TEST(RapidJsonArchive, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);

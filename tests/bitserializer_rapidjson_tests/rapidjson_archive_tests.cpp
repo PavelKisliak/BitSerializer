@@ -14,6 +14,14 @@ using BitSerializer::Json::RapidJson::JsonArchive;
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
 //-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, SaveBooleanAsTrueFalse)
+{
+	bool value = false;
+	EXPECT_EQ("false", BitSerializer::SaveObject<JsonArchive>(value));
+	value = true;
+	EXPECT_EQ("true", BitSerializer::SaveObject<JsonArchive>(value));
+}
+
 TEST(RapidJsonArchive, SerializeBoolean)
 {
 	TestSerializeType<JsonArchive, bool>(false);

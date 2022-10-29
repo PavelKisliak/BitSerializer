@@ -292,6 +292,21 @@ TYPED_TEST(CsvReaderTest, ShouldReadQuotedValues)
 	EXPECT_EQ("Value2", value2);
 }
 
+TYPED_TEST(CsvReaderTest, ShouldReadQuotedLineBreaksInValue)
+{
+	// Arrange
+	const std::string csv = "Value1,\"Multi\r\nline\nvalue2\"";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	std::string value1, value2;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(value1);
+	EXPECT_EQ("Value1", value1);
+	this->mCsvReader->ReadValue(value2);
+	EXPECT_EQ("Multi\r\nline\nvalue2", value2);
+}
+
 TYPED_TEST(CsvReaderTest, ShouldReadEscapedQuotesInValue)
 {
 	// Arrange

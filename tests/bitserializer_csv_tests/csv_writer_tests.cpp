@@ -59,7 +59,7 @@ TYPED_TEST(CsvWriterTest, ShouldWriteWithCustomSeparator)
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
-TYPED_TEST(CsvWriterTest, ShouldWriteWithEscapingSeparator)
+TYPED_TEST(CsvWriterTest, ShouldWriteWithQuotedSeparator)
 {
 	// Arrange
 	this->PrepareCsvReader(true, ',');
@@ -73,17 +73,17 @@ TYPED_TEST(CsvWriterTest, ShouldWriteWithEscapingSeparator)
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
-TYPED_TEST(CsvWriterTest, ShouldWriteWithEscapingLineBreak)
+TYPED_TEST(CsvWriterTest, ShouldWriteWithQuotedLineBreak)
 {
 	// Arrange
 	this->PrepareCsvReader(true);
 
 	// Act
-	this->mCsvWriter->WriteValue("Column\r\nName", "1\r\n2");
+	this->mCsvWriter->WriteValue("Column\r\nName", "multi\nline");
 	this->mCsvWriter->NextLine();
 
 	// Assert
-	const std::string expectedCsv = "\"Column\r\nName\"\r\n\"1\r\n2\"\r\n";
+	const std::string expectedCsv = "\"Column\r\nName\"\r\n\"multi\nline\"\r\n";
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 

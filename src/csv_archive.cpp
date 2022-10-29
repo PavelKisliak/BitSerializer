@@ -250,13 +250,6 @@ namespace BitSerializer::Csv::Detail
 					isEndLine = true;
 					break;
 				}
-				// End of file (RFC: The last record in the file may or may not have an ending line break)
-				else if (mCurrentPos + 1 == mSourceString.size())
-				{
-					endValuePos = mCurrentPos = mSourceString.size();
-					isEndLine = true;
-					break;
-				}
 				++mCurrentPos;
 			}
 
@@ -272,6 +265,12 @@ namespace BitSerializer::Csv::Detail
 				{
 					out_values.emplace_back(mSourceString.data() + startValuePos, endValuePos - startValuePos);
 				}
+			}
+
+			// Handle end of file (RFC: The last record in the file may or may not have an ending line break)
+			if (mCurrentPos == mSourceString.size())
+			{
+				break;
 			}
 		}
 

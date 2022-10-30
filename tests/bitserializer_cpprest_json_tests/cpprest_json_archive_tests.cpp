@@ -200,29 +200,6 @@ TEST(JsonRestCpp, ShouldReturnPathInArrayScopeWhenSaving) {
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returns by archive's method SerializeValue()).
-//-----------------------------------------------------------------------------
-TEST(JsonRestCpp, ShouldCollectErrorsAboutRequiredNamedValues) {
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
-	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int[3]>>();
-}
-
-TEST(JsonRestCpp, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
-{
-	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
-	TestValidationForNotCompatibleTypes<JsonArchive, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
-}
-
-//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, SerializeClassToStream) {
@@ -261,6 +238,39 @@ TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt = 0;
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
+
+//-----------------------------------------------------------------------------
+TEST(JsonRestCpp, ThrowValidationExceptionWhenMissedRequiredValue) {
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<double>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<std::string>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<TestPointClass>>();
+	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<int[3]>>();
+}
+
+//-----------------------------------------------------------------------------
+TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
 
 TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);

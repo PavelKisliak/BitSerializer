@@ -80,7 +80,7 @@ protected:
 	JsonScopeBase& operator=(JsonScopeBase&&) = default;
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value, OverflowNumberPolicy overflowNumberPolicy)
+	bool LoadFundamentalValue(const web::json::value& jsonValue, T& value, const SerializationOptions& serializationOptions)
 	{
 		using BitSerializer::Detail::SafeNumberCast;
 		if constexpr (std::is_integral_v<T>)
@@ -90,22 +90,28 @@ protected:
 				if (jsonValue.is_integer())
 				{
 					return SafeNumberCast(jsonValue.as_number().is_uint64()
-						? jsonValue.as_number().to_uint64() : jsonValue.as_number().to_int64(), value, overflowNumberPolicy);
+						? jsonValue.as_number().to_uint64() : jsonValue.as_number().to_int64(), value, serializationOptions.overflowNumberPolicy);
 				}
-				return SafeNumberCast(jsonValue.as_double(), value, overflowNumberPolicy);
+				return SafeNumberCast(jsonValue.as_double(), value, serializationOptions.overflowNumberPolicy);
 			}
 			if (jsonValue.is_boolean()) {
-				return SafeNumberCast(jsonValue.as_bool(), value, overflowNumberPolicy);
+				return SafeNumberCast(jsonValue.as_bool(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (jsonValue.is_number()) {
-				return SafeNumberCast(jsonValue.as_double(), value, overflowNumberPolicy);
+				return SafeNumberCast(jsonValue.as_double(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_null_pointer_v<T>) {
 			return jsonValue.is_null();
+		}
+
+		if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
 		}
 		return false;
 	}
@@ -175,7 +181,7 @@ public:
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			return LoadFundamentalValue(LoadNextItem(), value, this->GetOptions().overflowNumberPolicy);
+			return LoadFundamentalValue(LoadNextItem(), value, this->GetOptions());
 		}
 		else
 		{
@@ -322,7 +328,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = LoadJsonValue(key);
-			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value, this->GetOptions().overflowNumberPolicy);
+			return jsonValue == nullptr ? false : LoadFundamentalValue(*jsonValue, value, this->GetOptions());
 		}
 		else
 		{
@@ -469,7 +475,7 @@ public:
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return LoadFundamentalValue(mRootJson, value, this->GetOptions().overflowNumberPolicy);
+			return LoadFundamentalValue(mRootJson, value, this->GetOptions());
 		}
 		else
 		{

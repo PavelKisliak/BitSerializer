@@ -346,6 +346,26 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedStartQuotes)
 	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
 }
 
+TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterDelimiter)
+{
+	// Arrange
+	const std::string csv = R"(Value1, "Value2")";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenNotEscapedDoubleQuotes)
+{
+	// Arrange
+	const std::string csv = R"("Value1,Value"2)";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+}
+
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedEndQuotes)
 {
 	// Arrange

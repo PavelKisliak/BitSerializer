@@ -264,7 +264,7 @@ TEST(BaseTypes, ShouldReturnPathInArrayScopeWhenSaving) {
 }
 
 //-----------------------------------------------------------------------------
-// Test the validation for named values (boolean result, which returned from archive methods).
+// Tests of errors handling
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<bool>>();
@@ -274,13 +274,71 @@ TEST(BaseTypes, ShouldCollectErrorsAboutRequiredNamedValues) {
 	TestValidationForNamedValues<ArchiveStub, TestClassForCheckValidation<TestPointClass>>();
 }
 
-TEST(BaseTypes, ShouldCollectErrorsWhenLoadingFromNotCompatibleTypes)
-{
-	using SourceStringType = TestClassForCheckCompatibleTypes<std::string>;
-	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<std::nullptr_t>>();
-	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<bool>>();
-	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<int>>();
-	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<double>>();
-	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<TestPointClass>>();
-	TestValidationForNotCompatibleTypes<ArchiveStub, SourceStringType, TestClassForCheckCompatibleTypes<int[3]>>();
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToBoolean) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToInteger) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, int32_t>(MismatchedTypesPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToFloat) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+
+TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<ArchiveStub, int32_t, bool>(OverflowNumberPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowInt8) {
+	TestOverflowNumberPolicy<ArchiveStub, int16_t, int8_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<ArchiveStub, uint16_t, uint8_t>(OverflowNumberPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowInt16) {
+	TestOverflowNumberPolicy<ArchiveStub, int32_t, int16_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<ArchiveStub, uint32_t, uint16_t>(OverflowNumberPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowInt32) {
+	TestOverflowNumberPolicy<ArchiveStub, int64_t, int32_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<ArchiveStub, uint64_t, uint32_t>(OverflowNumberPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowFloat) {
+	TestOverflowNumberPolicy<ArchiveStub, double, float>(OverflowNumberPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowSerializationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<ArchiveStub, float, uint32_t>(OverflowNumberPolicy::ThrowError);
+	TestOverflowNumberPolicy<ArchiveStub, double, uint32_t>(OverflowNumberPolicy::ThrowError);
+}
+
+TEST(BaseTypes, ThrowValidationExceptionWhenOverflowBool) {
+	TestOverflowNumberPolicy<ArchiveStub, int32_t, bool>(OverflowNumberPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowInt8) {
+	TestOverflowNumberPolicy<ArchiveStub, int16_t, int8_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<ArchiveStub, uint16_t, uint8_t>(OverflowNumberPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowInt16) {
+	TestOverflowNumberPolicy<ArchiveStub, int32_t, int16_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<ArchiveStub, uint32_t, uint16_t>(OverflowNumberPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowInt32) {
+	TestOverflowNumberPolicy<ArchiveStub, int64_t, int32_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<ArchiveStub, uint64_t, uint32_t>(OverflowNumberPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowFloat) {
+	TestOverflowNumberPolicy<ArchiveStub, double, float>(OverflowNumberPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestOverflowNumberPolicy<ArchiveStub, float, uint32_t>(OverflowNumberPolicy::Skip);
+	TestOverflowNumberPolicy<ArchiveStub, double, uint32_t>(OverflowNumberPolicy::Skip);
 }

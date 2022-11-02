@@ -89,31 +89,42 @@ protected:
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadFundamentalValue(const TestIoData& ioData, T& value)
+	bool LoadFundamentalValue(const TestIoData& ioData, T& value, const SerializationOptions& serializationOptions)
 	{
+		// Null value is excluded from MismatchedTypesPolicy processing
+		if (std::holds_alternative<std::nullptr_t>(ioData))
+		{
+			return std::is_null_pointer_v<T>;
+		}
+
+		using Detail::SafeNumberCast;
 		if constexpr (std::is_integral_v<T>)
 		{
 			if (std::holds_alternative<int64_t>(ioData))
 			{
-				value = static_cast<T>(std::get<int64_t>(ioData));
-				return true;
+				return SafeNumberCast(std::get<int64_t>(ioData), value, serializationOptions.overflowNumberPolicy);
+			}
+			if (std::holds_alternative<double>(ioData))
+			{
+				return SafeNumberCast(std::get<double>(ioData), value, serializationOptions.overflowNumberPolicy);
+			}
+			if (std::holds_alternative<bool>(ioData))
+			{
+				return SafeNumberCast(std::get<bool>(ioData), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (std::holds_alternative<double>(ioData))
 			{
-				value = static_cast<T>(std::get<double>(ioData));
-				return true;
+				return SafeNumberCast(std::get<double>(ioData), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
-		else if constexpr (std::is_null_pointer_v<T>)
+
+		if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 		{
-			if (std::holds_alternative<std::nullptr_t>(ioData))
-			{
-				value = std::get<std::nullptr_t>(ioData);
-				return true;
-			}
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
 		}
 		return false;
 	}
@@ -121,7 +132,9 @@ protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	void SaveFundamentalValue(TestIoData& ioData, T& value)
 	{
-		if constexpr (std::is_integral_v<T>)
+		if constexpr (std::is_same_v<T, bool>)
+			ioData.emplace<bool>(value);
+		else if constexpr (std::is_integral_v<T>)
 			ioData.emplace<int64_t>(value);
 		else if constexpr (std::is_floating_point_v<T>)
 			ioData.emplace<double>(value);
@@ -213,33 +226,13 @@ public:
 		return false;
 	}
 
-	bool SerializeValue(bool& value)
-	{
-		if (TestIoData* ioData = LoadNextItem())
-		{
-			if constexpr (TMode == SerializeMode::Load)
-			{
-				if (std::holds_alternative<bool>(*ioData)) {
-					value = std::get<bool>(*ioData);
-					return true;
-				}
-				return false;
-			}
-			else {
-				ioData->emplace<bool>(value);
-				return true;
-			}
-		}
-		return false;
-	}
-
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		if (TestIoData* ioData = LoadNextItem())
 		{
 			if constexpr (TMode == SerializeMode::Load)
-				return LoadFundamentalValue(*ioData, value);
+				return LoadFundamentalValue(*ioData, value, this->GetOptions());
 			else {
 				SaveFundamentalValue(*ioData, value);
 				return true;
@@ -353,7 +346,7 @@ public:
 		, ArchiveStubScopeBase(node, parent, parentKey)
 	{
 		assert(std::holds_alternative<TestIoDataObject>(*mNode));
-	};
+	}
 
 	[[nodiscard]] key_const_iterator cbegin() const {
 		return key_const_iterator(GetAsObject().cbegin());
@@ -379,32 +372,13 @@ public:
 		}
 	}
 
-	bool SerializeValue(const key_type& key, bool& value)
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			auto* archiveValue = LoadArchiveValueByKey(key);
-			if (archiveValue != nullptr && std::holds_alternative<bool>(*archiveValue))
-			{
-				value = std::get<bool>(*archiveValue);
-				return true;
-			}
-			return false;
-		}
-		else
-		{
-			SaveArchiveValue<bool>(key, value);
-			return true;
-		}
-	}
-
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(const key_type& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* archiveValue = LoadArchiveValueByKey(key);
-			return archiveValue == nullptr ? false : LoadFundamentalValue(*archiveValue, value);
+			return archiveValue == nullptr ? false : LoadFundamentalValue(*archiveValue, value, this->GetOptions());
 		}
 		else
 		{
@@ -509,27 +483,11 @@ public:
 	{
 	}
 
-	bool SerializeValue(bool& value) const
-	{
-		if constexpr (TMode == SerializeMode::Load)
-		{
-			if (std::holds_alternative<bool>(*mInputData)) {
-				value = std::get<bool>(*mInputData);
-				return true;
-			}
-			return false;
-		}
-		else {
-			mOutputData->emplace<bool>(value);
-			return true;
-		}
-	}
-
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
-			return LoadFundamentalValue(*mInputData, value);
+			return LoadFundamentalValue(*mInputData, value, this->GetOptions());
 		else {
 			SaveFundamentalValue(*mOutputData, value);
 			return true;

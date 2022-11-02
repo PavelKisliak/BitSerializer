@@ -333,37 +333,6 @@ void TestValidationForNamedValues()
 }
 
 /// <summary>
-/// Test template of validation for loading not compatible types (e.g. number from string).
-/// </summary>
-///	ToDo: Remove after add testing MismatchedTypes policy to other archives
-template <typename TArchive, class TSourceType, class TTargetType>
-void TestValidationForNotCompatibleTypes()
-{
-	// Arrange
-	TSourceType sourceObj[1];
-	BuildFixture(sourceObj);
-	typename TArchive::preferred_output_format outputArchive;
-
-	// Act
-	bool result = false;
-	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
-	try
-	{
-		TTargetType targetObj[1];
-		BitSerializer::LoadObject<TArchive>(targetObj, outputArchive);
-		result = true;
-	}
-	catch (BitSerializer::ValidationException& ex)
-	{
-		// Assert
-		EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
-		EXPECT_EQ(1, ex.GetValidationErrors().size());
-	}
-
-	EXPECT_FALSE(result);
-}
-
-/// <summary>
 /// Template for test overflow target value when deserialization.
 /// </summary>
 template <typename TArchive, class TSourceType, class TTargetType>

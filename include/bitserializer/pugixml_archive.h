@@ -79,8 +79,13 @@ namespace PugiXmlExtensions
 	{
 		try
 		{
-			value = Convert::To<T>(node.text().as_string());
-			return true;
+			// Empty node is treated as Null
+			if (const auto strValue = node.text().as_string(nullptr))
+			{
+				value = Convert::To<T>(strValue);
+				return true;
+			}
+			return false;
 		}
 		catch (const std::out_of_range&)
 		{
@@ -108,11 +113,16 @@ namespace PugiXmlExtensions
 	template <typename TSym, typename TStrAllocator>
 	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value, const SerializationOptions& serializationOptions)
 	{
-		if constexpr (std::is_same_v<TSym, pugi::char_t>)
-			value = node.text().as_string();
-		else
-			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(node.text().as_string());
-		return true;
+		// Empty node is treated as Null
+		if (const auto strValue = node.text().as_string(nullptr))
+		{
+			if constexpr (std::is_same_v<TSym, pugi::char_t>)
+				value = strValue;
+			else
+				value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(strValue);
+			return true;
+		}
+		return false;
 	}
 
 	template <typename T>

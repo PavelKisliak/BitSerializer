@@ -83,6 +83,11 @@ protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool LoadValue(const RapidJsonNode& jsonValue, T& value, const SerializationOptions& serializationOptions)
 	{
+		// Null value from JSON is excluded from MismatchedTypesPolicy processing
+		if (jsonValue.IsNull()) {
+			return std::is_null_pointer_v<T>;
+		}
+
 		using BitSerializer::Detail::SafeNumberCast;
 		if constexpr (std::is_integral_v<T>)
 		{
@@ -108,23 +113,19 @@ protected:
 				return SafeNumberCast(jsonValue.GetDouble(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}
-		else if constexpr (std::is_null_pointer_v<T>) {
-			return jsonValue.IsNull();
-		}
 
-		if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-		{
-			throw SerializationException(SerializationErrorCode::MismatchedTypes,
-				"The type of target field does not match the value being loaded");
-		}
+		HandleMismatchedTypesPolicy(serializationOptions.mismatchedTypesPolicy);
 		return false;
 	}
 
 	template <typename TSym, typename TAllocator>
-	bool LoadValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool LoadValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, const SerializationOptions& serializationOptions)
 	{
 		if (!jsonValue.IsString())
+		{
+			HandleMismatchedTypesPolicy(serializationOptions.mismatchedTypesPolicy);
 			return false;
+		}
 
 		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
 			value = jsonValue.GetString();
@@ -142,6 +143,15 @@ protected:
 		else {
 			const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
 			return RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), allocator);
+		}
+	}
+
+	static void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)
+	{
+		if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
 		}
 	}
 
@@ -220,7 +230,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return this->LoadValue(LoadNextItem(), value);
+			return this->LoadValue(LoadNextItem(), value, this->GetOptions());
 		}
 		else 
 		{
@@ -385,7 +395,7 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
-			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value);
+			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else {
 			return SaveJsonValue(std::forward<TKey>(key), RapidJsonScopeBase<TEncoding>::MakeRapidJsonNodeFromString(value, mAllocator));
@@ -562,7 +572,7 @@ public:
 	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return this->LoadValue(mRootJson, value);
+			return this->LoadValue(mRootJson, value, this->GetOptions());
 		}
 		else
 		{

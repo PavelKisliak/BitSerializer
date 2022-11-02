@@ -293,6 +293,12 @@ TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
 TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<XmlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
+TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
+	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
+	TestMismatchedTypesPolicy<XmlArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<XmlArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<XmlArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
 
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowBool) {

@@ -425,32 +425,34 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
 
 	// Act / Assert
-	switch (mismatchedTypesPolicy)
+	try
 	{
-	case BitSerializer::MismatchedTypesPolicy::ThrowError:
-		try
-		{
-			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
-			EXPECT_TRUE(false);
-		}
-		catch (const BitSerializer::SerializationException& ex)
+		BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+		EXPECT_TRUE(false);
+	}
+	catch (const BitSerializer::ValidationException& ex)
+	{
+		// Loading from Null values should be excluded from MismatchedTypesPolicy processing
+		if (mismatchedTypesPolicy == BitSerializer::MismatchedTypesPolicy::ThrowError && !std::is_same_v<TSourceType, std::nullptr_t>)
 		{
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
 		}
-		break;
-
-	case BitSerializer::MismatchedTypesPolicy::Skip:
-		try
-		{
-			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
-			EXPECT_TRUE(false);
-		}
-		catch (const BitSerializer::ValidationException& ex)
+		else
 		{
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
 			EXPECT_EQ(1, ex.GetValidationErrors().size());
 		}
-		break;
+	}
+	catch (const BitSerializer::SerializationException& ex)
+	{
+		// Loading from Null values should be excluded from MismatchedTypesPolicy processing
+		if (mismatchedTypesPolicy == BitSerializer::MismatchedTypesPolicy::ThrowError && !std::is_same_v<TSourceType, std::nullptr_t>) {
+			EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		}
+		else
+		{
+			EXPECT_TRUE(false);
+		}
 	}
 }
 

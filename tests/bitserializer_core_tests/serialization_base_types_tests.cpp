@@ -295,6 +295,13 @@ TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::Skip);
 }
 
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
+	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
+	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 
 TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowBool) {

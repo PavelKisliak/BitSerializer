@@ -81,38 +81,38 @@ namespace BitSerializer::Yaml::RapidYaml {
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			bool LoadValue(const RapidYamlNode& yamlValue, T& value, const SerializationOptions& serializationOptions)
 			{
-				if (!yamlValue.is_val() && !yamlValue.is_keyval())
+				if (!yamlValue.is_val() && !yamlValue.is_keyval()) {
 					return false;
-
-				const bool isNullValue = IsNullYamlValue(yamlValue.val());
-				if constexpr (std::is_null_pointer_v<T>) {
-					return isNullValue;
 				}
-				else {
-					if (isNullValue)
-						return false;
 
-					const auto str = std::string_view(yamlValue.val().data(), yamlValue.val().size());
-					try
+				if (IsNullYamlValue(yamlValue.val())) {
+					return std::is_null_pointer_v<T>;
+				}
+
+				const auto str = std::string_view(yamlValue.val().data(), yamlValue.val().size());
+				try
+				{
+					if constexpr (!std::is_null_pointer_v<T>)
 					{
 						value = Convert::To<T>(str);
 						return true;
 					}
-					catch (const std::out_of_range&)
+					throw std::exception();
+				}
+				catch (const std::out_of_range&)
+				{
+					if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 					{
-						if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
-						{
-							throw SerializationException(SerializationErrorCode::Overflow,
-								std::string("The size of target field is not sufficient to deserialize number: ").append(str));
-						}
+						throw SerializationException(SerializationErrorCode::Overflow,
+							std::string("The size of target field is not sufficient to deserialize number: ").append(str));
 					}
-					catch (...)
+				}
+				catch (...)
+				{
+					if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 					{
-						if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-						{
-							throw SerializationException(SerializationErrorCode::MismatchedTypes,
-								std::string("The type of target field does not match the value being loaded: ").append(str));
-						}
+						throw SerializationException(SerializationErrorCode::MismatchedTypes,
+							std::string("The type of target field does not match the value being loaded: ").append(str));
 					}
 				}
 				return false;
@@ -123,6 +123,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
+
+				if (IsNullYamlValue(yamlValue.val())) {
+					return false;
+				}
 
 				const auto str = yamlValue.val();
 				if constexpr (std::is_same_v<TSym, std::string::value_type>)
@@ -159,7 +163,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			static bool IsNullYamlValue(c4::csubstr str)
 			{
-				return std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt)) ||
+				return str.data() == nullptr ||
+					std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt)) ||
 					std::equal(str.begin(), str.end(), std::cbegin(nullValue), std::cend(nullValue),
 						[](const char lhs, const char rhs) {
 							return std::tolower(lhs) == std::tolower(rhs);

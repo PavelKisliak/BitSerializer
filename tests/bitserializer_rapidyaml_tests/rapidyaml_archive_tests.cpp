@@ -234,6 +234,12 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
+TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
+	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
+	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
 
 //-----------------------------------------------------------------------------
 

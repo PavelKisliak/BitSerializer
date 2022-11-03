@@ -216,7 +216,6 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		const size_t startLinePos = mCurrentPos;
 		for (auto isEndLine = false; !isEndLine;)
 		{
 			const size_t startValuePos = mCurrentPos;
@@ -245,6 +244,9 @@ namespace BitSerializer::Csv::Detail
 				}
 				else if (sym == '\n' && valueQuotesCount % 2 == 0)
 				{
+					if (precedingCrPos == std::string::npos) {
+						precedingCrPos = mCurrentPos;
+					}
 					endValuePos = (precedingCrPos == mCurrentPos - 1) ? precedingCrPos : mCurrentPos;
 					++mCurrentPos;
 					isEndLine = true;
@@ -253,18 +255,15 @@ namespace BitSerializer::Csv::Detail
 				++mCurrentPos;
 			}
 
-			// Don't try to extract value when line is empty (e.g. last line)
-			if (startLinePos != endValuePos)
+			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
+			if (valueQuotesCount)
 			{
-				if (valueQuotesCount)
-				{
-					out_values.emplace_back(
-						UnescapeValue(std::string_view(mSourceString.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
-				}
-				else
-				{
-					out_values.emplace_back(mSourceString.data() + startValuePos, endValuePos - startValuePos);
-				}
+				out_values.emplace_back(
+					UnescapeValue(std::string_view(mSourceString.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
+			}
+			else
+			{
+				out_values.emplace_back(mSourceString.data() + startValuePos, endValuePos - startValuePos);
 			}
 
 			// Handle end of file (RFC: The last record in the file may or may not have an ending line break)
@@ -369,7 +368,6 @@ namespace BitSerializer::Csv::Detail
 	{
 		mPrevValuesCount = out_values.size();
 		out_values.clear();
-		const size_t startLinePos = mCurrentPos;
 
 		if (IsEnd())
 		{
@@ -415,6 +413,9 @@ namespace BitSerializer::Csv::Detail
 				}
 				else if (sym == '\n' && valueQuotesCount % 2 == 0)
 				{
+					if (precedingCrPos == std::string::npos) {
+						precedingCrPos = mCurrentPos;
+					}
 					endValuePos = (precedingCrPos == mCurrentPos - 1) ? precedingCrPos : mCurrentPos;
 					++mCurrentPos;
 					isEndLine = true;
@@ -430,18 +431,15 @@ namespace BitSerializer::Csv::Detail
 				++mCurrentPos;
 			}
 
-			// Don't try to extract value when line is empty (e.g. last line)
-			if (startLinePos != endValuePos)
+			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
+			if (valueQuotesCount)
 			{
-				if (valueQuotesCount)
-				{
-					out_values.emplace_back(
-						UnescapeValue(std::string_view(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
-				}
-				else
-				{
-					out_values.emplace_back(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos);
-				}
+				out_values.emplace_back(
+					UnescapeValue(std::string_view(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
+			}
+			else
+			{
+				out_values.emplace_back(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos);
 			}
 		}
 

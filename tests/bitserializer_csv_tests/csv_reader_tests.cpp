@@ -230,6 +230,52 @@ Row2Col1,Row2Col2
 	EXPECT_EQ("Row2Col2", row2col2);
 }
 
+TYPED_TEST(CsvReaderTest, ShouldParseRowsWithEmptyValues)
+{
+	// Arrange
+	const std::string csv = "Row1\n\n\nRow4\n";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	std::string row1, row2, row3, row4;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(row1);
+	EXPECT_EQ("Row1", row1);
+
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(row2);
+	EXPECT_EQ("", row2);
+
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(row3);
+	EXPECT_EQ("", row3);
+
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(row4);
+	EXPECT_EQ("Row4", row4);
+
+	EXPECT_FALSE(this->mCsvReader->ParseNextRow());
+}
+
+TYPED_TEST(CsvReaderTest, ShouldParseLastRowWithEmptyValue)
+{
+	// Arrange
+	const std::string csv = "Row1\n\n";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	std::string row1, row2, row3, row4;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(row1);
+	EXPECT_EQ("Row1", row1);
+
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(row2);
+	EXPECT_EQ("", row2);
+
+	EXPECT_FALSE(this->mCsvReader->ParseNextRow());
+}
+
 TYPED_TEST(CsvReaderTest, ShouldParseRowWithoutLastLfCode)
 {
 	// Arrange

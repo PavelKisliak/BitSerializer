@@ -195,6 +195,13 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToInteger) {
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::Skip);
 }
+TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadNullToAnyType) {
+	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
+	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+}
+
 
 //-----------------------------------------------------------------------------
 

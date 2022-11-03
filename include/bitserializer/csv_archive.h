@@ -337,12 +337,18 @@ public:
 		return false;
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		std::string strValue;
 		if (mCsvReader->ReadValue(key, strValue))
 		{
+			if (strValue.empty())
+			{
+				// Empty string is treated as Null
+				return std::is_null_pointer_v<T>;
+			}
+
 			try
 			{
 				value = Convert::To<T>(strValue);
@@ -366,17 +372,6 @@ public:
 						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}
-		}
-		return false;
-	}
-
-	template <typename TKey>
-	bool SerializeValue(TKey&& key, std::nullptr_t&)
-	{
-		std::string strValue;
-		if (mCsvReader->ReadValue(key, strValue))
-		{
-			return strValue.empty();
 		}
 		return false;
 	}
@@ -443,12 +438,12 @@ class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<Ser
 public:
 	explicit CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
-		, mCsvReader(std::in_place_type<Csv::Detail::CCsvStringReader>, encodedInputStr, true, ',')
+		, mCsvReader(std::in_place_type<CCsvStringReader>, encodedInputStr, true, ',')
 	{ }
 
 	explicit CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
-		, mCsvReader(std::in_place_type<Csv::Detail::CCsvStreamReader>, encodedInputStream, true, ',')
+		, mCsvReader(std::in_place_type<CCsvStreamReader>, encodedInputStream, true, ',')
 	{ }
 
 	/// <summary>

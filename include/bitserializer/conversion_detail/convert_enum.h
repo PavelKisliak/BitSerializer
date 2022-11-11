@@ -14,38 +14,40 @@
 /// Registers a map of strings equivalents for enum type.
 /// </summary>
 /// <example><code>
-/// REGISTER_ENUM_MAP(YOUR_ENUM_TYPE)
-///	{
+/// REGISTER_ENUM(YOUR_ENUM_TYPE, {
 ///		{ YOUR_ENUM_TYPE::Apple, "Apple" },
 ///		{ YOUR_ENUM_TYPE::Orange, "Orange" }
-/// }
-/// END_ENUM_MAP()
+/// })
 /// </code></example>
+#define REGISTER_ENUM(enumType, ...) namespace { \
+	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::Register(__VA_ARGS__); \
+}
+
+/// Deprecated enum registration
 #define REGISTER_ENUM_MAP(enumType) namespace { \
-	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::Register(
+	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::RegisterDeprecated(
 #define END_ENUM_MAP() ); }
 
 /// <summary>
-/// Macro that declares I/O streams operators for enum (need to register a map of strings via REGISTER_ENUM_MAP before).
+/// Declares I/O streams operators for enum (register the enum via REGISTER_ENUM macro).
 /// </summary>
-#define DECLARE_ENUM_STREAM_OPS(enumType) namespace { \
-	template <typename TSym> \
-	std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, enumType value) \
-	{ \
-		std::basic_string<TSym, std::char_traits<TSym>> str; \
-		BitSerializer::Convert::Detail::EnumRegistry<enumType>::ToString(value, str); \
-		return stream << str; \
-	} \
-	template <class TSym, class TTraits = std::char_traits<TSym>> \
-	std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enumType& value) \
-	{ \
-		TSym sym; std::basic_string<TSym, TTraits> str; \
-		for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = stream.get()) { \
-			str.push_back(sym); } \
-		BitSerializer::Convert::Detail::EnumRegistry<enumType>::FromString(std::basic_string_view<TSym>(str), value); \
-		return stream; \
-	} \
-}
+#define DECLARE_ENUM_STREAM_OPS(enum2Type) \
+template <typename TSym> \
+std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, enum2Type value) \
+{ \
+	std::basic_string<TSym, std::char_traits<TSym>> str; \
+	BitSerializer::Convert::Detail::EnumRegistry<enum2Type>::ToString(value, str); \
+	return stream << str; \
+} \
+template <class TSym, class TTraits = std::char_traits<TSym>> \
+std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enum2Type& value) \
+{ \
+	TSym sym; std::basic_string<TSym, TTraits> str; \
+	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = stream.get()) { \
+		str.push_back(sym); } \
+	BitSerializer::Convert::Detail::EnumRegistry<enum2Type>::FromString(std::basic_string_view<TSym>(str), value); \
+	return stream; \
+} \
 
 
 namespace BitSerializer::Convert::Detail
@@ -68,6 +70,12 @@ namespace BitSerializer::Convert::Detail
 	class EnumRegistry
 	{
 	public:
+		template <size_t Size>
+		[[deprecated("Please use new macro REGISTER_ENUM() for registration enum types")]]
+		static bool Register_(const EnumMetadata<TEnum>(&descriptors)[Size]) {
+			return Register<Size>(descriptors);
+		}
+
 		template <size_t Size>
 		static bool Register(const EnumMetadata<TEnum>(&descriptors)[Size])
 		{

@@ -14,14 +14,13 @@ enum class Number {
 };
 
 // Registration names map
-REGISTER_ENUM_MAP(Number)
-{
+REGISTER_ENUM(Number, {
 	{ Number::One, "One" },
 	{ Number::Two, "Two" },
 	{ Number::Three, "Three" },
 	{ Number::Four, "Four" },
 	{ Number::Five, "Five" }
-} END_ENUM_MAP()
+})
 
 
 class CPoint3D

@@ -25,14 +25,14 @@ namespace BitSerializer::Convert
 		Utf32be
 	};
 
-	REGISTER_ENUM_MAP(UtfType)
-	{
+	REGISTER_ENUM(UtfType, {
 		{ UtfType::Utf8, "UTF-8" },
 		{ UtfType::Utf16le, "UTF-16LE" },
 		{ UtfType::Utf16be, "UTF-16BE" },
 		{ UtfType::Utf32le, "UTF-32LE" },
 		{ UtfType::Utf32be, "UTF-32BE" }
-	} END_ENUM_MAP()
+	})
+	DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::UtfType)
 
 	namespace Unicode
 	{
@@ -912,5 +912,3 @@ namespace BitSerializer::Convert
 		char* mEndDataPtr = mEncodedBuffer;
 	};
 }
-
-DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::UtfType)

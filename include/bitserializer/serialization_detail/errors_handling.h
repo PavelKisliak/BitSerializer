@@ -23,8 +23,7 @@ namespace BitSerializer
 		FailedValidation
 	};
 
-	REGISTER_ENUM_MAP(SerializationErrorCode)
-	{
+	REGISTER_ENUM(SerializationErrorCode, {
 		{ SerializationErrorCode::ParsingError, "Parsing error" },
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },
 		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" },
@@ -32,8 +31,7 @@ namespace BitSerializer
 		{ SerializationErrorCode::Overflow, "Overflow" },
 		{ SerializationErrorCode::MismatchedTypes, "Mismatched types" },
 		{ SerializationErrorCode::FailedValidation, "Failed validation" }
-	}
-	END_ENUM_MAP()
+	})
 
 	using ValidationErrors = std::vector<std::string>;
 	using ValidationMap = std::map<std::string, ValidationErrors>;

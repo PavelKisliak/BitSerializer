@@ -22,14 +22,13 @@ enum class TestEnum {
 	Five = 5
 };
 
-REGISTER_ENUM_MAP(TestEnum)
-{
+REGISTER_ENUM(TestEnum, {
 	{ TestEnum::One,	"One" },
 	{ TestEnum::Two,	"Two" },
 	{ TestEnum::Three,	"Three" },
 	{ TestEnum::Four,	"Four" },
 	{ TestEnum::Five,	"Five" }
-} END_ENUM_MAP()
+})
 DECLARE_ENUM_STREAM_OPS(TestEnum)
 
 

@@ -30,14 +30,12 @@ enum class ArchiveType
 	Csv
 };
 
-REGISTER_ENUM_MAP(ArchiveType)
-{
+REGISTER_ENUM(ArchiveType, {
 	{ ArchiveType::Json, "Json" },
 	{ ArchiveType::Xml, "Xml" },
 	{ ArchiveType::Yaml, "Yaml" },
 	{ ArchiveType::Csv, "Csv" }
-}
-END_ENUM_MAP()
+})
 
 /// <summary>
 /// Class for provide information about supported key types in the archive.

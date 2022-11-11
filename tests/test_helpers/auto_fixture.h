@@ -97,8 +97,8 @@ static void BuildFixture(std::u32string& value)		{ value = U"UTF-32 Тест_" +
 template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 static void BuildFixture(T& value)
 {
-	const auto& descriptors = BitSerializer::Convert::Detail::ConvertEnum::GetDescriptors<T>();
-	value = descriptors[std::rand() % descriptors.size()].GetEnum();
+	const auto randIndex = std::rand() % BitSerializer::Convert::Detail::EnumRegistry<T>::size();
+	value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->Value;
 }
 
 /// <summary>

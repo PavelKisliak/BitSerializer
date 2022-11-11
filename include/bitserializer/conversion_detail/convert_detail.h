@@ -48,7 +48,7 @@ namespace BitSerializer::Convert::Detail
 	/// </summary>
 	template <typename T, typename TSym, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out) {
-		ConvertEnum::FromString<T>(in, out);
+		EnumRegistry<T>::FromString(in, out);
 	}
 
 	/// <summary>
@@ -56,7 +56,7 @@ namespace BitSerializer::Convert::Detail
 	/// </summary>
 	template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	void To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str) {
-		ConvertEnum::ToString<T>(val, ret_Str);
+		EnumRegistry<T>::ToString(val, ret_Str);
 	}
 
 	//-----------------------------------------------------------------------------

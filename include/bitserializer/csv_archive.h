@@ -3,11 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <string>
-#include <vector>
+#include <memory>
 #include <optional>
+#include <string>
 #include <type_traits>
-#include <variant>
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 
@@ -34,81 +33,30 @@ protected:
 class ICsvWriter
 {
 public:
+	virtual ~ICsvWriter() = default;
+
 	virtual void SetEstimatedSize(size_t size) = 0;
 	virtual void WriteValue(std::string_view key, const std::string& value) = 0;
 	virtual void NextLine() = 0;
-	[[nodiscard]] virtual size_t GetCurrentIndex() const = 0;
-
-protected:
-	~ICsvWriter() = default;
+	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 };
 
 class ICsvReader
 {
 public:
-	[[nodiscard]] virtual size_t GetCurrentIndex() const = 0;
+	virtual ~ICsvReader() = default;
+
+	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
 	virtual bool ReadValue(std::string_view key, std::string& value) = 0;
 	virtual void ReadValue(std::string& value) = 0;
 	virtual bool ParseNextRow() = 0;
-
-protected:
-	~ICsvReader() = default;
-};
-
-//------------------------------------------------------------------------------
-
-class CCsvStringWriter final : public ICsvWriter
-{
-public:
-	CCsvStringWriter(std::string& outputString, bool withHeader, char separator = ',');
-
-	void SetEstimatedSize(size_t size) override;
-	void WriteValue(std::string_view key, const std::string& value) override;
-	void NextLine() override;
-	[[nodiscard]] size_t GetCurrentIndex() const override { return mRowIndex; }
-
-private:
-	std::string& mOutputString;
-	const bool mWithHeader;
-	const char mSeparator;
-
-	std::string mCsvHeader;
-	std::string mCurrentRow;
-	size_t mRowIndex = 0;
-	size_t mValueIndex = 0;
-	size_t mEstimatedSize = 0;
-	size_t mPrevValuesCount = 0;
-};
-
-class CCsvStreamWriter final : public ICsvWriter
-{
-public:
-	CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator = ',', const StreamOptions& streamOptions = {});
-
-	void SetEstimatedSize(size_t size) override { /* Not required for stream */ }
-	void WriteValue(std::string_view key, const std::string& value) override;
-	void NextLine() override;
-	[[nodiscard]] size_t GetCurrentIndex() const override { return mRowIndex; }
-
-private:
-	std::ostream& mOutputStream;
-	const bool mWithHeader;
-	const char mSeparator;
-	const StreamOptions mStreamOptions;
-
-	std::string mCsvHeader;
-	std::string mCurrentRow;
-	size_t mRowIndex = 0;
-	size_t mValueIndex = 0;
-	size_t mPrevValuesCount = 0;
 };
 
 
 /// <summary>
 /// CSV scope for writing objects (list of values with keys).
 /// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
 class CCsvWriteObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
@@ -165,7 +113,6 @@ private:
 /// <summary>
 /// CSV scope for serializing arrays (list of values without keys).
 /// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
 class CsvWriteArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
@@ -182,7 +129,7 @@ public:
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
 	}
 
-	std::optional<CCsvWriteObjectScope> OpenObjectScope()
+	[[nodiscard]] std::optional<CCsvWriteObjectScope> OpenObjectScope() const
 	{
 		return std::make_optional<CCsvWriteObjectScope>(mCsvWriter, GetContext());
 	}
@@ -198,108 +145,33 @@ private:
 class CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
-		, mCsvWriter(CCsvStringWriter(encodedOutputStr, true))
-	{ }
-
-	CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
-		, mCsvWriter(CCsvStreamWriter(outputStream, true, ',', serializationContext.GetOptions().streamOptions))
-	{ }
+	CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext);
+	CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
 
 	/// <summary>
 	/// Gets the current path in CSV.
 	/// </summary>
-	[[nodiscard]] std::string GetPath() const
+	[[nodiscard]] std::string GetPath() const noexcept
 	{
 		return "";
 	}
 
-	std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize)
+	[[nodiscard]] std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize) const
 	{
-		auto csvWriter = GetWriter();
-		csvWriter->SetEstimatedSize(arraySize);
-		return std::make_optional<CsvWriteArrayScope>(csvWriter, GetContext());
+		mCsvWriter->SetEstimatedSize(arraySize);
+		return std::make_optional<CsvWriteArrayScope>(mCsvWriter.get(), GetContext());
 	}
 
-	void Finalize() const { /* Not required */ }
+	void Finalize() const noexcept { /* Not required */ }
 
 private:
-	ICsvWriter* GetWriter()
-	{
-		return std::visit([](auto&& arg)
-		{
-			return static_cast<ICsvWriter*>(&arg);
-		}, mCsvWriter);
-	}
-
-	std::variant<CCsvStringWriter, CCsvStreamWriter> mCsvWriter;
-};
-
-//------------------------------------------------------------------------------
-
-class CCsvStringReader final : public ICsvReader
-{
-public:
-	CCsvStringReader(std::string_view inputString, bool withHeader, char separator = ',');
-
-	[[nodiscard]] size_t GetCurrentIndex() const override { return mRowIndex; }
-	[[nodiscard]] bool IsEnd() const override;
-	bool ReadValue(std::string_view key, std::string& value) override;
-	void ReadValue(std::string& value) override;
-	bool ParseNextRow() override;
-
-private:
-	bool ParseLine(std::vector<std::string>& out_values);
-
-	std::string_view mSourceString;
-	const bool mWithHeader;
-	const char mSeparator;
-
-	std::vector<std::string> mHeader;
-	std::vector<std::string> mRowValues;
-	size_t mCurrentPos = 0;
-	size_t mLineNumber = 0;
-	size_t mRowIndex = 0;
-	size_t mValueIndex = 0;
-	size_t mPrevValuesCount = 0;
-};
-
-class CCsvStreamReader final : public ICsvReader
-{
-public:
-	CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',');
-
-	[[nodiscard]] size_t GetCurrentIndex() const override { return mRowIndex; }
-	[[nodiscard]] bool IsEnd() const override;
-	bool ReadValue(std::string_view key, std::string& value) override;
-	void ReadValue(std::string& value) override;
-	bool ParseNextRow() override;
-
-private:
-	bool ParseLine(std::vector<std::string>& out_values);
-	void RemoveParsedStringPart();
-
-	Convert::CEncodedStreamReader<Convert::Utf8> mEncodedStreamReader;
-	std::string mDecodedBuffer;
-	const bool mWithHeader;
-	const char mSeparator;
-
-	std::vector<std::string> mHeader;
-	std::vector<std::string> mRowValues;
-	size_t mCurrentPos = 0;
-	size_t mLineNumber = 0;
-	size_t mRowIndex = 0;
-	size_t mValueIndex = 0;
-	size_t mPrevValuesCount = 0;
+	std::unique_ptr<ICsvWriter> mCsvWriter;
 };
 
 
 /// <summary>
 /// CSV scope for reading objects (list of values with keys).
 /// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
 class CCsvReadObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -384,7 +256,6 @@ private:
 /// <summary>
 /// CSV scope for serializing arrays (list of values with keys).
 /// </summary>
-/// <seealso cref="TArchiveScope" />
 class CsvReadArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -404,7 +275,8 @@ public:
 	/// <summary>
 	/// Returns the estimated number of items to load (for reserving the size of containers).
 	/// </summary>
-	[[nodiscard]] size_t GetEstimatedSize() const {
+	[[nodiscard]] size_t GetEstimatedSize() const noexcept
+	{
 		return 0;
 	}
 
@@ -436,41 +308,26 @@ private:
 class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	explicit CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
-		, mCsvReader(std::in_place_type<CCsvStringReader>, encodedInputStr, true, ',')
-	{ }
-
-	explicit CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
-		, mCsvReader(std::in_place_type<CCsvStreamReader>, encodedInputStream, true, ',')
-	{ }
+	CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext);
+	CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext);
 
 	/// <summary>
 	/// Gets the current path in CSV.
 	/// </summary>
-	[[nodiscard]] std::string GetPath() const
+	[[nodiscard]] std::string GetPath() const noexcept
 	{
 		return "";
 	}
 
 	std::optional<CsvReadArrayScope> OpenArrayScope(size_t arraySize)
 	{
-		return std::make_optional<CsvReadArrayScope>(GetReader(), GetContext());
+		return std::make_optional<CsvReadArrayScope>(mCsvReader.get(), GetContext());
 	}
 
-	void Finalize() const { /* Not required */ }
+	void Finalize() const noexcept { /* Not required */ }
 
 private:
-	ICsvReader* GetReader()
-	{
-		return std::visit([](auto&& arg)
-		{
-			return static_cast<ICsvReader*>(&arg);
-		}, mCsvReader);
-	}
-
-	std::variant<CCsvStringReader, CCsvStreamReader> mCsvReader;
+	std::unique_ptr<ICsvReader> mCsvReader;
 };
 
 }

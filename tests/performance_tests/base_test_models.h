@@ -5,7 +5,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include "test_helpers/common_test_methods.h"
+#include "tests/test_helpers/common_test_methods.h"
 
 
 /// <summary>

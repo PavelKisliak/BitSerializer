@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-include_directories(
-  ${CMAKE_CURRENT_LIST_DIR}
-)
+include_directories(${CMAKE_SOURCE_DIR})
 
 add_subdirectory(bitserializer_core_tests)
 add_subdirectory(bitserializer_conversions_tests)

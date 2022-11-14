@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "encoded_stream_reader_fixture.h"
-#include "test_helpers/common_test_entities.h"
+#include "tests/test_helpers/common_test_entities.h"
 
 using namespace BitSerializer;
 

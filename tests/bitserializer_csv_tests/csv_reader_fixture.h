@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 #include "gtest/gtest.h"
-#include "bitserializer/csv_archive.h"
+#include "src/csv/csv_readers.h"
 
 template <class TReader>
 class CsvReaderTest : public ::testing::Test

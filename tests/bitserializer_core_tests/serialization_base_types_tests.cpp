@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
-#include "test_helpers/archive_stub.h"
-#include "test_helpers/common_test_methods.h"
-#include "test_helpers/common_json_test_methods.h"
+#include "tests/test_helpers/archive_stub.h"
+#include "tests/test_helpers/common_test_methods.h"
+#include "tests/test_helpers/common_json_test_methods.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for base types.

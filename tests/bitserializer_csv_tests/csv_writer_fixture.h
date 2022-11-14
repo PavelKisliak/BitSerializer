@@ -4,8 +4,9 @@
 *******************************************************************************/
 #pragma once
 #include <memory>
+#include <variant>
 #include "gtest/gtest.h"
-#include "bitserializer/csv_archive.h"
+#include "src/csv/csv_writers.h"
 
 template <class TWriter>
 class CsvWriterTest : public ::testing::Test

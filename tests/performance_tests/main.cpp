@@ -5,7 +5,7 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
-#include "test_helpers/common_test_methods.h"
+#include "tests/test_helpers/common_test_methods.h"
 #include "rapid_json_performance_test.h"
 #include "cpprest_json_performance_test.h"
 #include "pugixml_performance_test.h"

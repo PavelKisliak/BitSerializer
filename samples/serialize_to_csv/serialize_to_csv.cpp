@@ -38,7 +38,6 @@ int main()
 	std::cout << std::endl << "Saved result in CSV:" << std::endl << outputStr << std::endl;
 
 	// Load from CSV
-	Csv::Detail::CCsvStringReader csvStringReader(outputStr, true, ',');
 	std::vector<CUserScore> parsedHighScores;
 	BitSerializer::LoadObject<CsvArchive>(parsedHighScores, outputStr);
 

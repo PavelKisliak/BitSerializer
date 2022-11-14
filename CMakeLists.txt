@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (C) 2020 by Pavel Kisliak                                           #
+# Copyright (C) 2020-2022 by Pavel Kisliak                                      #
 # This file is part of BitSerializer library, licensed under the MIT license.   #
 #################################################################################
 cmake_minimum_required(VERSION 3.10)
@@ -13,7 +13,7 @@ set(VCPKG_FEATURE_FLAGS "versions")
 
 project(bitserializer
   VERSION 0.44.0
-  DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML)"
+  DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV)"
   LANGUAGES CXX)
 
 include(GNUInstallDirs)
@@ -34,7 +34,7 @@ message(STATUS "[Option] BUILD_PUGIXML_ARCHIVE: ${BUILD_PUGIXML_ARCHIVE}")
 option(BUILD_RAPIDYAML_ARCHIVE "Build RapidYAML archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 
-option(BUILD_RAPIDYAML_ARCHIVE "Build CSV archive" OFF)
+option(BUILD_CSV_ARCHIVE "Build CSV archive" OFF)
 message(STATUS "[Option] BUILD_CSV_ARCHIVE: ${BUILD_CSV_ARCHIVE}")
 
 option(BUILD_TESTS "Build tests" OFF)
@@ -147,7 +147,10 @@ endif()
 # BitSerializer CSV archive
 if(BUILD_CSV_ARCHIVE)
     set(CSV_ARCHIVE_NAME "csv-archive")
-    add_library(${CSV_ARCHIVE_NAME} STATIC "src/csv_archive.cpp")
+    add_library(${CSV_ARCHIVE_NAME} STATIC
+        "src/csv/csv_archive.cpp"
+        "src/csv/csv_readers.h" "src/csv/csv_readers.cpp"
+        "src/csv/csv_writers.h" "src/csv/csv_writers.cpp")
     add_library(${BITSERIALIZER_NAMESPACE}::${CSV_ARCHIVE_NAME} ALIAS ${CSV_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${CSV_ARCHIVE_NAME})
 
@@ -233,6 +236,5 @@ endif()
 
 if(BUILD_CSV_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/csv_archive.h
-            LIBRARY ${CMAKE_INSTALL_LIBDIR}/bitserializer
             PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()

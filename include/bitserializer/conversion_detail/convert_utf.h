@@ -721,11 +721,11 @@ namespace BitSerializer::Convert
 		char buffer[tempBufferSize];
 		const auto origPos = inputStream.tellg();
 		inputStream.read(buffer, tempBufferSize);
-		const size_t readBytesCount = static_cast<size_t>(inputStream.gcount());
+		const auto lastReadSize = static_cast<size_t>(inputStream.gcount());
 
 		// Detect encoding
 		size_t dataOffset = 0;
-		auto detectedUtf = DetectEncoding(std::string_view(buffer, readBytesCount), dataOffset);
+		const auto detectedUtf = DetectEncoding(std::string_view(buffer, lastReadSize), dataOffset);
 
 		// Get back to stream position
 		if (inputStream.eof())
@@ -735,9 +735,9 @@ namespace BitSerializer::Convert
 		}
 		if (skipBomWhenFound)
 		{
-			if (readBytesCount != dataOffset)
+			if (lastReadSize != dataOffset)
 			{
-				inputStream.seekg(origPos + std::streamoff(dataOffset));
+				inputStream.seekg(origPos + static_cast<std::streamoff>(dataOffset));
 			}
 		}
 		else
@@ -784,6 +784,12 @@ namespace BitSerializer::Convert
 		using utf_type = TTargetUtfType;
 		using target_char_type = typename TTargetUtfType::char_type;
 		static constexpr size_t chunk_size = ChunkSize;
+
+		CEncodedStreamReader(const CEncodedStreamReader&) = delete;
+		CEncodedStreamReader(CEncodedStreamReader&& encodedStreamReader) = delete;
+		CEncodedStreamReader& operator=(const CEncodedStreamReader&) = delete;
+		CEncodedStreamReader& operator=(CEncodedStreamReader&&) = delete;
+		~CEncodedStreamReader() = default;
 
 		CEncodedStreamReader(std::istream& inputStream, EncodeErrorPolicy encodeErrorPolicy = EncodeErrorPolicy::WriteErrorMark,
 			const target_char_type* errorMark = Detail::GetDefaultErrorMark<target_char_type>())
@@ -870,11 +876,6 @@ namespace BitSerializer::Convert
 		}
 
 	private:
-		CEncodedStreamReader(const CEncodedStreamReader&) = delete;
-		CEncodedStreamReader(CEncodedStreamReader&& encodedStreamReader) = delete;
-		CEncodedStreamReader& operator=(const CEncodedStreamReader&) = delete;
-		CEncodedStreamReader& operator=(CEncodedStreamReader&&) = delete;
-
 		template <typename T>
 		T* GetAlignedEndDataPtr() noexcept {
 			return reinterpret_cast<T*>(mEndDataPtr - ((mEndDataPtr - mStartDataPtr) % sizeof(T)));
@@ -896,10 +897,10 @@ namespace BitSerializer::Convert
 
 			// Read next chunk
 			mInputStream.read(mEndDataPtr, static_cast<std::streamsize>(mEndBufferPtr - mEndDataPtr));
-			const auto readedBytes = mInputStream.gcount();
-			mEndDataPtr += readedBytes;
+			const auto lastReadSize = mInputStream.gcount();
+			mEndDataPtr += lastReadSize;
 			assert(mStartDataPtr >= mEncodedBuffer && mStartDataPtr <= mEndDataPtr);
-			return readedBytes != 0;
+			return lastReadSize != 0;
 		}
 
 		UtfType mUtfType;

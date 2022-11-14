@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -15,7 +15,8 @@ namespace BitSerializer::Convert
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>The converted value</returns>
-	/// <exception cref="std::out_of_range">Thrown when value cannot be converted.</exception>
+	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
 	template <typename TOut, typename TIn>
 	TOut To(TIn&& value)
 	{
@@ -44,7 +45,8 @@ namespace BitSerializer::Convert
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>UTF-8 string</returns>
-	/// <exception cref="std::out_of_range">Thrown when value cannot be converted.</exception>
+	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
 	template <typename TIn>
 	std::string ToString(TIn&& value) {
 		return To<std::string>(std::forward<TIn>(value));
@@ -55,7 +57,8 @@ namespace BitSerializer::Convert
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>UTF-16 string</returns>
-	/// <exception cref="std::out_of_range">Thrown when value cannot be converted.</exception>
+	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
 	template <typename TIn>
 	std::wstring ToWString(TIn&& value) {
 		return To<std::wstring>(std::forward<TIn>(value));

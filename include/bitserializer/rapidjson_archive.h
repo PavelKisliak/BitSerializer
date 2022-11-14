@@ -498,7 +498,7 @@ protected:
 	using char_type = typename TEncoding::Ch;
 
 public:
-	explicit RapidJsonRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
+	RapidJsonRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
@@ -508,7 +508,7 @@ public:
 			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
 	}
 
-	explicit RapidJsonRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
+	RapidJsonRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&encodedOutputStr)
@@ -516,7 +516,7 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	explicit RapidJsonRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
+	RapidJsonRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)

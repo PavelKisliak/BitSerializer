@@ -157,13 +157,30 @@ Value1,Value2,Value3
 	EXPECT_EQ("Value2", actual);
 }
 
-TYPED_TEST(CsvReaderTest, ShouldParseWithCustomDelimiter)
+TYPED_TEST(CsvReaderTest, ShouldParseWithCustomSeparator)
 {
 	// Arrange
 	const std::string csv = R"(Column1;Column2;Column3
 Value1;Value2;Value3
 )";
 	this->PrepareCsvReader(csv, true, ';');
+
+	// Act
+	std::string actual;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	EXPECT_TRUE(this->mCsvReader->ReadValue("Column2", actual));
+
+	// Assert
+	EXPECT_EQ("Value2", actual);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldParseWithSpaceAsCustomSeparator)
+{
+	// Arrange
+	const std::string csv = R"(Column1 Column2 Column3
+Value1 Value2 Value3
+)";
+	this->PrepareCsvReader(csv, true, ' ');
 
 	// Act
 	std::string actual;
@@ -392,7 +409,7 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedStartQuotes)
 	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
 }
 
-TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterDelimiter)
+TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterSeparator)
 {
 	// Arrange
 	const std::string csv = R"(Value1, "Value2")";

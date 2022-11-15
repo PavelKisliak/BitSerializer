@@ -106,5 +106,10 @@ namespace BitSerializer
 		/// </summary>
 		/// <seealso cref="MismatchedTypesPolicy" />
 		MismatchedTypesPolicy mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
+
+		/// <summary>
+		/// Values separator, currently used only for CSV format (allowed: ',', ';', '\t', ' ', '|').
+		/// </summary>
+		char valuesSeparator = ',';
 	};
 }

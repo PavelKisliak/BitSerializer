@@ -59,6 +59,21 @@ TYPED_TEST(CsvWriterTest, ShouldWriteWithCustomSeparator)
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
+TYPED_TEST(CsvWriterTest, ShouldWriteWithSpaceAsCustomSeparator)
+{
+	// Arrange
+	this->PrepareCsvReader(true, ' ');
+
+	// Act
+	this->mCsvWriter->WriteValue("Name1", "Value1");
+	this->mCsvWriter->WriteValue("Name2", "Value2");
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = "Name1 Name2\r\nValue1 Value2\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
+}
+
 TYPED_TEST(CsvWriterTest, ShouldWriteWithQuotedSeparator)
 {
 	// Arrange

@@ -25,6 +25,7 @@ struct CsvArchiveTraits
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
+	static constexpr char allowed_separators[] = { ',', ';', '\t', ' ', '|' };
 
 protected:
 	~CsvArchiveTraits() = default;

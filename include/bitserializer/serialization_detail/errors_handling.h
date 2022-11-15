@@ -14,6 +14,7 @@ namespace BitSerializer
 	/// </summary>
 	enum class SerializationErrorCode
 	{
+		InvalidOptions,
 		ParsingError,
 		InputOutputError,
 		UnsupportedEncoding,
@@ -24,6 +25,7 @@ namespace BitSerializer
 	};
 
 	REGISTER_ENUM(SerializationErrorCode, {
+		{ SerializationErrorCode::InvalidOptions, "Invalid options" },
 		{ SerializationErrorCode::ParsingError, "Parsing error" },
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },
 		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" },

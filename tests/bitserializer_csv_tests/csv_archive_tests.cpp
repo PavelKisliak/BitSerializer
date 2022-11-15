@@ -170,6 +170,14 @@ TEST_F(CsvArchiveTests, ThrowExceptionWhenBadSyntaxInSource)
 	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x\n10,20"), BitSerializer::SerializationException);
 }
 
+TEST_F(CsvArchiveTests, ThrowExceptionWhenUnsupportedSeparator)
+{
+	SerializationOptions options;
+	options.valuesSeparator = '+';
+	TestPointClass testList[1];
+	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x+y\n10+20", options), BitSerializer::SerializationException);
+}
+
 //-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenMissedRequiredValue) {
 	TestValidationForNamedValues<CsvArchive, TestClassForCheckValidation<int>>();

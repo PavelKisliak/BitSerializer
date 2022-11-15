@@ -207,7 +207,7 @@ public:
 		}
 		else
 		{
-			auto child = mNode.append_child(GetKeyByValueType<T>());
+			auto child = mNode.append_child("value");
 			if (!child.empty())
 			{
 				PugiXmlExtensions::SaveValue(child, value);
@@ -264,43 +264,6 @@ protected:
 			return xmlNode;
 		}
 		throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
-	}
-
-	template <typename T>
-	static constexpr const pugi::char_t* GetKeyByValueType() noexcept
-	{
-		if constexpr (std::is_null_pointer_v<T>)
-			return PUGIXML_TEXT("null");
-
-		if constexpr (std::is_same_v<T, bool>)
-			return PUGIXML_TEXT("bool");
-
-		if constexpr (std::is_same_v<T, int8_t>)
-			return PUGIXML_TEXT("byte");
-		if constexpr (std::is_same_v<T, uint8_t>)
-			return PUGIXML_TEXT("unsignedByte");
-
-		if constexpr (std::is_same_v<T, int16_t>)
-			return PUGIXML_TEXT("short");
-		if constexpr (std::is_same_v<T, uint16_t>)
-			return PUGIXML_TEXT("unsignedShort");
-
-		if constexpr (std::is_same_v<T, int32_t>)
-			return PUGIXML_TEXT("int");
-		if constexpr (std::is_same_v<T, uint32_t>)
-			return PUGIXML_TEXT("unsignedInt");
-
-		if constexpr (std::is_same_v<T, int64_t>)
-			return PUGIXML_TEXT("long");
-		if constexpr (std::is_same_v<T, uint64_t>)
-			return PUGIXML_TEXT("unsignedLong");
-
-		if constexpr (std::is_same_v<T, float>)
-			return PUGIXML_TEXT("float");
-		if constexpr (std::is_same_v<T, double>)
-			return PUGIXML_TEXT("double");
-
-		return PUGIXML_TEXT("string");
 	}
 
 	pugi::xml_node mNode;

@@ -38,7 +38,7 @@ namespace BitSerializer::Csv::Detail
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 	}
 
-	CsvReadRootScope::CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
+	CsvReadRootScope::CsvReadRootScope(std::string_view encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(std::make_unique<CCsvStringReader>(encodedInputStr, true, serializationContext.GetOptions().valuesSeparator))
 	{

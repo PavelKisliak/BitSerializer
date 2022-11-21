@@ -236,7 +236,7 @@ TEST(JsonRestCpp, SerializeToFile) {
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowExceptionWhenBadSyntaxInSource) {
 	int testInt = 0;
-	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::ParsingException);
 }
 
 //-----------------------------------------------------------------------------

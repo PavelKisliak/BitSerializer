@@ -79,7 +79,7 @@ TYPED_TEST(CsvReaderTest, ShouldReturnTrueWhenFileIsEmpty)
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenExpectedHeaderButFileIsEmpty)
 {
 	// Arrange / Act / Assert
-	EXPECT_THROW(this->PrepareCsvReader("", true), BitSerializer::SerializationException);
+	EXPECT_THROW(this->PrepareCsvReader("", true), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReturnTrueWhenEndOfFile)
@@ -406,7 +406,7 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedStartQuotes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterSeparator)
@@ -416,7 +416,7 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterSep
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenNotEscapedDoubleQuotes)
@@ -426,7 +426,7 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenNotEscapedDoubleQuotes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedEndQuotes)
@@ -436,7 +436,7 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedEndQuotes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMismatchNumberOfHeadersAndValues)
@@ -448,7 +448,7 @@ Value1,Value2,Value3
 	this->PrepareCsvReader(csv, true);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMismatchNumberOfValuesInRows)
@@ -461,5 +461,5 @@ Value1,Value2,Value3,Value4
 
 	// Act / Assert
 	EXPECT_TRUE(this->mCsvReader->ParseNextRow());
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::SerializationException);
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
 }

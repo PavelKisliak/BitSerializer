@@ -508,7 +508,7 @@ public:
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
 		if (!result)
-			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
+			throw ParsingException(result.description(), 0, result.offset);
 	}
 
 	PugiXmlRootScope(std::string& outputStr, SerializationContext& serializationContext)
@@ -525,7 +525,7 @@ public:
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load(inputStream);
 		if (!result)
-			throw SerializationException(SerializationErrorCode::ParsingError, result.description());
+			throw ParsingException(result.description(), 0, result.offset);
 	}
 
 	PugiXmlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)

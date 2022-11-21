@@ -204,6 +204,25 @@ TEST(RapidYamlArchive, ThrowExceptionWhenBadSyntaxInSource)
 	EXPECT_THROW(BitSerializer::LoadObject<YamlArchive>(testInt, "- 10\n20"), BitSerializer::SerializationException);
 }
 
+TEST(RapidYamlArchive, ThrowParsingExceptionWithCorrectPosition)
+{
+	TestPointClass testList[2];
+	try
+	{
+		const auto testYaml = "- 10\n- 20\n30";
+		BitSerializer::LoadObject<YamlArchive>(testList, testYaml);
+		EXPECT_FALSE(true);
+	}
+	catch (const BitSerializer::ParsingException& ex)
+	{
+		EXPECT_EQ(3, ex.Line);
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
+}
+
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 	TestValidationForNamedValues<YamlArchive, TestClassForCheckValidation<bool>>();

@@ -309,7 +309,7 @@ private:
 class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	CsvReadRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext);
+	CsvReadRootScope(std::string_view encodedInputStr, SerializationContext& serializationContext);
 	CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext);
 
 	/// <summary>

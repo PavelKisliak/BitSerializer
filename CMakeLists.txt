@@ -46,7 +46,9 @@ message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 #################################################################################
 # Global compiler configuration
 #################################################################################
-set(CMAKE_CXX_STANDARD 17)
+if (NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0")

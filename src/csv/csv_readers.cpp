@@ -21,8 +21,7 @@ namespace
 		}
 		else
 		{
-			throw SerializationException(SerializationErrorCode::ParsingError,
-				"Missing starting double-quotes, line: " + Convert::ToString(lineNumber));
+			throw ParsingException("Missing starting double-quotes, line: " + Convert::ToString(lineNumber), lineNumber);
 		}
 		if (value[endValuePos - 1] == '"')
 		{
@@ -30,8 +29,7 @@ namespace
 		}
 		else
 		{
-			throw SerializationException(SerializationErrorCode::ParsingError,
-				"Missing trailing double-quotes, line: " + Convert::ToString(lineNumber));
+			throw ParsingException("Missing trailing double-quotes, line: " + Convert::ToString(lineNumber), lineNumber);
 		}
 
 		// Copy with skip one of two double-quotes
@@ -71,7 +69,7 @@ namespace BitSerializer::Csv::Detail
 			}
 			else
 			{
-				throw SerializationException(SerializationErrorCode::ParsingError, "Input string is empty, expected at least a header line");
+				throw ParsingException("Input string is empty, expected at least a header line");
 			}
 		}
 	}
@@ -116,21 +114,21 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		const bool firstDataRow = mLineNumber == (mWithHeader ? 1 : 0);
+		const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
 		if (ParseLine(mRowValues))
 		{
 			if (mWithHeader)
 			{
 				if (mHeader.size() != mRowValues.size())
 				{
-					throw SerializationException(SerializationErrorCode::ParsingError,
-						"Number of values are different than in header, line: " + Convert::ToString(mLineNumber));
+					throw ParsingException("Number of values are different than in header, line: "
+						+ Convert::ToString(mLineNumber), mLineNumber);
 				}
 			}
-			else if (mLineNumber >= 1 && mPrevValuesCount != mRowValues.size())
+			else if (mLineNumber >= 2 && mPrevValuesCount != mRowValues.size())
 			{
-				throw SerializationException(SerializationErrorCode::ParsingError,
-					"Number of values are different than in previous line, line: " + Convert::ToString(mLineNumber));
+				throw ParsingException("Number of values are different than in previous line, line: "
+					+ Convert::ToString(mLineNumber), mLineNumber);
 			}
 
 			++mLineNumber;
@@ -198,7 +196,7 @@ namespace BitSerializer::Csv::Detail
 			if (valueQuotesCount)
 			{
 				out_values.emplace_back(
-					UnescapeValue(std::string_view(mSourceString.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
+					UnescapeValue(std::string_view(mSourceString.data() + startValuePos, endValuePos - startValuePos), mLineNumber));
 			}
 			else
 			{
@@ -230,7 +228,7 @@ namespace BitSerializer::Csv::Detail
 			}
 			else
 			{
-				throw SerializationException(SerializationErrorCode::ParsingError, "Input stream is empty, expected at least a header line");
+				throw ParsingException("Input stream is empty, expected at least a header line");
 			}
 		}
 	}
@@ -275,21 +273,21 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		const bool firstDataRow = mLineNumber == (mWithHeader ? 1 : 0);
+		const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
 		if (ParseLine(mRowValues))
 		{
 			if (mWithHeader)
 			{
 				if (mHeader.size() != mRowValues.size())
 				{
-					throw SerializationException(SerializationErrorCode::ParsingError,
-						"Number of values are different than in header, line: " + Convert::ToString(mLineNumber));
+					throw ParsingException("Number of values are different than in header, line: "
+						+ Convert::ToString(mLineNumber), mLineNumber);
 				}
 			}
-			else if (mLineNumber >= 1 && mPrevValuesCount != mRowValues.size())
+			else if (mLineNumber >= 2 && mPrevValuesCount != mRowValues.size())
 			{
-				throw SerializationException(SerializationErrorCode::ParsingError,
-					"Number of values are different than in previous line, line: " + Convert::ToString(mLineNumber));
+				throw ParsingException("Number of values are different than in previous line, line: "
+					+ Convert::ToString(mLineNumber), mLineNumber);
 			}
 
 			++mLineNumber;
@@ -374,7 +372,7 @@ namespace BitSerializer::Csv::Detail
 			if (valueQuotesCount)
 			{
 				out_values.emplace_back(
-					UnescapeValue(std::string_view(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber + 1));
+					UnescapeValue(std::string_view(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber));
 			}
 			else
 			{

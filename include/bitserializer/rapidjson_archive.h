@@ -505,7 +505,7 @@ public:
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		if (mRootJson.Parse(encodedInputStr.data(), encodedInputStr.length()).HasParseError())
-			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
+			throw ParsingException(rapidjson::GetParseError_En(mRootJson.GetParseError()), 0, mRootJson.GetErrorOffset());
 	}
 
 	RapidJsonRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
@@ -525,7 +525,7 @@ public:
 		rapidjson::IStreamWrapper isw(encodedInputStream);
 		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);
 		if (mRootJson.ParseStream(eis).HasParseError())
-			throw SerializationException(SerializationErrorCode::ParsingError, rapidjson::GetParseError_En(mRootJson.GetParseError()));
+			throw ParsingException(rapidjson::GetParseError_En(mRootJson.GetParseError()), 0, mRootJson.GetErrorOffset());
 	}
 
 	RapidJsonRootScope(std::ostream& outputStream, SerializationContext& serializationContext)

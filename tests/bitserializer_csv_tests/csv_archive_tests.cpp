@@ -163,11 +163,30 @@ TEST_F(CsvArchiveTests, SerializeToFile) {
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------
-TEST_F(CsvArchiveTests, ThrowExceptionWhenBadSyntaxInSource)
+TEST_F(CsvArchiveTests, ThrowParsingExceptionWhenBadSyntaxInSource)
 {
 	TestPointClass testList[1];
-	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x,y\n10"), BitSerializer::SerializationException);
-	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x\n10,20"), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x,y\n10"), BitSerializer::ParsingException);
+	EXPECT_THROW(BitSerializer::LoadObject<CsvArchive>(testList, "x\n10,20"), BitSerializer::ParsingException);
+}
+
+TEST_F(CsvArchiveTests, ThrowParsingExceptionWithCorrectPosition)
+{
+	TestPointClass testList[2];
+	try
+	{
+		const auto testCsv = "x,y\n10,20\n11,\"21\n";
+		BitSerializer::LoadObject<CsvArchive>(testList, testCsv);
+		EXPECT_FALSE(true);
+	}
+	catch (const ParsingException& ex)
+	{
+		EXPECT_EQ(3, ex.Line);
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
 }
 
 TEST_F(CsvArchiveTests, ThrowExceptionWhenUnsupportedSeparator)

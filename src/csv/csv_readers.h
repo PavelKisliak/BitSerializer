@@ -29,7 +29,7 @@ namespace BitSerializer::Csv::Detail
 		std::vector<std::string> mHeader;
 		std::vector<std::string> mRowValues;
 		size_t mCurrentPos = 0;
-		size_t mLineNumber = 0;
+		size_t mLineNumber = 1;
 		size_t mRowIndex = 0;
 		size_t mValueIndex = 0;
 		size_t mPrevValuesCount = 0;
@@ -58,7 +58,7 @@ namespace BitSerializer::Csv::Detail
 		std::vector<std::string> mHeader;
 		std::vector<std::string> mRowValues;
 		size_t mCurrentPos = 0;
-		size_t mLineNumber = 0;
+		size_t mLineNumber = 1;
 		size_t mRowIndex = 0;
 		size_t mValueIndex = 0;
 		size_t mPrevValuesCount = 0;

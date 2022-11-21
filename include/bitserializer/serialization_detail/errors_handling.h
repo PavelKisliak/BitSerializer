@@ -70,6 +70,23 @@ namespace BitSerializer
 	};
 
 	/// <summary>
+	/// Parsing exception
+	/// </summary>
+	/// <seealso cref="SerializationException" />
+	class ParsingException : public SerializationException
+	{
+	public:
+		explicit ParsingException(const std::string& message, size_t line = 0, size_t offset = 0)
+			: SerializationException(SerializationErrorCode::ParsingError, message)
+			, Line(line)
+			, Offset(offset)
+		{ }
+
+		const size_t Line;
+		const size_t Offset;
+	};
+
+	/// <summary>
 	/// validation exception
 	/// </summary>
 	/// <seealso cref="SerializationException" />

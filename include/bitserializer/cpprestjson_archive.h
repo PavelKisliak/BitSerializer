@@ -443,7 +443,7 @@ public:
 		mRootJson = web::json::value::parse(inputStr, error);
 #endif
 		if (error) {
-			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
+			throw ParsingException(error.category().message(error.value()));
 		}
 	}
 
@@ -469,7 +469,7 @@ public:
 		std::error_code error;
 		mRootJson = web::json::value::parse(inputStream, error);
 		if (error) {
-			throw SerializationException(SerializationErrorCode::ParsingError, error.category().message(error.value()));
+			throw ParsingException(error.category().message(error.value()));
 		}
 	}
 

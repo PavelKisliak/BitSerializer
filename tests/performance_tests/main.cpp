@@ -117,11 +117,11 @@ TestArchiveMetadata TestArchivePerformance()
 	// Display result
 	//------------------------------------------------------------------------------
 	// Save
-	const size_t saveCharsSpeed = NanosecondsInSecond / metadata.BitSerializerSaveTest.Time.count() * metadata.BitSerializerSaveTest.ProcessedChars;
+	const uint64_t saveCharsSpeed = NanosecondsInSecond / metadata.BitSerializerSaveTest.Time.count() * metadata.BitSerializerSaveTest.ProcessedChars;
 	std::cout << metadata.Name << " save speed (kb/s): " << saveCharsSpeed / 1024 << " | Base lib: ";
 	if (performanceTest.IsUseNativeLib())
 	{
-		const size_t saveNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibSaveTest.Time.count() * metadata.BaseLibSaveTest.ProcessedChars;
+		const uint64_t saveNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibSaveTest.Time.count() * metadata.BaseLibSaveTest.ProcessedChars;
 		const auto diffSavePercent = std::round((saveCharsSpeed / (saveNativeLibSpeed / 100.0) - 100) * 10) / 10;
 		std::cout << saveNativeLibSpeed / 1024 << " | difference: " << diffSavePercent << "%" << std::endl;
 	}
@@ -131,11 +131,11 @@ TestArchiveMetadata TestArchivePerformance()
 	}
 
 	// Load
-	const size_t loadCharsSpeed = NanosecondsInSecond / metadata.BitSerializerLoadTest.Time.count() * metadata.BitSerializerLoadTest.ProcessedChars;
+	const uint64_t loadCharsSpeed = NanosecondsInSecond / metadata.BitSerializerLoadTest.Time.count() * metadata.BitSerializerLoadTest.ProcessedChars;
 	std::cout << metadata.Name << " load speed (kb/s): " << loadCharsSpeed / 1024 << " | Base lib: ";
 	if (performanceTest.IsUseNativeLib())
 	{
-		const size_t loadNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibLoadTest.Time.count() * metadata.BaseLibLoadTest.ProcessedChars;
+		const uint64_t loadNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibLoadTest.Time.count() * metadata.BaseLibLoadTest.ProcessedChars;
 		const auto diffLoadPercent = std::round((loadCharsSpeed / (loadNativeLibSpeed / 100.0) - 100) * 10) / 10;
 		std::cout << loadNativeLibSpeed / 1024 << " | difference: " << diffLoadPercent << "%" << std::endl;
 	}

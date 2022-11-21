@@ -592,7 +592,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			static void ErrorCallback(const char* msg, size_t length, ryml::Location location, [[maybe_unused]] void* user_data)
 			{
-				throw SerializationException(SerializationErrorCode::ParsingError, { msg, msg + length });
+				throw ParsingException({ msg, msg + length }, location.line);
 			}
 
 			ryml::Tree mTree;

@@ -260,7 +260,34 @@ TEST(PugiXmlArchive, SerializeToFile) {
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowExceptionWhenBadSyntaxInSource) {
 	auto fixture = BuildFixture<TestClassWithSubTypes<std::string>>();
-	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, PUGIXML_TEXT("<root>Hello")), BitSerializer::SerializationException);
+	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, PUGIXML_TEXT("<root>Hello")), BitSerializer::ParsingException);
+}
+
+TEST(PugiXmlArchive, ThrowParsingExceptionWithCorrectPosition)
+{
+	const std::string testJson = R"(<root>
+	<object>
+		<x>10</x>
+		<y>20</y>
+	<object>
+		<x>10</x>
+		y>20</y>
+	<object>
+</root>)";
+	TestPointClass testList[2];
+	try
+	{
+		BitSerializer::LoadObject<XmlArchive>(testList, testJson);
+		EXPECT_FALSE(true);
+	}
+	catch (const BitSerializer::ParsingException& ex)
+	{
+		EXPECT_TRUE(ex.Offset > 63 && ex.Offset < testJson.size());
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
 }
 
 //-----------------------------------------------------------------------------

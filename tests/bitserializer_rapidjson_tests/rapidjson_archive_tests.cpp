@@ -350,6 +350,28 @@ TEST(RapidJsonArchive, ThrowExceptionWhenBadSyntaxInSource)
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
 }
 
+TEST(RapidJsonArchive, ThrowParsingExceptionWithCorrectPosition)
+{
+	const char* testJson = R"([
+	{ "x": 10, "y": 20},
+	{ "x": 11, y: 21}
+])";
+	TestPointClass testList[2];
+	try
+	{
+		BitSerializer::LoadObject<JsonArchive>(testList, testJson);
+		EXPECT_FALSE(true);
+	}
+	catch (const BitSerializer::ParsingException& ex)
+	{
+		EXPECT_TRUE(ex.Offset > 24 && ex.Offset < std::strlen(testJson));
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
+}
+
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 	TestValidationForNamedValues<JsonArchive, TestClassForCheckValidation<bool>>();

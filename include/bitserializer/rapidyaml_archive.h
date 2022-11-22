@@ -164,10 +164,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 			static bool IsNullYamlValue(c4::csubstr str)
 			{
 				return str.data() == nullptr ||
-					std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt)) ||
-					std::equal(str.begin(), str.end(), std::cbegin(nullValue), std::cend(nullValue),
-						[](const char lhs, const char rhs) {
-							return std::tolower(lhs) == std::tolower(rhs);
+					std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt) - 1) ||
+					std::equal(str.begin(), str.end(), std::cbegin(nullValue), std::cend(nullValue) - 1,
+						[](int lhs, int rhs) {
+							return std::tolower(lhs) == rhs;
 				});
 			}
 

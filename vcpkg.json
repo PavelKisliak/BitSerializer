@@ -1,24 +1,24 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
-    "name": "bitserializer",
-    "version": "0.44.0",
-    "homepage": "https://bitbucket.org/Pavel_Kisliak/bitserializer",
-    "description": "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML)",
-    "dependencies": [
-        {
-            "name": "cpprestsdk",
-            "default-features": false
-        },
-        "rapidjson",
-        "pugixml",
-        {
-            "name": "ryml",
-            "platform": "!osx"
-        },
-        "gtest"
-    ],
-    "builtin-baseline": "2a31089e777fc187f1cc05338250b8e1810cfb52",
-    "overrides": [
-        { "name": "gtest", "version": "1.10.0" }
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "bitserializer",
+  "version": "0.44.0",
+  "homepage": "https://bitbucket.org/Pavel_Kisliak/bitserializer",
+  "description": "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV)",
+  "dependencies": [
+    {
+      "name": "cpprestsdk",
+      "default-features": false
+    },
+    "rapidjson",
+    "pugixml",
+    "ryml",
+    "gtest"
+  ],
+  "builtin-baseline": "e81b172505845c4cd48f30f668b91bd0e5e24b5a",
+  "overrides": [
+    {
+      "name": "gtest",
+      "version": "1.11.0"
+    }
+  ]
 }

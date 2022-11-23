@@ -452,6 +452,21 @@ namespace BitSerializer::Yaml::RapidYaml {
 		template <SerializeMode TMode>
 		class RapidYamlRootScope final: public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
+			template <typename T>
+			struct ryml_has_parse_in_arena
+			{
+			private:
+				template <typename U>
+				static decltype(std::declval<U>().parse_in_arena(std::declval<c4::csubstr>(), std::declval<c4::csubstr>()), void(), std::true_type()) test(int);
+
+				template <typename>
+				static std::false_type test(...);
+
+			public:
+				typedef decltype(test<T>(0)) type;
+				enum { value = type::value };
+			};
+
 		public:
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
 			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
@@ -464,7 +479,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
 				Init();
-				mTree = ryml::parse(c4::to_csubstr(inputStr));
+				Parse<c4::yml::Parser>(inputStr);
 			}
 
 			RapidYamlRootScope(const std::string& inputStr, SerializationContext& serializationContext)
@@ -475,7 +490,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 
 				Init();
-				mTree = ryml::parse(c4::to_csubstr(inputStr));
+				Parse<c4::yml::Parser>(inputStr);
 			}
 
 			RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext)
@@ -502,8 +517,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 				Init();
 				// ToDo: base library does not support std::stream (check in new versions)
-				const std::string input(std::istreambuf_iterator<char>(inputStream), {});
-				mTree = ryml::parse(c4::to_csubstr(input));
+				const std::string inputStr(std::istreambuf_iterator<char>(inputStream), {});
+				Parse<c4::yml::Parser>(inputStr);
 			}
 
 			RapidYamlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
@@ -582,11 +597,29 @@ namespace BitSerializer::Yaml::RapidYaml {
 			void Init()
 			{
 				mRootNode = mTree.rootref();
-				// Set RapidYaml error handler
+				// Set global RapidYaml error handler
 				if (c4::yml::get_callbacks().m_error != &RapidYamlRootScope::ErrorCallback)
 				{
 					ryml::set_callbacks(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
 					c4::set_error_flags(c4::ON_ERROR_CALLBACK);
+				}
+			}
+
+			template <typename T>
+			void Parse(std::string_view inputStr)
+			{
+				if constexpr (ryml_has_parse_in_arena<T>::value)
+				{
+					T parser;
+					// ToDo: Currently, local callbacks can't be used due absent interface for setting c4::ON_ERROR_CALLBACK flag
+					//T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+					//parser.add_flags(c4::ON_ERROR_CALLBACK);
+					parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()), &mTree);
+				}
+				else
+				{
+					// For keep compatibility with old versions of RapidYaml library
+					c4::yml::parse(c4::csubstr(inputStr.data(), inputStr.size()), &mTree);
 				}
 			}
 

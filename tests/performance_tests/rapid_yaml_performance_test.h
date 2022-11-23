@@ -88,7 +88,8 @@ public:
 
 	size_t LoadModelViaNativeLib() override
 	{
-		auto tree = ryml::parse(c4::to_csubstr(mNativeLibOutputData));
+		ryml::Tree tree;
+		ryml::parse_in_arena(c4::to_csubstr(mNativeLibOutputData), &tree);
 		auto root = tree.rootref();
 
 		// Load array of booleans

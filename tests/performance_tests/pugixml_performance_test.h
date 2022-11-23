@@ -29,25 +29,25 @@ public:
 		// Save array of booleans
 		auto booleansXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfBooleans"));
 		for (auto item : mSourceTestModel.mArrayOfBooleans) {
-			booleansXmlNode.append_child(PUGIXML_TEXT("bool")).text().set(item);
+			booleansXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
 		}
 
 		// Save array of integers
 		auto integersXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfInts"));
 		for (const auto item : mSourceTestModel.mArrayOfInts) {
-			integersXmlNode.append_child(PUGIXML_TEXT("long")).text().set(item);
+			integersXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
 		}
 
 		// Save array of floats
 		auto floatsXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfDoubles"));
 		for (const auto item : mSourceTestModel.mArrayOfDoubles) {
-			floatsXmlNode.append_child(PUGIXML_TEXT("double")).text().set(item);
+			floatsXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
 		}
 
 		// Save array of strings
 		auto stringsXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfStrings"));
 		for (const auto& item : mSourceTestModel.mArrayOfStrings) {
-			stringsXmlNode.append_child(PUGIXML_TEXT("string")).text().set(item.c_str());
+			stringsXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item.c_str());
 		}
 
 		// Save array of objects

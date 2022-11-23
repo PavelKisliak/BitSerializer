@@ -36,9 +36,9 @@ jobs:
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | v4 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v5 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v4 | ${{ parameters.name }}
+        vcpkg | v5 | ${{ parameters.name }}
       path: ${{ parameters.vcpkgCacheDir }}
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages

@@ -477,8 +477,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mOutput(nullptr)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-
-				Init();
 				Parse<c4::yml::Parser>(inputStr);
 			}
 
@@ -488,8 +486,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mOutput(nullptr)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-
-				Init();
 				Parse<c4::yml::Parser>(inputStr);
 			}
 
@@ -499,8 +495,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mOutput(&outputStr)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-
-				Init();
 			}
 
 			RapidYamlRootScope(std::istream& inputStream, SerializationContext& serializationContext)
@@ -515,7 +509,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 					throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
 				}
 
-				Init();
 				// ToDo: base library does not support std::stream (check in new versions)
 				const std::string inputStr(std::istreambuf_iterator<char>(inputStream), {});
 				Parse<c4::yml::Parser>(inputStr);
@@ -527,8 +520,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				, mOutput(&outputStream)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-
-				Init();
 			}
 
 			/// <summary>
@@ -594,33 +585,25 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlRootScope(RapidYamlRootScope&&) = default;
 			RapidYamlRootScope& operator=(RapidYamlRootScope&&) = default;
 
-			void Init()
-			{
-				mRootNode = mTree.rootref();
-				// Set global RapidYaml error handler
-				if (c4::yml::get_callbacks().m_error != &RapidYamlRootScope::ErrorCallback)
-				{
-					ryml::set_callbacks(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
-					c4::set_error_flags(c4::ON_ERROR_CALLBACK);
-				}
-			}
-
 			template <typename T>
 			void Parse(std::string_view inputStr)
 			{
 				if constexpr (ryml_has_parse_in_arena<T>::value)
 				{
-					T parser;
-					// ToDo: Currently, local callbacks can't be used due absent interface for setting c4::ON_ERROR_CALLBACK flag
-					//T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
-					//parser.add_flags(c4::ON_ERROR_CALLBACK);
-					parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()), &mTree);
+					T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+					mTree = parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()));
 				}
 				else
 				{
 					// For keep compatibility with old versions of RapidYaml library
+					if (c4::yml::get_callbacks().m_error != &RapidYamlRootScope::ErrorCallback)
+					{
+						ryml::set_callbacks(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+						c4::set_error_flags(c4::get_error_flags() | c4::ON_ERROR_CALLBACK);
+					}
 					c4::yml::parse(c4::csubstr(inputStr.data(), inputStr.size()), &mTree);
 				}
+				mRootNode = mTree.rootref();
 			}
 
 			static void ErrorCallback(const char* msg, size_t length, ryml::Location location, [[maybe_unused]] void* user_data)
@@ -629,7 +612,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			ryml::Tree mTree;
-			RapidYamlNode mRootNode;
+			RapidYamlNode mRootNode = mTree.rootref();
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
 		};
 	}

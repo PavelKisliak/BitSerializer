@@ -37,7 +37,7 @@ public:
 	virtual ~ICsvWriter() = default;
 
 	virtual void SetEstimatedSize(size_t size) = 0;
-	virtual void WriteValue(std::string_view key, const std::string& value) = 0;
+	virtual void WriteValue(const std::string_view& key, const std::string& value) = 0;
 	virtual void NextLine() = 0;
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 };
@@ -61,7 +61,7 @@ public:
 class CCsvWriteObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext)
+	explicit CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
@@ -117,7 +117,7 @@ private:
 class CsvWriteArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CsvWriteArrayScope(ICsvWriter* csvWriter, SerializationContext& serializationContext)
+	explicit CsvWriteArrayScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
@@ -176,7 +176,7 @@ private:
 class CCsvReadObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	CCsvReadObjectScope(ICsvReader* csvReader, SerializationContext& serializationContext)
+	CCsvReadObjectScope(ICsvReader* csvReader, SerializationContext& serializationContext) noexcept
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(csvReader)
 	{ }
@@ -260,7 +260,7 @@ private:
 class CsvReadArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
-	CsvReadArrayScope(ICsvReader* csvReader, SerializationContext& serializationContext)
+	CsvReadArrayScope(ICsvReader* csvReader, SerializationContext& serializationContext) noexcept
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(csvReader)
 	{ }

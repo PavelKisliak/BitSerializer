@@ -52,7 +52,7 @@ template <SerializeMode TMode>
 class TArchiveScope
 {
 public:
-	explicit TArchiveScope(SerializationContext& serializationContext)
+	explicit TArchiveScope(SerializationContext& serializationContext) noexcept
 		: mSerializationContext(serializationContext)
 	{ }
 

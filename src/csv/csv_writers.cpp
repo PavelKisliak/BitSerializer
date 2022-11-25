@@ -3,7 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_writers.h"
-#include <algorithm>
 
 
 namespace
@@ -12,28 +11,42 @@ namespace
 
 	void WriteEscapedValue(const std::string_view& value, std::string& outputString, const char separator)
 	{
-		if (value.cend() == std::find_if(value.cbegin(), value.cend(),
-			[separator](const char sym) { return sym == '"' || sym == separator || sym == '\n'; }))
+		const char* it = value.data();
+		const char* endIt = it + value.size();
+		for (; it != endIt; ++it)
 		{
-			outputString.append(value);
-			return;
+			const char sym = *it;
+			if (sym == '"' || sym == separator || sym == '\n')
+			{
+				break;
+			}
 		}
 
-		// RFC: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes
-		outputString.push_back('"');
-		for (const char sym : value)
+		if (it == endIt)
 		{
-			if (sym == '"')
-			{
-				// RFC: Double-quote appearing inside a field must be escaped by preceding it with another double quote
-				outputString.push_back(sym);
-			}
-			outputString.push_back(sym);
+			// No any characters that must be escaped
+			outputString.append(value);
 		}
-		outputString.push_back('"');
+		else
+		{
+			// RFC: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes
+			outputString.push_back('"');
+			outputString.append(value.data(), it);
+
+			for (; it != endIt; ++it)
+			{
+				if (*it == '"')
+				{
+					// RFC: Double-quote appearing inside a field must be escaped by preceding it with another double quote
+					outputString.push_back('"');
+				}
+				outputString.push_back(*it);
+			}
+			outputString.push_back('"');
+		}
 	}
 
-	void WriteToStreamWithEncoding(std::string_view str, std::ostream& outputStream, Convert::UtfType encoding)
+	void WriteToStreamWithEncoding(const std::string_view& str, std::ostream& outputStream, Convert::UtfType encoding)
 	{
 		switch (encoding)
 		{
@@ -83,26 +96,29 @@ namespace BitSerializer::Csv::Detail
 		: mOutputString(outputString)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
-	{ }
+	{
+		mCurrentRow.reserve(256);
+		mOutputString.reserve(256);
+	}
 
 	void CCsvStringWriter::SetEstimatedSize(size_t size)
 	{
 		mEstimatedSize = size;
 	}
 
-	void CCsvStringWriter::WriteValue(std::string_view key, const std::string& value)
+	void CCsvStringWriter::WriteValue(const std::string_view& key, const std::string& value)
 	{
 		// Write keys only when it's first row
-		if (mWithHeader && mRowIndex == 0)
+		if (mRowIndex == 0 && mWithHeader)
 		{
-			if (!mCsvHeader.empty())
+			if (mValueIndex)
 			{
-				mCsvHeader.push_back(mSeparator);
+				mOutputString.push_back(mSeparator);
 			}
-			WriteEscapedValue(key, mCsvHeader, mSeparator);
+			WriteEscapedValue(key, mOutputString, mSeparator);
 		}
 
-		if (!mCurrentRow.empty())
+		if (mValueIndex)
 		{
 			mCurrentRow.push_back(mSeparator);
 		}
@@ -112,35 +128,39 @@ namespace BitSerializer::Csv::Detail
 
 	void CCsvStringWriter::NextLine()
 	{
-		// Compare number of values with previous row
-		if (mRowIndex >= 1 && mValueIndex != mPrevValuesCount)
-		{
-			throw SerializationException(SerializationErrorCode::OutOfRange,
-				"Number of values are different than in previous line");
-		}
-
 		if (mRowIndex == 0)
 		{
+			if (mWithHeader)
+			{
+				mOutputString.push_back('\r');
+				mOutputString.push_back('\n');
+			}
+
 			// Reserve output buffer
 			if (mEstimatedSize != 0)
 			{
 				constexpr size_t CrLfSize = 2;
-				const auto estimatedByteSize = mCsvHeader.size() + CrLfSize
+				const auto estimatedByteSize = mOutputString.size()
 					+ static_cast<size_t>(static_cast<double>(mCurrentRow.size() + CrLfSize) * static_cast<double>(mEstimatedSize) * 1.1);
 				mOutputString.reserve(estimatedByteSize);
 			}
-			if (mWithHeader)
+			mPrevValuesCount = mValueIndex;
+		}
+		else
+		{
+			// Compare number of values with previous row
+			if (mValueIndex != mPrevValuesCount)
 			{
-				mOutputString.append(mCsvHeader);
-				mOutputString.append({ '\r', '\n' });
+				throw SerializationException(SerializationErrorCode::OutOfRange,
+					"Number of values are different than in previous line");
 			}
 		}
 
 		mOutputString.append(mCurrentRow);
-		mOutputString.append({ '\r', '\n' });
+		mOutputString.push_back('\r');
+		mOutputString.push_back('\n');
 
 		++mRowIndex;
-		mPrevValuesCount = mValueIndex;
 		mValueIndex = 0;
 		mCurrentRow.clear();
 	}
@@ -153,25 +173,27 @@ namespace BitSerializer::Csv::Detail
 		, mSeparator(separator)
 		, mStreamOptions(streamOptions)
 	{
+		mCsvHeader.reserve(256);
+		mCurrentRow.reserve(256);
 		if (mStreamOptions.writeBom)
 		{
 			WriteBom(mOutputStream, mStreamOptions.encoding);
 		}
 	}
 
-	void CCsvStreamWriter::WriteValue(std::string_view key, const std::string& value)
+	void CCsvStreamWriter::WriteValue(const std::string_view& key, const std::string& value)
 	{
 		// Write keys only when it's first row
-		if (mWithHeader && mRowIndex == 0)
+		if (mRowIndex == 0 && mWithHeader)
 		{
-			if (!mCsvHeader.empty())
+			if (mValueIndex)
 			{
 				mCsvHeader.push_back(mSeparator);
 			}
 			WriteEscapedValue(key, mCsvHeader, mSeparator);
 		}
 
-		if (!mCurrentRow.empty())
+		if (mValueIndex)
 		{
 			mCurrentRow.push_back(mSeparator);
 		}
@@ -181,27 +203,31 @@ namespace BitSerializer::Csv::Detail
 
 	void CCsvStreamWriter::NextLine()
 	{
-		// Compare number of values with previous row
-		if (mRowIndex >= 1 && mValueIndex != mPrevValuesCount)
-		{
-			throw SerializationException(SerializationErrorCode::OutOfRange,
-				"Number of values are different than in previous line");
-		}
-
 		if (mRowIndex == 0)
 		{
 			if (mWithHeader)
 			{
-				mCsvHeader.append({ '\r', '\n' });
+				mCsvHeader.push_back('\r');
+				mCsvHeader.push_back('\n');
 				WriteToStreamWithEncoding(mCsvHeader, mOutputStream, mStreamOptions.encoding);
+			}
+			mPrevValuesCount = mValueIndex;
+		}
+		else
+		{
+			// Compare number of values with previous row
+			if (mValueIndex != mPrevValuesCount)
+			{
+				throw SerializationException(SerializationErrorCode::OutOfRange,
+					"Number of values are different than in previous line");
 			}
 		}
 
-		mCurrentRow.append({ '\r', '\n' });
+		mCurrentRow.push_back('\r');
+		mCurrentRow.push_back('\n');
 		WriteToStreamWithEncoding(mCurrentRow, mOutputStream, mStreamOptions.encoding);
 
 		++mRowIndex;
-		mPrevValuesCount = mValueIndex;
 		mValueIndex = 0;
 		mCurrentRow.clear();
 	}

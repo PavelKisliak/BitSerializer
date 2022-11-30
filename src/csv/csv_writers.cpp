@@ -141,7 +141,7 @@ namespace BitSerializer::Csv::Detail
 			{
 				constexpr size_t CrLfSize = 2;
 				const auto estimatedByteSize = mOutputString.size()
-					+ static_cast<size_t>(static_cast<double>(mCurrentRow.size() + CrLfSize) * static_cast<double>(mEstimatedSize) * 1.1);
+					+ static_cast<size_t>(static_cast<double>(mCurrentRow.size() + CrLfSize) * static_cast<double>(mEstimatedSize) * 1.2);
 				mOutputString.reserve(estimatedByteSize);
 			}
 			mPrevValuesCount = mValueIndex;

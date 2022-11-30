@@ -49,8 +49,8 @@ public:
 
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
-	virtual bool ReadValue(std::string_view key, std::string& value) = 0;
-	virtual void ReadValue(std::string& value) = 0;
+	virtual bool ReadValue(std::string_view key, std::string_view& out_value) = 0;
+	virtual void ReadValue(std::string_view& out_value) = 0;
 	virtual bool ParseNextRow() = 0;
 };
 
@@ -192,13 +192,14 @@ public:
 	template <typename TKey, typename TSym, typename TStrAllocator>
 	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
-		if constexpr (std::is_same_v<TSym, char>)
+		if (std::string_view strValue; mCsvReader->ReadValue(key, strValue))
 		{
-			return mCsvReader->ReadValue(key, value);
-		}
-		else
-		{
-			if (std::string strValue; mCsvReader->ReadValue(key, strValue))
+			if constexpr (std::is_same_v<TSym, char>)
+			{
+				value = strValue;
+				return true;
+			}
+			else
 			{
 				if (auto result = Convert::TryTo<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(strValue); result.has_value())
 				{
@@ -213,8 +214,7 @@ public:
 	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
-		std::string strValue;
-		if (mCsvReader->ReadValue(key, strValue))
+		if (std::string_view strValue; mCsvReader->ReadValue(key, strValue))
 		{
 			if (strValue.empty())
 			{
@@ -232,7 +232,7 @@ public:
 				if (GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::Overflow,
-						std::string("The size of target field '") + key + "' is not sufficient to deserialize number: " + strValue +
+						std::string("The size of target field '") + key + "' is not sufficient to deserialize number: " + std::string(strValue) +
 						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}
@@ -241,7 +241,7 @@ public:
 				if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::MismatchedTypes,
-						std::string("The type of target field '") + key + "' does not match the value being loaded: " + strValue +
+						std::string("The type of target field '") + key + "' does not match the value being loaded: " + std::string(strValue) +
 						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}

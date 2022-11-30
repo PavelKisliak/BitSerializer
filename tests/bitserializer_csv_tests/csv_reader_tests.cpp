@@ -14,6 +14,7 @@ TYPED_TEST_SUITE(CsvReaderTest, Implementations);
 
 //------------------------------------------------------------------------------
 
+
 TYPED_TEST(CsvReaderTest, ShouldReturnZeroCurrentIndexAtTheBeginning)
 {
 	// Arrange
@@ -22,6 +23,16 @@ TYPED_TEST(CsvReaderTest, ShouldReturnZeroCurrentIndexAtTheBeginning)
 
 	// Act / Assert
 	EXPECT_EQ(0, this->mCsvReader->GetCurrentIndex());
+}
+
+TYPED_TEST(CsvReaderTest, ShouldNoParseWhenInputStringIsEmpty)
+{
+	// Arrange
+	const std::string csv;
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	EXPECT_FALSE(this->mCsvReader->ParseNextRow());
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReturnCurrentIndexWhenUsedHeader)
@@ -149,7 +160,7 @@ Value1,Value2,Value3
 	this->PrepareCsvReader(csv, true);
 
 	// Act
-	std::string actual;
+	std::string_view actual;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	EXPECT_TRUE(this->mCsvReader->ReadValue("Column2", actual));
 
@@ -166,7 +177,7 @@ Value1;Value2;Value3
 	this->PrepareCsvReader(csv, true, ';');
 
 	// Act
-	std::string actual;
+	std::string_view actual;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	EXPECT_TRUE(this->mCsvReader->ReadValue("Column2", actual));
 
@@ -183,7 +194,7 @@ Value1 Value2 Value3
 	this->PrepareCsvReader(csv, true, ' ');
 
 	// Act
-	std::string actual;
+	std::string_view actual;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	EXPECT_TRUE(this->mCsvReader->ReadValue("Column2", actual));
 
@@ -198,7 +209,7 @@ TYPED_TEST(CsvReaderTest, ShouldReadValuesWithoutHeaders)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string value1, value2;
+	std::string_view value1, value2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(value1);
 	EXPECT_EQ("Value1", value1);
@@ -216,13 +227,13 @@ Row2Col1,Row2Col2
 	this->PrepareCsvReader(csv, true);
 
 	// Act / Assert
-	std::string row1col1, row2col2;
+	std::string_view row1col1, row2col2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	EXPECT_TRUE(this->mCsvReader->ReadValue("Column1", row1col1));
+	EXPECT_EQ("Row1Col1", row1col1);
 
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue("Column2", row2col2);
-	EXPECT_EQ("Row1Col1", row1col1);
 	EXPECT_EQ("Row2Col2", row2col2);
 }
 
@@ -235,7 +246,7 @@ Row2Col1,Row2Col2
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string row1col1, row2col1, row2col2;
+	std::string_view row1col1, row2col1, row2col2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(row1col1);
 	EXPECT_EQ("Row1Col1", row1col1);
@@ -254,7 +265,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWithEmptyValues)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string row1, row2, row3, row4;
+	std::string_view row1, row2, row3, row4;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(row1);
 	EXPECT_EQ("Row1", row1);
@@ -281,7 +292,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseLastRowWithEmptyValue)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string row1, row2, row3, row4;
+	std::string_view row1, row2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(row1);
 	EXPECT_EQ("Row1", row1);
@@ -301,7 +312,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowWithoutLastLfCode)
 
 	// Act / Assert
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
-	std::string value1;
+	std::string_view value1;
 	this->mCsvReader->ReadValue("Column1", value1);
 	EXPECT_EQ("Value1", value1);
 }
@@ -313,7 +324,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWithCrLfCodes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string row1, row2;
+	std::string_view row1, row2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(row1);
 	EXPECT_EQ("Row1", row1);
@@ -330,7 +341,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWithOnlyLfCode)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string row1, row2;
+	std::string_view row1, row2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(row1);
 	EXPECT_EQ("Row1", row1);
@@ -347,12 +358,44 @@ TYPED_TEST(CsvReaderTest, ShouldReadQuotedValues)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string value1, value2;
+	std::string_view value1, value2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(value1);
 	EXPECT_EQ("Quoted:1,2,3,4,5", value1);
 	this->mCsvReader->ReadValue(value2);
 	EXPECT_EQ("Value2", value2);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldReadEmptyQuotedValues)
+{
+	// Arrange
+	const std::string csv = R"("","")";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	std::string_view value1, value2;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(value1);
+	EXPECT_EQ("", value1);
+	this->mCsvReader->ReadValue(value2);
+	EXPECT_EQ("", value2);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldReadMultiplyQuotedValues)
+{
+	// Arrange
+	const std::string csv = R"("Quoted value 1","Quoted value 2","Quoted value 3")";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	std::string_view value1, value2, value3;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue(value1);
+	EXPECT_EQ("Quoted value 1", value1);
+	this->mCsvReader->ReadValue(value2);
+	EXPECT_EQ("Quoted value 2", value2);
+	this->mCsvReader->ReadValue(value3);
+	EXPECT_EQ("Quoted value 3", value3);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReadQuotedLineBreaksInValue)
@@ -362,7 +405,7 @@ TYPED_TEST(CsvReaderTest, ShouldReadQuotedLineBreaksInValue)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string value1, value2;
+	std::string_view value1, value2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(value1);
 	EXPECT_EQ("Value1", value1);
@@ -377,7 +420,7 @@ TYPED_TEST(CsvReaderTest, ShouldReadEscapedQuotesInValue)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string value1, value2;
+	std::string_view value1, value2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(value1);
 	EXPECT_EQ(R"(Quoted:"1,2,3,4,5")", value1);
@@ -392,11 +435,23 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenReadMoreValuesThanExistsInRow)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	std::string value;
+	std::string_view value;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(value);
 	this->mCsvReader->ReadValue(value);
 	EXPECT_THROW(this->mCsvReader->ReadValue(value), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenOnlyOneDoubleQuotes)
+{
+	// Arrange
+	const std::string csv = R"(")";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	std::string_view value;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	EXPECT_THROW(this->mCsvReader->ReadValue(value), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedStartQuotes)
@@ -406,7 +461,9 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedStartQuotes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
+	std::string_view value;
+	this->mCsvReader->ParseNextRow();
+	EXPECT_THROW(this->mCsvReader->ReadValue(value), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterSeparator)
@@ -416,7 +473,10 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenDoubleQuotesIsNotRightAfterSep
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
+	std::string_view value;
+	this->mCsvReader->ParseNextRow();
+	this->mCsvReader->ReadValue(value);
+	EXPECT_THROW(this->mCsvReader->ReadValue(value), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenNotEscapedDoubleQuotes)
@@ -426,7 +486,9 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenNotEscapedDoubleQuotes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
+	std::string_view value;
+	this->mCsvReader->ParseNextRow();
+	EXPECT_THROW(this->mCsvReader->ReadValue(value), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedEndQuotes)
@@ -436,7 +498,9 @@ TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMissedEndQuotes)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
+	std::string_view value;
+	this->mCsvReader->ParseNextRow();
+	EXPECT_THROW(this->mCsvReader->ReadValue(value), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenMismatchNumberOfHeadersAndValues)

@@ -6,54 +6,6 @@
 #include <algorithm>
 
 
-namespace
-{
-	using namespace BitSerializer;
-
-	std::string UnescapeValue(std::string_view value, size_t lineNumber)
-	{
-		size_t startValuePos = 0, endValuePos = value.size();
-
-		// Skip first double-quotes
-		if (value[startValuePos] == '"')
-		{
-			++startValuePos;
-		}
-		else
-		{
-			throw ParsingException("Missing starting double-quotes, line: " + Convert::ToString(lineNumber), lineNumber);
-		}
-		if (value[endValuePos - 1] == '"')
-		{
-			--endValuePos;
-		}
-		else
-		{
-			throw ParsingException("Missing trailing double-quotes, line: " + Convert::ToString(lineNumber), lineNumber);
-		}
-
-		// Copy with skip one of two double-quotes
-		std::string result;
-		result.reserve(value.size());
-		size_t valueQuotesCount = 0;
-		for (auto i = startValuePos; i < endValuePos; ++i)
-		{
-			const char sym = value[i];
-			if (sym == '"')
-			{
-				++valueQuotesCount;
-				if (valueQuotesCount % 2 == 0)
-				{
-					continue;
-				}
-			}
-			result.push_back(sym);
-		}
-
-		return result;
-	}
-}
-
 namespace BitSerializer::Csv::Detail
 {
 	CCsvStringReader::CCsvStringReader(std::string_view inputString, bool withHeader, char separator)
@@ -63,9 +15,15 @@ namespace BitSerializer::Csv::Detail
 	{
 		if (withHeader)
 		{
-			if (ParseLine(mHeader))
+			if (ParseNextLine(mRowValuesMeta))
 			{
-				++mLineNumber;
+				std::string_view val;
+				mHeaders.resize(mRowValuesMeta.size());
+				for (auto& header : mHeaders)
+				{
+					ReadValue(val);
+					header = val;
+				}
 			}
 			else
 			{
@@ -74,33 +32,45 @@ namespace BitSerializer::Csv::Detail
 		}
 	}
 
-	bool CCsvStringReader::IsEnd() const
-	{
-		return mCurrentPos >= mSourceString.size();
-	}
-
-	bool CCsvStringReader::ReadValue(std::string_view key, std::string& value)
+	bool CCsvStringReader::ReadValue(std::string_view key, std::string_view& out_value)
 	{
 		if (mWithHeader)
 		{
-			const auto it = std::find(mHeader.cbegin(), mHeader.cend(), key);
-			if (it != std::cend(mHeader))
+			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
+			if (it != std::cend(mHeaders))
 			{
-				mValueIndex = it - mHeader.cbegin();
-				value = std::move(mRowValues.at(mValueIndex));
+				mValueIndex = it - mHeaders.cbegin();
+				const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
+				if (valueMeta.HasEscapedChars)
+				{
+					out_value = UnescapeValue(std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size));
+				}
+				else
+				{
+					out_value = std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size);
+				}
 				return true;
 			}
 		}
 
-		value.clear();
+		out_value = {};
 		return false;
 	}
 
-	void CCsvStringReader::ReadValue(std::string& value)
+	void CCsvStringReader::ReadValue(std::string_view& out_value)
 	{
-		if (mValueIndex < mRowValues.size())
+		if (mValueIndex < mRowValuesMeta.size())
 		{
-			value = std::move(mRowValues[mValueIndex]);
+			const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
+			if (valueMeta.HasEscapedChars)
+			{
+				out_value = UnescapeValue(std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size));
+			}
+			else
+			{
+				out_value = std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size);
+			}
+
 			++mValueIndex;
 			return;
 		}
@@ -109,30 +79,25 @@ namespace BitSerializer::Csv::Detail
 
 	bool CCsvStringReader::ParseNextRow()
 	{
-		if (IsEnd())
-		{
-			return false;
-		}
-
-		const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
-		if (ParseLine(mRowValues))
+		if (ParseNextLine(mRowValuesMeta))
 		{
 			if (mWithHeader)
 			{
-				if (mHeader.size() != mRowValues.size())
+				if (mHeaders.size() != mRowValuesMeta.size())
 				{
 					throw ParsingException("Number of values are different than in header, line: "
 						+ Convert::ToString(mLineNumber), mLineNumber);
 				}
 			}
-			else if (mLineNumber >= 2 && mPrevValuesCount != mRowValues.size())
+			else if (mLineNumber >= 2 && mPrevValuesCount != mRowValuesMeta.size())
 			{
 				throw ParsingException("Number of values are different than in previous line, line: "
 					+ Convert::ToString(mLineNumber), mLineNumber);
 			}
 
-			++mLineNumber;
 			mValueIndex = 0;
+			// Header is not counted as data row
+			const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
 			if (!firstDataRow)
 			{
 				++mRowIndex;
@@ -142,21 +107,23 @@ namespace BitSerializer::Csv::Detail
 		return false;
 	}
 
-	bool CCsvStringReader::ParseLine(std::vector<std::string>& out_values)
+	bool CCsvStringReader::ParseNextLine(std::vector<CValueMeta>& out_values)
 	{
-		mPrevValuesCount = out_values.size();
-		out_values.clear();
-
 		const auto totalSize = mSourceString.size();
 		if (mCurrentPos >= totalSize)
 		{
 			return false;
 		}
 
+		++mLineNumber;
+		mPrevValuesCount = out_values.size();
+		out_values.clear();
+		mRowValuesMeta.clear();
+
 		for (auto isEndLine = false; !isEndLine;)
 		{
 			const size_t startValuePos = mCurrentPos;
-			size_t valueQuotesCount = 0;
+			size_t doubleQuotesCount = 0;
 			size_t endValuePos = totalSize;
 			size_t precedingCrPos = std::string::npos;
 
@@ -165,10 +132,10 @@ namespace BitSerializer::Csv::Detail
 				const char sym = mSourceString[mCurrentPos];
 				if (sym == '"')
 				{
-					++valueQuotesCount;
+					++doubleQuotesCount;
 				}
 				// Handle delimiter
-				else if (sym == mSeparator && valueQuotesCount % 2 == 0)
+				else if (sym == mSeparator && doubleQuotesCount % 2 == 0)
 				{
 					endValuePos = mCurrentPos;
 					++mCurrentPos;
@@ -179,7 +146,7 @@ namespace BitSerializer::Csv::Detail
 				{
 					precedingCrPos = mCurrentPos;
 				}
-				else if (sym == '\n' && valueQuotesCount % 2 == 0)
+				else if (sym == '\n' && doubleQuotesCount % 2 == 0)
 				{
 					if (precedingCrPos == std::string::npos) {
 						precedingCrPos = mCurrentPos;
@@ -193,15 +160,7 @@ namespace BitSerializer::Csv::Detail
 			}
 
 			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
-			if (valueQuotesCount)
-			{
-				out_values.emplace_back(
-					UnescapeValue(std::string_view(mSourceString.data() + startValuePos, endValuePos - startValuePos), mLineNumber));
-			}
-			else
-			{
-				out_values.emplace_back(mSourceString.data() + startValuePos, endValuePos - startValuePos);
-			}
+			out_values.emplace_back(startValuePos, endValuePos - startValuePos, doubleQuotesCount ? true : false);
 
 			// Handle end of file (RFC: The last record in the file may or may not have an ending line break)
 			if (mCurrentPos == mSourceString.size())
@@ -213,6 +172,45 @@ namespace BitSerializer::Csv::Detail
 		return !out_values.empty();
 	}
 
+	std::string_view CCsvStringReader::UnescapeValue(std::string_view value)
+	{
+		// Validate first and end double quotes
+		if (value.empty() || value.front() != '"')
+		{
+			throw ParsingException("Missing starting double-quotes, line: " + Convert::ToString(mLineNumber), mLineNumber);
+		}
+		if (value.size() < 2 || value.back() != '"')
+		{
+			throw ParsingException("Missing trailing double-quotes, line: " + Convert::ToString(mLineNumber), mLineNumber);
+		}
+
+		// Reserve output buffer
+		mTempValueBuffer.resize(value.size());
+
+		// Copy with skip one of two double-quotes
+		size_t outIndex = 0;
+		size_t doubleQuotesCount = 0;
+		const size_t endValuePos = value.size() - 1;
+		for (size_t i = 1; i < endValuePos; ++i)
+		{
+			const char sym = value[i];
+			if (sym == '"')
+			{
+				++doubleQuotesCount;
+				if (doubleQuotesCount % 2 == 0)
+				{
+					continue;
+				}
+			}
+			mTempValueBuffer[outIndex] = sym;
+			++outIndex;
+		}
+		// Adjust buffer to actual value size
+		mTempValueBuffer.resize(outIndex);
+
+		return { mTempValueBuffer.data(), mTempValueBuffer.size() };
+	}
+
 	//------------------------------------------------------------------------------
 
 	CCsvStreamReader::CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator)
@@ -222,44 +220,62 @@ namespace BitSerializer::Csv::Detail
 	{
 		if (withHeader)
 		{
-			if (ParseLine(mHeader))
+			if (ParseNextLine(mRowValuesMeta))
 			{
-				++mLineNumber;
+				std::string_view val;
+				mHeaders.resize(mRowValuesMeta.size());
+				for (auto& header : mHeaders)
+				{
+					ReadValue(val);
+					header = val;
+				}
 			}
 			else
 			{
-				throw ParsingException("Input stream is empty, expected at least a header line");
+				throw ParsingException("Input string is empty, expected at least a header line");
 			}
 		}
 	}
 
-	bool CCsvStreamReader::IsEnd() const
-	{
-		return mCurrentPos >= mDecodedBuffer.size() && mEncodedStreamReader.IsEnd();
-	}
-
-	bool CCsvStreamReader::ReadValue(std::string_view key, std::string& value)
+	bool CCsvStreamReader::ReadValue(std::string_view key, std::string_view& out_value)
 	{
 		if (mWithHeader)
 		{
-			const auto it = std::find(mHeader.cbegin(), mHeader.cend(), key);
-			if (it != std::cend(mHeader))
+			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
+			if (it != std::cend(mHeaders))
 			{
-				mValueIndex = it - mHeader.cbegin();
-				value = std::move(mRowValues.at(mValueIndex));
+				mValueIndex = it - mHeaders.cbegin();
+				const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
+				if (valueMeta.HasEscapedChars)
+				{
+					out_value = UnescapeValue(mDecodedBuffer.data() + valueMeta.Offset, mDecodedBuffer.data() + valueMeta.Size);
+				}
+				else
+				{
+					out_value = std::string_view(mDecodedBuffer.data() + valueMeta.Offset, valueMeta.Size);
+				}
 				return true;
 			}
 		}
 
-		value.clear();
+		out_value = {};
 		return false;
 	}
 
-	void CCsvStreamReader::ReadValue(std::string& value)
+	void CCsvStreamReader::ReadValue(std::string_view& out_value)
 	{
-		if (mValueIndex < mRowValues.size())
+		if (mValueIndex < mRowValuesMeta.size())
 		{
-			value = std::move(mRowValues[mValueIndex]);
+			const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
+			if (valueMeta.HasEscapedChars)
+			{
+				out_value = UnescapeValue(mDecodedBuffer.data() + valueMeta.Offset, mDecodedBuffer.data() + valueMeta.Offset + valueMeta.Size);
+			}
+			else
+			{
+				out_value = std::string_view(mDecodedBuffer.data() + valueMeta.Offset, valueMeta.Size);
+			}
+
 			++mValueIndex;
 			return;
 		}
@@ -268,30 +284,25 @@ namespace BitSerializer::Csv::Detail
 
 	bool CCsvStreamReader::ParseNextRow()
 	{
-		if (IsEnd())
-		{
-			return false;
-		}
-
-		const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
-		if (ParseLine(mRowValues))
+		if (ParseNextLine(mRowValuesMeta))
 		{
 			if (mWithHeader)
 			{
-				if (mHeader.size() != mRowValues.size())
+				if (mHeaders.size() != mRowValuesMeta.size())
 				{
 					throw ParsingException("Number of values are different than in header, line: "
 						+ Convert::ToString(mLineNumber), mLineNumber);
 				}
 			}
-			else if (mLineNumber >= 2 && mPrevValuesCount != mRowValues.size())
+			else if (mLineNumber >= 2 && mPrevValuesCount != mRowValuesMeta.size())
 			{
 				throw ParsingException("Number of values are different than in previous line, line: "
 					+ Convert::ToString(mLineNumber), mLineNumber);
 			}
 
-			++mLineNumber;
 			mValueIndex = 0;
+			// Header is not counted as data row
+			const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
 			if (!firstDataRow)
 			{
 				++mRowIndex;
@@ -301,20 +312,27 @@ namespace BitSerializer::Csv::Detail
 		return false;
 	}
 
-	bool CCsvStreamReader::ParseLine(std::vector<std::string>& out_values)
+	bool CCsvStreamReader::ParseNextLine(std::vector<CValueMeta>& out_values)
 	{
-		mPrevValuesCount = out_values.size();
-		out_values.clear();
-
 		if (IsEnd())
 		{
 			return false;
 		}
 
+		++mLineNumber;
+		mPrevValuesCount = out_values.size();
+		out_values.clear();
+		// Remove parsed string part
+		if (mCurrentPos)
+		{
+			mDecodedBuffer.erase(0, mCurrentPos);
+			mCurrentPos = 0;
+		}
+
 		for (auto isEndLine = false; !isEndLine;)
 		{
 			const size_t startValuePos = mCurrentPos;
-			size_t valueQuotesCount = 0;
+			size_t doubleQuotesCount = 0;
 			size_t endValuePos;
 			size_t precedingCrPos = std::string::npos;
 
@@ -334,10 +352,10 @@ namespace BitSerializer::Csv::Detail
 				const char sym = mDecodedBuffer[mCurrentPos];
 				if (sym == '"')
 				{
-					++valueQuotesCount;
+					++doubleQuotesCount;
 				}
 				// Handle delimiter
-				else if (sym == mSeparator && valueQuotesCount % 2 == 0)
+				else if (sym == mSeparator && doubleQuotesCount % 2 == 0)
 				{
 					endValuePos = mCurrentPos;
 					++mCurrentPos;
@@ -348,7 +366,7 @@ namespace BitSerializer::Csv::Detail
 				{
 					precedingCrPos = mCurrentPos;
 				}
-				else if (sym == '\n' && valueQuotesCount % 2 == 0)
+				else if (sym == '\n' && doubleQuotesCount % 2 == 0)
 				{
 					if (precedingCrPos == std::string::npos) {
 						precedingCrPos = mCurrentPos;
@@ -369,37 +387,50 @@ namespace BitSerializer::Csv::Detail
 			}
 
 			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
-			if (valueQuotesCount)
-			{
-				out_values.emplace_back(
-					UnescapeValue(std::string_view(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos), mLineNumber));
-			}
-			else
-			{
-				out_values.emplace_back(mDecodedBuffer.data() + startValuePos, endValuePos - startValuePos);
-			}
+			out_values.emplace_back(startValuePos, endValuePos - startValuePos, doubleQuotesCount ? true : false);
 		}
-
-		// Remove parsed part of string (should be called after parse whole line)
-		RemoveParsedStringPart();
 
 		// When entire buffer has been parsed, need to read next chunk for detect end of file
 		if (mCurrentPos == mDecodedBuffer.size())
 		{
-			mCurrentPos = 0;
-			mDecodedBuffer.clear();
 			mEncodedStreamReader.ReadChunk(mDecodedBuffer);
 		}
 
 		return !out_values.empty();
 	}
 
-	void CCsvStreamReader::RemoveParsedStringPart()
+	std::string_view CCsvStreamReader::UnescapeValue(char* beginIt, char* endIt)
 	{
-		if (mCurrentPos)
+		// Validate first and end double quotes
+		if (*beginIt != '"')
 		{
-			mDecodedBuffer.erase(0, mCurrentPos);
-			mCurrentPos = 0;
+			throw ParsingException("Missing starting double-quotes, line: " + Convert::ToString(mLineNumber), mLineNumber);
 		}
+		--endIt;
+		if (endIt - beginIt < 1 || *endIt != '"')
+		{
+			throw ParsingException("Missing trailing double-quotes, line: " + Convert::ToString(mLineNumber), mLineNumber);
+		}
+
+		// Decode to the same buffer
+		char* decodedIt = beginIt;
+		size_t doubleQuotesCount = 0;
+		for (char* currentPos = beginIt + 1; currentPos != endIt; ++currentPos)
+		{
+			const char sym = *currentPos;
+			if (sym == '"')
+			{
+				++doubleQuotesCount;
+				// Skip one of two double quotes
+				if (doubleQuotesCount % 2 == 0)
+				{
+					continue;
+				}
+			}
+			*decodedIt = sym;
+			++decodedIt;
+		}
+
+		return { beginIt, static_cast<std::string_view::size_type>(decodedIt - beginIt) };
 	}
 }

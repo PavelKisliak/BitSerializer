@@ -47,14 +47,6 @@ public:
 		}
 		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfInts"), std::move(intsJsonArray), allocator);
 
-		// Save array of floats
-		auto floatsJsonArray = RapidJsonNode(rapidjson::kArrayType);
-		floatsJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
-		for (auto item : mSourceTestModel.mArrayOfDoubles) {
-			floatsJsonArray.PushBack(RapidJsonNode(item), allocator);
-		}
-		jsonDoc.AddMember(rapidjson::GenericStringRef<RapidJsonNode::Ch>("ArrayOfDoubles"), std::move(floatsJsonArray), allocator);
-
 		// Save array of strings
 		auto stringsJsonArray = RapidJsonNode(rapidjson::kArrayType);
 		stringsJsonArray.Reserve(static_cast<rapidjson::SizeType>(model_t::ARRAY_SIZE), allocator);
@@ -71,13 +63,19 @@ public:
 			RapidJsonNode jsonObject(rapidjson::kObjectType);
 			jsonObject.AddMember("TestBoolValue", item.mTestBoolValue, allocator);
 			jsonObject.AddMember("TestCharValue", item.mTestCharValue, allocator);
-			jsonObject.AddMember("TestInt16Value", item.mTestInt16Value, allocator);
-			jsonObject.AddMember("TestInt32Value", item.mTestInt32Value, allocator);
 			jsonObject.AddMember("TestInt64Value", item.mTestInt64Value, allocator);
 			jsonObject.AddMember("TestFloatValue", item.mTestFloatValue, allocator);
 			jsonObject.AddMember("TestDoubleValue", item.mTestDoubleValue, allocator);
-			jsonObject.AddMember("TestStringValue", RapidJsonNode::StringRefType(
-				item.mTestStringValue.data(), static_cast<rapidjson::SizeType>(item.mTestStringValue.size())), allocator);
+			jsonObject.AddMember("TestString1", RapidJsonNode::StringRefType(
+				item.mTestString1.data(), static_cast<rapidjson::SizeType>(item.mTestString1.size())), allocator);
+			jsonObject.AddMember("TestString2", RapidJsonNode::StringRefType(
+				item.mTestString2.data(), static_cast<rapidjson::SizeType>(item.mTestString2.size())), allocator);
+			jsonObject.AddMember("TestString3", RapidJsonNode::StringRefType(
+				item.mTestString3.data(), static_cast<rapidjson::SizeType>(item.mTestString3.size())), allocator);
+			jsonObject.AddMember("StringWithQuotes", RapidJsonNode::StringRefType(
+				item.mStringWithQuotes.data(), static_cast<rapidjson::SizeType>(item.mStringWithQuotes.size())), allocator);
+			jsonObject.AddMember("MultiLineString", RapidJsonNode::StringRefType(
+				item.mMultiLineString.data(), static_cast<rapidjson::SizeType>(item.mMultiLineString.size())), allocator);
 
 			objectsJsonArray.PushBack(std::move(jsonObject), allocator);
 		}
@@ -114,14 +112,6 @@ public:
 			++i;
 		}
 
-		// Load array of floats
-		const auto& floatsJsonArray = jObject.FindMember("ArrayOfDoubles")->value;
-		i = 0;
-		for (auto jItem = floatsJsonArray.Begin(); jItem != floatsJsonArray.End(); ++jItem) {
-			mNativeLibModel.mArrayOfDoubles[i] = jItem->GetDouble();
-			++i;
-		}
-
 		// Load array of strings
 		const auto& stringsJsonArray = jObject.FindMember("ArrayOfStrings")->value;
 		i = 0;
@@ -139,12 +129,14 @@ public:
 			const auto& jObj = jItem->GetObject();
 			obj.mTestBoolValue = jObj.FindMember("TestBoolValue")->value.GetBool();
 			obj.mTestCharValue = static_cast<char>(jObj.FindMember("TestCharValue")->value.GetInt());
-			obj.mTestInt16Value = static_cast<int16_t>(jObj.FindMember("TestInt16Value")->value.GetInt());
-			obj.mTestInt32Value = jObj.FindMember("TestInt32Value")->value.GetInt();
 			obj.mTestInt64Value = jObj.FindMember("TestInt64Value")->value.GetInt64();
 			obj.mTestFloatValue = jObj.FindMember("TestFloatValue")->value.GetFloat();
 			obj.mTestDoubleValue = jObj.FindMember("TestDoubleValue")->value.GetDouble();
-			obj.mTestStringValue = jObj.FindMember("TestStringValue")->value.GetString();
+			obj.mTestString1 = jObj.FindMember("TestString1")->value.GetString();
+			obj.mTestString2 = jObj.FindMember("TestString2")->value.GetString();
+			obj.mTestString3 = jObj.FindMember("TestString3")->value.GetString();
+			obj.mStringWithQuotes = jObj.FindMember("StringWithQuotes")->value.GetString();
+			obj.mMultiLineString = jObj.FindMember("MultiLineString")->value.GetString();
 			++i;
 		}
 

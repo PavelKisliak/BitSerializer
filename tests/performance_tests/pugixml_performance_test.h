@@ -38,12 +38,6 @@ public:
 			integersXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
 		}
 
-		// Save array of floats
-		auto floatsXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfDoubles"));
-		for (const auto item : mSourceTestModel.mArrayOfDoubles) {
-			floatsXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
-		}
-
 		// Save array of strings
 		auto stringsXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfStrings"));
 		for (const auto& item : mSourceTestModel.mArrayOfStrings) {
@@ -56,12 +50,14 @@ public:
 			auto objectNode = objectsXmlNode.append_child(PUGIXML_TEXT("object"));
 			objectNode.append_child(PUGIXML_TEXT("TestBoolValue")).text().set(item.mTestBoolValue);
 			objectNode.append_child(PUGIXML_TEXT("TestCharValue")).text().set(item.mTestCharValue);
-			objectNode.append_child(PUGIXML_TEXT("TestInt16Value")).text().set(item.mTestInt16Value);
-			objectNode.append_child(PUGIXML_TEXT("TestInt32Value")).text().set(item.mTestInt32Value);
 			objectNode.append_child(PUGIXML_TEXT("TestInt64Value")).text().set(item.mTestInt64Value);
 			objectNode.append_child(PUGIXML_TEXT("TestFloatValue")).text().set(item.mTestFloatValue);
 			objectNode.append_child(PUGIXML_TEXT("TestDoubleValue")).text().set(item.mTestDoubleValue);
-			objectNode.append_child(PUGIXML_TEXT("TestStringValue")).text().set(item.mTestStringValue.c_str());
+			objectNode.append_child(PUGIXML_TEXT("TestString1")).text().set(item.mTestString1.c_str());
+			objectNode.append_child(PUGIXML_TEXT("TestString2")).text().set(item.mTestString2.c_str());
+			objectNode.append_child(PUGIXML_TEXT("TestString3")).text().set(item.mTestString3.c_str());
+			objectNode.append_child(PUGIXML_TEXT("StringWithQuotes")).text().set(item.mStringWithQuotes.c_str());
+			objectNode.append_child(PUGIXML_TEXT("MultiLineString")).text().set(item.mMultiLineString.c_str());
 		}
 
 		// Build
@@ -98,15 +94,6 @@ public:
 			++i;
 		}
 
-		// Load array of floats
-		auto floatsXmlNode = rootNode.child(PUGIXML_TEXT("ArrayOfDoubles"));
-		i = 0;
-		for (auto it = floatsXmlNode.begin(); it != floatsXmlNode.end(); ++it)
-		{
-			mNativeLibModel.mArrayOfDoubles[i] = it->text().as_double();
-			++i;
-		}
-
 		// Load array of strings
 		auto stringsXmlNode = rootNode.child(PUGIXML_TEXT("ArrayOfStrings"));
 		i = 0;
@@ -124,12 +111,14 @@ public:
 			auto& obj = mNativeLibModel.mArrayOfObjects[i];
 			obj.mTestBoolValue = it->child(PUGIXML_TEXT("TestBoolValue")).text().as_bool();
 			obj.mTestCharValue = static_cast<char>(it->child(PUGIXML_TEXT("TestCharValue")).text().as_int());
-			obj.mTestInt16Value = static_cast<int16_t>(it->child(PUGIXML_TEXT("TestInt16Value")).text().as_int());
-			obj.mTestInt32Value = it->child(PUGIXML_TEXT("TestInt32Value")).text().as_int();
 			obj.mTestInt64Value = it->child(PUGIXML_TEXT("TestInt64Value")).text().as_llong();
 			obj.mTestFloatValue = it->child(PUGIXML_TEXT("TestFloatValue")).text().as_float();
 			obj.mTestDoubleValue = it->child(PUGIXML_TEXT("TestDoubleValue")).text().as_double();
-			obj.mTestStringValue = it->child(PUGIXML_TEXT("TestStringValue")).text().as_string();
+			obj.mTestString1 = it->child(PUGIXML_TEXT("TestString1")).text().as_string();
+			obj.mTestString2 = it->child(PUGIXML_TEXT("TestString2")).text().as_string();
+			obj.mTestString3 = it->child(PUGIXML_TEXT("TestString3")).text().as_string();
+			obj.mStringWithQuotes = it->child(PUGIXML_TEXT("StringWithQuotes")).text().as_string();
+			obj.mMultiLineString = it->child(PUGIXML_TEXT("MultiLineString")).text().as_string();
 			++i;
 		}
 

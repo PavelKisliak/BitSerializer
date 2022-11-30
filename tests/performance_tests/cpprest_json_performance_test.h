@@ -41,12 +41,6 @@ public:
 			intsJsonArray[i] = web::json::value(mSourceTestModel.mArrayOfInts[i]);
 		}
 
-		// Save array of floats
-		web::json::value& floatsJsonArray = rootObj[_XPLATSTR("ArrayOfDoubles")] = web::json::value::array(model_t::ARRAY_SIZE);
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			floatsJsonArray[i] = web::json::value(mSourceTestModel.mArrayOfDoubles[i]);
-		}
-
 		// Save array of strings
 		web::json::value& stringsJsonArray = rootObj[_XPLATSTR("ArrayOfStrings")] = web::json::value::array(model_t::ARRAY_SIZE);
 		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
@@ -61,12 +55,14 @@ public:
 			auto& jObj = objectsJsonArray[i] = web::json::value::object();
 			jObj[_XPLATSTR("TestBoolValue")] = web::json::value(obj.mTestBoolValue);
 			jObj[_XPLATSTR("TestCharValue")] = web::json::value(obj.mTestCharValue);
-			jObj[_XPLATSTR("TestInt16Value")] = web::json::value(obj.mTestInt16Value);
-			jObj[_XPLATSTR("TestInt32Value")] = web::json::value(obj.mTestInt32Value);
 			jObj[_XPLATSTR("TestInt64Value")] = web::json::value(obj.mTestInt64Value);
 			jObj[_XPLATSTR("TestFloatValue")] = web::json::value(obj.mTestFloatValue);
 			jObj[_XPLATSTR("TestDoubleValue")] = web::json::value(obj.mTestDoubleValue);
-			jObj[_XPLATSTR("TestStringValue")] = web::json::value(obj.mTestStringValue);
+			jObj[_XPLATSTR("TestString1")] = web::json::value(obj.mTestString1);
+			jObj[_XPLATSTR("TestString2")] = web::json::value(obj.mTestString2);
+			jObj[_XPLATSTR("TestString3")] = web::json::value(obj.mTestString3);
+			jObj[_XPLATSTR("StringWithQuotes")] = web::json::value(obj.mStringWithQuotes);
+			jObj[_XPLATSTR("MultiLineString")] = web::json::value(obj.mMultiLineString);
 		}
 
 #ifdef _UTF16_STRINGS
@@ -105,14 +101,6 @@ public:
 			++i;
 		}
 
-		// Load array of floats
-		const auto& floatsJsonArray = rootObj.find(_XPLATSTR("ArrayOfDoubles"))->second.as_array();
-		i = 0;
-		for (const auto& jVal : floatsJsonArray) {
-			mNativeLibModel.mArrayOfDoubles[i] = jVal.as_double();
-			++i;
-		}
-
 		// Load array of strings
 		const auto& stringsJsonArray = rootObj.find(_XPLATSTR("ArrayOfStrings"))->second.as_array();
 		i = 0;
@@ -130,12 +118,14 @@ public:
 			const auto& jObj = jVal.as_object();
 			obj.mTestBoolValue = jObj.find(_XPLATSTR("TestBoolValue"))->second.as_bool();
 			obj.mTestCharValue = static_cast<char>(jObj.find(_XPLATSTR("TestCharValue"))->second.as_integer());
-			obj.mTestInt16Value = static_cast<int16_t>(jObj.find(_XPLATSTR("TestInt16Value"))->second.as_integer());
-			obj.mTestInt32Value = jObj.find(_XPLATSTR("TestInt32Value"))->second.as_integer();
 			obj.mTestInt64Value = jObj.find(_XPLATSTR("TestInt64Value"))->second.as_number().to_int64();
 			obj.mTestFloatValue = static_cast<float>(jObj.find(_XPLATSTR("TestFloatValue"))->second.as_double());
 			obj.mTestDoubleValue = jObj.find(_XPLATSTR("TestDoubleValue"))->second.as_double();
-			obj.mTestStringValue = jObj.find(_XPLATSTR("TestStringValue"))->second.as_string();
+			obj.mTestString1 = jObj.find(_XPLATSTR("TestString1"))->second.as_string();
+			obj.mTestString2 = jObj.find(_XPLATSTR("TestString2"))->second.as_string();
+			obj.mTestString3 = jObj.find(_XPLATSTR("TestString3"))->second.as_string();
+			obj.mStringWithQuotes = jObj.find(_XPLATSTR("StringWithQuotes"))->second.as_string();
+			obj.mMultiLineString = jObj.find(_XPLATSTR("MultiLineString"))->second.as_string();
 			++i;
 		}
 

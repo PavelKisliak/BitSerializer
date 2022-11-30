@@ -44,15 +44,6 @@ public:
 			intsYamlArray.append_child() << mSourceTestModel.mArrayOfInts[i];
 		}
 
-		// Save array of floats
-		auto floatsYamlArray = root.append_child();
-		floatsYamlArray << ryml::key("ArrayOfDoubles");
-		floatsYamlArray |= ryml::SEQ;
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			floatsYamlArray.append_child() <<
-				c4::fmt::real(mSourceTestModel.mArrayOfDoubles[i], std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-		}
-
 		// Save array of strings
 		auto stringsYamlArray = root.append_child();
 		stringsYamlArray << ryml::key("ArrayOfStrings");
@@ -72,14 +63,16 @@ public:
 			yamlObj |= ryml::MAP;
 			yamlObj.append_child() << ryml::key("TestBoolValue") << obj.mTestBoolValue;
 			yamlObj.append_child() << ryml::key("TestCharValue") << static_cast<int16_t>(obj.mTestCharValue);
-			yamlObj.append_child() << ryml::key("TestInt16Value") << obj.mTestInt16Value;
-			yamlObj.append_child() << ryml::key("TestInt32Value") << obj.mTestInt32Value;
 			yamlObj.append_child() << ryml::key("TestInt64Value") << obj.mTestInt64Value;
 			yamlObj.append_child() << ryml::key("TestFloatValue")
 				<< c4::fmt::real(obj.mTestFloatValue, std::numeric_limits<float>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
 			yamlObj.append_child() << ryml::key("TestDoubleValue") 
 				<< c4::fmt::real(obj.mTestDoubleValue, std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-			yamlObj.append_child() << ryml::key("TestStringValue") << obj.mTestStringValue;
+			yamlObj.append_child() << ryml::key("TestString1") << obj.mTestString1;
+			yamlObj.append_child() << ryml::key("TestString2") << obj.mTestString2;
+			yamlObj.append_child() << ryml::key("TestString3") << obj.mTestString3;
+			yamlObj.append_child() << ryml::key("StringWithQuotes") << obj.mStringWithQuotes;
+			yamlObj.append_child() << ryml::key("MultiLineString") << obj.mMultiLineString;
 		}
 
 		mNativeLibOutputData = ryml::emitrs<std::string>(tree);
@@ -103,12 +96,6 @@ public:
 			integersYamlArray[i] >> mNativeLibModel.mArrayOfInts[i];
 		}
 
-		// Load array of floats
-		const auto floatsYamlArray = root["ArrayOfDoubles"];
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			floatsYamlArray[i] >> mNativeLibModel.mArrayOfDoubles[i];
-		}
-
 		// Load array of strings
 		const auto& stringsYamlArray = root["ArrayOfStrings"];
 		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
@@ -126,12 +113,14 @@ public:
 			yamlVal["TestCharValue"] >> temp;
 			obj.mTestCharValue = static_cast<char>(temp);
 			yamlVal["TestCharValue"] >> reinterpret_cast<int16_t&>(obj.mTestCharValue);
-			yamlVal["TestInt16Value"] >> obj.mTestInt16Value;
-			yamlVal["TestInt32Value"] >> obj.mTestInt32Value;
 			yamlVal["TestInt64Value"] >> obj.mTestInt64Value;
 			yamlVal["TestFloatValue"] >> obj.mTestFloatValue;
 			yamlVal["TestDoubleValue"] >> obj.mTestDoubleValue;
-			yamlVal["TestStringValue"] >> obj.mTestStringValue;
+			yamlVal["TestString1"] >> obj.mTestString1;
+			yamlVal["TestString2"] >> obj.mTestString2;
+			yamlVal["TestString3"] >> obj.mTestString3;
+			yamlVal["StringWithQuotes"] >> obj.mStringWithQuotes;
+			yamlVal["MultiLineString"] >> obj.mMultiLineString;
 		}
 
 		return mNativeLibOutputData.size();

@@ -1,5 +1,3 @@
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin/${CMAKE_SYSTEM_NAME}/${CONFIG})
-
 if(BUILD_CPPRESTJSON_ARCHIVE)
     add_subdirectory(hello_world)
 endif()

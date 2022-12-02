@@ -3,8 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <map>
-#include <vector>
 #include "serialization_options.h"
 #include "errors_handling.h"
 
@@ -45,4 +43,21 @@ namespace BitSerializer
 		ValidationMap mErrorsMap;
 		const SerializationOptions& mSerializationOptions;
 	};
+
+
+	// ToDo: to be removed in future version
+	class DeprecatedSerializationContext
+	{
+	public:
+		[[deprecated("Global serialization context is deprecated, please handle ValidationException")]]
+		[[nodiscard]] bool IsValid() const noexcept { return true; }
+
+		[[deprecated("Global serialization context is deprecated, please handle ValidationException")]]
+		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept { return mErrorsMap; }
+
+	private:
+		ValidationMap mErrorsMap;
+	};
+
+	thread_local static DeprecatedSerializationContext Context;
 }

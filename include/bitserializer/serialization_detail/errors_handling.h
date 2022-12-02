@@ -3,8 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <map>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include "bitserializer/convert.h"
 
 namespace BitSerializer

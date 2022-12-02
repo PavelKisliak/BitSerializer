@@ -53,10 +53,12 @@ namespace BitSerializer
 		[[nodiscard]] bool IsValid() const noexcept { return true; }
 
 		[[deprecated("Global serialization context is deprecated, please handle ValidationException")]]
-		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept { return mErrorsMap; }
-
-	private:
-		ValidationMap mErrorsMap;
+		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept
+		{
+			// Not used
+			static ValidationMap errorsMap;
+			return errorsMap;
+		}
 	};
 
 	thread_local static DeprecatedSerializationContext Context;

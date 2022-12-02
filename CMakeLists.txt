@@ -213,30 +213,30 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         DESTINATION ${INSTALL_CONFIGDIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE)
 
 if(BUILD_CPPRESTJSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/cpprestjson_archive.h
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidjson_archive.h
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_PUGIXML_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/pugixml_archive.h
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_RAPIDYAML_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidyaml_archive.h
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()
 
 if(BUILD_CSV_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/csv_archive.h
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()

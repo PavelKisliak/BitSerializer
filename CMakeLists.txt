@@ -65,6 +65,11 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
         -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-maybe-uninitialized)
 endif()
 
+# For debug libs, add "d" postfix
+if(NOT DEFINED CMAKE_DEBUG_POSTFIX)
+  set(CMAKE_DEBUG_POSTFIX "d")
+endif()
+
 include_directories(
   "${CMAKE_CURRENT_LIST_DIR}/include"
 )

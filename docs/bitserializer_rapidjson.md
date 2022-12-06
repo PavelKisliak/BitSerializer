@@ -3,12 +3,12 @@
 Supported load/save JSON from:
 
 - std::string: UTF-8
-- std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (with/without BOM)
+- std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (auto-detection encoding with/without BOM)
 
 This implementation of JSON archive is based on [RapidJson](https://github.com/Tencent/rapidjson) which is one of fastest libraries for parse **JSON**.
 
 ### How to install
-The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should take care of the dependencies yourself).
+The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands (in this case you should take care of the dependencies yourself).
 #### VCPKG
 Add BitSerializer to manifest file (`vcpkg.json`) with `rapidjson-archive` feature:
 ```json
@@ -16,8 +16,7 @@ Add BitSerializer to manifest file (`vcpkg.json`) with `rapidjson-archive` featu
     "dependencies": [
         {
             "name": "bitserializer",
-            "features": [ "rapidjson-archive" ],
-            "version>=": "0.44"
+            "features": [ "rapidjson-archive" ]
         }
     ]
 }
@@ -27,7 +26,7 @@ If your project is based on VS solution you can just include next header files f
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/rapidjson_archive.h"
 ```
-If you are using Cmake, you need to link the library:
+If you are using CMake, you need to link the library:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
@@ -36,12 +35,17 @@ target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_rapidjson` option:
 ```
 [requires]
-bitserializer/0.44
+bitserializer/0.50
 
 [options]
 bitserializer:with_rapidjson=True
 ```
 The dependent library **RapidJson** will be automatically installed.
+Usage the library will be related to selected Conan generator, if your choice is `cmake_find_package_multi`, than linking will be classic:
+```cmake
+find_package(bitserializer CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
+```
 
 ### Implementation detail
 The JSON specification allows to store on root not just objects and arrays, but also more primitive types such as string, number and boolean.

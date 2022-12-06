@@ -1,4 +1,4 @@
-# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.44-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
+# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.50-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
 ___
 
 ### Design goals:
@@ -9,11 +9,11 @@ ___
 - Cross-platform (Windows, Linux, MacOS).
 
 ### Main features:
-- One common interface for different kind of formats (currently supported JSON, XML and YAML).
+- One common interface for different kind of formats (currently supported JSON, XML, YAML and CSV).
 - Simple syntax which is similar to serialization in the Boost library.
 - Validation of deserialized values with producing an output list of errors.
 - Support serialization for enum types (via declaring names map).
-- Support serialization for all STD containers.
+- Support serialization for most useful STD containers and types including modern `std::u16string` and `std::u32string`.
 - Support serialization to streams and files.
 - Encoding to various UTF formats.
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, UTF encoding).
@@ -24,52 +24,52 @@ ___
 | [cpprestjson-archive](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ✖ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
 | [rapidjson-archive](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
 | [pugixml-archive](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
-| [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | ✖ | [RapidYAML](https://github.com/biojppm/rapidyaml) |
+| [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
+| [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
   - Dependencies which are required by selected type of archive.
 
-##### What's new in version 0.44:
-- [ ! ] Changed minimum requirement for CLang compiler from version 7 to 8.
-- [ ! ] API breaking change - global `Serialize()` function should now return `bool`.
-- [ ! ] API breaking change - validation messages now storing in UTF-8, function GetValidationErrors() returns vector of `std::string`.
-- [ ! ] Simplified implementing non-intrusive serialization, now only one global function should be defined (compatibility is preserved).
-- [ ! ] Internal string conversion method `FromString()` now should have as argument any of `std::string_view` types instead of `std::string`.
-- [ - ] Internal string conversion method `ToWString()` was deprecated, please implement `ToU16String()` and/or `ToU32String()` when you needed.
-- [ + ] Conversion sub-module: added support for globally defined function `To(in, out)` for user's classes.
-- [ + ] Conversion sub-module: added support for globally defined function `to_string(in)` for user's classes.
-- [ + ] Implemented internal encoders for UTF-16 and UTF-32 (in the previous version there was only UTF-8).
-- [ + ] Added support for `std::u16string` and `std::u32string` in the convert sub-module.
-- [ + ] Added support serialization of `std::u16string` and `std::u32string` and ability to use them as keys.
-- [ + ] Added support serialization for C++ nullptr type (uses for serialization smart pointers).
-- [ + ] Added support serialization for std::optional type, std::unique_ptr and std::shared_ptr.
-- [ + ] Added new samples "string_conversions", "serialize_custom_string" and "serialize_map_to_yaml".
-- [ + ] Added documentation for [string conversion submodule](docs/bitserializer_convert.md).
-- [ * ] Removed streams operators for enum and classes, now need to explicitly declare them via macro DECLARE_ENUM_STREAM_OPS.
-- [ * ] Update compatibility with new version of RapidYaml library v.0.2.0.
-- [ * ] Fixed handling YAML parse errors (previously was called abort() in the RapidYaml library).
-- [ * ] Fixed handling errors when loading incompatible types in PugiXml archive.
-- [ * ] Fixed saving temporary strings in RapidJson archive.
-- [ * ] Conversion sub-module: boolean type will be converted to "true|false" strings (please cast to <int> if you expect "1|0").
+##### What's new in version 0.50:
+- [ ! ] Added new archive for serialization to CSV, supports all UTF encodings with auto-detection (built-in implementation, no dependencies).
+- [ ! ] API breaking change - deprecated global `BitSerializer::Context`, now validation errors will propagate only via `ValidationException`.
+- [ ! ] Removed all static memory allocations for be compatible with custom allocators.
+- [ + ] Added policy `OverflowNumberPolicy` for case when size of target type is not enough for loading number.
+- [ + ] Added policy `MismatchedTypesPolicy` for case when type of target field does not match the value being loaded.
+- [ + ] Added default `SerializationOptions`.
+- [ * ] Added `ParsingException` with information about line number or offset (depending on format type).
+- [ * ] Added new simplified macro `REGISTER_ENUM` - replacement for `REGISTER_ENUM_MAP` which is deprecated.
+- [ + ] Conversion sub-module: Added error policy for encode UTF (error mark, throw exception or skip).
+- [ * ] Conversion sub-module: Added throwing `invalid_argument` exception when converting from invalid string to number.
+- [ * ] Conversion sub-module: Converting a string containing floating point number to integer, now will throw `out_of_range` exception.
+- [ * ] Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
+- [ * ] Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
+- [ * ] [CppRestJson] Fixed serialization of booleans in the object (was serialized as number).
+- [ * ] [RapidYaml] Fixed compatibility with latest version of the RapidYaml library (0.4.1).
+- [ * ] [RapidYaml] Fixed serialization negative int8.
+- [ * ] [RapidYaml] Fixed issue with error handling when multi-thread serialization.
+- [ * ] [RapidJson, CppRestJson, RapidYaml] Fixed path in the validation errors, index in arrays was shifted by 1.
 
 [Full log of changes](History.md)
 
 ### Performance
-For check performance overhead, was developed a test which serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats. The source code of the test also available [here](tests/performance_tests).
+For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
 
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 26 msec | 28 msec | 2 msec **(-7.1%)** |
-| RapidJson | JSON | Load object | 35 msec | 38 msec | 3 msec **(-7.9%)** |
-| C++ REST SDK | JSON | Save object | 199 msec | 200 msec | 1 msec **(-0.5%)** |
-| C++ REST SDK | JSON | Load object | 184 msec | 188 msec | 4 msec **(-2.1%)** |
-| PugiXml | XML | Save object | 77 msec | 79 msec | 2 msec **(-2.5%)** |
-| PugiXml | XML | Load object | 42 msec | 44 msec | 2 msec **(-4.5%)** |
-| RapidYAML | YAML | Save object | 493 msec | 495 msec | 2 msec **(-0.4%)** |
-| RapidYAML | YAML | Load object | 139 msec | 144 msec | 5 msec **(-3.5%)** |
+| RapidJson | JSON | Save object | 421799 Kb/s  | 452667 Kb/s | **(-6.8%)** |
+| RapidJson | JSON | Load object | 274952 Kb/s | 310186 Kb/s | **(-11.4%)** |
+| C++ REST SDK | JSON | Save object | 83944 Kb/s | 85608 Kb/s | **(-1.9%)** |
+| C++ REST SDK | JSON | Load object | 83153 Kb/s | 83875 Kb/s | **(-0.9%)** |
+| PugiXml | XML | Save object | 386395 Kb/s | 395489 Kb/s | **(-2.3%)** |
+| PugiXml | XML | Load object | 583627 Kb/s | 669654 Kb/s | **(-12.8%)** |
+| RapidYAML | YAML | Save object | 28929 Kb/s | 28929 Kb/s | **(0%)** |
+| RapidYAML | YAML | Load object | 105062 Kb/s | 113461 Kb/s | **(-7.4%)** |
+| Built-in | CSV | Save object | N/A | 213350 Kb/s | N/A |
+| Built-in | CSV | Load object | N/A | 212364 Kb/s | N/A |
 
-Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries.
+Measured in **Kb/s** - speed of read/write to the output archive, more is better. Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The source code of the test also available [here](tests/performance_tests).
 
 ___
 ## Table of contents
@@ -85,10 +85,10 @@ ___
 - [Serialization STD types](#markdown-header-serialization-std-types)
 - [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
 - [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
-- [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
 - [Serialization to streams and files](#markdown-header-serialization-to-streams-and-files)
-- [Compile time checking](#markdown-header-compile-time-checking)
 - [Error handling](#markdown-header-error-handling)
+- [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
+- [Compile time checking](#markdown-header-compile-time-checking)
 - [Thanks](#markdown-header-thanks)
 - [License](#markdown-header-license)
 
@@ -97,12 +97,13 @@ ___
 - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
 - [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
+- [CSV archive "bitserializer-csv"](docs/bitserializer_csv.md)
 
 ___
 
 
 ### How to install
-The library consists of header files only, but it uses third-party libraries which should be also installed.
+BitSerializer requires the installation of third-party libraries, this will depend on which archives you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
 #### VCPKG
@@ -112,8 +113,7 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
     "dependencies": [
         {
             "name": "bitserializer",
-            "features": [ "cpprestjson-archive", "rapidjson-archive", "pugixml-archive", "rapidyaml-archive" ],
-            "version>=": "0.44"
+            "features": [ "cpprestjson-archive", "rapidjson-archive", "pugixml-archive", "rapidyaml-archive", "csv-archive" ]
         }
     ]
 }
@@ -121,25 +121,48 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 Enumerate features which you need, by default all are disabled.
 Alternatively, you can install the library via the command line:
 ```shell
-vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive]
+vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
 #### Conan
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
-bitserializer/0.44
+bitserializer/0.50
 
 [options]
 bitserializer:with_cpprestsdk=True
 bitserializer:with_rapidjson=True
 bitserializer:with_pugixml=True
+bitserializer:with_rapidyaml=True
+bitserializer:with_csv=True
 ```
-Or just install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
+Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
 ```shell
-conan install bitserializer/0.44@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True --build missing
+conan install bitserializer/0.50@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o bitserializer:with_rapidyaml=True --build missing
 ```
-The YAML archive is not available yet in Conan.
+#### CMake install to Unix system
+```
+git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
+# Enable only archives which you need (by default all are disabled)
+cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON
+sudo cmake --build bitserializer/build --config Debug --target install
+sudo cmake --build bitserializer/build --config Release --target install
+```
+You will also need to install dev-packages of base libraries, currently available only `rapidjson-dev` and `libpugixml-dev`, the rest need to be built manually (CSV archive does not require any dependencies).
+
+#### How to use with CMake
+```cmake
+find_package(bitserializer CONFIG REQUIRED)
+# Link only archives which you need
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    BitSerializer::cpprestjson-archive
+    BitSerializer::rapidjson-archive
+    BitSerializer::pugixml-archive
+    BitSerializer::rapidyaml-archive
+    BitSerializer::csv-archive
+)
+```
 
 ### Hello world
 Let's get started with traditional and simple "Hello world!" example.
@@ -168,7 +191,7 @@ int main()
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of std::basic_string types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using MakeAutoKeyValue()), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually std::string (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of std::basic_string types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using `MakeAutoKeyValue()`), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
 ```cpp
 class TestUnicodeClass
 {
@@ -269,7 +292,7 @@ void Serialize(TArchive& archive)
 ```
 
 ### Serializing third party class
-As alternative for internal Serialize() method also exists aproach with defining global functions, it will be usufull in next cases:
+As alternative for internal Serialize() method also exists approach with defining global functions, it will be useful in next cases:
  - Sources of serializing class cannot be modified (for example from third party library).
  - When class represents list of some values (such as std::vector).
  - When you would like to override internal serialization, globally defined functions have higher priority.
@@ -342,7 +365,7 @@ bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
 template <class TArchive>
 bool Serialize(TArchive& archive, CMyString& value)
 ```
-These two functions are neccessary for serialization any type with and without **key** into the output archive. For example, object in the JSON format, has named properties, but JSON-array can contain only values.
+These two functions are necessary for serialization any type with and without **key** into the output archive. For example, object in the JSON format, has named properties, but JSON-array can contain only values.
 The BitSerializer's archives works with `std::basic_string<>`, so you need to convert your custom string before serialize. The best way is to implement string conversion methods as required by BitSerialzer ([see more](docs/bitserializer_convert.md)), this will also help you get the ability to serialize `std::map`, where the custom string is used as the key.
 This all looks a little more complicated than serializing the object, but the code is pretty simple, please have a look at the example below:
 ```cpp
@@ -514,7 +537,7 @@ But here are some moments which need comments. As you can see in the XML was cre
 ```cpp
 const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Point", testObj));
 ```
-The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also alow to customize the serialization behaviour for different formats:
+The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also allow to customize the serialization behavior for different formats:
 ```cpp
 	template <class TArchive>
 	void Serialize(TArchive& archive)
@@ -630,6 +653,102 @@ public:
 }
 ```
 
+### Serialization to streams and files
+All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to std::string, streams/files also supports UTF encodings.
+BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but last is only supported by RapidJson, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
+The following example shows how to save/load to `std::stream`:
+```cpp
+class CPoint
+{
+public:
+	CPoint() = default;
+	CPoint(int x, int y)
+		: x(x), y(y)
+	{ }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << MakeAutoKeyValue("x", x);
+		archive << MakeAutoKeyValue("y", y);
+	}
+
+	int x = 0, y = 0;
+};
+
+int main()
+{
+	auto testObj = CPoint(100, 200);
+
+	SerializationOptions serializationOptions;
+	serializationOptions.streamOptions.encoding = Convert::UtfType::Utf8;
+	serializationOptions.streamOptions.writeBom = false;
+
+	// Save to string stream
+	std::stringstream outputStream;
+	BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions);
+	std::cout << outputStream.str() << std::endl;
+
+	// Load from string stream
+	CPoint loadedObj;
+	BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
+
+	assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);
+	return 0;
+}
+```
+[See full sample](samples/validation/serialize_to_stream.cpp)
+
+For save/load to files, BitSerializer provides the following functions (which are just wrappers of serialization methods to streams):
+```cpp
+	BitSerializer::SaveObjectToFile<TArchive>(obj, path);
+	BitSerializer::LoadObjectFromFile<TArchive>(obj, path);
+```
+
+### Error handling
+First, let's list what are considered as errors and will throw exception:
+
+ - Syntax errors in the input source (e.g. JSON)
+ - When one or more user's validation rules were not passed
+ - When a type from the archive (source format, like JSON) does not match to the target value (can be configured via `MismatchedTypesPolicy`)
+ - When size of target type is not enough for loading value (can be configured via `OverflowNumberPolicy`)
+ - When target array with fixed size does not match the number of loading items
+ - Invalid configuration in the `SerializationOptions`
+ - Input/output file can't be opened for read/write
+ - Unsupported UTF encoding
+
+By default, any missed field in the input format (e.g. JSON) is not treated as an error, but you can add `Required()` validator if needed.
+You can handle `std::exception` just for log errors, but if you need to give client more details, you may need to handle below exceptions:
+
+ - `SerializationException`, base BitSerializer exception, contains `SerializationErrorCode`
+ - `ParsingException`, contains information about line number or offset (depending on format type)
+ - `ValidationException`, contains map of fields with validation errors
+
+```cpp
+try
+{
+	int testInt;
+	BitSerializer::LoadObject<JsonArchive>(testInt, L"10 ?");
+}
+catch (const BitSerializer::ParsingException& ex)
+{
+	// Parsing error: Malformed token
+	std::string message = ex.what();
+	size_t line = ex.Line;
+	size_t offset = ex.Offset;
+}
+catch (BitSerializer::ValidationException& ex)
+{
+	// Handle validation errors
+	const auto& validationErrors = ex.GetValidationErrors();
+}
+catch (const std::exception& ex)
+{
+	// Handle any other errors
+	std::string message = ex.what();
+}
+```
+
 ### Validation of deserialized values
 BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
 ```cpp
@@ -639,7 +758,7 @@ For handle validation errors, need to catch special exception `ValidationExcepti
 The map of validation errors can be get by calling method `GetValidationErrors()`, it contains paths to fields with errors lists.
 
 Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`.
-Validator 'Range' can be used with all types which have operators '<' and '>'.
+Validator `Range` can be used with all types which have operators '<' and '>'.
 Validators `MinSize` and `MaxSize` can be applied to all values which have `size()` method.
 This list will be extended in future.
 ```cpp
@@ -660,6 +779,7 @@ public:
 		// Custom validation with lambda
 		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
 		{
+			// Loaded string should has text without spaces or should be NULL
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
 				return std::nullopt;
 			return "The field must not contain spaces";
@@ -719,59 +839,6 @@ Path: /NickName
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 
-### Serialization to streams and files
-All archives in the BitSerializer support streams, usually it's a sequence of bytes in UTF encoding (with the exception of binary formats).
-Also supported detect/writing BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)).
-
-```cpp
-class CPoint
-{
-public:
-	CPoint() = default;
-	CPoint(int x, int y)
-		: x(x), y(y)
-	{ }
-
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << MakeAutoKeyValue("x", x);
-		archive << MakeAutoKeyValue("y", y);
-	}
-
-	int x = 0, y = 0;
-};
-
-int main()
-{
-	auto testObj = CPoint(100, 200);
-
-	SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.encoding = Convert::UtfType::Utf8;
-	serializationOptions.streamOptions.writeBom = false;
-
-	// Save to string stream
-	std::stringstream outputStream;
-	BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions);
-	std::cout << outputStream.str() << std::endl;
-
-	// Load from string stream
-	CPoint loadedObj;
-	BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
-
-	assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);
-	return 0;
-}
-```
-[See full sample](samples/validation/serialize_to_stream.cpp)
-
-Two other API methods are used for serialization to files:
-```cpp
-	BitSerializer::SaveObjectToFile<JsonArchive>(testObj, "D:\test_obj.json");
-	BitSerializer::LoadObjectFromFile<JsonArchive>(testObj, "D:\test_obj.json");
-```
-They are just wrappers of serialization methods into streams.
-
 ### Compile time checking
 The new C++ 17 ability «if constexpr» helps to generate clear error messages.
 If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
@@ -786,20 +853,6 @@ inline void Serialize(TArchive& archive)
 };
 ```
 
-### Error handling
-```cpp
-try
-{
-	int testInt;
-	BitSerializer::LoadObject<JsonArchive>(testInt, L"10 ?");
-}
-catch (const BitSerializer::SerializationException& ex)
-{
-	// Parsing error: Malformed token
-	std::string message = ex.what();
-}
-```
-
 Thanks
 ----
 - Artsiom Marozau for developing an archive with support YAML.
@@ -810,4 +863,4 @@ Thanks
 
 License
 ----
-MIT, Copyright (C) 2018-2021 by Pavel Kisliak, made in Belarus 🇧🇾
+MIT, Copyright (C) 2018-2022 by Pavel Kisliak, made in Belarus 🇧🇾

@@ -1,5 +1,25 @@
 # BitSerializer (History log)
 
+##### What's new in version 0.50 (5 December 2022):
+- [ ! ] Added new archive for serialization to CSV, supports all UTF encodings with auto-detection (built-in implementation, no dependencies).
+- [ ! ] API breaking change - deprecated global `BitSerializer::Context`, now validation errors will propagate only via `ValidationException`.
+- [ ! ] Removed all static memory allocations for be compatible with custom allocators.
+- [ + ] Added policy `OverflowNumberPolicy` for case when size of target type is not enough for loading number.
+- [ + ] Added policy `MismatchedTypesPolicy` for case when type of target field does not match the value being loaded.
+- [ + ] Added default `SerializationOptions`.
+- [ * ] Added `ParsingException` with information about line number or offset (depending on format type).
+- [ * ] Added new simplified macro `REGISTER_ENUM` - replacement for `REGISTER_ENUM_MAP` which is deprecated.
+- [ + ] Conversion sub-module: Added error policy for encode UTF (error mark, throw exception or skip).
+- [ * ] Conversion sub-module: Added throwing `invalid_argument` exception when converting from invalid string to number.
+- [ * ] Conversion sub-module: Converting a string containing floating point number to integer, now will throw `out_of_range` exception.
+- [ * ] Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
+- [ * ] Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
+- [ * ] [CppRestJson] Fixed serialization of booleans in the object (was serialized as number).
+- [ * ] [RapidYaml] Fixed compatibility with latest version of the RapidYaml library (0.4.1).
+- [ * ] [RapidYaml] Fixed serialization negative int8.
+- [ * ] [RapidYaml] Fixed issue with error handling when multi-thread serialization.
+- [ * ] [RapidJson, CppRestJson, RapidYaml] Fixed path in the validation errors, index in arrays was shifted by 1.
+
 ##### What's new in version 0.44 (1 October 2021):
 
 - [ ! ] Changed minimum requirement for CLang compiler from version 7 to 8.

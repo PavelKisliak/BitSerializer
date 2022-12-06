@@ -48,7 +48,7 @@ namespace BitSerializer
 	};
 
 	/// <summary>
-	/// Policy for case when type of target field does not match the value being loaded.
+	/// Policy for case when size of target type is not enough for loading value.
 	/// </summary>
 	enum class OverflowNumberPolicy
 	{

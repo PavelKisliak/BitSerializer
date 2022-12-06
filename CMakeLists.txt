@@ -12,7 +12,7 @@ endif()
 set(VCPKG_FEATURE_FLAGS "versions")
 
 project(bitserializer
-  VERSION 0.44.0
+  VERSION 0.50.0
   DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV)"
   LANGUAGES CXX)
 

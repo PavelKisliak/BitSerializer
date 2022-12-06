@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include "csv_readers.h"
 #include "csv_writers.h"
+#include <algorithm>
 
 
 namespace

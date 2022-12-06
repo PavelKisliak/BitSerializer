@@ -16,8 +16,7 @@ Add BitSerializer to manifest file (`vcpkg.json`) with `rapidyaml-archive` featu
     "dependencies": [
         {
             "name": "bitserializer",
-            "features": [ "rapidyaml-archive" ],
-            "version>=": "0.44"
+            "features": [ "rapidyaml-archive" ]
         }
     ]
 }
@@ -27,13 +26,25 @@ If your project is based on VS solution you can just include next header files f
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/rapidyaml_archive.h"
 ```
-If you are using Cmake, you need to link the library:
+If you are using CMake, you need to link the library:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
 ```
 #### Conan
-The **YAML** archive requires **RapidYaml** library, but unfortunately it is not available in the Conan right now.
+Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_csv` option:
+```
+[requires]
+bitserializer/0.50
+
+[options]
+bitserializer:with_rapidyaml=True
+```
+Usage the library will be related to selected Conan generator, if your choice is `cmake_find_package_multi`, than linking will be classic:
+```cmake
+find_package(bitserializer CONFIG REQUIRED)
+target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
+```
 
 ### Implementation detail
 One of unique features in **YAML** is **dictionaries**, are a little more advanced than **JSON**, it allows to make sequence with named objects, for example:
@@ -49,11 +60,7 @@ shape2: { type: circle, rarius: 50 }
 
 In addition, there are several limitations related to the implementation of the underlying library:
 
-- Error handling is not thread-safe as structure `ryml::Callbacks` is defined globally.
 - **Rapid YAML** does not support streams, BitSerializer handle this, but with memory overhead.
-- MacOS does not supported, as the base library does not support too.
-
-Hope that author of [RapidYAML](https://github.com/biojppm/rapidyaml) will take care about it in future.
 
 ### Example
 Below example shows how to load and save `std::map` from/to **YAML**.

@@ -127,7 +127,7 @@ Alternatively, you can install the library via the command line:
 vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
-#### Conan
+#### Conan (publish v0.50 is in progress)
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
@@ -723,9 +723,9 @@ First, let's list what are considered as errors and will throw exception:
 By default, any missed field in the input format (e.g. JSON) is not treated as an error, but you can add `Required()` validator if needed.
 You can handle `std::exception` just for log errors, but if you need to provide the user more details, you may need to handle below exceptions:
 
- - `SerializationException`, base BitSerializer exception, contains `SerializationErrorCode`
- - `ParsingException`, contains information about line number or offset (depending on format type)
- - `ValidationException`, contains map of fields with validation errors
+ - `SerializationException` - base BitSerializer exception, contains `SerializationErrorCode`
+ - `ParsingException` - contains information about line number or offset (depending on format type)
+ - `ValidationException` - contains map of fields with validation errors
 
 ```cpp
 try

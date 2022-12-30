@@ -52,7 +52,7 @@
 ##### Version 0.9 (5 May 2020):
 - [ ! ] Added XML serialization support (based on library PugiXml).
 - [ ! ] Added YAML serialization support (based on library RapidYaml).
-- [ ! ] Add CI with builds for Windows, Linux (GCC, Clang) and MaOS (AppleClang).
+- [ ! ] Add CI with builds for Windows, Linux (GCC, Clang) and MacOS (AppleClang).
 - [ + ] Add formatting options for output text (but formatting is not supported in CppRestJson).
 - [ + ] Add support encoding to various UTF based formats (defines in serialization options).
 - [ + ] Add optional writing the BOM to output stream/file.

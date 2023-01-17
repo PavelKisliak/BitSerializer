@@ -31,7 +31,7 @@ If you are using CMake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::cpprestjson-archive)
 ```
-#### Conan (publish v0.50 is in progress)
+#### Conan
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_cpprestsdk` option:
 ```
 [requires]

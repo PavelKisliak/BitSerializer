@@ -127,7 +127,7 @@ Alternatively, you can install the library via the command line:
 vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
-#### Conan (publish v0.50 is in progress)
+#### Conan
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]

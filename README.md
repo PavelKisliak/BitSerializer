@@ -296,12 +296,14 @@ void Serialize(TArchive& archive)
 
 ### Serializing third party class
 As alternative for internal `Serialize()` method also exists approach with defining global functions, it will be useful in next cases:
+
  - Sources of serializing class cannot be modified (for example from third party library).
  - When class represents list of some values (such as `std::vector`).
  - When you would like to override internal serialization, globally defined functions have higher priority.
  - When you strongly follow single responsibility principle and wouldn't like to include serialization code into class.
 
 You need to implement one of below functions in any namespace:
+
  - `SerializeObject()` - when you would like to represent your class as object in a target format (e.g. JSON object).
  - `SerializeArray()` - when you would like to represent your class as array in a target format (e.g. JSON array).
 
@@ -490,12 +492,11 @@ enum class HttpMethod {
 	Head = 3
 };
 
-REGISTER_ENUM_MAP(HttpMethod)
-{
+REGISTER_ENUM(HttpMethod, {
 	{ HttpMethod::Delete,   "delete" },
 	{ HttpMethod::Get,      "get" },
 	{ HttpMethod::Head,     "head" }
-} END_ENUM_MAP()
+})
 ```
 
 ### Serializing to multiple formats
@@ -657,7 +658,7 @@ public:
 ```
 
 ### Serialization to streams and files
-All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to 'std::string', streams/files also supports UTF encodings.
+All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.
 BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but last is only supported by RapidJson, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
 The following example shows how to save/load to `std::stream`:
 ```cpp

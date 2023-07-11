@@ -9,6 +9,7 @@ int main()
 {
 	std::string expected = "Hello world!";
 	auto json = BitSerializer::SaveObject<JsonArchive>(expected);
+
 	std::string result;
 	BitSerializer::LoadObject<JsonArchive>(result, json);
 

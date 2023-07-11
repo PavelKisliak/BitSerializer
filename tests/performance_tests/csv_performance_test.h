@@ -21,7 +21,7 @@ public:
 
 	static constexpr size_t CsvRowsCount = 30;
 
-	virtual void Prepare()
+	void Prepare() override
 	{
 		mSourceTestModel.resize(CsvRowsCount);
 		for (auto& item : mSourceTestModel)

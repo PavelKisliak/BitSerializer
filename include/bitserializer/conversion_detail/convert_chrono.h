@@ -49,7 +49,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		tm gmt{};
 		const time_t time = std::chrono::system_clock::to_time_t(in);
-		if (!toGmt(time, gmt)) {
+		if (!toGmt(time, gmt) || time < 0) {
 			throw std::out_of_range("Argument out of range");
 		}
 		gmt.tm_year += 1900;
@@ -139,7 +139,7 @@ namespace BitSerializer::Convert::Detail
 		tm.tm_year -= 1900;
 		--tm.tm_mon;
 		time_t time = 0;
-		if (!fromGmt(tm, time)) {
+		if (tm.tm_year < 70 || !fromGmt(tm, time) || time < 0) {
 			throw std::out_of_range("Argument out of range");
 		}
 		out = std::chrono::system_clock::from_time_t(time);

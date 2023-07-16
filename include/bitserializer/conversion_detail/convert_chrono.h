@@ -10,63 +10,86 @@
 namespace BitSerializer::Convert::Detail
 {
 	/// <summary>
-	/// Converts time since epoch to UTC in the `tm` structure.
+	/// Converts Unix time to UTC expressed in the `tm` structure.
 	/// </summary>
-	inline bool toGmt(time_t in, tm& out)
+	inline tm UnixTimeToUtc(time_t dateTime) noexcept
 	{
-#ifdef WIN32
-		if (gmtime_s(&out, &in) == 0) {
-			return true;
-		}
-#else
-		if (gmtime_r(&in, &out) != nullptr) {
-			return true;
-		}
-#endif
-		return false;
+		// Based on Howard Hinnant's algorithm
+		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
+
+		auto days = dateTime / 86400;
+		const auto time = static_cast<int>(dateTime - days * 86400);
+		if (time < 0) --days;
+
+		auto const z = days + 719468;
+		auto const era = (z >= 0 ? z : z - 146096) / 146097;
+		auto const doe = static_cast<unsigned>(z - era * 146097);						// [0, 146096]
+		auto const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;	// [0, 399]
+		auto const y = yoe + era * 400;
+		auto const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);				// [0, 365]
+		auto const mp = (5 * doy + 2) / 153;										// [0, 11]
+		auto const d = doy - (153 * mp + 2) / 5 + 1;								// [1, 31]
+		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
+
+		tm utc{};
+		utc.tm_year = static_cast<int>(y) + (m <= 2);
+		utc.tm_mon = static_cast<int>(m);
+		utc.tm_mday = static_cast<int>(d);
+		utc.tm_hour = time / 3600;
+		if (time < 0) utc.tm_hour += 23;
+		utc.tm_min = time % 3600 / 60;
+		if (time < 0) utc.tm_min += 59;
+		utc.tm_sec = time % 60;
+		if (time < 0) utc.tm_sec += 60;
+		return utc;
 	}
 
 	/// <summary>
-	/// Converts UTC in the `tm` structure to a time value.
+	/// Converts UTC expressed in the `tm` structure to Unix time.
 	/// </summary>
-	inline bool fromGmt(tm& in, time_t& out)
+	inline time_t UtcToUnixTime(const tm& utc) noexcept
 	{
-#ifdef _WIN32
-		out = _mkgmtime(&in);
-#else
-		out = timegm(&in);
-#endif
-		return out != -1;
+		// Based on Howard Hinnant's algorithm
+		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
+
+		auto const y = static_cast<int>(utc.tm_year) - (utc.tm_mon <= 2);
+		auto const m = static_cast<unsigned>(utc.tm_mon);
+		auto const d = static_cast<unsigned>(utc.tm_mday);
+		auto const era = (y >= 0 ? y : y - 399) / 400;
+		auto const yoe = static_cast<unsigned>(y - era * 400);						// [0, 399]
+		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
+		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
+
+		const auto days = era * 146097 + static_cast<int>(doe) - 719468;
+		const auto time = static_cast<long long>(utc.tm_hour) * 3600 + static_cast<long long>(utc.tm_min) * 60 + utc.tm_sec;
+		return static_cast<long long>(days) * 86400 + time;
 	}
 
 	/// <summary>
 	/// Converts from `std::chrono::system_clock::time_point` to `std::string` (ISO 8601/UTC).
-	///	Dates before Unix Epoch (1 January 1970) are not supported (throws `std::out_of_range` exception).
 	///	Milliseconds will be rendered only when they present (non-zero).
 	/// </summary>
 	template <typename TSym, typename TAllocator>
 	void To(const std::chrono::system_clock::time_point& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		tm gmt{};
-		const time_t time = std::chrono::system_clock::to_time_t(in);
-		if (!toGmt(time, gmt) || time < 0) {
-			throw std::out_of_range("Argument out of range");
+		time_t time = std::chrono::system_clock::to_time_t(in);
+		const auto frSec = in - std::chrono::system_clock::from_time_t(time);
+		if (frSec.count() < 0) {
+			--time;
 		}
-		gmt.tm_year += 1900;
-		++gmt.tm_mon;
+		const tm utc = UnixTimeToUtc(time);
 
 		constexpr size_t UtcBufSize = 32;
 		char buffer[UtcBufSize];
 		size_t outSize;
-
-		const auto frSec = in - std::chrono::system_clock::from_time_t(time);
-		if (frSec.count() > 0)
+		if (frSec.count() != 0)
 		{
-			const int ms = static_cast<int>(std::chrono::round<std::chrono::milliseconds>(frSec).count());
-			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ", gmt.tm_year, gmt.tm_mon, gmt.tm_mday, gmt.tm_hour, gmt.tm_min, gmt.tm_sec, ms);
+			int ms = static_cast<int>(std::chrono::round<std::chrono::milliseconds>(frSec).count());
+			if (ms < 0) ms += 1000;
+			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec, ms);
 		}
 		else {
-			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02dZ", gmt.tm_year, gmt.tm_mon, gmt.tm_mday, gmt.tm_hour, gmt.tm_min, gmt.tm_sec);
+			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec);
 		}
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
@@ -76,24 +99,22 @@ namespace BitSerializer::Convert::Detail
 
 	/// <summary>
 	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z) to `std::chrono::system_clock::time_point`.
-	///	Dates before Unix Epoch (1 January 1970) are not supported (throws `std::out_of_range` exception).
+	///	The range of possible dates depends on the compiler and `chrono::system_clock` implementation, on GCC they are between 1678 and 2261 years.
 	///	Examples of allowed dates:
-	///	- 2023-05-28T18:59:36Z
-	///	- 2023-05-28T18:59:36.925Z
+	///	- 1872-01-01T00:00:00Z
+	///	- 2023-07-14T22:44:51.925Z
 	/// </summary>
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, std::chrono::system_clock::time_point& out)
 	{
-		constexpr auto invalidInputStringError = "Input string is not a valid ISO datetime";
-
-		auto parseInt = [&invalidInputStringError](const char* buf, const char* end, int& out, int maxValue = 0, char delimiter = 0) -> const char* {
+		auto parseDatetimePart = [](const char* buf, const char* end, int& out, int maxValue = 0, char delimiter = 0) -> const char* {
 			if (std::isdigit(*buf))
 			{
 				const std::from_chars_result result = std::from_chars(buf, end, out);
 				if (result.ec == std::errc())
 				{
 					if (maxValue && out > maxValue) {
-						throw std::invalid_argument(invalidInputStringError);
+						throw std::out_of_range("Input datetime contains out-of-bounds values");
 					}
 					if (delimiter)
 					{
@@ -106,24 +127,25 @@ namespace BitSerializer::Convert::Detail
 					}
 				}
 			}
-			throw std::invalid_argument(invalidInputStringError);
+			throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
 		};
 
-		std::tm tm = {};
+		std::tm utc = {};
 		int frSec = 0;
-		auto parseDatetime = [&invalidInputStringError, &parseInt, &tm, &frSec](const char* pos, const char* end) {
-			pos = parseInt(pos, end, tm.tm_year, 0, '-');
-			pos = parseInt(pos, end, tm.tm_mon, 12, '-');
-			pos = parseInt(pos, end, tm.tm_mday, 31, 'T');
-			pos = parseInt(pos, end, tm.tm_hour, 23, ':');
-			pos = parseInt(pos, end, tm.tm_min, 59, ':');
-			pos = parseInt(pos, end, tm.tm_sec, 59);
+		auto parseDatetime = [&parseDatetimePart, &utc, &frSec](const char* pos, const char* end) {
+			static constexpr int daysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-');
+			pos = parseDatetimePart(pos, end, utc.tm_mon, 12, '-');
+			pos = parseDatetimePart(pos, end, utc.tm_mday, daysInMonth[utc.tm_mon - 1], 'T');
+			pos = parseDatetimePart(pos, end, utc.tm_hour, 23, ':');
+			pos = parseDatetimePart(pos, end, utc.tm_min, 59, ':');
+			pos = parseDatetimePart(pos, end, utc.tm_sec, 59);
 			// Parse optional milliseconds
 			if (const auto sym = *pos; sym == '.') {
-				pos = parseInt(++pos, end, frSec, 999, 'Z');
+				pos = parseDatetimePart(++pos, end, frSec, 999, 'Z');
 			}
 			else if (sym != 'Z') {
-				throw std::invalid_argument(invalidInputStringError);
+				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
 			}
 		};
 
@@ -136,12 +158,7 @@ namespace BitSerializer::Convert::Detail
 			parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
 		}
 
-		tm.tm_year -= 1900;
-		--tm.tm_mon;
-		time_t time = 0;
-		if (tm.tm_year < 70 || !fromGmt(tm, time) || time < 0) {
-			throw std::out_of_range("Argument out of range");
-		}
+		const auto time = UtcToUnixTime(utc);
 		out = std::chrono::system_clock::from_time_t(time);
 		if (frSec) {
 			out += std::chrono::system_clock::duration(std::chrono::milliseconds(frSec));

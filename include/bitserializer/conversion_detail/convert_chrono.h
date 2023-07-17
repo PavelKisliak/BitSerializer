@@ -66,25 +66,21 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
-	/// Converts from `std::chrono::system_clock::time_point` to `std::string` (ISO 8601/UTC).
+	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
 	///	Milliseconds will be rendered only when they present (non-zero).
 	/// </summary>
-	template <typename TSym, typename TAllocator>
-	void To(const std::chrono::system_clock::time_point& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	template <typename TClock, typename TDuration, typename TSym, typename TAllocator>
+	void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		time_t time = std::chrono::system_clock::to_time_t(in);
-		const auto frSec = in - std::chrono::system_clock::from_time_t(time);
-		if (frSec.count() < 0) {
-			--time;
-		}
+		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
+		auto ms = static_cast<int>((in - std::chrono::seconds(time)).time_since_epoch().count());
 		const tm utc = UnixTimeToUtc(time);
 
 		constexpr size_t UtcBufSize = 32;
 		char buffer[UtcBufSize];
 		size_t outSize;
-		if (frSec.count() != 0)
+		if (ms != 0)
 		{
-			int ms = static_cast<int>(std::chrono::round<std::chrono::milliseconds>(frSec).count());
 			if (ms < 0) ms += 1000;
 			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec, ms);
 		}
@@ -98,14 +94,13 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z) to `std::chrono::system_clock::time_point`.
-	///	The range of possible dates depends on the compiler and `chrono::system_clock` implementation, on GCC they are between 1678 and 2261 years.
+	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z) to `std::chrono::time_point`.
 	///	Examples of allowed dates:
 	///	- 1872-01-01T00:00:00Z
 	///	- 2023-07-14T22:44:51.925Z
 	/// </summary>
-	template <typename TSym>
-	void To(std::basic_string_view<TSym> in, std::chrono::system_clock::time_point& out)
+	template <typename TSym, typename TClock, typename TDuration>
+	void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
 		auto parseDatetimePart = [](const char* buf, const char* end, int& out, int maxValue = 0, char delimiter = 0) -> const char* {
 			if (std::isdigit(*buf))
@@ -114,7 +109,7 @@ namespace BitSerializer::Convert::Detail
 				if (result.ec == std::errc())
 				{
 					if (maxValue && out > maxValue) {
-						throw std::out_of_range("Input datetime contains out-of-bounds values");
+						throw std::invalid_argument("Input datetime contains out-of-bounds values");
 					}
 					if (delimiter)
 					{
@@ -131,8 +126,8 @@ namespace BitSerializer::Convert::Detail
 		};
 
 		std::tm utc = {};
-		int frSec = 0;
-		auto parseDatetime = [&parseDatetimePart, &utc, &frSec](const char* pos, const char* end) {
+		int ms = 0;
+		auto parseDatetime = [&parseDatetimePart, &utc, &ms](const char* pos, const char* end) {
 			static constexpr int daysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-');
 			pos = parseDatetimePart(pos, end, utc.tm_mon, 12, '-');
@@ -142,7 +137,7 @@ namespace BitSerializer::Convert::Detail
 			pos = parseDatetimePart(pos, end, utc.tm_sec, 59);
 			// Parse optional milliseconds
 			if (const auto sym = *pos; sym == '.') {
-				pos = parseDatetimePart(++pos, end, frSec, 999, 'Z');
+				pos = parseDatetimePart(++pos, end, ms, 999, 'Z');
 			}
 			else if (sym != 'Z') {
 				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
@@ -159,9 +154,9 @@ namespace BitSerializer::Convert::Detail
 		}
 
 		const auto time = UtcToUnixTime(utc);
-		out = std::chrono::system_clock::from_time_t(time);
-		if (frSec) {
-			out += std::chrono::system_clock::duration(std::chrono::milliseconds(frSec));
+		out = std::chrono::time_point<TClock, TDuration>(std::chrono::duration_cast<TDuration>(std::chrono::seconds(time)));
+		if (ms) {
+			out += std::chrono::milliseconds(ms);
 		}
 	}
 }

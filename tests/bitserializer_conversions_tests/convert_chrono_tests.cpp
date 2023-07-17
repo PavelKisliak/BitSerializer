@@ -12,6 +12,7 @@ using namespace std::chrono;
 // Test data
 //-----------------------------------------------------------------------------
 using TimePointMs = time_point<system_clock, milliseconds>;
+using TimePointNs = time_point<system_clock, nanoseconds>;
 
 constexpr auto tp1678_12_31T23_59_59 = TimePointMs(seconds(-9183024001));
 constexpr auto tp1872_01_01T00_00_00 = TimePointMs(seconds(-3092601600));
@@ -24,7 +25,7 @@ constexpr auto tp2261_12_31T23_59_59 = TimePointMs(seconds(9214646399));
 //-----------------------------------------------------------------------------
 // Test conversion from std::chrono::system_clock::time_point to std::string
 //-----------------------------------------------------------------------------
-TEST(ConvertChrono, ConvertSystemClockTimePointToUtcString) {
+TEST(ConvertChrono, ConvertTimePointToUtcString) {
 	EXPECT_EQ("1678-12-31T23:59:59Z", Convert::ToString(tp1678_12_31T23_59_59));
 	EXPECT_EQ("1872-01-01T00:00:00Z", Convert::ToString(tp1872_01_01T00_00_00));
 	EXPECT_EQ("1968-02-29T12:35:45Z", Convert::ToString(tp1968_02_29T12_35_45));
@@ -34,7 +35,7 @@ TEST(ConvertChrono, ConvertSystemClockTimePointToUtcString) {
 	EXPECT_EQ(L"2261-12-31T23:59:59Z", Convert::To<std::wstring>(tp2261_12_31T23_59_59));
 }
 
-TEST(ConvertChrono, ConvertSystemClockTimePointWithMsToUtcString) {
+TEST(ConvertChrono, ConvertTimePointWithMsToUtcString) {
 	EXPECT_EQ("1678-12-31T23:59:59.999Z", Convert::ToString(tp1678_12_31T23_59_59 + 999ms));
 	EXPECT_EQ("1872-01-01T00:00:00.001Z", Convert::ToString(tp1872_01_01T00_00_00 + 1ms));
 	EXPECT_EQ("1968-02-29T12:35:45.567Z", Convert::ToString(tp1968_02_29T12_35_45 + 567ms));
@@ -47,7 +48,7 @@ TEST(ConvertChrono, ConvertSystemClockTimePointWithMsToUtcString) {
 //-----------------------------------------------------------------------------
 // Test conversion from std::string_view to std::chrono::system_clock::time_point
 //-----------------------------------------------------------------------------
-TEST(ConvertChrono, ConvertUtcStringToSystemClockTimePoint) {
+TEST(ConvertChrono, ConvertUtcStringToTimePoint) {
 	EXPECT_EQ(tp1678_12_31T23_59_59, Convert::To<TimePointMs>("1678-12-31T23:59:59Z"));
 	EXPECT_EQ(tp1872_01_01T00_00_00, Convert::To<TimePointMs>("1872-01-01T00:00:00Z"));
 	EXPECT_EQ(tp1968_02_29T12_35_45, Convert::To<TimePointMs>("1968-02-29T12:35:45Z"));
@@ -57,7 +58,7 @@ TEST(ConvertChrono, ConvertUtcStringToSystemClockTimePoint) {
 	EXPECT_EQ(tp2261_12_31T23_59_59, Convert::To<TimePointMs>(L"2261-12-31T23:59:59Z"));
 }
 
-TEST(ConvertChrono, ConvertUtcStringWithMsToSystemClockTimePoint) {
+TEST(ConvertChrono, ConvertUtcStringWithMsToTimePoint) {
 	EXPECT_EQ(tp1678_12_31T23_59_59 + 999ms, Convert::To<TimePointMs>("1678-12-31T23:59:59.999Z"));
 	EXPECT_EQ(tp1872_01_01T00_00_00 + 1ms, Convert::To<TimePointMs>("1872-01-01T00:00:00.001Z"));
 	EXPECT_EQ(tp1968_02_29T12_35_45 + 567ms, Convert::To<TimePointMs>("1968-02-29T12:35:45.567Z"));
@@ -95,4 +96,9 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidTime) {
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:60:00Z"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:60Z"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:00.1000Z"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
+	EXPECT_THROW(Convert::To<TimePointNs>("1677-05-31T00:00:00Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<TimePointNs>("2262-05-00T00:00:00Z"), std::out_of_range);
 }

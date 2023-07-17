@@ -158,5 +158,8 @@ namespace BitSerializer::Convert::Detail
 		if (ms) {
 			out += std::chrono::milliseconds(ms);
 		}
+		if (time != std::chrono::floor<std::chrono::seconds>(out).time_since_epoch().count()) {
+			throw std::out_of_range("Target timepoint range is not enough");
+		}
 	}
 }

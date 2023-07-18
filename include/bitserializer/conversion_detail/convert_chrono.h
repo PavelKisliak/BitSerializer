@@ -23,12 +23,12 @@ namespace BitSerializer::Convert::Detail
 
 		auto const z = days + 719468;
 		auto const era = (z >= 0 ? z : z - 146096) / 146097;
-		auto const doe = static_cast<unsigned>(z - era * 146097);						// [0, 146096]
+		auto const doe = static_cast<unsigned>(z - era * 146097);				// [0, 146096]
 		auto const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;	// [0, 399]
 		auto const y = yoe + era * 400;
 		auto const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);				// [0, 365]
-		auto const mp = (5 * doy + 2) / 153;										// [0, 11]
-		auto const d = doy - (153 * mp + 2) / 5 + 1;								// [1, 31]
+		auto const mp = (5 * doy + 2) / 153;									// [0, 11]
+		auto const d = doy - (153 * mp + 2) / 5 + 1;							// [1, 31]
 		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
 
 		tm utc{};
@@ -56,7 +56,7 @@ namespace BitSerializer::Convert::Detail
 		auto const m = static_cast<unsigned>(utc.tm_mon);
 		auto const d = static_cast<unsigned>(utc.tm_mday);
 		auto const era = (y >= 0 ? y : y - 399) / 400;
-		auto const yoe = static_cast<unsigned>(y - era * 400);						// [0, 399]
+		auto const yoe = static_cast<unsigned>(y - era * 400);				// [0, 399]
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
 		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
 
@@ -70,7 +70,7 @@ namespace BitSerializer::Convert::Detail
 	///	Milliseconds will be rendered only when they present (non-zero).
 	/// </summary>
 	template <typename TClock, typename TDuration, typename TSym, typename TAllocator>
-	void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
 		auto ms = static_cast<int>((in - std::chrono::seconds(time)).time_since_epoch().count());
@@ -100,7 +100,7 @@ namespace BitSerializer::Convert::Detail
 	///	- 2023-07-14T22:44:51.925Z
 	/// </summary>
 	template <typename TSym, typename TClock, typename TDuration>
-	void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
+	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
 		auto parseDatetimePart = [](const char* buf, const char* end, int& out, int maxValue = 0, char delimiter = 0) -> const char* {
 			if (std::isdigit(*buf))
@@ -154,12 +154,17 @@ namespace BitSerializer::Convert::Detail
 		}
 
 		const auto time = UtcToUnixTime(utc);
-		out = std::chrono::time_point<TClock, TDuration>(std::chrono::duration_cast<TDuration>(std::chrono::seconds(time)));
+		constexpr auto maxSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::max())
+			.time_since_epoch().count();
+		constexpr auto minSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::min())
+			.time_since_epoch().count();
+		if (time > maxSec || time < minSec) {
+			throw std::out_of_range("Target timepoint range is not enough");
+		}
+
+		out = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(time));
 		if (ms) {
 			out += std::chrono::milliseconds(ms);
-		}
-		if (time != std::chrono::floor<std::chrono::seconds>(out).time_since_epoch().count()) {
-			throw std::out_of_range("Target timepoint range is not enough");
 		}
 	}
 }

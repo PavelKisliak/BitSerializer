@@ -1,5 +1,6 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2017 Howard Hinnant (datetime algorithms from 'date' library)  *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -69,7 +70,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
 	///	Milliseconds will be rendered only when they present (non-zero).
 	/// </summary>
-	template <typename TClock, typename TDuration, typename TSym, typename TAllocator>
+	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
@@ -82,10 +83,10 @@ namespace BitSerializer::Convert::Detail
 		if (ms != 0)
 		{
 			if (ms < 0) ms += 1000;
-			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02d.%03dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec, ms);
+			outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec, ms);
 		}
 		else {
-			outSize = snprintf(buffer, UtcBufSize, "%d-%02d-%02dT%02d:%02d:%02dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec);
+			outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec);
 		}
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
@@ -99,7 +100,7 @@ namespace BitSerializer::Convert::Detail
 	///	- 1872-01-01T00:00:00Z
 	///	- 2023-07-14T22:44:51.925Z
 	/// </summary>
-	template <typename TSym, typename TClock, typename TDuration>
+	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
 		auto parseDatetimePart = [](const char* buf, const char* end, int& out, int maxValue = 0, char delimiter = 0) -> const char* {
@@ -159,7 +160,7 @@ namespace BitSerializer::Convert::Detail
 		constexpr auto minSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::min())
 			.time_since_epoch().count();
 		if (time > maxSec || time < minSec) {
-			throw std::out_of_range("Target timepoint range is not enough");
+			throw std::out_of_range("Target timepoint range is not enough to store parsed datetime");
 		}
 
 		out = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(time));

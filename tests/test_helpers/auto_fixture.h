@@ -1,9 +1,11 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cstdlib>
+#include <random>
+#include <chrono>
 #include <limits>
 #include <optional>
 #include <memory>
@@ -151,6 +153,30 @@ static void BuildFixture(std::optional<TValue>& optionalValue)
 {
 	optionalValue = TValue();
 	BuildFixture(optionalValue.value());
+}
+
+/// <summary>
+/// Builds the test fixture for std::chrono::time_point
+/// </summary>
+/// <param name="timePoint">The reference to time point.</param>
+template <typename TClock, typename TDuration>
+static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
+{
+	constexpr auto tpMaxSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::max())
+		.time_since_epoch().count();
+	constexpr auto tpMinSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::min())
+		.time_since_epoch().count();
+
+	constexpr int64_t time_0000_01_01T00_00_00 = -62167219200;
+	constexpr int64_t time_9999_12_31T23_59_59 = 253402300799;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int64_t> distr(
+		std::max(tpMinSec, time_0000_01_01T00_00_00),
+		std::min(tpMaxSec, time_9999_12_31T23_59_59));
+
+	timePoint = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(distr(gen)));
 }
 
 /// <summary>

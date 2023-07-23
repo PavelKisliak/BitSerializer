@@ -23,7 +23,7 @@ namespace BitSerializer
 				if (options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::MismatchedTypes,
-						"The value being loaded is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
+						"The value being loaded is not a valid ISO datetime: " + isoDate);
 				}
 			}
 			catch (const std::out_of_range&)

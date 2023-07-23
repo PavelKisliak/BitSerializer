@@ -34,14 +34,14 @@ public:
 		, mValidators(std::move(validators))
 	{}
 
-	inline const TKey& GetKey() const noexcept	{ return mKey; }
-	inline TValue& GetValue() const noexcept	{ return *mValue; }
+	[[nodiscard]] const TKey& GetKey() const noexcept	{ return mKey; }
+	[[nodiscard]] TValue& GetValue() const noexcept		{ return *mValue; }
 
 	/// <summary>
 	/// Validates deserialized value.
 	/// </summary>
 	/// <param name="isLoaded">if set to <c>true</c> [is loaded].</param>
-	std::optional<ValidationErrors> ValidateValue(const bool isLoaded) const
+	[[nodiscard]] std::optional<ValidationErrors> ValidateValue(const bool isLoaded) const
 	{
 		if constexpr (sizeof...(Validators) == 0)
 			return std::nullopt;

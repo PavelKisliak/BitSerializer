@@ -260,6 +260,52 @@ TEST(STD_Containers, SerializeMapAsClassMember) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubType<test_type>>());
 }
 
+TEST(STD_Containers, SerializeMapThrowMismatchedTypesExceptionWhenLoadInvalidValue)
+{
+	// Save with negative number as map key
+	TestClassWithSubType sourceObj(
+		std::map<int32_t, int32_t>{{-23613, 4543534}}
+	);
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
+
+	try
+	{
+		// Load to map with unsigned int as key type
+		TestClassWithSubType<std::map<uint32_t, int32_t>> targetObj;
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_Containers, SerializeMapThrowOverflowTypeExceptionWhenLoadTooBigKey)
+{
+	// Save with big number as map key
+	TestClassWithSubType sourceObj(
+		 std::map<int32_t, int32_t>{{10324678, 4543534}}
+	);
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
+
+	try
+	{
+		// Load to map with small int as key type
+		TestClassWithSubType<std::map<int8_t, int32_t>> targetObj;
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unordered_map
 //-----------------------------------------------------------------------------

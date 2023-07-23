@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -62,12 +62,40 @@ namespace BitSerializer
 				auto endIt = scope.cend();
 				for (auto it = scope.cbegin(); it != endIt; ++it)
 				{
+					// Convert archive key to key type of target map
 					decltype(auto) archiveKey = *it;
 					TMapKey key;
-					if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>)
+					if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>) {
 						key = archiveKey;
+					}
 					else
-						key = Convert::To<TMapKey>(archiveKey);
+					{
+						try {
+							key = Convert::To<TMapKey>(archiveKey);
+						}
+						catch (const std::invalid_argument&)
+						{
+							if (scope.GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+							{
+								throw SerializationException(SerializationErrorCode::MismatchedTypes,
+									"The value being loaded cannot be converted to target map key");
+							}
+							continue;
+						}
+						catch (const std::out_of_range&)
+						{
+							if (scope.GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+							{
+								throw SerializationException(SerializationErrorCode::Overflow,
+									"The size of target map key is not sufficient to store value from the parsed string");
+							}
+							continue;
+						}
+						catch (...) {
+							throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error when parsing string");
+						}
+					}
+
 					switch (mapLoadMode)
 					{
 					case MapLoadMode::Clean:
@@ -81,8 +109,6 @@ namespace BitSerializer
 						break;
 					case MapLoadMode::UpdateKeys:
 						Serialize(scope, archiveKey, cont[key]);
-						break;
-					default:
 						break;
 					}
 				}

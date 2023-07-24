@@ -1,11 +1,12 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "tests/test_helpers/common_test_methods.h"
 #include "tests/test_helpers/archive_stub.h"
 
 #include "bitserializer/types/std/pair.h"
+#include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/memory.h"
 
@@ -27,7 +28,27 @@ TEST(STD_Types, SerializePair) {
 
 TEST(STD_Types, SerializePairAsClassMember) {
 	TestClassWithSubType<std::pair<std::string, int>> testEntity;
-	BuildFixture(testEntity);
+	TestSerializeClass<ArchiveStub>(testEntity);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::tuple
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeTuple) {
+	auto value = BuildFixture<std::tuple<std::string, int, float, bool>>();
+	TestSerializeType<ArchiveStub>(value);
+}
+
+TEST(STD_Types, SerializeTupleThrowMismatchedTypesExceptionWhenLessSize) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::tuple<int, float, bool>, std::tuple<int, float>>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(STD_Types, SerializeTupleThrowMismatchedTypesExceptionWhenLargerSize) {
+	TestMismatchedTypesPolicy<ArchiveStub, std::tuple<int, float>, std::tuple<int, float, bool>>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(STD_Types, SerializeTupleAsClassMember) {
+	TestClassWithSubType<std::tuple<std::string, int, float, bool>> testEntity;
 	TestSerializeClass<ArchiveStub>(testEntity);
 }
 

@@ -20,6 +20,7 @@
 #include <map>
 #include <unordered_map>
 #include <type_traits>
+#include <tuple>
 #include "bitserializer/convert.h"
 
 /// <summary>
@@ -142,6 +143,18 @@ static void BuildFixture(std::pair<TKey, TValue>& pair)
 {
 	BuildFixture(pair.first);
 	BuildFixture(pair.second);
+}
+
+/// <summary>
+/// Builds the test fixture for std::tuple value.
+/// </summary>
+/// <param name="value">The tuple.</param>
+template <typename ...TArgs>
+static void BuildFixture(std::tuple<TArgs...>& value)
+{
+	std::apply([](auto&&... args) {
+		((BuildFixture(args)), ...);
+	}, value);
 }
 
 /// <summary>

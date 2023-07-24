@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -22,18 +22,17 @@ namespace BitSerializer
 	/// Serializes std::multimap.
 	/// </summary>
 	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
-	void SerializeArray(TArchive& archive, std::multimap<TMapKey, TValue, TComparer, TAllocator>& cont)
+	void SerializeArray(TArchive& arrayScope, std::multimap<TMapKey, TValue, TComparer, TAllocator>& cont)
 	{
 		using TMultiMap = std::multimap<TMapKey, TValue, TComparer, TAllocator>;
 		if constexpr (TArchive::IsLoading())
 		{
 			cont.clear();
 			auto hint = cont.begin();
-			for (bool isLoaded = true; isLoaded;)
+			while (!arrayScope.IsEnd())
 			{
 				typename TMultiMap::value_type pair;
-				if (isLoaded = Serialize(archive, pair); isLoaded)
-				{
+				if (Serialize(arrayScope, pair)) {
 					hint = cont.emplace_hint(hint, std::move(pair));
 				}
 			}
@@ -41,7 +40,7 @@ namespace BitSerializer
 		else
 		{
 			for (auto& elem : cont) {
-				Serialize(archive, elem);
+				Serialize(arrayScope, elem);
 			}
 		}
 	}

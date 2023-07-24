@@ -285,9 +285,10 @@ protected:
 		auto& archiveArray = std::get<TestIoDataArray>(*mNode);
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return mIndex < GetSize()
-				? &archiveArray.at(mIndex++)
-				: nullptr;
+			if (mIndex < GetSize()) {
+				return &archiveArray.at(mIndex++);
+			}
+			throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
 		}
 		else
 		{

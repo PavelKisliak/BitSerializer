@@ -109,7 +109,39 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidTime) {
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:00.1000Z"), std::invalid_argument);
 }
 
+TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenMissedTimePart) {
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01TZ"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T10:20Z"), std::invalid_argument);
+}
+
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
 	EXPECT_THROW(Convert::To<TimePointNs>("1677-09-21T00:12:43Z"), std::out_of_range);
 	EXPECT_THROW(Convert::To<TimePointNs>("2262-04-11T23:47:17Z"), std::out_of_range);
+}
+
+//-----------------------------------------------------------------------------
+// Test conversion from time_t to std::string
+//-----------------------------------------------------------------------------
+
+constexpr time_t ctime0000_01_01T00_00_00 = -62167219200;
+constexpr time_t ctime1583_01_01T00_00_00 = -12212553600;
+constexpr time_t ctime1970_01_01T00_00_00 = 0;
+constexpr time_t ctime9999_12_31T23_59_59 = 253402300799;
+
+//-----------------------------------------------------------------------------
+
+TEST(ConvertChrono, ConvertCTimeToUtcString) {
+	EXPECT_EQ("0000-01-01T00:00:00Z", Convert::ToString(CRawTime(ctime0000_01_01T00_00_00)));
+	EXPECT_EQ(u"1583-01-01T00:00:00Z", Convert::To<std::u16string>(CRawTime(ctime1583_01_01T00_00_00)));
+	EXPECT_EQ(U"1970-01-01T00:00:00Z", Convert::To<std::u32string>(CRawTime(ctime1970_01_01T00_00_00)));
+	EXPECT_EQ(L"9999-12-31T23:59:59Z", Convert::To<std::wstring>(CRawTime(ctime9999_12_31T23_59_59)));
+}
+
+TEST(ConvertChrono, ConvertUtcStringToCTime) {
+	EXPECT_EQ(ctime0000_01_01T00_00_00, Convert::To<CRawTime>("0000-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime1583_01_01T00_00_00, Convert::To<CRawTime>(u"1583-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime1970_01_01T00_00_00, Convert::To<CRawTime>(U"1970-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime9999_12_31T23_59_59, Convert::To<CRawTime>(L"9999-12-31T23:59:59Z"));
 }

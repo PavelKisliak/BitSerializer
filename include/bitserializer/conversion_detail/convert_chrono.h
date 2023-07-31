@@ -8,8 +8,40 @@
 #include <charconv>
 #include "convert_utf.h"
 
+
+namespace BitSerializer
+{
+	/// <summary>
+	/// Wrapper for `time_t` type, used to distinguish between time_t and integer types.
+	///	Usage example:
+	///	   time_t time = Convert::To<CRawTime>("2044-01-01T00:00:00Z");
+	///	   auto isoDate = Convert::To<std::string>(CRawTime(time));
+	/// </summary>
+	struct CRawTime
+	{
+		CRawTime() = default;
+		explicit CRawTime(time_t time) noexcept : Time(time) {}
+
+		operator time_t& () noexcept { return Time; }
+		operator const time_t& () const noexcept { return Time; }
+
+		time_t Time = 0;
+	};
+}
+
 namespace BitSerializer::Convert::Detail
 {
+	constexpr size_t UtcBufSize = 32;
+	static constexpr int DaysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+	struct tm_ext : tm
+	{
+		tm_ext() : tm() { }
+		tm_ext(tm inTm, int inMs) : tm(inTm), ms(inMs) { }
+
+		int ms = 0;
+	};
+
 	/// <summary>
 	/// Converts Unix time to UTC expressed in the `tm` structure.
 	/// </summary>
@@ -67,31 +99,145 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
-	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
-	///	Milliseconds will be rendered only when they present (non-zero).
+	/// Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
 	/// </summary>
-	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<(TClock::is_steady == false), int> = 0>
-	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	template <typename TSym, typename TAllocator>
+	void To(const tm& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
-		auto ms = static_cast<int>((in - std::chrono::seconds(time)).time_since_epoch().count());
-		const tm utc = UnixTimeToUtc(time);
-
-		constexpr size_t UtcBufSize = 32;
 		char buffer[UtcBufSize];
-		size_t outSize;
-		if (ms != 0)
-		{
-			if (ms < 0) ms += 1000;
-			outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec, ms);
-		}
-		else {
-			outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02dZ", utc.tm_year, utc.tm_mon, utc.tm_mday, utc.tm_hour, utc.tm_min, utc.tm_sec);
-		}
+		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02dZ", in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec);
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
 		}
 		out.assign(buffer, buffer + outSize);
+	}
+
+	/// <summary>
+	/// Converts UTC expressed in the `tm_ext` structure (includes ms) to `std::string` (ISO 8601/UTC).
+	/// </summary>
+	template <typename TSym, typename TAllocator>
+	void To(const tm_ext& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		char buffer[UtcBufSize];
+		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+			in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec, in.ms);
+		if (outSize <= 0) {
+			throw std::runtime_error("Unknown error");
+		}
+		out.assign(buffer, buffer + outSize);
+	}
+
+	/// <summary>
+	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z)) to `tm_ext` structure (includes ms).
+	/// </summary>
+	template <typename TSym>
+	static void To(std::basic_string_view<TSym> in, tm_ext& out)
+	{
+		auto parseDatetime = [](const char* pos, const char* end)
+		{
+			auto parseDatetimePart = [](const char* buf, const char* end, int& outValue, int maxValue = 0, char delimiter = 0) -> const char*
+			{
+				if (std::isdigit(*buf))
+				{
+					const std::from_chars_result result = std::from_chars(buf, end, outValue);
+					if (result.ec == std::errc())
+					{
+						if (maxValue && outValue > maxValue) {
+							throw std::invalid_argument("Input datetime contains out-of-bounds values");
+						}
+						if (delimiter)
+						{
+							if (result.ptr != end && *result.ptr == delimiter) {
+								return result.ptr + 1;
+							}
+						}
+						else {
+							return result.ptr;
+						}
+					}
+				}
+				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
+			};
+
+			tm_ext utc{};
+			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-');
+			pos = parseDatetimePart(pos, end, utc.tm_mon, 12, '-');
+			pos = parseDatetimePart(pos, end, utc.tm_mday, DaysInMonth[utc.tm_mon - 1], 'T');
+			pos = parseDatetimePart(pos, end, utc.tm_hour, 23, ':');
+			pos = parseDatetimePart(pos, end, utc.tm_min, 59, ':');
+			pos = parseDatetimePart(pos, end, utc.tm_sec, 59);
+			// Parse optional milliseconds
+			if (const auto sym = *pos; sym == '.') {
+				pos = parseDatetimePart(++pos, end, utc.ms, 999, 'Z');
+			}
+			else if (sym != 'Z') {
+				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
+			}
+			return utc;
+		};
+
+		if constexpr (sizeof(TSym) == sizeof(char)) {
+			out = parseDatetime(in.data(), in.data() + in.size());
+		}
+		else {
+			std::string utf8Str;
+			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+			out = parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
+		}
+	}
+
+	/// <summary>
+	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to `tm` structure.
+	/// </summary>
+	template <typename TSym>
+	void To(std::basic_string_view<TSym> in, tm& out)
+	{
+		tm_ext tmExt;
+		To(in, tmExt);
+		out = static_cast<tm>(tmExt);	// Ignore ms part
+	}
+
+	/// <summary>
+	/// Converts Unix time in the `CRawTime` to `std::string` (ISO 8601/UTC).
+	/// </summary>
+	template <typename TSym, typename TAllocator>
+	void To(const CRawTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		const tm utc = UnixTimeToUtc(in.Time);
+		To(utc, out);
+	}
+
+	/// <summary>
+	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `CRawTime`.
+	/// </summary>
+	template <typename TSym>
+	void To(std::basic_string_view<TSym> in, CRawTime& out)
+	{
+		tm tm{};
+		To(in, tm);
+		out.Time = UtcToUnixTime(tm);
+	}
+
+	/// <summary>
+	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
+	///	Milliseconds will be rendered only when they present (non-zero).
+	/// </summary>
+	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<(TClock::is_steady == false), int> = 0>
+	void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
+		auto ms = static_cast<int>((in - std::chrono::seconds(time)).time_since_epoch().count());
+		if (ms != 0)
+		{
+			if (ms < 0) ms += 1000;
+			const tm_ext utc(UnixTimeToUtc(time), ms);
+			To(utc, out);
+		}
+		else
+		{
+			const tm utc = UnixTimeToUtc(time);
+			To(utc, out);
+		}
 	}
 
 	/// <summary>
@@ -101,60 +247,12 @@ namespace BitSerializer::Convert::Detail
 	///	- 2023-07-14T22:44:51.925Z
 	/// </summary>
 	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
-	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
+	void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
-		auto parseDatetimePart = [](const char* buf, const char* end, int& out, int maxValue = 0, char delimiter = 0) -> const char* {
-			if (std::isdigit(*buf))
-			{
-				const std::from_chars_result result = std::from_chars(buf, end, out);
-				if (result.ec == std::errc())
-				{
-					if (maxValue && out > maxValue) {
-						throw std::invalid_argument("Input datetime contains out-of-bounds values");
-					}
-					if (delimiter)
-					{
-						if (result.ptr != end && *result.ptr == delimiter) {
-							return result.ptr + 1;
-						}
-					}
-					else {
-						return result.ptr;
-					}
-				}
-			}
-			throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
-		};
+		tm_ext tmExt;
+		To(in, tmExt);
 
-		std::tm utc = {};
-		int ms = 0;
-		auto parseDatetime = [&parseDatetimePart, &utc, &ms](const char* pos, const char* end) {
-			static constexpr int daysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-');
-			pos = parseDatetimePart(pos, end, utc.tm_mon, 12, '-');
-			pos = parseDatetimePart(pos, end, utc.tm_mday, daysInMonth[utc.tm_mon - 1], 'T');
-			pos = parseDatetimePart(pos, end, utc.tm_hour, 23, ':');
-			pos = parseDatetimePart(pos, end, utc.tm_min, 59, ':');
-			pos = parseDatetimePart(pos, end, utc.tm_sec, 59);
-			// Parse optional milliseconds
-			if (const auto sym = *pos; sym == '.') {
-				pos = parseDatetimePart(++pos, end, ms, 999, 'Z');
-			}
-			else if (sym != 'Z') {
-				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
-			}
-		};
-
-		if constexpr (sizeof(TSym) == sizeof(char)) {
-			parseDatetime(in.data(), in.data() + in.size());
-		}
-		else {
-			std::string utf8Str;
-			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
-			parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
-		}
-
-		const auto time = UtcToUnixTime(utc);
+		const auto time = UtcToUnixTime(tmExt);
 		constexpr auto maxSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::max())
 			.time_since_epoch().count();
 		constexpr auto minSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::min())
@@ -164,8 +262,8 @@ namespace BitSerializer::Convert::Detail
 		}
 
 		out = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(time));
-		if (ms) {
-			out += std::chrono::milliseconds(ms);
+		if (tmExt.ms) {
+			out += std::chrono::milliseconds(tmExt.ms);
 		}
 	}
 }

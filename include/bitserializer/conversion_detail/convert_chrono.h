@@ -45,7 +45,7 @@ namespace BitSerializer::Convert::Detail
 	/// <summary>
 	/// Converts Unix time to UTC expressed in the `tm` structure.
 	/// </summary>
-	inline tm UnixTimeToUtc(time_t dateTime) noexcept
+	static tm UnixTimeToUtc(time_t dateTime) noexcept
 	{
 		// Based on Howard Hinnant's algorithm
 		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
@@ -69,18 +69,29 @@ namespace BitSerializer::Convert::Detail
 		utc.tm_mon = static_cast<int>(m);
 		utc.tm_mday = static_cast<int>(d);
 		utc.tm_hour = time / 3600;
-		if (time < 0) utc.tm_hour += 23;
 		utc.tm_min = time % 3600 / 60;
-		if (time < 0) utc.tm_min += 59;
 		utc.tm_sec = time % 60;
-		if (time < 0) utc.tm_sec += 60;
+		// Adjust time before EPOCH
+		if (time < 0)
+		{
+			if (utc.tm_sec < 0) utc.tm_sec += 60;
+			utc.tm_min += utc.tm_sec == 0 ? 60 : 59;
+			if (utc.tm_min == 60)
+			{
+				utc.tm_min = 0;
+				utc.tm_hour += 24;
+			}
+			else {
+				utc.tm_hour += 23;
+			}
+		}
 		return utc;
 	}
 
 	/// <summary>
 	/// Converts UTC expressed in the `tm` structure to Unix time.
 	/// </summary>
-	inline time_t UtcToUnixTime(const tm& utc) noexcept
+	static time_t UtcToUnixTime(const tm& utc) noexcept
 	{
 		// Based on Howard Hinnant's algorithm
 		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");

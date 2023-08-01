@@ -11,7 +11,7 @@ namespace BitSerializer
 	namespace Detail
 	{
 		template <typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
-		bool SafeConvertIsoDate(std::string isoDate, std::chrono::time_point<TClock, TDuration>& targetTimePoint, const SerializationOptions& options)
+		bool SafeConvertIsoDate(const std::string& isoDate, std::chrono::time_point<TClock, TDuration>& targetTimePoint, const SerializationOptions& options)
 		{
 			try
 			{

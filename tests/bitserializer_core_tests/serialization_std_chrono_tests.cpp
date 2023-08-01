@@ -6,6 +6,7 @@
 #include "tests/test_helpers/archive_stub.h"
 
 #include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/array.h"
 
 
 using namespace BitSerializer;
@@ -20,16 +21,20 @@ TEST(STD_Chrono, SerializeTimePoint) {
 
 TEST(STD_Chrono, SerializeTimePointAsClassMember) {
 	TestClassWithSubType<std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>> testEntity;
-	BuildFixture(testEntity);
 	TestSerializeClass<ArchiveStub>(testEntity);
+}
+
+TEST(STD_Chrono, SerializeArrayOfTimePoints) {
+	using TimePointMs = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>;
+	TestSerializeStlContainer<ArchiveStub, std::array<TimePointMs, 100>>();
 }
 
 TEST(STD_Chrono, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDate)
 {
 	// Save as string
-	TestClassWithSubType<std::string> sourceObj("1970/01/01T00:00:00Z");
+	TestClassWithSubType<std::string> invalidDatetime("1970/01/01T00:00:00Z");
 	ArchiveStub::preferred_output_format outputArchive;
-	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
+	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, outputArchive);
 
 	try
 	{
@@ -69,9 +74,9 @@ TEST(STD_Chrono, ThrowOverflowTypeExceptionWhenLoadTooBigDate)
 TEST(STD_Chrono, SkipInvalidIsoDateWhenPolicyIsSkip)
 {
 	// Save as string
-	TestClassWithSubType<std::string> sourceObj("1970/01/01T00:00:00Z");
+	TestClassWithSubType<std::string> invalidDatetime("1970/01/01T00:00:00Z");
 	ArchiveStub::preferred_output_format outputArchive;
-	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
+	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, outputArchive);
 
 	// Load as time_point
 	const TestClassWithSubType expectedObj(std::chrono::system_clock::from_time_t(0));

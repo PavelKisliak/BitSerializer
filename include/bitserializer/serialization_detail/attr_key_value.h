@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2019 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -14,11 +14,11 @@ template<class TAttrKey, class TValue, class... TValidators>
 class AttributeValue : public KeyValue<TAttrKey, TValue, TValidators...>
 {
 public:
-	AttributeValue(TAttrKey&& attributeKey, TValue& value, const TValidators&... validators)
-		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), value, validators...)
+	AttributeValue(TAttrKey&& attributeKey, TValue&& value, const TValidators&... validators)
+		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), validators...)
 	{}
 
-	AttributeValue(TAttrKey&& attributeKey, TValue& value, std::tuple<TValidators...>&& validators)
+	AttributeValue(TAttrKey&& attributeKey, TValue&& value, std::tuple<TValidators...>&& validators)
 		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), value, std::move(validators))
 	{}
 };
@@ -31,9 +31,9 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The AttributeValue object</returns>
 template <class TAttrKey, class TValue, class... TValidators>
-constexpr AttributeValue<TAttrKey, TValue, TValidators...> MakeAttributeValue(TAttrKey&& attributeKey, TValue& value, const TValidators&... validators)
+constexpr AttributeValue<TAttrKey, TValue, TValidators...> MakeAttributeValue(TAttrKey&& attributeKey, TValue&& value, const TValidators&... validators)
 {
-	return AttributeValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), value, validators...);
+	return AttributeValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), validators...);
 }
 
 //------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ class AutoAttributeValue : public AttributeValue<TAttrKey, TValue, Validators...
 {
 public:
 	AutoAttributeValue(TAttrKey&& key, TValue& value, const Validators&... validators)
-		: AttributeValue<TAttrKey, TValue, Validators...>(key, value, validators...)
+		: AttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), validators...)
 	{}
 
 	/// <summary>
@@ -69,8 +69,8 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The AutoAttributeValue object</returns>
 template <class TAttrKey, class TValue, class... Validators>
-constexpr AutoAttributeValue<TAttrKey, TValue, Validators...> MakeAutoAttributeValue(TAttrKey&& key, TValue& value, const Validators&... validators) noexcept {
-	return AutoAttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), value, validators...);
+constexpr AutoAttributeValue<TAttrKey, TValue, Validators...> MakeAutoAttributeValue(TAttrKey&& key, TValue&& value, const Validators&... validators) noexcept {
+	return AutoAttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), validators...);
 }
 
 }	// namespace BitSerializer

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -18,24 +18,24 @@ struct KeyValue
 {
 protected:
 	TKey mKey;
-	TValue* const mValue;
+	TValue mValue;
 	std::tuple<Validators...> mValidators;
 
 public:
-	explicit KeyValue(TKey&& key, TValue& value, const Validators&... validators)
+	explicit KeyValue(TKey&& key, TValue&& value, const Validators&... validators)
 		: mKey(key)
-		, mValue(&value)
+		, mValue(value)
 		, mValidators(validators...)
 	{}
 
-	KeyValue(TKey&& key, TValue& value, std::tuple<Validators...>&& validators)
+	KeyValue(TKey&& key, TValue&& value, std::tuple<Validators...>&& validators)
 		: mKey(key)
-		, mValue(&value)
+		, mValue(value)
 		, mValidators(std::move(validators))
 	{}
 
 	[[nodiscard]] const TKey& GetKey() const noexcept	{ return mKey; }
-	[[nodiscard]] TValue& GetValue() const noexcept		{ return *mValue; }
+	[[nodiscard]] TValue GetValue() const noexcept		{ return mValue; }
 
 	/// <summary>
 	/// Validates deserialized value.
@@ -87,8 +87,8 @@ private:
 /// <param name="validators">Validators</param>
 /// <returns>The KeyValue object</returns>
 template <class TKey, class TValue, class... Validators>
-constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue& value, const Validators&... validators) {
-	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), value, validators...);
+constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue&& value, const Validators&... validators) {
+	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
 }
 
 //------------------------------------------------------------------------------
@@ -100,8 +100,8 @@ template<class TKey, class TValue, class... Validators>
 class AutoKeyValue : public KeyValue<TKey, TValue, Validators...>
 {
 public:
-	explicit AutoKeyValue(TKey&& key, TValue& value, const Validators&... validators)
-		: KeyValue<TKey, TValue, Validators...>(key, value, validators...)
+	explicit AutoKeyValue(TKey&& key, TValue&& value, const Validators&... validators)
+		: KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...)
 	{}
 
 	/// <summary>
@@ -124,8 +124,8 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The AutoKeyValue object</returns>
 template <class TKey, class TValue, class... Validators>
-constexpr AutoKeyValue<TKey, TValue, Validators...> MakeAutoKeyValue(TKey&& key, TValue& value, const Validators&... validators) noexcept {
-	return AutoKeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), value, validators...);
+constexpr AutoKeyValue<TKey, TValue, Validators...> MakeAutoKeyValue(TKey&& key, TValue&& value, const Validators&... validators) noexcept {
+	return AutoKeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
 }
 
 }	// namespace BitSerializer

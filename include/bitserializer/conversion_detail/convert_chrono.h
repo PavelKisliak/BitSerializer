@@ -120,7 +120,7 @@ namespace BitSerializer::Convert::Detail
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
 		}
-		out.assign(buffer, buffer + outSize);
+		out.append(buffer, buffer + outSize);
 	}
 
 	/// <summary>
@@ -135,7 +135,7 @@ namespace BitSerializer::Convert::Detail
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
 		}
-		out.assign(buffer, buffer + outSize);
+		out.append(buffer, buffer + outSize);
 	}
 
 	/// <summary>
@@ -148,7 +148,7 @@ namespace BitSerializer::Convert::Detail
 		{
 			auto parseDatetimePart = [](const char* buf, const char* end, int& outValue, int maxValue = 0, char delimiter = 0) -> const char*
 			{
-				if (std::isdigit(*buf))
+				if (buf != end && std::isdigit(*buf))
 				{
 					const std::from_chars_result result = std::from_chars(buf, end, outValue);
 					if (result.ec == std::errc())
@@ -275,6 +275,130 @@ namespace BitSerializer::Convert::Detail
 		out = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(time));
 		if (tmExt.ms) {
 			out += std::chrono::milliseconds(tmExt.ms);
+		}
+	}
+
+	/// <summary>
+	/// Converts from `std::chrono::duration` to `std::string` (ISO 8601/Duration: PnDTnHnMnS).
+	/// </summary>
+	template <typename TRep, typename TPeriod, typename TSym, typename TAllocator>
+	void To(const std::chrono::duration<TRep, TPeriod>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		auto timeLeft = std::chrono::duration_cast<std::chrono::seconds>(in).count();
+		if (timeLeft == 0) {
+			out.append({'P', 'T', '0', 'S'});
+			return;
+		}
+
+		const auto printTimePart = [](int64_t timeLeft, char type, int div, std::string& outStr)
+		{
+			if (timeLeft != 0)
+			{
+				const auto timePart = timeLeft / div;
+				if (timePart != 0)
+				{
+					outStr.append(std::to_string(timePart));
+					outStr.push_back(type);
+					return timeLeft %= div;
+				}
+			}
+			return timeLeft;
+		};
+
+		std::string isoDur;
+		if (timeLeft < 0)
+		{
+			timeLeft = -timeLeft;
+			isoDur = "-P";
+		}
+		else {
+			isoDur = "P";
+		}
+		timeLeft = printTimePart(timeLeft, 'D', 60 * 60 * 24, isoDur);
+		if (timeLeft)
+		{
+			isoDur.push_back('T');
+			timeLeft = printTimePart(timeLeft, 'H', 60 * 60, isoDur);
+			timeLeft = printTimePart(timeLeft, 'M', 60, isoDur);
+			timeLeft = printTimePart(timeLeft, 'S', 1, isoDur);
+		}
+		out.append(isoDur.data(), isoDur.data() + isoDur.size());
+	}
+
+	/// <summary>
+	/// Converts from `std::string_view` (ISO 8601/Duration format: PnWnDTnHnMnS) to `std::chrono::duration`.
+	///	Examples of allowed durations: P25DT55M41S, P1W, PT10H20S, -P10DT25M (supported signed durations, but they are no officially defined).
+	/// Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
+	///	The decimal fraction of smallest value like "P0.5D" is not supported.
+	/// </summary>
+	template <typename TSym, typename TRep, typename TPeriod>
+	void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
+	{
+		auto parseDuration = [](const char* pos, const char* end)
+		{
+			auto parseTimePart = [](const char* buf, const char* end, bool isDatePart, int64_t& outSeconds)
+			{
+				struct TimePart { char type; int ratio; };
+				constexpr TimePart dateParts[] = { { 'W', 60 * 60 * 24 * 7 }, { 'D', 60 * 60 * 24 } };
+				constexpr TimePart timeParts[] = { { 'H', 60 * 60 }, { 'M', 60 }, { 'S', 1 } };
+
+				if (buf != end && std::isdigit(*buf))
+				{
+					int64_t value = 0;
+					const std::from_chars_result result = std::from_chars(buf, end, value);
+					if (result.ec == std::errc() && result.ptr != end)
+					{
+						auto type = *result.ptr;
+						const auto endIt = isDatePart ? std::cend(dateParts) : std::cend(timeParts);
+						for (auto it = (isDatePart ? std::cbegin(dateParts) : std::cbegin(timeParts)); it != endIt; ++it)
+						{
+							if (it->type == type)
+							{
+								outSeconds += value * it->ratio;
+								return result.ptr + 1;
+							}
+						}
+						if (isDatePart && (type == 'Y' || type == 'M')) {
+							throw std::invalid_argument("An ISO duration that contains a year, or month is not allowed");
+						}
+					}
+				}
+				throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");
+			};
+
+			constexpr auto minSizeIsoDuration = 3;
+			if (end - pos >= minSizeIsoDuration)
+			{
+				if (const bool isNegative = *pos == '-'; *pos == 'P' || (isNegative && *(++pos) == 'P'))
+				{
+					++pos;
+					int64_t time = 0;
+					bool isDatePart = true;
+					do
+					{
+						if (isDatePart && *pos == 'T')
+						{
+							isDatePart = false;
+							++pos;
+						}
+						pos = parseTimePart(pos, end, isDatePart, time);
+					} while (pos != end);
+
+					return std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(
+						std::chrono::seconds(isNegative ? -time : time)
+					);
+				}
+			}
+			throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");
+		};
+
+		if constexpr (sizeof(TSym) == sizeof(char)) {
+			out = parseDuration(in.data(), in.data() + in.size());
+		}
+		else {
+			std::string utf8Str;
+			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+			out = parseDuration(utf8Str.data(), utf8Str.data() + utf8Str.size());
 		}
 	}
 }

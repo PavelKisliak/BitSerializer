@@ -109,6 +109,10 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidTime) {
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:00.1000Z"), std::invalid_argument);
 }
 
+TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenEmpty) {
+	EXPECT_THROW(Convert::To<TimePointNs>(""), std::invalid_argument);
+}
+
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenMissedTimePart) {
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01Z"), std::invalid_argument);
@@ -119,6 +123,106 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenMissedTimePart) {
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
 	EXPECT_THROW(Convert::To<TimePointNs>("1677-09-21T00:12:43Z"), std::out_of_range);
 	EXPECT_THROW(Convert::To<TimePointNs>("2262-04-11T23:47:17Z"), std::out_of_range);
+}
+
+//-----------------------------------------------------------------------------
+// Test conversion from std::chrono::duration to std::string
+//-----------------------------------------------------------------------------
+TEST(ConvertChrono, ConvertDurationToString) {
+	EXPECT_EQ("P1DT1H1M1S", Convert::ToString(25h + 1min + 1s));
+	EXPECT_EQ(u"P25DT55M41S", Convert::To<std::u16string>(24h * 25 + 55min + 41s));
+	EXPECT_EQ(U"PT10H20S", Convert::To<std::u32string>(10h + 20s));
+	EXPECT_EQ(L"P2DT44S", Convert::To<std::wstring>(48h + 44s));
+}
+
+TEST(ConvertChrono, ConvertDurationToStringWhenOnlySinglePart) {
+	EXPECT_EQ("P1D", Convert::ToString(24h));
+	EXPECT_EQ("P1325D", Convert::ToString(24h * 1325));
+	EXPECT_EQ("PT1H", Convert::ToString(1h));
+	EXPECT_EQ("PT1M", Convert::ToString(1min));
+	EXPECT_EQ("PT1S", Convert::ToString(1s));
+}
+
+TEST(ConvertChrono, ConvertDurationToStringWhenZeroSeconds) {
+	EXPECT_EQ("PT0S", Convert::ToString(0s));
+}
+
+TEST(ConvertChrono, ConvertDurationToStringWithDiscardMs) {
+	EXPECT_EQ("PT1S", Convert::ToString(1s + 100ms));
+	EXPECT_EQ("PT1M", Convert::ToString(1min + 999ms));
+}
+
+TEST(ConvertChrono, ConvertDurationToStringWhenNegative) {
+	EXPECT_EQ("-PT1S", Convert::ToString(-1s));
+	EXPECT_EQ("-P10DT25M", Convert::ToString(-24h * 10 - 25min));
+	EXPECT_EQ("-P120DT3H3M3S", Convert::ToString(-24h * 120 - 3h - 3min - 3s));
+}
+
+//-----------------------------------------------------------------------------
+// Test conversion from std::string_view to std::chrono::duration
+//-----------------------------------------------------------------------------
+TEST(ConvertChrono, ConvertStringToDuration) {
+	EXPECT_EQ(25h + 1min + 1s, Convert::To<std::chrono::seconds>("P1DT1H1M1S"));
+	EXPECT_EQ(24h * 25 + 55min + 41s, Convert::To<std::chrono::seconds>(u"P25DT55M41S"));
+	EXPECT_EQ(10h + 20s, Convert::To<std::chrono::seconds>(U"PT10H20S"));
+	EXPECT_EQ(48h + 44s, Convert::To<std::chrono::seconds>(L"P2DT44S"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWhenOnlySinglePart) {
+	EXPECT_EQ(24h * 7, Convert::To<std::chrono::seconds>("P1W"));
+	EXPECT_EQ(24h, Convert::To<std::chrono::seconds>("P1D"));
+	EXPECT_EQ(1h, Convert::To<std::chrono::seconds>("PT1H"));
+	EXPECT_EQ(1min, Convert::To<std::chrono::seconds>("PT1M"));
+	EXPECT_EQ(1s, Convert::To<std::chrono::seconds>("PT1S"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWhenZero) {
+	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0S"));
+	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0M"));
+	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0H"));
+	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("P0D"));
+	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("P0W"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWhenNegative) {
+	EXPECT_EQ(-1s, Convert::To<std::chrono::seconds>("-PT1S"));
+	EXPECT_EQ(-24h * 10 - 25min, Convert::To<std::chrono::seconds>("-P10DT25M"));
+	EXPECT_EQ(-24h * 120 - 3h - 3min - 3s, Convert::To<std::chrono::seconds>("-P120DT3H3M3S"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenMissedT) {
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P0S"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P10H20M30S"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenInvalidFormat) {
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("T0S"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("-P"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("-PT"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("PT-1S"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("PTM1S"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenContainsYearOrMonth) {
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P5Y"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P5YT20D"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P10MT20M"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("2003-02-15T00:00:00Z/P2M"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenContainsBaseUtc) {
+	// Accordingly to ISO standard, duration may preseed UTC time for correctly calculate number of days in month, but this is not supported now
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("2003-02-15T00:00:00Z/P2M"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenContainsDecimalFraction) {
+	// Accordingly to ISO standard, smallest value may have a decimal fraction, but this is not supported now
+	EXPECT_THROW(Convert::To<std::chrono::seconds>("P0.5D"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenEmpty) {
+	EXPECT_THROW(Convert::To<std::chrono::seconds>(""), std::invalid_argument);
 }
 
 //-----------------------------------------------------------------------------
@@ -154,6 +258,9 @@ TEST(ConvertChrono, ConvertCTimeBeforeEpochToUtcString) {
 	EXPECT_EQ("0000-01-01T00:00:00Z", Convert::ToString(CRawTime(ctime0000_01_01T00_00_00)));
 }
 
+//-----------------------------------------------------------------------------
+// Test conversion from std::string to time_t
+//-----------------------------------------------------------------------------
 TEST(ConvertChrono, ConvertUtcSinceEpochStringToCTime) {
 	EXPECT_EQ(ctime1970_01_01T00_00_00, Convert::To<CRawTime>("1970-01-01T00:00:00Z"));
 	EXPECT_EQ(ctime1970_01_01T00_00_01, Convert::To<CRawTime>(u"1970-01-01T00:00:01Z"));
@@ -168,4 +275,8 @@ TEST(ConvertChrono, ConvertUtcBeforeEpochStringToCTime) {
 	EXPECT_EQ(ctime1969_12_31T00_59_00, Convert::To<CRawTime>(u"1969-08-01T00:00:59Z"));
 	EXPECT_EQ(ctime1583_01_01T00_00_00, Convert::To<CRawTime>(U"1583-01-01T00:00:00Z"));
 	EXPECT_EQ(ctime0000_01_01T00_00_00, Convert::To<CRawTime>(L"0000-01-01T00:00:00Z"));
+}
+
+TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenEmpty) {
+	EXPECT_THROW(Convert::To<CRawTime>(""), std::invalid_argument);
 }

@@ -14,11 +14,5 @@
     "ryml",
     "gtest"
   ],
-  "builtin-baseline": "e81b172505845c4cd48f30f668b91bd0e5e24b5a",
-  "overrides": [
-    {
-      "name": "gtest",
-      "version": "1.11.0"
-    }
-  ]
+  "builtin-baseline": "e81b172505845c4cd48f30f668b91bd0e5e24b5a"
 }

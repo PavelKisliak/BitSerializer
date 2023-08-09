@@ -4,6 +4,8 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cctype>
+#include <cstdlib>
 #include <chrono>
 #include <charconv>
 #include "convert_utf.h"
@@ -110,6 +112,57 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
+	/// Converts WITHOUT truncation a `std::chrono::duration` to another type of duration.
+	/// </summary>
+	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	template <class TTarget, class TRep, class TPeriod>
+	constexpr TTarget SafeDurationCast(const std::chrono::duration<TRep, TPeriod>& duration)
+	{
+		using TDivRatio = std::ratio_divide<TPeriod, typename TTarget::period>;
+		using TTargetRep = typename TTarget::rep;
+		using TOpRep = std::common_type_t<TTargetRep, TRep, intmax_t>;
+
+		if constexpr (TDivRatio::den == 1)
+		{
+			if constexpr (TDivRatio::num == 1)
+			{
+				const auto v = static_cast<TTargetRep>(duration.count());
+				if (v != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+					throw std::out_of_range("Target duration is not enough");
+				}
+				return TTarget(v);
+			}
+			else
+			{
+				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num));
+				if (v && v / TDivRatio::num != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+					throw std::out_of_range("Target duration is not enough");
+				}
+				return TTarget(v);
+			}
+		}
+		else
+		{
+			if constexpr (TDivRatio::num == 1)
+			{
+				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) / static_cast<TOpRep>(TDivRatio::den));
+				if (v * TDivRatio::den != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+					throw std::out_of_range("Target duration is not enough");
+				}
+				return TTarget(v);
+			}
+			else
+			{
+				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num) / static_cast<TOpRep>(TDivRatio::den));
+				if (v && v / TDivRatio::num != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+					throw std::out_of_range("Target duration is not enough");
+				}
+				return TTarget(v);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
 	/// </summary>
 	template <typename TSym, typename TAllocator>
@@ -190,7 +243,8 @@ namespace BitSerializer::Convert::Detail
 		if constexpr (sizeof(TSym) == sizeof(char)) {
 			out = parseDatetime(in.data(), in.data() + in.size());
 		}
-		else {
+		else
+		{
 			std::string utf8Str;
 			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 			out = parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
@@ -284,43 +338,41 @@ namespace BitSerializer::Convert::Detail
 	template <typename TRep, typename TPeriod, typename TSym, typename TAllocator>
 	void To(const std::chrono::duration<TRep, TPeriod>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		auto timeLeft = std::chrono::duration_cast<std::chrono::seconds>(in).count();
-		if (timeLeft == 0) {
+		if (!in.count()) {
 			out.append({'P', 'T', '0', 'S'});
 			return;
 		}
 
-		const auto printTimePart = [](int64_t timeLeft, char type, int div, std::string& outStr)
+		const auto printTimePart = [](auto time, char type, std::string& outStr)
 		{
-			if (timeLeft != 0)
+			if (time.count())
 			{
-				const auto timePart = timeLeft / div;
-				if (timePart != 0)
+				if constexpr (std::is_signed_v<typename decltype(time)::rep>)
 				{
-					outStr.append(std::to_string(timePart));
-					outStr.push_back(type);
-					return timeLeft %= div;
+					const uint64_t absTime = std::abs(time.count());
+					outStr.append(std::to_string(absTime));
 				}
+				else {
+					outStr.append(std::to_string(time.count()));
+				}
+				outStr.push_back(type);
 			}
-			return timeLeft;
+			return time;
 		};
 
-		std::string isoDur;
-		if (timeLeft < 0)
-		{
-			timeLeft = -timeLeft;
-			isoDur = "-P";
-		}
-		else {
-			isoDur = "P";
-		}
-		timeLeft = printTimePart(timeLeft, 'D', 60 * 60 * 24, isoDur);
-		if (timeLeft)
+		using days = std::chrono::duration<TRep, std::ratio<86400>>;
+		using hours = std::chrono::duration<TRep, std::ratio<3600>>;
+		using minutes = std::chrono::duration<TRep, std::ratio<60>>;
+		using seconds = std::chrono::duration<TRep, std::ratio<1>>;
+
+		std::string isoDur(in.count() < 0 ? "-P" : "P");
+		const auto hoursLeft = in - printTimePart(std::chrono::duration_cast<days>(in), 'D', isoDur);
+		if (hoursLeft.count())
 		{
 			isoDur.push_back('T');
-			timeLeft = printTimePart(timeLeft, 'H', 60 * 60, isoDur);
-			timeLeft = printTimePart(timeLeft, 'M', 60, isoDur);
-			timeLeft = printTimePart(timeLeft, 'S', 1, isoDur);
+			const auto minutesLeft = hoursLeft - printTimePart(std::chrono::duration_cast<hours>(hoursLeft), 'H', isoDur);
+			const auto secondsLeft = minutesLeft - printTimePart(std::chrono::duration_cast<minutes>(minutesLeft), 'M', isoDur);
+			printTimePart(std::chrono::duration_cast<seconds>(secondsLeft), 'S', isoDur);
 		}
 		out.append(isoDur.data(), isoDur.data() + isoDur.size());
 	}
@@ -334,33 +386,66 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym, typename TRep, typename TPeriod>
 	void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
 	{
-		auto parseDuration = [](const char* pos, const char* end)
+		using TTargetDuration = std::chrono::duration<TRep, TPeriod>;
+		const auto parseDuration = [](const char* pos, const char* end)
 		{
-			auto parseTimePart = [](const char* buf, const char* end, bool isDatePart, int64_t& outSeconds)
+			const auto parseNextPart = [](const char* pos, const char* end, bool isDatePart, bool isNegative, TTargetDuration& duration)
 			{
-				struct TimePart { char type; int ratio; };
-				constexpr TimePart dateParts[] = { { 'W', 60 * 60 * 24 * 7 }, { 'D', 60 * 60 * 24 } };
-				constexpr TimePart timeParts[] = { { 'H', 60 * 60 }, { 'M', 60 }, { 'S', 1 } };
-
-				if (buf != end && std::isdigit(*buf))
+				const auto transformToDuration = [](auto value, char type, bool isDatePart) -> TTargetDuration
 				{
-					int64_t value = 0;
-					const std::from_chars_result result = std::from_chars(buf, end, value);
-					if (result.ec == std::errc() && result.ptr != end)
+					if (isDatePart)
 					{
-						auto type = *result.ptr;
-						const auto endIt = isDatePart ? std::cend(dateParts) : std::cend(timeParts);
-						for (auto it = (isDatePart ? std::cbegin(dateParts) : std::cbegin(timeParts)); it != endIt; ++it)
-						{
-							if (it->type == type)
-							{
-								outSeconds += value * it->ratio;
-								return result.ptr + 1;
-							}
-						}
-						if (isDatePart && (type == 'Y' || type == 'M')) {
+						if (type == 'W') {
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<604800>>(value));
+						} if (type == 'D') {
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<86400>>(value));
+						} if (type == 'Y' || type == 'M') {
 							throw std::invalid_argument("An ISO duration that contains a year, or month is not allowed");
 						}
+					}
+					else
+					{
+						if (type == 'H') {
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<3600>>(value));
+						} if (type == 'M') {
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<60>>(value));
+						} if (type == 'S') {
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<1>>(value));
+						}
+					}
+					throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");
+				};
+
+				if (pos != end && std::isdigit(*pos))
+				{
+					uint64_t value = 0;
+					std::from_chars_result result = std::from_chars(pos, end, value);
+					if (result.ec == std::errc() && result.ptr != end)
+					{
+						const auto type = *result.ptr++;
+						const auto origDur = duration;
+						if (isNegative)
+						{
+							constexpr uint64_t maxI64Negative = 9223372036854775808u;
+							if (value <= maxI64Negative)
+							{
+								if ((duration += transformToDuration(-static_cast<int64_t>(value), type, isDatePart)) > origDur) {
+									throw std::out_of_range("Target type is not enough to store parsed duration");
+								}
+								return result.ptr;
+							}
+							result.ec = std::errc::result_out_of_range;
+						}
+						else
+						{
+							if ((duration += transformToDuration(value, type, isDatePart)) < origDur) {
+								throw std::out_of_range("Target type is not enough to store parsed duration");
+							}
+							return result.ptr;
+						}
+					}
+					if (result.ec == std::errc::result_out_of_range) {
+						throw std::out_of_range("ISO duration contains too big number");
 					}
 				}
 				throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");
@@ -371,8 +456,12 @@ namespace BitSerializer::Convert::Detail
 			{
 				if (const bool isNegative = *pos == '-'; *pos == 'P' || (isNegative && *(++pos) == 'P'))
 				{
+					if (isNegative && !std::is_signed_v<typename TTargetDuration::rep>) {
+						throw std::out_of_range("Target duration type can't store negative values");
+					}
+
 					++pos;
-					int64_t time = 0;
+					TTargetDuration duration(0);
 					bool isDatePart = true;
 					do
 					{
@@ -381,12 +470,9 @@ namespace BitSerializer::Convert::Detail
 							isDatePart = false;
 							++pos;
 						}
-						pos = parseTimePart(pos, end, isDatePart, time);
-					} while (pos != end);
-
-					return std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(
-						std::chrono::seconds(isNegative ? -time : time)
-					);
+						pos = parseNextPart(pos, end, isDatePart, isNegative, duration);
+					} while (pos != end && !std::isspace(*pos));
+					return duration;
 				}
 			}
 			throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");
@@ -395,7 +481,8 @@ namespace BitSerializer::Convert::Detail
 		if constexpr (sizeof(TSym) == sizeof(char)) {
 			out = parseDuration(in.data(), in.data() + in.size());
 		}
-		else {
+		else
+		{
 			std::string utf8Str;
 			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 			out = parseDuration(utf8Str.data(), utf8Str.data() + utf8Str.size());

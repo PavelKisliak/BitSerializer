@@ -79,7 +79,7 @@ TEST(STD_Chrono, SkipInvalidIsoDateWhenPolicyIsSkip)
 	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, outputArchive);
 
 	// Load as time_point
-	const TestClassWithSubType expectedObj(std::chrono::system_clock::from_time_t(0));
+	const TestClassWithSubType expectedObj(std::chrono::system_clock::from_time_t(100));
 	TestClassWithSubType targetObj = expectedObj;
 	SerializationOptions options;
 	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
@@ -97,8 +97,103 @@ TEST(STD_Chrono, SkipTooBigDateWhenPolicyIsSkip)
 
 	// Load as time_point
 	using TimePointNs = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
-	const TestClassWithSubType<TimePointNs> expectedObj(std::chrono::system_clock::from_time_t(0));
+	const TestClassWithSubType<TimePointNs> expectedObj(std::chrono::system_clock::from_time_t(100));
 	TestClassWithSubType<TimePointNs> targetObj = expectedObj;
+	SerializationOptions options;
+	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
+	BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive, options);
+
+	targetObj.Assert(expectedObj);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::chrono::duration
+//-----------------------------------------------------------------------------
+TEST(STD_Chrono, SerializeDuration) {
+	auto tp = BuildFixture<std::chrono::seconds>();
+	TestSerializeType<ArchiveStub>(tp);
+}
+
+TEST(STD_Chrono, SerializeDurationAsClassMember) {
+	TestClassWithSubType<std::chrono::seconds> testEntity;
+	TestSerializeClass<ArchiveStub>(testEntity);
+}
+
+TEST(STD_Chrono, SerializeArrayOfDurations) {
+	TestSerializeStlContainer<ArchiveStub, std::array<std::chrono::seconds, 100>>();
+}
+
+TEST(STD_Chrono, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDuration)
+{
+	// Save as string
+	TestClassWithSubType<std::string> invalidDuration("P?MT10S");
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(invalidDuration, outputArchive);
+
+	try
+	{
+		// Load as time_point
+		TestClassWithSubType<std::chrono::seconds> targetObj;
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_Chrono, ThrowOverflowTypeExceptionWhenLoadIsoDuration)
+{
+	// Save as string
+	TestClassWithSubType<std::string> isoDuration("PT500S");
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(isoDuration, outputArchive);
+
+	try
+	{
+		// Load as duration (to type which can store 0...255 seconds)
+		using seconds_u8 = std::chrono::duration<uint8_t, std::ratio<1>>;
+		TestClassWithSubType targetObj(seconds_u8(0));
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_Chrono, SkipInvalidIsoDurationWhenPolicyIsSkip)
+{
+	// Save as string
+	TestClassWithSubType<std::string> invalidDuration("PMT10S");
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(invalidDuration, outputArchive);
+
+	// Load as time_point
+	const TestClassWithSubType expectedObj(std::chrono::seconds(100));
+	TestClassWithSubType targetObj = expectedObj;
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive, options);
+
+	targetObj.Assert(expectedObj);
+}
+
+TEST(STD_Chrono, SkipTooBigDurationWhenPolicyIsSkip)
+{
+	// Save as string
+	TestClassWithSubType<std::string> isoDuration("PT256S");
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(isoDuration, outputArchive);
+
+	// Load as duration (to type which can store -128...127 seconds)
+	using seconds_i8 = std::chrono::duration<int8_t, std::ratio<1>>;
+	const TestClassWithSubType expectedObj(seconds_i8(100));
+	TestClassWithSubType targetObj = expectedObj;
 	SerializationOptions options;
 	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
 	BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive, options);

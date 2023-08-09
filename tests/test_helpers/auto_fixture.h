@@ -193,6 +193,20 @@ static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
 }
 
 /// <summary>
+/// Builds the test fixture for std::chrono::duration
+/// </summary>
+/// <param name="duration">The reference to duration.</param>
+template <typename TRep, typename TPeriod>
+static void BuildFixture(std::chrono::duration<TRep, TPeriod>& duration)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution distr(std::numeric_limits<TRep>::min(), std::numeric_limits<TRep>::max());
+
+	duration = std::chrono::duration<TRep, TPeriod>(distr(gen));
+}
+
+/// <summary>
 /// Builds the test fixture for std::unique_ptr value.
 /// </summary>
 /// <param name="uniquePtr">The reference to unique pointer.</param>

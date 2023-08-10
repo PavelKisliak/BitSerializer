@@ -128,7 +128,7 @@ namespace BitSerializer::Convert::Detail
 			if constexpr (TDivRatio::num == 1)
 			{
 				const auto v = static_cast<TTargetRep>(duration.count());
-				if (v != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+				if (static_cast<TRep>(v) != duration.count()) {
 					throw std::out_of_range("Target duration is not enough");
 				}
 				return TTarget(v);
@@ -136,7 +136,7 @@ namespace BitSerializer::Convert::Detail
 			else
 			{
 				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num));
-				if (v && v / TDivRatio::num != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+				if (v && static_cast<TRep>(v / TDivRatio::num) != duration.count()) {
 					throw std::out_of_range("Target duration is not enough");
 				}
 				return TTarget(v);
@@ -147,7 +147,7 @@ namespace BitSerializer::Convert::Detail
 			if constexpr (TDivRatio::num == 1)
 			{
 				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) / static_cast<TOpRep>(TDivRatio::den));
-				if (v * TDivRatio::den != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+				if (static_cast<TRep>(v * TDivRatio::den) != duration.count()) {
 					throw std::out_of_range("Target duration is not enough");
 				}
 				return TTarget(v);
@@ -155,7 +155,7 @@ namespace BitSerializer::Convert::Detail
 			else
 			{
 				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num) / static_cast<TOpRep>(TDivRatio::den));
-				if (v && v / TDivRatio::num != duration.count()) {  // NOLINT(clang-diagnostic-sign-compare)
+				if (v && static_cast<TRep>(v / TDivRatio::num) != duration.count()) {
 					throw std::out_of_range("Target duration is not enough");
 				}
 				return TTarget(v);
@@ -292,11 +292,11 @@ namespace BitSerializer::Convert::Detail
 	void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
-		auto ms = static_cast<int>((in - std::chrono::seconds(time)).time_since_epoch().count());
+		auto ms = std::chrono::round<std::chrono::milliseconds>(in.time_since_epoch() - std::chrono::seconds(time)).count();
 		if (ms != 0)
 		{
 			if (ms < 0) ms += 1000;
-			const tm_ext utc(UnixTimeToUtc(time), ms);
+			const tm_ext utc(UnixTimeToUtc(time), static_cast<int>(ms));
 			To(utc, out);
 		}
 		else
@@ -340,7 +340,7 @@ namespace BitSerializer::Convert::Detail
 	void To(const std::chrono::duration<TRep, TPeriod>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		if (!in.count()) {
-			out.append({'P', 'T', '0', 'S'});
+			out.append({ 'P', 'T', '0', 'S' });
 			return;
 		}
 

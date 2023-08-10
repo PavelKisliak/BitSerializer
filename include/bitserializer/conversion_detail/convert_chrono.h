@@ -6,6 +6,7 @@
 #pragma once
 #include <cctype>
 #include <cstdlib>
+#include <climits>
 #include <chrono>
 #include <charconv>
 #include "convert_utf.h"
@@ -347,9 +348,10 @@ namespace BitSerializer::Convert::Detail
 		{
 			if (time.count())
 			{
-				if constexpr (std::is_signed_v<typename decltype(time)::rep>)
+				if constexpr (std::is_signed_v<TRep>)
 				{
-					const uint64_t absTime = std::abs(time.count());
+					const uint64_t absTime = time.count() == LLONG_MIN ?
+						static_cast<uint64_t>(LLONG_MAX) + 1 : static_cast<uint64_t>(std::abs(time.count()));
 					outStr.append(std::to_string(absTime));
 				}
 				else {

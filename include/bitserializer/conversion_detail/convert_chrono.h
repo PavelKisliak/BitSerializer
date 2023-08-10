@@ -328,8 +328,12 @@ namespace BitSerializer::Convert::Detail
 		}
 
 		out = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(time));
-		if (tmExt.ms) {
-			out += std::chrono::milliseconds(tmExt.ms);
+		if (tmExt.ms)
+		{
+			const auto tpOrig = out;
+			if ((out += std::chrono::milliseconds(tmExt.ms)).time_since_epoch().count() < tpOrig.time_since_epoch().count()) {
+				throw std::out_of_range("Target timepoint range is not enough to store parsed datetime");
+			}
 		}
 	}
 
@@ -337,7 +341,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts from `std::chrono::duration` to `std::string` (ISO 8601/Duration: PnDTnHnMnS).
 	/// </summary>
 	template <typename TRep, typename TPeriod, typename TSym, typename TAllocator>
-	void To(const std::chrono::duration<TRep, TPeriod>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	static void To(const std::chrono::duration<TRep, TPeriod>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		if (!in.count()) {
 			out.append({ 'P', 'T', '0', 'S' });
@@ -350,8 +354,8 @@ namespace BitSerializer::Convert::Detail
 			{
 				if constexpr (std::is_signed_v<TRep>)
 				{
-					const uint64_t absTime = time.count() == LLONG_MIN ?
-						static_cast<uint64_t>(LLONG_MAX) + 1 : static_cast<uint64_t>(std::abs(time.count()));
+					constexpr uint64_t maxI64Negative = 9223372036854775808u;
+					const uint64_t absTime = time.count() == LLONG_MIN ? maxI64Negative : static_cast<uint64_t>(std::abs(time.count()));
 					outStr.append(std::to_string(absTime));
 				}
 				else {
@@ -386,7 +390,7 @@ namespace BitSerializer::Convert::Detail
 	///	The decimal fraction of smallest value like "P0.5D" is not supported.
 	/// </summary>
 	template <typename TSym, typename TRep, typename TPeriod>
-	void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
+	static void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
 	{
 		using TTargetDuration = std::chrono::duration<TRep, TPeriod>;
 		const auto parseDuration = [](const char* pos, const char* end)

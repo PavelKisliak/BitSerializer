@@ -123,6 +123,7 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenMissedTimePart) {
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
 	EXPECT_THROW(Convert::To<TimePointNs>("1677-09-21T00:12:43Z"), std::out_of_range);
 	EXPECT_THROW(Convert::To<TimePointNs>("2262-04-11T23:47:17Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<TimePointNs>("2262-04-11T23:47:16.855Z"), std::out_of_range);
 }
 
 //-----------------------------------------------------------------------------

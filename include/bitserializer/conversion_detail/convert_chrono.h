@@ -117,8 +117,12 @@ namespace BitSerializer::Convert::Detail
 	/// </summary>
 	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
 	template <class TTarget, class TRep, class TPeriod>
-	constexpr TTarget SafeDurationCast(const std::chrono::duration<TRep, TPeriod>& duration)
+	TTarget SafeDurationCast(const std::chrono::duration<TRep, TPeriod>& duration)
 	{
+		if constexpr (std::is_same_v<TTarget, std::chrono::duration<TRep, TPeriod>>) {
+			return duration;
+		}
+
 		using TDivRatio = std::ratio_divide<TPeriod, typename TTarget::period>;
 		using TTargetRep = typename TTarget::rep;
 		using TOpRep = std::common_type_t<TTargetRep, TRep, intmax_t>;
@@ -164,6 +168,50 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
+	/// Adds `std::chrono::duration` to `std::chrono::timepoint` WITHOUT truncation.
+	/// </summary>
+	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	template <class TTargetClock, class TTargetDuration, class TSrcRep, class TSrcPeriod>
+	void SafeAddDuration(std::chrono::time_point<TTargetClock, TTargetDuration>& tp, const std::chrono::duration<TSrcRep, TSrcPeriod>& duration)
+	{
+		if (duration.count() == 0) {
+			return;
+		}
+
+		using TSrcDur = std::chrono::duration<TSrcRep, TSrcPeriod>;
+		constexpr auto maxSrcDur = std::chrono::time_point_cast<TSrcDur>(std::chrono::time_point<TTargetClock, TTargetDuration>::max())
+			.time_since_epoch();
+		constexpr auto minSrcDur = std::chrono::time_point_cast<TSrcDur>(std::chrono::time_point<TTargetClock, TTargetDuration>::min())
+			.time_since_epoch();
+		if (duration > maxSrcDur || duration < minSrcDur) {
+			throw std::out_of_range("Target timepoint range is not enough");
+		}
+
+		TTargetDuration adaptedDuration;
+		try {
+			adaptedDuration = SafeDurationCast<TTargetDuration>(duration);
+		}
+		catch (const std::out_of_range&) {
+			throw std::out_of_range("Target timepoint range is not enough");
+		}
+
+		const auto newTp = tp + adaptedDuration;
+		if (tp.time_since_epoch().count() >= 0)
+		{
+			if (newTp.time_since_epoch().count() <= 0 && adaptedDuration.count() > 0) {
+				throw std::out_of_range("Target timepoint range is not enough");
+			}
+		}
+		else
+		{
+			if (newTp.time_since_epoch().count() >= 0 && adaptedDuration.count() < 0) {
+				throw std::out_of_range("Target timepoint range is not enough");
+			}
+		}
+		tp = std::chrono::time_point<TTargetClock, TTargetDuration>(newTp);
+	}
+
+	/// <summary>
 	/// Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
 	/// </summary>
 	template <typename TSym, typename TAllocator>
@@ -173,6 +221,9 @@ namespace BitSerializer::Convert::Detail
 		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02dZ", in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec);
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
+		}
+		if (in.tm_year >= 10000) {
+			out.push_back('+');
 		}
 		out.append(buffer, buffer + outSize);
 	}
@@ -189,6 +240,9 @@ namespace BitSerializer::Convert::Detail
 		if (outSize <= 0) {
 			throw std::runtime_error("Unknown error");
 		}
+		if (in.tm_year >= 10000) {
+			out.push_back('+');
+		}
 		out.append(buffer, buffer + outSize);
 	}
 
@@ -200,10 +254,13 @@ namespace BitSerializer::Convert::Detail
 	{
 		auto parseDatetime = [](const char* pos, const char* end)
 		{
-			auto parseDatetimePart = [](const char* buf, const char* end, int& outValue, int maxValue = 0, char delimiter = 0) -> const char*
+			auto parseDatetimePart = [](const char* buf, const char* end, int& outValue, int maxValue = 0, char delimiter = 0, bool isYear = false) -> const char*
 			{
-				if (buf != end && std::isdigit(*buf))
+				if (buf != end && (std::isdigit(*buf) || isYear))
 				{
+					if (isYear && *buf == '+') {
+						++buf;
+					}
 					const std::from_chars_result result = std::from_chars(buf, end, outValue);
 					if (result.ec == std::errc())
 					{
@@ -220,12 +277,15 @@ namespace BitSerializer::Convert::Detail
 							return result.ptr;
 						}
 					}
+					if (result.ec == std::errc::result_out_of_range) {
+						throw std::out_of_range("ISO datetime contains too big number");
+					}
 				}
 				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
 			};
 
 			tm_ext utc{};
-			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-');
+			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-', true);
 			pos = parseDatetimePart(pos, end, utc.tm_mon, 12, '-');
 			pos = parseDatetimePart(pos, end, utc.tm_mday, DaysInMonth[utc.tm_mon - 1], 'T');
 			pos = parseDatetimePart(pos, end, utc.tm_hour, 23, ':');
@@ -260,7 +320,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		tm_ext tmExt;
 		To(in, tmExt);
-		out = static_cast<tm>(tmExt);	// Ignore ms part
+		out = static_cast<tm>(tmExt);	// Ignore 'ms' part
 	}
 
 	/// <summary>
@@ -289,20 +349,41 @@ namespace BitSerializer::Convert::Detail
 	///	Milliseconds will be rendered only when they present (non-zero).
 	/// </summary>
 	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<(TClock::is_steady == false), int> = 0>
-	void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		const time_t time = std::chrono::floor<std::chrono::seconds>(in).time_since_epoch().count();
-		auto ms = std::chrono::round<std::chrono::milliseconds>(in.time_since_epoch() - std::chrono::seconds(time)).count();
-		if (ms != 0)
+		using TDays = std::chrono::duration<typename TDuration::rep, std::ratio<86400>>;
+		const auto datePart = std::chrono::floor<TDays>(in);
+		const auto timePart = in - datePart;
+		auto timeInSec = std::chrono::floor<std::chrono::seconds>(timePart).count();
+		auto days = datePart.time_since_epoch().count();
+
+		// Based on Howard Hinnant's algorithm
+		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
+		auto const z = days + 719468ll;
+		auto const era = (z >= 0 ? z : z - 146096) / 146097;
+		auto const doe = static_cast<unsigned>(z - era * 146097);				// [0, 146096]
+		auto const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;	// [0, 399]
+		auto const y = yoe + era * 400;
+		auto const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);				// [0, 365]
+		auto const mp = (5 * doy + 2) / 153;									// [0, 11]
+		auto const d = doy - (153 * mp + 2) / 5 + 1;							// [1, 31]
+		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
+
+		tm_ext utc{};
+		utc.tm_year = static_cast<int>(y) + (m <= 2);
+		utc.tm_mon = static_cast<int>(m);
+		utc.tm_mday = static_cast<int>(d);
+		utc.tm_hour = static_cast<int>(timeInSec / 3600);
+		utc.tm_min = timeInSec % 3600 / 60;
+		utc.tm_sec = timeInSec % 60;
+		utc.ms = static_cast<int>(std::chrono::round<std::chrono::milliseconds>(timePart - std::chrono::seconds(timeInSec)).count());
+		if (utc.ms != 0)
 		{
-			if (ms < 0) ms += 1000;
-			const tm_ext utc(UnixTimeToUtc(time), static_cast<int>(ms));
+			if (utc.ms < 0) utc.ms += 1000;
 			To(utc, out);
 		}
-		else
-		{
-			const tm utc = UnixTimeToUtc(time);
-			To(utc, out);
+		else {
+			To(static_cast<tm&>(utc), out);		// Print without 'ms' part
 		}
 	}
 
@@ -311,30 +392,33 @@ namespace BitSerializer::Convert::Detail
 	///	Examples of allowed dates:
 	///	- 1872-01-01T00:00:00Z
 	///	- 2023-07-14T22:44:51.925Z
-	/// </summary>
+	/// </summary>7
 	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
-	void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
+	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
 		tm_ext tmExt;
 		To(in, tmExt);
 
-		const auto time = UtcToUnixTime(tmExt);
-		constexpr auto maxSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::max())
-			.time_since_epoch().count();
-		constexpr auto minSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::min())
-			.time_since_epoch().count();
-		if (time > maxSec || time < minSec) {
-			throw std::out_of_range("Target timepoint range is not enough to store parsed datetime");
-		}
+		// Based on Howard Hinnant's algorithm
+		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
+		auto const y = static_cast<int>(tmExt.tm_year) - (tmExt.tm_mon <= 2);
+		auto const m = static_cast<unsigned>(tmExt.tm_mon);
+		auto const d = static_cast<unsigned>(tmExt.tm_mday);
+		auto const era = (y >= 0 ? y : y - 399) / 400;
+		auto const yoe = static_cast<unsigned>(y - era * 400);				// [0, 399]
+		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
+		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
 
-		out = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(time));
-		if (tmExt.ms)
-		{
-			const auto tpOrig = out;
-			if ((out += std::chrono::milliseconds(tmExt.ms)).time_since_epoch().count() < tpOrig.time_since_epoch().count()) {
-				throw std::out_of_range("Target timepoint range is not enough to store parsed datetime");
-			}
+		std::chrono::time_point<TClock, TDuration> tp;
+		const int64_t days = era * 146097ll + doe - 719468;
+		if ((y >= 1970 && days < 0) || (y < 1970 && days > 0)) {
+			throw std::out_of_range("Target timepoint range is not enough");
 		}
+		SafeAddDuration(tp, std::chrono::duration<int64_t, std::ratio<86400>>(days));
+		const auto time = static_cast<long long>(tmExt.tm_hour) * 3600 + static_cast<long long>(tmExt.tm_min) * 60 + tmExt.tm_sec;
+		SafeAddDuration(tp, std::chrono::seconds(time));
+		SafeAddDuration(tp, std::chrono::milliseconds(tmExt.ms));
+		out = tp;
 	}
 
 	/// <summary>

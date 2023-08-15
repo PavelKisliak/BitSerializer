@@ -179,6 +179,11 @@ namespace BitSerializer::Convert::Detail
 		}
 
 		using TSrcDur = std::chrono::duration<TSrcRep, TSrcPeriod>;
+#if defined(__clang__)
+		const auto cmpRep = 0;
+#else
+		const auto cmpRep = tp.time_since_epoch().count();
+#endif
 		constexpr auto maxSrcDur = std::chrono::time_point_cast<TSrcDur>(std::chrono::time_point<TTargetClock, TTargetDuration>::max())
 			.time_since_epoch();
 		constexpr auto minSrcDur = std::chrono::time_point_cast<TSrcDur>(std::chrono::time_point<TTargetClock, TTargetDuration>::min())
@@ -196,15 +201,15 @@ namespace BitSerializer::Convert::Detail
 		}
 
 		const auto newTp = tp + adaptedDuration;
-		if (tp.time_since_epoch().count() >= 0)
+		if (tp.time_since_epoch().count() < 0)
 		{
-			if (newTp.time_since_epoch().count() <= 0 && adaptedDuration.count() > 0) {
+			if (adaptedDuration.count() < 0 && newTp.time_since_epoch().count() >= cmpRep) {
 				throw std::out_of_range("Target timepoint range is not enough");
 			}
 		}
 		else
 		{
-			if (newTp.time_since_epoch().count() >= 0 && adaptedDuration.count() < 0) {
+			if (adaptedDuration.count() > 0 && newTp.time_since_epoch().count() <= cmpRep) {
 				throw std::out_of_range("Target timepoint range is not enough");
 			}
 		}

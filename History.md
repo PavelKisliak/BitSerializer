@@ -12,8 +12,8 @@
 - [ + ] Conversion sub-module: Added error policy for encode UTF (error mark, throw exception or skip).
 - [ * ] Conversion sub-module: Added throwing `invalid_argument` exception when converting from invalid string to number.
 - [ * ] Conversion sub-module: Converting a string containing floating point number to integer, now will throw `out_of_range` exception.
-- [ * ] Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
-- [ * ] Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
+- [ * ] Conversion sub-module: Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
+- [ * ] Conversion sub-module: Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
 - [ * ] [CppRestJson] Fixed serialization of booleans in the object (was serialized as number).
 - [ * ] [RapidYaml] Fixed compatibility with latest version of the RapidYaml library (0.4.1).
 - [ * ] [RapidYaml] Fixed serialization negative int8.

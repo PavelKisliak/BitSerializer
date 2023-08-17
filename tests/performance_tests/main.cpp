@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <iostream>
@@ -12,8 +12,8 @@
 #include "rapid_yaml_performance_test.h"
 #include "csv_performance_test.h"
 
-constexpr auto DefaultArchiveTestTimeSec = 60;
-constexpr size_t NanosecondsInSecond = 1000000000;
+constexpr auto DefaultArchiveTestTimeSec = 30;
+constexpr size_t NanosecondsInMs = 1000000;
 
 using Timer = std::chrono::high_resolution_clock;
 
@@ -22,7 +22,7 @@ struct TestArchiveMetadata
 	struct PerfTestData
 	{
 		std::chrono::nanoseconds Time{};
-		size_t ProcessedChars = 0;
+		size_t ProcessedFields = 0;
 	};
 
 	TestArchiveMetadata() = default;
@@ -67,7 +67,7 @@ TestArchiveMetadata TestArchivePerformance()
 		if (metadata.BitSerializerSaveTest.Time == std::chrono::nanoseconds(0) || metadata.BitSerializerSaveTest.Time > saveTime)
 		{
 			metadata.BitSerializerSaveTest.Time = saveTime;
-			metadata.BitSerializerSaveTest.ProcessedChars = savedChars;
+			metadata.BitSerializerSaveTest.ProcessedFields = performanceTest.GetTotalFieldsCount();
 		}
 
 		// Load model via BitSerializer
@@ -77,7 +77,7 @@ TestArchiveMetadata TestArchivePerformance()
 		if (metadata.BitSerializerLoadTest.Time == std::chrono::nanoseconds(0) || metadata.BitSerializerLoadTest.Time > loadTime)
 		{
 			metadata.BitSerializerLoadTest.Time = loadTime;
-			metadata.BitSerializerLoadTest.ProcessedChars = loadedChars;
+			metadata.BitSerializerLoadTest.ProcessedFields = performanceTest.GetTotalFieldsCount();
 		}
 
 		// Test serialization via native library
@@ -90,7 +90,7 @@ TestArchiveMetadata TestArchivePerformance()
 			if (metadata.BaseLibSaveTest.Time == std::chrono::nanoseconds(0) || metadata.BaseLibSaveTest.Time > nativeSaveTime)
 			{
 				metadata.BaseLibSaveTest.Time = nativeSaveTime;
-				metadata.BaseLibSaveTest.ProcessedChars = savedNativeLibChars;
+				metadata.BaseLibSaveTest.ProcessedFields = performanceTest.GetTotalFieldsCount();
 			}
 
 			// Load model via native code
@@ -100,7 +100,7 @@ TestArchiveMetadata TestArchivePerformance()
 			if (metadata.BaseLibLoadTest.Time == std::chrono::nanoseconds(0) || metadata.BaseLibLoadTest.Time > nativeLoadTime)
 			{
 				metadata.BaseLibLoadTest.Time = nativeLoadTime;
-				metadata.BaseLibLoadTest.ProcessedChars = loadedNativeLibChars;
+				metadata.BaseLibLoadTest.ProcessedFields = performanceTest.GetTotalFieldsCount();
 			}
 		}
 
@@ -117,13 +117,15 @@ TestArchiveMetadata TestArchivePerformance()
 	// Display result
 	//------------------------------------------------------------------------------
 	// Save
-	const uint64_t saveCharsSpeed = NanosecondsInSecond / metadata.BitSerializerSaveTest.Time.count() * metadata.BitSerializerSaveTest.ProcessedChars;
-	std::cout << metadata.Name << " save speed (kb/s): " << saveCharsSpeed / 1024 << " | Base lib: ";
+	const int64_t saveFieldsSpeed = std::llround(
+		NanosecondsInMs / static_cast<double>(metadata.BitSerializerSaveTest.Time.count()) * static_cast<double>(metadata.BitSerializerSaveTest.ProcessedFields));
+	std::cout << metadata.Name << " save speed (fields/ms): " << saveFieldsSpeed << " | Base lib: ";
 	if (performanceTest.IsUseNativeLib())
 	{
-		const uint64_t saveNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibSaveTest.Time.count() * metadata.BaseLibSaveTest.ProcessedChars;
-		const auto diffSavePercent = std::round((saveCharsSpeed / (saveNativeLibSpeed / 100.0) - 100) * 10) / 10;
-		std::cout << saveNativeLibSpeed / 1024 << " | difference: " << diffSavePercent << "%" << std::endl;
+		const int64_t saveNativeLibSpeed = std::llround(
+			NanosecondsInMs / static_cast<double>(metadata.BaseLibSaveTest.Time.count()) * static_cast<double>(metadata.BaseLibSaveTest.ProcessedFields));
+		const auto diffSavePercent = std::round((saveFieldsSpeed / (saveNativeLibSpeed / 100.0) - 100) * 10) / 10;
+		std::cout << saveNativeLibSpeed << " | difference: " << diffSavePercent << "%" << std::endl;
 	}
 	else
 	{
@@ -131,13 +133,15 @@ TestArchiveMetadata TestArchivePerformance()
 	}
 
 	// Load
-	const uint64_t loadCharsSpeed = NanosecondsInSecond / metadata.BitSerializerLoadTest.Time.count() * metadata.BitSerializerLoadTest.ProcessedChars;
-	std::cout << metadata.Name << " load speed (kb/s): " << loadCharsSpeed / 1024 << " | Base lib: ";
+	const int64_t loadFieldsSpeed = std::llround(
+		NanosecondsInMs / static_cast<double>(metadata.BitSerializerLoadTest.Time.count()) * static_cast<double>(metadata.BitSerializerLoadTest.ProcessedFields));
+	std::cout << metadata.Name << " load speed (fields/ms): " << loadFieldsSpeed << " | Base lib: ";
 	if (performanceTest.IsUseNativeLib())
 	{
-		const uint64_t loadNativeLibSpeed = NanosecondsInSecond / metadata.BaseLibLoadTest.Time.count() * metadata.BaseLibLoadTest.ProcessedChars;
-		const auto diffLoadPercent = std::round((loadCharsSpeed / (loadNativeLibSpeed / 100.0) - 100) * 10) / 10;
-		std::cout << loadNativeLibSpeed / 1024 << " | difference: " << diffLoadPercent << "%" << std::endl;
+		const int64_t loadNativeLibSpeed = std::llround(
+			NanosecondsInMs / static_cast<double>(metadata.BaseLibLoadTest.Time.count()) * static_cast<double>(metadata.BaseLibLoadTest.ProcessedFields));
+		const auto diffLoadPercent = std::round((loadFieldsSpeed / (loadNativeLibSpeed / 100.0) - 100) * 10) / 10;
+		std::cout << loadNativeLibSpeed << " | difference: " << diffLoadPercent << "%" << std::endl;
 	}
 	else
 	{

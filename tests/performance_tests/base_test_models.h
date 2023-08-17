@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -38,6 +38,11 @@ public:
 			fixture.mStringWithQuotes = L"Test \"<quoted>\" string";
 			fixture.mMultiLineString = L"Test\nmulti\nline\nstring";
 		}
+	}
+
+	static constexpr size_t GetTotalFieldsCount() noexcept
+	{
+		return 10;
 	}
 
 	void Assert(const TestModelWithBasicTypes& rhs) const
@@ -116,6 +121,13 @@ public:
 		::BuildFixture(fixture.mArrayOfInts);
 		::BuildFixture(fixture.mArrayOfStrings);
 		::BuildFixture(fixture.mArrayOfObjects);
+	}
+
+	static constexpr size_t GetTotalFieldsCount() noexcept
+	{
+		return 4				// Number of arrays
+			+ (ARRAY_SIZE * 3)	// Number of elements in simple arrays
+			+ (TestModelWithBasicTypes<TKeyCharType>::GetTotalFieldsCount() * ARRAY_SIZE);	// Number of elements in array of objects
 	}
 
 	void Assert(const TestModelWithSubArrays& rhs) const

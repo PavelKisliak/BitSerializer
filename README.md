@@ -1,17 +1,19 @@
 # BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.50-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
 ___
+### Due to the risks of blocking the account, it's planned to transfer project to [GitHub](https://github.com/PavelKisliak?tab=repositories)
+___
 
 ### Design goals:
 - Make a thin wrapper around existing libraries for have one common serialization interface.
-- Make easy serialization for all kind of C++ types and STL containers.
-- Produce clear JSON for easy integration with Javascript.
+- Make it easy to serialize for all built-in C++ and STD types.
+- Follow ISO data exchange standards for easy integration with other systems.
 - Good test coverage for keep stability of project.
 - Cross-platform (Windows, Linux, MacOS).
 
 ### Main features:
 - One common interface for different kind of formats (currently supported JSON, XML, YAML and CSV).
 - Simple syntax which is similar to serialization in the Boost library.
-- Validation of deserialized values with producing an output list of errors.
+- Customizable validation of deserialized values with producing an output list of errors.
 - Support serialization for enum types (via declaring names map).
 - Support serialization for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
 - Support serialization to streams and files.
@@ -46,8 +48,8 @@ ___
 - [ + ] Conversion sub-module: Added error policy for encode UTF (error mark, throw exception or skip).
 - [ * ] Conversion sub-module: Added throwing `invalid_argument` exception when converting from invalid string to number.
 - [ * ] Conversion sub-module: Converting a string containing floating point number to integer, now will throw `out_of_range` exception.
-- [ * ] Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
-- [ * ] Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
+- [ * ] Conversion sub-module: Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
+- [ * ] Conversion sub-module: Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
 - [ * ] [CppRestJson] Fixed serialization of booleans in the object (was serialized as number).
 - [ * ] [RapidYaml] Fixed compatibility with latest version of the RapidYaml library (0.4.1).
 - [ * ] [RapidYaml] Fixed serialization negative int8.
@@ -83,7 +85,7 @@ ___
 - [Serializing base class](#markdown-header-serializing-base-class)
 - [Serializing third party class](#markdown-header-serializing-third-party-class)
 - [Serializing enum types](#markdown-header-serializing-enum-types)
-- [Serializing classes as primitive types like number or string](#markdown-header-serializing-classes-as-primitive-types-like-number-or-string)
+- [Serializing custom classes representing a string or number](#markdown-header-serializing-custom-classes-representing-a-string-or-number)
 - [Serializing to multiple formats](#markdown-header-serializing-to-multiple-formats)
 - [Serialization STD types](#markdown-header-serialization-std-types)
 - [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
@@ -144,7 +146,7 @@ Alternatively, you can install via below command (this is just example without s
 ```shell
 conan install bitserializer/0.50@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o bitserializer:with_rapidyaml=True --build missing
 ```
-#### CMake install to Unix system
+#### Installation via CMake on a Unix system
 ```
 git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
 # Enable only archives which you need (by default all are disabled)
@@ -181,6 +183,7 @@ int main()
 {
 	std::string expected = "Hello world!";
 	auto json = BitSerializer::SaveObject<JsonArchive>(expected);
+
 	std::string result;
 	BitSerializer::LoadObject<JsonArchive>(result, json);
 
@@ -361,7 +364,7 @@ int main()
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
-### Serializing classes as primitive types like number or string
+### Serializing custom classes representing a string or number
 This chapter describes how to implement serialization for classes which should be represented in the output format as base types, like number, boolean or string. Let's imagine that you would like to implement serialization of your own `std::string` alternative, which is called `CMyString`. For this purpose you need two global functions with the following signatures:
 ```cpp
 template <class TArchive, typename TKey>
@@ -500,7 +503,7 @@ REGISTER_ENUM(HttpMethod, {
 ```
 
 ### Serializing to multiple formats
-One of the advantages of BitSerializer is the ability to serialize in several formats via one interface. In the following example shows saving an object to JSON and XML:
+One of the advantages of BitSerializer is the ability to serialize to multiple formats via a single interface. The following example shows how to store an object in JSON and XML:
 ```cpp
 class CPoint
 {

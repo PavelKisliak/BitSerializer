@@ -1,10 +1,8 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <array>
-#include <stdexcept>
 #include "bitserializer/csv_archive.h"
 #include "bitserializer/types/std/vector.h"
 #include "base_test_models.h"

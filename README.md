@@ -1,6 +1,4 @@
-# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.50-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status/BitSerializer-CI?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=4&branchName=master) 
-___
-### Due to the risks of blocking the account, it's planned to transfer project to [GitHub](https://github.com/PavelKisliak?tab=repositories)
+# BitSerializer ![Generic badge](https://img.shields.io/badge/Version-0.50-blue) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status%2FGitHub-BitSerializer?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=5&branchName=master)
 ___
 
 ### Design goals:

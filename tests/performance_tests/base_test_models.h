@@ -7,6 +7,8 @@
 #include <string>
 #include "tests/test_helpers/common_test_methods.h"
 
+// Array size of test models
+constexpr size_t TestArraySize = 30;
 
 /// <summary>
 /// Test model with set of basic types.
@@ -100,68 +102,4 @@ public:
 	string_t mTestString3;
 	string_t mStringWithQuotes;
 	string_t mMultiLineString;
-};
-
-
-/// <summary>
-/// Complex test model with sub arrays of basic and object types.
-/// </summary>
-template <typename TKeyCharType>
-class TestModelWithSubArrays
-{
-public:
-	static constexpr size_t ARRAY_SIZE = 30;
-
-	using key_char_t = TKeyCharType;
-	using string_t = std::basic_string<TKeyCharType, std::char_traits<TKeyCharType>>;
-
-	static void BuildFixture(TestModelWithSubArrays& fixture)
-	{
-		::BuildFixture(fixture.mArrayOfBooleans);
-		::BuildFixture(fixture.mArrayOfInts);
-		::BuildFixture(fixture.mArrayOfStrings);
-		::BuildFixture(fixture.mArrayOfObjects);
-	}
-
-	static constexpr size_t GetTotalFieldsCount() noexcept
-	{
-		return 4				// Number of arrays
-			+ (ARRAY_SIZE * 3)	// Number of elements in simple arrays
-			+ (TestModelWithBasicTypes<TKeyCharType>::GetTotalFieldsCount() * ARRAY_SIZE);	// Number of elements in array of objects
-	}
-
-	void Assert(const TestModelWithSubArrays& rhs) const
-	{
-		for (size_t i=0; i<ARRAY_SIZE; ++i)
-		{
-			assert(mArrayOfBooleans[i] == rhs.mArrayOfBooleans[i]);
-			assert(mArrayOfInts[i] == rhs.mArrayOfInts[i]);
-			assert(mArrayOfStrings[i] == rhs.mArrayOfStrings[i]);
-			mArrayOfObjects[i].Assert(rhs.mArrayOfObjects[i]);
-		}
-	}
-
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		if constexpr (std::is_same_v<TKeyCharType, char>)
-		{
-			archive << BitSerializer::MakeKeyValue("ArrayOfBooleans", mArrayOfBooleans);
-			archive << BitSerializer::MakeKeyValue("ArrayOfInts", mArrayOfInts);
-			archive << BitSerializer::MakeKeyValue("ArrayOfStrings", mArrayOfStrings);
-			archive << BitSerializer::MakeKeyValue("ArrayOfObjects", mArrayOfObjects);
-		}
-		else
-		{
-			archive << BitSerializer::MakeKeyValue(L"ArrayOfBooleans", mArrayOfBooleans);
-			archive << BitSerializer::MakeKeyValue(L"ArrayOfInts", mArrayOfInts);
-			archive << BitSerializer::MakeKeyValue(L"ArrayOfStrings", mArrayOfStrings);
-			archive << BitSerializer::MakeKeyValue(L"ArrayOfObjects", mArrayOfObjects);
-		}
-	}
-
-	bool mArrayOfBooleans[ARRAY_SIZE] = {};
-	int64_t mArrayOfInts[ARRAY_SIZE] = {};
-	string_t mArrayOfStrings[ARRAY_SIZE];
-	TestModelWithBasicTypes<TKeyCharType> mArrayOfObjects[ARRAY_SIZE] = {};
 };

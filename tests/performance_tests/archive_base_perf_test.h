@@ -45,9 +45,11 @@ public:
 	/// </summary>
 	constexpr size_t GetTotalFieldsCount() noexcept
 	{
-		if constexpr (BitSerializer::has_size_v<model_t>) {
+		if constexpr (BitSerializer::has_size_v<model_t>)
+		{
 			assert(!mSourceTestModel.empty());
-			return mSourceTestModel.size() * model_t::value_type::GetTotalFieldsCount();
+			// Total size of all fields (each element of array also counting as field)
+			return mSourceTestModel.size() * model_t::value_type::GetTotalFieldsCount() + mSourceTestModel.size();
 		}
 		else {
 			return model_t::GetTotalFieldsCount();
@@ -91,7 +93,7 @@ public:
 	virtual size_t LoadModelViaNativeLib() { return 0; }
 
 	/// <summary>
-	/// Asserts loaded data (BitSerilizer and native library implementations).
+	/// Asserts loaded data (BitSerializer and native library implementations).
 	/// Make sense to invoke only on the first iteration of the performance test.
 	/// </summary>
 	virtual void Assert() const

@@ -1,15 +1,16 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
 #include "bitserializer/pugixml_archive.h"
+#include "bitserializer/types/std/array.h"
 #include "archive_base_perf_test.h"
 #include "base_test_models.h"
 
 
-using PugiXmlTestModel = TestModelWithSubArrays<char>;
+using PugiXmlTestModel = std::array<TestModelWithBasicTypes<char>, TestArraySize>;
 using PugiXmlBasePerfTest = CArchiveBasePerfTest<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlTestModel, char>;
 
 class CPugiXmlPerformanceTest final : public PugiXmlBasePerfTest
@@ -24,30 +25,11 @@ public:
 	size_t SaveModelViaNativeLib() override
 	{
 		pugi::xml_document mDoc;
-		auto rootNode =  mDoc.append_child(PUGIXML_TEXT("root"));
-
-		// Save array of booleans
-		auto booleansXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfBooleans"));
-		for (auto item : mSourceTestModel.mArrayOfBooleans) {
-			booleansXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
-		}
-
-		// Save array of integers
-		auto integersXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfInts"));
-		for (const auto item : mSourceTestModel.mArrayOfInts) {
-			integersXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item);
-		}
-
-		// Save array of strings
-		auto stringsXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfStrings"));
-		for (const auto& item : mSourceTestModel.mArrayOfStrings) {
-			stringsXmlNode.append_child(PUGIXML_TEXT("value")).text().set(item.c_str());
-		}
+		auto rootNode = mDoc.append_child(PUGIXML_TEXT("array"));
 
 		// Save array of objects
-		auto objectsXmlNode = rootNode.append_child(PUGIXML_TEXT("ArrayOfObjects"));
-		for (const auto& item : mSourceTestModel.mArrayOfObjects) {
-			auto objectNode = objectsXmlNode.append_child(PUGIXML_TEXT("object"));
+		for (const auto& item : mSourceTestModel) {
+			auto objectNode = rootNode.append_child(PUGIXML_TEXT("object"));
 			objectNode.append_child(PUGIXML_TEXT("TestBoolValue")).text().set(item.mTestBoolValue);
 			objectNode.append_child(PUGIXML_TEXT("TestCharValue")).text().set(item.mTestCharValue);
 			objectNode.append_child(PUGIXML_TEXT("TestInt64Value")).text().set(item.mTestInt64Value);
@@ -74,41 +56,13 @@ public:
 		if (!result)
 			throw std::runtime_error("PugiXml parse error");
 
-		auto rootNode = mDoc.child(PUGIXML_TEXT("root"));
-
-		// Load array of booleans
-		auto booleansXmlNode = rootNode.child(PUGIXML_TEXT("ArrayOfBooleans"));
-		int i = 0;
-		for (auto it = booleansXmlNode.begin(); it != booleansXmlNode.end(); ++it)
-		{
-			mNativeLibModel.mArrayOfBooleans[i] = it->text().as_bool();
-			++i;
-		}
-
-		// Load array of integers
-		auto integersXmlNode = rootNode.child(PUGIXML_TEXT("ArrayOfInts"));
-		i = 0;
-		for (auto it = integersXmlNode.begin(); it != integersXmlNode.end(); ++it)
-		{
-			mNativeLibModel.mArrayOfInts[i] = it->text().as_llong();
-			++i;
-		}
-
-		// Load array of strings
-		auto stringsXmlNode = rootNode.child(PUGIXML_TEXT("ArrayOfStrings"));
-		i = 0;
-		for (auto it = stringsXmlNode.begin(); it != stringsXmlNode.end(); ++it)
-		{
-			mNativeLibModel.mArrayOfStrings[i] = it->text().as_string();
-			++i;
-		}
+		const auto rootNode = mDoc.child(PUGIXML_TEXT("array"));
 
 		// Load array of objects
-		auto objectsXmlNode = rootNode.child(PUGIXML_TEXT("ArrayOfObjects"));
-		i = 0;
-		for (auto it = objectsXmlNode.begin(); it != objectsXmlNode.end(); ++it)
+		int i = 0;
+		for (auto it = rootNode.begin(); it != rootNode.end(); ++it)
 		{
-			auto& obj = mNativeLibModel.mArrayOfObjects[i];
+			auto& obj = mNativeLibModel[i];
 			obj.mTestBoolValue = it->child(PUGIXML_TEXT("TestBoolValue")).text().as_bool();
 			obj.mTestCharValue = static_cast<char>(it->child(PUGIXML_TEXT("TestCharValue")).text().as_int());
 			obj.mTestInt64Value = it->child(PUGIXML_TEXT("TestInt64Value")).text().as_llong();
@@ -129,7 +83,10 @@ public:
 	{
 		base_class_t::Assert();
 
-		mSourceTestModel.Assert(mNativeLibModel);
+		for (size_t i = 0; i < mSourceTestModel.size(); i++)
+		{
+			mSourceTestModel[i].Assert(mBitSerializerModel[i]);
+		}
 		// Output XML from BitSerializer and base library should be equal
 		assert(mNativeLibOutputData == mBitSerializerOutputData);
 	}

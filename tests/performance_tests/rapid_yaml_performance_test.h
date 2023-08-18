@@ -1,15 +1,17 @@
 /*******************************************************************************
 * Copyright (C) 2020-2022 by Artsiom Marozau                                   *
+* Copyright (C) 2022-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <stdexcept>
 #include "bitserializer/rapidyaml_archive.h"
+#include "bitserializer/types/std/array.h"
 #include "archive_base_perf_test.h"
 #include "base_test_models.h"
 
 
-using RapidYamlTestModel = TestModelWithSubArrays<char>;
+using RapidYamlTestModel = std::array<TestModelWithBasicTypes<char>, TestArraySize>;
 using RapidYamlBasePerfTest = CArchiveBasePerfTest<BitSerializer::Yaml::RapidYaml::YamlArchive, RapidYamlTestModel, char>;
 
 class CRapidYamlPerformanceTest final : public RapidYamlBasePerfTest
@@ -25,41 +27,13 @@ public:
 	{
 		ryml::Tree tree;
 		auto root = tree.rootref();
-
-		root |= ryml::MAP;
-
-		// Save array of booleans
-		auto booleansYamlNode = root.append_child();
-		booleansYamlNode << ryml::key("ArrayOfBooleans");
-		booleansYamlNode |= ryml::SEQ;
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			booleansYamlNode.append_child() << mSourceTestModel.mArrayOfBooleans[i];
-		}
-
-		// Save array of integers
-		auto intsYamlArray = root.append_child();
-		intsYamlArray << ryml::key("ArrayOfInts");
-		intsYamlArray |= ryml::SEQ;
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			intsYamlArray.append_child() << mSourceTestModel.mArrayOfInts[i];
-		}
-
-		// Save array of strings
-		auto stringsYamlArray = root.append_child();
-		stringsYamlArray << ryml::key("ArrayOfStrings");
-		stringsYamlArray |= ryml::SEQ;
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			stringsYamlArray.append_child() << mSourceTestModel.mArrayOfStrings[i];
-		}
+		root |= ryml::SEQ;
 
 		// Save array of objects
-		auto objectsYamlArray = root.append_child();
-		objectsYamlArray << ryml::key("ArrayOfObjects");
-		objectsYamlArray |= ryml::SEQ;
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i)
+		for (size_t i = 0; i < TestArraySize; ++i)
 		{
-			const auto& obj = mSourceTestModel.mArrayOfObjects[i];
-			auto yamlObj = objectsYamlArray.append_child();
+			const auto& obj = mSourceTestModel[i];
+			auto yamlObj = root.append_child();
 			yamlObj |= ryml::MAP;
 			yamlObj.append_child() << ryml::key("TestBoolValue") << obj.mTestBoolValue;
 			yamlObj.append_child() << ryml::key("TestCharValue") << static_cast<int16_t>(obj.mTestCharValue);
@@ -84,31 +58,12 @@ public:
 		ryml::Tree tree = ryml::parse_in_arena(c4::to_csubstr(mNativeLibOutputData));
 		auto root = tree.rootref();
 
-		// Load array of booleans
-		const auto booleansYamlArray = root["ArrayOfBooleans"];
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			booleansYamlArray[i] >> mNativeLibModel.mArrayOfBooleans[i];
-		}
-
-		// Load array of integers
-		const auto integersYamlArray = root["ArrayOfInts"];
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			integersYamlArray[i] >> mNativeLibModel.mArrayOfInts[i];
-		}
-
-		// Load array of strings
-		const auto& stringsYamlArray = root["ArrayOfStrings"];
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i) {
-			stringsYamlArray[i] >> mNativeLibModel.mArrayOfStrings[i];
-		}
-
 		// Load array of objects
 		int16_t temp;
-		const auto& objectsYamlArray = root["ArrayOfObjects"];
-		for (size_t i = 0; i < model_t::ARRAY_SIZE; ++i)
+		for (size_t i = 0; i < TestArraySize; ++i)
 		{
-			auto& obj = mNativeLibModel.mArrayOfObjects[i];
-			auto yamlVal = objectsYamlArray[i];
+			auto& obj = mNativeLibModel[i];
+			auto yamlVal = root[i];
 			yamlVal["TestBoolValue"] >> obj.mTestBoolValue;
 			yamlVal["TestCharValue"] >> temp;
 			obj.mTestCharValue = static_cast<char>(temp);
@@ -130,7 +85,10 @@ public:
 	{
 		base_class_t::Assert();
 
-		mSourceTestModel.Assert(mNativeLibModel);
+		for (size_t i = 0; i < mSourceTestModel.size(); i++)
+		{
+			mSourceTestModel[i].Assert(mBitSerializerModel[i]);
+		}
 		// Output YAML from BitSerializer and base library should be equal
 		assert(mNativeLibOutputData == mBitSerializerOutputData);
 	}

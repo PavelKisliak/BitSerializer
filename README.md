@@ -124,7 +124,7 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 Enumerate features which you need, by default all are disabled.
 Alternatively, you can install the library via the command line:
 ```shell
-vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive]
+> vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
 #### Conan
@@ -142,15 +142,15 @@ bitserializer:with_csv=True
 ```
 Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
 ```shell
-conan install bitserializer/0.50@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o bitserializer:with_rapidyaml=True --build missing
+> conan install bitserializer/0.50@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
 ```
 #### Installation via CMake on a Unix system
-```
-git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
-# Enable only archives which you need (by default all are disabled)
-cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON
-sudo cmake --build bitserializer/build --config Debug --target install
-sudo cmake --build bitserializer/build --config Release --target install
+```sh
+$ git clone https://github.com/PavelKisliak/BitSerializer.git
+$ # Enable only archives which you need (by default all are disabled)
+$ cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON
+$ sudo cmake --build bitserializer/build --config Debug --target install
+$ sudo cmake --build bitserializer/build --config Release --target install
 ```
 You will also need to install dev-packages of base libraries, currently available only `rapidjson-dev` and `libpugixml-dev`, the rest need to be built manually (CSV archive does not require any dependencies).
 

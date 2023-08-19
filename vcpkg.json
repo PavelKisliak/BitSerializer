@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
   "name": "bitserializer",
   "version": "0.50.0",
-  "homepage": "https://bitbucket.org/Pavel_Kisliak/bitserializer",
+  "homepage": "https://github.com/PavelKisliak/BitSerializer",
   "description": "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV)",
   "dependencies": [
     {

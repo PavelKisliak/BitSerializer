@@ -45,20 +45,20 @@ find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::csv-archive)
 ```
 #### CMake install to Unix system
-```
-git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
-cmake bitserializer -B bitserializer/build -DBUILD_CSV_ARCHIVE=ON
-sudo cmake --build bitserializer/build --config Debug --target install
-sudo cmake --build bitserializer/build --config Release --target install
+```sh
+$ git clone https://github.com/PavelKisliak/BitSerializer.git
+$ cmake bitserializer -B bitserializer/build -DBUILD_CSV_ARCHIVE=ON
+$ sudo cmake --build bitserializer/build --config Debug --target install
+$ sudo cmake --build bitserializer/build --config Release --target install
 ```
 #### CMake install to your project directory
 You can install BitSerializer to your "ThirdParty" directory in your project.
 Set correct path in `%TargetInstallDir%` (for example 'D:/MyProject/libs/bitserializer') before run.
-```
-git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
-cmake bitserializer -B bitserializer/build -DCMAKE_INSTALL_PREFIX:PATH=%TargetInstallDir% -DBUILD_CSV_ARCHIVE=ON
-sudo cmake --build bitserializer/build --config Debug --target install
-sudo cmake --build bitserializer/build --config Release --target install
+```shell
+> git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
+> cmake bitserializer -B bitserializer/build -DCMAKE_INSTALL_PREFIX:PATH=%TargetInstallDir% -DBUILD_CSV_ARCHIVE=ON
+> sudo cmake --build bitserializer/build --config Debug --target install
+> sudo cmake --build bitserializer/build --config Release --target install
 ```
 You will need to explicitly specify the path where to find the library:
 ```cmake

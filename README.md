@@ -61,18 +61,18 @@ For check performance overhead, was developed a single thread test that serializ
 
 | Base library name | Format | Operation | Native API | BitSerializer | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 421799 Kb/s  | 452667 Kb/s | **(-6.8%)** |
-| RapidJson | JSON | Load object | 274952 Kb/s | 310186 Kb/s | **(-11.4%)** |
-| C++ REST SDK | JSON | Save object | 83944 Kb/s | 85608 Kb/s | **(-1.9%)** |
-| C++ REST SDK | JSON | Load object | 83153 Kb/s | 83875 Kb/s | **(-0.9%)** |
-| PugiXml | XML | Save object | 386395 Kb/s | 395489 Kb/s | **(-2.3%)** |
-| PugiXml | XML | Load object | 583627 Kb/s | 669654 Kb/s | **(-12.8%)** |
-| RapidYAML | YAML | Save object | 28929 Kb/s | 28929 Kb/s | **(0%)** |
-| RapidYAML | YAML | Load object | 105062 Kb/s | 113461 Kb/s | **(-7.4%)** |
-| Built-in | CSV | Save object | N/A | 213350 Kb/s | N/A |
-| Built-in | CSV | Load object | N/A | 212364 Kb/s | N/A |
+| RapidJson | JSON | Save object | 13580 fields/ms  | 14537 fields/ms | **(-6.6%)** |
+| RapidJson | JSON | Load object | 7971 fields/ms | 9375 fields/ms | **(-15%)** |
+| C++ REST SDK | JSON | Save object | 2586 fields/ms | 2617 fields/ms | **(-1.2%)** |
+| C++ REST SDK | JSON | Load object | 2741 fields/ms | 2741 fields/ms | **(0%)** |
+| PugiXml | XML | Save object | 8753 fields/ms | 9016 fields/ms | **(-2.9%)** |
+| PugiXml | XML | Load object | 12644 fields/ms | 14103 fields/ms | **(-10.3%)** |
+| RapidYAML | YAML | Save object | 780 fields/ms | 788 fields/ms | **(-1%)** |
+| RapidYAML | YAML | Load object | 3277 fields/ms | 3552 fields/ms | **(-7.7%)** |
+| Built-in | CSV | Save object | N/A | 15566 fields/ms | N/A |
+| Built-in | CSV | Load object | N/A | 15349 fields/ms | N/A |
 
-Measured in **Kb/s** - speed of read/write to the output archive, more is better. Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The source code of the test also available [here](benchmarks/archives).
+Measured in **fields/ms** - how many fields are written per millisecond, more is better. Results are depend to system hardware and compiler options, but you can evaluate the BitSerializer overhead and formats efficiency. The source code of the test also available [here](benchmarks/archives).
 
 ___
 ## Table of contents

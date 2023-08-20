@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -57,8 +57,58 @@ TEST(BaseTypes, SerializeUnicodeString)
 	TestSerializeType<ArchiveStub, std::u32string>(U"Test UTF-32 string - Привет мир!");
 }
 
-TEST(BaseTypes, SerializeEnum) {
+//-----------------------------------------------------------------------------
+// Tests of serialization for enum
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, SerializeEnumAsRoot) {
 	TestSerializeType<ArchiveStub, TestEnum>(TestEnum::Two);
+}
+
+TEST(BaseTypes, SerializeEnumAsRootThrowMismatchedTypesExceptionWhenLoadInvalid)
+{
+	// Save as string
+	std::string invalidEnum = "InvalidEnum";
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(invalidEnum, outputArchive);
+
+	try
+	{
+		// Load as enum
+		TestEnum targetEnum;
+		BitSerializer::LoadObject<ArchiveStub>(targetEnum, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(BaseTypes, SerializeEnumAsClassMember) {
+	TestClassWithSubType testEntity(TestEnum::Three);
+	TestSerializeClass<ArchiveStub>(testEntity);
+}
+
+TEST(BaseTypes, SerializeEnumAsClassMemberThrowMismatchedTypesExceptionWhenLoadInvalid)
+{
+	// Save as string
+	TestClassWithSubType<std::string> invalidEnum("InvalidEnum");
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(invalidEnum, outputArchive);
+
+	try
+	{
+		// Load as enum
+		TestClassWithSubType<TestEnum> targetObj;
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
 }
 
 //-----------------------------------------------------------------------------

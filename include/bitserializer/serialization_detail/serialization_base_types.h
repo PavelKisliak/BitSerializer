@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -96,21 +96,45 @@ namespace BitSerializer
 	//-----------------------------------------------------------------------------
 	// Serialize enum types
 	//-----------------------------------------------------------------------------
+	namespace Detail
+	{
+		template <class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
+		bool ConvertStringToEnumByPolicy(const std::string& str, TValue& out_value, MismatchedTypesPolicy policy)
+		{
+			try
+			{
+				out_value = Convert::To<TValue>(str);
+				return true;
+			}
+			catch (const std::invalid_argument&)
+			{
+				if (policy == MismatchedTypesPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						"The string (" + str + ") cannot be converted to target enum");
+				}
+			}
+			catch (...) {
+				throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error when converting enum to string");
+			}
+			return false;
+		}
+	}
+
 	template <class TArchive, typename TKey, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
 		if constexpr (TArchive::IsLoading())
 		{
 			std::string str;
-			if (Serialize(archive, std::forward<TKey>(key), str))
-			{
-				Convert::Detail::To(str, value);
-				return true;
+			if (Serialize(archive, std::forward<TKey>(key), str)) {
+				return Detail::ConvertStringToEnumByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy);
 			}
 			return false;
 		}
 		else
 		{
+			// May throw exception when enum is not registered or has invalid value
 			auto str = Convert::ToString(value);
 			return Serialize(archive, std::forward<TKey>(key), str);
 		}
@@ -123,14 +147,13 @@ namespace BitSerializer
 		{
 			std::string str;
 			if (Serialize(archive, str)) {
-				Convert::Detail::To(std::string_view(str), value);
-				return true;
+				return Detail::ConvertStringToEnumByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy);
 			}
 			return false;
 		}
 		else
 		{
-			// ToDo: add exceptions handling
+			// May throw exception when enum is not registered or has invalid value
 			auto str = Convert::ToString(value);
 			return Serialize(archive, str);
 		}

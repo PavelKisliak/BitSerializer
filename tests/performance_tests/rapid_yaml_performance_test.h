@@ -1,10 +1,8 @@
 /*******************************************************************************
-* Copyright (C) 2020-2022 by Artsiom Marozau                                   *
-* Copyright (C) 2022-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2020-2023 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <stdexcept>
 #include "bitserializer/rapidyaml_archive.h"
 #include "bitserializer/types/std/array.h"
 #include "archive_base_perf_test.h"

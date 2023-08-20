@@ -24,6 +24,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::core
     GTest::Main
     GTest::GTest
+    testing_tools
 )
 
 gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerAllCoreTests)

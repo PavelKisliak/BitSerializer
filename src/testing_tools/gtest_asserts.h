@@ -1,3 +1,8 @@
+/*******************************************************************************
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* This file is part of BitSerializer library, licensed under the MIT license.  *
+*******************************************************************************/
+
 #pragma once
 #include <optional>
 #include <memory>

@@ -172,6 +172,8 @@ endif()
 #################################################################################
 # Tests (optional)
 #################################################################################
+add_subdirectory(src/testing_tools)
+
 if(BUILD_TESTS)
     include(GoogleTest)
     enable_testing()

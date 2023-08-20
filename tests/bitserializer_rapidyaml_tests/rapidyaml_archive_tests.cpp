@@ -1,10 +1,10 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2020-2022 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2023 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include "tests/test_helpers/common_test_methods.h"
-#include "tests/test_helpers/common_json_test_methods.h"
-#include "tests/test_helpers/common_yaml_test_methods.h"
+#include "testing_tools/common_test_methods.h"
+#include "testing_tools/common_json_test_methods.h"
+#include "testing_tools/common_yaml_test_methods.h"
 #include "bitserializer/rapidyaml_archive.h"
 
 using YamlArchive = BitSerializer::Yaml::RapidYaml::YamlArchive;

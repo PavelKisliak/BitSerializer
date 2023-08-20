@@ -5,7 +5,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include "tests/test_helpers/common_test_methods.h"
+#include "testing_tools/common_test_methods.h"
 
 // Array size of test models
 constexpr size_t TestArraySize = 30;

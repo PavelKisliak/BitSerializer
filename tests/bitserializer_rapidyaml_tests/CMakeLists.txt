@@ -16,6 +16,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   BitSerializer::rapidyaml-archive
   GTest::GTest
   GTest::Main
+  testing_tools
 )
 
 gtest_discover_tests(${PROJECT_NAME} TEST_LIST BitSerializerRapidYamlTests)

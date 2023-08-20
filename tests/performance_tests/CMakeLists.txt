@@ -22,4 +22,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::pugixml-archive
     BitSerializer::rapidyaml-archive
     BitSerializer::csv-archive
+    testing_tools
 )

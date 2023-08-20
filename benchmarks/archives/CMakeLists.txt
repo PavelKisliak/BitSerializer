@@ -13,11 +13,19 @@ add_executable(${PROJECT_NAME}
     csv_benchmark.h
 )
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<BOOL:${BUILD_CPPRESTJSON_ARCHIVE}>:"CPPRESTJSON_BENCHMARK">
+    $<$<BOOL:${BUILD_RAPIDJSON_ARCHIVE}>:"RAPIDJSON_BENCHMARK">
+    $<$<BOOL:${BUILD_PUGIXML_ARCHIVE}>:"PUGIXML_BENCHMARK">
+    $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:"RAPIDYAMLN_BENCHMARK">
+    $<$<BOOL:${BUILD_CSV_ARCHIVE}>:"CSV_BENCHMARK">
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     testing_tools
-    BitSerializer::cpprestjson-archive
-    BitSerializer::rapidjson-archive
-    BitSerializer::pugixml-archive
-    BitSerializer::rapidyaml-archive
-    BitSerializer::csv-archive
+    $<$<BOOL:${BUILD_CPPRESTJSON_ARCHIVE}>:BitSerializer::cpprestjson-archive>
+    $<$<BOOL:${BUILD_RAPIDJSON_ARCHIVE}>:BitSerializer::rapidjson-archive>
+    $<$<BOOL:${BUILD_PUGIXML_ARCHIVE}>:BitSerializer::pugixml-archive>
+    $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:BitSerializer::rapidyaml-archive>
+    $<$<BOOL:${BUILD_CSV_ARCHIVE}>:BitSerializer::csv-archive>
 )

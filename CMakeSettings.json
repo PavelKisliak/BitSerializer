@@ -17,37 +17,37 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
-          "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]
@@ -69,37 +69,42 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]
@@ -121,7 +126,12 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
@@ -173,37 +183,42 @@
         },
         {
           "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]
@@ -228,38 +243,43 @@
       "remoteCopySourcesMethod": "rsync",
       "variables": [
         {
-          "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "name": "BUILD_SAMPLES",
+          "value": "True",
           "type": "BOOL"
         },
         {
-          "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]
@@ -284,38 +304,43 @@
       "remoteCopySourcesMethod": "rsync",
       "variables": [
         {
-          "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "name": "BUILD_SAMPLES",
+          "value": "True",
           "type": "BOOL"
         },
         {
-          "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]
@@ -340,38 +365,43 @@
       "remoteCopySourcesMethod": "rsync",
       "variables": [
         {
-          "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "name": "BUILD_SAMPLES",
+          "value": "True",
           "type": "BOOL"
         },
         {
-          "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]
@@ -396,38 +426,43 @@
       "remoteCopySourcesMethod": "rsync",
       "variables": [
         {
-          "name": "BUILD_TESTS",
-          "value": "TRUE",
+          "name": "BUILD_SAMPLES",
+          "value": "True",
           "type": "BOOL"
         },
         {
-          "name": "BUILD_SAMPLES",
-          "value": "TRUE",
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_PUGIXML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_RAPIDYAML_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "TRUE",
+          "value": "True",
           "type": "BOOL"
         }
       ]

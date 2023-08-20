@@ -5,19 +5,31 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <vector>
 
-#include "rapid_json_benchmark.h"
-#include "cpprest_json_benchmark.h"
-#include "pugixml_benchmark.h"
-#include "rapid_yaml_benchmark.h"
+#ifdef CSV_BENCHMARK
 #include "csv_benchmark.h"
+#endif
+#ifdef RAPIDJSON_BENCHMARK
+#include "rapid_json_benchmark.h"
+#endif
+#ifdef CPPRESTJSON_BENCHMARK
+#include "cpprest_json_benchmark.h"
+#endif
+#ifdef PUGIXML_BENCHMARK
+#include "pugixml_benchmark.h"
+#endif
+#ifdef RAPIDYAMLN_BENCHMARK
+#include "rapid_yaml_benchmark.h"
+#endif
 
-constexpr auto DefaultArchiveTestTimeSec = 40;
-constexpr size_t NanosecondsInMs = 1000000;
+
+constexpr auto DefaultArchiveTestTime = std::chrono::seconds(10);
+constexpr auto NanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
 
 using Timer = std::chrono::high_resolution_clock;
 
-struct TestArchiveMetadata
+struct TestArchiveResult
 {
 	struct PerfTestData
 	{
@@ -25,8 +37,8 @@ struct TestArchiveMetadata
 		size_t ProcessedFields = 0;
 	};
 
-	TestArchiveMetadata() = default;
-	explicit TestArchiveMetadata(std::string name)
+	TestArchiveResult() = default;
+	explicit TestArchiveResult(std::string name)
 		: Name(std::move(name))
 	{ }
 
@@ -37,19 +49,19 @@ struct TestArchiveMetadata
 	PerfTestData BaseLibSaveTest;
 };
 
-template <class TPerformanceTest, int TestTimeSec = DefaultArchiveTestTimeSec>
-TestArchiveMetadata TestArchivePerformance()
+template <class TBenchmark>
+TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArchiveTestTime)
 {
-	TPerformanceTest performanceTest;
+	TBenchmark performanceTest;
 	performanceTest.Prepare();
-	TestArchiveMetadata metadata(performanceTest.GetArchiveName());
+	TestArchiveResult metadata(performanceTest.GetArchiveName());
 
 	int progressPercent = -1;
 	bool needVerify = true;
 
 	const auto beginTime = Timer::now();
-	const auto endTime = beginTime + std::chrono::seconds(TestTimeSec);
-	const auto testTimeMSec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::seconds(TestTimeSec)).count();
+	const auto endTime = beginTime + std::chrono::seconds(testTime);
+	const auto testTimeMSec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::seconds(testTime)).count();
 
 	for (auto time = beginTime; time < endTime; time = Timer::now())
 	{
@@ -156,13 +168,23 @@ int main()
 	try
 	{
 		std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
-		const TestArchiveMetadata metadataList[] = {
-			  TestArchivePerformance<CsvBenchmark>()
-			, TestArchivePerformance<CRapidJsonBenchmark>()
-			, TestArchivePerformance<CCppRestJsonBenchmark>()
-			, TestArchivePerformance<CPugiXmlBenchmark>()
-			, TestArchivePerformance<CRapidYamlBenchmark>()
-		};
+		std::vector<TestArchiveResult> benchmarkResults;
+
+#ifdef CSV_BENCHMARK
+		benchmarkResults.emplace_back(RunBenchmark<CsvBenchmark>());
+#endif
+#ifdef RAPIDJSON_BENCHMARK
+		benchmarkResults.emplace_back(RunBenchmark<CRapidJsonBenchmark>());
+#endif
+#ifdef CPPRESTJSON_BENCHMARK
+		benchmarkResults.emplace_back(RunBenchmark<CCppRestJsonBenchmark>());
+#endif
+#ifdef PUGIXML_BENCHMARK
+		benchmarkResults.emplace_back(RunBenchmark<CPugiXmlBenchmark>());
+#endif
+#ifdef RAPIDYAMLN_BENCHMARK
+		benchmarkResults.emplace_back(RunBenchmark<CRapidYamlBenchmark>());
+#endif
 	}
 	catch (const std::exception& ex) {
 		std::cerr << ex.what() << std::endl;

@@ -40,6 +40,9 @@ message(STATUS "[Option] BUILD_CSV_ARCHIVE: ${BUILD_CSV_ARCHIVE}")
 option(BUILD_TESTS "Build tests" OFF)
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 
+option(BUILD_BENCHMARKS "Build benchmarks" OFF)
+message(STATUS "[Option] BUILD_BENCHMARKS: ${BUILD_BENCHMARKS}")
+
 option(BUILD_SAMPLES "Build samples" OFF)
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 
@@ -168,7 +171,6 @@ if(BUILD_CSV_ARCHIVE)
     )
 endif()
 
-
 #################################################################################
 # Tests (optional)
 #################################################################################
@@ -181,16 +183,12 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-
 #################################################################################
-# Becnhmarks
+# Benchmarks (optional)
 #################################################################################
-if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE AND BUILD_CSV_ARCHIVE)
+if(BUILD_BENCHMARKS)
    add_subdirectory(benchmarks/archives)
-else()
-   message(WARNING "Disable build performance tests due to disabled build all archives")
 endif()
-
 
 #################################################################################
 # Samples (optional)

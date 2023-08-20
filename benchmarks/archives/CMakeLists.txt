@@ -1,17 +1,16 @@
-project(performance_tests)
+project(archives_benchmarks)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME}
     main.cpp
-    base_test_models.h
-    base_perf_test.h
-    rapid_json_performance_test.h
-    cpprest_json_performance_test.h
-    pugixml_performance_test.h
-    rapid_yaml_performance_test.h
-    csv_performance_test.h
+    benchmark_base.h
+    rapid_json_benchmark.h
+    cpprest_json_benchmark.h
+    pugixml_benchmark.h
+    rapid_yaml_benchmark.h
+    csv_benchmark.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

@@ -5,14 +5,14 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
-#include "testing_tools/common_test_methods.h"
-#include "rapid_json_performance_test.h"
-#include "cpprest_json_performance_test.h"
-#include "pugixml_performance_test.h"
-#include "rapid_yaml_performance_test.h"
-#include "csv_performance_test.h"
 
-constexpr auto DefaultArchiveTestTimeSec = 30;
+#include "rapid_json_benchmark.h"
+#include "cpprest_json_benchmark.h"
+#include "pugixml_benchmark.h"
+#include "rapid_yaml_benchmark.h"
+#include "csv_benchmark.h"
+
+constexpr auto DefaultArchiveTestTimeSec = 40;
 constexpr size_t NanosecondsInMs = 1000000;
 
 using Timer = std::chrono::high_resolution_clock;
@@ -157,11 +157,11 @@ int main()
 	{
 		std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
 		const TestArchiveMetadata metadataList[] = {
-			  TestArchivePerformance<CsvPerformanceTestModel>()
-			, TestArchivePerformance<CRapidJsonPerformanceTest>()
-			, TestArchivePerformance<CCppRestJsonPerformanceTest>()
-			, TestArchivePerformance<CPugiXmlPerformanceTest>()
-			, TestArchivePerformance<CRapidYamlPerformanceTest>()
+			  TestArchivePerformance<CsvBenchmark>()
+			, TestArchivePerformance<CRapidJsonBenchmark>()
+			, TestArchivePerformance<CCppRestJsonBenchmark>()
+			, TestArchivePerformance<CPugiXmlBenchmark>()
+			, TestArchivePerformance<CRapidYamlBenchmark>()
 		};
 	}
 	catch (const std::exception& ex) {

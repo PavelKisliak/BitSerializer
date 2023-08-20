@@ -5,18 +5,15 @@
 #pragma once
 #include <stdexcept>
 #include "bitserializer/pugixml_archive.h"
-#include "bitserializer/types/std/array.h"
-#include "base_perf_test.h"
-#include "base_test_models.h"
+#include "benchmark_base.h"
 
 
-using PugiXmlTestModel = std::array<TestModelWithBasicTypes<char>, TestArraySize>;
-using PugiXmlBasePerfTest = CArchiveBasePerfTest<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlTestModel, char>;
+using PugiXmlTestModel = CommonTestModel<>;
+using PugiXmlBasePerfTest = CBenchmarkBase<BitSerializer::Xml::PugiXml::XmlArchive, PugiXmlTestModel, char>;
 
-class CPugiXmlPerformanceTest final : public PugiXmlBasePerfTest
+class CPugiXmlBenchmark final : public PugiXmlBasePerfTest
 {
 public:
-	using model_t = PugiXmlTestModel;
 	using base_class_t = PugiXmlBasePerfTest;
 
 	[[nodiscard]] std::string GetArchiveName() const override { return "PugiXml"; }

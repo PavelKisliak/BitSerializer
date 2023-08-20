@@ -5,18 +5,15 @@
 #pragma once
 #include <stdexcept>
 #include "bitserializer/rapidjson_archive.h"
-#include "bitserializer/types/std/array.h"
-#include "base_perf_test.h"
-#include "base_test_models.h"
+#include "benchmark_base.h"
 
 
-using RapidJsonTestModel = std::array<TestModelWithBasicTypes<char>, TestArraySize>;
-using RapidJsonBasePerfTest = CArchiveBasePerfTest<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonTestModel, char>;
+using RapidJsonTestModel = CommonTestModel<>;
+using RapidJsonBasePerfTest = CBenchmarkBase<BitSerializer::Json::RapidJson::JsonArchive, RapidJsonTestModel, char>;
 
-class CRapidJsonPerformanceTest final : public RapidJsonBasePerfTest
+class CRapidJsonBenchmark final : public RapidJsonBasePerfTest
 {
 public:
-	using model_t = RapidJsonTestModel;
 	using base_class_t = RapidJsonBasePerfTest;
 
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
@@ -33,7 +30,7 @@ public:
 		jsonDoc.SetArray();
 
 		// Save array of objects
-		jsonDoc.Reserve(static_cast<rapidjson::SizeType>(TestArraySize), allocator);
+		jsonDoc.Reserve(static_cast<rapidjson::SizeType>(mSourceTestModel.size()), allocator);
 		for (const auto& item : mSourceTestModel)
 		{
 			RapidJsonNode jsonObject(rapidjson::kObjectType);

@@ -5,21 +5,18 @@
 #pragma once
 #include <stdexcept>
 #include "bitserializer/cpprestjson_archive.h"
-#include "bitserializer/types/std/array.h"
-#include "base_perf_test.h"
-#include "base_test_models.h"
+#include "benchmark_base.h"
 
 
 // Char type in the CppRestSdk depends from the platform
 using CppRestCharType = utility::char_t;
 
-using CppRestJsonTestModel = std::array<TestModelWithBasicTypes<CppRestCharType>, TestArraySize>;
-using CppRestJsonBasePerfTest = CArchiveBasePerfTest<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonTestModel, CppRestCharType>;
+using CppRestJsonTestModel = CommonTestModel<CppRestCharType>;
+using CppRestJsonBasePerfTest = CBenchmarkBase<BitSerializer::Json::CppRest::JsonArchive, CppRestJsonTestModel, CppRestCharType>;
 
-class CCppRestJsonPerformanceTest final : public CppRestJsonBasePerfTest
+class CCppRestJsonBenchmark final : public CppRestJsonBasePerfTest
 {
 public:
-	using model_t = CppRestJsonTestModel;
 	using base_class_t = CppRestJsonBasePerfTest;
 
 	[[nodiscard]] std::string GetArchiveName() const override { return "CppRestJson"; }

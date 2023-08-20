@@ -72,7 +72,7 @@ For check performance overhead, was developed a single thread test that serializ
 | Built-in | CSV | Save object | N/A | 213350 Kb/s | N/A |
 | Built-in | CSV | Load object | N/A | 212364 Kb/s | N/A |
 
-Measured in **Kb/s** - speed of read/write to the output archive, more is better. Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The source code of the test also available [here](tests/performance_tests).
+Measured in **Kb/s** - speed of read/write to the output archive, more is better. Results are depend to system hardware and compiler options, there is important only **differences in percentages** which show BitSerializer's overhead over base libraries. The source code of the test also available [here](benchmarks/archives).
 
 ___
 ## Table of contents

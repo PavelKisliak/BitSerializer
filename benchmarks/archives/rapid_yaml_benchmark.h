@@ -4,18 +4,15 @@
 *******************************************************************************/
 #pragma once
 #include "bitserializer/rapidyaml_archive.h"
-#include "bitserializer/types/std/array.h"
-#include "base_perf_test.h"
-#include "base_test_models.h"
+#include "benchmark_base.h"
 
 
-using RapidYamlTestModel = std::array<TestModelWithBasicTypes<char>, TestArraySize>;
-using RapidYamlBasePerfTest = CArchiveBasePerfTest<BitSerializer::Yaml::RapidYaml::YamlArchive, RapidYamlTestModel, char>;
+using RapidYamlTestModel = CommonTestModel<>;
+using RapidYamlBasePerfTest = CBenchmarkBase<BitSerializer::Yaml::RapidYaml::YamlArchive, RapidYamlTestModel, char>;
 
-class CRapidYamlPerformanceTest final : public RapidYamlBasePerfTest
+class CRapidYamlBenchmark final : public RapidYamlBasePerfTest
 {
 public:
-	using model_t = RapidYamlTestModel;
 	using base_class_t = RapidYamlBasePerfTest;
 
 	[[nodiscard]] std::string GetArchiveName() const override { return "RapidYaml"; }
@@ -28,7 +25,7 @@ public:
 		root |= ryml::SEQ;
 
 		// Save array of objects
-		for (size_t i = 0; i < TestArraySize; ++i)
+		for (size_t i = 0; i < mSourceTestModel.size(); ++i)
 		{
 			const auto& obj = mSourceTestModel[i];
 			auto yamlObj = root.append_child();
@@ -58,7 +55,7 @@ public:
 
 		// Load array of objects
 		int16_t temp;
-		for (size_t i = 0; i < TestArraySize; ++i)
+		for (size_t i = 0; i < mSourceTestModel.size(); ++i)
 		{
 			auto& obj = mNativeLibModel[i];
 			auto yamlVal = root[i];

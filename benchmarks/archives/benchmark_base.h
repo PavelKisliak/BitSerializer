@@ -3,12 +3,114 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cstdint>
+#include <cassert>
 #include <string>
+#include <cstdint>
 #include "testing_tools/common_test_methods.h"
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/types/std/array.h"
 
-// Array size of test models
-constexpr size_t TestArraySize = 30;
+
+/// <summary>
+/// Base class of archive benchmark.
+/// </summary>
+template <typename TArchive, typename TModel, typename TKeyCharType = char>
+class CBenchmarkBase
+{
+public:
+	using archive_t = TArchive;
+	using model_t = TModel;
+	using key_char_t = TKeyCharType;
+	using key_string_t = std::basic_string<TKeyCharType, std::char_traits<TKeyCharType>>;
+	using out_string_stream_t = std::basic_ostringstream<TKeyCharType, std::char_traits<TKeyCharType>, std::allocator<TKeyCharType>>;
+	using in_string_stream_t = std::basic_ostringstream<TKeyCharType, std::char_traits<TKeyCharType>, std::allocator<TKeyCharType>>;
+	using output_format_t = typename TArchive::preferred_output_format;
+
+	virtual ~CBenchmarkBase() = default;
+
+	/// <summary>
+	/// Returns name of testing archive.
+	/// </summary>
+	[[nodiscard]] virtual std::string GetArchiveName() const
+	{
+		return BitSerializer::Convert::ToString(TArchive::archive_type);
+	}
+
+	/// <summary>
+	/// Returns `true` when archive uses third party library for serialization.
+	/// </summary>
+	[[nodiscard]] virtual bool IsUseNativeLib() const { return false; }
+
+	/// <summary>
+	/// Returns the number of fields in the model.
+	/// </summary>
+	constexpr size_t GetTotalFieldsCount() noexcept
+	{
+		if constexpr (BitSerializer::has_size_v<model_t>)
+		{
+			assert(!mSourceTestModel.empty());
+			// Total size of all fields (each element of array also counting as field)
+			return mSourceTestModel.size() * model_t::value_type::GetTotalFieldsCount() + mSourceTestModel.size();
+		}
+		else {
+			return model_t::GetTotalFieldsCount();
+		}
+	}
+
+	/// <summary>
+	/// Prepares model for test.
+	/// </summary>
+	virtual void Prepare()
+	{
+		BuildFixture(mSourceTestModel);
+	}
+
+	/// <summary>
+	/// Saves model via BitSerializer.
+	/// </summary>
+	virtual size_t SaveModelViaBitSerializer()
+	{
+		mBitSerializerOutputData = BitSerializer::SaveObject<archive_t>(mSourceTestModel);
+		return std::size(mBitSerializerOutputData);
+	}
+
+	/// <summary>
+	/// Saves model via library which uses as base for BitSerializer's archive.
+	/// </summary>
+	virtual size_t SaveModelViaNativeLib() { return 0; }
+
+	/// <summary>
+	/// Loads model via BitSerializer.
+	/// </summary>
+	virtual size_t LoadModelViaBitSerializer()
+	{
+		BitSerializer::LoadObject<TArchive>(mBitSerializerModel, mBitSerializerOutputData);
+		return std::size(mBitSerializerOutputData);
+	}
+
+	/// <summary>
+	/// Loads model via library which uses as base for BitSerializer's archive.
+	/// </summary>
+	virtual size_t LoadModelViaNativeLib() { return 0; }
+
+	/// <summary>
+	/// Asserts loaded data (BitSerializer and native library implementations).
+	/// Must be not counted, make sense to invoke only on the first iteration of the benchmark.
+	/// </summary>
+	virtual void Assert() const
+	{
+		if constexpr (has_assert_method_v<TModel>)
+		{
+			mSourceTestModel.Assert(mBitSerializerModel);
+		}
+	}
+
+protected:
+	TModel mSourceTestModel;
+	output_format_t mBitSerializerOutputData;
+	TModel mBitSerializerModel;
+};
+
 
 /// <summary>
 /// Test model with set of basic types.
@@ -103,3 +205,7 @@ public:
 	string_t mStringWithQuotes;
 	string_t mMultiLineString;
 };
+
+// Common test model for all archives (represents an array of objects)
+template <typename TKeyCharType = char, size_t ArraySize=30>
+using CommonTestModel = std::array<TestModelWithBasicTypes<TKeyCharType>, ArraySize>;

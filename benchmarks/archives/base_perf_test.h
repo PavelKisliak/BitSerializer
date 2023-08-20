@@ -5,7 +5,6 @@
 #pragma once
 #include <cassert>
 #include <string>
-#include "base_test_models.h"
 #include "bitserializer/bit_serializer.h"
 
 
@@ -30,7 +29,7 @@ public:
 	/// <summary>
 	/// Returns name of testing archive.
 	/// </summary>
-	virtual std::string GetArchiveName() const
+	[[nodiscard]] virtual std::string GetArchiveName() const
 	{
 		return BitSerializer::Convert::ToString(TArchive::archive_type);
 	}
@@ -38,7 +37,7 @@ public:
 	/// <summary>
 	/// Returns `true` when archive uses third party library for serialization.
 	/// </summary>
-	virtual bool IsUseNativeLib() const { return false; }
+	[[nodiscard]] virtual bool IsUseNativeLib() const { return false; }
 
 	/// <summary>
 	/// Returns the number of fields in the model.

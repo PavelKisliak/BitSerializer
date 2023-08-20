@@ -1,12 +1,12 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <memory>
 #include <variant>
 #include "gtest/gtest.h"
-#include "src/csv/csv_writers.h"
+#include "csv/csv_writers.h"
 
 template <class TWriter>
 class CsvWriterTest : public ::testing::Test

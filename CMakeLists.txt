@@ -181,6 +181,17 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+
+#################################################################################
+# Becnhmarks
+#################################################################################
+if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE AND BUILD_CSV_ARCHIVE)
+   add_subdirectory(benchmarks/archives)
+else()
+   message(WARNING "Disable build performance tests due to disabled build all archives")
+endif()
+
+
 #################################################################################
 # Samples (optional)
 #################################################################################

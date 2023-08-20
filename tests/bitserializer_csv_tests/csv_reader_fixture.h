@@ -1,11 +1,11 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <memory>
 #include "gtest/gtest.h"
-#include "src/csv/csv_readers.h"
+#include "csv/csv_readers.h"
 
 template <class TReader>
 class CsvReaderTest : public ::testing::Test

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 project(serialize_custom_string)
 
 set(CMAKE_CXX_STANDARD 17)

@@ -1,12 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
-
 project(bitserializer_conversions_tests)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME}
     convert_api_tests.cpp

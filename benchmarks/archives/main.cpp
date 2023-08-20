@@ -24,7 +24,7 @@
 #endif
 
 
-constexpr auto DefaultArchiveTestTime = std::chrono::seconds(10);
+constexpr auto DefaultArchiveTestTime = std::chrono::seconds(60);
 constexpr auto NanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
 
 using Timer = std::chrono::high_resolution_clock;

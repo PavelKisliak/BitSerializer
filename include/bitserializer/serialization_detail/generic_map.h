@@ -58,6 +58,15 @@ namespace BitSerializer
 			{
 				if (mapLoadMode == MapLoadMode::Clean)
 					cont.clear();
+
+				if constexpr (has_reserve_v<TMap>)
+				{
+					// Reserve map capacity (like for std::unordered_map) when is known approximate size
+					if (const auto estimatedSize = scope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::OnlyExistKeys) {
+						cont.reserve(estimatedSize);
+					}
+				}
+
 				auto hint = cont.begin();
 				auto endIt = scope.cend();
 				for (auto it = scope.cbegin(); it != endIt; ++it)

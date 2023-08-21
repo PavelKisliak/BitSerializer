@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -29,6 +29,7 @@ namespace BitSerializer::Csv::Detail
 		bool ReadValue(std::string_view key, std::string_view& out_value) override;
 		void ReadValue(std::string_view& out_value) override;
 		bool ParseNextRow() override;
+		[[nodiscard]] const std::vector<std::string>& GetHeaders() const noexcept override { return mHeaders; }
 
 	private:
 		bool ParseNextLine(std::vector<CValueMeta>& out_values);
@@ -58,6 +59,7 @@ namespace BitSerializer::Csv::Detail
 		bool ReadValue(std::string_view key, std::string_view& out_value) override;
 		void ReadValue(std::string_view& out_value) override;
 		bool ParseNextRow() override;
+		[[nodiscard]] const std::vector<std::string>& GetHeaders() const noexcept override { return mHeaders; }
 
 	private:
 		bool ParseNextLine(std::vector<CValueMeta>& out_values);

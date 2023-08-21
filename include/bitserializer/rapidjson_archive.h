@@ -371,6 +371,10 @@ public:
 		return key_const_iterator<TEncoding>(this->mNode->GetObject().end());
 	}
 
+	[[nodiscard]] size_t GetEstimatedSize() const {
+		return this->mNode->Capacity();
+	}
+
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{

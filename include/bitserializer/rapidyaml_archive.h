@@ -373,6 +373,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			/// <summary>
+			/// Returns the estimated number of items to load (for reserving the size of containers).
+			/// </summary>
+			[[nodiscard]]
+			size_t GetEstimatedSize() const {
+				return mNode.num_children();
+			}
+
+			/// <summary>
 			/// Serialize value.
 			/// </summary>
 			/// <param name="key">The key of child node.</param>

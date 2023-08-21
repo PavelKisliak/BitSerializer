@@ -67,6 +67,13 @@ TEST(SerializationObjectTraits, ShouldCheckThatContainerHasSizeMethod) {
 	EXPECT_FALSE(testResult2);
 }
 
+TEST(SerializationObjectTraits, ShouldCheckThatContainerHasReserveMethod) {
+	const bool testResult1 = has_reserve_v<std::vector<int>>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = has_reserve_v<std::list<int>>;
+	EXPECT_FALSE(testResult2);
+}
+
 TEST(SerializationObjectTraits, ShouldGetContainerSizeForVector) {
 	static constexpr size_t expectedSize = 10;
 	const std::vector<int> testContainer(expectedSize);

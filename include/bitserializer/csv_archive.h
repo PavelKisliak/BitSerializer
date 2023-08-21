@@ -52,6 +52,7 @@ public:
 	virtual bool ReadValue(std::string_view key, std::string_view& out_value) = 0;
 	virtual void ReadValue(std::string_view& out_value) = 0;
 	virtual bool ParseNextRow() = 0;
+	virtual const std::vector<std::string>& GetHeaders() const noexcept = 0;
 };
 
 
@@ -187,6 +188,14 @@ public:
 	[[nodiscard]] std::string GetPath() const
 	{
 		return path_separator + Convert::ToString(mCsvReader->GetCurrentIndex());
+	}
+
+	/// <summary>
+	/// Returns the estimated number of items to load (for reserving the size of containers).
+	/// </summary>
+	[[nodiscard]] size_t GetEstimatedSize() const noexcept
+	{
+		return mCsvReader->GetHeaders().size();
 	}
 
 	template <typename TKey, typename TSym, typename TStrAllocator>

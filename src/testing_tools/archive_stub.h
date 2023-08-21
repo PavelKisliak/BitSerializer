@@ -357,6 +357,14 @@ public:
 		return key_const_iterator(GetAsObject().cend());
 	}
 
+	/// <summary>
+	/// Returns the estimated number of items to load (for reserving the size of containers).
+	/// </summary>
+	[[nodiscard]] size_t GetEstimatedSize() const
+	{
+		return GetAsObject().size();
+	}
+
 	template <typename TSym, typename TAllocator>
 	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{

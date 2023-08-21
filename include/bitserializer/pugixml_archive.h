@@ -428,6 +428,13 @@ public:
 	}
 
 	/// <summary>
+	/// Returns the estimated number of items to load (for reserving the size of containers).
+	/// </summary>
+	[[nodiscard]] size_t GetEstimatedSize() const {
+		return std::distance(mNode.begin(), mNode.end());
+	}
+
+	/// <summary>
 	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const {

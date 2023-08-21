@@ -35,6 +35,19 @@ TYPED_TEST(CsvReaderTest, ShouldNoParseWhenInputStringIsEmpty)
 	EXPECT_FALSE(this->mCsvReader->ParseNextRow());
 }
 
+TYPED_TEST(CsvReaderTest, ShouldReturnHeadersList)
+{
+	// Arrange
+	const std::string csv = R"(Column1,Column2,Column3)";
+	this->PrepareCsvReader(csv, true);
+
+	// Act / Assert
+	ASSERT_EQ(3, this->mCsvReader->GetHeaders().size());
+	EXPECT_EQ("Column1", this->mCsvReader->GetHeaders()[0]);
+	EXPECT_EQ("Column2", this->mCsvReader->GetHeaders()[1]);
+	EXPECT_EQ("Column3", this->mCsvReader->GetHeaders()[2]);
+}
+
 TYPED_TEST(CsvReaderTest, ShouldReturnCurrentIndexWhenUsedHeader)
 {
 	// Arrange

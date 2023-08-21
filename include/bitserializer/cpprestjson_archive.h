@@ -332,6 +332,10 @@ public:
 		return key_const_iterator(mNode->as_object().cend());
 	}
 
+	[[nodiscard]] size_t GetEstimatedSize() const {
+		return mNode->size();
+	}
+
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(const key_type& key, T& value)
 	{

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -84,7 +84,7 @@ struct has_size
 {
 private:
 	template <typename U>
-	static decltype(std::declval<U>().size(), void(), std::true_type()) test(int);
+	static decltype(std::declval<U>().size(), std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -96,6 +96,27 @@ public:
 
 template <typename T>
 constexpr bool has_size_v = has_size<T>::value;
+
+/// <summary>
+/// Checks that the container has reserve() method.
+/// </summary>
+template <typename T>
+struct has_reserve
+{
+private:
+	template <typename U>
+	static decltype(std::declval<U>().reserve(std::declval<size_t>()), std::true_type()) test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<T>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename T>
+constexpr bool has_reserve_v = has_reserve<T>::value;
 
 
 /// <summary>

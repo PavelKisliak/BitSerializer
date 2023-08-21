@@ -60,7 +60,7 @@ ___
 ### Performance
 For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
 
-| Base library name | Format | Operation | Native API | BitSerializer | Difference |
+| Base library name | Format | Operation | BitSerializer | Native API | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
 | RapidJson | JSON | Save object | 13580 fields/ms  | 14537 fields/ms | **(-6.6%)** |
 | RapidJson | JSON | Load object | 7971 fields/ms | 9375 fields/ms | **(-15%)** |
@@ -70,8 +70,8 @@ For check performance overhead, was developed a single thread test that serializ
 | PugiXml | XML | Load object | 12644 fields/ms | 14103 fields/ms | **(-10.3%)** |
 | RapidYAML | YAML | Save object | 780 fields/ms | 788 fields/ms | **(-1%)** |
 | RapidYAML | YAML | Load object | 3277 fields/ms | 3552 fields/ms | **(-7.7%)** |
-| Built-in | CSV | Save object | N/A | 15566 fields/ms | N/A |
-| Built-in | CSV | Load object | N/A | 15349 fields/ms | N/A |
+| Built-in | CSV | Save object | 15566 fields/ms | N/A | N/A |
+| Built-in | CSV | Load object | 15349 fields/ms | N/A | N/A |
 
 Measured in **fields/ms** - how many fields are written per millisecond, more is better. Results are depend to system hardware and compiler options, but you can evaluate the BitSerializer overhead and formats efficiency. The source code of the test also available [here](benchmarks/archives).
 

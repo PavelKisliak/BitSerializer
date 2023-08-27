@@ -441,6 +441,27 @@ TYPED_TEST(CsvReaderTest, ShouldReadEscapedQuotesInValue)
 	EXPECT_EQ("Value2", value2);
 }
 
+TYPED_TEST(CsvReaderTest, ShouldReadLargeValues)
+{
+	// Arrange
+	constexpr size_t TestValSize = 10000;
+	std::string expectedVal1(TestValSize, '_'), expectedVal2(TestValSize, '_');
+	for (int i = 0; i < TestValSize; ++i) {
+		expectedVal1[i] = static_cast<char>('A' + i % 26);
+		expectedVal2[i] = static_cast<char>('a' + i % 26);
+	}
+	const std::string csv = "Column1,Column2\r\n" + expectedVal1 + "," + expectedVal2;
+	this->PrepareCsvReader(csv, true);
+
+	// Act / Assert
+	std::string_view value1, value2;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue("Column1", value1);
+	EXPECT_EQ(expectedVal1, value1);
+	this->mCsvReader->ReadValue("Column2", value2);
+	EXPECT_EQ(expectedVal2, value2);
+}
+
 TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenReadMoreValuesThanExistsInRow)
 {
 	// Arrange

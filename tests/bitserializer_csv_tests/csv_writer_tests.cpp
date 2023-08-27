@@ -116,6 +116,27 @@ TYPED_TEST(CsvWriterTest, ShouldWriteWithEscapingDoubleQuote)
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
+TYPED_TEST(CsvWriterTest, ShouldWriteLargeValues)
+{
+	// Arrange
+	constexpr size_t TestValSize = 10000;
+	std::string val1(TestValSize, '_'), val2(TestValSize, '_');
+	for (int i = 0; i < TestValSize; ++i) {
+		val1[i] = static_cast<char>('A' + i % 26);
+		val2[i] = static_cast<char>('a' + i % 26);
+	}
+	this->PrepareCsvReader(true);
+
+	// Act
+	this->mCsvWriter->WriteValue("Column1", val1);
+	this->mCsvWriter->WriteValue("Column2", val2);
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = "Column1,Column2\r\n" + val1 + ',' + val2 + "\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
+}
+
 TYPED_TEST(CsvWriterTest, ShouldReturnZeroCurrentIndexAtTheBeginning)
 {
 	// Arrange

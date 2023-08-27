@@ -87,8 +87,8 @@ TEST(ConvertChrono, ConvertUtcStringWithMsToTimePoint) {
 	EXPECT_EQ(tp1677_09_21T00_12_44 + 999ms, Convert::To<TimePointMs>("1677-09-21T00:12:44.999Z"));
 	EXPECT_EQ(tp1872_01_01T00_00_00 + 1ms, Convert::To<TimePointMs>("1872-01-01T00:00:00.001Z"));
 	EXPECT_EQ(tp1968_12_31T23_59_59 + 567ms, Convert::To<TimePointMs>("1968-12-31T23:59:59.567Z"));
-	EXPECT_EQ(tp1970_01_01T00_00_00 + 25ms, Convert::To<TimePointMs>("1970-01-01T00:00:00.025Z"));
-	EXPECT_EQ(tp2044_01_01T00_00_00 + 1ms, Convert::To<TimePointMs>(U"2044-01-01T00:00:00.001Z"));
+	EXPECT_EQ(tp1970_01_01T00_00_00 + 500ms, Convert::To<TimePointMs>("1970-01-01T00:00:00.5Z"));
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 10ms, Convert::To<TimePointMs>(U"2044-01-01T00:00:00.01Z"));
 	EXPECT_EQ(tp2262_04_11T23_47_16 + 999ms, Convert::To<TimePointMs>(L"2262-04-11T23:47:16.999Z"));
 	EXPECT_EQ(tp9999_12_31T23_59_59 + 999ms, Convert::To<TimePointMs>(L"9999-12-31T23:59:59.999Z"));
 }

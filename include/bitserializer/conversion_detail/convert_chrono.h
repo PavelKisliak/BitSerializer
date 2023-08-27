@@ -253,6 +253,7 @@ namespace BitSerializer::Convert::Detail
 
 	/// <summary>
 	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z)) to `tm_ext` structure (includes ms).
+	///	Fractions of second are optional, only 3 digits are allowed.
 	/// </summary>
 	template <typename TSym>
 	static void To(std::basic_string_view<TSym> in, tm_ext& out)
@@ -296,9 +297,26 @@ namespace BitSerializer::Convert::Detail
 			pos = parseDatetimePart(pos, end, utc.tm_hour, 23, ':');
 			pos = parseDatetimePart(pos, end, utc.tm_min, 59, ':');
 			pos = parseDatetimePart(pos, end, utc.tm_sec, 59);
-			// Parse optional milliseconds
-			if (const auto sym = *pos; sym == '.') {
-				pos = parseDatetimePart(++pos, end, utc.ms, 999, 'Z');
+			// Parse optional fractions of second
+			if (const auto sym = *pos; sym == '.')
+			{
+				int value = 0;
+				const auto frPos = ++pos;
+				pos = parseDatetimePart(frPos, end, value, 999, 'Z');
+				const auto digits = pos - frPos - 1;
+				// Accordingly to ISO: 0.500 and 0.5 = 500ms
+				if (digits == 3) {
+					utc.ms = value;
+				}
+				else if (digits == 2 && value < 100) {
+					utc.ms = value * 10;
+				}
+				else if (digits == 1 && value < 10) {
+					utc.ms = value * 100;
+				}
+				else {
+					throw std::invalid_argument("ISO datetime contains more than 3 digits in the fractions of second");
+				}
 			}
 			else if (sym != 'Z') {
 				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
@@ -351,7 +369,7 @@ namespace BitSerializer::Convert::Detail
 
 	/// <summary>
 	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
-	///	Milliseconds will be rendered only when they present (non-zero).
+	///	Fractions of second will be rendered only when they present (non-zero).
 	/// </summary>
 	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
@@ -394,10 +412,11 @@ namespace BitSerializer::Convert::Detail
 
 	/// <summary>
 	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z) to `std::chrono::time_point`.
+	///	Fractions of second are optional, only 3 digits are allowed.
 	///	Examples of allowed dates:
 	///	- 1872-01-01T00:00:00Z
 	///	- 2023-07-14T22:44:51.925Z
-	/// </summary>7
+	/// </summary>
 	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{

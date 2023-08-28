@@ -1,4 +1,4 @@
-### [BitSerializer](../README.md) / YAML (based on RapidYAML)
+### [BitSerializer](../README.md) / CSV
 
 Supported load/save **CSV** from:
 

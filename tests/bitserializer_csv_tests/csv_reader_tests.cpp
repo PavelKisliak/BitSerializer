@@ -446,7 +446,7 @@ TYPED_TEST(CsvReaderTest, ShouldReadLargeValues)
 	// Arrange
 	constexpr size_t TestValSize = 10000;
 	std::string expectedVal1(TestValSize, '_'), expectedVal2(TestValSize, '_');
-	for (int i = 0; i < TestValSize; ++i) {
+	for (size_t i = 0; i < TestValSize; ++i) {
 		expectedVal1[i] = static_cast<char>('A' + i % 26);
 		expectedVal2[i] = static_cast<char>('a' + i % 26);
 	}

@@ -121,7 +121,7 @@ TYPED_TEST(CsvWriterTest, ShouldWriteLargeValues)
 	// Arrange
 	constexpr size_t TestValSize = 10000;
 	std::string val1(TestValSize, '_'), val2(TestValSize, '_');
-	for (int i = 0; i < TestValSize; ++i) {
+	for (size_t i = 0; i < TestValSize; ++i) {
 		val1[i] = static_cast<char>('A' + i % 26);
 		val2[i] = static_cast<char>('a' + i % 26);
 	}

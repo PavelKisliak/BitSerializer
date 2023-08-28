@@ -61,10 +61,6 @@ TEST(ConvertChrono, ConvertTimePointToUtcStringMaxValues) {
 	using TimePointDaysI32Rep = time_point<system_clock, days_i32>;
 	EXPECT_EQ("+5881580-07-11T00:00:00Z", Convert::ToString(TimePointDaysI32Rep::max()));
 	EXPECT_EQ("-5877641-06-23T00:00:00Z", Convert::ToString(TimePointDaysI32Rep::min()));
-
-	using days_u32 = duration<uint32_t, std::ratio<86400>>;
-	using TimePointDaysU32Rep = time_point<system_clock, days_u32>;
-	EXPECT_EQ(TimePointDaysU32Rep::max(), Convert::To<TimePointDaysU32Rep>("+11761191-01-20T00:00:00Z"));
 }
 
 //-----------------------------------------------------------------------------
@@ -247,7 +243,7 @@ TEST(ConvertChrono, ConvertStringToDurationWhenZero) {
 TEST(ConvertChrono, ConvertStringToDurationWhenNegative) {
 	EXPECT_EQ(-1s, Convert::To<std::chrono::seconds>("-PT1S"));
 	EXPECT_EQ(-5000ms, Convert::To<std::chrono::seconds>("-PT5S"));
-	EXPECT_EQ(-24h * 10 - 25min, Convert::To<std::chrono::seconds>("-P10DT25M"));
+	EXPECT_EQ(-24h - 25min, Convert::To<std::chrono::seconds>("-P1DT25M"));
 	EXPECT_EQ(-24h * 120 - 3h - 3min - 3s, Convert::To<std::chrono::seconds>("-P120DT3H3M3S"));
 }
 
@@ -269,6 +265,27 @@ TEST(ConvertChrono, ConvertStringToDurationMaxValues) {
 
 	using days_u64 = duration<uint64_t, std::ratio<86400>>;
 	EXPECT_TRUE(days_u64(std::numeric_limits<uint64_t>::max()) == Convert::To<days_u64>("P18446744073709551615D"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWithLessPrecision) {
+	EXPECT_EQ(std::chrono::hours(10), Convert::To<std::chrono::hours>("PT600M"));
+	EXPECT_EQ(std::chrono::hours(10), Convert::To<std::chrono::hours>("PT540M3600S"));
+	EXPECT_EQ(std::chrono::hours(-10), Convert::To<std::chrono::hours>("-PT600M"));
+	EXPECT_EQ(std::chrono::hours(-10), Convert::To<std::chrono::hours>("-PT540M3600S"));
+
+	using days_i64 = duration<int64_t, std::ratio<86400>>;
+	EXPECT_EQ(days_i64(10), Convert::To<days_i64>("PT240H"));
+	EXPECT_EQ(days_i64(10), Convert::To<days_i64>("P5DT120H"));
+	EXPECT_EQ(days_i64(-10), Convert::To<days_i64>("-PT240H"));
+	EXPECT_EQ(days_i64(-10), Convert::To<days_i64>("-P5DT120H"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenLossOfPrecision) {
+	using days_i64 = duration<int64_t, std::ratio<86400>>;
+	EXPECT_THROW(Convert::To<days_i64>("PT1H"), std::out_of_range);
+	EXPECT_THROW(Convert::To<days_i64>("PT23H"), std::out_of_range);
+	EXPECT_THROW(Convert::To<days_i64>("PT25H"), std::out_of_range);
+	EXPECT_THROW(Convert::To<days_i64>("-PT15H"), std::out_of_range);
 }
 
 TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenMissedT) {

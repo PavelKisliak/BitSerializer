@@ -139,10 +139,12 @@ namespace BitSerializer::Convert::Detail
 			}
 			else
 			{
-				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num));
-				if (v && static_cast<TRep>(v / TDivRatio::num) != duration.count()) {
+				if ((static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num) ||
+					(static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num))
+				{
 					throw std::out_of_range("Target duration is not enough");
 				}
+				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num));
 				return TTarget(v);
 			}
 		}
@@ -152,15 +154,21 @@ namespace BitSerializer::Convert::Detail
 			{
 				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) / static_cast<TOpRep>(TDivRatio::den));
 				if (static_cast<TRep>(v * TDivRatio::den) != duration.count()) {
-					throw std::out_of_range("Target duration is not enough");
+					throw std::out_of_range("Precision of target duration is not enough");
 				}
 				return TTarget(v);
 			}
 			else
 			{
-				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num) / static_cast<TOpRep>(TDivRatio::den));
-				if (v && static_cast<TRep>(v / TDivRatio::num) != duration.count()) {
+				if ((static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num) ||
+					(static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num))
+				{
 					throw std::out_of_range("Target duration is not enough");
+				}
+
+				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num) / static_cast<TOpRep>(TDivRatio::den));
+				if (v && static_cast<TRep>(v * TDivRatio::den / TDivRatio::num) != duration.count()) {
+					throw std::out_of_range("Precision of target duration is not enough");
 				}
 				return TTarget(v);
 			}
@@ -178,21 +186,7 @@ namespace BitSerializer::Convert::Detail
 			return;
 		}
 
-		using TSrcDur = std::chrono::duration<TSrcRep, TSrcPeriod>;
-#if defined(__clang__)
-		const auto cmpRep = 0;
-#else
-		const auto cmpRep = tp.time_since_epoch().count();
-#endif
-		constexpr auto maxSrcDur = std::chrono::time_point_cast<TSrcDur>(std::chrono::time_point<TTargetClock, TTargetDuration>::max())
-			.time_since_epoch();
-		constexpr auto minSrcDur = std::chrono::time_point_cast<TSrcDur>(std::chrono::time_point<TTargetClock, TTargetDuration>::min())
-			.time_since_epoch();
-		if (duration > maxSrcDur || duration < minSrcDur) {
-			throw std::out_of_range("Target timepoint range is not enough");
-		}
-
-		TTargetDuration adaptedDuration;
+		TTargetDuration adaptedDuration{};
 		try {
 			adaptedDuration = SafeDurationCast<TTargetDuration>(duration);
 		}
@@ -200,19 +194,12 @@ namespace BitSerializer::Convert::Detail
 			throw std::out_of_range("Target timepoint range is not enough");
 		}
 
+		if ((adaptedDuration.count() > 0 && tp > std::chrono::time_point<TTargetClock, TTargetDuration>::max() - adaptedDuration) ||
+			(adaptedDuration.count() < 0 && tp < std::chrono::time_point<TTargetClock, TTargetDuration>::min() - adaptedDuration)) {
+			throw std::out_of_range("Target timepoint range is not enough");
+		}
+
 		const auto newTp = tp + adaptedDuration;
-		if (tp.time_since_epoch().count() < 0)
-		{
-			if (adaptedDuration.count() < 0 && newTp.time_since_epoch().count() >= cmpRep) {
-				throw std::out_of_range("Target timepoint range is not enough");
-			}
-		}
-		else
-		{
-			if (adaptedDuration.count() > 0 && newTp.time_since_epoch().count() <= cmpRep) {
-				throw std::out_of_range("Target timepoint range is not enough");
-			}
-		}
 		tp = std::chrono::time_point<TTargetClock, TTargetDuration>(newTp);
 	}
 
@@ -433,15 +420,16 @@ namespace BitSerializer::Convert::Detail
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
 		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
 
-		std::chrono::time_point<TClock, TDuration> tp;
 		const int64_t days = era * 146097ll + doe - 719468;
 		if ((y >= 1970 && days < 0) || (y < 1970 && days > 0)) {
 			throw std::out_of_range("Target timepoint range is not enough");
 		}
-		SafeAddDuration(tp, std::chrono::duration<int64_t, std::ratio<86400>>(days));
 		const auto time = static_cast<long long>(tmExt.tm_hour) * 3600 + static_cast<long long>(tmExt.tm_min) * 60 + tmExt.tm_sec;
+
+		std::chrono::time_point<TClock, TDuration> tp;
 		SafeAddDuration(tp, std::chrono::seconds(time));
 		SafeAddDuration(tp, std::chrono::milliseconds(tmExt.ms));
+		SafeAddDuration(tp, std::chrono::duration<int64_t, std::ratio<86400>>(days));
 		out = tp;
 	}
 
@@ -507,12 +495,13 @@ namespace BitSerializer::Convert::Detail
 			{
 				const auto transformToDuration = [](auto value, char type, bool isDatePart) -> TTargetDuration
 				{
+					using TSrcRep = decltype(value);
 					if (isDatePart)
 					{
 						if (type == 'W') {
-							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<604800>>(value));
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<TSrcRep, std::ratio<604800>>(value));
 						} if (type == 'D') {
-							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<86400>>(value));
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<TSrcRep, std::ratio<86400>>(value));
 						} if (type == 'Y' || type == 'M') {
 							throw std::invalid_argument("An ISO duration that contains a year, or month is not allowed");
 						}
@@ -520,11 +509,11 @@ namespace BitSerializer::Convert::Detail
 					else
 					{
 						if (type == 'H') {
-							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<3600>>(value));
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<TSrcRep, std::ratio<3600>>(value));
 						} if (type == 'M') {
-							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<60>>(value));
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<TSrcRep, std::ratio<60>>(value));
 						} if (type == 'S') {
-							return SafeDurationCast<TTargetDuration>(std::chrono::duration<uint64_t, std::ratio<1>>(value));
+							return SafeDurationCast<TTargetDuration>(std::chrono::duration<TSrcRep, std::ratio<1>>(value));
 						}
 					}
 					throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");

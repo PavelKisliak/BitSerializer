@@ -354,6 +354,7 @@ public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
 	using key_type = typename RapidJsonArchiveTraits<TEncoding>::key_type;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
+	using key_raw_ptr = const typename TEncoding::Ch*;
 
 	RapidJsonObjectScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
 		: TArchiveScope<TMode>(serializationContext)
@@ -449,7 +450,7 @@ protected:
 		return this->mNode->GetObject().FindMember(key.c_str());
 	}
 
-	typename RapidJsonNode::MemberIterator FindMember(const wchar_t* key) const {
+	typename RapidJsonNode::MemberIterator FindMember(key_raw_ptr key) const {
 		return this->mNode->GetObject().FindMember(key);
 	}
 
@@ -460,7 +461,7 @@ protected:
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	RapidJsonNode* LoadJsonValue(const wchar_t* key) const
+	RapidJsonNode* LoadJsonValue(key_raw_ptr key) const
 	{
 		const auto jObject = this->mNode->GetObject();
 		const auto it = jObject.FindMember(key);
@@ -477,7 +478,7 @@ protected:
 		return true;
 	}
 
-	bool SaveJsonValue(const wchar_t* key, RapidJsonNode&& jsonValue) const
+	bool SaveJsonValue(key_raw_ptr key, RapidJsonNode&& jsonValue) const
 	{
 		// Checks that object was not saved previously under the same key
 		assert(this->mNode->GetObject().FindMember(key) == this->mNode->GetObject().MemberEnd());

@@ -62,8 +62,8 @@ For check performance overhead, was developed a single thread test that serializ
 
 | Base library name | Format | Operation | BitSerializer | Native API | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 13580 fields/ms  | 14537 fields/ms | **(-6.6%)** |
-| RapidJson | JSON | Load object | 7971 fields/ms | 9375 fields/ms | **(-15%)** |
+| RapidJson | JSON | Save object | 14474 fields/ms  | 14667 fields/ms | **(-1.3%)** |
+| RapidJson | JSON | Load object | 9192 fields/ms | 9880 fields/ms | **(-7%)** |
 | C++ REST SDK | JSON | Save object | 2586 fields/ms | 2617 fields/ms | **(-1.2%)** |
 | C++ REST SDK | JSON | Load object | 2741 fields/ms | 2741 fields/ms | **(0%)** |
 | PugiXml | XML | Save object | 8753 fields/ms | 9016 fields/ms | **(-2.9%)** |

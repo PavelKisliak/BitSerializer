@@ -77,24 +77,25 @@ Measured in **fields/ms** - how many fields are written per millisecond, more is
 
 ___
 ## Table of contents
-- [How to install](#markdown-header-how-to-install)
-- [Hello world](#markdown-header-hello-world)
-- [Unicode support](#markdown-header-unicode-support)
-- [Serializing class](#markdown-header-serializing-class)
-- [Serializing base class](#markdown-header-serializing-base-class)
-- [Serializing third party class](#markdown-header-serializing-third-party-class)
-- [Serializing enum types](#markdown-header-serializing-enum-types)
-- [Serializing custom classes representing a string or number](#markdown-header-serializing-custom-classes-representing-a-string-or-number)
-- [Serializing to multiple formats](#markdown-header-serializing-to-multiple-formats)
-- [Serialization STD types](#markdown-header-serialization-std-types)
-- [Specifics of serialization STD map](#markdown-header-specifics-of-serialization-std-map)
-- [Conditions for checking the serialization mode](#markdown-header-conditions-for-checking-the-serialization-mode)
-- [Serialization to streams and files](#markdown-header-serialization-to-streams-and-files)
-- [Error handling](#markdown-header-error-handling)
-- [Validation of deserialized values](#markdown-header-validation-of-deserialized-values)
-- [Compile time checking](#markdown-header-compile-time-checking)
-- [Thanks](#markdown-header-thanks)
-- [License](#markdown-header-license)
+- [How to install](#how-to-install)
+- [Hello world](#hello-world)
+- [Unicode support](#unicode-support)
+- [Serializing class](#serializing-class)
+- [Serializing base class](#serializing-base-class)
+- [Serializing third party class](#serializing-third-party-class)
+- [Serializing enum types](#serializing-enum-types)
+- [Serializing custom classes representing a string or number](#serializing-custom-classes-representing-a-string-or-number)
+- [Serializing to multiple formats](#serializing-to-multiple-formats)
+- [Serialization STD types](#serialization-std-types)
+- [Specifics of serialization STD map](#specifics-of-serialization-std-map)
+- [Serialization date and time](#serialization-date-and-time)
+- [Conditions for checking the serialization mode](#conditions-for-checking-the-serialization-mode)
+- [Serialization to streams and files](#serialization-to-streams-and-files)
+- [Error handling](#error-handling)
+- [Validation of deserialized values](#validation-of-deserialized-values)
+- [Compile time checking](#compile-time-checking)
+- [Thanks](#thanks)
+- [License](#license)
 
 ### Details of archives
 - [JSON archive "bitserializer-cpprestjson"](docs/bitserializer_cpprest_json.md)
@@ -109,7 +110,7 @@ ___
 ### How to install
 BitSerializer requires the installation of third-party libraries, this will depend on which archives you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
-Please follow [instructions](#markdown-header-details-of-archives) for specific archives.
+Please follow [instructions](#details-of-archives) for specific archives.
 #### VCPKG
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
@@ -367,10 +368,10 @@ int main()
 This chapter describes how to implement serialization for classes which should be represented in the output format as base types, like number, boolean or string. Let's imagine that you would like to implement serialization of your own `std::string` alternative, which is called `CMyString`. For this purpose you need two global functions with the following signatures:
 ```cpp
 template <class TArchive, typename TKey>
-bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
+bool Serialize(TArchive& archive, TKey&& key, CMyString& value);
 
 template <class TArchive>
-bool Serialize(TArchive& archive, CMyString& value)
+bool Serialize(TArchive& archive, CMyString& value);
 ```
 These two functions are necessary for serialization any type with and without **key** into the output archive. For example, object in the JSON format, has named properties, but JSON-array can contain only values.
 The BitSerializer's archives works with `std::basic_string<>`, so you need to convert your custom string before serialize. The best way is to implement string conversion methods as required by BitSerialzer ([see more](docs/bitserializer_convert.md)), this will also help you get the ability to serialize `std::map`, where the custom string is used as the key.
@@ -584,8 +585,11 @@ BitSerializer has on board serialization for all STD containers. Serialization o
 #include "bitserializer/types/std/map.h"
 #include "bitserializer/types/std/unordered_map.h"
 #include "bitserializer/types/std/pair.h"
+#include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
 ```
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
@@ -631,6 +635,45 @@ class YourCustomKey
 {
 	std::string ToString() const { }
 	void FromString(std::string_view str)
+}
+```
+
+### Serialization date and time
+*(Feature is not available in the previously released version 0.50)*<br>
+The  ISO 8601 standard was chosen as the representation for the date, time and duration in the target archive. Some of other libraries prefer to use binary representation (which is definitely faster), but this option has been rejected as non-portable. In any case, you are free to make your own implementation if needed. For enable serialization of the `std::chrono` and `time_t` types as ISO strings,  just include these headers:
+```cpp
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
+```
+
+The following table contains all supported types with examples of string representations:
+
+| Type | Format | Examples | References |
+| ------ | ------ | ------ | ------ |
+| `std::time_t` | [±]YYYY-MM-DDThh:mm:ssZ | 1677-09-21T00:12:44Z<br>2262-04-11T23:47:16Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601) |
+| `std::chrono::time_point` | [±]YYYY-MM-DDThh:mm:ss[.SSS]Z | 1872-01-01T04:55:32.021Z<br>2262-04-11T23:47:16Z<br>9999-12-31T23:59:59.999Z<br>+12376-01-20T00:00:00Z<br>-1241-06-23T00:00:00Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601)  |
+| `std::chrono::duration` | [-]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
+
+Time point notes:
+- Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).
+- ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports only 3 digits (0.500 and 0.5 = 500ms).
+- According to standard, to represent years before 0000 or after 9999 uses additional '-' or '+' sign.
+- The dates range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
+- Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
+- According to the C++20 standard, the EPOCH date for `system_clock` types is considered as *1970-01-01 00:00:00 UTC* excluding leap seconds.
+- For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
+
+Duration notes:
+- Supported signed durations, but they are no officially defined.
+- Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
+- The decimal fraction of smallest value like "P0.5D" is not supported.
+
+Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CTimeRef`, otherwise time will be serialized as number.
+```cpp
+template <class TArchive>
+void Serialize(TArchive& archive)
+{
+    archive << MakeKeyValue("Time", CTimeRef(timeValue));
 }
 ```
 

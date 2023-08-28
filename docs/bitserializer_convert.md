@@ -3,6 +3,7 @@
 String conversion submodule of **BitSerializer** library. Basically, it is just convenient wrapper around STD, but with some interesting features:
 
 - Supports modern STD types - `string_view`, `u16string` and `u32string`.
+- Supports conversion `chrono::time_point` and `chrono::duration` to/from ISO8601 strings.
 - Supports UTF transcoding between all STD string types.
 - Converts any fundamental types to any STD string types and vice versa.
 - Converts enum types via declaring names map.
@@ -108,6 +109,36 @@ Additionally, you can declare functions for support input/output streams using `
 DECLARE_ENUM_STREAM_OPS(EnumType)
 ```
 In comparison with macro `REGISTER_ENUM_MAP` you have to take care of including the header file in which you declared this.
+
+### Date and time conversion
+*(Feature is not available in the previously released version 0.50)*<br>
+Date, time and duration can be converted to string representation of ISO 8601 and vice versa. The following table contains all supported types with string examples:
+
+| Type | Format | Examples | References |
+| ------ | ------ | ------ | ------ |
+| `std::time_t`<br>`std::tm` | [±]YYYY-MM-DDThh:mm:ssZ | 1677-09-21T00:12:44Z<br>2262-04-11T23:47:16Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601) |
+| `std::chrono::time_point` | [±]YYYY-MM-DDThh:mm:ss[.SSS]Z | 1872-01-01T04:55:32.021Z<br>2262-04-11T23:47:16Z<br>9999-12-31T23:59:59.999Z<br>+12376-01-20T00:00:00Z<br>-1241-06-23T00:00:00Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601)  |
+| `std::chrono::duration` | [-]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
+
+**Time point notes:**
+- Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).
+- ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports only 3 digits (0.500 and 0.5 = 500ms).
+- According to standard, to represent years before 0000 or after 9999 uses additional '-' or '+' sign.
+- The dates range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
+- Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
+- According to the C++20 standard, the EPOCH date for `system_clock` types is considered as *1970-01-01 00:00:00 UTC* excluding leap seconds.
+- For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
+
+**Duration notes:**
+- Supported signed durations, but they are no officially defined.
+- Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
+- The decimal fraction of smallest value like "P0.5D" is not supported.
+
+Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CRawTime`, otherwise time will be converted as number.
+```cpp
+time_t time = Convert::To<CRawTime>("1969-12-31T23:59:59Z");
+std::string utc = Convert::ToString(CRawTime(time));
+```
 
 ### Conversion custom classes
 There are several ways to convert custom classes from/to strings:

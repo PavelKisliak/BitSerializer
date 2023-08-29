@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -22,7 +22,7 @@ namespace BitSerializer
 			return mSerializationOptions;
 		}
 
-		void AddValidationErrors(std::string&& path, ValidationErrors&& validationList)
+		void AddValidationErrors(std::string path, ValidationErrors validationList)
 		{
 			if (const auto it = mErrorsMap.find(path); it == mErrorsMap.end()) {
 				mErrorsMap.emplace(std::move(path), std::move(validationList));
@@ -43,23 +43,4 @@ namespace BitSerializer
 		ValidationMap mErrorsMap;
 		const SerializationOptions& mSerializationOptions;
 	};
-
-
-	// ToDo: to be removed in future version
-	class DeprecatedSerializationContext
-	{
-	public:
-		[[deprecated("Global serialization context is deprecated, please handle ValidationException")]]
-		[[nodiscard]] bool IsValid() const noexcept { return true; }
-
-		[[deprecated("Global serialization context is deprecated, please handle ValidationException")]]
-		[[nodiscard]] const ValidationMap& GetValidationErrors() const noexcept
-		{
-			// Not used
-			static ValidationMap errorsMap;
-			return errorsMap;
-		}
-	};
-
-	thread_local static DeprecatedSerializationContext Context;
 }

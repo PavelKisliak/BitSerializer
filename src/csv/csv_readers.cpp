@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
@@ -34,27 +34,32 @@ namespace BitSerializer::Csv::Detail
 
 	bool CCsvStringReader::ReadValue(std::string_view key, std::string_view& out_value)
 	{
-		if (mWithHeader)
-		{
-			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
-			if (it != std::cend(mHeaders))
-			{
-				mValueIndex = it - mHeaders.cbegin();
-				const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
-				if (valueMeta.HasEscapedChars)
-				{
-					out_value = UnescapeValue(std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size));
-				}
-				else
-				{
-					out_value = std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size);
-				}
-				return true;
-			}
+		if (!mWithHeader) {
+			return false;
 		}
 
-		out_value = {};
-		return false;
+		if (++mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
+		{
+			// If next column doesn't match, try to find across all headers
+			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
+			if (it == std::cend(mHeaders))
+			{
+				out_value = {};
+				return false;
+			}
+			mValueIndex = it - mHeaders.cbegin();
+		}
+
+		const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
+		if (valueMeta.HasEscapedChars)
+		{
+			out_value = UnescapeValue(std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size));
+		}
+		else
+		{
+			out_value = std::string_view(mSourceString.data() + valueMeta.Offset, valueMeta.Size);
+		}
+		return true;
 	}
 
 	void CCsvStringReader::ReadValue(std::string_view& out_value)
@@ -239,27 +244,32 @@ namespace BitSerializer::Csv::Detail
 
 	bool CCsvStreamReader::ReadValue(std::string_view key, std::string_view& out_value)
 	{
-		if (mWithHeader)
-		{
-			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
-			if (it != std::cend(mHeaders))
-			{
-				mValueIndex = it - mHeaders.cbegin();
-				const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
-				if (valueMeta.HasEscapedChars)
-				{
-					out_value = UnescapeValue(mDecodedBuffer.data() + valueMeta.Offset, mDecodedBuffer.data() + valueMeta.Size);
-				}
-				else
-				{
-					out_value = std::string_view(mDecodedBuffer.data() + valueMeta.Offset, valueMeta.Size);
-				}
-				return true;
-			}
+		if (!mWithHeader) {
+			return false;
 		}
 
-		out_value = {};
-		return false;
+		if (++mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
+		{
+			// If next column doesn't match, try to find across all headers
+			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
+			if (it == std::cend(mHeaders))
+			{
+				out_value = {};
+				return false;
+			}
+			mValueIndex = it - mHeaders.cbegin();
+		}
+
+		const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
+		if (valueMeta.HasEscapedChars)
+		{
+			out_value = UnescapeValue(mDecodedBuffer.data() + valueMeta.Offset, mDecodedBuffer.data() + valueMeta.Size);
+		}
+		else
+		{
+			out_value = std::string_view(mDecodedBuffer.data() + valueMeta.Offset, valueMeta.Size);
+		}
+		return true;
 	}
 
 	void CCsvStreamReader::ReadValue(std::string_view& out_value)

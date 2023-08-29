@@ -71,7 +71,7 @@ For check performance overhead, was developed a single thread test that serializ
 | RapidYAML | YAML | Save object | 780 fields/ms | 788 fields/ms | **(-1%)** |
 | RapidYAML | YAML | Load object | 3277 fields/ms | 3552 fields/ms | **(-7.7%)** |
 | Built-in | CSV | Save object | 15566 fields/ms | N/A | N/A |
-| Built-in | CSV | Load object | 15349 fields/ms | N/A | N/A |
+| Built-in | CSV | Load object | 17368 fields/ms | N/A | N/A |
 
 Measured in **fields/ms** - how many fields are written per millisecond, more is better. Results are depend to system hardware and compiler options, but you can evaluate the BitSerializer overhead and formats efficiency. The source code of the test also available [here](benchmarks/archives).
 
@@ -650,9 +650,9 @@ The following table contains all supported types with examples of string represe
 
 | Type | Format | Examples | References |
 | ------ | ------ | ------ | ------ |
-| `std::time_t` | [±]YYYY-MM-DDThh:mm:ssZ | 1677-09-21T00:12:44Z<br>2262-04-11T23:47:16Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601) |
-| `std::chrono::time_point` | [±]YYYY-MM-DDThh:mm:ss[.SSS]Z | 1872-01-01T04:55:32.021Z<br>2262-04-11T23:47:16Z<br>9999-12-31T23:59:59.999Z<br>+12376-01-20T00:00:00Z<br>-1241-06-23T00:00:00Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601)  |
-| `std::chrono::duration` | [-]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
+| `std::time_t` | YYYY-MM-DDThh:mm:ssZ | 1677-09-21T00:12:44Z<br>2262-04-11T23:47:16Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601) |
+| `chrono::time_point` | [±]YYYY-MM-DDThh:mm:ss[.SSS]Z | 1872-01-01T04:55:32.021Z<br>2262-04-11T23:47:16Z<br>9999-12-31T23:59:59.999Z<br>+12376-01-20T00:00:00Z<br>-1241-06-23T00:00:00Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601)  |
+| `chrono::duration` | [-]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
 
 Time point notes:
 - Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).

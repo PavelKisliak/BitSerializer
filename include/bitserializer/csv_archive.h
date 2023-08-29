@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -52,7 +52,7 @@ public:
 	virtual bool ReadValue(std::string_view key, std::string_view& out_value) = 0;
 	virtual void ReadValue(std::string_view& out_value) = 0;
 	virtual bool ParseNextRow() = 0;
-	virtual const std::vector<std::string>& GetHeaders() const noexcept = 0;
+	[[nodiscard]] virtual const std::vector<std::string>& GetHeaders() const noexcept = 0;
 };
 
 

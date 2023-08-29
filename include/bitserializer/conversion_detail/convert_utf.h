@@ -681,7 +681,7 @@ namespace BitSerializer::Convert
 							utfType = UtfType::Utf32le;
 							break;
 						}
-						else if ((sym & 0b00000000000000001111111111111111) == 0)
+						if ((sym & 0b00000000000000001111111111111111) == 0)
 						{
 							utfType = UtfType::Utf32be;
 							break;
@@ -698,7 +698,7 @@ namespace BitSerializer::Convert
 							utfType = UtfType::Utf16le;
 							break;
 						}
-						else if ((sym & 0b0000000011111111) == 0)
+						if ((sym & 0b0000000011111111) == 0)
 						{
 							utfType = UtfType::Utf16be;
 							break;

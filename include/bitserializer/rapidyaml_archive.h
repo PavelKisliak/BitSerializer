@@ -460,21 +460,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 		template <SerializeMode TMode>
 		class RapidYamlRootScope final: public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
-			template <typename T>
-			struct ryml_has_parse_in_arena
-			{
-			private:
-				template <typename U>
-				static decltype(std::declval<U>().parse_in_arena(std::declval<c4::csubstr>(), std::declval<c4::csubstr>()), void(), std::true_type()) test(int);
-
-				template <typename>
-				static std::false_type test(...);
-
-			public:
-				typedef decltype(test<T>(0)) type;
-				enum { value = type::value };
-			};
-
 		public:
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
 			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
@@ -596,21 +581,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			template <typename T>
 			void Parse(std::string_view inputStr)
 			{
-				if constexpr (ryml_has_parse_in_arena<T>::value)
-				{
-					T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
-					mTree = parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()));
-				}
-				else
-				{
-					// For keep compatibility with old versions of RapidYaml library
-					if (c4::yml::get_callbacks().m_error != &RapidYamlRootScope::ErrorCallback)
-					{
-						ryml::set_callbacks(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
-						c4::set_error_flags(c4::get_error_flags() | c4::ON_ERROR_CALLBACK);
-					}
-					c4::yml::parse(c4::csubstr(inputStr.data(), inputStr.size()), &mTree);
-				}
+				T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+				mTree = parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()));
 				mRootNode = mTree.rootref();
 			}
 

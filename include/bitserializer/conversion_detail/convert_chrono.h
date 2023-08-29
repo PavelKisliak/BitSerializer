@@ -139,8 +139,8 @@ namespace BitSerializer::Convert::Detail
 			}
 			else
 			{
-				if ((static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num) ||
-					(static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num))
+				if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
+					static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
 				{
 					throw std::out_of_range("Target duration is not enough");
 				}
@@ -160,8 +160,8 @@ namespace BitSerializer::Convert::Detail
 			}
 			else
 			{
-				if ((static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num) ||
-					(static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num))
+				if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
+					static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
 				{
 					throw std::out_of_range("Target duration is not enough");
 				}
@@ -412,7 +412,7 @@ namespace BitSerializer::Convert::Detail
 
 		// Based on Howard Hinnant's algorithm
 		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
-		auto const y = static_cast<int>(tmExt.tm_year) - (tmExt.tm_mon <= 2);
+		auto const y = tmExt.tm_year - (tmExt.tm_mon <= 2);
 		auto const m = static_cast<unsigned>(tmExt.tm_mon);
 		auto const d = static_cast<unsigned>(tmExt.tm_mday);
 		auto const era = (y >= 0 ? y : y - 399) / 400;
@@ -420,10 +420,12 @@ namespace BitSerializer::Convert::Detail
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
 		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
 
-		const int64_t days = era * 146097ll + doe - 719468;
-		if ((y >= 1970 && days < 0) || (y < 1970 && days > 0)) {
-			throw std::out_of_range("Target timepoint range is not enough");
+		if (era > std::numeric_limits<int64_t>::max() / 146097ll ||
+			era < std::numeric_limits<int64_t>::min() / 146097ll)
+		{
+			throw std::out_of_range("Target duration is not enough");
 		}
+		const int64_t days = era * 146097ll + (static_cast<int>(doe) - 719468);
 		const auto time = static_cast<long long>(tmExt.tm_hour) * 3600 + static_cast<long long>(tmExt.tm_min) * 60 + tmExt.tm_sec;
 
 		std::chrono::time_point<TClock, TDuration> tp;

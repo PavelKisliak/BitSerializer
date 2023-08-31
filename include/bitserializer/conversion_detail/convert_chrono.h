@@ -420,8 +420,8 @@ namespace BitSerializer::Convert::Detail
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
 		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
 
-		if (era > std::numeric_limits<int64_t>::max() / 146097ll ||
-			era < std::numeric_limits<int64_t>::min() / 146097ll)
+		if (static_cast<int64_t>(era) > std::numeric_limits<int64_t>::max() / 146097ll ||
+			static_cast<int64_t>(era) < std::numeric_limits<int64_t>::min() / 146097ll)
 		{
 			throw std::out_of_range("Target duration is not enough");
 		}

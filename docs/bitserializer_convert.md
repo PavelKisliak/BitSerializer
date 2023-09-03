@@ -122,7 +122,7 @@ Date, time and duration can be converted to string representation of ISO 8601 an
 
 **Time point notes:**
 - Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).
-- ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports only 3 digits (0.500 and 0.5 = 500ms).
+- ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports up to 9 digits, which is enough for values with nanosecond precision.
 - According to standard, to represent years before 0000 or after 9999 uses additional '-' or '+' sign.
 - The dates range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
 - Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).

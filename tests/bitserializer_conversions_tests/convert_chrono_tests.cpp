@@ -11,7 +11,9 @@ using namespace std::chrono;
 //-----------------------------------------------------------------------------
 // Test data
 //-----------------------------------------------------------------------------
+using TimePointSec = time_point<system_clock, seconds>;
 using TimePointMs = time_point<system_clock, milliseconds>;
+using TimePointUs = time_point<system_clock, microseconds>;
 using TimePointNs = time_point<system_clock, nanoseconds>;
 
 // Year before introduction of the Gregorian calendar are not automatically allowed by the standard
@@ -56,6 +58,20 @@ TEST(ConvertChrono, ConvertTimePointWithMsToUtcString) {
 	EXPECT_EQ(L"9999-12-31T23:59:59.999Z", Convert::To<std::wstring>(tp9999_12_31T23_59_59 + 999ms));
 }
 
+TEST(ConvertChrono, ConvertTimePointWithUsToUtcString) {
+	EXPECT_EQ("1677-09-21T00:12:44.999999Z", Convert::ToString(tp1677_09_21T00_12_44 + 999999us));
+	EXPECT_EQ("1872-01-01T00:00:00.000001Z", Convert::ToString(tp1872_01_01T00_00_00 + 1us));
+	EXPECT_EQ("1968-12-31T23:59:59.123456Z", Convert::ToString(tp1968_12_31T23_59_59 + 123456us));
+	EXPECT_EQ("1970-01-01T00:00:00.005625Z", Convert::ToString(tp1970_01_01T00_00_00 + 5625us));
+}
+
+TEST(ConvertChrono, ConvertTimePointWithNsToUtcString) {
+	EXPECT_EQ("1677-09-21T00:12:44.999999999Z", Convert::ToString(tp1677_09_21T00_12_44 + 999999999ns));
+	EXPECT_EQ("1872-01-01T00:00:00.000000001Z", Convert::ToString(tp1872_01_01T00_00_00 + 1ns));
+	EXPECT_EQ("1968-12-31T23:59:59.123456789Z", Convert::ToString(tp1968_12_31T23_59_59 + 123456789ns));
+	EXPECT_EQ("1970-01-01T00:00:00.000001125Z", Convert::ToString(tp1970_01_01T00_00_00 + 1125ns));
+}
+
 TEST(ConvertChrono, ConvertTimePointToUtcStringMaxValues) {
 	using days_i32 = duration<int32_t, std::ratio<86400>>;
 	using TimePointDaysI32Rep = time_point<system_clock, days_i32>;
@@ -87,6 +103,36 @@ TEST(ConvertChrono, ConvertUtcStringWithMsToTimePoint) {
 	EXPECT_EQ(tp2044_01_01T00_00_00 + 10ms, Convert::To<TimePointMs>(U"2044-01-01T00:00:00.01Z"));
 	EXPECT_EQ(tp2262_04_11T23_47_16 + 999ms, Convert::To<TimePointMs>(L"2262-04-11T23:47:16.999Z"));
 	EXPECT_EQ(tp9999_12_31T23_59_59 + 999ms, Convert::To<TimePointMs>(L"9999-12-31T23:59:59.999Z"));
+}
+
+TEST(ConvertChrono, ConvertUtcStringWithUsToTimePoint) {
+	EXPECT_EQ(tp1677_09_21T00_12_44 + 999999us,		Convert::To<TimePointUs>("1677-09-21T00:12:44.999999Z"));
+	EXPECT_EQ(tp1872_01_01T00_00_00 + 1us,			Convert::To<TimePointUs>("1872-01-01T00:00:00.000001Z"));
+	EXPECT_EQ(tp1968_12_31T23_59_59 + 123456us,		Convert::To<TimePointUs>("1968-12-31T23:59:59.123456Z"));
+	EXPECT_EQ(tp1970_01_01T00_00_00 + 5625us,		Convert::To<TimePointUs>("1970-01-01T00:00:00.005625Z"));
+}
+
+TEST(ConvertChrono, ConvertUtcStringWithNsToTimePoint) {
+	EXPECT_EQ(tp1872_01_01T00_00_00 + 999999999ns,	Convert::To<TimePointNs>("1872-01-01T00:00:00.999999999Z"));
+	EXPECT_EQ(tp1872_01_01T00_00_00 + 1ns,			Convert::To<TimePointNs>("1872-01-01T00:00:00.000000001Z"));
+	EXPECT_EQ(tp1970_01_01T00_00_00 + 123456789ns,	Convert::To<TimePointNs>("1970-01-01T00:00:00.123456789Z"));
+	EXPECT_EQ(tp2262_04_11T23_47_16 + 1125ns,		Convert::To<TimePointNs>("2262-04-11T23:47:16.000001125Z"));
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTimePointWithRoundingFromMilli) {
+	EXPECT_EQ(tp2044_01_01T00_00_00,		Convert::To<TimePointSec>(L"2044-01-01T00:00:00.450Z"));
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 1s,	Convert::To<TimePointSec>(L"2044-01-01T00:00:00.501Z"));
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 1s,	Convert::To<TimePointSec>(L"2044-01-01T00:00:00.6Z"));
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTimePointWithRoundingFromMicro) {
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 300ms, Convert::To<TimePointMs>(L"2044-01-01T00:00:00.300499Z"));
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 301ms, Convert::To<TimePointMs>(L"2044-01-01T00:00:00.300501Z"));
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTimePointWithRoundingFromNano) {
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 750255us, Convert::To<TimePointUs>(L"2044-01-01T00:00:00.750255405Z"));
+	EXPECT_EQ(tp2044_01_01T00_00_00 + 750256us, Convert::To<TimePointUs>(L"2044-01-01T00:00:00.750255505Z"));
 }
 
 TEST(ConvertChrono, ConvertUtcStringToTimePointMaxValues) {
@@ -126,7 +172,7 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidTime) {
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T25:00:00Z"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:60:00Z"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:60Z"), std::invalid_argument);
-	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:00.1000Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-01T00:00:00.1234567891Z"), std::invalid_argument);
 }
 
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenEmpty) {

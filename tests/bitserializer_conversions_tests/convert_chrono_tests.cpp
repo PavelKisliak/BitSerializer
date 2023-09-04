@@ -17,20 +17,20 @@ using TimePointUs = time_point<system_clock, microseconds>;
 using TimePointNs = time_point<system_clock, nanoseconds>;
 
 // Year before introduction of the Gregorian calendar are not automatically allowed by the standard
-constexpr auto tp0000_01_01T00_00_00 = TimePointMs(seconds(-62167219200));
+constexpr auto tp0000_01_01T00_00_00 = TimePointSec(seconds(-62167219200));
 // First year that allowed by the ISO 8601 standard
-constexpr auto tp1583_01_01T00_00_00 = TimePointMs(seconds(-12212553600));
+constexpr auto tp1583_01_01T00_00_00 = TimePointSec(seconds(-12212553600));
 // Min timepoint for nanoseconds as duration
 constexpr auto tp1677_09_21T00_12_44 = std::chrono::time_point_cast<std::chrono::seconds>(TimePointNs::min());
-constexpr auto tp1872_01_01T00_00_00 = TimePointMs(seconds(-3092601600));
-constexpr auto tp1968_12_31T23_59_59 = TimePointMs(seconds(-31536001));
+constexpr auto tp1872_01_01T00_00_00 = TimePointSec(seconds(-3092601600));
+constexpr auto tp1968_12_31T23_59_59 = TimePointSec(seconds(-31536001));
 // Unix time EPOCH
-constexpr auto tp1970_01_01T00_00_00 = TimePointMs(seconds(0));
-constexpr auto tp2044_01_01T00_00_00 = TimePointMs(seconds(2335219200));
+constexpr auto tp1970_01_01T00_00_00 = TimePointSec(seconds(0));
+constexpr auto tp2044_01_01T00_00_00 = TimePointSec(seconds(2335219200));
 // Max timepoint for nanoseconds as duration
 constexpr auto tp2262_04_11T23_47_16 = std::chrono::time_point_cast<std::chrono::seconds>(TimePointNs::max());
-constexpr auto tp9999_12_31T23_59_59 = TimePointMs(seconds(253402300799));
-constexpr auto tp10000_01_01T00_00_00 = TimePointMs(seconds(253402300800));
+constexpr auto tp9999_12_31T23_59_59 = TimePointSec(seconds(253402300799));
+constexpr auto tp10000_01_01T00_00_00 = TimePointSec(seconds(253402300800));
 
 //-----------------------------------------------------------------------------
 // Test conversion from std::chrono::system_clock::time_point to std::string
@@ -96,6 +96,7 @@ TEST(ConvertChrono, ConvertUtcStringToTimePoint) {
 }
 
 TEST(ConvertChrono, ConvertUtcStringWithMsToTimePoint) {
+	EXPECT_EQ(tp1677_09_21T00_12_44, Convert::To<TimePointMs>("1677-09-21T00:12:44.000Z"));
 	EXPECT_EQ(tp1677_09_21T00_12_44 + 999ms, Convert::To<TimePointMs>("1677-09-21T00:12:44.999Z"));
 	EXPECT_EQ(tp1872_01_01T00_00_00 + 1ms, Convert::To<TimePointMs>("1872-01-01T00:00:00.001Z"));
 	EXPECT_EQ(tp1968_12_31T23_59_59 + 567ms, Convert::To<TimePointMs>("1968-12-31T23:59:59.567Z"));
@@ -220,9 +221,22 @@ TEST(ConvertChrono, ConvertDurationToStringWhenZeroSeconds) {
 	EXPECT_EQ("PT0S", Convert::ToString(0s));
 }
 
-TEST(ConvertChrono, ConvertDurationToStringWithDiscardMs) {
-	EXPECT_EQ("PT1S", Convert::ToString(1s + 100ms));
-	EXPECT_EQ("PT1M", Convert::ToString(1min + 999ms));
+TEST(ConvertChrono, ConvertDurationToStringWithMilliFractions) {
+	EXPECT_EQ("PT0.5S", Convert::ToString(500ms));
+	EXPECT_EQ("PT0.123S", Convert::ToString(123ms));
+	EXPECT_EQ("PT1H1.999S", Convert::ToString(1h + 1s + 999ms));
+}
+
+TEST(ConvertChrono, ConvertDurationToStringWithMicroFractions) {
+	EXPECT_EQ("PT0.5S", Convert::ToString(500000us));
+	EXPECT_EQ("PT0.123456S", Convert::ToString(123456us));
+	EXPECT_EQ("PT1H0.999999S", Convert::ToString(1h + 999999us));
+}
+
+TEST(ConvertChrono, ConvertDurationToStringWithNanoFractions) {
+	EXPECT_EQ("PT0.5S", Convert::ToString(500000000ns));
+	EXPECT_EQ("PT0.123456789S", Convert::ToString(123456789ns));
+	EXPECT_EQ("PT1H0.999999999S", Convert::ToString(1h + 999999999ns));
 }
 
 TEST(ConvertChrono, ConvertDurationToStringWhenNegative) {
@@ -279,11 +293,34 @@ TEST(ConvertChrono, ConvertStringToDurationWhenOnlySinglePart) {
 }
 
 TEST(ConvertChrono, ConvertStringToDurationWhenZero) {
+	EXPECT_EQ(0ms, Convert::To<std::chrono::milliseconds>("PT0.0S"));
 	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0S"));
 	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0M"));
 	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0H"));
 	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("P0D"));
 	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("P0W"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWhithSecondsFractions) {
+	EXPECT_EQ(500ms, Convert::To<std::chrono::milliseconds>("PT0.5S"));
+	EXPECT_EQ(5s + 999ms, Convert::To<std::chrono::milliseconds>("PT5.999S"));
+	EXPECT_EQ(123456us, Convert::To<std::chrono::microseconds>("PT0.123456S"));
+	EXPECT_EQ(123456789ns, Convert::To<std::chrono::nanoseconds>("PT0.123456789S"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWithRoundingFromMilli) {
+	EXPECT_EQ(0s, Convert::To<std::chrono::seconds>("PT0.499S"));
+	EXPECT_EQ(1s, Convert::To<std::chrono::seconds>("PT0.501S"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWithRoundingFromMicro) {
+	EXPECT_EQ(300ms, Convert::To<std::chrono::milliseconds>("PT0.300499S"));
+	EXPECT_EQ(301ms, Convert::To<std::chrono::milliseconds>("PT0.300501S"));
+}
+
+TEST(ConvertChrono, ConvertStringToDurationWithRoundingFromNano) {
+	EXPECT_EQ(750255us, Convert::To<std::chrono::microseconds>("PT0.750255405S"));
+	EXPECT_EQ(750256us, Convert::To<std::chrono::microseconds>("PT0.750255505S"));
 }
 
 TEST(ConvertChrono, ConvertStringToDurationWhenNegative) {
@@ -360,8 +397,8 @@ TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenContainsBaseU
 	EXPECT_THROW(Convert::To<std::chrono::seconds>("2003-02-15T00:00:00Z/P2M"), std::invalid_argument);
 }
 
-TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenContainsDecimalFraction) {
-	// Accordingly to ISO standard, smallest value may have a decimal fraction, but this is not supported now
+TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenNonSecondsFractions) {
+	// Accordingly to ISO standard, smallest value may have a decimal fraction, but BitSerializer supports only seconds fractions
 	EXPECT_THROW(Convert::To<std::chrono::seconds>("P0.5D"), std::invalid_argument);
 }
 

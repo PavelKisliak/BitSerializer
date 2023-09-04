@@ -652,7 +652,7 @@ The following table contains all supported types with examples of string represe
 | ------ | ------ | ------ | ------ |
 | `std::time_t` | YYYY-MM-DDThh:mm:ssZ | 1677-09-21T00:12:44Z<br>2262-04-11T23:47:16Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601) |
 | `chrono::time_point` | [±]YYYY-MM-DDThh:mm:ss[.SSS]Z | 1872-01-01T04:55:32.021Z<br>2262-04-11T23:47:16Z<br>9999-12-31T23:59:59.999Z<br>+12376-01-20T00:00:00Z<br>-1241-06-23T00:00:00Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601)  |
-| `chrono::duration` | [-]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
+| `chrono::duration` | [-]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20.346S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
 
 Time point notes:
 - Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).
@@ -664,9 +664,9 @@ Time point notes:
 - For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
 
 Duration notes:
-- Supported signed durations, but they are no officially defined.
+- Supported signed durations, but they are not officially defined.
 - Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
-- The decimal fraction of smallest value like "P0.5D" is not supported.
+- The decimal fraction supported only for seconds part, maximum 9 digits.
 
 Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CTimeRef`, otherwise time will be serialized as number.
 ```cpp

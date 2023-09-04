@@ -218,6 +218,9 @@ namespace BitSerializer::Convert::Detail
 		const std::from_chars_result result = std::from_chars(pos, endPos, value);
 		if (result.ec == std::errc())
 		{
+			if (value == 0) {
+				return result.ptr;
+			}
 			const size_t digits = result.ptr - pos;
 			constexpr uint64_t dec[] = { 1ull, 10ull, 100ull, 1000ull, 10000ull, 100000ull, 1000000ull, 10000000ull, 100000000ull, 1000000000ull };
 			constexpr uint64_t mult = 1000000000ull;
@@ -235,14 +238,17 @@ namespace BitSerializer::Convert::Detail
 	/// Prints fractions of second to target buffer.
 	/// Supported up to 9 digits, which is enough for values with nanosecond precision.
 	/// </summary>
-	/// <returns>Pointer to next character or nullptr when failed</returns>
+	/// <returns>Pointer to next character or nullptr when failed (in case when passed buffer is not enough)</returns>
 	template <class TRep, class TPeriod>
-	const char* printSecondFractions(char* pos, const char* end, std::chrono::duration<TRep, TPeriod> time) noexcept
+	char* printSecondsFractions(char* pos, char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
 	{
 		static_assert(TPeriod::num == 1 && std::chrono::seconds::period::den < TPeriod::den, "Source duration must be more precise than a second");
 		static_assert(std::chrono::nanoseconds::period::den >= TPeriod::den, "Maximum allowed precision is nanoseconds");
 		if (time >= std::chrono::seconds(1)) {
 			return nullptr;
+		}
+		if (pos != end) {
+			*pos++ = '.';
 		}
 		auto val = TPeriod::den > std::nano::den ? std::chrono::floor<std::chrono::microseconds>(time).count() : time.count();
 		for (auto div : { 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 })
@@ -256,7 +262,52 @@ namespace BitSerializer::Convert::Detail
 				*pos = static_cast<char>(n) + '0';
 				val -= n * div;
 				++pos;
+				if (!fixedWidth && val == 0) {
+					break;
+				}
 			}
+		}
+		return pos;
+	}
+
+	/// <summary>
+	/// Subtracts and prints time part from passed duration.
+	/// </summary>
+	/// <returns>Pointer to the next character or throws exception when passed buffer is not enough</returns>
+	template <class TPrintDur, class TRep, class TPeriod>
+	char* PrintDurationPart(std::chrono::duration<TRep, TPeriod>& timeLeft, char* pos, char* endPos, char suffix)
+	{
+		constexpr bool isSecondsPart = std::is_same_v<std::chrono::seconds::period, typename TPrintDur::period>;
+		const auto timePart = std::chrono::duration_cast<TPrintDur>(timeLeft);
+		if (timePart.count() || (isSecondsPart && timeLeft.count()))
+		{
+			uint64_t val;
+			if constexpr (std::is_signed_v<TRep>)
+			{
+				constexpr uint64_t maxI64Negative = 9223372036854775808u;
+				val = timePart.count() == LLONG_MIN ? maxI64Negative : static_cast<uint64_t>(std::abs(timePart.count()));
+			}
+			else {
+				val = timePart.count();
+			}
+			const auto rc = std::to_chars(pos, endPos, val);
+			if (rc.ec == std::errc())
+			{
+				pos = rc.ptr;
+				timeLeft -= std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(timePart);
+				// Print fractions only when current part is seconds and source duration is more precise than second
+				if constexpr (isSecondsPart && TPeriod::num == 1 && std::chrono::seconds::period::den < TPeriod::den)
+				{
+					pos = printSecondsFractions(pos, endPos, timeLeft, false);
+					timeLeft = std::chrono::duration < TRep, TPeriod>(0);
+				}
+				if (pos != nullptr && pos != endPos)
+				{
+					*pos++ = suffix;
+					return pos;
+				}
+			}
+			throw std::runtime_error("Internal error: insufficient buffer size");
 		}
 		return pos;
 	}
@@ -285,16 +336,16 @@ namespace BitSerializer::Convert::Detail
 	void To(const tm_ext<TSecondsDur>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out, int minFractionDigits = 3)
 	{
 		char buffer[UtcBufSize];
-		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d.",
+		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d",
 			in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec);
-		auto pos = printSecondFractions(buffer + outSize, buffer + UtcBufSize, in.secFractions);
+		auto pos = printSecondsFractions(buffer + outSize, buffer + UtcBufSize, in.secFractions);
 		if (outSize <= 0 || pos == nullptr) {
 			throw std::runtime_error("Unknown error");
 		}
 		if (in.tm_year >= 10000) {
 			out.push_back('+');
 		}
-		out.append(static_cast<const char*>(buffer), pos);
+		out.append(buffer, pos);
 		out.push_back('Z');
 	}
 
@@ -426,18 +477,21 @@ namespace BitSerializer::Convert::Detail
 		auto const d = doy - (153 * mp + 2) / 5 + 1;							// [1, 31]
 		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
 
-		tm_ext < std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
+		tm_ext<std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
 		utc.tm_year = static_cast<int>(y) + (m <= 2);
 		utc.tm_mon = static_cast<int>(m);
 		utc.tm_mday = static_cast<int>(d);
 		utc.tm_hour = static_cast<int>(timeInSec / 3600);
 		utc.tm_min = timeInSec % 3600 / 60;
 		utc.tm_sec = timeInSec % 60;
-		if (utc.secFractions = timePart - std::chrono::seconds(timeInSec); utc.secFractions.count() != 0) {
+		// Print fractions if time is based on a duration that's more precise than seconds
+		if constexpr (TDuration::period::num == 1 && std::chrono::seconds::period::den < TDuration::period::den)
+		{
+			utc.secFractions = timePart - std::chrono::seconds(timeInSec);
 			To(utc, out);
 		}
 		else {
-			To(static_cast<tm&>(utc), out);		// Print without 'ms' part
+			To(static_cast<tm&>(utc), out);
 		}
 	}
 
@@ -490,46 +544,35 @@ namespace BitSerializer::Convert::Detail
 			return;
 		}
 
-		const auto printTimePart = [](auto time, char type, std::string& outStr)
-		{
-			if (time.count())
-			{
-				if constexpr (std::is_signed_v<TRep>)
-				{
-					constexpr uint64_t maxI64Negative = 9223372036854775808u;
-					const uint64_t absTime = time.count() == LLONG_MIN ? maxI64Negative : static_cast<uint64_t>(std::abs(time.count()));
-					outStr.append(std::to_string(absTime));
-				}
-				else {
-					outStr.append(std::to_string(time.count()));
-				}
-				outStr.push_back(type);
-			}
-			return time;
-		};
-
 		using days = std::chrono::duration<TRep, std::ratio<86400>>;
 		using hours = std::chrono::duration<TRep, std::ratio<3600>>;
 		using minutes = std::chrono::duration<TRep, std::ratio<60>>;
 		using seconds = std::chrono::duration<TRep, std::ratio<1>>;
 
-		std::string isoDur(in.count() < 0 ? "-P" : "P");
-		const auto hoursLeft = in - printTimePart(std::chrono::duration_cast<days>(in), 'D', isoDur);
-		if (hoursLeft.count())
-		{
-			isoDur.push_back('T');
-			const auto minutesLeft = hoursLeft - printTimePart(std::chrono::duration_cast<hours>(hoursLeft), 'H', isoDur);
-			const auto secondsLeft = minutesLeft - printTimePart(std::chrono::duration_cast<minutes>(minutesLeft), 'M', isoDur);
-			printTimePart(std::chrono::duration_cast<seconds>(secondsLeft), 'S', isoDur);
+		char buf[UtcBufSize];
+		char* pos = buf;
+		char* end = buf + UtcBufSize;
+		if (in.count() < 0) {
+			*pos++ = '-';
 		}
-		out.append(isoDur.data(), isoDur.data() + isoDur.size());
+		*pos++ = 'P';
+		auto timeLeft = in;
+		pos = PrintDurationPart<days>(timeLeft, pos, end, 'D');
+		if (timeLeft.count())
+		{
+			*pos++ = 'T';
+			pos = PrintDurationPart<hours>(timeLeft, pos, end, 'H');
+			pos = PrintDurationPart<minutes>(timeLeft, pos, end, 'M');
+			pos = PrintDurationPart<seconds>(timeLeft, pos, end, 'S');
+		}
+		out.append(buf, pos);
 	}
 
 	/// <summary>
 	/// Converts from `std::string_view` (ISO 8601/Duration format: PnWnDTnHnMnS) to `std::chrono::duration`.
-	///	Examples of allowed durations: P25DT55M41S, P1W, PT10H20S, -P10DT25M (supported signed durations, but they are no officially defined).
+	///	Examples of allowed durations: P25DT55M41S, P1W, PT10H20S, -P10DT25M (supported signed durations, but they are not officially defined).
 	/// Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
-	///	The decimal fraction of smallest value like "P0.5D" is not supported.
+	///	The decimal fraction supported only for seconds part, maximum 9 digits (enough for values with nanosecond precision).
 	/// </summary>
 	template <typename TSym, typename TRep, typename TPeriod>
 	static void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
@@ -568,30 +611,50 @@ namespace BitSerializer::Convert::Detail
 				if (pos != end && std::isdigit(*pos))
 				{
 					uint64_t value = 0;
-					std::from_chars_result result = std::from_chars(pos, end, value);
+					const std::from_chars_result result = std::from_chars(pos, end, value);
 					if (result.ec == std::errc() && result.ptr != end)
 					{
-						const auto type = *result.ptr++;
+						pos = result.ptr;
+						auto sym = *pos++;
+						if (sym == '.')
+						{
+							// Parse seconds fractions
+							std::chrono::nanoseconds ns(0);
+							pos = ParseSecondFractions(pos, end, ns);
+							if (pos == nullptr) {
+								throw std::invalid_argument("Input ISO duration has invalid fractions of second");
+							}
+							if (pos != end)
+							{
+								sym = *pos++;
+								if (sym != 'S') {
+									throw std::invalid_argument("Input ISO duration has fractions in the non-seconds part");
+								}
+							}
+							duration += std::chrono::round<TTargetDuration>(isNegative ? -ns : ns);
+						}
+
 						const auto origDur = duration;
 						if (isNegative)
 						{
 							constexpr uint64_t maxI64Negative = 9223372036854775808u;
 							if (value <= maxI64Negative)
 							{
-								if ((duration += transformToDuration(-static_cast<int64_t>(value), type, isDatePart)) > origDur) {
+								if ((duration += transformToDuration(-static_cast<int64_t>(value), sym, isDatePart)) > origDur) {
 									throw std::out_of_range("Target type is not enough to store parsed duration");
 								}
-								return result.ptr;
 							}
-							result.ec = std::errc::result_out_of_range;
+							else {
+								throw std::out_of_range("ISO duration contains too big number");
+							}
 						}
 						else
 						{
-							if ((duration += transformToDuration(value, type, isDatePart)) < origDur) {
+							if ((duration += transformToDuration(value, sym, isDatePart)) < origDur) {
 								throw std::out_of_range("Target type is not enough to store parsed duration");
 							}
-							return result.ptr;
 						}
+						return pos;
 					}
 					if (result.ec == std::errc::result_out_of_range) {
 						throw std::out_of_range("ISO duration contains too big number");

@@ -19,6 +19,16 @@ TEST(STD_Chrono, SerializeTimePoint) {
 	TestSerializeType<ArchiveStub>(tp);
 }
 
+TEST(STD_Chrono, SerializeTimePointMaxValues) {
+	using hours_i8 = std::chrono::duration<int8_t, std::ratio<3600>>;
+	using TimePointHoursI8Rep = std::chrono::time_point<std::chrono::system_clock, hours_i8>;
+
+	TestSerializeType<ArchiveStub>(TimePointHoursI8Rep::max());
+	TestSerializeType<ArchiveStub>(TimePointHoursI8Rep::min());
+
+	TestSerializeType<ArchiveStub>(std::chrono::system_clock::time_point::max());
+}
+
 TEST(STD_Chrono, SerializeTimePointAsClassMember) {
 	TestClassWithSubType<std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>> testEntity;
 	TestSerializeClass<ArchiveStub>(testEntity);
@@ -110,8 +120,20 @@ TEST(STD_Chrono, SkipTooBigDateWhenPolicyIsSkip)
 // Tests of serialization for std::chrono::duration
 //-----------------------------------------------------------------------------
 TEST(STD_Chrono, SerializeDuration) {
-	auto tp = BuildFixture<std::chrono::seconds>();
-	TestSerializeType<ArchiveStub>(tp);
+	auto dur = BuildFixture<std::chrono::seconds>();
+	TestSerializeType<ArchiveStub>(dur);
+}
+
+TEST(STD_Chrono, SerializeDurationMaxValues) {
+	using hours_i8 = std::chrono::duration<int8_t, std::ratio<3600>>;
+	TestSerializeType<ArchiveStub>(hours_i8::max());
+	TestSerializeType<ArchiveStub>(hours_i8::min());
+
+	using hours_u8 = std::chrono::duration<uint8_t, std::ratio<3600>>;
+	TestSerializeType<ArchiveStub>(hours_u8::max());
+
+	TestSerializeType<ArchiveStub>(std::chrono::seconds::max());
+	TestSerializeType<ArchiveStub>(std::chrono::seconds::min());
 }
 
 TEST(STD_Chrono, SerializeDurationAsClassMember) {

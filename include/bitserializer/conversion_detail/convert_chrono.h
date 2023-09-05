@@ -48,73 +48,6 @@ namespace BitSerializer::Convert::Detail
 	};
 
 	/// <summary>
-	/// Converts Unix time to UTC expressed in the `tm` structure.
-	/// </summary>
-	static tm UnixTimeToUtc(time_t dateTime) noexcept
-	{
-		// Based on Howard Hinnant's algorithm
-		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
-
-		auto days = dateTime / 86400;
-		const auto time = static_cast<int>(dateTime - days * 86400);
-		if (time < 0) --days;
-
-		auto const z = days + 719468;
-		auto const era = (z >= 0 ? z : z - 146096) / 146097;
-		auto const doe = static_cast<unsigned>(z - era * 146097);				// [0, 146096]
-		auto const yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;	// [0, 399]
-		auto const y = yoe + era * 400;
-		auto const doy = doe - (365 * yoe + yoe / 4 - yoe / 100);				// [0, 365]
-		auto const mp = (5 * doy + 2) / 153;									// [0, 11]
-		auto const d = doy - (153 * mp + 2) / 5 + 1;							// [1, 31]
-		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
-
-		tm utc{};
-		utc.tm_year = static_cast<int>(y) + (m <= 2);
-		utc.tm_mon = static_cast<int>(m);
-		utc.tm_mday = static_cast<int>(d);
-		utc.tm_hour = time / 3600;
-		utc.tm_min = time % 3600 / 60;
-		utc.tm_sec = time % 60;
-		// Adjust time before EPOCH
-		if (time < 0)
-		{
-			if (utc.tm_sec < 0) utc.tm_sec += 60;
-			utc.tm_min += utc.tm_sec == 0 ? 60 : 59;
-			if (utc.tm_min == 60)
-			{
-				utc.tm_min = 0;
-				utc.tm_hour += 24;
-			}
-			else {
-				utc.tm_hour += 23;
-			}
-		}
-		return utc;
-	}
-
-	/// <summary>
-	/// Converts UTC expressed in the `tm` structure to Unix time.
-	/// </summary>
-	static time_t UtcToUnixTime(const tm& utc) noexcept
-	{
-		// Based on Howard Hinnant's algorithm
-		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
-
-		auto const y = static_cast<int>(utc.tm_year) - (utc.tm_mon <= 2);
-		auto const m = static_cast<unsigned>(utc.tm_mon);
-		auto const d = static_cast<unsigned>(utc.tm_mday);
-		auto const era = (y >= 0 ? y : y - 399) / 400;
-		auto const yoe = static_cast<unsigned>(y - era * 400);				// [0, 399]
-		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
-		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
-
-		const auto days = era * 146097 + static_cast<int>(doe) - 719468;
-		const auto time = static_cast<long long>(utc.tm_hour) * 3600 + static_cast<long long>(utc.tm_min) * 60 + utc.tm_sec;
-		return static_cast<long long>(days) * 86400 + time;
-	}
-
-	/// <summary>
 	/// Converts WITHOUT truncation a `std::chrono::duration` to another type of duration.
 	/// </summary>
 	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
@@ -134,7 +67,7 @@ namespace BitSerializer::Convert::Detail
 			if constexpr (TDivRatio::num == 1)
 			{
 				const auto v = static_cast<TTargetRep>(duration.count());
-				if (static_cast<TRep>(v) != duration.count()) {
+				if (duration.count() != static_cast<TRep>(v) || (duration.count() > 0 && v < 0) || (duration.count() < 0 && v > 0)) {
 					throw std::out_of_range("Target duration is not enough");
 				}
 				return TTarget(v);
@@ -142,12 +75,16 @@ namespace BitSerializer::Convert::Detail
 			else
 			{
 				if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
-					static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
+					static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num) 
 				{
 					throw std::out_of_range("Target duration is not enough");
 				}
-				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num));
-				return TTarget(v);
+				const auto v = static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num);
+				const auto t = static_cast<TTargetRep>(v);
+				if (v != static_cast<TOpRep>(t) || (v > 0 && t < 0) || (v < 0 && t > 0)) {
+					throw std::out_of_range("Target duration is not enough");
+				}
+				return TTarget(t);
 			}
 		}
 		else
@@ -188,9 +125,10 @@ namespace BitSerializer::Convert::Detail
 			return;
 		}
 
-		TTargetDuration adaptedDuration{};
+		using TOpDur = std::chrono::duration<std::common_type_t<TSrcRep, typename TTargetDuration::rep, intmax_t>, typename TTargetDuration::period>;
+		TOpDur adaptedDuration{};
 		try {
-			adaptedDuration = SafeDurationCast<TTargetDuration>(duration);
+			adaptedDuration = SafeDurationCast<TOpDur>(duration);
 		}
 		catch (const std::out_of_range&) {
 			throw std::out_of_range("Target timepoint range is not enough");
@@ -203,6 +141,26 @@ namespace BitSerializer::Convert::Detail
 
 		const auto newTp = tp + adaptedDuration;
 		tp = std::chrono::time_point<TTargetClock, TTargetDuration>(newTp);
+	}
+
+	/// <summary>
+	/// Adds two `std::chrono::duration` WITHOUT truncation.
+	/// </summary>
+	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	template <class TTargetRep, class TTargetPeriod, class TSrcRep, class TSrcPeriod>
+	void SafeAddDuration(std::chrono::duration<TTargetRep, TTargetPeriod>& target, const std::chrono::duration<TSrcRep, TSrcPeriod>& src)
+	{
+		if (src.count() == 0) {
+			return;
+		}
+
+		using TTargetDuration = std::chrono::duration<TSrcRep, TSrcPeriod>;
+		auto adaptedDuration = SafeDurationCast<TTargetDuration>(src);
+		if ((adaptedDuration.count() > 0 && target > TTargetDuration::max() - adaptedDuration) ||
+			(adaptedDuration.count() < 0 && target < TTargetDuration::min() - adaptedDuration)) {
+			throw std::out_of_range("Target duration is not enough");
+		}
+		target += adaptedDuration;
 	}
 
 	/// <summary>
@@ -219,6 +177,7 @@ namespace BitSerializer::Convert::Detail
 		if (result.ec == std::errc())
 		{
 			if (value == 0) {
+				outTime = std::chrono::duration<TTargetRep, TTargetPeriod>(0);
 				return result.ptr;
 			}
 			const size_t digits = result.ptr - pos;
@@ -240,7 +199,7 @@ namespace BitSerializer::Convert::Detail
 	/// </summary>
 	/// <returns>Pointer to next character or nullptr when failed (in case when passed buffer is not enough)</returns>
 	template <class TRep, class TPeriod>
-	char* printSecondsFractions(char* pos, char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
+	char* PrintSecondsFractions(char* pos, char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
 	{
 		static_assert(TPeriod::num == 1 && std::chrono::seconds::period::den < TPeriod::den, "Source duration must be more precise than a second");
 		static_assert(std::chrono::nanoseconds::period::den >= TPeriod::den, "Maximum allowed precision is nanoseconds");
@@ -298,7 +257,7 @@ namespace BitSerializer::Convert::Detail
 				// Print fractions only when current part is seconds and source duration is more precise than second
 				if constexpr (isSecondsPart && TPeriod::num == 1 && std::chrono::seconds::period::den < TPeriod::den)
 				{
-					pos = printSecondsFractions(pos, endPos, timeLeft, false);
+					pos = PrintSecondsFractions(pos, endPos, timeLeft, false);
 					timeLeft = std::chrono::duration < TRep, TPeriod>(0);
 				}
 				if (pos != nullptr && pos != endPos)
@@ -333,12 +292,12 @@ namespace BitSerializer::Convert::Detail
 	/// Converts UTC expressed in the `tm_ext` structure (includes ms) to `std::string` (ISO 8601/UTC).
 	/// </summary>
 	template <typename TSym, typename TAllocator, typename TSecondsDur>
-	void To(const tm_ext<TSecondsDur>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out, int minFractionDigits = 3)
+	void To(const tm_ext<TSecondsDur>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		char buffer[UtcBufSize];
 		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d",
 			in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec);
-		auto pos = printSecondsFractions(buffer + outSize, buffer + UtcBufSize, in.secFractions);
+		auto pos = PrintSecondsFractions(buffer + outSize, buffer + UtcBufSize, in.secFractions);
 		if (outSize <= 0 || pos == nullptr) {
 			throw std::runtime_error("Unknown error");
 		}
@@ -432,27 +391,6 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
-	/// Converts Unix time in the `CRawTime` to `std::string` (ISO 8601/UTC).
-	/// </summary>
-	template <typename TSym, typename TAllocator>
-	void To(const CRawTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
-	{
-		const tm utc = UnixTimeToUtc(in.Time);
-		To(utc, out);
-	}
-
-	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `CRawTime`.
-	/// </summary>
-	template <typename TSym>
-	void To(std::basic_string_view<TSym> in, CRawTime& out)
-	{
-		tm tm{};
-		To(in, tm);
-		out.Time = UtcToUnixTime(tm);
-	}
-
-	/// <summary>
 	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
 	///	Fractions of second will be rendered only when they present (non-zero).
 	/// </summary>
@@ -528,9 +466,31 @@ namespace BitSerializer::Convert::Detail
 
 		std::chrono::time_point<TClock, TDuration> tp;
 		SafeAddDuration(tp, std::chrono::seconds(time));
+		// Only seconds fractions can be rounded to target timepoint type
 		SafeAddDuration(tp, std::chrono::round<TDuration>(tmExt.secFractions));
 		SafeAddDuration(tp, std::chrono::duration<int64_t, std::ratio<86400>>(days));
 		out = tp;
+	}
+
+	/// <summary>
+	/// Converts Unix time in the `CRawTime` to `std::string` (ISO 8601/UTC).
+	/// </summary>
+	template <typename TSym, typename TAllocator>
+	void To(const CRawTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		const std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp(std::chrono::seconds(in.Time));
+		To(tp, out);
+	}
+
+	/// <summary>
+	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `CRawTime`.
+	/// </summary>
+	template <typename TSym>
+	void To(std::basic_string_view<TSym> in, CRawTime& out)
+	{
+		std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp;
+		To(in, tp);
+		out.Time = tp.time_since_epoch().count();
 	}
 
 	/// <summary>
@@ -570,9 +530,9 @@ namespace BitSerializer::Convert::Detail
 
 	/// <summary>
 	/// Converts from `std::string_view` (ISO 8601/Duration format: PnWnDTnHnMnS) to `std::chrono::duration`.
-	///	Examples of allowed durations: P25DT55M41S, P1W, PT10H20S, -P10DT25M (supported signed durations, but they are not officially defined).
+	///	Examples of allowed durations: P25DT55M41S, P1W, PT10H20.346S, -P10DT25M (supported signed durations, but they are no officially defined).
 	/// Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
-	///	The decimal fraction supported only for seconds part, maximum 9 digits (enough for values with nanosecond precision).
+	///	The decimal fraction supported only for seconds part, maximum 9 digits.
 	/// </summary>
 	template <typename TSym, typename TRep, typename TPeriod>
 	static void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
@@ -631,28 +591,21 @@ namespace BitSerializer::Convert::Detail
 									throw std::invalid_argument("Input ISO duration has fractions in the non-seconds part");
 								}
 							}
-							duration += std::chrono::round<TTargetDuration>(isNegative ? -ns : ns);
+							SafeAddDuration(duration, std::chrono::round<TTargetDuration>(isNegative ? -ns : ns));
 						}
 
-						const auto origDur = duration;
 						if (isNegative)
 						{
 							constexpr uint64_t maxI64Negative = 9223372036854775808u;
-							if (value <= maxI64Negative)
-							{
-								if ((duration += transformToDuration(-static_cast<int64_t>(value), sym, isDatePart)) > origDur) {
-									throw std::out_of_range("Target type is not enough to store parsed duration");
-								}
+							if (value <= maxI64Negative) {
+								SafeAddDuration(duration, transformToDuration(-static_cast<int64_t>(value), sym, isDatePart));
 							}
 							else {
 								throw std::out_of_range("ISO duration contains too big number");
 							}
 						}
-						else
-						{
-							if ((duration += transformToDuration(value, sym, isDatePart)) < origDur) {
-								throw std::out_of_range("Target type is not enough to store parsed duration");
-							}
+						else {
+							SafeAddDuration(duration, transformToDuration(value, sym, isDatePart));
 						}
 						return pos;
 					}

@@ -137,6 +137,11 @@ TEST(ConvertChrono, ConvertUtcStringToTimePointWithRoundingFromNano) {
 }
 
 TEST(ConvertChrono, ConvertUtcStringToTimePointMaxValues) {
+	using hours_i8 = duration<int8_t, std::ratio<3600>>;
+	using TimePointHoursI8Rep = time_point<system_clock, hours_i8>;
+	EXPECT_EQ(TimePointHoursI8Rep::max(), Convert::To<TimePointHoursI8Rep>("1970-01-06T07:00:00Z"));
+	EXPECT_EQ(TimePointHoursI8Rep::min(), Convert::To<TimePointHoursI8Rep>("1969-12-26T16:00:00Z"));
+
 	using days_i32 = duration<int32_t, std::ratio<86400>>;
 	using TimePointDaysI32Rep = time_point<system_clock, days_i32>;
 	EXPECT_EQ(TimePointDaysI32Rep::max(), Convert::To<TimePointDaysI32Rep>("+5881580-07-11T00:00:00Z"));
@@ -145,6 +150,9 @@ TEST(ConvertChrono, ConvertUtcStringToTimePointMaxValues) {
 	using days_u32 = duration<uint32_t, std::ratio<86400>>;
 	using TimePointDaysU32Rep = time_point<system_clock, days_u32>;
 	EXPECT_EQ(TimePointDaysU32Rep::max(), Convert::To<TimePointDaysU32Rep>("+11761191-01-20T00:00:00Z"));
+
+	using TimePointNano = time_point<system_clock, nanoseconds>;
+	EXPECT_EQ(TimePointNano::max(), Convert::To<TimePointNano>("2262-04-11T23:47:16.854775807Z"));
 }
 
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidDelimiters) {
@@ -197,6 +205,18 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
 	using TimePointDaysI32Rep = time_point<system_clock, days_i32>;
 	EXPECT_THROW(Convert::To<TimePointDaysI32Rep>("+5881580-07-12T00:00:00Z"), std::out_of_range);
 	EXPECT_THROW(Convert::To<TimePointDaysI32Rep>("-5877641-06-22T00:00:00Z"), std::out_of_range);
+}
+
+TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenNotEnoughPrecision) {
+	using days = duration<int64_t, std::ratio<86400>>;
+	using TimePointDays = time_point<system_clock, days>;
+	EXPECT_THROW(Convert::To<TimePointDays>("2023-09-01T01:00:00Z"), std::out_of_range);
+
+	using TimePointHours = time_point<system_clock, hours>;
+	EXPECT_THROW(Convert::To<TimePointHours>("2023-09-01T00:01:00Z"), std::out_of_range);
+
+	using TimePointMinutes = time_point<system_clock, minutes>;
+	EXPECT_THROW(Convert::To<TimePointMinutes>("2023-09-01T00:00:01Z"), std::out_of_range);
 }
 
 //-----------------------------------------------------------------------------
@@ -409,6 +429,9 @@ TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenEmpty) {
 TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenOverflow) {
 	using ms_i16 = duration<int16_t, std::milli>;
 	EXPECT_THROW(Convert::To<ms_i16>("PT33S"), std::out_of_range);
+	EXPECT_THROW(Convert::To<ms_i16>("-PT33S"), std::out_of_range);
+	EXPECT_THROW(Convert::To<ms_i16>("PT32.768S"), std::out_of_range);
+	EXPECT_THROW(Convert::To<ms_i16>("-PT32.769S"), std::out_of_range);
 
 	using minutes_i8 = duration<int8_t, std::ratio<60>>;
 	EXPECT_THROW(Convert::To<minutes_i8>("PT128M"), std::out_of_range);

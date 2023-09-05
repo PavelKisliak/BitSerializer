@@ -662,11 +662,13 @@ Time point notes:
 - Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
 - According to the C++20 standard, the EPOCH date for `system_clock` types is considered as *1970-01-01 00:00:00 UTC* excluding leap seconds.
 - For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
+- Allowed rounding only fractions of seconds, in all other cases an exception is thrown (according to `OverflowNumberPolicy`).
 
 Duration notes:
 - Supported signed durations, but they are not officially defined.
 - Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
 - The decimal fraction supported only for seconds part, maximum 9 digits.
+- Allowed rounding only fractions of seconds, in all other cases an exception is thrown (according to `OverflowNumberPolicy`).
 
 Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CTimeRef`, otherwise time will be serialized as number.
 ```cpp

@@ -9,6 +9,7 @@
 #include <climits>
 #include <chrono>
 #include <charconv>
+#include <optional>
 #include "convert_utf.h"
 
 
@@ -37,14 +38,23 @@ namespace BitSerializer::Convert::Detail
 	constexpr size_t UtcBufSize = 32;
 	static constexpr int DaysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-	template <typename TDuration = std::chrono::nanoseconds,
-		std::enable_if_t<TDuration::period::num == 1 && std::chrono::seconds::period::den < TDuration::period::den, int> = 0>
-	struct tm_ext : tm
+	template <class TFractions = std::chrono::nanoseconds,
+		std::enable_if_t<TFractions::period::num == 1 && std::chrono::seconds::period::den < TFractions::period::den, int> = 0>
+	struct CDateTimeParts
 	{
-		tm_ext() : tm() { }
-		tm_ext(tm inTm, TDuration inSecFractions) : tm(inTm), secFractions(inSecFractions) { }
+		CDateTimeParts() = default;
+		CDateTimeParts(const tm& tm, std::optional<TFractions> secFractions = std::nullopt)
+			: Year(tm.tm_year), Month(tm.tm_mon), Day(tm.tm_mday), Hour(tm.tm_hour)
+			, Min(tm.tm_min), Sec(tm.tm_sec), SecFractions(secFractions)
+		{ }
 
-		TDuration secFractions{};
+		int64_t Year = 0;
+		int Month = 1;
+		int Day = 1;
+		int Hour = 1;
+		int Min = 1;
+		int Sec = 1;
+		std::optional<TFractions> SecFractions;
 	};
 
 	/// <summary>
@@ -176,7 +186,8 @@ namespace BitSerializer::Convert::Detail
 		const std::from_chars_result result = std::from_chars(pos, endPos, value);
 		if (result.ec == std::errc())
 		{
-			if (value == 0) {
+			if (value == 0)
+			{
 				outTime = std::chrono::duration<TTargetRep, TTargetPeriod>(0);
 				return result.ptr;
 			}
@@ -272,52 +283,14 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/// <summary>
-	/// Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
+	/// Parses ISO 8601/UTC datetime in the format: YYYY-MM-DDThh:mm:ss[.SSS]Z
 	/// </summary>
-	template <typename TSym, typename TAllocator>
-	void To(const tm& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
-	{
-		char buffer[UtcBufSize];
-		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02dZ", in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec);
-		if (outSize <= 0) {
-			throw std::runtime_error("Unknown error");
-		}
-		if (in.tm_year >= 10000) {
-			out.push_back('+');
-		}
-		out.append(buffer, buffer + outSize);
-	}
-
-	/// <summary>
-	/// Converts UTC expressed in the `tm_ext` structure (includes ms) to `std::string` (ISO 8601/UTC).
-	/// </summary>
-	template <typename TSym, typename TAllocator, typename TSecondsDur>
-	void To(const tm_ext<TSecondsDur>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
-	{
-		char buffer[UtcBufSize];
-		const size_t outSize = snprintf(buffer, UtcBufSize, "%04d-%02d-%02dT%02d:%02d:%02d",
-			in.tm_year, in.tm_mon, in.tm_mday, in.tm_hour, in.tm_min, in.tm_sec);
-		auto pos = PrintSecondsFractions(buffer + outSize, buffer + UtcBufSize, in.secFractions);
-		if (outSize <= 0 || pos == nullptr) {
-			throw std::runtime_error("Unknown error");
-		}
-		if (in.tm_year >= 10000) {
-			out.push_back('+');
-		}
-		out.append(buffer, pos);
-		out.push_back('Z');
-	}
-
-	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z)) to `tm_ext` structure (includes ms).
-	///	Fractions of second are optional, supported up to 9 digits.
-	/// </summary>
-	template <typename TSym, typename TSecondsDur>
-	static void To(std::basic_string_view<TSym> in, tm_ext<TSecondsDur>& out)
+	template <typename TSym>
+	static CDateTimeParts<> ParseIsoUtc(std::basic_string_view<TSym> in)
 	{
 		auto parseDatetime = [](const char* pos, const char* end)
 		{
-			auto parseDatetimePart = [](const char* buf, const char* end, int& outValue, int maxValue = 0, char delimiter = 0, bool isYear = false) -> const char*
+			auto parseDatetimePart = [](const char* buf, const char* end, auto& outValue, std::optional<int> minValue = std::nullopt, std::optional<int> maxValue = std::nullopt, char delimiter = 0, bool isYear = false) -> const char*
 			{
 				if (buf != end && (std::isdigit(*buf) || isYear))
 				{
@@ -327,7 +300,7 @@ namespace BitSerializer::Convert::Detail
 					const std::from_chars_result result = std::from_chars(buf, end, outValue);
 					if (result.ec == std::errc())
 					{
-						if (maxValue && outValue > maxValue) {
+						if ((minValue && outValue < minValue) || (maxValue && outValue > maxValue)) {
 							throw std::invalid_argument("Input datetime contains out-of-bounds values");
 						}
 						if (delimiter)
@@ -347,19 +320,21 @@ namespace BitSerializer::Convert::Detail
 				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
 			};
 
-			tm_ext utc{};
-			pos = parseDatetimePart(pos, end, utc.tm_year, 0, '-', true);
-			pos = parseDatetimePart(pos, end, utc.tm_mon, 12, '-');
-			pos = parseDatetimePart(pos, end, utc.tm_mday, DaysInMonth[utc.tm_mon - 1], 'T');
-			pos = parseDatetimePart(pos, end, utc.tm_hour, 23, ':');
-			pos = parseDatetimePart(pos, end, utc.tm_min, 59, ':');
-			pos = parseDatetimePart(pos, end, utc.tm_sec, 59);
+			CDateTimeParts utc{};
+			pos = parseDatetimePart(pos, end, utc.Year, std::nullopt, std::nullopt, '-', true);
+			pos = parseDatetimePart(pos, end, utc.Month, 1, 12, '-');
+			pos = parseDatetimePart(pos, end, utc.Day, 1, DaysInMonth[utc.Month - 1], 'T');
+			pos = parseDatetimePart(pos, end, utc.Hour, 0, 23, ':');
+			pos = parseDatetimePart(pos, end, utc.Min, 0, 59, ':');
+			pos = parseDatetimePart(pos, end, utc.Sec, 0, 59);
 			// Parse optional fractions of second
 			if (pos != end && *pos == '.')
 			{
-				if (pos = ParseSecondFractions(++pos, end, utc.secFractions); pos == nullptr) {
+				std::chrono::nanoseconds ns(0);
+				if (pos = ParseSecondFractions(++pos, end, ns); pos == nullptr) {
 					throw std::invalid_argument("Input ISO datetime has invalid fractions of second");
 				}
+				utc.SecFractions = ns;
 			}
 			// Should have 'Z' at the end of UTC datetime
 			if (pos == end || *pos != 'Z') {
@@ -369,14 +344,55 @@ namespace BitSerializer::Convert::Detail
 		};
 
 		if constexpr (sizeof(TSym) == sizeof(char)) {
-			out = parseDatetime(in.data(), in.data() + in.size());
+			return parseDatetime(in.data(), in.data() + in.size());
 		}
 		else
 		{
 			std::string utf8Str;
 			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
-			out = parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
+			return parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
 		}
+	}
+
+	/// <summary>
+	/// Prints calendar date and time in the ISO 8601/UTC to target buffer.
+	/// </summary>
+	/// <returns>Pointer to next character or throws exception when passed buffer is not enough</returns>
+	template <class TFractions>
+	char* PrintIsoUtc(const CDateTimeParts<TFractions>& utc, char* pos, char* endPos)
+	{
+		if (pos != endPos)
+		{
+			if (utc.Year >= 10000) {
+				*pos++ = '+';
+			}
+			const size_t outSize = snprintf(pos, endPos - pos, "%04lli-%02d-%02dT%02d:%02d:%02d", utc.Year, utc.Month, utc.Day, utc.Hour, utc.Min, utc.Sec);
+			if (outSize > 0)
+			{
+				pos += outSize;
+				if (utc.SecFractions) {
+					pos = PrintSecondsFractions(pos, endPos, utc.SecFractions.value());
+				}
+				if (pos != endPos)
+				{
+					*pos++ = 'Z';
+					return pos;
+				}
+			}
+		}
+		throw std::runtime_error("Internal error: insufficient buffer size");
+	}
+
+	/// <summary>
+	/// Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
+	/// </summary>
+	template <typename TSym, typename TAllocator>
+	void To(const tm& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		const CDateTimeParts<> utc(in);
+		char buf[UtcBufSize];
+		char* pos = PrintIsoUtc(utc, buf, buf + sizeof(buf));
+		out.append(buf, pos);
 	}
 
 	/// <summary>
@@ -385,9 +401,17 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, tm& out)
 	{
-		tm_ext tmExt;
-		To(in, tmExt);
-		out = static_cast<tm>(tmExt);	// Ignore 'ms' part
+		const CDateTimeParts<> utc = ParseIsoUtc(in);
+		if (utc.Year > std::numeric_limits<int>::max() || utc.Year < std::numeric_limits<int>::min()) {
+			throw std::out_of_range("The target range of years in the `tm` structure is not sufficient");
+		}
+		out.tm_year = static_cast<int>(utc.Year);
+		out.tm_mon = utc.Month;
+		out.tm_mday = utc.Day;
+		out.tm_hour = utc.Hour;
+		out.tm_min = utc.Min;
+		out.tm_sec = utc.Sec;
+		out.tm_yday = out.tm_isdst = 0;
 	}
 
 	/// <summary>
@@ -415,22 +439,20 @@ namespace BitSerializer::Convert::Detail
 		auto const d = doy - (153 * mp + 2) / 5 + 1;							// [1, 31]
 		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
 
-		tm_ext<std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
-		utc.tm_year = static_cast<int>(y) + (m <= 2);
-		utc.tm_mon = static_cast<int>(m);
-		utc.tm_mday = static_cast<int>(d);
-		utc.tm_hour = static_cast<int>(timeInSec / 3600);
-		utc.tm_min = timeInSec % 3600 / 60;
-		utc.tm_sec = timeInSec % 60;
+		CDateTimeParts<std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
+		utc.Year = y + (m <= 2);
+		utc.Month = static_cast<int>(m);
+		utc.Day = static_cast<int>(d);
+		utc.Hour = static_cast<int>(timeInSec / 3600);
+		utc.Min = timeInSec % 3600 / 60;
+		utc.Sec = timeInSec % 60;
 		// Print fractions if time is based on a duration that's more precise than seconds
-		if constexpr (TDuration::period::num == 1 && std::chrono::seconds::period::den < TDuration::period::den)
-		{
-			utc.secFractions = timePart - std::chrono::seconds(timeInSec);
-			To(utc, out);
+		if constexpr (TDuration::period::num == 1 && std::chrono::seconds::period::den < TDuration::period::den) {
+			utc.SecFractions = timePart - std::chrono::seconds(timeInSec);
 		}
-		else {
-			To(static_cast<tm&>(utc), out);
-		}
+		char buf[UtcBufSize];
+		char* pos = PrintIsoUtc(utc, buf, buf + sizeof(buf));
+		out.append(buf, pos);
 	}
 
 	/// <summary>
@@ -443,14 +465,13 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
-		tm_ext tmExt;
-		To(in, tmExt);
+		const CDateTimeParts<> utc = ParseIsoUtc(in);
 
 		// Based on Howard Hinnant's algorithm
 		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
-		auto const y = tmExt.tm_year - (tmExt.tm_mon <= 2);
-		auto const m = static_cast<unsigned>(tmExt.tm_mon);
-		auto const d = static_cast<unsigned>(tmExt.tm_mday);
+		auto const y = utc.Year - (utc.Month <= 2);
+		auto const m = static_cast<unsigned>(utc.Month);
+		auto const d = static_cast<unsigned>(utc.Day);
 		auto const era = (y >= 0 ? y : y - 399) / 400;
 		auto const yoe = static_cast<unsigned>(y - era * 400);				// [0, 399]
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
@@ -462,12 +483,14 @@ namespace BitSerializer::Convert::Detail
 			throw std::out_of_range("Target duration is not enough");
 		}
 		const int64_t days = era * 146097ll + (static_cast<int>(doe) - 719468);
-		const auto time = static_cast<long long>(tmExt.tm_hour) * 3600 + static_cast<long long>(tmExt.tm_min) * 60 + tmExt.tm_sec;
+		const auto time = static_cast<long long>(utc.Hour) * 3600 + static_cast<long long>(utc.Min) * 60 + utc.Sec;
 
 		std::chrono::time_point<TClock, TDuration> tp;
 		SafeAddDuration(tp, std::chrono::seconds(time));
-		// Only seconds fractions can be rounded to target timepoint type
-		SafeAddDuration(tp, std::chrono::round<TDuration>(tmExt.secFractions));
+		if (utc.SecFractions) {
+			// Only seconds fractions can be rounded to target timepoint type
+			SafeAddDuration(tp, std::chrono::round<TDuration>(utc.SecFractions.value()));
+		}
 		SafeAddDuration(tp, std::chrono::duration<int64_t, std::ratio<86400>>(days));
 		out = tp;
 	}

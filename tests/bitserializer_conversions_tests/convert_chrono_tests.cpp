@@ -174,7 +174,9 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenExtraMinus) {
 
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidDate) {
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-13-01T00:00:00Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-00-01T00:00:00Z"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-32T00:00:00Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<TimePointMs>("1970-01-00T00:00:00Z"), std::invalid_argument);
 }
 
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenInvalidTime) {
@@ -205,6 +207,9 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
 	using TimePointDaysI32Rep = time_point<system_clock, days_i32>;
 	EXPECT_THROW(Convert::To<TimePointDaysI32Rep>("+5881580-07-12T00:00:00Z"), std::out_of_range);
 	EXPECT_THROW(Convert::To<TimePointDaysI32Rep>("-5877641-06-22T00:00:00Z"), std::out_of_range);
+
+	EXPECT_THROW(Convert::To<TimePointSec>("+292277026596-12-04T15:30:08Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<TimePointSec>("-292277022657-01-27T08:29:51Z"), std::out_of_range);
 }
 
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenNotEnoughPrecision) {
@@ -503,4 +508,55 @@ TEST(ConvertChrono, ConvertUtcBeforeEpochStringToCTime) {
 
 TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenEmpty) {
 	EXPECT_THROW(Convert::To<CRawTime>(""), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenOverflow) {
+	EXPECT_THROW(Convert::To<CRawTime>("+292277026596-12-04T15:30:08Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<CRawTime>("-292277022657-01-27T08:29:51Z"), std::out_of_range);
+}
+
+//-----------------------------------------------------------------------------
+// Test conversion from `tm` structure to std::string
+//-----------------------------------------------------------------------------
+TEST(ConvertChrono, ConvertTmToUtcString)
+{
+	std::tm tm{};
+	tm.tm_year = 2023;
+	tm.tm_mon = 9;
+	tm.tm_mday = 5;
+	tm.tm_hour = 22;
+	tm.tm_min = 59;
+	tm.tm_sec = 35;
+	EXPECT_EQ("2023-09-05T22:59:35Z", Convert::ToString(tm));
+}
+
+//-----------------------------------------------------------------------------
+// Test conversion from std::string to `tm` structure
+//-----------------------------------------------------------------------------
+TEST(ConvertChrono, ConvertUtcStringToTm)
+{
+	const auto tm = Convert::To<std::tm>("2023-09-05T22:59:35Z");
+	EXPECT_EQ(2023, tm.tm_year);
+	EXPECT_EQ(9, tm.tm_mon);
+	EXPECT_EQ(5, tm.tm_mday);
+	EXPECT_EQ(22, tm.tm_hour);
+	EXPECT_EQ(59, tm.tm_min);
+	EXPECT_EQ(35, tm.tm_sec);
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTmShouldThrowExceptionWhenInvalidDate) {
+	EXPECT_THROW(Convert::To<tm>("2015-00-04T00:00:00Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<tm>("2015-00-00T00:00:00Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<tm>("2015-31-04T00:00:00Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<tm>("2015-12-32T00:00:00Z"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTmShouldThrowExceptionWhenInvalidTime) {
+	EXPECT_THROW(Convert::To<tm>("2015-12-04T24:30:07Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<tm>("2015-12-04T15:60:07Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<tm>("2015-12-04T15:30:60Z"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTmShouldThrowExceptionWhenOverflow) {
+	EXPECT_THROW(Convert::To<tm>("+2147483648-12-04T15:30:07Z"), std::out_of_range);
 }

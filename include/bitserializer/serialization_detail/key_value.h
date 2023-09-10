@@ -5,7 +5,6 @@
 #pragma once
 #include <tuple>
 #include <utility>
-#include <optional>
 #include "serialization_context.h"
 
 namespace BitSerializer {
@@ -22,6 +21,9 @@ protected:
 	std::tuple<Validators...> mValidators;
 
 public:
+	using value_type = TValue;
+	using key_type = TKey;
+
 	explicit KeyValue(TKey&& key, TValue&& value, const Validators&... validators)
 		: mKey(key)
 		, mValue(value)
@@ -38,44 +40,14 @@ public:
 	[[nodiscard]] TValue GetValue() const noexcept		{ return mValue; }
 
 	/// <summary>
-	/// Validates deserialized value.
+	/// Applies the passed visitor to all extra arguments (which currently can be only validators).
 	/// </summary>
-	/// <param name="isLoaded">if set to <c>true</c> [is loaded].</param>
-	[[nodiscard]] std::optional<ValidationErrors> ValidateValue(const bool isLoaded) const
+	template <typename TVisitor>
+	void VisitArgs(TVisitor visitor)
 	{
-		if constexpr (sizeof...(Validators) == 0)
-			return std::nullopt;
-
-		std::optional<ValidationErrors> validationResult;
-		ValidateValueImpl(isLoaded, validationResult);
-		return validationResult;
-	}
-
-private:
-	template<std::size_t I = 0>
-	void ValidateValueImpl(bool isLoaded, std::optional<ValidationErrors>& validationResult) const
-	{
-		if constexpr (I == sizeof...(Validators))
-			return;
-		else
-		{
-			constexpr auto isValidator = is_validator_v<std::tuple_element_t<I, std::tuple<Validators...>>, TValue>;
-			if constexpr (isValidator)
-			{
-				decltype(auto) validator = std::get<I>(mValidators);
-				auto result = validator(GetValue(), isLoaded);
-				if (result.has_value())
-				{
-					if (!validationResult.has_value())
-						validationResult = ValidationErrors();
-					validationResult->emplace_back(std::move(*result));
-				}
-				ValidateValueImpl<I + 1>(isLoaded, validationResult);
-			}
-			else {
-				static_assert(isValidator, "BitSerializer. The provided validator does not match the required signature.");
-			}
-		}
+		std::apply([&visitor](auto&& ...args) {
+			(visitor(args), ...);
+		}, mValidators);
 	}
 };
 
@@ -128,4 +100,4 @@ constexpr AutoKeyValue<TKey, TValue, Validators...> MakeAutoKeyValue(TKey&& key,
 	return AutoKeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
 }
 
-}	// namespace BitSerializer
+}

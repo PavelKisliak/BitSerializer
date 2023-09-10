@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -29,12 +29,21 @@ namespace BitSerializer::KeyValueProxy
 			// Validation when loading
 			if constexpr (TArchive::IsLoading())
 			{
-				auto validationResult = keyValue.ValidateValue(result);
-				if (validationResult.has_value())
+				keyValue.VisitArgs([result, &keyValue, &archive](auto& handler)
 				{
-					auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
-					archive.GetContext().AddValidationErrors(std::move(path), std::move(*validationResult));
-				}
+					using Type = std::decay_t<decltype(handler)>;
+					constexpr auto isValidator = is_validator_v<Type, TValue>;
+					static_assert(isValidator, "Unknown signature of passed KeyValue argument");
+
+					if constexpr (isValidator)
+					{
+						if (auto validationError = handler(keyValue.GetValue(), result))
+						{
+							auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
+							archive.GetContext().AddValidationError(std::move(path), std::move(*validationError));
+						}
+					}
+				});
 			}
 		}
 	}

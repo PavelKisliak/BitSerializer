@@ -22,13 +22,13 @@ namespace BitSerializer
 			return mSerializationOptions;
 		}
 
-		void AddValidationErrors(std::string path, ValidationErrors validationList)
+		void AddValidationError(std::string path, std::string errorMsg)
 		{
 			if (const auto it = mErrorsMap.find(path); it == mErrorsMap.end()) {
-				mErrorsMap.emplace(std::move(path), std::move(validationList));
+				mErrorsMap.emplace(std::move(path), ValidationErrors{ std::move(errorMsg) });
 			}
 			else {
-				std::move(validationList.begin(), validationList.end(), std::back_inserter(it->second));
+				it->second.push_back(std::move(errorMsg));
 			}
 		}
 

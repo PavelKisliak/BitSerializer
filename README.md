@@ -625,7 +625,7 @@ Below is a more complex example, where loading a vector of maps from JSON.
 Code:
 ```cpp
 std::vector<std::map<std::string, int>> testVectorOfMaps;
-const std::string inputJson = "[{\"One\":1,\"Three\":3,\"Two\":2},{\"Five\":5,\"Four\":4}]";
+const std::string inputJson = R"([{"One":1,"Three":3,"Two":2},{"Five":5,"Four":4}])";
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
@@ -657,6 +657,7 @@ The following table contains all supported types with examples of string represe
 Time point notes:
 - Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).
 - ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports up to 9 digits, which is enough for values with nanosecond precision.
+- Both decimal separators (dot and comma) are supported for fractions of a second.
 - According to standard, to represent years before 0000 or after 9999 uses additional '-' or '+' sign.
 - The dates range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
 - Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
@@ -668,6 +669,7 @@ Duration notes:
 - Supported signed durations, but they are not officially defined.
 - Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
 - The decimal fraction supported only for seconds part, maximum 9 digits.
+- Both decimal separators (dot and comma) are supported for fractions of a second.
 - Allowed rounding only fractions of seconds, in all other cases an exception is thrown (according to `OverflowNumberPolicy`).
 
 Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CTimeRef`, otherwise time will be serialized as number.

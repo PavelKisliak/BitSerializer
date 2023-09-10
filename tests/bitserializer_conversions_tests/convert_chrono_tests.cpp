@@ -96,8 +96,10 @@ TEST(ConvertChrono, ConvertUtcStringToTimePoint) {
 }
 
 TEST(ConvertChrono, ConvertUtcStringWithMsToTimePoint) {
-	EXPECT_EQ(tp1677_09_21T00_12_44, Convert::To<TimePointMs>("1677-09-21T00:12:44.000Z"));
-	EXPECT_EQ(tp1677_09_21T00_12_44 + 999ms, Convert::To<TimePointMs>("1677-09-21T00:12:44.999Z"));
+	// With comma as decimal separator
+	EXPECT_EQ(tp1677_09_21T00_12_44, Convert::To<TimePointMs>("1677-09-21T00:12:44,000Z"));
+	EXPECT_EQ(tp1677_09_21T00_12_44 + 999ms, Convert::To<TimePointMs>("1677-09-21T00:12:44,999Z"));
+	// With dot as decimal separator
 	EXPECT_EQ(tp1872_01_01T00_00_00 + 1ms, Convert::To<TimePointMs>("1872-01-01T00:00:00.001Z"));
 	EXPECT_EQ(tp1968_12_31T23_59_59 + 567ms, Convert::To<TimePointMs>("1968-12-31T23:59:59.567Z"));
 	EXPECT_EQ(tp1970_01_01T00_00_00 + 500ms, Convert::To<TimePointMs>("1970-01-01T00:00:00.5Z"));
@@ -327,8 +329,10 @@ TEST(ConvertChrono, ConvertStringToDurationWhenZero) {
 }
 
 TEST(ConvertChrono, ConvertStringToDurationWhithSecondsFractions) {
-	EXPECT_EQ(500ms, Convert::To<std::chrono::milliseconds>("PT0.5S"));
-	EXPECT_EQ(5s + 999ms, Convert::To<std::chrono::milliseconds>("PT5.999S"));
+	// With comma as decimal separator
+	EXPECT_EQ(500ms, Convert::To<std::chrono::milliseconds>("PT0,5S"));
+	EXPECT_EQ(5s + 999ms, Convert::To<std::chrono::milliseconds>("PT5,999S"));
+	// With dot as decimal separator
 	EXPECT_EQ(123456us, Convert::To<std::chrono::microseconds>("PT0.123456S"));
 	EXPECT_EQ(123456789ns, Convert::To<std::chrono::nanoseconds>("PT0.123456789S"));
 }

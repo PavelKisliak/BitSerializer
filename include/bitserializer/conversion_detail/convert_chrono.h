@@ -328,7 +328,7 @@ namespace BitSerializer::Convert::Detail
 			pos = parseDatetimePart(pos, end, utc.Min, 0, 59, ':');
 			pos = parseDatetimePart(pos, end, utc.Sec, 0, 59);
 			// Parse optional fractions of second
-			if (pos != end && *pos == '.')
+			if (pos != end && (*pos == '.' || *pos == ','))
 			{
 				std::chrono::nanoseconds ns(0);
 				if (pos = ParseSecondFractions(++pos, end, ns); pos == nullptr) {
@@ -599,7 +599,7 @@ namespace BitSerializer::Convert::Detail
 					{
 						pos = result.ptr;
 						auto sym = *pos++;
-						if (sym == '.')
+						if (sym == '.' || sym == ',')
 						{
 							// Parse seconds fractions
 							std::chrono::nanoseconds ns(0);

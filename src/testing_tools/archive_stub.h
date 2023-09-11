@@ -27,7 +27,7 @@ public:
 		reserve(expectedSize);
 	}
 };
-class TestIoData : public std::variant<std::nullptr_t, bool, int64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
+class TestIoData : public std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, std::wstring, TestIoDataObject, TestIoDataArray> { };
 
 /// <summary>
 /// The traits of archive stub 
@@ -104,6 +104,10 @@ protected:
 			{
 				return SafeNumberCast(std::get<int64_t>(ioData), value, serializationOptions.overflowNumberPolicy);
 			}
+			if (std::holds_alternative<uint64_t>(ioData))
+			{
+				return SafeNumberCast(std::get<uint64_t>(ioData), value, serializationOptions.overflowNumberPolicy);
+			}
 			if (std::holds_alternative<double>(ioData))
 			{
 				return SafeNumberCast(std::get<double>(ioData), value, serializationOptions.overflowNumberPolicy);
@@ -135,7 +139,14 @@ protected:
 		if constexpr (std::is_same_v<T, bool>)
 			ioData.emplace<bool>(value);
 		else if constexpr (std::is_integral_v<T>)
-			ioData.emplace<int64_t>(value);
+		{
+			if constexpr (std::is_signed_v<T>) {
+				ioData.emplace<int64_t>(value);
+			}
+			else {
+				ioData.emplace<uint64_t>(value);
+			}
+		}
 		else if constexpr (std::is_floating_point_v<T>)
 			ioData.emplace<double>(value);
 		else if constexpr (std::is_null_pointer_v<T>)

@@ -67,6 +67,14 @@ TEST(ArchiveBase_SafeNumberCast, ShouldConvertMaxUnsignedToSameType)
 	EXPECT_EQ(sourceNumber, targetNumber);
 }
 
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowSigned)
+{
+	int64_t targetNumber = 0;
+	constexpr uint64_t sourceNumber = static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1;
+	EXPECT_THROW(Detail::SafeNumberCast(sourceNumber, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
 TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenConvertNegativeNumberToUnsigned)
 {
 	uint8_t targetNumber = 0;

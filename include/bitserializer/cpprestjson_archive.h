@@ -94,8 +94,10 @@ protected:
 			{
 				if (jsonValue.is_integer())
 				{
-					return SafeNumberCast(jsonValue.as_number().is_uint64()
-						? jsonValue.as_number().to_uint64() : jsonValue.as_number().to_int64(), value, serializationOptions.overflowNumberPolicy);
+					if (jsonValue.as_number().is_int64()) {
+						return SafeNumberCast(jsonValue.as_number().to_int64(), value, serializationOptions.overflowNumberPolicy);
+					}
+					return SafeNumberCast(jsonValue.as_number().to_uint64(), value, serializationOptions.overflowNumberPolicy);
 				}
 				return SafeNumberCast(jsonValue.as_double(), value, serializationOptions.overflowNumberPolicy);
 			}

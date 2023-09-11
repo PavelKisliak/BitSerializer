@@ -114,14 +114,22 @@ namespace Detail
 				result = false;
 			}
 		}
-		else
+		else if constexpr (std::is_same_v<bool, TSource> || std::is_same_v<bool, TTarget>)
 		{
-			TTarget value = static_cast<TTarget>(sourceValue);
+			auto value = static_cast<TTarget>(sourceValue);
 			if (result = static_cast<TSource>(value) == sourceValue; result) {
 				targetValue = value;
 			}
 		}
-		  
+		else
+		{
+			auto value = static_cast<TTarget>(sourceValue);
+			result = (static_cast<TSource>(value) == sourceValue) && !((value > 0 && sourceValue < 0) || (value < 0 && sourceValue > 0));
+			if (result) { 
+				targetValue = value;
+			}
+		}
+
 		if (!result)
 		{
 			if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)

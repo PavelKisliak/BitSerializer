@@ -359,6 +359,11 @@ TEST(ConvertChrono, ConvertStringToDurationWhenNegative) {
 	EXPECT_EQ(-24h * 120 - 3h - 3min - 3s, Convert::To<std::chrono::seconds>("-P120DT3H3M3S"));
 }
 
+TEST(ConvertChrono, ConvertStringToDurationWithPLusPrefix) {
+	EXPECT_EQ(10s, Convert::To<std::chrono::milliseconds>("+PT10S"));
+	EXPECT_EQ(100min + 15s, Convert::To<std::chrono::seconds>("+PT100M15S"));
+}
+
 TEST(ConvertChrono, ConvertStringToDurationMaxValues) {
 	using seconds_i8 = duration<int8_t, std::ratio<1>>;
 	EXPECT_TRUE(seconds_i8(std::numeric_limits<int8_t>::max()) == Convert::To<seconds_i8>("PT127S"));

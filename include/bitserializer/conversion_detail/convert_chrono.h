@@ -643,7 +643,11 @@ namespace BitSerializer::Convert::Detail
 			constexpr auto minSizeIsoDuration = 3;
 			if (end - pos >= minSizeIsoDuration)
 			{
-				if (const bool isNegative = *pos == '-'; *pos == 'P' || (isNegative && *(++pos) == 'P'))
+				bool isNegative;
+				if (isNegative = *pos == '-'; isNegative || *pos == '+') {
+					++pos;
+				}
+				if (*pos == 'P')
 				{
 					if (isNegative && !std::is_signed_v<typename TTargetDuration::rep>) {
 						throw std::out_of_range("Target duration type can't store negative values");

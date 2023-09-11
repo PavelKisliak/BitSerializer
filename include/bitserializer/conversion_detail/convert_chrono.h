@@ -6,6 +6,7 @@
 #pragma once
 #include <cctype>
 #include <cstdlib>
+#include <cinttypes>
 #include <climits>
 #include <chrono>
 #include <charconv>
@@ -366,7 +367,7 @@ namespace BitSerializer::Convert::Detail
 			if (utc.Year >= 10000) {
 				*pos++ = '+';
 			}
-			const size_t outSize = snprintf(pos, endPos - pos, "%04lli-%02d-%02dT%02d:%02d:%02d", utc.Year, utc.Month, utc.Day, utc.Hour, utc.Min, utc.Sec);
+			const size_t outSize = snprintf(pos, endPos - pos, "%04" PRId64 "-%02d-%02dT%02d:%02d:%02d", utc.Year, utc.Month, utc.Day, utc.Hour, utc.Min, utc.Sec);
 			if (outSize > 0)
 			{
 				pos += outSize;

@@ -187,18 +187,14 @@ endif()
 # Benchmarks (optional)
 #################################################################################
 if(BUILD_BENCHMARKS)
-   add_subdirectory(benchmarks/archives)
+    add_subdirectory(benchmarks/archives)
 endif()
 
 #################################################################################
 # Samples (optional)
 #################################################################################
 if(BUILD_SAMPLES)
-    if(BUILD_CPPRESTJSON_ARCHIVE AND BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE AND BUILD_CSV_ARCHIVE)
-       add_subdirectory(samples)
-    else()
-       message(WARNING "Disable build samples in connection with disabled build archives")
-    endif()
+    add_subdirectory(samples)
 endif()
 
 #################################################################################

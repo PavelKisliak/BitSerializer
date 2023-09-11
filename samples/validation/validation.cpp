@@ -12,12 +12,12 @@ public:
 	{
 		using namespace BitSerializer;
 
-		archive << MakeKeyValue("Id", mId, Required());
-		archive << MakeKeyValue("Age", mAge, Required(), Range(0, 150));
-		archive << MakeKeyValue("FirstName", mFirstName, Required(), MaxSize(16));
-		archive << MakeKeyValue("LastName", mLastName, Required(), MaxSize(16));
+		archive << KeyValue("Id", mId, Required());
+		archive << KeyValue("Age", mAge, Required(), Range(0, 150));
+		archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
+		archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
 		// Custom validation with lambda
-		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
+		archive << KeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
 		{
 			// Loaded string should has text without spaces or should be NULL
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)

@@ -15,7 +15,8 @@ add_executable(${PROJECT_NAME}
     serialization_std_chrono_tests.cpp
     serialization_ctime_tests.cpp
     validators_tests.cpp
-)
+    key_value_tests.cpp
+    attribute_value_tests.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::core

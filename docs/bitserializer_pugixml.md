@@ -59,8 +59,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("x", X);
-		archive << MakeKeyValue("y", Y);
+		archive << KeyValue("x", X);
+		archive << KeyValue("y", Y);
 	}
 
 	int X, Y;
@@ -71,7 +71,7 @@ int main()
 	CPoint point(10, 20);
 
 	// Serialize object with defined name of root node
-	auto result = BitSerializer::SaveObject<XmlArchive>(MakeKeyValue("Point", point));
+	auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", point));
 	std::cout << "XML with defined root name: " << result << std::endl;
 
 	// Serialize object without defined name of root node
@@ -87,17 +87,17 @@ XML with defined root name: <?xml version="1.0"?><Point><x>10</x><y>20</y></Poin
 XML without defined root name: <?xml version="1.0"?><root><x>10</x><y>20</y></root>
 ```
 
-By default, **PugiXml** uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be **wchar_t** (and BitSerializer also will need the same key type too). You can use universal adapters such **MakeAutoKeyValue()** and **MakeAutoAttributeValue()** for do not care about key types but with possible performance penalty for conversion.
+By default, **PugiXml** uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be **wchar_t** (and BitSerializer also will need the same key type too). You can use universal adapters such `AutoKeyValue` and `AutoAttributeValue()` for do not care about key types but with possible performance penalty for conversion.
 ```cpp
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAutoAttributeValue("Foo", foo);
-		archive << MakeAutoKeyValue("bar", bar);
+		archive << AutoAttributeValue("Foo", foo);
+		archive << AutoKeyValue("bar", bar);
 	}
 ```
 
 #### Serialization attributes
-The XML nodes perfectly fits to common BitSerialazer interface, but serialization attributes is a bit specific, for support them, BitSerializer has one more helper function - **MakeAttributeValue()**.
+The XML nodes perfectly fits to common BitSerialazer interface, but serialization attributes is a bit specific, for support them, BitSerializer has one more helper class - `AttributeValue`.
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -121,9 +121,9 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAutoAttributeValue("Type", mType);
-		archive << MakeAutoAttributeValue("Width", mWidth);
-		archive << MakeAutoAttributeValue("Height", mHeight);
+		archive << AutoAttributeValue("Type", mType);
+		archive << AutoAttributeValue("Width", mWidth);
+		archive << AutoAttributeValue("Height", mHeight);
 	}
 
 	std::string mType;
@@ -138,7 +138,7 @@ int main()
 		{ 20, 5 },
 		{ 50, 25 }
 	};
-	const auto result = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Shapes", Shapes));
+	const auto result = BitSerializer::SaveObject<XmlArchive>(AutoKeyValue("Shapes", Shapes));
 	std::cout << result << std::endl;
 	return 0;
 }
@@ -164,8 +164,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAttributeValue("x", X);
-		archive << MakeAttributeValue("y", Y);
+		archive << AttributeValue("x", X);
+		archive << AttributeValue("y", Y);
 	}
 
 	int X, Y;
@@ -181,7 +181,7 @@ int main()
 	serializationOptions.formatOptions.paddingCharNum = 2;
 
 	std::string result;
-	BitSerializer::SaveObject<XmlArchive>(MakeKeyValue("Points", points), result, serializationOptions);
+	BitSerializer::SaveObject<XmlArchive>(KeyValue("Points", points), result, serializationOptions);
 	std::cout << result << std::endl;
 
 	return 0;

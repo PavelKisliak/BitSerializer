@@ -17,8 +17,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAutoKeyValue("x", x);
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("x", x);
+		archive << AutoKeyValue("y", y);
 	}
 
 	int x = 0, y = 0;

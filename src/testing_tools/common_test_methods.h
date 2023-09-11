@@ -88,8 +88,8 @@ void TestSerializeArrayWithKey()
 	TValue actual[TargetArraySize];
 
 	// Act
-	BitSerializer::SaveObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", testArray), outputArchive);
-	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", actual), outputArchive);
+	BitSerializer::SaveObject<TArchive>(BitSerializer::AutoKeyValue(L"Root", testArray), outputArchive);
+	BitSerializer::LoadObject<TArchive>(BitSerializer::AutoKeyValue(L"Root", actual), outputArchive);
 
 	// Assert
 	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
@@ -152,8 +152,8 @@ void TestSerializeClassWithKey(T&& value)
 	std::decay_t<T> actual;
 
 	// Act
-	BitSerializer::SaveObject<TArchive>(BitSerializer::MakeAutoKeyValue(L"Root", value), outputArchive);
-	BitSerializer::LoadObject<TArchive>(BitSerializer::MakeAutoKeyValue("Root", actual), outputArchive);
+	BitSerializer::SaveObject<TArchive>(BitSerializer::AutoKeyValue(L"Root", value), outputArchive);
+	BitSerializer::LoadObject<TArchive>(BitSerializer::AutoKeyValue("Root", actual), outputArchive);
 
 	// Assert
 	value.Assert(actual);

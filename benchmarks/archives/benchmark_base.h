@@ -168,29 +168,29 @@ public:
 	{
 		if constexpr (std::is_same_v<TKeyCharType, char>)
 		{
-			archive << BitSerializer::MakeKeyValue("TestBoolValue", mTestBoolValue);
-			archive << BitSerializer::MakeKeyValue("TestCharValue", mTestCharValue);
-			archive << BitSerializer::MakeKeyValue("TestInt64Value", mTestInt64Value);
-			archive << BitSerializer::MakeKeyValue("TestFloatValue", mTestFloatValue);
-			archive << BitSerializer::MakeKeyValue("TestDoubleValue", mTestDoubleValue);
-			archive << BitSerializer::MakeKeyValue("TestString1", mTestString1);
-			archive << BitSerializer::MakeKeyValue("TestString2", mTestString2);
-			archive << BitSerializer::MakeKeyValue("TestString3", mTestString3);
-			archive << BitSerializer::MakeKeyValue("StringWithQuotes", mStringWithQuotes);
-			archive << BitSerializer::MakeKeyValue("MultiLineString", mMultiLineString);
+			archive << BitSerializer::KeyValue("TestBoolValue", mTestBoolValue);
+			archive << BitSerializer::KeyValue("TestCharValue", mTestCharValue);
+			archive << BitSerializer::KeyValue("TestInt64Value", mTestInt64Value);
+			archive << BitSerializer::KeyValue("TestFloatValue", mTestFloatValue);
+			archive << BitSerializer::KeyValue("TestDoubleValue", mTestDoubleValue);
+			archive << BitSerializer::KeyValue("TestString1", mTestString1);
+			archive << BitSerializer::KeyValue("TestString2", mTestString2);
+			archive << BitSerializer::KeyValue("TestString3", mTestString3);
+			archive << BitSerializer::KeyValue("StringWithQuotes", mStringWithQuotes);
+			archive << BitSerializer::KeyValue("MultiLineString", mMultiLineString);
 		}
 		else
 		{
-			archive << BitSerializer::MakeKeyValue(L"TestBoolValue", mTestBoolValue);
-			archive << BitSerializer::MakeKeyValue(L"TestCharValue", mTestCharValue);
-			archive << BitSerializer::MakeKeyValue(L"TestInt64Value", mTestInt64Value);
-			archive << BitSerializer::MakeKeyValue(L"TestFloatValue", mTestFloatValue);
-			archive << BitSerializer::MakeKeyValue(L"TestDoubleValue", mTestDoubleValue);
-			archive << BitSerializer::MakeKeyValue(L"TestString1", mTestString1);
-			archive << BitSerializer::MakeKeyValue(L"TestString2", mTestString2);
-			archive << BitSerializer::MakeKeyValue(L"TestString3", mTestString3);
-			archive << BitSerializer::MakeKeyValue(L"StringWithQuotes", mStringWithQuotes);
-			archive << BitSerializer::MakeKeyValue(L"MultiLineString", mMultiLineString);
+			archive << BitSerializer::KeyValue(L"TestBoolValue", mTestBoolValue);
+			archive << BitSerializer::KeyValue(L"TestCharValue", mTestCharValue);
+			archive << BitSerializer::KeyValue(L"TestInt64Value", mTestInt64Value);
+			archive << BitSerializer::KeyValue(L"TestFloatValue", mTestFloatValue);
+			archive << BitSerializer::KeyValue(L"TestDoubleValue", mTestDoubleValue);
+			archive << BitSerializer::KeyValue(L"TestString1", mTestString1);
+			archive << BitSerializer::KeyValue(L"TestString2", mTestString2);
+			archive << BitSerializer::KeyValue(L"TestString3", mTestString3);
+			archive << BitSerializer::KeyValue(L"StringWithQuotes", mStringWithQuotes);
+			archive << BitSerializer::KeyValue(L"MultiLineString", mMultiLineString);
 		}
 	}
 

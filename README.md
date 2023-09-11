@@ -197,7 +197,7 @@ int main()
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using `MakeAutoKeyValue()`), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using `AutoKeyValue()`), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
 ```cpp
 class TestUnicodeClass
 {
@@ -206,13 +206,13 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		// Serialize UTF-8 string with key in UTF-16
-		archive << MakeAutoKeyValue(u"Utf16Key", mUtf8StringValue);
+		archive << AutoKeyValue(u"Utf16Key", mUtf8StringValue);
 
 		// Serialize UTF-16 string with key in UTF-32
-		archive << MakeAutoKeyValue(U"Utf32Key", mUtf16StringValue);
+		archive << AutoKeyValue(U"Utf32Key", mUtf16StringValue);
 
 		// Serialize UTF-32 string with key in UTF-8
-		archive << MakeAutoKeyValue(u8"Utf8Key", mUtf32StringValue);
+		archive << AutoKeyValue(u8"Utf8Key", mUtf32StringValue);
 	};
 
 private:
@@ -254,9 +254,9 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		using namespace BitSerializer;
-		archive << MakeKeyValue("TestBool", testBool);
-		archive << MakeKeyValue("TestString", testString);
-		archive << MakeKeyValue("TestTwoDimensionArray", testTwoDimensionArray);
+		archive << KeyValue("TestBool", testBool);
+		archive << KeyValue("TestString", testString);
+		archive << KeyValue("TestTwoDimensionArray", testTwoDimensionArray);
 	};
 
 private:
@@ -284,7 +284,7 @@ Returns result
 	]
 }
 ```
-For serializing a named object please use helper method `MakeKeyValue(key, value)`. The type of key should be supported by archive, but there also exists method `MakeAutoKeyValue(key, value)` which automatically converts to the preferred by archive key type. The good place for using this method is some common serialization code that can be used with various types of archives.
+For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. The type of key should be supported by target archive, usually they requires UTF-8 string. In some cases can be useful the `AutoKeyValue` adapter, which automatically converts a key to type expected by the archive. Using this adapter makes sense with **CppRestJson** archive (which has different key types on different platforms), or with **PugiXml** archive (which can be compiled with `PUGIXML_WCHAR_MODE`).  One more possible case, if you would like to use UTF-16, UTF-32 or some custom string implementation as keys. For get maximum performance, better to avoid any conversions.
 
 ### Serializing base class
 To serialize the base class, use the helper method `BaseObject()`, as in the next example.
@@ -293,7 +293,7 @@ template <class TArchive>
 void Serialize(TArchive& archive)
 {
 	archive << BaseObject<MyBaseClass>(*this);
-	archive << MakeKeyValue("TestInt", TestInt);
+	archive << KeyValue("TestInt", TestInt);
 };
 ```
 
@@ -339,17 +339,17 @@ template<typename TArchive>
 void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
 	// Serialize public property
-	archive << MakeAutoKeyValue("x", testThirdPartyClass.x);
+	archive << AutoKeyValue("x", testThirdPartyClass.x);
 
 	// Serialize private property
 	if constexpr (TArchive::IsLoading()) {
 		int y = 0;
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("y", y);
 		testThirdPartyClass.SetY(y);
 	}
 	else {
 		const int y = testThirdPartyClass.GetY();
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("y", y);
 	}
 }
 
@@ -515,8 +515,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAutoKeyValue("x", x);
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("x", x);
+		archive << AutoKeyValue("y", y);
 	}
 
 	int x, y;
@@ -542,7 +542,7 @@ XML: <?xml version="1.0"?><root><x>100</x><y>200</y></root>
 The code for serialization has difference only in template parameter - **JsonArchive** and **XmlArchive**.
 But here are some moments which need comments. As you can see in the XML was created node with name "root". This is auto generated name when it was not specified explicitly for root node. The library does this just to smooth out differences in the structure of formats. But you are free to set name of root node if needed:
 ```cpp
-const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(MakeAutoKeyValue("Point", testObj));
+const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(AutoKeyValue("Point", testObj));
 ```
 The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also allow to customize the serialization behavior for different formats:
 ```cpp
@@ -557,8 +557,8 @@ The second thing which you would like to customize is default structure of outpu
 		}
 		else
 		{
-			archive << MakeAutoKeyValue("x", x);
-			archive << MakeAutoKeyValue("y", y);
+			archive << AutoKeyValue("x", x);
+			archive << AutoKeyValue("y", y);
 		}
 	}
 ```
@@ -677,7 +677,7 @@ Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CTimeRef
 template <class TArchive>
 void Serialize(TArchive& archive)
 {
-    archive << MakeKeyValue("Time", CTimeRef(timeValue));
+    archive << KeyValue("Time", CTimeRef(timeValue));
 }
 ```
 
@@ -722,8 +722,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAutoKeyValue("x", x);
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("x", x);
+		archive << AutoKeyValue("y", y);
 	}
 
 	int x = 0, y = 0;
@@ -805,7 +805,7 @@ catch (const std::exception& ex)
 ### Validation of deserialized values
 BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
 ```cpp
-archive << MakeKeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
+archive << KeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
 ```
 For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization when all errors have been collected.
 The map of validation errors can be get by calling method `GetValidationErrors()`, it contains paths to fields with errors lists.
@@ -825,12 +825,12 @@ public:
 	{
 		using namespace BitSerializer;
 
-		archive << MakeKeyValue("Id", mId, Required());
-		archive << MakeKeyValue("Age", mAge, Required(), Range(0, 150));
-		archive << MakeKeyValue("FirstName", mFirstName, Required(), MaxSize(16));
-		archive << MakeKeyValue("LastName", mLastName, Required(), MaxSize(16));
+		archive << KeyValue("Id", mId, Required());
+		archive << KeyValue("Age", mAge, Required(), Range(0, 150));
+		archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
+		archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
 		// Custom validation with lambda
-		archive << MakeKeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
+		archive << KeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
 		{
 			// Loaded string should has text without spaces or should be NULL
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
@@ -902,7 +902,7 @@ inline void Serialize(TArchive& archive)
     // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
     archive << testBool;
     // Proper use
-	archive << MakeKeyValue("testString", testString);
+	archive << KeyValue("testString", testString);
 };
 ```
 

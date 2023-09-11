@@ -23,6 +23,12 @@ public:
 	{}
 };
 
+template<class TAttrKey, class TValue, class... Validators>
+AttributeValue(TAttrKey&&, TValue&, Validators&&...) -> AttributeValue<TAttrKey, TValue&, Validators...>;
+
+template<class TAttrKey, class TValue, class... Validators>
+AttributeValue(TAttrKey&&, TValue&&, Validators&&...) -> AttributeValue<TAttrKey, TValue, Validators...>;
+
 /// <summary>
 /// The helper function for making the wrapper with attribute value.
 /// </summary>
@@ -31,6 +37,7 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The AttributeValue object</returns>
 template <class TAttrKey, class TValue, class... TValidators>
+[[deprecated("Use directly AttributeValue() constructor (allowed via C++ 17 template argument deduction)")]]
 constexpr AttributeValue<TAttrKey, TValue, TValidators...> MakeAttributeValue(TAttrKey&& attributeKey, TValue&& value, const TValidators&... validators)
 {
 	return AttributeValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), validators...);
@@ -61,6 +68,12 @@ public:
 	}
 };
 
+template<class TAttrKey, class TValue, class... Validators>
+AutoAttributeValue(TAttrKey&&, TValue&, Validators&&...) -> AutoAttributeValue<TAttrKey, TValue&, Validators...>;
+
+template<class TAttrKey, class TValue, class... Validators>
+AutoAttributeValue(TAttrKey&&, TValue&&, Validators&&...) -> AutoAttributeValue<TAttrKey, TValue, Validators...>;
+
 /// <summary>
 /// The helper function for making the auto attributes wrapper.
 /// </summary>
@@ -69,8 +82,9 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The AutoAttributeValue object</returns>
 template <class TAttrKey, class TValue, class... Validators>
+[[deprecated("Use directly AutoAttributeValue() constructor (allowed via C++ 17 template argument deduction)")]]
 constexpr AutoAttributeValue<TAttrKey, TValue, Validators...> MakeAutoAttributeValue(TAttrKey&& key, TValue&& value, const Validators&... validators) noexcept {
 	return AutoAttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), validators...);
 }
 
-}	// namespace BitSerializer
+}

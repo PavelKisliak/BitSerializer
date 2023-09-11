@@ -79,8 +79,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeAutoKeyValue("IP", mIp);
-		archive << MakeAutoKeyValue("Owner", mOwner);
+		archive << KeyValue("IP", mIp);
+		archive << KeyValue("Owner", mOwner);
 	}
 
 	std::string mIp;

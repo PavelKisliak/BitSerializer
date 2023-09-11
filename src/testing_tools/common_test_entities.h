@@ -57,7 +57,7 @@ union TestUnion
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeAutoKeyValue("value", mIntValue);
+		archive << BitSerializer::AutoKeyValue("value", mIntValue);
 	}
 
 	int mIntValue;
@@ -110,8 +110,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeAutoKeyValue("x", x);
-		archive << BitSerializer::MakeAutoKeyValue("y", y);
+		archive << BitSerializer::AutoKeyValue("x", x);
+		archive << BitSerializer::AutoKeyValue("y", y);
 	}
 
 	int x = 0;
@@ -156,8 +156,8 @@ public:
 	{
 		archive << BitSerializer::BaseObject<TestPointClass>(*this);
 
-		archive << BitSerializer::MakeAutoKeyValue(L"TestUInt32", mTestUInt32);
-		archive << BitSerializer::MakeAutoKeyValue(L"TestUInt64", mTestUInt64);
+		archive << BitSerializer::AutoKeyValue(L"TestUInt32", mTestUInt32);
+		archive << BitSerializer::AutoKeyValue(L"TestUInt64", mTestUInt64);
 	}
 
 private:
@@ -205,10 +205,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
 		if constexpr (RequiredValidator == true) {
-			archive << BitSerializer::MakeAutoKeyValue("TestValue", mTestValue, BitSerializer::Required());
+			archive << BitSerializer::AutoKeyValue("TestValue", mTestValue, BitSerializer::Required());
 		}
 		else {
-			archive << BitSerializer::MakeAutoKeyValue("TestValue", mTestValue);
+			archive << BitSerializer::AutoKeyValue("TestValue", mTestValue);
 		}
 	}
 
@@ -276,7 +276,7 @@ public:
 			// Auto key adaptation uses for able to test different type of archives.
 			static const auto key = BitSerializer::Convert::To<typename TArchive::key_type>("Member_")
 				+ BitSerializer::Convert::To<typename TArchive::key_type>(I);
-			archive << BitSerializer::MakeKeyValue(key, member);
+			archive << BitSerializer::KeyValue(key, member);
 
 			// Next
 			Serialize<TArchive, I + 1>(archive);
@@ -301,7 +301,7 @@ public:
 
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeAutoKeyValue(L"TestArray", mTestArray);
+		archive << BitSerializer::AutoKeyValue(L"TestArray", mTestArray);
 	}
 
 private:
@@ -330,7 +330,7 @@ public:
 
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
-		archive << BitSerializer::MakeAutoKeyValue(L"TestTwoDimArray", mTestTwoDimArray);
+		archive << BitSerializer::AutoKeyValue(L"TestTwoDimArray", mTestTwoDimArray);
 	}
 
 private:
@@ -350,13 +350,13 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeAutoKeyValue("ExistField", mExistField, BitSerializer::Required());
+		archive << BitSerializer::AutoKeyValue("ExistField", mExistField, BitSerializer::Required());
 
 		// Trying to load not existing field
 		if (archive.IsLoading())
 		{
 			TestType notExistField{};
-			archive << BitSerializer::MakeAutoKeyValue(L"NotExistingField", notExistField, BitSerializer::Required());
+			archive << BitSerializer::AutoKeyValue(L"NotExistingField", notExistField, BitSerializer::Required());
 		}
 	}
 
@@ -376,7 +376,7 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::MakeAutoKeyValue("TestField", mTestField, BitSerializer::Required());
+		archive << BitSerializer::AutoKeyValue("TestField", mTestField, BitSerializer::Required());
 	}
 
 private:
@@ -440,7 +440,7 @@ public:
 			// Auto key adaptation uses for able to test different type of archives.
 			static const auto attributeKey = BitSerializer::Convert::To<typename TArchive::key_type>("Attribute_")
 				+ BitSerializer::Convert::To<typename TArchive::key_type>(I);
-			archive << BitSerializer::MakeAttributeValue(attributeKey, member);
+			archive << BitSerializer::AttributeValue(attributeKey, member);
 
 			// Next
 			Serialize<TArchive, I + 1>(archive);

@@ -25,17 +25,17 @@ template<typename TArchive>
 void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
 	// Serialize public property
-	archive << MakeAutoKeyValue("x", testThirdPartyClass.x);
+	archive << AutoKeyValue("x", testThirdPartyClass.x);
 
 	// Serialize private property
 	if constexpr (TArchive::IsLoading()) {
 		int y = 0;
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("y", y);
 		testThirdPartyClass.SetY(y);
 	}
 	else {
 		const int y = testThirdPartyClass.GetY();
-		archive << MakeAutoKeyValue("y", y);
+		archive << AutoKeyValue("y", y);
 	}
 }
 

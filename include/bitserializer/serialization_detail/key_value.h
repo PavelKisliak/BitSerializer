@@ -24,7 +24,7 @@ public:
 	using value_type = TValue;
 	using key_type = TKey;
 
-	explicit KeyValue(TKey&& key, TValue&& value, const Validators&... validators)
+	KeyValue(TKey&& key, TValue&& value, const Validators&... validators)
 		: mKey(key)
 		, mValue(value)
 		, mValidators(validators...)
@@ -51,6 +51,12 @@ public:
 	}
 };
 
+template<class TKey, class TValue, class... Validators>
+KeyValue(TKey&&, TValue&, Validators&&...) -> KeyValue<TKey, TValue&, Validators...>;
+
+template<class TKey, class TValue, class... Validators>
+KeyValue(TKey&&, TValue&&, Validators&&...) -> KeyValue<TKey, TValue, Validators...>;
+
 /// <summary>
 /// The helper function for making the wrapper for key, value and set of validators.
 /// </summary>
@@ -59,6 +65,7 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The KeyValue object</returns>
 template <class TKey, class TValue, class... Validators>
+[[deprecated("Use directly KeyValue() constructor (allowed via C++ 17 template argument deduction)")]]
 constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue&& value, const Validators&... validators) {
 	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
 }
@@ -88,6 +95,12 @@ public:
 	}
 };
 
+template<class TKey, class TValue, class... Validators>
+AutoKeyValue(TKey&&, TValue&, Validators&&...) -> AutoKeyValue<TKey, TValue&, Validators...>;
+
+template<class TKey, class TValue, class... Validators>
+AutoKeyValue(TKey&&, TValue&&, Validators&&...) -> AutoKeyValue<TKey, TValue, Validators...>;
+
 /// <summary>
 /// The helper function for making the auto keys wrapper.
 /// </summary>
@@ -96,6 +109,7 @@ public:
 /// <param name="validators">Validators</param>
 /// <returns>The AutoKeyValue object</returns>
 template <class TKey, class TValue, class... Validators>
+[[deprecated("Use directly AutoKeyValue() constructor (allowed via C++ 17 template argument deduction)")]]
 constexpr AutoKeyValue<TKey, TValue, Validators...> MakeAutoKeyValue(TKey&& key, TValue&& value, const Validators&... validators) noexcept {
 	return AutoKeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
 }

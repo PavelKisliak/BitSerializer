@@ -14,10 +14,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("Player", Player);
-		archive << MakeKeyValue("Score", Score);
-		archive << MakeKeyValue("Datetime", Datetime);
-		archive << MakeKeyValue("IsPremium", IsPremium);
+		archive << KeyValue("Player", Player);
+		archive << KeyValue("Score", Score);
+		archive << KeyValue("Datetime", Datetime);
+		archive << KeyValue("IsPremium", IsPremium);
 	}
 
 	std::string Player;

@@ -70,8 +70,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << MakeKeyValue("x", X);
-		archive << MakeKeyValue("y", Y);
+		archive << KeyValue("x", X);
+		archive << KeyValue("y", Y);
 	}
 
 	int X, Y;

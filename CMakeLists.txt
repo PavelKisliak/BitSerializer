@@ -174,9 +174,8 @@ endif()
 #################################################################################
 # Tests (optional)
 #################################################################################
-add_subdirectory(src/testing_tools)
-
 if(BUILD_TESTS)
+    add_subdirectory(src/testing_tools)
     include(GoogleTest)
     enable_testing()
     set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)

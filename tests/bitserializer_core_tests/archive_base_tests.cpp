@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -36,10 +36,18 @@ TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowBoolean)
 	EXPECT_EQ(false, targetBoolean);
 }
 
-TEST(ArchiveBase_SafeNumberCast, ShouldConvertMaxPositiveSignedToUnsigned)
+TEST(ArchiveBase_SafeNumberCast, ShouldConvertMaxPositiveInt8ToUInt8)
 {
 	uint8_t targetNumber;
 	constexpr int8_t sourceNumber = std::numeric_limits<int8_t>::max();
+	EXPECT_TRUE(Detail::SafeNumberCast(sourceNumber, targetNumber, OverflowNumberPolicy::Skip));
+	EXPECT_EQ(sourceNumber, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldConvertMaxPositiveInt16ToUInt16)
+{
+	uint16_t targetNumber;
+	constexpr int16_t sourceNumber = std::numeric_limits<int16_t>::max();
 	EXPECT_TRUE(Detail::SafeNumberCast(sourceNumber, targetNumber, OverflowNumberPolicy::Skip));
 	EXPECT_EQ(sourceNumber, targetNumber);
 }
@@ -67,7 +75,58 @@ TEST(ArchiveBase_SafeNumberCast, ShouldConvertMaxUnsignedToSameType)
 	EXPECT_EQ(sourceNumber, targetNumber);
 }
 
-TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowSigned)
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowInt8)
+{
+	int8_t targetNumber = 0;
+	EXPECT_THROW(Detail::SafeNumberCast(128, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+	EXPECT_THROW(Detail::SafeNumberCast(-129, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowUInt8)
+{
+	uint8_t targetNumber = 0;
+	EXPECT_THROW(Detail::SafeNumberCast(256, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowInt16)
+{
+	int16_t targetNumber = 0;
+	EXPECT_THROW(Detail::SafeNumberCast(32768, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+	EXPECT_THROW(Detail::SafeNumberCast(-32769, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowUInt16)
+{
+	uint16_t targetNumber = 0;
+	EXPECT_THROW(Detail::SafeNumberCast(65536, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowInt32)
+{
+	int16_t targetNumber = 0;
+	int64_t sourceNumber = static_cast<int64_t>(std::numeric_limits<int32_t>::max()) + 1;
+	EXPECT_THROW(Detail::SafeNumberCast(sourceNumber, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+	sourceNumber = static_cast<int64_t>(std::numeric_limits<int32_t>::min()) - 1;
+	EXPECT_THROW(Detail::SafeNumberCast(-32769, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowUInt32)
+{
+	uint16_t targetNumber = 0;
+	constexpr uint64_t sourceNumber = static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1;
+	EXPECT_THROW(Detail::SafeNumberCast(sourceNumber, targetNumber, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetNumber);
+}
+
+TEST(ArchiveBase_SafeNumberCast, ShouldThrowExceptionWhenOverflowInt64)
 {
 	int64_t targetNumber = 0;
 	constexpr uint64_t sourceNumber = static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1;

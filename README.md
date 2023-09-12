@@ -17,7 +17,7 @@ ___
 - Support serialization for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
 - Support serialization to streams and files.
 - Encoding to various UTF formats.
-- Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, UTF encoding).
+- Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
 
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
@@ -33,29 +33,6 @@ ___
   - Dependencies which are required by selected type of archive.
 
 (*) Minimal requirement for RapidYaml archive is VS2019 (with using the latest version of RapidYaml library 0.4.1).
-
-
-##### What's new in version 0.50:
-- [ ! ] Added new archive for serialization to CSV, supports all UTF encodings with auto-detection (built-in implementation, no dependencies).
-- [ ! ] API breaking change - deprecated global `BitSerializer::Context`, now validation errors will propagate only via `ValidationException`.
-- [ ! ] Removed all static memory allocations for be compatible with custom allocators.
-- [ + ] Added policy `OverflowNumberPolicy` for case when size of target type is not enough for loading number.
-- [ + ] Added policy `MismatchedTypesPolicy` for case when type of target field does not match the value being loaded.
-- [ + ] Added default `SerializationOptions`.
-- [ * ] Added `ParsingException` with information about line number or offset (depending on format type).
-- [ * ] Added new simplified macro `REGISTER_ENUM` - replacement for `REGISTER_ENUM_MAP` which is deprecated.
-- [ + ] Conversion sub-module: Added error policy for encode UTF (error mark, throw exception or skip).
-- [ * ] Conversion sub-module: Added throwing `invalid_argument` exception when converting from invalid string to number.
-- [ * ] Conversion sub-module: Converting a string containing floating point number to integer, now will throw `out_of_range` exception.
-- [ * ] Conversion sub-module: Fixed work with raw pointers in the UTF-16Be and UTF-32Be encoders.
-- [ * ] Conversion sub-module: Fixed macro `DECLARE_ENUM_STREAM_OPS` (can't be used in namespaces).
-- [ * ] [CppRestJson] Fixed serialization of booleans in the object (was serialized as number).
-- [ * ] [RapidYaml] Fixed compatibility with latest version of the RapidYaml library (0.4.1).
-- [ * ] [RapidYaml] Fixed serialization negative int8.
-- [ * ] [RapidYaml] Fixed issue with error handling when multi-thread serialization.
-- [ * ] [RapidJson, CppRestJson, RapidYaml] Fixed path in the validation errors, index in arrays was shifted by 1.
-
-[Full log of changes](History.md)
 
 ### Performance
 For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
@@ -197,7 +174,7 @@ int main()
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using `AutoKeyValue()`), but remember that transcoding takes additional time and of course it is better to use string types which are natively supported by a particular archive, usually `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using `AutoKeyValue()`), but remember that transcoding takes additional time and, of course, it is better to use string types which are natively supported by a particular archive, usually `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
 ```cpp
 class TestUnicodeClass
 {
@@ -570,7 +547,7 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 [See full sample](samples/multiformat_customization/multiformat_customization.cpp)
 
 ### Serialization STD types
-BitSerializer has on board serialization for all STD containers. Serialization of other STD types will be implemented in future. For add support of required STD type just need to include related header file.
+BitSerializer has built-in serialization for all STD containers and most other commonly used types. For add support of required STD type just need to include related header file.
 ```cpp
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/vector.h"
@@ -916,4 +893,4 @@ Thanks
 
 License
 ----
-MIT, Copyright (C) 2018-2022 by Pavel Kisliak, made in Belarus 🇧🇾
+MIT, Copyright (C) 2018-2023 by Pavel Kisliak, made in Belarus 🇧🇾

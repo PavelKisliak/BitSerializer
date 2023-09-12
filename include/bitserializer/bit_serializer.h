@@ -14,7 +14,7 @@ namespace BitSerializer
 	struct Version
 	{
 		static constexpr uint8_t Major = 0;
-		static constexpr uint8_t Minor = 50;
+		static constexpr uint8_t Minor = 65;
 		static constexpr uint8_t Maintenance = 0;
 
 		static constexpr uint32_t Full = Major * 100 + Minor * 10 + Maintenance;

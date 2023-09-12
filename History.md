@@ -1,6 +1,24 @@
 # BitSerializer (History log)
 
+##### What's new in version 0.65 (12 September 2023):
+
+- [ ! ] The repository has been migrated to GitHub.
+- [ ! ] Added support serialization of `chrono::time_point`, `chrono::duration` and `time_t`.
+- [ ! ] Conversion sub-module: Added conversion of `chrono::time_point`,  `chrono::duration` and `time_t`.
+- [ ! ] Functions `MakeKeyValue` and `MakeAutoKeyValue`were marked as deprecated (please use constructors directly).
+- [ ! ] Functions `MakeAttributeValue` and `MakeAutoAttributeValue` were marked as deprecated (please use constructors directly).
+- [ + ] Added support serialization of `std::tuple` (as array in the target archive, cannot be used with CSV archive).
+- [ * ] Applied `MismatchedTypesPolicy` when serialization enum types.
+- [ * ] Applied `Overflow` and `Mismatched` types of policies when loading keys of map types.
+- [ * ] Fixed detection overflow of integers (uses for `OverflowNumberPolicy`).
+- [ * ] Fixed serialization of `std::multimap` (was broken in v.0.50).
+- [ * ] Optimized loading of `std::unordered_map` (pre-reserve size if possible).
+- [ * ] Change measurement units in the performance tests from **kb/s** to **fields/ms**.
+- [ - ] Removed deprecated global `SerializationContext`.
+- [ * ] [RapidJson, CSV] Optimized the performance.
+
 ##### What's new in version 0.50 (5 December 2022):
+
 - [ ! ] Added new archive for serialization to CSV, supports all UTF encodings with auto-detection (built-in implementation, no dependencies).
 - [ ! ] API breaking change - deprecated global `BitSerializer::Context`, now validation errors will propagate only via `ValidationException`.
 - [ ! ] Removed all static memory allocations for be compatible with custom allocators.

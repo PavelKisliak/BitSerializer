@@ -82,6 +82,8 @@ include_directories(
 #################################################################################
 set(BITSERIALIZER_NAMESPACE "BitSerializer")
 
+configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
+
 # BitSerializer core
 set(BITSERIALIZER_CORE_NAME "core")
 set(BITSERIALIZER_TARGETS ${BITSERIALIZER_CORE_NAME})

@@ -1,0 +1,10 @@
+/*******************************************************************************
+* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* This file is part of BitSerializer library, licensed under the MIT license.  *
+*******************************************************************************/
+#pragma once
+
+#define BITSERIALIZER_VERSION_MAJOR @bitserializer_VERSION_MAJOR@
+#define BITSERIALIZER_VERSION_MINOR @bitserializer_VERSION_MINOR@
+#define BITSERIALIZER_VERSION_PATCH @bitserializer_VERSION_PATCH@
+#define BITSERIALIZER_VERSION (BITSERIALIZER_VERSION_MAJOR * 10000 + BITSERIALIZER_VERSION_MINOR * 100 + BITSERIALIZER_VERSION_PATCH)

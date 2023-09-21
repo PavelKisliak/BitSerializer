@@ -4,7 +4,6 @@
 *******************************************************************************/
 #pragma once
 #include <utility>
-#include "bitserializer/serialization_detail/serialization_base_types.h"
 
 namespace BitSerializer
 {
@@ -20,7 +19,7 @@ namespace BitSerializer
 		static const auto keyName = Convert::To<typename TArchive::key_type>("key");
 		static const auto valueName = Convert::To<typename TArchive::key_type>("value");
 
-		Serialize(archive, keyName, const_cast<noConstKeyType&>(pair.first));
-		Serialize(archive, valueName, pair.second);
+		archive << KeyValue(keyName, const_cast<noConstKeyType&>(pair.first));
+		archive << KeyValue(valueName, pair.second);
 	}
 }

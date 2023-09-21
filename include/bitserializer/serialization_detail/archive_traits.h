@@ -106,7 +106,7 @@ struct can_serialize_object
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenObjectScope())>, std::true_type> test(int);
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -127,7 +127,7 @@ struct can_serialize_object_with_key
 {
 private:
 	template <typename TObj>
-	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<TKey>()))>, std::true_type> test(int);
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenObjectScope(std::declval<TKey>(), std::declval<size_t>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);

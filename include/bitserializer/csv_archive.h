@@ -25,6 +25,8 @@ struct CsvArchiveTraits
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
+	static constexpr bool is_binary = false;
+
 	static constexpr char allowed_separators[] = { ',', ';', '\t', ' ', '|' };
 
 protected:
@@ -131,7 +133,7 @@ public:
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
 	}
 
-	[[nodiscard]] std::optional<CCsvWriteObjectScope> OpenObjectScope() const
+	[[nodiscard]] std::optional<CCsvWriteObjectScope> OpenObjectScope(size_t) const
 	{
 		return std::make_optional<CCsvWriteObjectScope>(mCsvWriter, GetContext());
 	}
@@ -298,7 +300,7 @@ public:
 		return mCsvReader->IsEnd();
 	}
 
-	std::optional<CCsvReadObjectScope> OpenObjectScope()
+	std::optional<CCsvReadObjectScope> OpenObjectScope(size_t)
 	{
 		if (mCsvReader->ParseNextRow())
 		{

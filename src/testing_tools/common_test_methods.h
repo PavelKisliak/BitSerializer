@@ -476,7 +476,7 @@ void TestIterateKeysInObjectScope()
 	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 
 	// Act / Assert
-	auto objScope = inputArchive.OpenObjectScope();
+	auto objScope = inputArchive.OpenObjectScope(0);
 	ASSERT_TRUE(objScope.has_value());
 
 	auto it = objScope->cbegin();

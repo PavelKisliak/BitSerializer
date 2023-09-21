@@ -40,7 +40,7 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenLoading)
 
 	for (size_t k = 0; k < 3; k++)
 	{
-		auto objectScope = rootArrayScope->OpenObjectScope();
+		auto objectScope = rootArrayScope->OpenObjectScope(0);
 		ASSERT_TRUE(objectScope.has_value());
 
 		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), rootArrayScope->GetPath());
@@ -64,7 +64,7 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 	ASSERT_TRUE(rootArrayScope.has_value());
 	for (size_t k = 0; k < 3; k++)
 	{
-		auto objectScope = rootArrayScope->OpenObjectScope();
+		auto objectScope = rootArrayScope->OpenObjectScope(0);
 		ASSERT_TRUE(objectScope.has_value());
 
 		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), rootArrayScope->GetPath());

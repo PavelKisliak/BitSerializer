@@ -24,13 +24,14 @@ void TestGetPathInJsonObjectScopeWhenLoading()
 	BitSerializer::SerializationContext context(options);
 	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 	ASSERT_EQ(inputArchive.GetPath(), "");
-	auto objScope = inputArchive.OpenObjectScope();
+	size_t mapSize = 0;
+	auto objScope = inputArchive.OpenObjectScope(mapSize);
 	ASSERT_TRUE(objScope.has_value());
 	ASSERT_EQ(objScope->GetPath(), "");
 
 	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestValue");
 	const auto expectedObjectPath = TArchive::path_separator + std::string("TestValue");
-	auto subScope = objScope->OpenObjectScope(objectKey);
+	auto subScope = objScope->OpenObjectScope(objectKey, 0);
 	ASSERT_TRUE(subScope.has_value());
 	ASSERT_EQ(subScope->GetPath(), expectedObjectPath);
 }
@@ -50,12 +51,13 @@ void TestGetPathInJsonObjectScopeWhenSaving()
 
 	// Act / Assert
 	ASSERT_EQ(outputArchive.GetPath(), "");
-	auto objScope = outputArchive.OpenObjectScope();
+	size_t mapSize = 0;
+	auto objScope = outputArchive.OpenObjectScope(mapSize);
 	ASSERT_TRUE(objScope.has_value());
 	ASSERT_EQ(objScope->GetPath(), "");
 
 	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestValue");
-	auto subScope = objScope->OpenObjectScope(objectKey);
+	auto subScope = objScope->OpenObjectScope(objectKey, mapSize);
 	ASSERT_TRUE(subScope.has_value());
 	ASSERT_EQ(subScope->GetPath(), TArchive::path_separator + BitSerializer::Convert::ToString(objectKey));
 }
@@ -80,7 +82,8 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 	BitSerializer::SerializationContext context(options);
 	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 	ASSERT_EQ(inputArchive.GetPath(), "");
-	auto objScope = inputArchive.OpenObjectScope();
+	size_t mapSize = 0;
+	auto objScope = inputArchive.OpenObjectScope(mapSize);
 	ASSERT_TRUE(objScope.has_value());
 	ASSERT_EQ(objScope->GetPath(), "");
 
@@ -123,7 +126,7 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 
 	// Act / Assert
 	ASSERT_EQ(outputArchive.GetPath(), "");
-	auto objScope = outputArchive.OpenObjectScope();
+	auto objScope = outputArchive.OpenObjectScope(1);
 	ASSERT_TRUE(objScope.has_value());
 	ASSERT_EQ(objScope->GetPath(), "");
 

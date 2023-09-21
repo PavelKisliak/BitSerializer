@@ -30,6 +30,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			using preferred_output_format = std::string;
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
+			static constexpr bool is_binary = false;
 
 			static constexpr char nullValue[] = "null";
 			static constexpr char nullValueAlt[] = "~";
@@ -249,7 +250,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>
 			/// Returns element of array as sub-object.
 			/// </summary>
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
+			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
 			{				
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -410,7 +411,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// </summary>
 			/// <param name="key">The key of child node.</param>
 			template <typename TKey>
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(TKey&& key)
+			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -520,7 +521,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>
 			/// Returns root node as object type in YAML.
 			/// </summary>
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope()
+			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
 					return mRootNode.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext()) : std::nullopt;

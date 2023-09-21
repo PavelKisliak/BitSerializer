@@ -36,6 +36,7 @@ struct JsonArchiveTraits
 	using preferred_output_format = std::string;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
+	static constexpr bool is_binary = false;
 
 protected:
 	~JsonArchiveTraits() = default;
@@ -223,7 +224,7 @@ public:
 		}
 	}
 
-	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
+	std::optional<JsonObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -376,7 +377,7 @@ public:
 		}
 	}
 
-	std::optional<JsonObjectScope<TMode>> OpenObjectScope(const key_type& key)
+	std::optional<JsonObjectScope<TMode>> OpenObjectScope(const key_type& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -524,7 +525,7 @@ public:
 		}
 	}
 
-	std::optional<JsonObjectScope<TMode>> OpenObjectScope()
+	std::optional<JsonObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
 			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson, this->GetContext()) : std::nullopt;

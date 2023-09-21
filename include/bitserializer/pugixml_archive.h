@@ -35,6 +35,7 @@ struct PugiXmlArchiveTraits
 	using preferred_output_format = std::string;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
+	static constexpr bool is_binary = false;
 
 protected:
 	~PugiXmlArchiveTraits() = default;
@@ -217,7 +218,7 @@ public:
 		return false;
 	}
 
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -235,7 +236,7 @@ public:
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope()
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -462,7 +463,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key)
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -564,7 +565,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t arraySize)
+	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -578,7 +579,7 @@ public:
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope()
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -593,7 +594,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key)
+	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));

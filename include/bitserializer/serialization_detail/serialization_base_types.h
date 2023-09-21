@@ -187,7 +187,8 @@ namespace BitSerializer
 
 				if constexpr (hasObjectWithKeySupport)
 				{
-					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
+					const size_t mapSize = CountMapObjectFields(archive, value);
+					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key), mapSize);
 					if (objectScope) {
 						SerializeObject(*objectScope, value);
 					}
@@ -202,9 +203,17 @@ namespace BitSerializer
 				if constexpr (hasArrayWithKeySupport)
 				{
 					size_t arraySize = 0;
-					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
-						arraySize = value.size();
+					if constexpr (TArchive::IsSaving())
+					{
+						constexpr auto hasGlobalSize = has_global_size_v<TValue>;
+						constexpr auto isEnumerable = is_enumerable_v<TValue>;
+						static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
+
+						if constexpr (hasGlobalSize || isEnumerable) {
+							arraySize = GetContainerSize(value);
+						}
 					}
+
 					auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
 					if (arrayScope) {
 						SerializeArray(*arrayScope, value);
@@ -219,7 +228,8 @@ namespace BitSerializer
 
 				if constexpr (hasObjectWithKeySupport)
 				{
-					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key));
+					const size_t mapSize = CountMapObjectFields(archive, value);
+					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key), mapSize);
 					if (objectScope) {
 						value.Serialize(*objectScope);
 					}
@@ -255,7 +265,8 @@ namespace BitSerializer
 
 				if constexpr (hasObjectSupport)
 				{
-					auto objectScope = archive.OpenObjectScope();
+					const size_t mapSize = CountMapObjectFields(archive, value);
+					auto objectScope = archive.OpenObjectScope(mapSize);
 					if (objectScope) {
 						SerializeObject(*objectScope, value);
 					}
@@ -270,9 +281,17 @@ namespace BitSerializer
 				if constexpr (hasArraySupport)
 				{
 					size_t arraySize = 0;
-					if constexpr (TArchive::IsSaving() && has_size_v<TValue>) {
-						arraySize = value.size();
+					if constexpr (TArchive::IsSaving())
+					{
+						constexpr auto hasGlobalSize = has_global_size_v<TValue>;
+						constexpr auto isEnumerable = is_enumerable_v<TValue>;
+						static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
+
+						if constexpr (hasGlobalSize || isEnumerable) {
+							arraySize = GetContainerSize(value);
+						}
 					}
+
 					auto arrayScope = archive.OpenArrayScope(arraySize);
 					if (arrayScope) {
 						SerializeArray(*arrayScope, value);
@@ -287,7 +306,8 @@ namespace BitSerializer
 
 				if constexpr (hasObjectSupport)
 				{
-					auto objectScope = archive.OpenObjectScope();
+					const size_t mapSize = CountMapObjectFields(archive, value);
+					auto objectScope = archive.OpenObjectScope(mapSize);
 					if (objectScope) {
 						value.Serialize(*objectScope);
 					}
@@ -343,7 +363,7 @@ namespace BitSerializer
 		/// Generic function for serialization arrays with fixed size (like native C-arrays and std::array).
 		/// </summary>
 		template<typename TArchive, typename TIterator>
-		void SerializeFixedSizeArray(TArchive& arrayScope, TIterator startIt, TIterator endIt)
+		bool SerializeFixedSizeArray(TArchive& arrayScope, TIterator startIt, TIterator endIt)
 		{
 			if constexpr (TArchive::IsLoading())
 			{
@@ -366,6 +386,7 @@ namespace BitSerializer
 					Serialize(arrayScope, *it);
 				}
 			}
+			return true;
 		}
 	}
 
@@ -377,12 +398,10 @@ namespace BitSerializer
 
 		if constexpr (hasArrayWithKeySupport)
 		{
-			auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), ArraySize);
-			if (arrayScope)
+			if (auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), ArraySize))
 			{
-				Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
 			}
-			return arrayScope.has_value();
 		}
 		return false;
 	}
@@ -395,12 +414,10 @@ namespace BitSerializer
 
 		if constexpr (hasArraySupport)
 		{
-			auto arrayScope = archive.OpenArrayScope(ArraySize);
-			if (arrayScope)
+			if (auto arrayScope = archive.OpenArrayScope(ArraySize)) 
 			{
-				Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
 			}
-			return arrayScope.has_value();
 		}
 		return false;
 	}

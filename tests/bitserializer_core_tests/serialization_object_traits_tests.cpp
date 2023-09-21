@@ -7,9 +7,12 @@
 #include <vector>
 #include <array>
 #include <list>
+#include <map>
 #include <forward_list>
 #include <optional>
 #include "bitserializer/serialization_detail/object_traits.h"
+#include "testing_tools/common_test_entities.h"
+
 
 using namespace BitSerializer;
 
@@ -60,10 +63,27 @@ TEST(SerializationObjectTraits, ShouldCheckThatArrayHasExtSerializeMethod) {
 	EXPECT_FALSE(testResult2);
 }
 
+TEST(SerializationObjectTraits, ShouldCheckThatTypeIsEnumerable) {
+	const bool testResult1 = is_enumerable_v<std::list<int>>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = is_enumerable_v<std::forward_list<int>>;
+	EXPECT_TRUE(testResult2);
+
+	const bool testResult3 = is_enumerable_v<TestNotSerializableClass>;
+	EXPECT_FALSE(testResult3);
+}
+
 TEST(SerializationObjectTraits, ShouldCheckThatContainerHasSizeMethod) {
 	const bool testResult1 = has_size_v<std::list<int>>;
 	EXPECT_TRUE(testResult1);
 	const bool testResult2 = has_size_v<std::forward_list<int>>;
+	EXPECT_FALSE(testResult2);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatContainerHasGlobalSizeFn) {
+	const bool testResult1 = has_global_size_v<std::vector<int>>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = has_global_size_v<TestNotSerializableClass>;
 	EXPECT_FALSE(testResult2);
 }
 
@@ -113,4 +133,65 @@ TEST(SerializationObjectTraits, ShouldCheckThatIsValidator) {
 	EXPECT_TRUE(testResult1);
 	const bool testResult2 = is_validator_v<TestNotSerializableClass, int>;
 	EXPECT_FALSE(testResult2);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of map fields counter
+//-----------------------------------------------------------------------------
+struct IntFieldsCounterFixture
+{
+	int x = 0, y = 0;
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << KeyValue("x", x);
+		archive << AutoKeyValue("y", y);
+	}
+};
+
+struct ExtFieldsCounterFixture
+{
+	int x = 0, y = 0, z = 0;
+};
+
+template<typename TArchive>
+void SerializeObject(TArchive& archive, ExtFieldsCounterFixture& fixture)
+{
+	archive << KeyValue("x", fixture.x) << AutoKeyValue("y", fixture.y) << KeyValue("z", fixture.z);
+}
+
+template <bool IsBinary = false>
+struct ArchiveTest
+{
+	static constexpr ArchiveType archive_type = ArchiveType::Json;
+	using key_type = std::string;
+	static constexpr bool is_binary = IsBinary;		// Only binary archive's types require counting number of fields
+
+	static constexpr SerializeMode GetMode() noexcept { return SerializeMode::Save; }
+	static constexpr bool IsSaving() noexcept { return true; }
+	static constexpr bool IsLoading() noexcept { return false; }
+};
+
+//-----------------------------------------------------------------------------
+
+TEST(SerializationObjectTraits, ShouldCountObjectFieldsWithInternalFn) {
+	constexpr ArchiveTest archive;
+	TestPointClass val(10, 20);
+	EXPECT_EQ(2, FieldsCountVisitor(archive).Count(val));
+}
+
+TEST(SerializationObjectTraits, ShouldCountObjectFieldsWithGlobalFn) {
+	constexpr ArchiveTest archive;
+	ExtFieldsCounterFixture val;
+	EXPECT_EQ(3, FieldsCountVisitor(archive).Count(val));
+}
+
+TEST(SerializationObjectTraits, ShouldCountFieldsOfMap) {
+	constexpr ArchiveTest<false> textArchive;
+	constexpr ArchiveTest<true> binArchive;
+	std::map<int, int> val { {1, 1}, { 2,2 }, { 3, 3 }, { 4, 4 } };
+
+	EXPECT_EQ(0, CountMapObjectFields(textArchive, val));
+	EXPECT_EQ(4, CountMapObjectFields(binArchive, val));
 }

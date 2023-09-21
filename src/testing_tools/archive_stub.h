@@ -34,10 +34,12 @@ class TestIoData : public std::variant<std::nullptr_t, bool, int64_t, uint64_t, 
 /// </summary>
 struct ArchiveStubTraits
 {
+	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::wstring;
 	using supported_key_types = TSupportedKeyTypes<std::wstring>;
 	using preferred_output_format = TestIoData;
 	static constexpr char path_separator = '/';
+	static constexpr bool is_binary = false;
 
 protected:
 	~ArchiveStubTraits() = default;
@@ -252,7 +254,7 @@ public:
 		return false;
 	}
 
-	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()
+	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if (TestIoData* ioData = LoadNextItem())
 		{
@@ -407,7 +409,7 @@ public:
 		}
 	}
 
-	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key)
+	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -525,7 +527,7 @@ public:
 		}
 	}
 
-	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope()
+	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			return std::holds_alternative<TestIoDataObject>(*mInputData)

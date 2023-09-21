@@ -35,6 +35,7 @@ struct RapidJsonArchiveTraits
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
+	static constexpr bool is_binary = false;
 
 protected:
 	~RapidJsonArchiveTraits() = default;
@@ -239,7 +240,7 @@ public:
 		}
 	}
 
-	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope()
+	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -270,7 +271,9 @@ public:
 		else
 		{
 			auto rapidJsonArray = RapidJsonNode(rapidjson::kArrayType);
-			rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
+			if (arraySize) {
+				rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
+			}
 			SaveJsonValue(std::move(rapidJsonArray));
 			auto& lastJsonValue = (*this->mNode)[this->mNode->Size() - 1];
 			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&lastJsonValue, mAllocator, this->GetContext(), this);
@@ -408,7 +411,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope(TKey&& key)
+	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -438,7 +441,9 @@ public:
 		else
 		{
 			auto rapidJsonArray = RapidJsonNode(rapidjson::kArrayType);
-			rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
+			if (arraySize) {
+				rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
+			}
 			SaveJsonValue(std::forward<TKey>(key), std::move(rapidJsonArray));
 			auto& insertedMember = FindMember(std::forward<TKey>(key))->value;
 			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&insertedMember, mAllocator, this->GetContext(), this, key);
@@ -474,7 +479,7 @@ protected:
 		assert(this->mNode->GetObject().FindMember(key.c_str()) == this->mNode->GetObject().MemberEnd());
 
 		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);
-		this->mNode->AddMember(jsonKey.Move(), jsonValue.Move(), mAllocator);
+		this->mNode->AddMember(std::move(jsonKey), std::move(jsonValue), mAllocator);
 		return true;
 	}
 
@@ -483,7 +488,7 @@ protected:
 		// Checks that object was not saved previously under the same key
 		assert(this->mNode->GetObject().FindMember(key) == this->mNode->GetObject().MemberEnd());
 
-		this->mNode->AddMember(RapidJsonNode(typename RapidJsonNode::StringRefType(key)), jsonValue.Move(), mAllocator);
+		this->mNode->AddMember(RapidJsonNode(typename RapidJsonNode::StringRefType(key)), std::move(jsonValue), mAllocator);
 		return true;
 	}
 
@@ -601,12 +606,15 @@ public:
 		}
 		else
 		{
-			mRootJson.SetArray().Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
+			mRootJson.SetArray();
+			if (arraySize) {
+				mRootJson.Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
+			}
 			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 		}
 	}
 
-	std::optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>> OpenObjectScope()
+	std::optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{

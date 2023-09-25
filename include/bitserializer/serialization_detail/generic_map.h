@@ -68,11 +68,9 @@ namespace BitSerializer
 				}
 
 				auto hint = cont.begin();
-				auto endIt = scope.cend();
-				for (auto it = scope.cbegin(); it != endIt; ++it)
+				scope.VisitKeys([mapLoadMode, &scope, &cont, &hint](auto&& archiveKey)
 				{
 					// Convert archive key to key type of target map
-					decltype(auto) archiveKey = *it;
 					TMapKey key;
 					if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>) {
 						key = archiveKey;
@@ -89,7 +87,7 @@ namespace BitSerializer
 								throw SerializationException(SerializationErrorCode::MismatchedTypes,
 									"The value being loaded cannot be converted to target map key");
 							}
-							continue;
+							return;
 						}
 						catch (const std::out_of_range&)
 						{
@@ -98,7 +96,7 @@ namespace BitSerializer
 								throw SerializationException(SerializationErrorCode::Overflow,
 									"The size of target map key is not sufficient to store value from the parsed string");
 							}
-							continue;
+							return;
 						}
 						catch (...) {
 							throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error when parsing string");
@@ -120,7 +118,7 @@ namespace BitSerializer
 						Serialize(scope, archiveKey, cont[key]);
 						break;
 					}
-				}
+				});
 			}
 		}
 	}

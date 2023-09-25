@@ -310,41 +310,6 @@ protected:
 	iterator mValueIt;
 };
 
-/// <summary>
-/// Constant iterator for keys.
-/// </summary>
-template <class TEncoding>
-class key_const_iterator
-{
-	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
-	using member_iterator = typename RapidJsonNode::MemberIterator;
-	using char_type = typename TEncoding::Ch;
-
-	template <SerializeMode TMode, class Encoding, class TAllocator>
-	friend class RapidJsonObjectScope;
-
-	member_iterator mJsonIt;
-
-	key_const_iterator(member_iterator&& it)
-		: mJsonIt(std::move(it)) { }
-
-public:
-	bool operator==(const key_const_iterator& rhs) const {
-		return this->mJsonIt == rhs.mJsonIt;
-	}
-	bool operator!=(const key_const_iterator& rhs) const {
-		return this->mJsonIt != rhs.mJsonIt;
-	}
-
-	key_const_iterator& operator++() {
-		++mJsonIt;
-		return *this;
-	}
-
-	const char_type* operator*() const {
-		return mJsonIt->name.GetString();
-	}
-};
 
 /// <summary>
 /// JSON scope for serializing objects (list of values with keys).
@@ -367,16 +332,19 @@ public:
 		assert(this->mNode->IsObject());
 	}
 
-	[[nodiscard]] key_const_iterator<TEncoding> cbegin() const {
-		return key_const_iterator<TEncoding>(this->mNode->GetObject().begin());
-	}
-
-	[[nodiscard]] key_const_iterator<TEncoding> cend() const {
-		return key_const_iterator<TEncoding>(this->mNode->GetObject().end());
-	}
-
 	[[nodiscard]] size_t GetEstimatedSize() const {
 		return this->mNode->Capacity();
+	}
+
+	/// <summary>
+	/// Enumerates all keys by calling a passed function.
+	/// </summary>
+	template <typename TCallback>
+	void VisitKeys(TCallback&& fn)
+	{
+		for (const auto& keyVal : this->mNode->GetObject()) {
+			fn(keyVal.name.GetString());
+		}
 	}
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>

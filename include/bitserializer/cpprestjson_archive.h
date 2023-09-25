@@ -281,38 +281,6 @@ private:
 
 
 /// <summary>
-/// Constant iterator for keys.
-/// </summary>
-class key_const_iterator
-{
-	template <SerializeMode TMode>
-	friend class JsonObjectScope;
-
-	web::json::object::const_iterator mJsonIt;
-
-	key_const_iterator(web::json::object::const_iterator&& it)
-		: mJsonIt(it) { }
-
-public:
-	bool operator==(const key_const_iterator& rhs) const {
-		return this->mJsonIt == rhs.mJsonIt;
-	}
-	bool operator!=(const key_const_iterator& rhs) const {
-		return this->mJsonIt != rhs.mJsonIt;
-	}
-
-	key_const_iterator& operator++() {
-		++mJsonIt;
-		return *this;
-	}
-
-	const JsonScopeBase::key_type& operator*() const {
-		return mJsonIt->first;
-	}
-};
-
-
-/// <summary>
 /// JSON scope for serializing objects (list of values with keys).
 /// </summary>
 /// <seealso cref="JsonScopeBase" />
@@ -327,16 +295,19 @@ public:
 		assert(mNode->is_object());
 	}
 
-	[[nodiscard]] key_const_iterator cbegin() const {
-		return key_const_iterator(mNode->as_object().cbegin());
-	}
-
-	[[nodiscard]] key_const_iterator cend() const {
-		return key_const_iterator(mNode->as_object().cend());
-	}
-
 	[[nodiscard]] size_t GetEstimatedSize() const {
 		return mNode->size();
+	}
+
+	/// <summary>
+	/// Enumerates all keys by calling a passed function.
+	/// </summary>
+	template <typename TCallback>
+	void VisitKeys(TCallback&& fn)
+	{
+		for (const auto& keyVal : mNode->as_object()) {
+			fn(keyVal.first);
+		}
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>

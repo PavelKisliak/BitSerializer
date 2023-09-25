@@ -217,8 +217,8 @@ TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(BaseTypes, ShouldIterateKeysInObjectScope) {
-	TestIterateKeysInObjectScope<ArchiveStub>();
+TEST(BaseTypes, ShouldVisitKeysInObjectScope) {
+	TestVisitKeysInObjectScope<ArchiveStub>();
 }
 
 //-----------------------------------------------------------------------------

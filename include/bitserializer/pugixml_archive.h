@@ -374,38 +374,6 @@ protected:
 
 
 /// <summary>
-/// Constant iterator for keys.
-/// </summary>
-class key_const_iterator
-{
-	template <SerializeMode TMode>
-	friend class PugiXmlObjectScope;
-
-	pugi::xml_node_iterator mNodeIt;
-
-	key_const_iterator(pugi::xml_node_iterator&& it)
-		: mNodeIt(it) { }
-
-public:
-	bool operator==(const key_const_iterator& rhs) const {
-		return this->mNodeIt == rhs.mNodeIt;
-	}
-	bool operator!=(const key_const_iterator& rhs) const {
-		return this->mNodeIt != rhs.mNodeIt;
-	}
-
-	key_const_iterator& operator++() {
-		++mNodeIt;
-		return *this;
-	}
-
-	const PugiXmlArchiveTraits::key_type::value_type* operator*() const {
-		return mNodeIt->name();
-	}
-};
-
-
-/// <summary>
 /// XML scope for serializing objects (list of values with keys).
 /// </summary>
 /// <seealso cref="RapidJsonScopeBase" />
@@ -420,19 +388,22 @@ public:
 		assert(mNode.type() == pugi::node_element);
 	}
 
-	[[nodiscard]] key_const_iterator cbegin() const {
-		return key_const_iterator(mNode.begin());
-	}
-
-	[[nodiscard]] key_const_iterator cend() const {
-		return key_const_iterator(mNode.end());
-	}
-
 	/// <summary>
 	/// Returns the estimated number of items to load (for reserving the size of containers).
 	/// </summary>
 	[[nodiscard]] size_t GetEstimatedSize() const {
 		return std::distance(mNode.begin(), mNode.end());
+	}
+
+	/// <summary>
+	/// Enumerates all keys by calling a passed function.
+	/// </summary>
+	template <typename TCallback>
+	void VisitKeys(TCallback&& fn)
+	{
+		for (auto& keyVal : this->mNode) {
+			fn(keyVal.name());
+		}
 	}
 
 	/// <summary>

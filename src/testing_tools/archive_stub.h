@@ -316,38 +316,6 @@ private:
 
 
 /// <summary>
-/// Constant iterator of the keys.
-/// </summary>
-class key_const_iterator
-{
-	template <SerializeMode TMode>
-	friend class ArchiveStubObjectScope;
-
-	TestIoDataObject::const_iterator mJsonIt;
-
-	key_const_iterator(TestIoDataObject::const_iterator it)
-		: mJsonIt(it) { }
-
-public:
-	bool operator==(const key_const_iterator& rhs) const {
-		return this->mJsonIt == rhs.mJsonIt;
-	}
-	bool operator!=(const key_const_iterator& rhs) const {
-		return this->mJsonIt != rhs.mJsonIt;
-	}
-
-	key_const_iterator& operator++() {
-		++mJsonIt;
-		return *this;
-	}
-
-	const ArchiveStubTraits::key_type& operator*() const {
-		return mJsonIt->first;
-	}
-};
-
-
-/// <summary>
 /// Scope for serializing objects (list of values with keys).
 /// </summary>
 /// <seealso cref="ArchiveStubScopeBase" />
@@ -362,20 +330,23 @@ public:
 		assert(std::holds_alternative<TestIoDataObject>(*mNode));
 	}
 
-	[[nodiscard]] key_const_iterator cbegin() const {
-		return key_const_iterator(GetAsObject().cbegin());
-	}
-
-	[[nodiscard]] key_const_iterator cend() const {
-		return key_const_iterator(GetAsObject().cend());
-	}
-
 	/// <summary>
 	/// Returns the estimated number of items to load (for reserving the size of containers).
 	/// </summary>
 	[[nodiscard]] size_t GetEstimatedSize() const
 	{
 		return GetAsObject().size();
+	}
+
+	/// <summary>
+	/// Enumerates all keys by calling a passed function.
+	/// </summary>
+	template <typename TCallback>
+	void VisitKeys(TCallback&& fn)
+	{
+		for (auto& keyValue : GetAsObject()) {
+			fn(keyValue.first);
+		}
 	}
 
 	template <typename TSym, typename TAllocator>

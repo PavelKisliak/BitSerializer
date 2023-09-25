@@ -58,14 +58,6 @@ public:
 		: TArchiveScope<SerializeMode::Save>(context)
 	{ }
 
-	key_const_iterator cbegin() const {
-		return key_const_iterator();
-	}
-
-	key_const_iterator cend() const {
-		return key_const_iterator();
-	}
-
 	bool SerializeValue(const key_type& key, bool& value) { return true; }
 	bool SerializeValue(const key_type& key, int& value) { return true; }
 	bool SerializeValue(const key_type& key, std::nullptr_t&) { return true; }

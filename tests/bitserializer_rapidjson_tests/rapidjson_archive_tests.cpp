@@ -210,9 +210,9 @@ TEST(RapidJsonArchive, SerializeClassWithSubTwoDimArray)
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(RapidJsonArchive, ShouldIterateKeysInObjectScope)
+TEST(RapidJsonArchive, ShouldVisitKeysInObjectScope)
 {
-	TestIterateKeysInObjectScope<JsonArchive>();
+	TestVisitKeysInObjectScope<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

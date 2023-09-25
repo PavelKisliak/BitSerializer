@@ -141,27 +141,10 @@ template <typename TArchive, typename TKey>
 constexpr bool can_serialize_object_with_key_v = can_serialize_object_with_key<TArchive, TKey>::value;
 
 /// <summary>
-/// Checks that the archive scope has support serialize values with keys (by checking existence of cbegin() and cend() methods).
+/// Checks that the archive scope has support serialize values with keys.
 /// </summary>
 template <typename TArchive, typename TKey>
-struct is_object_scope
-{
-private:
-	template <typename TObj>
-	static std::enable_if_t<
-		   std::is_convertible_v<decltype(std::declval<TObj>().cbegin().operator*()), TKey>
-		&& std::is_convertible_v<decltype(std::declval<TObj>().cend().operator*()), TKey>, std::true_type> test(int);
-
-	template <typename>
-	static std::false_type test(...);
-
-public:
-	typedef decltype(test<TArchive>(0)) type;
-	enum { value = type::value };
-};
-
-template <typename TArchive, typename TKey>
-constexpr bool is_object_scope_v = is_object_scope<TArchive, TKey>::value;
+constexpr bool is_object_scope_v = can_serialize_value_with_key<TArchive, int, TKey>::value;
 
 //------------------------------------------------------------------------------
 

@@ -112,8 +112,8 @@ TEST(PugiXmlArchive, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(PugiXmlArchive, ShouldIterateKeysInObjectScope) {
-	TestIterateKeysInObjectScope<XmlArchive>();
+TEST(PugiXmlArchive, ShouldVisitKeysInObjectScope) {
+	TestVisitKeysInObjectScope<XmlArchive>();
 }
 
 TEST(PugiXmlArchive, ShouldAllowToLoadBooleanFromInteger)

@@ -456,16 +456,19 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	}
 }
 
+
 /// <summary>
-/// Template for test iterating keys in the object scope.
+/// Template for test visiting keys in the object scope.
 /// </summary>
 template <typename TArchive>
-void TestIterateKeysInObjectScope()
+void TestVisitKeysInObjectScope()
 {
 	// Arrange
-	auto expectedKey1 = BitSerializer::Convert::To<typename TArchive::key_type>("x");
-	auto expectedKey2 = BitSerializer::Convert::To<typename TArchive::key_type>("y");
-	TestPointClass testObj;
+	std::vector<typename TArchive::key_type> expectedKeys{
+		BitSerializer::Convert::To<typename TArchive::key_type>("x"),
+		BitSerializer::Convert::To<typename TArchive::key_type>("y")
+	};
+	TestPointClass testObj[1];
 	::BuildFixture(testObj);
 
 	using OutputFormat = typename TArchive::preferred_output_format;
@@ -476,18 +479,16 @@ void TestIterateKeysInObjectScope()
 	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 
 	// Act / Assert
-	auto objScope = inputArchive.OpenObjectScope(0);
+	auto arrScope = inputArchive.OpenArrayScope(0);
+	ASSERT_TRUE(arrScope.has_value());
+	auto objScope = arrScope->OpenObjectScope(0);
 	ASSERT_TRUE(objScope.has_value());
 
-	auto it = objScope->cbegin();
-	auto endIt = objScope->cend();
-	EXPECT_EQ(expectedKey1, *it);
-	EXPECT_TRUE(it != endIt);
-
-	++it;
-	EXPECT_EQ(expectedKey2, *it);
-	EXPECT_TRUE(it != endIt);
-
-	++it;
-	EXPECT_TRUE(it == endIt);
+	size_t index = 0;
+	objScope->VisitKeys([&expectedKeys, &index](auto&& key)
+	{
+		ASSERT_TRUE(index < expectedKeys.size());
+		EXPECT_EQ(expectedKeys[index], key);
+		++index;
+	});
 }

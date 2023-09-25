@@ -200,6 +200,17 @@ public:
 		return mCsvReader->GetHeaders().size();
 	}
 
+	/// <summary>
+	/// Enumerates all keys by calling a passed function.
+	/// </summary>
+	template <typename TCallback>
+	void VisitKeys(TCallback&& fn)
+	{
+		for (auto& key : mCsvReader->GetHeaders()) {
+			fn(key);
+		}
+	}
+
 	template <typename TKey, typename TSym, typename TStrAllocator>
 	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{

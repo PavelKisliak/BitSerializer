@@ -311,38 +311,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			size_t mIndex;
 		};
 
-		/// <summary>
-		/// Constant iterator for keys.
-		/// </summary>
-		class key_const_iterator
-		{
-			template <SerializeMode TMode>
-			friend class RapidYamlObjectScope;
-
-			ryml::NodeRef::const_iterator mYamlIt;
-
-			explicit key_const_iterator(ryml::NodeRef::const_iterator&& it)
-				: mYamlIt(it) { }
-
-		public:
-			bool operator==(const key_const_iterator& rhs) const {
-				return mYamlIt == rhs.mYamlIt;
-			}
-			bool operator!=(const key_const_iterator& rhs) const {
-				return mYamlIt != rhs.mYamlIt;
-			}
-
-			key_const_iterator& operator++() {
-				++mYamlIt;
-				return *this;
-			}
-
-			RapidYamlScopeBase::key_type operator*() const {
-				std::string key;
-				c4::from_chars((*mYamlIt).key(), &key);
-				return key;
-			}
-		};
 
 		/// <summary>
 		/// YAML scope for serializing objects.
@@ -360,27 +328,25 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			/// <summary>
-			/// Get the begin constant iterator of node.
-			/// </summary>
-			[[nodiscard]]
-			key_const_iterator cbegin() const {
-				return key_const_iterator(mNode.begin());
-			}
-
-			/// <summary>
-			/// Get the end constant iterator of node.
-			/// </summary>
-			[[nodiscard]]
-			key_const_iterator cend() const {
-				return key_const_iterator(mNode.end());
-			}
-
-			/// <summary>
 			/// Returns the estimated number of items to load (for reserving the size of containers).
 			/// </summary>
 			[[nodiscard]]
 			size_t GetEstimatedSize() const {
 				return mNode.num_children();
+			}
+
+			/// <summary>
+			/// Enumerates all keys by calling a passed function.
+			/// </summary>
+			template <typename TCallback>
+			void VisitKeys(TCallback&& fn)
+			{
+				for (const auto& keyVal : this->mNode)
+				{
+					std::string key;
+					c4::from_chars(keyVal.key(), &key);
+					fn(std::move(key));
+				}
 			}
 
 			/// <summary>

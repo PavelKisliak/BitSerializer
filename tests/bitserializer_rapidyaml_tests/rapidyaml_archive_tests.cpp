@@ -123,9 +123,9 @@ TEST(RapidYamlArchive, SerializeClassWithSubTwoDimArray)
 	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(RapidYamlArchive, ShouldIterateKeysInObjectScope)
+TEST(RapidYamlArchive, ShouldVisitKeysInObjectScope)
 {
-	TestIterateKeysInObjectScope<YamlArchive>();
+	TestVisitKeysInObjectScope<YamlArchive>();
 }
 
 TEST(RapidYamlArchive, ShouldAllowToLoadBooleanFromInteger)

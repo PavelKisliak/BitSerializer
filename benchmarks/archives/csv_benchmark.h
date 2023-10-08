@@ -6,7 +6,6 @@
 #include "bitserializer/csv_archive.h"
 #include "benchmark_base.h"
 
-using RapidJsonTestModel = CommonTestModel<>;
 using CsvBasePerfTest = CBenchmarkBase<BitSerializer::Csv::CsvArchive, CommonTestModel<>, char>;
 
 class CsvBenchmark final : public CsvBasePerfTest

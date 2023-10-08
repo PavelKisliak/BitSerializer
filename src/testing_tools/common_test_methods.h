@@ -7,6 +7,7 @@
 #include <optional>
 #include "common_test_entities.h"
 #include "bitserializer/types/std/vector.h"
+#include "bitserializer/types/std/array.h"
 
 
 /// <summary>

@@ -176,6 +176,27 @@ TEST(JsonRestCpp, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
+TEST(JsonRestCpp, SerializeClassInReverseOrder)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, float, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<JsonArchive>(fixture);
+}
+
+TEST(JsonRestCpp, SerializeClassInReverseOrderWithSubArray)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, std::array<uint64_t, 5>, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<JsonArchive>(fixture);
+}
+
+TEST(JsonRestCpp, SerializeClassInReverseOrderWithSubObject)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, TestPointClass, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<JsonArchive>(fixture);
+}
+
 TEST(JsonRestCpp, ShouldVisitKeysInObjectScope) {
 	TestVisitKeysInObjectScope<JsonArchive>();
 }

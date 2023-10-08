@@ -123,11 +123,6 @@ TEST(RapidYamlArchive, SerializeClassWithSubTwoDimArray)
 	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(RapidYamlArchive, ShouldVisitKeysInObjectScope)
-{
-	TestVisitKeysInObjectScope<YamlArchive>();
-}
-
 TEST(RapidYamlArchive, ShouldAllowToLoadBooleanFromInteger)
 {
 	TestClassWithSubType<bool> actual(false);
@@ -140,6 +135,32 @@ TEST(RapidYamlArchive, ShouldAllowToLoadFloatFromInteger)
 	TestClassWithSubType<float> actual(0);
 	BitSerializer::LoadObject<YamlArchive>(actual, "TestValue: 100");
 	EXPECT_EQ(100, actual.GetValue());
+}
+
+TEST(RapidYamlArchive, SerializeClassInReverseOrder)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, float, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<YamlArchive>(fixture);
+}
+
+TEST(RapidYamlArchive, SerializeClassInReverseOrderWithSubArray)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, std::array<uint64_t, 5>, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<YamlArchive>(fixture);
+}
+
+TEST(RapidYamlArchive, SerializeClassInReverseOrderWithSubObject)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, TestPointClass, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<YamlArchive>(fixture);
+}
+
+TEST(RapidYamlArchive, ShouldVisitKeysInObjectScope)
+{
+	TestVisitKeysInObjectScope<YamlArchive>();
 }
 
 //-----------------------------------------------------------------------------

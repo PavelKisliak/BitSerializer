@@ -245,6 +245,12 @@ public:
 		}
 	}
 
+	TestClassWithSubTypes& SetReverseOrderLoadMode()
+	{
+		mLoadInReverseOrder = true;
+		return *this;
+	}
+
 	template<std::size_t I = 0>
 	void Assert(const TestClassWithSubTypes& rhs) const
 	{
@@ -264,24 +270,46 @@ public:
 		}
 	}
 
-	template <class TArchive, std::size_t I = 0>
+	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		if constexpr (I == sizeof...(Args))
+		if (archive.IsLoading() && mLoadInReverseOrder)
+		{
+			if constexpr (sizeof...(Args) > 0) {
+				SerializeImpl<TArchive, sizeof...(Args) - 1, true>(archive);
+			}
+		}
+		else {
+			SerializeImpl(archive);
+		}
+	}
+
+private:
+	template <class TArchive, std::size_t Index = 0, bool Reverse=false>
+	void SerializeImpl(TArchive& archive)
+	{
+		if constexpr (Index >= sizeof...(Args))
 			return;
 		else
 		{
-			decltype(auto) member = std::get<I>(*this);
+			decltype(auto) member = std::get<Index>(*this);
 
-			// Auto key adaptation uses for able to test different type of archives.
-			static const auto key = BitSerializer::Convert::To<typename TArchive::key_type>("Member_")
-				+ BitSerializer::Convert::To<typename TArchive::key_type>(I);
-			archive << BitSerializer::KeyValue(key, member);
+			static const auto key = "Member_" + BitSerializer::Convert::ToString(Index);
+			archive << BitSerializer::AutoKeyValue(key, member);
 
-			// Next
-			Serialize<TArchive, I + 1>(archive);
+			// Serialize next value
+			if constexpr (Reverse)
+			{
+				SerializeImpl<TArchive, Index - 1, Reverse>(archive);
+			}
+			else
+			{
+				SerializeImpl<TArchive, Index + 1>(archive);
+			}
 		}
 	}
+	
+	bool mLoadInReverseOrder = false;
 };
 
 //-----------------------------------------------------------------------------

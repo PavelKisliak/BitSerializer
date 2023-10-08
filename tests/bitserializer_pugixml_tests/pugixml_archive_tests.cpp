@@ -112,10 +112,6 @@ TEST(PugiXmlArchive, SerializeClassWithSubTwoDimArray) {
 	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(PugiXmlArchive, ShouldVisitKeysInObjectScope) {
-	TestVisitKeysInObjectScope<XmlArchive>();
-}
-
 TEST(PugiXmlArchive, ShouldAllowToLoadBooleanFromInteger)
 {
 	TestClassWithSubType<bool> actual(false);
@@ -128,6 +124,31 @@ TEST(PugiXmlArchive, ShouldAllowToLoadFloatFromInteger)
 	TestClassWithSubType<float> actual(0);
 	BitSerializer::LoadObject<XmlArchive>(actual, "<root><TestValue>100</TestValue></root>");
 	EXPECT_EQ(100, actual.GetValue());
+}
+
+TEST(PugiXmlArchive, SerializeClassInReverseOrder)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, float, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<XmlArchive>(fixture);
+}
+
+TEST(PugiXmlArchive, SerializeClassInReverseOrderWithSubArray)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, std::array<uint64_t, 5>, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<XmlArchive>(fixture);
+}
+
+TEST(PugiXmlArchive, SerializeClassInReverseOrderWithSubObject)
+{
+	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, TestPointClass, std::string>>()
+		.SetReverseOrderLoadMode();
+	TestSerializeClass<XmlArchive>(fixture);
+}
+
+TEST(PugiXmlArchive, ShouldVisitKeysInObjectScope) {
+	TestVisitKeysInObjectScope<XmlArchive>();
 }
 
 //-----------------------------------------------------------------------------

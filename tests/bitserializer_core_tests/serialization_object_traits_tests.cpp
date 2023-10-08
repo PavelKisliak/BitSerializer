@@ -155,6 +155,18 @@ struct ExtFieldsCounterFixture
 	int x = 0, y = 0, z = 0;
 };
 
+struct FieldsCounterFixtureWithInheritance : IntFieldsCounterFixture
+{
+	int z = 0;
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::BaseObject<IntFieldsCounterFixture>(*this);
+		archive << KeyValue("z", x);
+	}
+};
+
 template<typename TArchive>
 void SerializeObject(TArchive& archive, ExtFieldsCounterFixture& fixture)
 {
@@ -194,4 +206,10 @@ TEST(SerializationObjectTraits, ShouldCountFieldsOfMap) {
 
 	EXPECT_EQ(0, CountMapObjectFields(textArchive, val));
 	EXPECT_EQ(4, CountMapObjectFields(binArchive, val));
+}
+
+TEST(SerializationObjectTraits, ShouldCountObjectWithBaseSerializableClass) {
+	constexpr ArchiveTest archive;
+	FieldsCounterFixtureWithInheritance val;
+	EXPECT_EQ(3, FieldsCountVisitor(archive).Count(val));
 }

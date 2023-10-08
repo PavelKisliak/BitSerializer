@@ -86,6 +86,24 @@ public:
 };
 
 
+/// <summary>
+/// The wrapper class that keeps a reference to a base user object, used to simplify the serialization of base objects.
+/// </summary>
+template<class TBase>
+struct BaseObject
+{
+	template <typename TDerived>
+	explicit BaseObject(TDerived& object) noexcept
+		: Object(object)
+	{
+		static_assert(std::is_base_of_v<TBase, TDerived>,
+			"BitSerializer. The template parameter 'TBase' should be a base type of passed object.");
+	}
+
+	TBase& Object;
+};
+
+
 namespace Detail
 {
 	/// <summary>

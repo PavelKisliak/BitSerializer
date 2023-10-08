@@ -200,7 +200,6 @@ public:
 		constexpr auto hasGlobalSerializeObject = has_global_serialize_object_v<TValue>;
 		static_assert(hasSerializeMethod || hasGlobalSerializeObject, "BitSerializer. Cannot count number of object fields");
 
-		Size = 0;
 		// Globally defined functions have higher priority over internal ones
 		if constexpr (hasGlobalSerializeObject) {
 			SerializeObject(*this, obj);
@@ -226,6 +225,13 @@ public:
 	FieldsCountVisitor& operator<<(TValue&&) noexcept
 	{
 		++Size;
+		return *this;
+	}
+
+	template <class TBase>
+	FieldsCountVisitor& operator<<(BaseObject<TBase>&& value) noexcept
+	{
+		Count(value.Object);
 		return *this;
 	}
 

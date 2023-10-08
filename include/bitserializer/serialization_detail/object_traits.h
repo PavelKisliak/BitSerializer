@@ -216,7 +216,7 @@ public:
 
 	static constexpr auto GetMode() noexcept { return TArchive::GetMode(); }
 	static constexpr auto IsSaving() noexcept { return TArchive::IsSaving(); }
-	static constexpr auto IsLoading() noexcept { return TArchive::IsLoading; }
+	static constexpr auto IsLoading() noexcept { return TArchive::IsLoading(); }
 
 	[[nodiscard]] SerializationContext& GetContext() const noexcept { return Archive->GetContext(); }
 	[[nodiscard]] const SerializationOptions& GetOptions() const noexcept { return Archive->GetOptions(); }

@@ -26,32 +26,34 @@ namespace BitSerializer::Convert::Detail
 		// ReSharper disable once CppPossiblyErroneousEmptyStatements
 		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it);	// Skip spaces
 
-		std::from_chars_result result;
+		const auto validateResult = [](std::from_chars_result rc, std::string_view str)
+		{
+			if (rc.ec != std::errc())
+			{
+				if (rc.ec == std::errc::result_out_of_range) {
+					throw std::out_of_range("Argument out of range");
+				}
+				if (rc.ec == std::errc::invalid_argument) {
+					throw std::invalid_argument("Input string is not a number");
+				}
+				throw std::runtime_error("Unknown error");
+			}
+
+			// Check that string does not contain decimal fractions (parsing a float number to integer is not allowed)
+			if (rc.ptr + 1 < str.data() + str.size() && *rc.ptr == '.' && std::isdigit(*(rc.ptr + 1)))
+			{
+				throw std::invalid_argument("Unable to convert string with float number to integer");
+			}
+		};
+
 		if constexpr (sizeof(TSym) == sizeof(char)) {
-			// Uses from_chars only for convert only integers as GCC does not support floating types
-			result = std::from_chars(it, end, out);
+			// Uses from_chars only for convert integers as GCC does not support floating types
+			validateResult(std::from_chars(it, end, out), in);
 		}
 		else {
 			std::string utf8Str;
 			Utf8::Encode(it, end, utf8Str);
-			result = std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out);
-		}
-
-		if (result.ec != std::errc())
-		{
-			if (result.ec == std::errc::result_out_of_range) {
-				throw std::out_of_range("Argument out of range");
-			}
-			if (result.ec == std::errc::invalid_argument) {
-				throw std::invalid_argument("Input string is not a number");
-			}
-			throw std::runtime_error("Unknown error");
-		}
-
-		// Check that next character is not decimal point (converting float to integer is not allowed)
-		if (result.ptr != static_cast<const void*>(end) && *result.ptr == '.')
-		{
-			throw std::out_of_range("Argument out of range");
+			validateResult(std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out), utf8Str);
 		}
 	}
 

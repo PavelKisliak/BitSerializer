@@ -10,6 +10,9 @@
 #ifdef CSV_BENCHMARK
 #include "csv_benchmark.h"
 #endif
+#ifdef MSGPACK_BENCHMARK
+#include "msgpack_benchmark.h"
+#endif
 #ifdef RAPIDJSON_BENCHMARK
 #include "rapid_json_benchmark.h"
 #endif
@@ -172,6 +175,9 @@ int main()
 
 #ifdef CSV_BENCHMARK
 		benchmarkResults.emplace_back(RunBenchmark<CsvBenchmark>());
+#endif
+#ifdef MSGPACK_BENCHMARK
+		benchmarkResults.emplace_back(RunBenchmark<MsgPackBenchmark>());
 #endif
 #ifdef RAPIDJSON_BENCHMARK
 		benchmarkResults.emplace_back(RunBenchmark<CRapidJsonBenchmark>());

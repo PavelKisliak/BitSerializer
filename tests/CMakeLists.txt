@@ -20,3 +20,7 @@ endif()
 if(BUILD_CSV_ARCHIVE)
     add_subdirectory(bitserializer_csv_tests)
 endif()
+
+if(BUILD_MSGPACK_ARCHIVE)
+    add_subdirectory(bitserializer_msgPack_tests)
+endif()

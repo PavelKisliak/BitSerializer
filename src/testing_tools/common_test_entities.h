@@ -381,7 +381,7 @@ public:
 		archive << BitSerializer::AutoKeyValue("ExistField", mExistField, BitSerializer::Required());
 
 		// Trying to load not existing field
-		if (archive.IsLoading())
+		if constexpr (TArchive::IsLoading())
 		{
 			TestType notExistField{};
 			archive << BitSerializer::AutoKeyValue(L"NotExistingField", notExistField, BitSerializer::Required());

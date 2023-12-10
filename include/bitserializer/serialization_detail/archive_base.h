@@ -27,14 +27,16 @@ enum class ArchiveType
 	Json,
 	Xml,
 	Yaml,
-	Csv
+	Csv,
+	MsgPack
 };
 
 REGISTER_ENUM(ArchiveType, {
 	{ ArchiveType::Json, "Json" },
 	{ ArchiveType::Xml, "Xml" },
 	{ ArchiveType::Yaml, "Yaml" },
-	{ ArchiveType::Csv, "Csv" }
+	{ ArchiveType::Csv, "Csv" },
+	{ ArchiveType::MsgPack, "MsgPack" }
 })
 
 /// <summary>
@@ -143,7 +145,7 @@ namespace Detail
 		{
 			auto value = static_cast<TTarget>(sourceValue);
 			result = (static_cast<TSource>(value) == sourceValue) && !((value > 0 && sourceValue < 0) || (value < 0 && sourceValue > 0));
-			if (result) { 
+			if (result) {
 				targetValue = value;
 			}
 		}

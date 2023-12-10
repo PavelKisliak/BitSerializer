@@ -37,6 +37,9 @@ message(STATUS "[Option] BUILD_RAPIDYAML_ARCHIVE: ${BUILD_RAPIDYAML_ARCHIVE}")
 option(BUILD_CSV_ARCHIVE "Build CSV archive" OFF)
 message(STATUS "[Option] BUILD_CSV_ARCHIVE: ${BUILD_CSV_ARCHIVE}")
 
+option(BUILD_MSGPACK_ARCHIVE "Build MsgPack archive" OFF)
+message(STATUS "[Option] BUILD_MSGPACK_ARCHIVE: ${BUILD_MSGPACK_ARCHIVE}")
+
 option(BUILD_TESTS "Build tests" OFF)
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 
@@ -173,6 +176,21 @@ if(BUILD_CSV_ARCHIVE)
     )
 endif()
 
+# BitSerializer MsgPack archive
+if(BUILD_MSGPACK_ARCHIVE)
+    set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
+    add_library(${MSGPACK_ARCHIVE_NAME} STATIC
+       "src/msgpack/msgpack_archive.cpp"
+       "src/msgPack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
+       "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp")
+    add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
+
+    target_link_libraries(${MSGPACK_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    )
+endif()
+
 #################################################################################
 # Tests (optional)
 #################################################################################
@@ -253,5 +271,10 @@ endif()
 
 if(BUILD_CSV_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/csv_archive.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+endif()
+
+if(BUILD_MSGPACK_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/msgPack_archive.h
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()

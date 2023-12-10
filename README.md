@@ -879,7 +879,7 @@ inline void Serialize(TArchive& archive)
     // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
     archive << testBool;
     // Proper use
-	archive << KeyValue("testString", testString);
+    archive << KeyValue("testString", testString);
 };
 ```
 

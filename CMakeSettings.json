@@ -49,6 +49,11 @@
           "name": "BUILD_CSV_ARCHIVE",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -104,6 +109,11 @@
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         }
@@ -163,6 +173,11 @@
           "name": "BUILD_CSV_ARCHIVE",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -218,6 +233,11 @@
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         }
@@ -281,6 +301,11 @@
           "name": "BUILD_CSV_ARCHIVE",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -340,6 +365,11 @@
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         }
@@ -403,6 +433,11 @@
           "name": "BUILD_CSV_ARCHIVE",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -462,6 +497,11 @@
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         }

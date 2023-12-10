@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}
     pugixml_benchmark.h
     rapid_yaml_benchmark.h
     csv_benchmark.h
+    msgpack_benchmark.h
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -19,6 +20,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_PUGIXML_ARCHIVE}>:"PUGIXML_BENCHMARK">
     $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:"RAPIDYAMLN_BENCHMARK">
     $<$<BOOL:${BUILD_CSV_ARCHIVE}>:"CSV_BENCHMARK">
+    $<$<BOOL:${BUILD_MSGPACK_ARCHIVE}>:"MSGPACK_BENCHMARK">
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -28,4 +30,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_PUGIXML_ARCHIVE}>:BitSerializer::pugixml-archive>
     $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:BitSerializer::rapidyaml-archive>
     $<$<BOOL:${BUILD_CSV_ARCHIVE}>:BitSerializer::csv-archive>
+    $<$<BOOL:${BUILD_MSGPACK_ARCHIVE}>:BitSerializer::msgpack-archive>
 )

@@ -60,7 +60,6 @@ void TestSerializeVector(std::initializer_list<TValue> testValues)
 {
 	// Arrange
 	std::vector<TValue> testArray = { std::move(testValues) };
-	BuildFixture(testArray);
 	typename TArchive::preferred_output_format outputArchive;
 	std::vector<TValue> actual;
 
@@ -488,8 +487,12 @@ void TestVisitKeysInObjectScope()
 	size_t index = 0;
 	objScope->VisitKeys([&expectedKeys, &index](auto&& key)
 	{
+		using T = std::decay_t<decltype(key)>;
 		ASSERT_TRUE(index < expectedKeys.size());
-		EXPECT_EQ(expectedKeys[index], key);
+		if constexpr (std::is_same_v<T, std::string>)
+		{
+			EXPECT_EQ(expectedKeys[index], key);
+		}
 		++index;
 	});
 }

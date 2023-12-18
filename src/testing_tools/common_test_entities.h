@@ -245,12 +245,6 @@ public:
 		}
 	}
 
-	TestClassWithSubTypes& SetReverseOrderLoadMode()
-	{
-		mLoadInReverseOrder = true;
-		return *this;
-	}
-
 	template<std::size_t I = 0>
 	void Assert(const TestClassWithSubTypes& rhs) const
 	{
@@ -273,18 +267,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		if (archive.IsLoading() && mLoadInReverseOrder)
-		{
-			if constexpr (sizeof...(Args) > 0) {
-				SerializeImpl<TArchive, sizeof...(Args) - 1, true>(archive);
-			}
-		}
-		else {
-			SerializeImpl(archive);
-		}
+		SerializeImpl(archive);
 	}
 
-private:
+protected:
 	template <class TArchive, std::size_t Index = 0, bool Reverse=false>
 	void SerializeImpl(TArchive& archive)
 	{
@@ -308,8 +294,32 @@ private:
 			}
 		}
 	}
-	
-	bool mLoadInReverseOrder = false;
+};
+
+//-----------------------------------------------------------------------------
+
+template <class ...Args>
+class TestClassWithReverseLoad : public TestClassWithSubTypes<Args...>
+{
+public:
+	TestClassWithReverseLoad() = default;
+	TestClassWithReverseLoad(Args... args)
+		: std::tuple<Args...>(args...)
+	{ }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		if (archive.IsLoading())
+		{
+			if constexpr (sizeof...(Args) > 0) {
+				TestClassWithSubTypes<Args...>::template SerializeImpl<TArchive, sizeof...(Args) - 1, true>(archive);
+			}
+		}
+		else {
+			TestClassWithSubTypes<Args...>::SerializeImpl(archive);
+		}
+	}
 };
 
 //-----------------------------------------------------------------------------

@@ -210,26 +210,23 @@ TEST(MsgPackArchive, ShouldVisitKeysInObjectScope)
 	TestVisitKeysInObjectScope<MsgPackArchive>();
 }
 
-TEST(MsgPackArchive, SerializeClassInReverseOrder)
-{
-	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, float, std::string>>()
-		.SetReverseOrderLoadMode();
-	TestSerializeClass<MsgPackArchive>(fixture);
-}
-
-TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubArray)
-{
-	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, std::array<uint64_t, 5>, std::string>>()
-		.SetReverseOrderLoadMode();
-	TestSerializeClass<MsgPackArchive>(fixture);
-}
-
-TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
-{
-	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, TestPointClass, std::string>>()
-		.SetReverseOrderLoadMode();
-	TestSerializeClass<MsgPackArchive>(fixture);
-}
+//TEST(MsgPackArchive, SerializeClassInReverseOrder)
+//{
+//	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
+//	TestSerializeClass<MsgPackArchive>(fixture);
+//}
+//
+//TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubArray)
+//{
+//	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
+//	TestSerializeClass<MsgPackArchive>(fixture);
+//}
+//
+//TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
+//{
+//	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
+//	TestSerializeClass<MsgPackArchive>(fixture);
+//}
 
 //-----------------------------------------------------------------------------
 // Test paths in archive

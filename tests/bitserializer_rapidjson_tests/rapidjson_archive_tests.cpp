@@ -212,22 +212,19 @@ TEST(RapidJsonArchive, SerializeClassWithSubTwoDimArray)
 
 TEST(RapidJsonArchive, SerializeClassInReverseOrder)
 {
-	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, float, std::string>>()
-		.SetReverseOrderLoadMode();
+	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
 	TestSerializeClass<JsonArchive>(fixture);
 }
 
 TEST(RapidJsonArchive, SerializeClassInReverseOrderWithSubArray)
 {
-	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, std::array<uint64_t, 5>, std::string>>()
-		.SetReverseOrderLoadMode();
+	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
 	TestSerializeClass<JsonArchive>(fixture);
 }
 
 TEST(RapidJsonArchive, SerializeClassInReverseOrderWithSubObject)
 {
-	auto fixture = BuildFixture<TestClassWithSubTypes<int, bool, TestPointClass, std::string>>()
-		.SetReverseOrderLoadMode();
+	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
 	TestSerializeClass<JsonArchive>(fixture);
 }
 

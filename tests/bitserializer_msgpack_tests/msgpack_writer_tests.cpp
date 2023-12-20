@@ -20,10 +20,10 @@ TYPED_TEST_SUITE(MsgPackWriterTest, Implementations);
 TYPED_TEST(MsgPackWriterTest, ShouldWriteBoolean)
 {
 	this->mMsgPackWriter->WriteValue(false);
-	EXPECT_EQ("\xC3", this->TakeResult());
+	EXPECT_EQ("\xC2", this->TakeResult());
 
 	this->mMsgPackWriter->WriteValue(true);
-	EXPECT_EQ("\xC2", this->TakeResult());
+	EXPECT_EQ("\xC3", this->TakeResult());
 }
 
 TYPED_TEST(MsgPackWriterTest, ShouldWriteNil)

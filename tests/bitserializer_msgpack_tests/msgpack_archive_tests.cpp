@@ -56,7 +56,7 @@ TEST(MsgPackArchive, SerializeDouble)
 TEST(MsgPackArchive, ShouldAllowToLoadBooleanFromInteger)
 {
 	bool actual = false;
-	BitSerializer::LoadObject<MsgPackArchive>(actual, std::string({'\xC2'}));
+	BitSerializer::LoadObject<MsgPackArchive>(actual, std::string({'\xC3'}));
 	EXPECT_EQ(true, actual);
 }
 

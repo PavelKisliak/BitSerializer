@@ -69,7 +69,7 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::WriteValue(bool value)
 	{
-		mOutputString.push_back(value ? '\xC2' : '\xC3');
+		mOutputString.push_back(value ? '\xC3' : '\xC2');
 	}
 
 	void CMsgPackStringWriter::WriteValue(uint8_t value)

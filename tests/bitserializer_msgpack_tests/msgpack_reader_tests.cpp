@@ -25,7 +25,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadNil)
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadBoolean)
 {
-	this->PrepareReader("\xC2\xC3");
+	this->PrepareReader("\xC3\xC2");
 	bool value = false;
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(true, value);
@@ -350,10 +350,10 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadIntFromBoolean)
 	int value = 100;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
-	EXPECT_EQ(1, value);
+	EXPECT_EQ(0, value);
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
-	EXPECT_EQ(0, value);
+	EXPECT_EQ(1, value);
 }
 
 //-----------------------------------------------------------------------------
@@ -591,7 +591,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldGetPosition)
 
 TYPED_TEST(MsgPackReaderTest, ShouldSetPosition)
 {
-	this->PrepareReader("\xC2\xC3");
+	this->PrepareReader("\xC3\xC2");
 	bool value = false;
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	this->mMsgPackReader->SetPosition(0);

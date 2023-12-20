@@ -231,12 +231,12 @@ namespace
 			if (ch == '\xC2')
 			{
 				++pos;
-				return Detail::SafeNumberCast(1, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(0, outValue, overflowNumberPolicy);
 			}
 			if (ch == '\xC3')
 			{
 				++pos;
-				return Detail::SafeNumberCast(0, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(1, outValue, overflowNumberPolicy);
 			}
 			HandleMismatchedTypesPolicy(ReadValueTypeImpl(inputData, pos), mismatchedTypesPolicy);
 			return false;

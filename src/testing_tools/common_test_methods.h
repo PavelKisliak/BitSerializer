@@ -489,7 +489,7 @@ void TestVisitKeysInObjectScope()
 	{
 		using T = std::decay_t<decltype(key)>;
 		ASSERT_TRUE(index < expectedKeys.size());
-		if constexpr (std::is_same_v<T, std::string>)
+		if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>)
 		{
 			EXPECT_EQ(expectedKeys[index], key);
 		}

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -210,23 +210,23 @@ TEST(MsgPackArchive, ShouldVisitKeysInObjectScope)
 	TestVisitKeysInObjectScope<MsgPackArchive>();
 }
 
-//TEST(MsgPackArchive, SerializeClassInReverseOrder)
-//{
-//	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
-//	TestSerializeClass<MsgPackArchive>(fixture);
-//}
-//
-//TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubArray)
-//{
-//	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
-//	TestSerializeClass<MsgPackArchive>(fixture);
-//}
-//
-//TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
-//{
-//	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
-//	TestSerializeClass<MsgPackArchive>(fixture);
-//}
+TEST(MsgPackArchive, SerializeClassInReverseOrder)
+{
+	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
+	TestSerializeClass<MsgPackArchive>(fixture);
+}
+
+TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubArray)
+{
+	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
+	TestSerializeClass<MsgPackArchive>(fixture);
+}
+
+TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
+{
+	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
+	TestSerializeClass<MsgPackArchive>(fixture);
+}
 
 //-----------------------------------------------------------------------------
 // Test paths in archive

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -71,17 +71,20 @@ public:
 
 	template <typename T>
 	bool operator==(const T& value) const {
-		return mLast == &std::get<T>(mTuple) && std::get<T>(mTuple) == value;
+		auto& ref = std::get<T>(mTuple);
+		return mLast == &ref && ref == value;
 	}
 
 	template <>
 	bool operator==(const std::string& value) const {
-		return mLast == &std::get<std::string_view>(mTuple) && std::get<std::string_view>(mTuple) == value;
+		auto& ref = std::get<std::string_view>(mTuple);
+		return mLast == &ref && ref == value;
 	}
 
 	template <typename T, size_t ArraySize>
 	bool operator==(T(&value)[ArraySize]) const {
-		return mLast == &std::get<std::string_view>(mTuple) && std::get<std::string_view>(mTuple) == value;
+		auto& ref = std::get<std::string_view>(mTuple);
+		return mLast == &ref && ref == value;
 	}
 
 	template <typename T>
@@ -339,7 +342,7 @@ private:
 class MsgPackWriteRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	MsgPackWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext);
+	MsgPackWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
 	//MsgPackWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
 
 	/// <summary>
@@ -715,8 +718,8 @@ private:
 			if (mCurrentKey == key) {
 				return true;
 			}
-			// ToDo: support read keys in random order
-			throw ParsingException("Reading keys in random order is not currently supported.");
+			mMsgPackReader->SkipValue();
+			++mIndex;
 		}
 
 		for (size_t c = 0; c < mSize; ++c)
@@ -730,6 +733,7 @@ private:
 			if (mCurrentKey == key) {
 				return true;
 			}
+			mMsgPackReader->SkipValue();
 			++mIndex;
 		}
 		return false;

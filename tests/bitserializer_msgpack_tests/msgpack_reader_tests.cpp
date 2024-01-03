@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/auto_fixture.h"
@@ -15,6 +15,60 @@ typedef Types<BitSerializer::MsgPack::Detail::CMsgPackStringReader> Implementati
 TYPED_TEST_SUITE(MsgPackReaderTest, Implementations);
 
 //------------------------------------------------------------------------------
+
+namespace
+{
+	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	std::string EncodeIntegralValue(uint8_t code, T value)
+	{
+		std::string outStr;
+		outStr.push_back(static_cast<char>(code));
+		outStr.push_back(static_cast<char>(value));
+		return outStr;
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	std::string EncodeIntegralValue(uint8_t code, T value)
+	{
+		std::string outStr;
+		outStr.push_back(static_cast<char>(code));
+		const char* valPtr = reinterpret_cast<const char*>(&value);
+		outStr.push_back(valPtr[1]);
+		outStr.push_back(valPtr[0]);
+		return outStr;
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
+	std::string EncodeIntegralValue(uint8_t code, T value)
+	{
+		std::string outStr;
+		outStr.push_back(static_cast<char>(code));
+		const char* valPtr = reinterpret_cast<const char*>(&value);
+		outStr.push_back(valPtr[3]);
+		outStr.push_back(valPtr[2]);
+		outStr.push_back(valPtr[1]);
+		outStr.push_back(valPtr[0]);
+		return outStr;
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
+	std::string EncodeIntegralValue(uint8_t code, T value)
+	{
+		std::string outStr;
+		outStr.push_back(static_cast<char>(code));
+		const char* valPtr = reinterpret_cast<const char*>(&value);
+		outStr.push_back(valPtr[7]);
+		outStr.push_back(valPtr[6]);
+		outStr.push_back(valPtr[5]);
+		outStr.push_back(valPtr[4]);
+		outStr.push_back(valPtr[3]);
+		outStr.push_back(valPtr[2]);
+		outStr.push_back(valPtr[1]);
+		outStr.push_back(valPtr[0]);
+		return outStr;
+	}
+}
+
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadNil)
 {
@@ -166,8 +220,8 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt16)
 {
 	this->PrepareReader({
 		'\xD1', '\x80', '\x00',		// From int16
-		'\xD1', '\xA0','\x83',		// From int16
-		'\xD1', '\x7F','\xFF'		// From int16
+		'\xD1', '\xA0', '\x83',		// From int16
+		'\xD1', '\x7F', '\xFF'		// From int16
 		});
 	int16_t value = false;
 
@@ -250,8 +304,8 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt32)
 {
 	this->PrepareReader({
 		'\xD2', '\x80', '\x00', '\x00', '\x00',		// From int32
-		'\xD2', '\xA0','\x83', '\x00', '\x00',		// From int32
-		'\xD2', '\x7F','\xFF', '\xFF', '\xFF'		// From int32
+		'\xD2', '\xA0', '\x83', '\x00', '\x00',		// From int32
+		'\xD2', '\x7F', '\xFF', '\xFF', '\xFF'		// From int32
 		});
 	int32_t value = false;
 
@@ -318,7 +372,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt64)
 {
 	this->PrepareReader({
 		'\xD3', '\x80', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',		// From int64
-		'\xD3', '\x7F','\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF'		// From int64
+		'\xD3', '\x7F', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF'		// From int64
 		});
 	int64_t value = false;
 
@@ -389,7 +443,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadDoubleFromFloat)
 //-----------------------------------------------------------------------------
 // Tests of reading strings
 //-----------------------------------------------------------------------------
-TYPED_TEST(MsgPackReaderTest, ShouldReadStringWhenSizeLessThan32)
+TYPED_TEST(MsgPackReaderTest, ShouldReadStringWithFixedSize)
 {
 	const auto expectedStr = this->GenTestString(31);
 	this->PrepareReader(std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr);
@@ -460,7 +514,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfString)
 //-----------------------------------------------------------------------------
 // Tests of reading arrays
 //-----------------------------------------------------------------------------
-TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeLessThan16)
+TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWithFixedSize)
 {
 	this->PrepareReader({ static_cast<char>(0b10011111) });
 	size_t size = 0;
@@ -519,7 +573,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeFitToUint32)
 //-----------------------------------------------------------------------------
 // Tests of reading maps
 //-----------------------------------------------------------------------------
-TYPED_TEST(MsgPackReaderTest, ShouldReadMapWhenSizeLessThan16)
+TYPED_TEST(MsgPackReaderTest, ShouldReadMapWithFixedSize)
 {
 	this->PrepareReader({ static_cast<char>(0b10001111) });
 	size_t size = 0;
@@ -740,4 +794,340 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfFixArray)
 		this->PrepareReader({ static_cast<char>(i | 0b10010000) });
 		EXPECT_EQ(expectedType, this->mMsgPackReader->ReadValueType());
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Tests for skip values
+//-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixInt)
+{
+	for (int i = -32; i < 128; ++i)
+	{
+		this->PrepareReader({ static_cast<char>(i), '\x10' });
+		this->mMsgPackReader->SkipValue();
+		char value = -128;
+		EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+		EXPECT_EQ(16, value);
+	}
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipNil)
+{
+	this->PrepareReader("\xC0\xC2");
+	bool value;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipBoolean)
+{
+	this->PrepareReader("\xC2\xC3");
+	this->mMsgPackReader->SkipValue();
+	bool value = false;
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(true, value);
+
+	this->PrepareReader("\xC3\xC2");
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(false, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFloat)
+{
+	this->PrepareReader("\xCA\x40\x48\xF5\xC3\x10");
+	char value = -1;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(16, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipDouble)
+{
+	this->PrepareReader("\xCB\x40\x09\x21\xFB\x54\x52\x45\x50\x10");
+	char value = -1;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(16, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipUint8)
+{
+	this->PrepareReader({
+		'\xCC', '\x80',		// From uint8
+		'\xCC', '\x10',		// From uint8
+		});
+	uint8_t value = 0;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(16, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipUint16)
+{
+	this->PrepareReader({
+		'\xCD', '\x40', '\x80',			// From uint16
+		'\xCD', '\xCA', '\xFE'			// From uint16
+	});
+	uint16_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(0xCAFE, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipUint32)
+{
+	this->PrepareReader({
+		'\xCE', '\x40', '\x80', '\x20', '\x10',		// From uint32
+		'\xCE', '\xCA', '\xFE', '\x20', '\x30'		// From uint32
+	});
+	uint32_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(0xCAFE2030, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipUint64)
+{
+	this->PrepareReader({
+		'\xCF', '\xA0', '\x90', '\x80', '\x70', '\x60', '\x50', '\x40', '\x30',		// From uint64
+		'\xCF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF' 		// From uint64
+	});
+	uint64_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipInt8)
+{
+	this->PrepareReader({
+		'\xD0', '\x80',		// From int8
+		'\xD0', '\xCE'		// From int8
+	});
+	int8_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(-50, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipInt16)
+{
+	this->PrepareReader({
+		'\xD1', '\x80', '\x00',		// From int16
+		'\xD1', '\xA0', '\x83'		// From int16
+	});
+	int16_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(-24445, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipInt32)
+{
+	this->PrepareReader({
+		'\xD2', '\x80', '\x00', '\x00', '\x00',		// From int32
+		'\xD2', '\xA0', '\x83', '\x00', '\x00'		// From int32
+	});
+	int32_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(-1602027520, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipInt64)
+{
+	this->PrepareReader({
+		'\xD3', '\x80', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',		// From int64
+		'\xD3', '\x7F', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF'		// From int64
+	});
+	int64_t value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_EQ(std::numeric_limits<int64_t>::max(), value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWithFixedSize)
+{
+	const std::string expectedStr = "Hello world!";
+	for (int i = 0; i < 31; ++i)
+	{
+		this->PrepareReader(static_cast<char>(i | 0b10100000) + this->GenTestString(i) +
+			std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+		);
+
+		std::string_view actualStr;
+		this->mMsgPackReader->SkipValue();
+		EXPECT_TRUE(this->mMsgPackReader->ReadValue(actualStr));
+		EXPECT_EQ(expectedStr, actualStr);
+	}
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint8)
+{
+	const std::string expectedStr = "Hello world!";
+	this->PrepareReader(
+		std::string({ '\xD9', '\xFF' }) + this->GenTestString(std::numeric_limits<uint8_t>::max()) +
+		std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+	);
+
+	std::string_view actualStr;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(actualStr));
+	EXPECT_EQ(expectedStr, actualStr);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint16)
+{
+	const std::string expectedStr = "Hello world!";
+	this->PrepareReader(
+		std::string({ '\xDA', '\xFF', '\xFF' }) + this->GenTestString(std::numeric_limits<uint16_t>::max()) +
+		std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+	);
+
+	std::string_view actualStr;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(actualStr));
+	ASSERT_EQ(expectedStr.size(), actualStr.size());
+	EXPECT_EQ(std::hash<std::string>()(expectedStr), std::hash<std::string_view>()(actualStr));
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint32)
+{
+	const std::string expectedStr = "Hello world!";
+	this->PrepareReader(
+		std::string({ '\xDB', '\x00', '\x01', '\x00', '\x02' }) + this->GenTestString(std::numeric_limits<uint16_t>::max() + 3) +
+		std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+	);
+
+	std::string_view actualStr;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(actualStr));
+	ASSERT_EQ(expectedStr.size(), actualStr.size());
+	EXPECT_EQ(std::hash<std::string>()(expectedStr), std::hash<std::string_view>()(actualStr));
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWhithFixedSize)
+{
+	for (uint16_t i = 0; i < 15; ++i)
+	{
+		std::string data = { static_cast<char>('\x90' + i) };
+		data.reserve(data.size() + i * (sizeof i + 1));
+		for (uint16_t k = 0; k < i; ++k)
+		{
+			data += EncodeIntegralValue('\xCD', k);
+		}
+		data += '\xC3';
+		this->PrepareReader(std::move(data));
+
+		bool value;
+		this->mMsgPackReader->SkipValue();
+		EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+		ASSERT_EQ(true, value);
+	}
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWhenSizeFitToUint16)
+{
+	constexpr uint16_t testSize = 0x0410;
+	std::string data = EncodeIntegralValue('\xDC', testSize);
+	data.reserve(data.size() + testSize * (sizeof testSize + 1));
+	for (uint16_t i = 0; i < testSize; ++i)
+	{
+		data += EncodeIntegralValue('\xCD', i);
+	}
+	data += '\xC3';
+	this->PrepareReader(std::move(data));
+
+	bool value;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	ASSERT_EQ(true, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWhenSizeFitToUint32)
+{
+	constexpr uint32_t testSize = 0x10000;
+	std::string data = EncodeIntegralValue('\xDD', testSize);
+	data.reserve(data.size() + testSize * (sizeof testSize + 1));
+	for (uint32_t i = 0; i < testSize; ++i)
+	{
+		data += EncodeIntegralValue('\xCE', i);
+	}
+	data += '\xC3';
+	this->PrepareReader(std::move(data));
+
+	bool value;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	ASSERT_EQ(true, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipMapWithFixedSize)
+{
+	for (uint16_t i = 0; i < 15; ++i)
+	{
+		std::string data = { static_cast<char>('\x80' + i) };
+		data.reserve(data.size() + i * (sizeof i + 1));
+		for (uint16_t k = 0; k < i; ++k)
+		{
+			data += EncodeIntegralValue('\xCD', k);
+			data += EncodeIntegralValue('\xCD', k);
+		}
+		data += '\xC3';
+		this->PrepareReader(std::move(data));
+
+		bool value;
+		this->mMsgPackReader->SkipValue();
+		EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+		ASSERT_EQ(true, value);
+	}
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipMapWhenSizeFitToUint16)
+{
+	constexpr uint16_t testSize = 0x0410;
+	std::string data = EncodeIntegralValue('\xDE', testSize);
+	data.reserve(data.size() + testSize * (sizeof testSize * 2 + 1));
+	for (uint16_t i = 0; i < testSize; ++i)
+	{
+		data += EncodeIntegralValue('\xCD', i);
+		data += EncodeIntegralValue('\xCD', i);
+	}
+	data += '\xC3';
+	this->PrepareReader(std::move(data));
+
+	bool value;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	ASSERT_EQ(true, value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipMapWhenSizeFitToUint32)
+{
+	constexpr uint32_t testSize = 0x10000;
+	std::string data = EncodeIntegralValue('\xDF', testSize);
+	data.reserve(data.size() + testSize * (sizeof testSize * 2 + 1));
+	for (uint32_t i = 0; i < testSize; ++i)
+	{
+		data += EncodeIntegralValue('\xCE', i);
+		data += EncodeIntegralValue('\xCE', i);
+	}
+	data += '\xC3';
+	this->PrepareReader(std::move(data));
+
+	bool value;
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	ASSERT_EQ(true, value);
 }

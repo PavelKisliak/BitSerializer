@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_writers.h"
@@ -16,7 +16,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::string & outputString, uint8_t code, T value)
+	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
 		const char* valPtr = reinterpret_cast<const char*>(&value);
@@ -25,7 +25,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::string & outputString, uint8_t code, T value)
+	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
 		const char* valPtr = reinterpret_cast<const char*>(&value);
@@ -36,7 +36,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::string & outputString, uint8_t code, T value)
+	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
 		const char* valPtr = reinterpret_cast<const char*>(&value);

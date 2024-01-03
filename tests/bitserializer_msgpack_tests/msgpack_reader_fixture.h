@@ -1,10 +1,9 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <memory>
-#include <variant>
 #include "gtest/gtest.h"
 #include "msgpack/msgpack_readers.h"
 
@@ -18,9 +17,12 @@ public:
 		BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy = BitSerializer::MismatchedTypesPolicy::ThrowError)
 	{
 		mTestMsgPack = std::move(testMsgPack);
+		BitSerializer::SerializationOptions serializationOptions;
+		serializationOptions.overflowNumberPolicy = overflowNumberPolicy;
+		serializationOptions.mismatchedTypesPolicy = mismatchedTypesPolicy;
 		if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStringReader>)
 		{
-			mMsgPackReader = std::make_shared<TReader>(mTestMsgPack, overflowNumberPolicy, mismatchedTypesPolicy);
+			mMsgPackReader = std::make_shared<TReader>(mTestMsgPack, serializationOptions);
 		}
 		//else if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader>)
 		//{

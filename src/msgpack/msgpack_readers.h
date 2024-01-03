@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -10,7 +10,7 @@ namespace BitSerializer::MsgPack::Detail
 	class CMsgPackStringReader final : public IMsgPackReader
 	{
 	public:
-		CMsgPackStringReader(std::string_view inputData, OverflowNumberPolicy overflowNumberPolicy, MismatchedTypesPolicy mismatchedTypesPolicy);
+		CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions);
 
 		[[nodiscard]] size_t GetPosition() const noexcept override { return mPos; }
 		void SetPosition(size_t pos) override;
@@ -44,7 +44,6 @@ namespace BitSerializer::MsgPack::Detail
 	private:
 		size_t mPos = 0;
 		std::string_view mInputData;
-		OverflowNumberPolicy mOverflowNumberPolicy;
-		MismatchedTypesPolicy mMismatchedTypesPolicy;
+		const SerializationOptions& mSerializationOptions;
 	};
 }

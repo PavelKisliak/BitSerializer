@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_readers.h"
@@ -8,82 +8,199 @@
 -----------------------------------------------------------
 Format name 	First byte(in binary) 	First byte(in hex)
 -----------------------------------------------------------
-positive		fixint 	0xxxxxxx		0x00 - 0x7f
-fixmap 			1000xxxx 	0x80		0x8f
-fixarray		1001xxxx 	0x90		0x9f
-fixstr 			101xxxxx 	0xa0		0xbf
-nil 			11000000 	0xc0
-(never used)	11000001 	0xc1
-false 			11000010 	0xc2
-true 			11000011 	0xc3
-bin 8 			11000100 	0xc4
-bin 16 			11000101 	0xc5
-bin 32 			11000110 	0xc6
-ext 8 			11000111 	0xc7
-ext 16 			11001000 	0xc8
-ext 32 			11001001 	0xc9
-float 32		11001010 	0xca
-float 64		11001011 	0xcb
-uint 8 			11001100 	0xcc
-uint 16			11001101 	0xcd
-uint 32			11001110 	0xce
-uint 64			11001111 	0xcf
-int 8 			11010000 	0xd0
-int 16 			11010001 	0xd1
-int 32 			11010010 	0xd2
-int 64 			11010011 	0xd3
-fixext 1		11010100 	0xd4
-fixext 2		11010101 	0xd5
-fixext 4		11010110 	0xd6
-fixext 8		11010111 	0xd7
-fixext 16 		11011000 	0xd8
-str 8 			11011001 	0xd9
-str 16 			11011010 	0xda
-str 32 			11011011 	0xdb
-array 16		11011100 	0xdc
-array 32		11011101 	0xdd
-map 16 			11011110 	0xde
-map 32 			11011111 	0xdf
-negative fixint 111xxxxx	0xe0		0xff
+positive fixint 0xxxxxxx				0x00 - 0x7f
+fixmap 			1000xxxx 				0x80 - 0x8f
+fixarray		1001xxxx 				0x90 - 0x9f
+fixstr 			101xxxxx 				0xa0 - 0xbf
+nil 			11000000 				0xc0
+(never used)	11000001 				0xc1
+false 			11000010 				0xc2
+true 			11000011 				0xc3
+bin 8 			11000100 				0xc4
+bin 16 			11000101 				0xc5
+bin 32 			11000110 				0xc6
+ext 8 			11000111 				0xc7
+ext 16 			11001000 				0xc8
+ext 32 			11001001 				0xc9
+float 32		11001010 				0xca
+float 64		11001011 				0xcb
+uint 8 			11001100 				0xcc
+uint 16			11001101 				0xcd
+uint 32			11001110 				0xce
+uint 64			11001111 				0xcf
+int 8 			11010000 				0xd0
+int 16 			11010001 				0xd1
+int 32 			11010010 				0xd2
+int 64 			11010011 				0xd3
+fixext 1		11010100 				0xd4
+fixext 2		11010101 				0xd5
+fixext 4		11010110 				0xd6
+fixext 8		11010111 				0xd7
+fixext 16 		11011000 				0xd8
+str 8 			11011001 				0xd9
+str 16 			11011010 				0xda
+str 32 			11011011 				0xdb
+array 16		11011100 				0xdc
+array 32		11011101 				0xdd
+map 16 			11011110 				0xde
+map 32 			11011111 				0xdf
+negative fixint 111xxxxx				0xe0 - 0xff
 */
 
 namespace
 {
 	using namespace BitSerializer;
+	using ValueType = MsgPack::Detail::ValueType;
+
+	struct ByteCodeMetaInfo
+	{
+		ByteCodeMetaInfo(MsgPack::Detail::ValueType InType, uint_fast8_t InFixedSeq = 0, uint_fast8_t InDataSize = 0, uint_fast8_t InExtSize = 0)
+			: Type(InType)
+			, FixedSeq(InFixedSeq)
+			, DataSize(InDataSize)
+			, ExtSize(InExtSize)
+		{ }
+
+		ValueType Type = ValueType::Unknown;
+		uint_fast8_t FixedSeq = 0;		// Size of fixed bytes sequence
+		uint_fast8_t DataSize = 0;		// Size of data (like int, float, etc)
+		uint_fast8_t ExtSize = 0;		// Number of bytes which is used for represent length of sequence like array or map
+	};
+
+	constexpr ValueType UInt = ValueType::UnsignedInteger;
+	constexpr ValueType SInt = ValueType::SignedInteger;
+
+	ByteCodeMetaInfo ByteCodeTable[256] =
+	{
+		// Fixed positive int (0x0 - 0x7f)
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
+
+		// Fixed map 0x80 - 0x8f
+		{ ValueType::Map, 0 }, { ValueType::Map, 1 }, { ValueType::Map, 2 }, { ValueType::Map, 3 },
+		{ ValueType::Map, 4 }, { ValueType::Map, 5 }, { ValueType::Map, 6 }, { ValueType::Map, 7 },
+		{ ValueType::Map, 8 }, { ValueType::Map, 9 }, { ValueType::Map, 10 }, { ValueType::Map, 11 },
+		{ ValueType::Map, 12 }, { ValueType::Map, 13 }, { ValueType::Map, 14 }, { ValueType::Map, 15 },
+
+		// Fixed array 0x90 - 0x9f
+		{ ValueType::Array, 0 }, { ValueType::Array, 1 }, { ValueType::Array, 2 }, { ValueType::Array, 3 },
+		{ ValueType::Array, 4 }, { ValueType::Array, 5 }, { ValueType::Array, 6 }, { ValueType::Array, 7 },
+		{ ValueType::Array, 8 }, { ValueType::Array, 9 }, { ValueType::Array, 10 }, { ValueType::Array, 11 },
+		{ ValueType::Array, 12 }, { ValueType::Array, 13 }, { ValueType::Array, 14 }, { ValueType::Array, 15 },
+
+		// Fixed string (0xa0 - 0xbf)
+		{ ValueType::String, 0 }, { ValueType::String, 1 }, { ValueType::String, 2 }, { ValueType::String, 3 },
+		{ ValueType::String, 4 }, { ValueType::String, 5 }, { ValueType::String, 6 }, { ValueType::String, 7 },
+		{ ValueType::String, 8 }, { ValueType::String, 9 }, { ValueType::String, 10 }, { ValueType::String, 11 },
+		{ ValueType::String, 12 }, { ValueType::String, 13 }, { ValueType::String, 14 }, { ValueType::String, 15 },
+		{ ValueType::String, 16 }, { ValueType::String, 17 }, { ValueType::String, 18 }, { ValueType::String, 19 },
+		{ ValueType::String, 20 }, { ValueType::String, 21 }, { ValueType::String, 22 }, { ValueType::String, 23 },
+		{ ValueType::String, 24 }, { ValueType::String, 25 }, { ValueType::String, 26 }, { ValueType::String, 27 },
+		{ ValueType::String, 28 }, { ValueType::String, 29 }, { ValueType::String, 30 }, { ValueType::String, 31 },
+
+		// Nil (0xc0)
+		{ ValueType::Nil },
+
+		// Never used (0xc1)
+		{ ValueType::Unknown },
+
+		// Boolean (false) 0xc2
+		{ ValueType::Boolean },
+		// Boolean (true) 0xc3
+		{ ValueType::Boolean },
+
+		// Binary 8 (0xc4)
+		{ ValueType::Unknown, 0, 0, 1 },
+		// Binary 16 (0xc5)
+		{ ValueType::Unknown, 0, 0, 2 },
+		// Binary 32 (0xc6)
+		{ ValueType::Unknown, 0, 0, 4 },
+
+		// ext 8 (0xc7)
+		{ ValueType::Unknown, 0, 1, 1 },
+		// ext 16 (0xc8)
+		{ ValueType::Unknown, 0, 1, 2 },
+		// ext 32 (0xc9)
+		{ ValueType::Unknown, 0, 1, 4 },
+
+		// float 32 (0xca)
+		{ ValueType::Float, 0, 4 },
+		// double 64 (0xcb)
+		{ ValueType::Double, 0, 8 },
+
+		// uint 8 (0xcc)
+		{ ValueType::UnsignedInteger, 0, 1 },
+		// uint 16 (0xcd)
+		{ ValueType::UnsignedInteger, 0, 2 },
+		// uint 32 (0xce)
+		{ ValueType::UnsignedInteger, 0, 4 },
+		// uint 64 (0xcf)
+		{ ValueType::UnsignedInteger, 0, 8 },
+
+		// int 8 (0xd0)
+		{ ValueType::SignedInteger, 0, 1 },
+		// int 16 (0xd1)
+		{ ValueType::SignedInteger, 0, 2 },
+		// int 32 (0xd2)
+		{ ValueType::SignedInteger, 0, 4 },
+		// int 64 (0xd3)
+		{ ValueType::SignedInteger, 0, 8 },
+
+		// fixext 1 (0xd4)
+		{ ValueType::Unknown, 0, 2 },
+		// fixext 2 (0xd5)
+		{ ValueType::Unknown, 0, 3 },
+		// fixext 4 (0xd6)
+		{ ValueType::Unknown, 0, 5 },
+		// fixext 8 (0xd7)
+		{ ValueType::Unknown, 0, 9 },
+		// fixext 16 (0xd8)
+		{ ValueType::Unknown, 0, 17 },
+
+		// str 8 (0xd9)
+		{ ValueType::String, 0, 0, 1 },
+		// str 16 (0xda)
+		{ ValueType::String, 0, 0, 2 },
+		// str 32 (0xdb)
+		{ ValueType::String, 0, 0, 4 },
+
+		// array 16 (0xdc)
+		{ ValueType::Array, 0, 0, 2 },
+		// array 32 (0xdd)
+		{ ValueType::Array, 0, 0, 4 },
+
+		// map 16 (0xde)
+		{ ValueType::Map, 0, 0, 2 },
+		// map 32 (0xdf)
+		{ ValueType::Map, 0, 0, 4 },
+
+		// Fixed negative int (0xe0 - 0xff)
+		{ SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt },
+		{ SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt },
+		{ SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt },
+		{ SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }
+	};
 
 	MsgPack::Detail::ValueType ReadValueTypeImpl(const std::string_view& inputData, const size_t& pos)
 	{
 		if (pos < inputData.size())
 		{
-			const auto ch = inputData[pos];
-			if ((static_cast<uint8_t>(ch) & 0b11100000) == 0b10100000 || ch == '\xD9' || ch == '\xDA' || ch == '\xDB') {
-				return MsgPack::Detail::ValueType::String;
-			}
-			if (ch >= 0 || ch == '\xCC' || ch == '\xCD' || ch == '\xCE' || ch == '\xCF') {
-				return MsgPack::Detail::ValueType::UnsignedInteger;
-			}
-			if (ch >= -32 || ch == '\xD0' || ch == '\xD1' || ch == '\xD2' || ch == '\xD3') {
-				return MsgPack::Detail::ValueType::SignedInteger;
-			}
-			if (ch == '\xC2' || ch == '\xC3') {
-				return MsgPack::Detail::ValueType::Boolean;
-			}
-			if (ch == '\xC0') {
-				return MsgPack::Detail::ValueType::Nil;
-			}
-			if (ch == '\xCA') {
-				return MsgPack::Detail::ValueType::Float;
-			}
-			if (ch == '\xCB') {
-				return MsgPack::Detail::ValueType::Double;
-			}
-			if ((static_cast<uint8_t>(ch) & 0b11110000) == 0b10000000 || ch == '\xDE' || ch == '\xDF') {
-				return MsgPack::Detail::ValueType::Map;
-			}
-			if ((static_cast<uint8_t>(ch) & 0b11110000) == 0b10010000 || ch == '\xDC' || ch == '\xDD') {
-				return MsgPack::Detail::ValueType::Array;
-			}
-			return MsgPack::Detail::ValueType::Unknown;
+			const auto byteCode = static_cast<uint_fast8_t>(inputData[pos]);
+			return ByteCodeTable[byteCode].Type;
 		}
 		throw ParsingException("No more values to read", pos);
 	}
@@ -149,6 +266,33 @@ namespace
 			throw ParsingException("Unexpected end of input archive", pos);
 		}
 	}
+	
+	uint32_t ReadExtSize(uint_fast8_t extSizeBytesNum, std::string_view inputData, size_t pos)
+	{
+		if (pos + extSizeBytesNum < inputData.size())
+		{
+			if (extSizeBytesNum == 1)
+			{
+				uint8_t sz8;
+				GetValue(inputData, pos, sz8);
+				return sz8;
+			}
+			if (extSizeBytesNum == 2)
+			{
+				uint16_t sz16;
+				GetValue(inputData, pos, sz16);
+				return sz16;
+			}
+			if (extSizeBytesNum == 4)
+			{
+				uint32_t sz32;
+				GetValue(inputData, pos, sz32);
+				return sz32;
+			}
+			throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
+		}
+		throw ParsingException("No more values to read", pos);
+	}
 
 	void HandleMismatchedTypesPolicy(MsgPack::Detail::ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
 	{
@@ -161,7 +305,7 @@ namespace
 	}
 
 	template <typename T>
-	bool ReadInteger(std::string_view& inputData, size_t& pos, T& outValue, OverflowNumberPolicy overflowNumberPolicy, MismatchedTypesPolicy mismatchedTypesPolicy)
+	bool ReadInteger(std::string_view& inputData, size_t& pos, T& outValue, const SerializationOptions& serializationOptions)
 	{
 		if (pos < inputData.size())
 		{
@@ -169,76 +313,76 @@ namespace
 			if (ch >= -32)
 			{
 				++pos;
-				return Detail::SafeNumberCast(ch, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(ch, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xCC')
 			{
 				++pos;
 				uint8_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xCD')
 			{
 				++pos;
 				uint16_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xCE')
 			{
 				++pos;
 				uint32_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xCF')
 			{
 				++pos;
 				uint64_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xD0')
 			{
 				++pos;
 				int8_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xD1')
 			{
 				++pos;
 				int16_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xD2')
 			{
 				++pos;
 				int32_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xD3')
 			{
 				++pos;
 				int64_t val;
 				GetValue(inputData, pos, val);
-				return Detail::SafeNumberCast(val, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			// Read from boolean
 			if (ch == '\xC2')
 			{
 				++pos;
-				return Detail::SafeNumberCast(0, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(0, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			if (ch == '\xC3')
 			{
 				++pos;
-				return Detail::SafeNumberCast(1, outValue, overflowNumberPolicy);
+				return Detail::SafeNumberCast(1, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			HandleMismatchedTypesPolicy(ReadValueTypeImpl(inputData, pos), mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(ReadValueTypeImpl(inputData, pos), serializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", pos);
@@ -249,10 +393,9 @@ namespace
 
 namespace BitSerializer::MsgPack::Detail
 {
-	CMsgPackStringReader::CMsgPackStringReader(std::string_view inputData, OverflowNumberPolicy overflowNumberPolicy, MismatchedTypesPolicy mismatchedTypesPolicy)
+	CMsgPackStringReader::CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions)
 		: mInputData(inputData)
-		, mOverflowNumberPolicy(overflowNumberPolicy)
-		, mMismatchedTypesPolicy(mismatchedTypesPolicy)
+		, mSerializationOptions(serializationOptions)
 	{ }
 
 	void CMsgPackStringReader::SetPosition(size_t pos)
@@ -281,7 +424,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueTypeImpl(mInputData, mPos), mMismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", mPos);
@@ -289,52 +432,52 @@ namespace BitSerializer::MsgPack::Detail
 
 	bool CMsgPackStringReader::ReadValue(bool& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(uint8_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(uint16_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(uint32_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(uint64_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(char& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(int8_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(int16_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(int32_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(int64_t& value)
 	{
-		return ReadInteger(mInputData, mPos, value, mOverflowNumberPolicy, mMismatchedTypesPolicy);
+		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
 	bool CMsgPackStringReader::ReadValue(float& value)
@@ -357,10 +500,10 @@ namespace BitSerializer::MsgPack::Detail
 				GetValue(mInputData, mPos, buf);
 				double temp;
 				std::memcpy(&temp, &buf, sizeof(uint64_t));
-				return BitSerializer::Detail::SafeNumberCast(temp, value, mOverflowNumberPolicy);
+				return BitSerializer::Detail::SafeNumberCast(temp, value, mSerializationOptions.overflowNumberPolicy);
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueTypeImpl(mInputData, mPos), mMismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", mPos);
@@ -390,7 +533,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueTypeImpl(mInputData, mPos), mMismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", mPos);
@@ -429,7 +572,7 @@ namespace BitSerializer::MsgPack::Detail
 			}
 			else
 			{
-				HandleMismatchedTypesPolicy(ReadValueTypeImpl(mInputData, mPos), mMismatchedTypesPolicy);
+				HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 				return false;
 			}
 
@@ -471,6 +614,8 @@ namespace BitSerializer::MsgPack::Detail
 				arraySize = sz32;
 				return true;
 			}
+
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", mPos);
@@ -503,6 +648,8 @@ namespace BitSerializer::MsgPack::Detail
 				arraySize = sz32;
 				return true;
 			}
+
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", mPos);
@@ -510,6 +657,54 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringReader::SkipValue()
 	{
+		if (mPos < mInputData.size())
+		{
+			const auto byteCode = static_cast<uint_fast8_t>(mInputData[mPos]);
+			const auto& byteCodeInfo = ByteCodeTable[byteCode];
 
+			size_t size = 1 + byteCodeInfo.DataSize;
+			uint32_t extSize = 0;
+			if (byteCodeInfo.FixedSeq)
+			{
+				extSize += byteCodeInfo.FixedSeq;
+			}
+			else if (byteCodeInfo.ExtSize)
+			{
+				size += byteCodeInfo.ExtSize;
+				extSize = ReadExtSize(byteCodeInfo.ExtSize, mInputData, mPos + 1);
+			}
+
+			if (byteCodeInfo.Type == ValueType::String)
+			{
+				size += extSize;
+				extSize = 0;
+			}
+
+			if (mPos + size <= mInputData.size())
+			{
+				mPos += size;
+				if (extSize)
+				{
+					if (byteCodeInfo.Type == ValueType::Map)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValue();
+							SkipValue();
+						}
+					}
+					else if (byteCodeInfo.Type == ValueType::Array)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValue();
+						}
+					}
+				}
+				return;
+			}
+			throw ParsingException( "Unexpected end of input archive", mPos);
+		}
+		throw ParsingException("No more values to read", mPos);
 	}
 }

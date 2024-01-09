@@ -100,9 +100,9 @@ protected:
 					}
 					return SafeNumberCast(jsonValue.as_number().to_uint64(), value, serializationOptions.overflowNumberPolicy);
 				}
-				return SafeNumberCast(jsonValue.as_double(), value, serializationOptions.overflowNumberPolicy);
 			}
-			if (jsonValue.is_boolean()) {
+			else if (jsonValue.is_boolean())
+			{
 				return SafeNumberCast(jsonValue.as_bool(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}

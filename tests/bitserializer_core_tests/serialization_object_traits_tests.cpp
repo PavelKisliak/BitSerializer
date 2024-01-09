@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -71,6 +71,28 @@ TEST(SerializationObjectTraits, ShouldCheckThatTypeIsEnumerable) {
 
 	const bool testResult3 = is_enumerable_v<TestNotSerializableClass>;
 	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatTypeIsEnumerableOfType) {
+	const bool testResult1 = is_enumerable_of_v<std::list<int>, int>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = is_enumerable_of_v<std::forward_list<char>, char>;
+	EXPECT_TRUE(testResult2);
+
+	const bool testResult3 = is_enumerable_of_v<std::list<int>, char>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatTypeIsBinaryContainer) {
+	const bool testResult1 = is_binary_container<std::list<char>>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = is_binary_container<std::vector<int8_t>>;
+	EXPECT_TRUE(testResult2);
+	const bool testResult3 = is_binary_container<std::forward_list<uint8_t>>;
+	EXPECT_TRUE(testResult3);
+
+	const bool testResult4 = is_binary_container<std::list<int>>;
+	EXPECT_FALSE(testResult4);
 }
 
 TEST(SerializationObjectTraits, ShouldCheckThatContainerHasSizeMethod) {

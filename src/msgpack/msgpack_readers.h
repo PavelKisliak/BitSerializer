@@ -37,7 +37,10 @@ namespace BitSerializer::MsgPack::Detail
 		bool ReadValue(std::string_view& value) override;
 
 		bool ReadArraySize(size_t& arraySize) override;
-		bool ReadMapSize(size_t& arraySize) override;
+		bool ReadMapSize(size_t& mapSize) override;
+
+		bool ReadBinarySize(size_t& binarySize) override;
+		char ReadBinary() override;
 
 		void SkipValue() override;
 

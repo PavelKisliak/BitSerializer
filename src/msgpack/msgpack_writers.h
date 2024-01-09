@@ -11,7 +11,6 @@ namespace BitSerializer::MsgPack::Detail
 	{
 	public:
 		CMsgPackStringWriter(std::string& outputString);
-		CMsgPackStringWriter(std::string& outputString, size_t arraySize);
 
 		void WriteValue(std::nullptr_t) override;
 
@@ -36,9 +35,10 @@ namespace BitSerializer::MsgPack::Detail
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;
 
+		void BeginBinary(size_t binarySize) override;
+		void WriteBinary(char byte) override { mOutputString.push_back(byte); }
+
 	private:
 		std::string& mOutputString;
-		size_t mArraySize = 0;
-		size_t mMapSize = 0;
 	};
 }

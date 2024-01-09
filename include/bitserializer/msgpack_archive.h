@@ -159,6 +159,9 @@ public:
 
 	virtual void BeginArray(size_t arraySize) = 0;
 	virtual void BeginMap(size_t mapSize) = 0;
+
+	virtual void BeginBinary(size_t binarySize) = 0;
+	virtual void WriteBinary(char byte) = 0;
 };
 
 class IMsgPackReader
@@ -191,7 +194,10 @@ public:
 	virtual bool ReadValue(std::string_view& value) = 0;
 
 	virtual bool ReadArraySize(size_t& arraySize) = 0;
-	virtual bool ReadMapSize(size_t& arraySize) = 0;
+	virtual bool ReadMapSize(size_t& mapSize) = 0;
+
+	virtual bool ReadBinarySize(size_t& binarySize) = 0;
+	virtual char ReadBinary() = 0;
 
 	virtual void SkipValue() = 0;
 };
@@ -203,6 +209,39 @@ public:
 // Forward declarations
 template <class TWriter>
 class CMsgPackWriteObjectScope;
+
+/// <summary>
+/// MsgPack scope for serializing binary arrays.
+/// </summary>
+template <class TWriter>
+class CMsgPackWriteBinaryScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
+{
+public:
+	CMsgPackWriteBinaryScope(size_t arraySize, TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
+		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		, mMsgPackWriter(msgPackWriter)
+		, mSize(arraySize)
+	{ }
+
+	template <typename T, std::enable_if_t<std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>, int> = 0>
+	bool SerializeValue(T& value)
+	{
+		if (mIndex == mSize)
+		{
+			throw SerializationException(SerializationErrorCode::OutOfRange, "Attempt to write more bytes than was declared for that binary array");
+		}
+
+		mMsgPackWriter->WriteBinary(static_cast<char>(value));
+		++mIndex;
+		return true;
+	}
+
+private:
+	TWriter* mMsgPackWriter;
+	size_t mSize;
+	size_t mIndex = 0;
+};
+
 
 /// <summary>
 /// MsgPack scope for serializing arrays (list of values without keys).
@@ -220,6 +259,7 @@ public:
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
+		CheckEnd();
 		mMsgPackWriter->WriteValue(value);
 		++mIndex;
 		return true;
@@ -228,6 +268,7 @@ public:
 	template <typename TSym, typename TAllocator>
 	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
+		CheckEnd();
 		if constexpr (std::is_same_v<TSym, char>) {
 			mMsgPackWriter->WriteValue(value);
 		}
@@ -240,19 +281,39 @@ public:
 		return true;
 	}
 
-	[[nodiscard]] std::optional<CMsgPackWriteArrayScope<TWriter>> OpenArrayScope(size_t arraySize) const
+	[[nodiscard]] std::optional<CMsgPackWriteArrayScope<TWriter>> OpenArrayScope(size_t arraySize)
 	{
+		CheckEnd();
 		mMsgPackWriter->BeginArray(arraySize);
+		++mIndex;
 		return std::make_optional<CMsgPackWriteArrayScope<TWriter>>(arraySize, mMsgPackWriter, GetContext());
 	}
 
-	[[nodiscard]] std::optional<CMsgPackWriteObjectScope<TWriter>> OpenObjectScope(size_t mapSize) const
+	[[nodiscard]] std::optional<CMsgPackWriteObjectScope<TWriter>> OpenObjectScope(size_t mapSize)
 	{
+		CheckEnd();
 		mMsgPackWriter->BeginMap(mapSize);
+		++mIndex;
 		return std::make_optional<CMsgPackWriteObjectScope<TWriter>>(mapSize, mMsgPackWriter, GetContext());
 	}
 
+	[[nodiscard]] std::optional<CMsgPackWriteBinaryScope<TWriter>> OpenBinaryScope(size_t binarySize)
+	{
+		CheckEnd();
+		mMsgPackWriter->BeginBinary(binarySize);
+		++mIndex;
+		return std::make_optional<CMsgPackWriteBinaryScope<TWriter>>(binarySize, mMsgPackWriter, GetContext());
+	}
+
 private:
+	void CheckEnd() const
+	{
+		if (mIndex == mSize)
+		{
+			throw SerializationException(SerializationErrorCode::OutOfRange, "Attempt to write more elements than was stated for that array");
+		}
+	}
+
 	TWriter* mMsgPackWriter;
 	size_t mSize;
 	size_t mIndex = 0;
@@ -273,40 +334,63 @@ public:
 	{ }
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-	bool SerializeValue(TKey&& key, T& value) {
+	bool SerializeValue(TKey&& key, T& value)
+	{
+		CheckEnd();
 		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
 		WriteValue(value);
+		++mIndex;
 		return true;
 	}
 
 	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value) {
+	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	{
+		CheckEnd();
 		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
 		WriteValue(value);
+		++mIndex;
 		return true;
 	}
 
 	template <typename TKey>
-	bool SerializeValue(TKey&& key, std::nullptr_t& value) {
+	bool SerializeValue(TKey&& key, std::nullptr_t& value)
+	{
+		CheckEnd();
 		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
 		WriteValue(value);
+		++mIndex;
 		return true;
 	}
 
 	template <typename TKey>
 	std::optional<CMsgPackWriteArrayScope<TWriter>> OpenArrayScope(TKey&& key, size_t arraySize)
 	{
+		CheckEnd();
 		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
 		mMsgPackWriter->BeginArray(arraySize);
+		++mIndex;
 		return std::make_optional<CMsgPackWriteArrayScope<TWriter>>(arraySize, mMsgPackWriter, GetContext());
 	}
 
 	template <typename TKey>
 	[[nodiscard]] std::optional<CMsgPackWriteObjectScope<TWriter>> OpenObjectScope(TKey&& key, size_t mapSize)
 	{
+		CheckEnd();
 		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
 		mMsgPackWriter->BeginMap(mapSize);
+		++mIndex;
 		return std::make_optional<CMsgPackWriteObjectScope<TWriter>>(mapSize, mMsgPackWriter, GetContext());
+	}
+
+	template <typename TKey>
+	[[nodiscard]] std::optional<CMsgPackWriteBinaryScope<TWriter>> OpenBinaryScope(TKey&& key, size_t binarySize)
+	{
+		CheckEnd();
+		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->BeginBinary(binarySize);
+		++mIndex;
+		return std::make_optional<CMsgPackWriteBinaryScope<TWriter>>(binarySize, mMsgPackWriter, GetContext());
 	}
 
 private:
@@ -331,8 +415,17 @@ private:
 		return true;
 	}
 
+	void CheckEnd() const
+	{
+		if (mIndex == mSize)
+		{
+			throw SerializationException(SerializationErrorCode::OutOfRange, "Attempt to write more items than was stated for that map");
+		}
+	}
+
 	TWriter* mMsgPackWriter;
 	size_t mSize;
+	size_t mIndex = 0;
 };
 
 
@@ -386,6 +479,12 @@ public:
 		return std::make_optional<CMsgPackWriteObjectScope<IMsgPackWriter>>(mapSize, mMsgPackWriter.get(), GetContext());
 	}
 
+	[[nodiscard]] std::optional<CMsgPackWriteBinaryScope<IMsgPackWriter>> OpenBinaryScope(size_t binarySize) const
+	{
+		mMsgPackWriter->BeginBinary(binarySize);
+		return std::make_optional<CMsgPackWriteBinaryScope<IMsgPackWriter>>(binarySize, mMsgPackWriter.get(), GetContext());
+	}
+
 	void Finalize() const noexcept { /* Not required */ }
 
 private:
@@ -424,19 +523,74 @@ public:
 		return path;
 	}
 
-	static void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)
-	{
-		if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-		{
-			throw SerializationException(SerializationErrorCode::MismatchedTypes,
-				"The type of target field does not match the value being loaded");
-		}
-	}
-
 	virtual void OnFinishChildScope() {}
 
 protected:
 	CMsgPackScopeBase* mParentScope = nullptr;
+};
+
+
+/// <summary>
+/// MsgPack scope for serializing binary arrays.
+/// </summary>
+template <class TReader>
+class CMsgPackReadBinaryScope final : public CMsgPackScopeBase, public TArchiveScope<SerializeMode::Load>
+{
+public:
+	CMsgPackReadBinaryScope(size_t arraySize, TReader* msgPackReader, SerializationContext& serializationContext, CMsgPackScopeBase* parentScope = nullptr) noexcept
+		: CMsgPackScopeBase(parentScope)
+		, TArchiveScope<SerializeMode::Load>(serializationContext)
+		, mMsgPackReader(msgPackReader)
+		, mSize(arraySize)
+	{ }
+
+	/// <summary>
+	/// Gets the current path in MsgPack.
+	/// </summary>
+	[[nodiscard]] std::string GetPath() const override
+	{
+		std::string path = CMsgPackScopeBase::GetPath();
+		path.push_back(path_separator);
+		path += Convert::ToString(mIndex);
+		return path;
+	}
+
+	template <typename T, std::enable_if_t<std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>, int> = 0>
+	bool SerializeValue(T& value)
+	{
+		CheckEnd();
+		value = static_cast<T>(mMsgPackReader->ReadBinary());
+		++mIndex;
+		return true;
+	}
+
+	/// <summary>
+	/// Returns the estimated number of items to load (for reserving the size of containers).
+	/// </summary>
+	[[nodiscard]] size_t GetEstimatedSize() const noexcept
+	{
+		return mSize;
+	}
+
+	/// <summary>
+	/// Returns `true` when all no more values to load.
+	/// </summary>
+	[[nodiscard]] bool IsEnd() const
+	{
+		return mIndex == mSize;
+	}
+
+private:
+	void CheckEnd() const
+	{
+		if (IsEnd()) {
+			throw SerializationException(SerializationErrorCode::OutOfRange, "No more items to load");
+		}
+	}
+
+	TReader* mMsgPackReader;
+	const size_t mSize;
+	size_t mIndex = 0;
 };
 
 
@@ -530,6 +684,14 @@ public:
 		{
 			++mIndex;
 			return std::make_optional<CMsgPackReadObjectScope<TReader>>(sz, mMsgPackReader, GetContext(), this);
+		}
+		return std::nullopt;
+	}
+
+	[[nodiscard]] std::optional<CMsgPackReadBinaryScope<TReader>> OpenBinaryScope(size_t) const
+	{
+		if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
+			return std::make_optional<CMsgPackReadBinaryScope<TReader>>(sz, mMsgPackReader, GetContext());
 		}
 		return std::nullopt;
 	}
@@ -668,6 +830,18 @@ public:
 		return std::nullopt;
 	}
 
+	template <typename TKey>
+	std::optional<CMsgPackReadBinaryScope<TReader>> OpenBinaryScope(TKey&& key, size_t)
+	{
+		if (FindValueByKey(key))
+		{
+			if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
+				return std::make_optional<CMsgPackReadBinaryScope<TReader>>(sz, mMsgPackReader, GetContext(), this);
+			}
+		}
+		return std::nullopt;
+	}
+
 	void OnFinishChildScope() override
 	{
 		mCurrentKey.Reset();
@@ -799,6 +973,14 @@ public:
 	{
 		if (size_t sz = 0; mMsgPackReader->ReadMapSize(sz)) {
 			return std::make_optional<CMsgPackReadObjectScope<IMsgPackReader>>(sz, mMsgPackReader.get(), GetContext());
+		}
+		return std::nullopt;
+	}
+
+	[[nodiscard]] std::optional<CMsgPackReadBinaryScope<IMsgPackReader>> OpenBinaryScope(size_t) const
+	{
+		if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
+			return std::make_optional<CMsgPackReadBinaryScope<IMsgPackReader>>(sz, mMsgPackReader.get(), GetContext());
 		}
 		return std::nullopt;
 	}

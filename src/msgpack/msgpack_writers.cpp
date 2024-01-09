@@ -57,11 +57,6 @@ namespace BitSerializer::MsgPack::Detail
 		: mOutputString(outputString)
 	{ }
 
-	CMsgPackStringWriter::CMsgPackStringWriter(std::string& outputString, size_t arraySize)
-		: mOutputString(outputString)
-		, mArraySize(arraySize)
-	{ }
-
 	void CMsgPackStringWriter::WriteValue(std::nullptr_t)
 	{
 		mOutputString.push_back('\xC0');
@@ -189,7 +184,6 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::BeginArray(size_t arraySize)
 	{
-		mArraySize = arraySize;
 		if (arraySize < 16) {
 			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000));
 		}
@@ -209,7 +203,6 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::BeginMap(size_t mapSize)
 	{
-		mMapSize = mapSize;
 		if (mapSize < 16) {
 			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000));
 		}
@@ -224,6 +217,22 @@ namespace BitSerializer::MsgPack::Detail
 			else {
 				throw SerializationException(SerializationErrorCode::OutOfRange, "Map size is too large");
 			}
+		}
+	}
+
+	void CMsgPackStringWriter::BeginBinary(size_t binarySize)
+	{
+		if (binarySize <= std::numeric_limits<uint8_t>::max()) {
+			PushValue(mOutputString, '\xC4', static_cast<uint8_t>(binarySize));
+		}
+		else if (binarySize <= std::numeric_limits<uint16_t>::max()) {
+			PushValue(mOutputString, '\xC5', static_cast<uint16_t>(binarySize));
+		}
+		else if (binarySize <= std::numeric_limits<uint32_t>::max()) {
+			PushValue(mOutputString, '\xC6', static_cast<uint32_t>(binarySize));
+		}
+		else {
+			throw SerializationException(SerializationErrorCode::OutOfRange, "Binary size is too large");
 		}
 	}
 }

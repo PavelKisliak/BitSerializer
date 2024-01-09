@@ -271,6 +271,51 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteArrayWhenSizeFitToUint32)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of writing binary arrays
+//-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackWriterTest, ShouldWriteBinaryArrayWithEmptySize)
+{
+	this->mMsgPackWriter->BeginBinary(0);
+	const std::string expectedStr = { '\xC4', '\x0' };
+	EXPECT_EQ(expectedStr, this->TakeResult());
+}
+
+TYPED_TEST(MsgPackWriterTest, ShouldWriteBinaryArrayWhenSizeFitToUint8)
+{
+	const std::string testStr = this->GenTestString(std::numeric_limits<uint8_t>::max());
+	const auto expectedStr1 = std::string({ '\xC4', static_cast<char>(testStr.size()) }) + testStr;
+	this->mMsgPackWriter->BeginBinary(testStr.size());
+	for (char ch : testStr) {
+		this->mMsgPackWriter->WriteBinary(ch);
+	}
+	EXPECT_EQ(expectedStr1, this->TakeResult());
+}
+
+TYPED_TEST(MsgPackWriterTest, ShouldWriteBinaryArrayWhenSizeFitToUint16)
+{
+	const std::string testStr = this->GenTestString(std::numeric_limits<uint16_t>::max());
+	const auto expectedStr = std::string({ '\xC5', '\xFF', '\xFF' }) + testStr;
+	this->mMsgPackWriter->BeginBinary(testStr.size());
+	for (char ch : testStr) {
+		this->mMsgPackWriter->WriteBinary(ch);
+	}
+	const auto result = this->TakeResult();
+	EXPECT_EQ(expectedStr, result);
+}
+
+TYPED_TEST(MsgPackWriterTest, ShouldWriteBinaryArrayWhenSizeFitToUint32)
+{
+	const std::string testStr = this->GenTestString(std::numeric_limits<uint16_t>::max() + 3);
+	const auto expectedStr = std::string({ '\xC6', '\x00', '\x01', '\x00', '\x02' }) + testStr;
+	this->mMsgPackWriter->BeginBinary(testStr.size());
+	for (char ch : testStr) {
+		this->mMsgPackWriter->WriteBinary(ch);
+	}
+	const auto result = this->TakeResult();
+	EXPECT_EQ(expectedStr, result);
+}
+
+//-----------------------------------------------------------------------------
 // Tests of writing maps
 //-----------------------------------------------------------------------------
 TYPED_TEST(MsgPackWriterTest, ShouldWriteMapWhenEmptySize)

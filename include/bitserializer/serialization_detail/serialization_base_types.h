@@ -198,22 +198,34 @@ namespace BitSerializer
 			else if constexpr (hasGlobalSerializeArray)
 			{
 				constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
+				constexpr auto hasBinaryWithKeySupport = TArchive::is_binary && can_serialize_binary_with_key_v<TArchive, TKey>;
+				constexpr auto isBinaryContainer = is_binary_container<TValue>;
 				static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
+				size_t arraySize = 0;
+				if constexpr (TArchive::IsSaving())
+				{
+					constexpr auto hasGlobalSize = has_global_size_v<TValue>;
+					constexpr auto isEnumerable = is_enumerable_v<TValue>;
+					static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
+
+					if constexpr (hasGlobalSize || isEnumerable) {
+						arraySize = GetContainerSize(value);
+					}
+				}
+
+				// Try to serialize as binary first
+				if constexpr (hasBinaryWithKeySupport && isBinaryContainer)
+				{
+					auto binaryScope = archive.OpenBinaryScope(std::forward<TKey>(key), arraySize);
+					if (binaryScope)
+					{
+						SerializeArray(*binaryScope, value);
+						return true;
+					}
+				}
 				if constexpr (hasArrayWithKeySupport)
 				{
-					size_t arraySize = 0;
-					if constexpr (TArchive::IsSaving())
-					{
-						constexpr auto hasGlobalSize = has_global_size_v<TValue>;
-						constexpr auto isEnumerable = is_enumerable_v<TValue>;
-						static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
-
-						if constexpr (hasGlobalSize || isEnumerable) {
-							arraySize = GetContainerSize(value);
-						}
-					}
-
 					auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
 					if (arrayScope) {
 						SerializeArray(*arrayScope, value);
@@ -276,22 +288,34 @@ namespace BitSerializer
 			else if constexpr (hasGlobalSerializeArray)
 			{
 				constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
+				constexpr auto hasBinarySupport = TArchive::is_binary && can_serialize_binary_v<TArchive>;
+				constexpr auto isBinaryContainer = is_binary_container<TValue>;
 				static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 
+				size_t arraySize = 0;
+				if constexpr (TArchive::IsSaving())
+				{
+					constexpr auto hasGlobalSize = has_global_size_v<TValue>;
+					constexpr auto isEnumerable = is_enumerable_v<TValue>;
+					static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
+
+					if constexpr (hasGlobalSize || isEnumerable) {
+						arraySize = GetContainerSize(value);
+					}
+				}
+
+				// Try to serialize as binary first
+				if constexpr (hasBinarySupport && isBinaryContainer)
+				{
+					auto binaryScope = archive.OpenBinaryScope(arraySize);
+					if (binaryScope)
+					{
+						SerializeArray(*binaryScope, value);
+						return true;
+					}
+				}
 				if constexpr (hasArraySupport)
 				{
-					size_t arraySize = 0;
-					if constexpr (TArchive::IsSaving())
-					{
-						constexpr auto hasGlobalSize = has_global_size_v<TValue>;
-						constexpr auto isEnumerable = is_enumerable_v<TValue>;
-						static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
-
-						if constexpr (hasGlobalSize || isEnumerable) {
-							arraySize = GetContainerSize(value);
-						}
-					}
-
 					auto arrayScope = archive.OpenArrayScope(arraySize);
 					if (arrayScope) {
 						SerializeArray(*arrayScope, value);
@@ -377,8 +401,18 @@ namespace BitSerializer
 	bool Serialize(TArchive& archive, TKey&& key, TValue(&cont)[ArraySize])
 	{
 		constexpr auto hasArrayWithKeySupport = can_serialize_array_with_key_v<TArchive, TKey>;
+		constexpr auto hasBinaryWithKeySupport = TArchive::is_binary && can_serialize_binary_with_key_v<TArchive, TKey>;
+		constexpr auto isBinaryArray = std::is_same_v<TValue, char> || std::is_same_v<TValue, signed char> || std::is_same_v<TValue, unsigned char>;
 		static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
+		// Try to serialize as binary first
+		if constexpr (hasBinaryWithKeySupport && isBinaryArray)
+		{
+			if (auto arrayScope = archive.OpenBinaryScope(std::forward<TKey>(key), ArraySize))
+			{
+				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+			}
+		}
 		if constexpr (hasArrayWithKeySupport)
 		{
 			if (auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), ArraySize))
@@ -393,8 +427,18 @@ namespace BitSerializer
 	bool Serialize(TArchive& archive, TValue(&cont)[ArraySize])
 	{
 		constexpr auto hasArraySupport = can_serialize_array_v<TArchive>;
+		constexpr auto hasBinarySupport = TArchive::is_binary && can_serialize_binary_v<TArchive>;
+		constexpr auto isBinaryArray = std::is_same_v<TValue, char> || std::is_same_v<TValue, signed char> || std::is_same_v<TValue, unsigned char>;
 		static_assert(hasArraySupport, "BitSerializer. The archive doesn't support serialize array without key on this level.");
 
+		// Try to serialize as binary first
+		if constexpr (hasBinarySupport && isBinaryArray)
+		{
+			if (auto arrayScope = archive.OpenBinaryScope(ArraySize))
+			{
+				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+			}
+		}
 		if constexpr (hasArraySupport)
 		{
 			if (auto arrayScope = archive.OpenArrayScope(ArraySize)) 

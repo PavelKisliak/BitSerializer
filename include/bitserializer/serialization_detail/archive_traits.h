@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                          *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -15,8 +15,8 @@ namespace BitSerializer {
 template <typename T>
 struct is_archive_scope
 {
-	constexpr static bool value = std::is_base_of<TArchiveScope<SerializeMode::Load>, T>::value ||
-		std::is_base_of<TArchiveScope<SerializeMode::Save>, T>::value;
+	constexpr static bool value = std::is_base_of_v<TArchiveScope<SerializeMode::Load>, T> ||
+		std::is_base_of_v<TArchiveScope<SerializeMode::Save>, T>;
 };
 
 template <typename T>
@@ -190,6 +190,50 @@ public:
 template <typename TArchive, typename TKey>
 constexpr bool can_serialize_array_with_key_v = can_serialize_array_with_key<TArchive, TKey>::value;
 
+
+//------------------------------------------------------------------------------
+
+/// <summary>
+/// Checks that the BINARY ARRAY can be serialized in target archive scope.
+/// </summary>
+template <typename TArchive>
+struct can_serialize_binary
+{
+private:
+	template <typename TObj>
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenBinaryScope(std::declval<size_t>()))>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<TArchive>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename TArchive>
+constexpr bool can_serialize_binary_v = can_serialize_binary<TArchive>::value;
+
+/// <summary>
+/// Checks that the BINARY ARRAY can be serialized WITH KEY in target archive scope.
+/// </summary>
+template <typename TArchive, typename TKey>
+struct can_serialize_binary_with_key
+{
+private:
+	template <typename TObj>
+	static std::enable_if_t<std::is_class_v<decltype(std::declval<TObj>().OpenBinaryScope(std::declval<TKey>(), std::declval<size_t>()))>, std::true_type> test(int);
+
+	template <typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<TArchive>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename TArchive, typename TKey>
+constexpr bool can_serialize_binary_with_key_v = can_serialize_binary_with_key<TArchive, TKey>::value;
 
 //------------------------------------------------------------------------------
 

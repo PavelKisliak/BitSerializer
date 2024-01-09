@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -29,6 +29,7 @@ public:
 
 	std::optional<TestArchive_LoadMode> OpenObjectScope(size_t mapSize) { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenArrayScope(size_t arraySize) { return std::nullopt; }
+	std::optional<TestArchive_LoadMode> OpenBinaryScope(size_t arraySize) { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenAttributeScope() { return std::nullopt; }
 
 	size_t GetEstimatedSize() const { return 0; }
@@ -67,6 +68,7 @@ public:
 
 	std::optional<TestArchive_LoadMode> OpenObjectScope(const key_type& key, size_t mapSize) { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenArrayScope(const key_type& key, size_t arraySize) { return std::nullopt; }
+	std::optional<TestArchive_LoadMode> OpenBinaryScope(const key_type& key, size_t arraySize) { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenAttributeScope(const key_type& key) { return std::nullopt; }
 };
 
@@ -167,6 +169,24 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeArrayWithKey)
 	bool testResult2 = can_serialize_array_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
 	EXPECT_TRUE(testResult2);
 	bool testResult3 = can_serialize_array_with_key_v<TestWrongArchive, TestWrongArchive::key_type>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeBinArray) {
+	bool testResult1 = can_serialize_binary_v<TestArchive_LoadMode>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = can_serialize_binary_v<TestArchive_LoadMode>;
+	EXPECT_TRUE(testResult2);
+	bool testResult3 = can_serialize_binary_v<TestWrongArchive>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeBinArrayWithKey) {
+	bool testResult1 = can_serialize_binary_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = can_serialize_binary_with_key_v<TestArchive_SaveMode, TestArchive_SaveMode::key_type>;
+	EXPECT_TRUE(testResult2);
+	bool testResult3 = can_serialize_binary_with_key_v<TestWrongArchive, TestWrongArchive::key_type>;
 	EXPECT_FALSE(testResult3);
 }
 

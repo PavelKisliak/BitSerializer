@@ -167,6 +167,35 @@ constexpr bool is_enumerable_v = is_enumerable<TContainer>::value;
 
 
 /// <summary>
+/// Checks that the passed object type can be enumerated (by checking existence of begin() and end() methods).
+/// </summary>
+template <typename TContainer, typename TValue>
+struct is_enumerable_of
+{
+private:
+	template <typename T, typename U>
+	static std::enable_if_t<is_enumerable_v<T> && std::is_same_v<typename T::value_type, U>, std::true_type> test(int);
+
+	template <typename, typename>
+	static std::false_type test(...);
+
+public:
+	typedef decltype(test<TContainer, TValue>(0)) type;
+	enum { value = type::value };
+};
+
+template <typename TContainer, typename TValue>
+constexpr bool is_enumerable_of_v = is_enumerable_of<TContainer, TValue>::value;
+
+
+/// <summary>
+/// Checks that the passed type is an container of single-byte integers.
+/// </summary>
+template <typename TContainer>
+constexpr auto is_binary_container = is_enumerable_of_v<TContainer, char> || is_enumerable_of_v<TContainer, signed char> || is_enumerable_of_v<TContainer, unsigned char>;
+
+
+/// <summary>
 /// Gets the size of the container.
 /// </summary>
 template <typename TContainer>

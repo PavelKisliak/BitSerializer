@@ -621,7 +621,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", mPos);
 	}
 
-	bool CMsgPackStringReader::ReadMapSize(size_t& arraySize)
+	bool CMsgPackStringReader::ReadMapSize(size_t& mapSize)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -629,7 +629,7 @@ namespace BitSerializer::MsgPack::Detail
 			if ((static_cast<uint8_t>(ch) & 0b11110000) == 0b10000000)
 			{
 				++mPos;
-				arraySize = ch & 0b00001111;
+				mapSize = ch & 0b00001111;
 				return true;
 			}
 			if (ch == '\xDE')
@@ -637,7 +637,7 @@ namespace BitSerializer::MsgPack::Detail
 				++mPos;
 				uint16_t sz16;
 				GetValue(mInputData, mPos, sz16);
-				arraySize = sz16;
+				mapSize = sz16;
 				return true;
 			}
 			if (ch == '\xDF')
@@ -645,12 +645,54 @@ namespace BitSerializer::MsgPack::Detail
 				++mPos;
 				uint32_t sz32;
 				GetValue(mInputData, mPos, sz32);
-				arraySize = sz32;
+				mapSize = sz32;
 				return true;
 			}
 
 			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
+		}
+		throw ParsingException("No more values to read", mPos);
+	}
+
+	bool CMsgPackStringReader::ReadBinarySize(size_t& binarySize)
+	{
+		if (mPos < mInputData.size())
+		{
+			const auto ch = mInputData[mPos];
+			if (ch == '\xC4')
+			{
+				++mPos;
+				uint8_t sz8;
+				GetValue(mInputData, mPos, sz8);
+				binarySize = sz8;
+				return true;
+			}
+			if (ch == '\xC5')
+			{
+				++mPos;
+				uint16_t sz16;
+				GetValue(mInputData, mPos, sz16);
+				binarySize = sz16;
+				return true;
+			}
+			if (ch == '\xC6')
+			{
+				++mPos;
+				uint32_t sz32;
+				GetValue(mInputData, mPos, sz32);
+				binarySize = sz32;
+				return true;
+			}
+		}
+		throw ParsingException("No more values to read", mPos);
+	}
+
+	char CMsgPackStringReader::ReadBinary()
+	{
+		if (mPos < mInputData.size())
+		{
+			return mInputData[mPos++];
 		}
 		throw ParsingException("No more values to read", mPos);
 	}

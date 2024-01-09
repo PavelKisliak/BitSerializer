@@ -571,6 +571,92 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeFitToUint32)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of reading binary arrays
+//-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenEmptySize)
+{
+	this->PrepareReader({ '\xC4', '\x0' });
+
+	size_t actualSize = 3;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(0, actualSize);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenSizeFitToUint8)
+{
+	const auto expectedStr = this->GenTestString(std::numeric_limits<uint8_t>::max());
+	this->PrepareReader(std::string({ '\xC4', '\xFF' }) + expectedStr);
+
+	size_t actualSize = 3;
+	std::string actualStr;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(expectedStr.size(), actualSize);
+	for (size_t i = 0; i < expectedStr.size(); ++i)
+	{
+		actualStr.push_back(this->mMsgPackReader->ReadBinary());
+	}
+	ASSERT_EQ(expectedStr.size(), actualStr.size());
+	EXPECT_EQ(expectedStr, actualStr);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenSizeFitToUint16)
+{
+	const auto expectedStr = this->GenTestString(std::numeric_limits<uint16_t>::max());
+	this->PrepareReader(std::string({ '\xC5', '\xFF', '\xFF' }) + expectedStr);
+
+	size_t actualSize = 3;
+	std::string actualStr;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(expectedStr.size(), actualSize);
+	for (size_t i = 0; i < expectedStr.size(); ++i)
+	{
+		actualStr.push_back(this->mMsgPackReader->ReadBinary());
+	}
+	ASSERT_EQ(expectedStr.size(), actualStr.size());
+	EXPECT_EQ(expectedStr, actualStr);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenSizeFitToUint32)
+{
+	const auto expectedStr = this->GenTestString(std::numeric_limits<uint16_t>::max() + 3);
+	this->PrepareReader(std::string({ '\xC6', '\x00', '\x01', '\x00', '\x02' }) + expectedStr);
+
+	size_t actualSize = 3;
+	std::string actualStr;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(expectedStr.size(), actualSize);
+	for (size_t i = 0; i < expectedStr.size(); ++i)
+	{
+		actualStr.push_back(this->mMsgPackReader->ReadBinary());
+	}
+	ASSERT_EQ(expectedStr.size(), actualStr.size());
+	EXPECT_EQ(expectedStr, actualStr);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenUnexpectedEnd)
+{
+	size_t actualSize = 3;
+
+	this->PrepareReader(std::string({ '\xC4' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadBinarySize(actualSize), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xC4', '\x00' }));
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(0, actualSize);
+	EXPECT_THROW(this->mMsgPackReader->ReadBinary(), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xC5', '\x00', '\x00' }));
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(0, actualSize);
+	EXPECT_THROW(this->mMsgPackReader->ReadBinary(), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xC6', '\x00', '\x00', '\x00', '\x00' }));
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(actualSize));
+	EXPECT_EQ(0, actualSize);
+	EXPECT_THROW(this->mMsgPackReader->ReadBinary(), BitSerializer::ParsingException);
+}
+
+//-----------------------------------------------------------------------------
 // Tests of reading maps
 //-----------------------------------------------------------------------------
 TYPED_TEST(MsgPackReaderTest, ShouldReadMapWithFixedSize)

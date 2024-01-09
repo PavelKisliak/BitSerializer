@@ -398,10 +398,6 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
 
-TEST(MsgPackArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<MsgPackArchive, float, uint32_t>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<MsgPackArchive, double, uint32_t>(MismatchedTypesPolicy::ThrowError);
-}
 
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
 	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);

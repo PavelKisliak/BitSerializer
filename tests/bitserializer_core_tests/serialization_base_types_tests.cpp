@@ -345,7 +345,15 @@ TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::Skip);
 }
 
-TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInteger) {
+	TestMismatchedTypesPolicy<ArchiveStub, float, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<ArchiveStub, double, uint32_t>(MismatchedTypesPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInt) {
+	TestMismatchedTypesPolicy<ArchiveStub, float, int>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<ArchiveStub, double, int>(MismatchedTypesPolicy::Skip);
+}
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
 	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
@@ -372,10 +380,6 @@ TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowInt32) {
 TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<ArchiveStub, double, float>(OverflowNumberPolicy::ThrowError);
 }
-TEST(BaseTypes, ThrowSerializationExceptionWhenLoadFloatToInteger) {
-	TestOverflowNumberPolicy<ArchiveStub, float, uint32_t>(OverflowNumberPolicy::ThrowError);
-	TestOverflowNumberPolicy<ArchiveStub, double, uint32_t>(OverflowNumberPolicy::ThrowError);
-}
 
 TEST(BaseTypes, ThrowValidationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<ArchiveStub, int32_t, bool>(OverflowNumberPolicy::Skip);
@@ -394,8 +398,4 @@ TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowInt32) {
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowFloat) {
 	TestOverflowNumberPolicy<ArchiveStub, double, float>(OverflowNumberPolicy::Skip);
-}
-TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestOverflowNumberPolicy<ArchiveStub, float, uint32_t>(OverflowNumberPolicy::Skip);
-	TestOverflowNumberPolicy<ArchiveStub, double, uint32_t>(OverflowNumberPolicy::Skip);
 }

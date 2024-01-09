@@ -114,6 +114,9 @@ namespace Detail
 	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource> && std::is_arithmetic_v<TTarget>, int> = 0>
 	bool SafeNumberCast(TSource sourceValue, TTarget& targetValue, OverflowNumberPolicy overflowNumberPolicy)
 	{
+		static_assert(!std::is_floating_point_v<TSource> || std::is_floating_point_v<TTarget>,
+			"BitSerializer. The number with floating point cannot be converted to an integer without lost precision.");
+
 		bool result = true;
 		if constexpr (std::is_same_v<TSource, TTarget>)
 		{
@@ -121,17 +124,10 @@ namespace Detail
 		}
 		else if constexpr (std::is_floating_point_v<TSource>)
 		{
-			if constexpr (std::is_floating_point_v<TTarget>)
+			if (result = sizeof(TTarget) > sizeof(TSource)
+				|| (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()); result)
 			{
-				if (result = sizeof(TTarget) > sizeof(TSource)
-					|| (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()); result)
-				{
-					targetValue = static_cast<TTarget>(sourceValue);
-				}
-			}
-			else {
-				// The number with floating point cannot be converted to an integer without lost precision
-				result = false;
+				targetValue = static_cast<TTarget>(sourceValue);
 			}
 		}
 		else if constexpr (std::is_same_v<bool, TSource> || std::is_same_v<bool, TTarget>)

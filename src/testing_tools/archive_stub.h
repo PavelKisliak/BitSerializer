@@ -110,10 +110,6 @@ protected:
 			{
 				return SafeNumberCast(std::get<uint64_t>(ioData), value, serializationOptions.overflowNumberPolicy);
 			}
-			if (std::holds_alternative<double>(ioData))
-			{
-				return SafeNumberCast(std::get<double>(ioData), value, serializationOptions.overflowNumberPolicy);
-			}
 			if (std::holds_alternative<bool>(ioData))
 			{
 				return SafeNumberCast(std::get<bool>(ioData), value, serializationOptions.overflowNumberPolicy);

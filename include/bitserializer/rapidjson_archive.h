@@ -100,11 +100,9 @@ protected:
 				if (jsonValue.IsUint64()) {
 					return SafeNumberCast(jsonValue.GetUint64(), value, serializationOptions.overflowNumberPolicy);
 				}
-				if (jsonValue.IsDouble()) {
-					return SafeNumberCast(jsonValue.GetDouble(), value, serializationOptions.overflowNumberPolicy);
-				}
 			}
-			if (jsonValue.IsBool()) {
+			else if (jsonValue.IsBool())
+			{
 				return SafeNumberCast(jsonValue.GetBool(), value, serializationOptions.overflowNumberPolicy);
 			}
 		}

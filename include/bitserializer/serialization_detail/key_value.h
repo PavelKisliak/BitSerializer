@@ -24,16 +24,12 @@ public:
 	using value_type = TValue;
 	using key_type = TKey;
 
-	KeyValue(TKey&& key, TValue&& value, const Validators&... validators)
-		: mKey(key)
-		, mValue(value)
-		, mValidators(validators...)
+	KeyValue(TKey&& key, TValue&& value, Validators&&... validators)
+		: mKey(std::forward<TKey>(key)), mValue(std::forward<TValue>(value)), mValidators(std::forward<Validators>(validators)...)
 	{}
 
 	KeyValue(TKey&& key, TValue&& value, std::tuple<Validators...>&& validators)
-		: mKey(key)
-		, mValue(value)
-		, mValidators(std::move(validators))
+		: mKey(std::forward<TKey>(key)), mValue(std::forward<TValue>(value)), mValidators(std::move(validators))
 	{}
 
 	[[nodiscard]] const TKey& GetKey() const noexcept	{ return mKey; }
@@ -79,8 +75,8 @@ template<class TKey, class TValue, class... Validators>
 class AutoKeyValue : public KeyValue<TKey, TValue, Validators...>
 {
 public:
-	explicit AutoKeyValue(TKey&& key, TValue&& value, const Validators&... validators)
-		: KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...)
+	explicit AutoKeyValue(TKey&& key, TValue&& value, Validators&&... validators)
+		: KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), std::forward<Validators>(validators)...)
 	{}
 
 	/// <summary>

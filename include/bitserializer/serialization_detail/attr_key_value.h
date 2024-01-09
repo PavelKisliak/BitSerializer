@@ -14,12 +14,12 @@ template<class TAttrKey, class TValue, class... TValidators>
 class AttributeValue : public KeyValue<TAttrKey, TValue, TValidators...>
 {
 public:
-	AttributeValue(TAttrKey&& attributeKey, TValue&& value, const TValidators&... validators)
-		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), validators...)
+	AttributeValue(TAttrKey&& attributeKey, TValue&& value, TValidators&&... validators)
+		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), std::forward<TValidators>(validators)...)
 	{}
 
 	AttributeValue(TAttrKey&& attributeKey, TValue&& value, std::tuple<TValidators...>&& validators)
-		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), value, std::move(validators))
+		: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), std::move(validators))
 	{}
 };
 
@@ -52,8 +52,8 @@ template<class TAttrKey, class TValue, class... Validators>
 class AutoAttributeValue : public AttributeValue<TAttrKey, TValue, Validators...>
 {
 public:
-	AutoAttributeValue(TAttrKey&& key, TValue& value, const Validators&... validators)
-		: AttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), validators...)
+	AutoAttributeValue(TAttrKey&& key, TValue& value, Validators&&... validators)
+		: AttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), std::forward<Validators>(validators)...)
 	{}
 
 	/// <summary>

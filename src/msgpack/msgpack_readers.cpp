@@ -202,7 +202,7 @@ namespace
 			const auto byteCode = static_cast<uint_fast8_t>(inputData[pos]);
 			return ByteCodeTable[byteCode].Type;
 		}
-		throw ParsingException("No more values to read", pos);
+		throw ParsingException("No more values to read", 0, pos);
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
@@ -213,7 +213,7 @@ namespace
 			outValue = static_cast<unsigned char>(inputData[pos++]);
 		}
 		else {
-			throw ParsingException("Unexpected end of input archive", pos);
+			throw ParsingException("Unexpected end of input archive", 0, pos);
 		}
 	}
 
@@ -227,7 +227,7 @@ namespace
 			valPtr[0] = inputData[pos++];
 		}
 		else {
-			throw ParsingException("Unexpected end of input archive", pos);
+			throw ParsingException("Unexpected end of input archive", 0, pos);
 		}
 	}
 
@@ -243,7 +243,7 @@ namespace
 			valPtr[0] = inputData[pos++];
 		}
 		else {
-			throw ParsingException("Unexpected end of input archive", pos);
+			throw ParsingException("Unexpected end of input archive", 0, pos);
 		}
 	}
 
@@ -263,7 +263,7 @@ namespace
 			valPtr[0] = inputData[pos++];
 		}
 		else {
-			throw ParsingException("Unexpected end of input archive", pos);
+			throw ParsingException("Unexpected end of input archive", 0, pos);
 		}
 	}
 	
@@ -291,7 +291,7 @@ namespace
 			}
 			throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
 		}
-		throw ParsingException("No more values to read", pos);
+		throw ParsingException("No more values to read", 0, pos);
 	}
 
 	void HandleMismatchedTypesPolicy(MsgPack::Detail::ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
@@ -385,7 +385,7 @@ namespace
 			HandleMismatchedTypesPolicy(ReadValueTypeImpl(inputData, pos), serializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", pos);
+		throw ParsingException("No more values to read", 0, pos);
 	}
 }
 
@@ -427,7 +427,7 @@ namespace BitSerializer::MsgPack::Detail
 			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadValue(bool& value)
@@ -506,7 +506,7 @@ namespace BitSerializer::MsgPack::Detail
 			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadValue(double& value)
@@ -536,7 +536,7 @@ namespace BitSerializer::MsgPack::Detail
 			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadValue(std::string_view& value)
@@ -582,9 +582,9 @@ namespace BitSerializer::MsgPack::Detail
 				mPos += size;
 				return true;
 			}
-			throw ParsingException("Unexpected end of input archive", mPos);
+			throw ParsingException("Unexpected end of input archive", 0, mPos);
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadArraySize(size_t& arraySize)
@@ -618,7 +618,7 @@ namespace BitSerializer::MsgPack::Detail
 			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadMapSize(size_t& mapSize)
@@ -652,7 +652,7 @@ namespace BitSerializer::MsgPack::Detail
 			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadBinarySize(size_t& binarySize)
@@ -685,7 +685,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	char CMsgPackStringReader::ReadBinary()
@@ -694,7 +694,7 @@ namespace BitSerializer::MsgPack::Detail
 		{
 			return mInputData[mPos++];
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	void CMsgPackStringReader::SkipValue()
@@ -745,8 +745,8 @@ namespace BitSerializer::MsgPack::Detail
 				}
 				return;
 			}
-			throw ParsingException( "Unexpected end of input archive", mPos);
+			throw ParsingException( "Unexpected end of input archive", 0, mPos);
 		}
-		throw ParsingException("No more values to read", mPos);
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 }

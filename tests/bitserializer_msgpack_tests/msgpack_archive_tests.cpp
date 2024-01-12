@@ -349,33 +349,44 @@ TEST(MsgPackArchive, ShouldReturnPathInArrayScopeWhenLoading)
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------
-//TEST(MsgPackArchive, ThrowExceptionWhenBadSyntaxInSource)
-//{
-//	int testInt = 0;
-//	EXPECT_THROW(BitSerializer::LoadObject<MsgPackArchive>(testInt, "10 }}"), BitSerializer::SerializationException);
-//}
-//
-//TEST(MsgPackArchive, ThrowParsingExceptionWithCorrectPosition)
-//{
-//	const char* testJson = R"([
-//	{ "x": 10, "y": 20},
-//	{ "x": 11, y: 21}
-//])";
-//	TestPointClass testList[2];
-//	try
-//	{
-//		BitSerializer::LoadObject<MsgPackArchive>(testList, testJson);
-//		EXPECT_FALSE(true);
-//	}
-//	catch (const BitSerializer::ParsingException& ex)
-//	{
-//		EXPECT_TRUE(ex.Offset > 24 && ex.Offset < std::strlen(testJson));
-//	}
-//	catch (const std::exception&)
-//	{
-//		EXPECT_FALSE(true);
-//	}
-//}
+TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEnd)
+{
+	try
+	{
+		int testInt = 0;
+		BitSerializer::LoadObject<MsgPackArchive>(testInt, "\xD1\x80");
+		EXPECT_FALSE(true);
+	}
+	catch (const ParsingException& ex)
+	{
+		EXPECT_EQ(1, ex.Offset);
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
+}
+
+TEST(MsgPackArchive, ThrowExceptionWhenNoMoreValuesToRead)
+{
+	const char* testMsgPack = "\x92"
+		"\x82\xA1x\x05\xA1y\x06"
+		"\x82\xA1x\x07\xA1y";
+	try
+	{
+		TestPointClass testList[2];
+		BitSerializer::LoadObject<MsgPackArchive>(testList, testMsgPack);
+		EXPECT_FALSE(true);
+	}
+	catch (const ParsingException& ex)
+	{
+		EXPECT_EQ(ex.Offset, std::strlen(testMsgPack));
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
+}
 
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {

@@ -228,6 +228,28 @@ TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<MsgPackArchive>(fixture);
 }
 
+TEST(MsgPackArchive, SerializeClassWithIntAsKey)
+{
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int8_t>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int16_t>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int32_t>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int64_t>>());
+}
+
+TEST(MsgPackArchive, SerializeClassWithUIntAsKey)
+{
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint8_t>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint16_t>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint32_t>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint64_t>>());
+}
+
+TEST(MsgPackArchive, SerializeClassWithFloatAsKey)
+{
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<float>>());
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<double>>());
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

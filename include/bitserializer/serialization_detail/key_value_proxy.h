@@ -19,7 +19,7 @@ namespace BitSerializer::KeyValueProxy
 	template <class TArchive, class TKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TValidators...>&& keyValue)
 	{
-		constexpr auto hasSupportKeyType = BitSerializer::is_type_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
+		constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
 		static_assert(hasSupportKeyType, "BitSerializer. The archive doesn't support this key type.");
 
 		if constexpr (hasSupportKeyType)

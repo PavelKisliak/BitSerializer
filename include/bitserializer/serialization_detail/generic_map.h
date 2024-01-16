@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -41,11 +41,12 @@ namespace BitSerializer
 			using TMapKey = typename TMap::key_type;
 			using TValue = typename TMap::mapped_type;
 
+			constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<TMapKey, typename TArchive::supported_key_types>;
 			if constexpr (TArchive::IsSaving())
 			{
 				for (auto& elem : cont)
 				{
-					if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>)
+					if constexpr (hasSupportKeyType)
 						Serialize(scope, elem.first, elem.second);
 					else
 					{

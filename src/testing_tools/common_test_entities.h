@@ -323,6 +323,36 @@ public:
 };
 
 //-----------------------------------------------------------------------------
+template <typename T>
+class TestClassWithCustomKey
+{
+public:
+	static void BuildFixture(TestClassWithCustomKey& fixture)
+	{
+		::BuildFixture(fixture.minValue.second);
+		::BuildFixture(fixture.maxValue.second);
+	}
+
+	void Assert(const TestClassWithCustomKey& rhs) const
+	{
+		EXPECT_EQ(minValue.second, rhs.minValue.second);
+		EXPECT_EQ(maxValue.second, rhs.maxValue.second);
+	}
+
+	TestClassWithCustomKey() = default;
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::KeyValue(minValue.first, minValue.second);
+		archive << BitSerializer::KeyValue(maxValue.first, maxValue.second);
+	}
+
+	std::pair<T, int> minValue = { std::numeric_limits<T>::min(), {} };
+	std::pair<T, int> maxValue = { std::numeric_limits<T>::max(), {} };
+};
+
+//-----------------------------------------------------------------------------
 template <typename T, size_t ArraySize = 7>
 class TestClassWithSubArray
 {

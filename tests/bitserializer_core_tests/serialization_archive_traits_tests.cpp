@@ -199,13 +199,42 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeAttribute) {
 	EXPECT_FALSE(testResult3);
 }
 
-TEST(SerializationArchiveTraits, ShouldCheckThatTypeConvertibleToOneFromTuple) {
-	bool testResult1 = is_type_convertible_to_one_from_tuple_v<std::wstring, std::tuple<std::string, std::wstring>>;
+TEST(SerializationArchiveTraits, ShouldCheckThatStringTypeConvertibleToOneFromTuple) {
+	bool testResult1 = is_convertible_to_one_from_tuple_v<std::wstring, std::tuple<std::string, std::wstring>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_type_convertible_to_one_from_tuple_v<wchar_t*, std::tuple<std::string, std::wstring>>;
+	bool testResult2 = is_convertible_to_one_from_tuple_v<const wchar_t*, std::tuple<std::string, std::wstring>>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = is_type_convertible_to_one_from_tuple_v<std::string, std::tuple<std::wstring>>;
+	bool testResult3 = is_convertible_to_one_from_tuple_v<const char[], std::tuple<std::string_view>>;
+	EXPECT_TRUE(testResult3);
+
+	bool testResult4 = is_convertible_to_one_from_tuple_v<std::string, std::tuple<std::wstring>>;
+	EXPECT_FALSE(testResult4);
+	bool testResult5 = is_convertible_to_one_from_tuple_v<std::string, std::tuple<>>;
+	EXPECT_FALSE(testResult5);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatIntegralTypeConvertibleToOneFromTuple) {
+	bool testResult1 = is_convertible_to_one_from_tuple_v<int16_t, std::tuple<int64_t>>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_convertible_to_one_from_tuple_v<uint8_t, std::tuple<uint64_t>>;
+	EXPECT_TRUE(testResult2);
+
+	bool testResult3 = is_convertible_to_one_from_tuple_v<bool, std::tuple<uint8_t>>;
 	EXPECT_FALSE(testResult3);
-	bool testResult4 = is_type_convertible_to_one_from_tuple_v<std::string, std::tuple<>>;
+	bool testResult4 = is_convertible_to_one_from_tuple_v<const bool, std::tuple<std::string, std::string_view, int64_t, uint64_t, float, double>>;
+	EXPECT_FALSE(testResult4);
+	bool testResult5 = is_convertible_to_one_from_tuple_v<float, std::tuple<uint64_t>>;
+	EXPECT_FALSE(testResult5);
+}
+
+TEST(SerializationArchiveTraits, ShouldCheckThatFloatingTypeConvertibleToOneFromTuple) {
+	bool testResult1 = is_convertible_to_one_from_tuple_v<float, std::tuple<int64_t, float>>;
+	EXPECT_TRUE(testResult1);
+	bool testResult2 = is_convertible_to_one_from_tuple_v<double, std::tuple<uint64_t, double>>;
+	EXPECT_TRUE(testResult2);
+
+	bool testResult3 = is_convertible_to_one_from_tuple_v<float, std::tuple<uint64_t>>;
+	EXPECT_FALSE(testResult3);
+	bool testResult4 = is_convertible_to_one_from_tuple_v<double, std::tuple<uint64_t>>;
 	EXPECT_FALSE(testResult4);
 }

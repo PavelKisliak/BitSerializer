@@ -23,7 +23,7 @@ struct MsgPackArchiveTraits
 {
 	static constexpr ArchiveType archive_type = ArchiveType::MsgPack;
 	using key_type = std::string;
-	using supported_key_types = TSupportedKeyTypes<const char*, std::string_view, key_type, int64_t, uint64_t, float, double>;
+	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view, int64_t, uint64_t, float, double>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -70,9 +70,23 @@ public:
 	}
 
 	template <typename T>
-	bool operator==(const T& value) const {
-		auto& ref = std::get<T>(mTuple);
-		return mLast == &ref && ref == value;
+	bool operator==(const T& value) const
+	{
+		if constexpr (std::is_integral_v<T> && (std::is_unsigned_v<T> || std::is_signed_v<T>))
+		{
+			if (auto& refUnsigned = std::get<uint64_t>(mTuple); mLast == &refUnsigned) {
+				return refUnsigned == value;
+			}
+			if (auto& refSigned = std::get<int64_t>(mTuple); mLast == &refSigned) {
+				return refSigned == value;
+			}
+			return false;
+		}
+		else
+		{
+			auto& ref = std::get<T>(mTuple);
+			return mLast == &ref && ref == value;
+		}
 	}
 
 	template <>
@@ -337,7 +351,7 @@ public:
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->WriteValue(key);
 		WriteValue(value);
 		++mIndex;
 		return true;
@@ -903,13 +917,14 @@ private:
 				mMsgPackReader->SetPosition(mStartPos);
 				mIndex = 0;
 			}
-			ReadKey([](auto&& ) { });
+			ReadKey([](auto&&) {});
 			if (mCurrentKey == key) {
 				return true;
 			}
 			mMsgPackReader->SkipValue();
 			++mIndex;
 		}
+		mCurrentKey.Reset();
 		return false;
 	}
 

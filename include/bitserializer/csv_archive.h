@@ -21,7 +21,7 @@ struct CsvArchiveTraits
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Csv;
 	using key_type = std::string;
-	using supported_key_types = TSupportedKeyTypes<const char*, std::string_view, key_type>;
+	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';

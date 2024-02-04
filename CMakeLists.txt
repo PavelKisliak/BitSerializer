@@ -87,6 +87,9 @@ set(BITSERIALIZER_NAMESPACE "BitSerializer")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
 
+# Private common library
+add_subdirectory(src/common)
+
 # BitSerializer core
 set(BITSERIALIZER_CORE_NAME "core")
 set(BITSERIALIZER_TARGETS ${BITSERIALIZER_CORE_NAME})
@@ -184,11 +187,15 @@ if(BUILD_MSGPACK_ARCHIVE)
        "src/msgPack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
        "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp")
     add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
-    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
 
-    target_link_libraries(${MSGPACK_ARCHIVE_NAME} INTERFACE
-        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    target_link_libraries(${MSGPACK_ARCHIVE_NAME}
+        INTERFACE
+            ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+        PRIVATE
+            common
     )
+
+    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME} common)
 endif()
 
 #################################################################################

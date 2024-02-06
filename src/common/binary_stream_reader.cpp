@@ -55,9 +55,19 @@ namespace BitSerializer::Detail
 	std::optional<char> CBinaryStreamReader::PeekByte()
 	{
 		if (mStartDataPtr != mEndDataPtr || ReadNextChunk()) {
-			return *mStartDataPtr;
+			return std::make_optional<char>(*mStartDataPtr);
 		}
 		return std::nullopt;
+	}
+
+	void CBinaryStreamReader::GotoNextByte()
+	{
+		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
+		{
+			if (++mStartDataPtr == mEndDataPtr) {
+				ReadNextChunk();
+			}
+		}
 	}
 
 	std::optional<char> CBinaryStreamReader::ReadByte()

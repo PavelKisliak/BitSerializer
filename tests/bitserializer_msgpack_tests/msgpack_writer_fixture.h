@@ -19,11 +19,11 @@ public:
 			mResult = std::string();
 			mMsgPackWriter = std::make_shared<TWriter>(std::get<std::string>(mResult));
 		}
-		//else if constexpr (std::is_same_v<TWriter, BitSerializer::MsgPack::Detail::CMsgPackStreamWriter>)
-		//{
-		//	mResult = std::ostringstream();
-		//	mMsgPackWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult));
-		//}
+		else if constexpr (std::is_same_v<TWriter, BitSerializer::MsgPack::Detail::CMsgPackStreamWriter>)
+		{
+			mResult = std::ostringstream();
+			mMsgPackWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult));
+		}
 	}
 
 	std::string TakeResult()
@@ -39,7 +39,9 @@ public:
 			}
 			else if constexpr (std::is_same_v<T, std::ostringstream>)
 			{
-				return arg.str();
+				std::string s = arg.str();
+				arg.str("");
+				return s;
 			}
 		}, mResult);
 	}
@@ -57,13 +59,6 @@ public:
 		}
 		return testStr;
 	}
-
-	//static std::vector<uint8_t> GenTestArray(size_t size)
-	//{
-	//	std::vector<uint8_t> testArr(size, 0);
-	//	BuildFixture(testArr);
-	//	return testArr;
-	//}
 
 protected:
 	std::shared_ptr<TWriter> mMsgPackWriter;

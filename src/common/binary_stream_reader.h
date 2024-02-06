@@ -26,6 +26,7 @@ namespace BitSerializer::Detail
 		bool SetPosition(size_t pos);
 
 		[[nodiscard]] std::optional<char> PeekByte();
+		void GotoNextByte();
 		[[nodiscard]] std::optional<char> ReadByte();
 		[[nodiscard]] std::string_view ReadSolidBlock(size_t blockSize);
 		[[nodiscard]] std::string_view ReadByChunks(size_t remainingSize);

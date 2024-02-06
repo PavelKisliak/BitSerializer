@@ -185,7 +185,7 @@ public:
 
 	[[nodiscard]] virtual size_t GetPosition() const noexcept = 0;
 	virtual void SetPosition(size_t pos) = 0;
-	[[nodiscard]] virtual ValueType ReadValueType() const = 0;
+	[[nodiscard]] virtual ValueType ReadValueType() = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
 
 	virtual bool ReadValue(std::nullptr_t&) = 0;
@@ -450,7 +450,7 @@ class MsgPackWriteRootScope final : public MsgPackArchiveTraits, public TArchive
 {
 public:
 	MsgPackWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
-	//MsgPackWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
+	MsgPackWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
 
 	/// <summary>
 	/// Gets the current path in MsgPack.
@@ -943,7 +943,7 @@ class MsgPackReadRootScope final : public MsgPackArchiveTraits, public TArchiveS
 {
 public:
 	MsgPackReadRootScope(std::string_view inputData, SerializationContext& serializationContext);
-	//MsgPackReadRootScope(std::istream& inputStream, SerializationContext& serializationContext);
+	MsgPackReadRootScope(std::istream& inputStream, SerializationContext& serializationContext);
 
 	/// <summary>
 	/// Gets the current path in MsgPack.

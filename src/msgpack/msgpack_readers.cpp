@@ -195,6 +195,23 @@ namespace
 		{ SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }
 	};
 
+	void HandleMismatchedTypesPolicy(MsgPack::Detail::ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
+	{
+		// Null value is excluded from MismatchedTypesPolicy processing
+		if (actualType != MsgPack::Detail::ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
+		}
+	}
+}
+
+
+//-----------------------------------------------------------------------------
+// CMsgPackStreamReader
+//-----------------------------------------------------------------------------
+namespace
+{
 	MsgPack::Detail::ValueType ReadValueTypeImpl(const std::string_view& inputData, const size_t& pos)
 	{
 		if (pos < inputData.size())
@@ -206,7 +223,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
-	void GetValue(std::string_view& inputData, size_t& pos, T& outValue)
+	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
 	{
 		if (pos < inputData.size())
 		{
@@ -218,7 +235,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
-	void GetValue(std::string_view& inputData, size_t& pos, T& outValue)
+	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
 	{
 		if (pos + sizeof(T) <= inputData.size())
 		{
@@ -232,7 +249,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
-	void GetValue(std::string_view& inputData, size_t& pos, T& outValue)
+	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
 	{
 		if (pos + sizeof(T) <= inputData.size())
 		{
@@ -248,7 +265,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
-	void GetValue(std::string_view& inputData, size_t& pos, T& outValue)
+	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
 	{
 		if (pos + sizeof(T) <= inputData.size())
 		{
@@ -266,7 +283,7 @@ namespace
 			throw ParsingException("Unexpected end of input archive", 0, pos);
 		}
 	}
-	
+
 	uint32_t ReadExtSize(uint_fast8_t extSizeBytesNum, std::string_view inputData, size_t pos)
 	{
 		if (pos + extSizeBytesNum < inputData.size())
@@ -294,18 +311,8 @@ namespace
 		throw ParsingException("No more values to read", 0, pos);
 	}
 
-	void HandleMismatchedTypesPolicy(MsgPack::Detail::ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
-	{
-		// Null value is excluded from MismatchedTypesPolicy processing
-		if (actualType != MsgPack::Detail::ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-		{
-			throw SerializationException(SerializationErrorCode::MismatchedTypes,
-				"The type of target field does not match the value being loaded");
-		}
-	}
-
 	template <typename T>
-	bool ReadInteger(std::string_view& inputData, size_t& pos, T& outValue, const SerializationOptions& serializationOptions)
+	bool ReadInteger(const std::string_view& inputData, size_t& pos, T& outValue, const SerializationOptions& serializationOptions)
 	{
 		if (pos < inputData.size())
 		{
@@ -389,8 +396,6 @@ namespace
 	}
 }
 
-//-----------------------------------------------------------------------------
-
 namespace BitSerializer::MsgPack::Detail
 {
 	CMsgPackStringReader::CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions)
@@ -408,7 +413,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	ValueType CMsgPackStringReader::ReadValueType() const
+	ValueType CMsgPackStringReader::ReadValueType()
 	{
 		return ReadValueTypeImpl(mInputData, mPos);
 	}
@@ -745,8 +750,539 @@ namespace BitSerializer::MsgPack::Detail
 				}
 				return;
 			}
-			throw ParsingException( "Unexpected end of input archive", 0, mPos);
+			throw ParsingException("Unexpected end of input archive", 0, mPos);
 		}
 		throw ParsingException("No more values to read", 0, mPos);
+	}
+}
+
+
+//-----------------------------------------------------------------------------
+// CMsgPackStreamReader
+//-----------------------------------------------------------------------------
+namespace
+{
+	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
+	{
+		if (const auto value = binaryStreamReader.ReadByte())
+		{
+			outValue = static_cast<unsigned char>(*value);
+		}
+		else {
+			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+		}
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
+	{
+		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
+		{
+			char* valPtr = reinterpret_cast<char*>(&outValue);
+			valPtr[1] = data[0];
+			valPtr[0] = data[1];
+		}
+		else {
+			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+		}
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
+	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
+	{
+		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
+		{
+			char* valPtr = reinterpret_cast<char*>(&outValue);
+			valPtr[3] = data[0];
+			valPtr[2] = data[1];
+			valPtr[1] = data[2];
+			valPtr[0] = data[3];
+		}
+		else {
+			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+		}
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
+	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
+	{
+		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
+		{
+			char* valPtr = reinterpret_cast<char*>(&outValue);
+			valPtr[7] = data[0];
+			valPtr[6] = data[1];
+			valPtr[5] = data[2];
+			valPtr[4] = data[3];
+			valPtr[3] = data[4];
+			valPtr[2] = data[5];
+			valPtr[1] = data[6];
+			valPtr[0] = data[7];
+		}
+		else {
+			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+		}
+	}
+
+	uint32_t ReadExtSize(Detail::CBinaryStreamReader& binaryStreamReader, uint_fast8_t extSizeBytesNum)
+	{
+		if (const auto data = binaryStreamReader.ReadSolidBlock(extSizeBytesNum); !data.empty())
+		{
+			size_t pos = 0;	// ToDo: think to remove
+			if (extSizeBytesNum == 1)
+			{
+				uint8_t sz8;
+				GetValue(data, pos, sz8);
+				return sz8;
+			}
+			if (extSizeBytesNum == 2)
+			{
+				uint16_t sz16;
+				GetValue(data, pos,sz16);
+				return sz16;
+			}
+			if (extSizeBytesNum == 4)
+			{
+				uint32_t sz32;
+				GetValue(data, pos, sz32);
+				return sz32;
+			}
+			throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
+		}
+		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
+	}
+
+	template <typename T>
+	bool ReadInteger(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue, const SerializationOptions& serializationOptions)
+	{
+		if (const auto byteCode = binaryStreamReader.PeekByte())
+		{
+			if (byteCode >= -32)
+			{
+				binaryStreamReader.GotoNextByte();
+				return Detail::SafeNumberCast(*byteCode, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xCC')
+			{
+				binaryStreamReader.GotoNextByte();
+				uint8_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xCD')
+			{
+				binaryStreamReader.GotoNextByte();
+				uint16_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xCE')
+			{
+				binaryStreamReader.GotoNextByte();
+				uint32_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xCF')
+			{
+				binaryStreamReader.GotoNextByte();
+				uint64_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xD0')
+			{
+				binaryStreamReader.GotoNextByte();
+				int8_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xD1')
+			{
+				binaryStreamReader.GotoNextByte();
+				int16_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xD2')
+			{
+				binaryStreamReader.GotoNextByte();
+				int32_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xD3')
+			{
+				binaryStreamReader.GotoNextByte();
+				int64_t val;
+				GetValue(binaryStreamReader, val);
+				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			// Read from boolean
+			if (byteCode == '\xC2')
+			{
+				binaryStreamReader.GotoNextByte();
+				return Detail::SafeNumberCast(0, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			if (byteCode == '\xC3')
+			{
+				binaryStreamReader.GotoNextByte();
+				return Detail::SafeNumberCast(1, outValue, serializationOptions.overflowNumberPolicy);
+			}
+			HandleMismatchedTypesPolicy(ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
+			return false;
+		}
+		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
+	}
+}
+
+namespace BitSerializer::MsgPack::Detail
+{
+	CMsgPackStreamReader::CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions)
+		: mBinaryStreamReader(inputStream)
+		, mSerializationOptions(serializationOptions)
+	{ }
+
+	ValueType CMsgPackStreamReader::ReadValueType()
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			return ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadValue(std::nullptr_t&)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			if (byteCode.value() == '\xC0')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				return true;
+			}
+			HandleMismatchedTypesPolicy(ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, mSerializationOptions.mismatchedTypesPolicy);
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadValue(bool& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(uint8_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(uint16_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(uint32_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(uint64_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(char& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(int8_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(int16_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(int32_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(int64_t& value)
+	{
+		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
+	}
+
+	bool CMsgPackStreamReader::ReadValue(float& value)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			if (*byteCode == '\xCA')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint32_t buf;
+				GetValue(mBinaryStreamReader, buf);
+				std::memcpy(&value, &buf, sizeof(uint32_t));
+				return true;
+			}
+			if (*byteCode == '\xCB')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint64_t buf;
+				GetValue(mBinaryStreamReader, buf);
+				double temp;
+				std::memcpy(&temp, &buf, sizeof(uint64_t));
+				return BitSerializer::Detail::SafeNumberCast(temp, value, mSerializationOptions.overflowNumberPolicy);
+			}
+
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			return false;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadValue(double& value)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			if (*byteCode == '\xCB')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint64_t buf;
+				GetValue(mBinaryStreamReader, buf);
+				std::memcpy(&value, &buf, sizeof(uint64_t));
+				return true;
+			}
+			if (*byteCode == '\xCA')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint32_t buf;
+				GetValue(mBinaryStreamReader, buf);
+				float temp;
+				std::memcpy(&temp, &buf, sizeof(uint32_t));
+				value = static_cast<double>(temp);
+				return true;
+			}
+
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			return false;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadValue(std::string_view& value)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			size_t remainingSize;
+			if ((static_cast<uint8_t>(*byteCode) & 0b11100000) == 0b10100000)
+			{
+				remainingSize = *byteCode & 0b00011111;
+				mBinaryStreamReader.GotoNextByte();
+			}
+			else if (*byteCode == '\xD9')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint8_t sz8;
+				GetValue(mBinaryStreamReader, sz8);
+				remainingSize = sz8;
+			}
+			else if (*byteCode == '\xDA')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint16_t sz16;
+				GetValue(mBinaryStreamReader, sz16);
+				remainingSize = sz16;
+			}
+			else if (*byteCode == '\xDB')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint32_t sz32;
+				GetValue(mBinaryStreamReader, sz32);
+				remainingSize = sz32;
+			}
+			else
+			{
+				HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+				return false;
+			}
+
+			mBuffer.clear();
+			while (remainingSize != 0)
+			{
+				if (std::string_view chunk = mBinaryStreamReader.ReadByChunks(remainingSize); !chunk.empty())
+				{
+					mBuffer += chunk;
+					remainingSize -= chunk.size();
+				}
+				else
+				{
+					throw ParsingException("Unexpected end of input archive", 0, mBinaryStreamReader.GetPosition());
+				}
+			}
+			value = mBuffer;
+			return true;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadArraySize(size_t& arraySize)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			if ((static_cast<uint8_t>(*byteCode) & 0b11110000) == 0b10010000)
+			{
+				mBinaryStreamReader.GotoNextByte();
+				arraySize = *byteCode & 0b00001111;
+				return true;
+			}
+			if (*byteCode == '\xDC')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint16_t sz16;
+				GetValue(mBinaryStreamReader, sz16);
+				arraySize = sz16;
+				return true;
+			}
+			if (*byteCode == '\xDD')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint32_t sz32;
+				GetValue(mBinaryStreamReader, sz32);
+				arraySize = sz32;
+				return true;
+			}
+
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			return false;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadMapSize(size_t& mapSize)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			if ((static_cast<uint8_t>(*byteCode) & 0b11110000) == 0b10000000)
+			{
+				mBinaryStreamReader.GotoNextByte();
+				mapSize = *byteCode & 0b00001111;
+				return true;
+			}
+			if (*byteCode == '\xDE')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint16_t sz16;
+				GetValue(mBinaryStreamReader, sz16);
+				mapSize = sz16;
+				return true;
+			}
+			if (*byteCode == '\xDF')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint32_t sz32;
+				GetValue(mBinaryStreamReader, sz32);
+				mapSize = sz32;
+				return true;
+			}
+
+			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			return false;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadBinarySize(size_t& binarySize)
+	{
+		if (const auto byteCode = mBinaryStreamReader.PeekByte())
+		{
+			if (*byteCode == '\xC4')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint8_t sz8;
+				GetValue(mBinaryStreamReader, sz8);
+				binarySize = sz8;
+				return true;
+			}
+			if (*byteCode == '\xC5')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint16_t sz16;
+				GetValue(mBinaryStreamReader, sz16);
+				binarySize = sz16;
+				return true;
+			}
+			if (*byteCode == '\xC6')
+			{
+				mBinaryStreamReader.GotoNextByte();
+				uint32_t sz32;
+				GetValue(mBinaryStreamReader, sz32);
+				binarySize = sz32;
+				return true;
+			}
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	char CMsgPackStreamReader::ReadBinary()
+	{
+		if (const auto byteCode = mBinaryStreamReader.ReadByte())
+		{
+			return *byteCode;
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	void CMsgPackStreamReader::SkipValue()
+	{
+		if (const auto byteCode = mBinaryStreamReader.ReadByte())
+		{
+			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint8_t>(*byteCode)];
+
+			size_t size = byteCodeInfo.DataSize;
+			uint32_t extSize = 0;
+			if (byteCodeInfo.FixedSeq)
+			{
+				extSize += byteCodeInfo.FixedSeq;
+			}
+			else if (byteCodeInfo.ExtSize)
+			{
+				extSize = ReadExtSize(mBinaryStreamReader, byteCodeInfo.ExtSize);
+			}
+
+			if (byteCodeInfo.Type == ValueType::String)
+			{
+				size += extSize;
+				extSize = 0;
+			}
+
+			if (mBinaryStreamReader.SetPosition(mBinaryStreamReader.GetPosition() + size))
+			{
+				if (extSize)
+				{
+					if (byteCodeInfo.Type == ValueType::Map)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValue();
+							SkipValue();
+						}
+					}
+					else if (byteCodeInfo.Type == ValueType::Array)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValue();
+						}
+					}
+				}
+				return;
+			}
+			throw ParsingException("Unexpected end of input archive", 0, mBinaryStreamReader.GetPosition());
+		}
+		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 }

@@ -24,11 +24,11 @@ public:
 		{
 			mMsgPackReader = std::make_shared<TReader>(mTestMsgPack, serializationOptions);
 		}
-		//else if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader>)
-		//{
-		//	mInputStream = std::make_optional<std::istringstream>(mTestMsgPack, overflowNumberPolicy);
-		//	mCsvReader = std::make_shared<TReader>(mInputStream.value());
-		//}
+		else if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader>)
+		{
+			mInputStream = std::make_optional<std::istringstream>(mTestMsgPack);
+			mMsgPackReader = std::make_shared<TReader>(mInputStream.value(), serializationOptions);
+		}
 	}
 
 	static std::string GenTestString(size_t size)

@@ -8,8 +8,7 @@
 
 
 using testing::Types;
-typedef Types<BitSerializer::MsgPack::Detail::CMsgPackStringReader> Implementations;
-//typedef Types<BitSerializer::MsgPack::Detail::CMsgPackStringWriter, BitSerializer::MsgPack::Detail::CMsgPackStreamWriter> Implementations;
+typedef Types<BitSerializer::MsgPack::Detail::CMsgPackStringReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader> Implementations;
 
 // Tests for all implementations of IMsgPackWriter
 TYPED_TEST_SUITE(MsgPackReaderTest, Implementations);

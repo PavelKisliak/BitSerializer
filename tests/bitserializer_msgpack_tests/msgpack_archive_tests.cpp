@@ -273,100 +273,16 @@ TEST(MsgPackArchive, ShouldReturnPathInArrayScopeWhenLoading)
 //	TestGetPathInJsonArrayScopeWhenSaving<MsgPackArchive>();
 //}
 
-////-----------------------------------------------------------------------------
-//// Tests streams / files
-////-----------------------------------------------------------------------------
-//TEST(MsgPackArchive, SerializeClassToStream) {
-//	TestSerializeClassToStream<MsgPackArchive, char>(BuildFixture<TestPointClass>());
-//}
-//
-//TEST(MsgPackArchive, SerializeUnicodeToEncodedStream) {
-//	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-//	TestSerializeClassToStream<MsgPackArchive, char>(TestValue);
-//}
-//
-//TEST(MsgPackArchive, LoadFromUtf8Stream) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf8>(false);
-//}
-//TEST(MsgPackArchive, LoadFromUtf8StreamWithBom) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf8>(true);
-//}
-//
-//TEST(MsgPackArchive, LoadFromUtf16LeStream) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Le>(false);
-//}
-//TEST(MsgPackArchive, LoadFromUtf16LeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Le>(true);
-//}
-//
-//TEST(MsgPackArchive, LoadFromUtf16BeStream) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Be>(false);
-//}
-//TEST(MsgPackArchive, LoadFromUtf16BeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Be>(true);
-//}
-//
-//TEST(MsgPackArchive, LoadFromUtf32LeStream) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Le>(false);
-//}
-//TEST(MsgPackArchive, LoadFromUtf32LeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Le>(true);
-//}
-//
-//TEST(MsgPackArchive, LoadFromUtf32BeStream) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Be>(false);
-//}
-//TEST(MsgPackArchive, LoadFromUtf32BeStreamWithBom) {
-//	TestLoadJsonFromEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Be>(true);
-//}
-//
-//TEST(MsgPackArchive, SaveToUtf8Stream) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf8>(false);
-//}
-//TEST(MsgPackArchive, SaveToUtf8StreamWithBom) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf8>(true);
-//}
-//
-//TEST(MsgPackArchive, SaveToUtf16LeStream) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Le>(false);
-//}
-//TEST(MsgPackArchive, SaveToUtf16LeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Le>(true);
-//}
-//
-//TEST(MsgPackArchive, SaveToUtf16BeStream) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Be>(false);
-//}
-//TEST(MsgPackArchive, SaveToUtf16BeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf16Be>(true);
-//}
-//
-//TEST(MsgPackArchive, SaveToUtf32LeStream) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Le>(false);
-//}
-//TEST(MsgPackArchive, SaveToUtf32LeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Le>(true);
-//}
-//
-//TEST(MsgPackArchive, SaveToUtf32BeStream) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Be>(false);
-//}
-//TEST(MsgPackArchive, SaveToUtf32BeStreamWithBom) {
-//	TestSaveJsonToEncodedStream<MsgPackArchive, BitSerializer::Convert::Utf32Be>(true);
-//}
-//
-//TEST(MsgPackArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
-//{
-//	BitSerializer::SerializationOptions serializationOptions;
-//	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::UtfType>(-1);
-//	std::stringstream outputStream;
-//	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
-//	EXPECT_THROW(BitSerializer::SaveObject<MsgPackArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
-//}
-//
-//TEST(MsgPackArchive, SerializeToFile) {
-//	TestSerializeArrayToFile<MsgPackArchive>();
-//}
+//-----------------------------------------------------------------------------
+// Tests streams / files
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeClassToStream) {
+	TestSerializeClassToStream<MsgPackArchive, char>(BuildFixture<TestPointClass>());
+}
+
+TEST(MsgPackArchive, SerializeToFile) {
+	TestSerializeArrayToFile<MsgPackArchive>();
+}
 
 //-----------------------------------------------------------------------------
 // Tests of errors handling

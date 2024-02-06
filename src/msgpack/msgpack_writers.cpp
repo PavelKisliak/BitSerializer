@@ -49,6 +49,50 @@ namespace
 		outputString.push_back(valPtr[1]);
 		outputString.push_back(valPtr[0]);
 	}
+
+	//------------------------------------------------------------------------------
+
+	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	void PushValue(std::ostream& outputStream, uint8_t code, T value)
+	{
+		outputStream.put(static_cast<char>(code));
+		outputStream.put(static_cast<char>(value));
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	void PushValue(std::ostream& outputStream, uint8_t code, T value)
+	{
+		outputStream.put(static_cast<char>(code));
+		const char* valPtr = reinterpret_cast<const char*>(&value);
+		outputStream.put(valPtr[1]);
+		outputStream.put(valPtr[0]);
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
+	void PushValue(std::ostream& outputStream, uint8_t code, T value)
+	{
+		outputStream.put(static_cast<char>(code));
+		const char* valPtr = reinterpret_cast<const char*>(&value);
+		outputStream.put(valPtr[3]);
+		outputStream.put(valPtr[2]);
+		outputStream.put(valPtr[1]);
+		outputStream.put(valPtr[0]);
+	}
+
+	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
+	void PushValue(std::ostream& outputStream, uint8_t code, T value)
+	{
+		outputStream.put(static_cast<char>(code));
+		const char* valPtr = reinterpret_cast<const char*>(&value);
+		outputStream.put(valPtr[7]);
+		outputStream.put(valPtr[6]);
+		outputStream.put(valPtr[5]);
+		outputStream.put(valPtr[4]);
+		outputStream.put(valPtr[3]);
+		outputStream.put(valPtr[2]);
+		outputStream.put(valPtr[1]);
+		outputStream.put(valPtr[0]);
+	}
 }
 
 namespace BitSerializer::MsgPack::Detail
@@ -234,5 +278,195 @@ namespace BitSerializer::MsgPack::Detail
 		else {
 			throw SerializationException(SerializationErrorCode::OutOfRange, "Binary size is too large");
 		}
+	}
+
+	//------------------------------------------------------------------------------
+
+	CMsgPackStreamWriter::CMsgPackStreamWriter(std::ostream& outputStream)
+		: mOutputStream(outputStream)
+	{ }
+
+	void CMsgPackStreamWriter::WriteValue(std::nullptr_t)
+	{
+		mOutputStream.put('\xC0');
+	}
+
+	void CMsgPackStreamWriter::WriteValue(bool value)
+	{
+		mOutputStream.put(value ? '\xC3' : '\xC2');
+	}
+
+	void CMsgPackStreamWriter::WriteValue(uint8_t value)
+	{
+		if (value >= 128) {
+			mOutputStream.put('\xCC');
+		}
+		mOutputStream.put(static_cast<char>(value));
+	}
+
+	void CMsgPackStreamWriter::WriteValue(uint16_t value)
+	{
+		if (value > std::numeric_limits<uint8_t>::max()) {
+			PushValue(mOutputStream, '\xCD', value);
+		}
+		else {
+			WriteValue(static_cast<uint8_t>(value));
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(uint32_t value)
+	{
+		if (value > std::numeric_limits<uint16_t>::max()) {
+			PushValue(mOutputStream, '\xCE', value);
+		}
+		else {
+			WriteValue(static_cast<uint16_t>(value));
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(uint64_t value)
+	{
+		if (value > std::numeric_limits<uint32_t>::max()) {
+			PushValue(mOutputStream, '\xCF', value);
+		}
+		else {
+			WriteValue(static_cast<uint32_t>(value));
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(int8_t value)
+	{
+		if (value >= -32) {
+			mOutputStream.put(value);
+		}
+		else {
+			PushValue(mOutputStream, '\xD0', value);
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(int16_t value)
+	{
+		if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) {
+			PushValue(mOutputStream, '\xD1', value);
+		}
+		else {
+			WriteValue(static_cast<int8_t>(value));
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(int32_t value)
+	{
+		if (value < std::numeric_limits<int16_t>::min() || value > std::numeric_limits<int16_t>::max()) {
+			PushValue(mOutputStream, '\xD2', value);
+		}
+		else {
+			WriteValue(static_cast<int16_t>(value));
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(int64_t value)
+	{
+		if (value < std::numeric_limits<int32_t>::min() || value > std::numeric_limits<int32_t>::max()) {
+			PushValue(mOutputStream, '\xD3', value);
+		}
+		else {
+			WriteValue(static_cast<int32_t>(value));
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteValue(float value)
+	{
+		uint32_t buf;
+		std::memcpy(&buf, &value, sizeof(uint32_t));
+		PushValue(mOutputStream, '\xCA', buf);
+	}
+
+	void CMsgPackStreamWriter::WriteValue(double value)
+	{
+		uint64_t buf;
+		std::memcpy(&buf, &value, sizeof(uint64_t));
+		PushValue(mOutputStream, '\xCB', buf);
+	}
+
+	void CMsgPackStreamWriter::WriteValue(std::string_view value)
+	{
+		if (value.size() < 32) {
+			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000));
+		}
+		else
+		{
+			if (value.size() <= std::numeric_limits<uint8_t>::max()) {
+				PushValue(mOutputStream, '\xD9', static_cast<uint8_t>(value.size()));
+			}
+			else if (value.size() <= std::numeric_limits<uint16_t>::max()) {
+				PushValue(mOutputStream, '\xDA', static_cast<uint16_t>(value.size()));
+			}
+			else if (value.size() <= std::numeric_limits<uint32_t>::max()) {
+				PushValue(mOutputStream, '\xDB', static_cast<uint32_t>(value.size()));
+			}
+			else {
+				throw SerializationException(SerializationErrorCode::OutOfRange, "String size is too large");
+			}
+		}
+		mOutputStream.write(value.data(), static_cast<std::streamsize>(value.size()));
+	}
+
+	void CMsgPackStreamWriter::BeginArray(size_t arraySize)
+	{
+		if (arraySize < 16) {
+			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000));
+		}
+		else
+		{
+			if (arraySize <= std::numeric_limits<uint16_t>::max()) {
+				PushValue(mOutputStream, '\xDC', static_cast<uint16_t>(arraySize));
+			}
+			else if (arraySize <= std::numeric_limits<uint32_t>::max()) {
+				PushValue(mOutputStream, '\xDD', static_cast<uint32_t>(arraySize));
+			}
+			else {
+				throw SerializationException(SerializationErrorCode::OutOfRange, "Array size is too large");
+			}
+		}
+	}
+
+	void CMsgPackStreamWriter::BeginMap(size_t mapSize)
+	{
+		if (mapSize < 16) {
+			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000));
+		}
+		else
+		{
+			if (mapSize <= std::numeric_limits<uint16_t>::max()) {
+				PushValue(mOutputStream, '\xDE', static_cast<uint16_t>(mapSize));
+			}
+			else if (mapSize <= std::numeric_limits<uint32_t>::max()) {
+				PushValue(mOutputStream, '\xDF', static_cast<uint32_t>(mapSize));
+			}
+			else {
+				throw SerializationException(SerializationErrorCode::OutOfRange, "Map size is too large");
+			}
+		}
+	}
+
+	void CMsgPackStreamWriter::BeginBinary(size_t binarySize)
+	{
+		if (binarySize <= std::numeric_limits<uint8_t>::max()) {
+			PushValue(mOutputStream, '\xC4', static_cast<uint8_t>(binarySize));
+		}
+		else if (binarySize <= std::numeric_limits<uint16_t>::max()) {
+			PushValue(mOutputStream, '\xC5', static_cast<uint16_t>(binarySize));
+		}
+		else if (binarySize <= std::numeric_limits<uint32_t>::max()) {
+			PushValue(mOutputStream, '\xC6', static_cast<uint32_t>(binarySize));
+		}
+		else {
+			throw SerializationException(SerializationErrorCode::OutOfRange, "Binary size is too large");
+		}
+	}
+
+	void CMsgPackStreamWriter::WriteBinary(char byte)
+	{
+		mOutputStream.put(byte);
 	}
 }

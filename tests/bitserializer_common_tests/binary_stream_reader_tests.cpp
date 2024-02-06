@@ -211,6 +211,40 @@ TEST_F(BinaryStreamReaderTest, ShouldPeekByteEmptyWhenNoMoreData)
 }
 
 //-----------------------------------------------------------------------------
+TEST_F(BinaryStreamReaderTest, ShouldGotoNextByte)
+{
+	// Arrange
+	PrepareStreamReader(2);
+
+	// Act
+	const auto actual1stPeek = mBinaryStreamReader->PeekByte();
+	mBinaryStreamReader->GotoNextByte();
+	const auto actual2stPeek = mBinaryStreamReader->PeekByte();
+
+	// Assert
+	ASSERT_TRUE(actual1stPeek.has_value());
+	ASSERT_TRUE(actual2stPeek.has_value());
+	EXPECT_EQ(*actual1stPeek, *actual1stPeek);
+	EXPECT_EQ(1, mBinaryStreamReader->GetPosition());
+	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
+}
+
+TEST_F(BinaryStreamReaderTest, ShouldGotoNextByteWhenNoMoreData)
+{
+	// Arrange
+	PrepareStreamReader(1);
+
+	// Act
+	const auto actual = mBinaryStreamReader->PeekByte();
+	mBinaryStreamReader->GotoNextByte();
+
+	// Assert
+	ASSERT_TRUE(actual.has_value());
+	EXPECT_EQ(1, mBinaryStreamReader->GetPosition());
+	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
+}
+
+//-----------------------------------------------------------------------------
 
 TEST_F(BinaryStreamReaderTest, ShouldReadByte)
 {

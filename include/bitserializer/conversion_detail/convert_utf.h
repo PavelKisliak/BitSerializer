@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -10,6 +10,7 @@
 #include <iterator>
 #include <string>
 #include <cstring>
+#include "memory_utils.h"
 #include "convert_enum.h"
 
 namespace BitSerializer::Convert
@@ -419,27 +420,6 @@ namespace BitSerializer::Convert
 
 	class Utf16Be
 	{
-		template <typename TBaseIt>
-		class U16BeConstIterator
-		{
-		public:
-			explicit U16BeConstIterator(TBaseIt it)
-				: mBaseIt(std::move(it))
-			{ }
-
-			char16_t operator*() const noexcept {
-				return (*mBaseIt >> 8) | (*mBaseIt << 8);
-			}
-
-			bool operator==(const TBaseIt& rhs) const { return mBaseIt == rhs; }
-			bool operator!=(const TBaseIt& rhs) const { return mBaseIt != rhs; }
-			TBaseIt& operator++() { return ++mBaseIt; }
-			operator const TBaseIt& () const { return mBaseIt; }
-
-		private:
-			TBaseIt mBaseIt;
-		};
-
 	public:
 		using char_type = char16_t;
 		static constexpr UtfType utfType = UtfType::Utf16be;
@@ -457,7 +437,7 @@ namespace BitSerializer::Convert
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
 
-			return Utf16Le::Decode(U16BeConstIterator<TInIt>(in), U16BeConstIterator<TInIt>(end), outStr, encodePolicy, errorMark);
+			return Utf16Le::Decode(Memory::ReverseEndianIterator<TInIt>(in), Memory::ReverseEndianIterator<TInIt>(end), outStr, encodePolicy, errorMark);
 		}
 
 		/// <summary>
@@ -547,27 +527,6 @@ namespace BitSerializer::Convert
 
 	class Utf32Be
 	{
-		template <typename TBaseIt>
-		class U32BeConstIterator
-		{
-		public:
-			explicit U32BeConstIterator(TBaseIt it)
-				: mBaseIt(std::move(it))
-			{ }
-
-			auto operator*() const noexcept {
-				return (*mBaseIt >> 24) | ((*mBaseIt << 8) & 0x00FF0000) | ((*mBaseIt >> 8) & 0x0000FF00) | (*mBaseIt << 24);
-			}
-
-			bool operator==(const TBaseIt& rhs) const { return mBaseIt == rhs; }
-			bool operator!=(const TBaseIt& rhs) const { return mBaseIt != rhs; }
-			TBaseIt& operator++() noexcept { return ++mBaseIt; }
-			operator const TBaseIt&() const { return mBaseIt; }
-
-		private:
-			TBaseIt mBaseIt;
-		};
-
 	public:
 		using char_type = char32_t;
 		static constexpr UtfType utfType = UtfType::Utf32be;
@@ -585,7 +544,7 @@ namespace BitSerializer::Convert
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 32-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
 
-			return Utf32Le::Decode(U32BeConstIterator<TInIt>(in), U32BeConstIterator<TInIt>(end), outStr, encodePolicy, errorMark);
+			return Utf32Le::Decode(Memory::ReverseEndianIterator<TInIt>(in), Memory::ReverseEndianIterator<TInIt>(end), outStr, encodePolicy, errorMark);
 		}
 
 		/// <summary>
@@ -787,7 +746,7 @@ namespace BitSerializer::Convert
 		static constexpr size_t chunk_size = ChunkSize;
 
 		CEncodedStreamReader(const CEncodedStreamReader&) = delete;
-		CEncodedStreamReader(CEncodedStreamReader&& encodedStreamReader) = delete;
+		CEncodedStreamReader(CEncodedStreamReader&&) = delete;
 		CEncodedStreamReader& operator=(const CEncodedStreamReader&) = delete;
 		CEncodedStreamReader& operator=(CEncodedStreamReader&&) = delete;
 		~CEncodedStreamReader() = default;
@@ -798,7 +757,7 @@ namespace BitSerializer::Convert
 			, mEncodeErrorPolicy(encodeErrorPolicy)
 			, mErrorMark(errorMark)
 		{
-			static_assert((ChunkSize % 4) == 0, "Chunk size size must be a multiple of 4");
+			static_assert((ChunkSize % 4) == 0, "Chunk size must be a multiple of 4");
 			static_assert(std::is_same_v<TTargetUtfType, Utf8> || std::is_same_v<TTargetUtfType, Utf16Le> || std::is_same_v<TTargetUtfType, Utf32Le>, 
 				"TTargetUtfType can be only UTF-8, UTF-16Le or UTF-32Le");
 
@@ -897,7 +856,7 @@ namespace BitSerializer::Convert
 			}
 
 			// Read next chunk
-			mInputStream.read(mEndDataPtr, static_cast<std::streamsize>(mEndBufferPtr - mEndDataPtr));
+			mInputStream.read(mEndDataPtr, mEndBufferPtr - mEndDataPtr);
 			const auto lastReadSize = mInputStream.gcount();
 			mEndDataPtr += lastReadSize;
 			assert(mStartDataPtr >= mEncodedBuffer && mStartDataPtr <= mEndDataPtr);

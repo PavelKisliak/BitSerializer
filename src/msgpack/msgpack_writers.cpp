@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_writers.h"
+#include "bitserializer/conversion_detail/memory_utils.h"
 
 namespace
 {
@@ -15,39 +16,12 @@ namespace
 		outputString.push_back(static_cast<char>(value));
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outputString.push_back(valPtr[1]);
-		outputString.push_back(valPtr[0]);
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::string& outputString, uint8_t code, T value)
-	{
-		outputString.push_back(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outputString.push_back(valPtr[3]);
-		outputString.push_back(valPtr[2]);
-		outputString.push_back(valPtr[1]);
-		outputString.push_back(valPtr[0]);
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::string& outputString, uint8_t code, T value)
-	{
-		outputString.push_back(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outputString.push_back(valPtr[7]);
-		outputString.push_back(valPtr[6]);
-		outputString.push_back(valPtr[5]);
-		outputString.push_back(valPtr[4]);
-		outputString.push_back(valPtr[3]);
-		outputString.push_back(valPtr[2]);
-		outputString.push_back(valPtr[1]);
-		outputString.push_back(valPtr[0]);
+		const auto networkVal = Memory::NativeToBigEndian(value);
+		outputString.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 
 	//------------------------------------------------------------------------------
@@ -59,39 +33,12 @@ namespace
 		outputStream.put(static_cast<char>(value));
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::ostream& outputStream, uint8_t code, T value)
 	{
 		outputStream.put(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outputStream.put(valPtr[1]);
-		outputStream.put(valPtr[0]);
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::ostream& outputStream, uint8_t code, T value)
-	{
-		outputStream.put(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outputStream.put(valPtr[3]);
-		outputStream.put(valPtr[2]);
-		outputStream.put(valPtr[1]);
-		outputStream.put(valPtr[0]);
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
-	void PushValue(std::ostream& outputStream, uint8_t code, T value)
-	{
-		outputStream.put(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outputStream.put(valPtr[7]);
-		outputStream.put(valPtr[6]);
-		outputStream.put(valPtr[5]);
-		outputStream.put(valPtr[4]);
-		outputStream.put(valPtr[3]);
-		outputStream.put(valPtr[2]);
-		outputStream.put(valPtr[1]);
-		outputStream.put(valPtr[0]);
+		const auto networkVal = Memory::NativeToBigEndian(value);
+		outputStream.write(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 }
 

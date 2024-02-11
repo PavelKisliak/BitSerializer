@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_readers.h"
+#include "bitserializer/conversion_detail/memory_utils.h"
 
 /*
 -----------------------------------------------------------
@@ -70,7 +71,7 @@ namespace
 	constexpr ValueType UInt = ValueType::UnsignedInteger;
 	constexpr ValueType SInt = ValueType::SignedInteger;
 
-	ByteCodeMetaInfo ByteCodeTable[256] =
+	const ByteCodeMetaInfo ByteCodeTable[256] =
 	{
 		// Fixed positive int (0x0 - 0x7f)
 		{ UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt }, { UInt },
@@ -208,11 +209,11 @@ namespace
 
 
 //-----------------------------------------------------------------------------
-// CMsgPackStreamReader
+// CMsgPackStringReader
 //-----------------------------------------------------------------------------
 namespace
 {
-	MsgPack::Detail::ValueType ReadValueTypeImpl(const std::string_view& inputData, const size_t& pos)
+	MsgPack::Detail::ValueType ReadValueTypeImpl(std::string_view inputData, const size_t& pos)
 	{
 		if (pos < inputData.size())
 		{
@@ -223,7 +224,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
-	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
+	void GetValue(std::string_view inputData, size_t& pos, T& outValue)
 	{
 		if (pos < inputData.size())
 		{
@@ -234,50 +235,13 @@ namespace
 		}
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
-	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
+	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	void GetValue(std::string_view inputData, size_t& pos, T& outValue)
 	{
 		if (pos + sizeof(T) <= inputData.size())
 		{
-			char* valPtr = reinterpret_cast<char*>(&outValue);
-			valPtr[1] = inputData[pos++];
-			valPtr[0] = inputData[pos++];
-		}
-		else {
-			throw ParsingException("Unexpected end of input archive", 0, pos);
-		}
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
-	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
-	{
-		if (pos + sizeof(T) <= inputData.size())
-		{
-			char* valPtr = reinterpret_cast<char*>(&outValue);
-			valPtr[3] = inputData[pos++];
-			valPtr[2] = inputData[pos++];
-			valPtr[1] = inputData[pos++];
-			valPtr[0] = inputData[pos++];
-		}
-		else {
-			throw ParsingException("Unexpected end of input archive", 0, pos);
-		}
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
-	void GetValue(const std::string_view& inputData, size_t& pos, T & outValue)
-	{
-		if (pos + sizeof(T) <= inputData.size())
-		{
-			char* valPtr = reinterpret_cast<char*>(&outValue);
-			valPtr[7] = inputData[pos++];
-			valPtr[6] = inputData[pos++];
-			valPtr[5] = inputData[pos++];
-			valPtr[4] = inputData[pos++];
-			valPtr[3] = inputData[pos++];
-			valPtr[2] = inputData[pos++];
-			valPtr[1] = inputData[pos++];
-			valPtr[0] = inputData[pos++];
+			outValue = Memory::BigEndianToNative(*reinterpret_cast<const T*>(inputData.data() + pos));
+			pos += sizeof(T);
 		}
 		else {
 			throw ParsingException("Unexpected end of input archive", 0, pos);
@@ -286,33 +250,29 @@ namespace
 
 	uint32_t ReadExtSize(uint_fast8_t extSizeBytesNum, std::string_view inputData, size_t pos)
 	{
-		if (pos + extSizeBytesNum < inputData.size())
+		if (extSizeBytesNum == 1)
 		{
-			if (extSizeBytesNum == 1)
-			{
-				uint8_t sz8;
-				GetValue(inputData, pos, sz8);
-				return sz8;
-			}
-			if (extSizeBytesNum == 2)
-			{
-				uint16_t sz16;
-				GetValue(inputData, pos, sz16);
-				return sz16;
-			}
-			if (extSizeBytesNum == 4)
-			{
-				uint32_t sz32;
-				GetValue(inputData, pos, sz32);
-				return sz32;
-			}
-			throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
+			uint8_t sz8;
+			GetValue(inputData, pos, sz8);
+			return sz8;
 		}
-		throw ParsingException("No more values to read", 0, pos);
+		if (extSizeBytesNum == 2)
+		{
+			uint16_t sz16;
+			GetValue(inputData, pos, sz16);
+			return sz16;
+		}
+		if (extSizeBytesNum == 4)
+		{
+			uint32_t sz32;
+			GetValue(inputData, pos, sz32);
+			return sz32;
+		}
+		throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
 	}
 
 	template <typename T>
-	bool ReadInteger(const std::string_view& inputData, size_t& pos, T& outValue, const SerializationOptions& serializationOptions)
+	bool ReadInteger(std::string_view inputData, size_t& pos, T& outValue, const SerializationOptions& serializationOptions)
 	{
 		if (pos < inputData.size())
 		{
@@ -706,10 +666,10 @@ namespace BitSerializer::MsgPack::Detail
 	{
 		if (mPos < mInputData.size())
 		{
-			const auto byteCode = static_cast<uint_fast8_t>(mInputData[mPos]);
+			const auto byteCode = static_cast<uint_fast8_t>(mInputData[mPos++]);
 			const auto& byteCodeInfo = ByteCodeTable[byteCode];
 
-			size_t size = 1 + byteCodeInfo.DataSize;
+			size_t size = byteCodeInfo.DataSize;
 			uint32_t extSize = 0;
 			if (byteCodeInfo.FixedSeq)
 			{
@@ -718,7 +678,7 @@ namespace BitSerializer::MsgPack::Detail
 			else if (byteCodeInfo.ExtSize)
 			{
 				size += byteCodeInfo.ExtSize;
-				extSize = ReadExtSize(byteCodeInfo.ExtSize, mInputData, mPos + 1);
+				extSize = ReadExtSize(byteCodeInfo.ExtSize, mInputData, mPos);
 			}
 
 			if (byteCodeInfo.Type == ValueType::String)
@@ -774,50 +734,12 @@ namespace
 		}
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
 	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
 	{
 		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
 		{
-			char* valPtr = reinterpret_cast<char*>(&outValue);
-			valPtr[1] = data[0];
-			valPtr[0] = data[1];
-		}
-		else {
-			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
-		}
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
-	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
-	{
-		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
-		{
-			char* valPtr = reinterpret_cast<char*>(&outValue);
-			valPtr[3] = data[0];
-			valPtr[2] = data[1];
-			valPtr[1] = data[2];
-			valPtr[0] = data[3];
-		}
-		else {
-			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
-		}
-	}
-
-	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
-	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
-	{
-		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
-		{
-			char* valPtr = reinterpret_cast<char*>(&outValue);
-			valPtr[7] = data[0];
-			valPtr[6] = data[1];
-			valPtr[5] = data[2];
-			valPtr[4] = data[3];
-			valPtr[3] = data[4];
-			valPtr[2] = data[5];
-			valPtr[1] = data[6];
-			valPtr[0] = data[7];
+			outValue = Memory::BigEndianToNative(*reinterpret_cast<const T*>(data.data()));
 		}
 		else {
 			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
@@ -826,30 +748,25 @@ namespace
 
 	uint32_t ReadExtSize(Detail::CBinaryStreamReader& binaryStreamReader, uint_fast8_t extSizeBytesNum)
 	{
-		if (const auto data = binaryStreamReader.ReadSolidBlock(extSizeBytesNum); !data.empty())
+		if (extSizeBytesNum == 1)
 		{
-			size_t pos = 0;	// ToDo: think to remove
-			if (extSizeBytesNum == 1)
-			{
-				uint8_t sz8;
-				GetValue(data, pos, sz8);
-				return sz8;
-			}
-			if (extSizeBytesNum == 2)
-			{
-				uint16_t sz16;
-				GetValue(data, pos,sz16);
-				return sz16;
-			}
-			if (extSizeBytesNum == 4)
-			{
-				uint32_t sz32;
-				GetValue(data, pos, sz32);
-				return sz32;
-			}
-			throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
+			uint8_t sz8;
+			GetValue(binaryStreamReader, sz8);
+			return sz8;
 		}
-		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
+		if (extSizeBytesNum == 2)
+		{
+			uint16_t sz16;
+			GetValue(binaryStreamReader, sz16);
+			return sz16;
+		}
+		if (extSizeBytesNum == 4)
+		{
+			uint32_t sz32;
+			GetValue(binaryStreamReader, sz32);
+			return sz32;
+		}
+		throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
 	}
 
 	template <typename T>

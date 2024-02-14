@@ -146,7 +146,7 @@ if(BUILD_PUGIXML_ARCHIVE)
     find_package(pugixml CONFIG REQUIRED)
     target_link_libraries(${PUGIXML_ARCHIVE_NAME} INTERFACE
         ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
-        pugixml
+        pugixml::pugixml
     )
 endif()
 

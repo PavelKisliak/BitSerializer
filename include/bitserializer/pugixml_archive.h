@@ -480,7 +480,7 @@ template <SerializeMode TMode>
 class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
-	PugiXmlRootScope(const std::string& inputStr, SerializationContext& serializationContext)
+	PugiXmlRootScope(const std::string_view& inputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, mOutput(nullptr)
 	{

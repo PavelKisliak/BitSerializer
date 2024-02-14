@@ -1,7 +1,8 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#pragma once
 #include <memory>
 #include <gtest/gtest.h>
 #include "bitserializer/conversion_detail/convert_utf.h"
@@ -11,7 +12,7 @@ class EncodedStreamReaderTest : public ::testing::Test
 {
 public:
 	// Use minimal chunk size for simplify testing all streaming cases
-	using reader_type = BitSerializer::Convert::CEncodedStreamReader<TTargetUtfType, 4>;
+	using reader_type = BitSerializer::Convert::CEncodedStreamReader<TTargetUtfType, 32>;
 	using target_char_type = typename TTargetUtfType::char_type;
 	using target_string_type = std::basic_string<target_char_type, std::char_traits<target_char_type>>;
 
@@ -41,9 +42,9 @@ public:
 
 	void ReadFromStream()
 	{
-		static constexpr int MaxIterartions = 100;
+		static constexpr int MaxIterations = 100;
 
-		for (int i = 0; i < MaxIterartions; ++i)
+		for (int i = 0; i < MaxIterations; ++i)
 		{
 			if (!mEncodedStreamReader->ReadChunk(mActualString))
 			{

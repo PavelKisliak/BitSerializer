@@ -474,7 +474,7 @@ protected:
 	using char_type = typename TEncoding::Ch;
 
 public:
-	RapidJsonRootScope(const std::string& encodedInputStr, SerializationContext& serializationContext)
+	RapidJsonRootScope(const std::string_view& encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)

@@ -758,6 +758,7 @@ namespace BitSerializer::Convert
 			, mErrorMark(errorMark)
 		{
 			static_assert((ChunkSize % 4) == 0, "Chunk size must be a multiple of 4");
+			static_assert(ChunkSize >= 32, "Chunk size must be at least 32 bytes for correctly detect the encoding");
 			static_assert(std::is_same_v<TTargetUtfType, Utf8> || std::is_same_v<TTargetUtfType, Utf16Le> || std::is_same_v<TTargetUtfType, Utf32Le>, 
 				"TTargetUtfType can be only UTF-8, UTF-16Le or UTF-32Le");
 

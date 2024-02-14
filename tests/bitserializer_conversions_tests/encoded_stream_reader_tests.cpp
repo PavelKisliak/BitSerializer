@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "encoded_stream_reader_fixture.h"
@@ -8,7 +8,7 @@
 using namespace BitSerializer;
 
 using testing::Types;
-typedef Types<BitSerializer::Convert::Utf8, BitSerializer::Convert::Utf16Le, BitSerializer::Convert::Utf32Le> Implementations;
+typedef Types<Convert::Utf8, Convert::Utf16Le, Convert::Utf32Le> Implementations;
 
 // Tests for all implementations of ICsvReader
 TYPED_TEST_SUITE(EncodedStreamReaderTest, Implementations);
@@ -43,7 +43,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromInputStringEqualWithChunkSize)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithoutBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Привет мир!", false);
+	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
 
 	// Act
 	this->ReadFromStream();
@@ -55,7 +55,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithoutBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Привет мир!", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -64,22 +64,22 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithBom)
 	EXPECT_EQ(this->mExpectedString, this->mActualString);
 }
 
-//TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithoutBom)
-//{
-//	// Arrange
-//	this->template PrepareEncodedStreamReader<Convert::Utf16Le>(U"Привет мир!", false);
-//
-//	// Act
-//	this->ReadFromStream();
-//
-//	// Assert
-//	EXPECT_EQ(this->mExpectedString, this->mActualString);
-//}
+TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithoutBom)
+{
+	// Arrange
+	this->template PrepareEncodedStreamReader<Convert::Utf16Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+
+	// Act
+	this->ReadFromStream();
+
+	// Assert
+	EXPECT_EQ(this->mExpectedString, this->mActualString);
+}
 
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf16Le>(U"Привет мир!", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf16Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -88,22 +88,22 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithBom)
 	EXPECT_EQ(this->mExpectedString, this->mActualString);
 }
 
-//TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithoutBom)
-//{
-//	// Arrange
-//	this->template PrepareEncodedStreamReader<Convert::Utf16Be>(U"Привет мир!", false);
-//
-//	// Act
-//	this->ReadFromStream();
-//
-//	// Assert
-//	EXPECT_EQ(this->mExpectedString, this->mActualString);
-//}
+TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithoutBom)
+{
+	// Arrange
+	this->template PrepareEncodedStreamReader<Convert::Utf16Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+
+	// Act
+	this->ReadFromStream();
+
+	// Assert
+	EXPECT_EQ(this->mExpectedString, this->mActualString);
+}
 
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf16Be>(U"Привет мир!", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf16Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -112,22 +112,22 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithBom)
 	EXPECT_EQ(this->mExpectedString, this->mActualString);
 }
 
-//TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithoutBom)
-//{
-//	// Arrange
-//	this->template PrepareEncodedStreamReader<Convert::Utf23Le>(U"Привет мир!", false);
-//
-//	// Act
-//	this->ReadFromStream();
-//
-//	// Assert
-//	EXPECT_EQ(this->mExpectedString, this->mActualString);
-//}
+TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithoutBom)
+{
+	// Arrange
+	this->template PrepareEncodedStreamReader<Convert::Utf32Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+
+	// Act
+	this->ReadFromStream();
+
+	// Assert
+	EXPECT_EQ(this->mExpectedString, this->mActualString);
+}
 
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf32Le>(U"Привет мир!", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf32Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -136,22 +136,22 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithBom)
 	EXPECT_EQ(this->mExpectedString, this->mActualString);
 }
 
-//TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32BeStreamWithoutBom)
-//{
-//	// Arrange
-//	this->template PrepareEncodedStreamReader<Convert::Utf32Be>(U"Привет мир!", false);
-//
-//	// Act
-//	this->ReadFromStream();
-//
-//	// Assert
-//	EXPECT_EQ(this->mExpectedString, this->mActualString);
-//}
+TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32BeStreamWithoutBom)
+{
+	// Arrange
+	this->template PrepareEncodedStreamReader<Convert::Utf32Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+
+	// Act
+	this->ReadFromStream();
+
+	// Assert
+	EXPECT_EQ(this->mExpectedString, this->mActualString);
+}
 
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32BeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf32Be>(U"Привет мир!", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf32Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();

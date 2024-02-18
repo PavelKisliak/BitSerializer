@@ -1102,7 +1102,111 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint32)
 	EXPECT_EQ(std::hash<std::string>()(expectedStr), std::hash<std::string_view>()(actualStr));
 }
 
-TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWhithFixedSize)
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedExt1)
+{
+	this->PrepareReader({
+		'\xD4', '\xAA', '\x10',
+		'\xC3'
+		});
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedExt2)
+{
+	this->PrepareReader({
+		'\xD5', '\xAA', '\x10', '\x20',
+		'\xC3'
+		});
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedExt4)
+{
+	this->PrepareReader({
+		'\xD6', '\xAA', '\x10', '\x20', '\x30', '\x40',
+		'\xC3'
+		});
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedExt8)
+{
+	this->PrepareReader({
+		'\xD7', '\xAA', '\x10', '\x20', '\x30', '\x40', '\x50', '\x60', '\x70', '\x80',
+		'\xC3'
+		});
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedExt16)
+{
+	this->PrepareReader({
+		'\xD8', '\xAA', '\x21', '\x22', '\x23', '\x24', '\x25', '\x26', '\x27', '\x28', '\x29', '\x30', '\x31', '\x32', '\x33', '\x34', '\x35', '\x36',
+		'\xC3'
+		});
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipExtArrayWhenSizeFitToUint8)
+{
+	this->PrepareReader({
+		'\xC7', '\x05', '\xAA', '\x01', '\x02', '\x03', '\x04', '\x05',
+		'\xC3'
+	});
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipExtArrayWhenSizeFitToUint16)
+{
+	this->PrepareReader(
+		std::string({ '\xC8', '\xFF', '\xFF', '\xAA' }) + this->GenTestString(std::numeric_limits<uint16_t>::max()) +
+		std::string({ '\xC3' })
+	);
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipExtArrayWhenSizeFitToUint32)
+{
+	this->PrepareReader(
+		std::string({ '\xC9', '\x00', '\x01', '\x00', '\x02', '\xAA' }) + this->GenTestString(std::numeric_limits<uint16_t>::max() + 3) +
+		std::string({ '\xC3' })
+	);
+	bool value = false;
+
+	this->mMsgPackReader->SkipValue();
+	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(value);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWithFixedSize)
 {
 	for (uint16_t i = 0; i < 15; ++i)
 	{

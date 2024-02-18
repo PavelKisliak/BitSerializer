@@ -132,11 +132,11 @@ namespace
 		{ ValueType::Unknown, 0, 0, 4 },
 
 		// ext 8 (0xc7)
-		{ ValueType::Unknown, 0, 1, 1 },
+		{ ValueType::Ext, 0, 1, 1 },
 		// ext 16 (0xc8)
-		{ ValueType::Unknown, 0, 1, 2 },
+		{ ValueType::Ext, 0, 1, 2 },
 		// ext 32 (0xc9)
-		{ ValueType::Unknown, 0, 1, 4 },
+		{ ValueType::Ext, 0, 1, 4 },
 
 		// float 32 (0xca)
 		{ ValueType::Float, 0, 4 },
@@ -162,15 +162,15 @@ namespace
 		{ ValueType::SignedInteger, 0, 8 },
 
 		// fixext 1 (0xd4)
-		{ ValueType::Unknown, 0, 2 },
+		{ ValueType::Ext, 0, 2 },
 		// fixext 2 (0xd5)
-		{ ValueType::Unknown, 0, 3 },
+		{ ValueType::Ext, 0, 3 },
 		// fixext 4 (0xd6)
-		{ ValueType::Unknown, 0, 5 },
+		{ ValueType::Ext, 0, 5 },
 		// fixext 8 (0xd7)
-		{ ValueType::Unknown, 0, 9 },
+		{ ValueType::Ext, 0, 9 },
 		// fixext 16 (0xd8)
-		{ ValueType::Unknown, 0, 17 },
+		{ ValueType::Ext, 0, 17 },
 
 		// str 8 (0xd9)
 		{ ValueType::String, 0, 0, 1 },
@@ -681,7 +681,7 @@ namespace BitSerializer::MsgPack::Detail
 				extSize = ReadExtSize(byteCodeInfo.ExtSize, mInputData, mPos);
 			}
 
-			if (byteCodeInfo.Type == ValueType::String)
+			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::Ext)
 			{
 				size += extSize;
 				extSize = 0;
@@ -1170,7 +1170,7 @@ namespace BitSerializer::MsgPack::Detail
 				extSize = ReadExtSize(mBinaryStreamReader, byteCodeInfo.ExtSize);
 			}
 
-			if (byteCodeInfo.Type == ValueType::String)
+			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::Ext)
 			{
 				size += extSize;
 				extSize = 0;

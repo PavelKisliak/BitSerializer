@@ -46,7 +46,8 @@ enum class ValueType
 	Double,
 	String,
 	Array,
-	Map
+	Map,
+	Ext
 };
 
 /// <summary>

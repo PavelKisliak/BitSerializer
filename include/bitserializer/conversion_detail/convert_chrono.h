@@ -182,7 +182,7 @@ namespace BitSerializer::Convert::Detail
 	template <class TTargetRep, class TTargetPeriod>
 	const char* ParseSecondFractions(const char* pos, const char* endPos, std::chrono::duration<TTargetRep, TTargetPeriod>& outTime) noexcept
 	{
-		static_assert(TTargetPeriod::num == 1 && std::chrono::seconds::period::den < TTargetPeriod::den, "Target duration must be more precise than a second");
+		static_assert(std::ratio_less_v<TTargetPeriod, std::chrono::seconds::period>, "Target duration must be more precise than a second");
 		uint32_t value;
 		const std::from_chars_result result = std::from_chars(pos, endPos, value);
 		if (result.ec == std::errc())
@@ -213,8 +213,8 @@ namespace BitSerializer::Convert::Detail
 	template <class TRep, class TPeriod>
 	char* PrintSecondsFractions(char* pos, char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
 	{
-		static_assert(TPeriod::num == 1 && std::chrono::seconds::period::den < TPeriod::den, "Source duration must be more precise than a second");
-		static_assert(std::chrono::nanoseconds::period::den >= TPeriod::den, "Maximum allowed precision is nanoseconds");
+		static_assert(std::ratio_less_v<TPeriod, std::chrono::seconds::period>, "Source duration must be more precise than a second");
+		static_assert(std::ratio_greater_equal_v<TPeriod, std::chrono::nanoseconds::period>, "Maximum allowed precision is nanoseconds");
 		if (time >= std::chrono::seconds(1)) {
 			return nullptr;
 		}
@@ -267,7 +267,7 @@ namespace BitSerializer::Convert::Detail
 				pos = rc.ptr;
 				timeLeft -= std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(timePart);
 				// Print fractions only when current part is seconds and source duration is more precise than second
-				if constexpr (isSecondsPart && TPeriod::num == 1 && std::chrono::seconds::period::den < TPeriod::den)
+				if constexpr (isSecondsPart && std::ratio_less_v<TPeriod, std::chrono::seconds::period>)
 				{
 					pos = PrintSecondsFractions(pos, endPos, timeLeft, false);
 					timeLeft = std::chrono::duration < TRep, TPeriod>(0);
@@ -448,7 +448,7 @@ namespace BitSerializer::Convert::Detail
 		utc.Min = timeInSec % 3600 / 60;
 		utc.Sec = timeInSec % 60;
 		// Print fractions if time is based on a duration that's more precise than seconds
-		if constexpr (TDuration::period::num == 1 && std::chrono::seconds::period::den < TDuration::period::den) {
+		if constexpr (std::ratio_less_v<typename TDuration::period, std::chrono::seconds::period>) {
 			utc.SecFractions = timePart - std::chrono::seconds(timeInSec);
 		}
 		char buf[UtcBufSize];

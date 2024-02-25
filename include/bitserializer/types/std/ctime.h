@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -41,49 +41,98 @@ namespace BitSerializer
 			}
 			return false;
 		}
+
+		inline bool SafeConvertFromBinTimestamp(const CBinTimestamp& timestamp, CTimeRef timeRef, const SerializationOptions& options)
+		{
+			timeRef.Time = timestamp.Seconds;
+			if (timestamp.Nanoseconds && options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::Overflow,
+					"The precision of target time_t type is not sufficient to store nanoseconds");
+			}
+			return true;
+		}
 	}
 
 	/// <summary>
-	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ).
+	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
 	///	Usage example: archive << MakeKeyValue("Time", CTimeRef(timeValue));
 	/// </summary>
 	template <typename TArchive, typename TKey>
 	bool Serialize(TArchive& archive, TKey&& key, CTimeRef timeRef)
 	{
-		if constexpr (TArchive::IsLoading())
+		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
 		{
-			std::string isoDate;
-			if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
-				return Detail::SafeConvertIsoDate(isoDate, timeRef, archive.GetOptions());
+			// Serialize as binary timestamp
+			if constexpr (TArchive::IsLoading())
+			{
+				Detail::CBinTimestamp timestamp;
+				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
+					&& SafeConvertFromBinTimestamp(timestamp, timeRef, archive.GetOptions());
 			}
-			return false;
+			else
+			{
+				Detail::CBinTimestamp timestamp(timeRef.Time);
+				return archive.SerializeValue(std::forward<TKey>(key), timestamp);
+			}
 		}
 		else
 		{
-			std::string isoDate = Convert::ToString(CRawTime(timeRef.Time));
-			return Serialize(archive, std::forward<TKey>(key), isoDate);
+			// Serialize as ISO 8601
+			if constexpr (TArchive::IsLoading())
+			{
+				std::string isoDate;
+				if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
+					return Detail::SafeConvertIsoDate(isoDate, timeRef, archive.GetOptions());
+				}
+				return false;
+			}
+			else
+			{
+				std::string isoDate = Convert::ToString(CRawTime(timeRef.Time));
+				return Serialize(archive, std::forward<TKey>(key), isoDate);
+			}
 		}
 	}
 
 	/// <summary>
-	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ).
+	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
 	///	Usage example: archive << MakeKeyValue("Time", CTimeRef(timeValue));
 	/// </summary>
 	template<typename TArchive>
 	bool Serialize(TArchive& archive, CTimeRef timeRef)
 	{
-		if constexpr (TArchive::IsLoading())
+		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)
 		{
-			std::string isoDate;
-			if (Serialize(archive, isoDate)) {
-				return Detail::SafeConvertIsoDate(isoDate, timeRef, archive.GetOptions());
+			// Serialize as binary timestamp
+			if constexpr (TArchive::IsLoading())
+			{
+				Detail::CBinTimestamp timestamp;
+				return archive.SerializeValue(timestamp)
+					&& SafeConvertFromBinTimestamp(timestamp, timeRef, archive.GetOptions());
 			}
-			return false;
+			else
+			{
+				Detail::CBinTimestamp timestamp(timeRef.Time);
+				return archive.SerializeValue(timestamp);
+			}
 		}
 		else
 		{
-			std::string isoDate = Convert::ToString(CRawTime(timeRef.Time));
-			return Serialize(archive, isoDate);
+			// Serialize as ISO 8601
+			if constexpr (TArchive::IsLoading())
+			{
+				std::string isoDate;
+				if (Serialize(archive, isoDate)) {
+					return Detail::SafeConvertIsoDate(isoDate, timeRef, archive.GetOptions());
+				}
+				return false;
+			}
+			else
+			{
+				std::string isoDate = Convert::ToString(CRawTime(timeRef.Time));
+				return Serialize(archive, isoDate);
+			}
 		}
 	}
 }

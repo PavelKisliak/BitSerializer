@@ -1,9 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/archive_stub.h"
+#include "testing_tools/bin_archive_stub.h"
 
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/array.h"
@@ -221,4 +222,138 @@ TEST(STD_Chrono, SkipTooBigDurationWhenPolicyIsSkip)
 	BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive, options);
 
 	targetObj.Assert(expectedObj);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::chrono::time_point (to binary archive)
+//-----------------------------------------------------------------------------
+TEST(STD_ChronoAsBin, SerializeTimePoint) {
+	auto tp = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>(std::chrono::nanoseconds(1999999999));
+	TestSerializeType<BinArchiveStub>(tp);
+}
+
+TEST(STD_ChronoAsBin, SerializeTimePointMaxValues) {
+	using TimePointSec = std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>;
+	TestSerializeType<BinArchiveStub>(TimePointSec::min());
+	TestSerializeType<BinArchiveStub>(TimePointSec::max());
+}
+
+TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenSaveTooBigTimepoint)
+{
+	try
+	{
+		using TimePointMinutes = std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<int64_t, std::ratio<60>>>;
+		// Maximum minutes can't be serialized as binary
+		auto tp = TimePointMinutes::max();
+		BitSerializer::SaveObject<BinArchiveStub>(tp);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestamp)
+{
+	// Arrange
+	BinArchiveStub::preferred_output_format outputArchive;
+	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
+	outputArchive.emplace<Detail::CBinTimestamp>(timestamp);
+
+	// Act / Assert
+	try
+	{
+		using TimePoint = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
+		// Max timestamp can't be deserialized to TimePoint with nanoseconds as duration
+		TimePoint tp;
+		BitSerializer::LoadObject<BinArchiveStub>(tp, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_ChronoAsBin, SkipTooBigTimestampWhenPolicyIsSkip)
+{
+	// Arrange
+	BinArchiveStub::preferred_output_format outputArchive;
+	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
+	outputArchive.emplace<Detail::CBinTimestamp>(timestamp);
+
+	// Load as time_point
+	using TimePoint = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
+	TimePoint tp{};
+	SerializationOptions options;
+	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
+	BitSerializer::LoadObject<BinArchiveStub>(tp, outputArchive, options);
+	EXPECT_EQ(TimePoint{}, tp);
+}
+
+TEST(STD_ChronoAsBin, SerializeTimePointAsClassMember) {
+	TestClassWithSubType<std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>> testEntity;
+	TestSerializeClass<BinArchiveStub>(testEntity);
+}
+
+TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestampFromObject)
+{
+	// Arrange
+	using TimePoint = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
+	using TestObject = TestClassWithSubType<TimePoint>;
+
+	BinArchiveStub::preferred_output_format outputArchive;
+	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
+	auto& binObjRef = outputArchive.emplace<Detail::BinTestIoDataObject>();
+	Detail::BinTestIoData timestampIoData;
+	timestampIoData.emplace<Detail::CBinTimestamp>(timestamp);
+	binObjRef.emplace(std::string(TestObject::KeyName), std::move(timestampIoData));
+
+	// Act / Assert
+	try
+	{
+		// Max timestamp can't be deserialized to TimePoint with nanoseconds as duration
+		TestObject testEntity;
+		BitSerializer::LoadObject<BinArchiveStub>(testEntity, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_ChronoAsBin, SkipTooBigTimestampInObjectWhenPolicyIsSkip)
+{
+	// Arrange
+	using TimePoint = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
+	using TestObject = TestClassWithSubType<TimePoint>;
+
+	BinArchiveStub::preferred_output_format outputArchive;
+	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
+	auto& binObjRef = outputArchive.emplace<Detail::BinTestIoDataObject>();
+	Detail::BinTestIoData timestampIoData;
+	timestampIoData.emplace<Detail::CBinTimestamp>(timestamp);
+	binObjRef.emplace(std::string(TestObject::KeyName), std::move(timestampIoData));
+
+	TestObject testObj;
+	const auto expected = testObj.GetValue();
+
+	// Act
+	SerializationOptions options;
+	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
+	BitSerializer::LoadObject<BinArchiveStub>(testObj, outputArchive, options);
+
+	// Assert
+	EXPECT_EQ(expected, testObj.GetValue());
+}
+
+TEST(STD_ChronoAsBin, SerializeArrayOfTimePoints)
+{
+	using TimePointMs = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>;
+	TestSerializeStlContainer<BinArchiveStub, std::array<TimePointMs, 100>>();
 }

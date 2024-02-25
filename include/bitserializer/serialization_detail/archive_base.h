@@ -109,6 +109,22 @@ struct BaseObject
 namespace Detail
 {
 	/// <summary>
+	/// Internal representation of a timestamp for serialization into binary archives.
+	/// The archive may not support a timestamp at all, or may throw a `SerializationException` with `Overflow` code if it's too large.
+	/// </summary>
+	struct CBinTimestamp
+	{
+		CBinTimestamp() = default;
+		explicit CBinTimestamp(int64_t seconds, uint32_t nanoseconds = 0)
+			: Seconds(seconds)
+			, Nanoseconds(nanoseconds)
+		{ }
+
+		int64_t Seconds{};
+		uint32_t Nanoseconds{};		// Must not be larger than 999999999
+	};
+
+	/// <summary>
 	/// Casts numbers according to policy.
 	/// </summary>
 	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource> && std::is_arithmetic_v<TTarget>, int> = 0>

@@ -233,7 +233,7 @@
         },
         {
           "name": "BUILD_CSV_ARCHIVE",
-          "value": "False",
+          "value": "True",
           "type": "BOOL"
         },
         {

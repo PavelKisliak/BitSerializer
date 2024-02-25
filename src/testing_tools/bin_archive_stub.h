@@ -19,47 +19,47 @@ namespace Detail {
 /// <summary>
 /// The input/output format for archive stub
 /// </summary>
-class TestIoData;
-class TestIoDataObject : public std::map<std::wstring, TestIoData> { };
-class TestIoDataArray : public std::vector<TestIoData> {
+class BinTestIoData;
+class BinTestIoDataObject : public std::map<std::string, BinTestIoData> { };
+class BinTestIoDataArray : public std::vector<BinTestIoData> {
 public:
-	explicit TestIoDataArray(const size_t expectedSize) {
+	explicit BinTestIoDataArray(const size_t expectedSize) {
 		reserve(expectedSize);
 	}
 };
-class TestIoData : public std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, std::wstring, TestIoDataObject, TestIoDataArray>
+class BinTestIoData : public std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, std::string, Detail::CBinTimestamp, BinTestIoDataObject, BinTestIoDataArray>
 { };
 
 /// <summary>
-/// The traits of archive stub 
+/// The traits of binary archive stub
 /// </summary>
-struct ArchiveStubTraits
+struct BinArchiveStubTraits
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
-	using key_type = std::wstring;
-	using supported_key_types = TSupportedKeyTypes<std::wstring>;
-	using preferred_output_format = TestIoData;
+	using key_type = std::string;
+	using supported_key_types = TSupportedKeyTypes<std::string>;
+	using preferred_output_format = BinTestIoData;
 	static constexpr char path_separator = '/';
-	static constexpr bool is_binary = false;
+	static constexpr bool is_binary = true;
 
 protected:
-	~ArchiveStubTraits() = default;
+	~BinArchiveStubTraits() = default;
 };
 
 // Forward declarations
 template <SerializeMode TMode>
-class ArchiveStubObjectScope;
+class BinArchiveStubObjectScope;
 
 
 /// <summary>
-/// Base class of archive stub
+/// Base class of binary archive stub
 /// </summary>
 /// <seealso cref="TArchiveBase" />
-class ArchiveStubScopeBase : public ArchiveStubTraits
+class BinArchiveStubScopeBase : public BinArchiveStubTraits
 {
 public:
-	explicit ArchiveStubScopeBase(const TestIoData* node, ArchiveStubScopeBase* parent = nullptr, key_type parentKey = key_type())
-		: mNode(const_cast<TestIoData*>(node))
+	explicit BinArchiveStubScopeBase(const BinTestIoData* node, BinArchiveStubScopeBase* parent = nullptr, key_type parentKey = key_type())
+		: mNode(const_cast<BinTestIoData*>(node))
 		, mParent(parent)
 		, mParentKey(std::move(parentKey))
 	{ }
@@ -76,24 +76,24 @@ public:
 	}
 
 protected:
-	~ArchiveStubScopeBase() = default;
+	~BinArchiveStubScopeBase() = default;
 
 	/// <summary>
 	/// Returns the size of stored elements (for arrays and objects).
 	/// </summary>
 	[[nodiscard]] size_t GetSize() const
 	{
-		if (std::holds_alternative<TestIoDataObject>(*mNode)) {
-			return std::get<TestIoDataObject>(*mNode).size();
+		if (std::holds_alternative<BinTestIoDataObject>(*mNode)) {
+			return std::get<BinTestIoDataObject>(*mNode).size();
 		}
-		if (std::holds_alternative<TestIoDataArray>(*mNode)) {
-			return std::get<TestIoDataArray>(*mNode).size();
+		if (std::holds_alternative<BinTestIoDataArray>(*mNode)) {
+			return std::get<BinTestIoDataArray>(*mNode).size();
 		}
 		return 0;
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	bool LoadFundamentalValue(const TestIoData& ioData, T& value, const SerializationOptions& serializationOptions)
+	bool LoadFundamentalValue(const BinTestIoData& ioData, T& value, const SerializationOptions& serializationOptions)
 	{
 		// Null value is excluded from MismatchedTypesPolicy processing
 		if (std::holds_alternative<std::nullptr_t>(ioData))
@@ -134,7 +134,7 @@ protected:
 	}
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-	void SaveFundamentalValue(TestIoData& ioData, T& value)
+	void SaveFundamentalValue(BinTestIoData& ioData, T& value)
 	{
 		if constexpr (std::is_same_v<T, bool>)
 			ioData.emplace<bool>(value);
@@ -154,12 +154,12 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator>
-	bool LoadString(const TestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool LoadString(const BinTestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if (!std::holds_alternative<key_type>(ioData))
 			return false;
 
-		if constexpr (std::is_same_v<TSym, key_type::value_type>)
+		if constexpr (std::is_same_v<TSym, key_type>)
 			value = std::get<key_type>(ioData);
 		else
 			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::get<key_type>(ioData));
@@ -167,33 +167,33 @@ protected:
 	}
 
 	template <typename TSym, typename TAllocator>
-	void SaveString(TestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SaveString(BinTestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		if constexpr (std::is_same_v<TSym, key_type::value_type>)
+		if constexpr (std::is_same_v<TSym, key_type>)
 			ioData.emplace<key_type>(value);
 		else
-			ioData.emplace<key_type>(Convert::ToWString(value));
+			ioData.emplace<key_type>(Convert::ToString(value));
 	}
 
-	TestIoData* mNode;
-	ArchiveStubScopeBase* mParent;
+	BinTestIoData* mNode;
+	BinArchiveStubScopeBase* mParent;
 	key_type mParentKey;
 };
 
 /// <summary>
 /// Scope for serializing arrays (list of values without keys).
 /// </summary>
-/// <seealso cref="ArchiveStubScopeBase" />
+/// <seealso cref="BinArchiveStubScopeBase" />
 template <SerializeMode TMode>
-class ArchiveStubArrayScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
+class BinArchiveStubArrayScope final : public TArchiveScope<TMode>, public BinArchiveStubScopeBase
 {
 public:
-	ArchiveStubArrayScope(const TestIoData* node, SerializationContext& serializationContext, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	BinArchiveStubArrayScope(const BinTestIoData* node, SerializationContext& serializationContext, BinArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 		: TArchiveScope<TMode>(serializationContext)
-		, ArchiveStubScopeBase(node, parent, parentKey)
+		, BinArchiveStubScopeBase(node, parent, parentKey)
 		, mIndex(0)
 	{
-		assert(std::holds_alternative<TestIoDataArray>(*mNode));
+		assert(std::holds_alternative<BinTestIoDataArray>(*mNode));
 	}
 
 	/// <summary>
@@ -209,7 +209,7 @@ public:
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const override
 	{
-		return ArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(mIndex);
+		return BinArchiveStubScopeBase::GetPath() + path_separator + Convert::ToString(mIndex);
 	}
 
 	/// <summary>
@@ -219,13 +219,13 @@ public:
 	bool IsEnd() const
 	{
 		static_assert(TMode == SerializeMode::Load);
-		return mIndex == std::get<TestIoDataArray>(*mNode).size();
+		return mIndex == std::get<BinTestIoDataArray>(*mNode).size();
 	}
 
 	template <typename TSym, typename TAllocator>
 	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		if (TestIoData* ioData = LoadNextItem())
+		if (BinTestIoData* ioData = LoadNextItem())
 		{
 			if constexpr (TMode == SerializeMode::Load)
 				return LoadString(*ioData, value);
@@ -240,7 +240,7 @@ public:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
-		if (TestIoData* ioData = LoadNextItem())
+		if (BinTestIoData* ioData = LoadNextItem())
 		{
 			if constexpr (TMode == SerializeMode::Load)
 				return LoadFundamentalValue(*ioData, value, this->GetOptions());
@@ -252,48 +252,70 @@ public:
 		return false;
 	}
 
-	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
+	bool SerializeValue(CBinTimestamp& value)
 	{
-		if (TestIoData* ioData = LoadNextItem())
+		if (BinTestIoData* ioData = LoadNextItem())
 		{
 			if constexpr (TMode == SerializeMode::Load)
 			{
-				return std::holds_alternative<TestIoDataObject>(*ioData)
-					? std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this)
+				if (std::holds_alternative<CBinTimestamp>(*ioData))
+				{
+					value = std::get<CBinTimestamp>(*ioData);
+					return true;
+				}
+				return false;
+			}
+			else
+			{
+				ioData->emplace<CBinTimestamp>(value);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	std::optional<BinArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
+	{
+		if (BinTestIoData* ioData = LoadNextItem())
+		{
+			if constexpr (TMode == SerializeMode::Load)
+			{
+				return std::holds_alternative<BinTestIoDataObject>(*ioData)
+					? std::make_optional<BinArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this)
 					: std::nullopt;
 			}
 			else
 			{
-				ioData->emplace<TestIoDataObject>(TestIoDataObject());
-				return std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this);
+				ioData->emplace<BinTestIoDataObject>(BinTestIoDataObject());
+				return std::make_optional<BinArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this);
 			}
 		}
 		return std::nullopt;
 	}
 
-	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<BinArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
-		if (TestIoData* ioData = LoadNextItem())
+		if (BinTestIoData* ioData = LoadNextItem())
 		{
 			if constexpr (TMode == SerializeMode::Load)
 			{
-				return std::holds_alternative<TestIoDataArray>(*ioData)
-					? std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this)
+				return std::holds_alternative<BinTestIoDataArray>(*ioData)
+					? std::make_optional<BinArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this)
 					: std::nullopt;
 			}
 			else
 			{
-				ioData->emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-				return std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this);
+				ioData->emplace<BinTestIoDataArray>(BinTestIoDataArray(arraySize));
+				return std::make_optional<BinArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this);
 			}
 		}
 		return std::nullopt;
 	}
 
 protected:
-	TestIoData* LoadNextItem()
+	BinTestIoData* LoadNextItem()
 	{
-		auto& archiveArray = std::get<TestIoDataArray>(*mNode);
+		auto& archiveArray = std::get<BinTestIoDataArray>(*mNode);
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			if (mIndex < GetSize()) {
@@ -304,7 +326,7 @@ protected:
 		else
 		{
 			mIndex++;
-			return &archiveArray.emplace_back(TestIoData());
+			return &archiveArray.emplace_back(BinTestIoData());
 		}
 	}
 
@@ -316,16 +338,16 @@ private:
 /// <summary>
 /// Scope for serializing objects (list of values with keys).
 /// </summary>
-/// <seealso cref="ArchiveStubScopeBase" />
+/// <seealso cref="BinArchiveStubScopeBase" />
 template <SerializeMode TMode>
-class ArchiveStubObjectScope final : public TArchiveScope<TMode> , public ArchiveStubScopeBase
+class BinArchiveStubObjectScope final : public TArchiveScope<TMode> , public BinArchiveStubScopeBase
 {
 public:
-	ArchiveStubObjectScope(const TestIoData* node, SerializationContext& serializationContext, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
+	BinArchiveStubObjectScope(const BinTestIoData* node, SerializationContext& serializationContext, BinArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 		: TArchiveScope<TMode>(serializationContext)
-		, ArchiveStubScopeBase(node, parent, parentKey)
+		, BinArchiveStubScopeBase(node, parent, parentKey)
 	{
-		assert(std::holds_alternative<TestIoDataObject>(*mNode));
+		assert(std::holds_alternative<BinTestIoDataObject>(*mNode));
 	}
 
 	/// <summary>
@@ -378,66 +400,84 @@ public:
 		}
 	}
 
-	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key, size_t)
+	bool SerializeValue(const key_type& key, CBinTimestamp& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (const auto* archiveValue = LoadArchiveValueByKey(key))
+			{
+				value = std::get<CBinTimestamp>(*archiveValue);
+				return true;
+			}
+			return false;
+		}
+		else
+		{
+			AddArchiveValue(key).template emplace<CBinTimestamp>(value);
+			return true;
+		}
+	}
+
+	std::optional<BinArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* archiveValue = LoadArchiveValueByKey(key);
-			if (archiveValue != nullptr && std::holds_alternative<TestIoDataObject>(*archiveValue)) {
-				return std::make_optional<ArchiveStubObjectScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
+			if (archiveValue != nullptr && std::holds_alternative<BinTestIoDataObject>(*archiveValue)) {
+				return std::make_optional<BinArchiveStubObjectScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
 			}
 			return std::nullopt;
 		}
 		else
 		{
-			TestIoData& ioData = AddArchiveValue(key);
-			ioData.emplace<TestIoDataObject>(TestIoDataObject());
-			return std::make_optional<ArchiveStubObjectScope<TMode>>(&ioData, TArchiveScope<TMode>::GetContext(), this, key);
+			BinTestIoData& ioData = AddArchiveValue(key);
+			ioData.emplace<BinTestIoDataObject>(BinTestIoDataObject());
+			return std::make_optional<BinArchiveStubObjectScope<TMode>>(&ioData, TArchiveScope<TMode>::GetContext(), this, key);
 		}
 	}
 
-	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
+	std::optional<BinArchiveStubArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto* archiveValue = LoadArchiveValueByKey(key);
-			if (archiveValue != nullptr && std::holds_alternative<TestIoDataArray>(*archiveValue))
-				return std::make_optional<ArchiveStubArrayScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
+			if (archiveValue != nullptr && std::holds_alternative<BinTestIoDataArray>(*archiveValue))
+				return std::make_optional<BinArchiveStubArrayScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
 			return std::nullopt;
 		}
 		else
 		{
-			TestIoData& ioData = AddArchiveValue(key);
-			ioData.emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-			return std::make_optional<ArchiveStubArrayScope<TMode>>(&ioData, TArchiveScope<TMode>::GetContext(), this, key);
+			BinTestIoData& ioData = AddArchiveValue(key);
+			ioData.emplace<BinTestIoDataArray>(BinTestIoDataArray(arraySize));
+			return std::make_optional<BinArchiveStubArrayScope<TMode>>(&ioData, TArchiveScope<TMode>::GetContext(), this, key);
 		}
 	}
 
 protected:
-	constexpr TestIoDataObject& GetAsObject() const
+	constexpr BinTestIoDataObject& GetAsObject() const
 	{
-		return std::get<TestIoDataObject>(*mNode);
+		return std::get<BinTestIoDataObject>(*mNode);
 	}
 
-	TestIoData* LoadArchiveValueByKey(const key_type& key) const
+	BinTestIoData* LoadArchiveValueByKey(const key_type& key) const
 	{
 		auto& archiveObject = GetAsObject();
 		auto it = archiveObject.find(key);
 		return it == archiveObject.end() ? nullptr : &it->second;
 	}
 
-	TestIoData& AddArchiveValue(const key_type& key) const
+	BinTestIoData& AddArchiveValue(const key_type& key) const
 	{
 		auto& archiveObject = GetAsObject();
-		decltype(auto) result = archiveObject.emplace(key, TestIoData());
+		decltype(auto) result = archiveObject.emplace(key, BinTestIoData());
 		return result.first->second;
 	}
 
 	template <class IoDataType, class SourceType>
-	TestIoData& SaveArchiveValue(const key_type& key, const SourceType& value)
+	BinTestIoData& SaveArchiveValue(const key_type& key, const SourceType& value)
 	{
 		auto& archiveObject = GetAsObject();
-		TestIoData ioData;
+		BinTestIoData ioData;
 		ioData.emplace<IoDataType>(value);
 		decltype(auto) result = archiveObject.emplace(key, std::move(ioData));
 		return result.first->second;
@@ -449,21 +489,21 @@ protected:
 /// Root scope (can serialize one value, array or object without key)
 /// </summary>
 template <SerializeMode TMode>
-class ArchiveStubRootScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
+class BinArchiveStubRootScope final : public TArchiveScope<TMode>, public BinArchiveStubScopeBase
 {
 public:
-	ArchiveStubRootScope(const TestIoData& inputData, SerializationContext& serializationContext)
+	BinArchiveStubRootScope(const BinTestIoData& inputData, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
-		, ArchiveStubScopeBase(&inputData)
+		, BinArchiveStubScopeBase(&inputData)
 		, mOutputData(nullptr)
 		, mInputData(&inputData)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 	}
 
-	ArchiveStubRootScope(TestIoData& outputData, SerializationContext& serializationContext)
+	BinArchiveStubRootScope(BinTestIoData& outputData, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
-		, ArchiveStubScopeBase(&outputData)
+		, BinArchiveStubScopeBase(&outputData)
 		, mOutputData(&outputData)
 		, mInputData(nullptr)
 	{
@@ -496,47 +536,65 @@ public:
 		}
 	}
 
-	std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
+	bool SerializeValue(CBinTimestamp& value)
 	{
-		if constexpr (TMode == SerializeMode::Load) {
-			return std::holds_alternative<TestIoDataObject>(*mInputData)
-				? std::make_optional<ArchiveStubObjectScope<TMode>>(mInputData, TArchiveScope<TMode>::GetContext())
-				: std::nullopt;
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (std::holds_alternative<CBinTimestamp>(*mInputData))
+			{
+				value = std::get<CBinTimestamp>(*mInputData);
+				return true;
+			}
+			return false;
 		}
 		else
 		{
-			mOutputData->emplace<TestIoDataObject>(TestIoDataObject());
-			return std::make_optional<ArchiveStubObjectScope<TMode>>(mOutputData, TArchiveScope<TMode>::GetContext());
+			mOutputData->emplace<CBinTimestamp>(value);
+			return true;
 		}
 	}
 
-	std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<BinArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
-			return std::holds_alternative<TestIoDataArray>(*mInputData)
-				? std::make_optional<ArchiveStubArrayScope<TMode>>(mInputData, TArchiveScope<TMode>::GetContext())
+			return std::holds_alternative<BinTestIoDataObject>(*mInputData)
+				? std::make_optional<BinArchiveStubObjectScope<TMode>>(mInputData, TArchiveScope<TMode>::GetContext())
 				: std::nullopt;
 		}
 		else
 		{
-			mOutputData->emplace<TestIoDataArray>(TestIoDataArray(arraySize));
-			return std::make_optional<ArchiveStubArrayScope<TMode>>(mOutputData, TArchiveScope<TMode>::GetContext());
+			mOutputData->emplace<BinTestIoDataObject>(BinTestIoDataObject());
+			return std::make_optional<BinArchiveStubObjectScope<TMode>>(mOutputData, TArchiveScope<TMode>::GetContext());
+		}
+	}
+
+	std::optional<BinArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	{
+		if constexpr (TMode == SerializeMode::Load) {
+			return std::holds_alternative<BinTestIoDataArray>(*mInputData)
+				? std::make_optional<BinArchiveStubArrayScope<TMode>>(mInputData, TArchiveScope<TMode>::GetContext())
+				: std::nullopt;
+		}
+		else
+		{
+			mOutputData->emplace<BinTestIoDataArray>(BinTestIoDataArray(arraySize));
+			return std::make_optional<BinArchiveStubArrayScope<TMode>>(mOutputData, TArchiveScope<TMode>::GetContext());
 		}
 	}
 
 private:
-	TestIoData* mOutputData;
-	const TestIoData* mInputData;
+	BinTestIoData* mOutputData;
+	const BinTestIoData* mInputData;
 };
 
 }	// namespace Detail
 
 /// <summary>
-/// Declaration of archive stub
+/// Declaration of binary archive stub
 /// </summary>
-using ArchiveStub = TArchiveBase<
-	Detail::ArchiveStubTraits,
-	Detail::ArchiveStubRootScope<SerializeMode::Load>,
-	Detail::ArchiveStubRootScope<SerializeMode::Save>>;
+using BinArchiveStub = TArchiveBase<
+	Detail::BinArchiveStubTraits,
+	Detail::BinArchiveStubRootScope<SerializeMode::Load>,
+	Detail::BinArchiveStubRootScope<SerializeMode::Save>>;
 
 }	// namespace BitSerializer

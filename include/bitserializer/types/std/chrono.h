@@ -69,6 +69,60 @@ namespace BitSerializer
 			}
 			return false;
 		}
+
+		template <typename TClock, typename TDuration>
+		bool SafeConvertToBinTimestamp(const std::chrono::time_point<TClock, TDuration>& timePoint, CBinTimestamp& outTimestamp, const SerializationOptions& options)
+		{
+			try
+			{
+				const auto epochTime = timePoint.time_since_epoch();
+				// When duration period is equal or greater than seconds
+				if constexpr (std::ratio_greater_equal_v<typename TDuration::period, std::chrono::seconds::period>)
+				{
+					outTimestamp.Seconds = Convert::Detail::SafeDurationCast<std::chrono::seconds>(epochTime).count();
+					outTimestamp.Nanoseconds = 0;
+				}
+				else
+				{
+					outTimestamp.Seconds = std::chrono::duration_cast<std::chrono::seconds>(epochTime).count();
+					const auto ns = epochTime - std::chrono::duration_cast<TDuration>(std::chrono::seconds(outTimestamp.Seconds));
+					outTimestamp.Nanoseconds = static_cast<uint32_t>(ns.count());
+				}
+				return true;
+			}
+			catch (const std::out_of_range&)
+			{
+				if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow,
+						"Target timestamp range is not sufficient to serialize timepoint");
+				}
+			}
+			return false;
+		}
+
+		template <typename TClock, typename TDuration>
+		bool SafeConvertFromBinTimestamp(const CBinTimestamp& timestamp, std::chrono::time_point<TClock, TDuration>& outTimePoint, const SerializationOptions& options)
+		{
+			try
+			{
+				outTimePoint = std::chrono::time_point<TClock, TDuration>(
+					Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.Seconds)));
+				if (timestamp.Nanoseconds) {
+					Convert::Detail::SafeAddDuration(outTimePoint, std::chrono::nanoseconds(timestamp.Nanoseconds));
+				}
+				return true;
+			}
+			catch (const std::out_of_range&)
+			{
+				if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow,
+						"Target timepoint range is not sufficient to deserialize binary timestamp");
+				}
+			}
+			return false;
+		}
 	}
 
 	/// <summary>
@@ -77,18 +131,37 @@ namespace BitSerializer
 	template <typename TArchive, typename TKey, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
-		if constexpr (TArchive::IsLoading())
+		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
 		{
-			std::string isoDate;
-			if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
-				return Detail::SafeConvertIsoDate(isoDate, tpValue, archive.GetOptions());
+			// Serialize as binary timestamp
+			Detail::CBinTimestamp timestamp;
+			if constexpr (TArchive::IsLoading())
+			{
+				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
+					&& Detail::SafeConvertFromBinTimestamp(timestamp, tpValue, archive.GetOptions());
 			}
-			return false;
+			else
+			{
+				return SafeConvertToBinTimestamp(tpValue, timestamp, archive.GetOptions())
+					&& archive.SerializeValue(std::forward<TKey>(key), timestamp);
+			}
 		}
 		else
 		{
-			std::string isoDate = Convert::ToString(tpValue);
-			return Serialize(archive, std::forward<TKey>(key), isoDate);
+			// Serialize as ISO 8601
+			if constexpr (TArchive::IsLoading())
+			{
+				std::string isoDate;
+				if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
+					return Detail::SafeConvertIsoDate(isoDate, tpValue, archive.GetOptions());
+				}
+				return false;
+			}
+			else
+			{
+				std::string isoDate = Convert::ToString(tpValue);
+				return Serialize(archive, std::forward<TKey>(key), isoDate);
+			}
 		}
 	}
 
@@ -98,18 +171,37 @@ namespace BitSerializer
 	template<typename TArchive, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
 	bool Serialize(TArchive& archive, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
-		if constexpr (TArchive::IsLoading())
+		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)
 		{
-			std::string isoDate;
-			if (Serialize(archive, isoDate)) {
-				return Detail::SafeConvertIsoDate(isoDate, tpValue, archive.GetOptions());
+			// Serialize as binary timestamp
+			Detail::CBinTimestamp timestamp;
+			if constexpr (TArchive::IsLoading())
+			{
+				return archive.SerializeValue(timestamp)
+					&& Detail::SafeConvertFromBinTimestamp(timestamp, tpValue, archive.GetOptions());
 			}
-			return false;
+			else
+			{
+				return SafeConvertToBinTimestamp(tpValue, timestamp, archive.GetOptions())
+					&& archive.SerializeValue(timestamp);
+			}
 		}
 		else
 		{
-			std::string isoDate = Convert::ToString(tpValue);
-			return Serialize(archive, isoDate);
+			// Serialize as ISO 8601
+			if constexpr (TArchive::IsLoading())
+			{
+				std::string isoDate;
+				if (Serialize(archive, isoDate)) {
+					return Detail::SafeConvertIsoDate(isoDate, tpValue, archive.GetOptions());
+				}
+				return false;
+			}
+			else
+			{
+				std::string isoDate = Convert::ToString(tpValue);
+				return Serialize(archive, isoDate);
+			}
 		}
 	}
 

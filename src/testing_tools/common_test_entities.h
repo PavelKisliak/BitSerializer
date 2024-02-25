@@ -171,6 +171,7 @@ class TestClassWithSubType
 {
 public:
 	using value_type = T;
+	static constexpr char KeyName[] = "TestValue";
 
 	TestClassWithSubType()
 	{
@@ -205,10 +206,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
 		if constexpr (RequiredValidator == true) {
-			archive << BitSerializer::AutoKeyValue("TestValue", mTestValue, BitSerializer::Required());
+			archive << BitSerializer::AutoKeyValue(KeyName, mTestValue, BitSerializer::Required());
 		}
 		else {
-			archive << BitSerializer::AutoKeyValue("TestValue", mTestValue);
+			archive << BitSerializer::AutoKeyValue(KeyName, mTestValue);
 		}
 	}
 

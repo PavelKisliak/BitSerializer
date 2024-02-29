@@ -165,7 +165,7 @@ namespace BitSerializer::Convert::Detail
 			return;
 		}
 
-		using TTargetDuration = std::chrono::duration<TSrcRep, TSrcPeriod>;
+		using TTargetDuration = std::chrono::duration<TTargetRep, TTargetPeriod>;
 		auto adaptedDuration = SafeDurationCast<TTargetDuration>(src);
 		if ((adaptedDuration.count() > 0 && target > TTargetDuration::max() - adaptedDuration) ||
 			(adaptedDuration.count() < 0 && target < TTargetDuration::min() - adaptedDuration)) {

@@ -221,7 +221,9 @@ namespace BitSerializer::Convert::Detail
 		if (pos != end) {
 			*pos++ = '.';
 		}
-		auto val = TPeriod::den > std::nano::den ? std::chrono::floor<std::chrono::microseconds>(time).count() : time.count();
+		auto val = TPeriod::den > std::nano::den
+			? std::abs(std::chrono::floor<std::chrono::microseconds>(time).count())
+			: std::abs(time.count());
 		for (auto div : { 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 })
 		{
 			if (pos == end) {
@@ -270,7 +272,7 @@ namespace BitSerializer::Convert::Detail
 				if constexpr (isSecondsPart && std::ratio_less_v<TPeriod, std::chrono::seconds::period>)
 				{
 					pos = PrintSecondsFractions(pos, endPos, timeLeft, false);
-					timeLeft = std::chrono::duration < TRep, TPeriod>(0);
+					timeLeft = std::chrono::duration<TRep, TPeriod>(0);
 				}
 				if (pos != nullptr && pos != endPos)
 				{

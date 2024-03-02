@@ -270,6 +270,7 @@ TEST(ConvertChrono, ConvertDurationToStringWhenNegative) {
 	EXPECT_EQ("-PT1S", Convert::ToString(-1s));
 	EXPECT_EQ("-P10DT25M", Convert::ToString(-24h * 10 - 25min));
 	EXPECT_EQ("-P120DT3H3M3S", Convert::ToString(-24h * 120 - 3h - 3min - 3s));
+	EXPECT_EQ("-P3450DT15H59M59.125S", Convert::ToString(-24h * 3450 - 15h - 59min - 59s - 125ms));
 }
 
 TEST(ConvertChrono, ConvertDurationToStringMaxValues) {

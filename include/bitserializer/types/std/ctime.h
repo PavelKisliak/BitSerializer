@@ -41,17 +41,6 @@ namespace BitSerializer
 			}
 			return false;
 		}
-
-		inline bool SafeConvertFromBinTimestamp(const CBinTimestamp& timestamp, CTimeRef timeRef, const SerializationOptions& options)
-		{
-			timeRef.Time = timestamp.Seconds;
-			if (timestamp.Nanoseconds && options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
-			{
-				throw SerializationException(SerializationErrorCode::Overflow,
-					"The precision of target time_t type is not sufficient to store nanoseconds");
-			}
-			return true;
-		}
 	}
 
 	/// <summary>
@@ -67,8 +56,13 @@ namespace BitSerializer
 			if constexpr (TArchive::IsLoading())
 			{
 				Detail::CBinTimestamp timestamp;
-				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
-					&& SafeConvertFromBinTimestamp(timestamp, timeRef, archive.GetOptions());
+				if (archive.SerializeValue(std::forward<TKey>(key), timestamp))
+				{
+					// Ignore nanoseconds
+					timeRef.Time = timestamp.Seconds;
+					return true;
+				}
+				return false;
 			}
 			else
 			{
@@ -108,8 +102,13 @@ namespace BitSerializer
 			if constexpr (TArchive::IsLoading())
 			{
 				Detail::CBinTimestamp timestamp;
-				return archive.SerializeValue(timestamp)
-					&& SafeConvertFromBinTimestamp(timestamp, timeRef, archive.GetOptions());
+				if (archive.SerializeValue(timestamp))
+				{
+					// Ignore nanoseconds
+					timeRef.Time = timestamp.Seconds;
+					return true;
+				}
+				return false;
 			}
 			else
 			{

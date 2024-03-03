@@ -32,6 +32,8 @@ namespace BitSerializer::MsgPack::Detail
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
 		void WriteValue(std::string_view value) override;
 
+		void WriteValue(const CBinTimestamp& timestamp) override;
+
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;
 
@@ -66,6 +68,8 @@ namespace BitSerializer::MsgPack::Detail
 
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
 		void WriteValue(std::string_view value) override;
+
+		void WriteValue(const CBinTimestamp& timestamp) override;
 
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;

@@ -16,6 +16,8 @@
 namespace BitSerializer::MsgPack {
 namespace Detail {
 
+using BitSerializer::Detail::CBinTimestamp;
+
 /// <summary>
 /// The traits of MsgPack archive (internal implementation - no dependencies)
 /// </summary>
@@ -23,7 +25,7 @@ struct MsgPackArchiveTraits
 {
 	static constexpr ArchiveType archive_type = ArchiveType::MsgPack;
 	using key_type = std::string;
-	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view, int64_t, uint64_t, float, double>;
+	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view, int64_t, uint64_t, float, double, CBinTimestamp>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -47,7 +49,8 @@ enum class ValueType
 	String,
 	Array,
 	Map,
-	Ext
+	Ext,
+	Timestamp
 };
 
 /// <summary>
@@ -172,6 +175,8 @@ public:
 	virtual void WriteValue(const char* value) = 0;	// For avoid conflict with overload for boolean
 	virtual void WriteValue(std::string_view value) = 0;
 
+	virtual void WriteValue(const CBinTimestamp& timestamp) = 0;
+
 	virtual void BeginArray(size_t arraySize) = 0;
 	virtual void BeginMap(size_t mapSize) = 0;
 
@@ -207,6 +212,8 @@ public:
 	virtual bool ReadValue(double& value) = 0;
 
 	virtual bool ReadValue(std::string_view& value) = 0;
+
+	virtual bool ReadValue(CBinTimestamp& timestamp) = 0;
 
 	virtual bool ReadArraySize(size_t& arraySize) = 0;
 	virtual bool ReadMapSize(size_t& mapSize) = 0;
@@ -271,7 +278,7 @@ public:
 		, mSize(arraySize)
 	{ }
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, BitSerializer::Detail::CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
@@ -348,7 +355,7 @@ public:
 		, mSize(mapSize)
 	{ }
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<std::decay_t<T>, BitSerializer::Detail::CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
@@ -409,15 +416,14 @@ public:
 	}
 
 private:
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
-	bool WriteValue(T& value)
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	void WriteValue(T& value)
 	{
 		mMsgPackWriter->WriteValue(value);
-		return true;
 	}
 
 	template <typename TSym, typename TAllocator>
-	bool WriteValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void WriteValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		if constexpr (std::is_same_v<TSym, char>) {
 			mMsgPackWriter->WriteValue(value);
@@ -427,7 +433,6 @@ private:
 			const std::string str = Convert::ToString(value);
 			mMsgPackWriter->WriteValue(str);
 		}
-		return true;
 	}
 
 	void CheckEnd() const
@@ -461,7 +466,7 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		mMsgPackWriter->WriteValue(value);
@@ -634,7 +639,7 @@ public:
 		return path;
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
@@ -807,7 +812,7 @@ public:
 		return false;
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (FindValueByKey(key))
@@ -954,8 +959,8 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>, int> = 0>
-	bool SerializeValue(T& value)
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, BitSerializer::Detail::CBinTimestamp>, int> = 0>
+	bool SerializeValue(T& value) const
 	{
 		return mMsgPackReader->ReadValue(value);
 	}

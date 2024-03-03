@@ -5,6 +5,8 @@
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/common_json_test_methods.h"
 #include "msgpack_archive_fixture.h"
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
 
 using namespace BitSerializer;
 using BitSerializer::MsgPack::MsgPackArchive;
@@ -81,9 +83,70 @@ TEST(MsgPackArchive, SerializeUnicodeString)
 	TestSerializeType<MsgPackArchive, std::u32string>(U"Test UTF-32 string - Привет мир!");
 }
 
+//-----------------------------------------------------------------------------
+// Tests of serialization for enum
+//-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeEnum)
 {
 	TestSerializeType<MsgPackArchive, TestEnum>(TestEnum::Two);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for timestamps
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeCTime)
+{
+	// Arrange
+	time_t time = 102030;
+	CTimeRef timeRef(time);
+
+	time_t actualTime = 0;
+	CTimeRef actualTimeRef(actualTime);
+
+	std::string outputData;
+
+	// Act
+	BitSerializer::SaveObject<MsgPackArchive>(timeRef, outputData);
+	BitSerializer::LoadObject<MsgPackArchive>(actualTimeRef, outputData);
+
+	// Assert
+	EXPECT_EQ(time, actualTime);
+}
+
+TEST(MsgPackArchive, SerializeTimestamp32)
+{
+	auto seconds = std::chrono::duration<uint32_t>::max();
+	TestSerializeType<MsgPackArchive>(seconds);
+}
+
+TEST(MsgPackArchive, SerializeTimestamp64)
+{
+	auto seconds = std::chrono::duration<int64_t>::max();
+	TestSerializeType<MsgPackArchive>(seconds);
+}
+
+TEST(MsgPackArchive, SerializeTimestamp96)
+{
+	auto ns = std::chrono::nanoseconds::max();
+	TestSerializeType<MsgPackArchive>(ns);
+}
+
+TEST(MsgPackArchive, SerializeTimestamp32AsClassMember)
+{
+	TestClassWithSubType<std::chrono::duration<uint32_t>> testEntity;
+	TestSerializeClass<MsgPackArchive>(testEntity);
+}
+
+TEST(MsgPackArchive, SerializeTimestamp64AsClassMember)
+{
+	TestClassWithSubType<std::chrono::duration<int64_t>> testEntity;
+	TestSerializeClass<MsgPackArchive>(testEntity);
+}
+
+TEST(MsgPackArchive, SerializeTimestamp96AsClassMember)
+{
+	TestClassWithSubType<std::chrono::nanoseconds> testEntity;
+	TestSerializeClass<MsgPackArchive>(testEntity);
 }
 
 //-----------------------------------------------------------------------------

@@ -155,39 +155,15 @@ TEST(STD_CtimeAsBin, SerializeTimeType)
 	EXPECT_EQ(expected, actual);
 }
 
-TEST(STD_CtimeAsBin, ThrowOverflowExceptionWhenLoadNanoseconds)
+TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(59, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
 	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
 
-	// Act / Assert
-	try
-	{
-		time_t actual = 0;
-		BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
-	}
-	catch (const SerializationException& ex)
-	{
-		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
-		return;
-	}
-	EXPECT_FALSE(true);
-}
-
-TEST(STD_CtimeAsBin, SkipNanosecondsWhenPolicyIsSkip)
-{
-	// Arrange
-	Detail::CBinTimestamp timestamp(59, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
-
-	// Act
 	time_t actual = 0;
-	SerializationOptions options;
-	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
-	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive, options);
+	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
 
 	// Assert
 	EXPECT_EQ(timestamp.Seconds, actual);
@@ -207,31 +183,7 @@ TEST(STD_CtimeAsBin, SerializeTimeTypeAsClassMember)
 	EXPECT_EQ(expected.Time, actual.Time);
 }
 
-TEST(STD_CtimeAsBin, ThrowOverflowExceptionWhenLoadTimestampWithNsFromObject)
-{
-	// Arrange
-	BinArchiveStub::preferred_output_format binArchive;
-	Detail::CBinTimestamp timestamp(59, 999999999);
-	auto& binObjRef = binArchive.emplace<Detail::BinTestIoDataObject>();
-	Detail::BinTestIoData timestampIoData;
-	timestampIoData.emplace<Detail::CBinTimestamp>(timestamp);
-	binObjRef.emplace(std::string("Time"), std::move(timestampIoData));
-
-	// Act / Assert
-	try
-	{
-		TestCTime testEntity;
-		BitSerializer::LoadObject<BinArchiveStub>(testEntity, binArchive);
-	}
-	catch (const SerializationException& ex)
-	{
-		EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
-		return;
-	}
-	EXPECT_FALSE(true);
-}
-
-TEST(STD_CtimeAsBin, SkipTimestampWithNsInObjectWhenPolicyIsSkip)
+TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
 {
 	// Arrange
 	BinArchiveStub::preferred_output_format binArchive;
@@ -242,10 +194,8 @@ TEST(STD_CtimeAsBin, SkipTimestampWithNsInObjectWhenPolicyIsSkip)
 	binObjRef.emplace(std::string("Time"), std::move(timestampIoData));
 
 	// Act
-	SerializationOptions options;
-	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
 	TestCTime testEntity;
-	BitSerializer::LoadObject<BinArchiveStub>(testEntity, binArchive, options);
+	BitSerializer::LoadObject<BinArchiveStub>(testEntity, binArchive);
 
 	// Assert
 	EXPECT_EQ(timestamp.Seconds, testEntity.Time);

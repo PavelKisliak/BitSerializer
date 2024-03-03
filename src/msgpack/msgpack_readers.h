@@ -38,6 +38,8 @@ namespace BitSerializer::MsgPack::Detail
 
 		bool ReadValue(std::string_view& value) override;
 
+		bool ReadValue(CBinTimestamp& timestamp) override;
+
 		bool ReadArraySize(size_t& arraySize) override;
 		bool ReadMapSize(size_t& mapSize) override;
 
@@ -87,6 +89,8 @@ namespace BitSerializer::MsgPack::Detail
 		bool ReadValue(double& value) override;
 
 		bool ReadValue(std::string_view& value) override;
+
+		bool ReadValue(CBinTimestamp& timestamp) override;
 
 		bool ReadArraySize(size_t& arraySize) override;
 		bool ReadMapSize(size_t& mapSize) override;

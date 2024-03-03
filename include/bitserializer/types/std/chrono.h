@@ -85,8 +85,8 @@ namespace BitSerializer
 				else
 				{
 					outTimestamp.Seconds = std::chrono::duration_cast<std::chrono::seconds>(epochTime).count();
-					const auto ns = epochTime - std::chrono::duration_cast<TDuration>(std::chrono::seconds(outTimestamp.Seconds));
-					outTimestamp.Nanoseconds = static_cast<uint32_t>(ns.count());
+					const auto leftTime = epochTime - std::chrono::duration_cast<TDuration>(std::chrono::seconds(outTimestamp.Seconds));
+					outTimestamp.Nanoseconds = static_cast<int32_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(leftTime).count());
 				}
 				return true;
 			}
@@ -108,8 +108,23 @@ namespace BitSerializer
 			{
 				outTimePoint = std::chrono::time_point<TClock, TDuration>(
 					Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.Seconds)));
-				if (timestamp.Nanoseconds) {
-					Convert::Detail::SafeAddDuration(outTimePoint, std::chrono::nanoseconds(timestamp.Nanoseconds));
+				if (timestamp.Nanoseconds)
+				{
+					// When duration period is greater than seconds (allowed rounding only seconds fractions)
+					if constexpr (std::ratio_greater_v<typename TDuration::period, std::chrono::seconds::period>)
+					{
+						if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+						{
+							throw SerializationException(SerializationErrorCode::Overflow,
+								"The precision of target duration type is not sufficient to store nanoseconds");
+						}
+					}
+					else
+					{
+						// Only seconds fractions can be rounded to target type
+						auto leftTime = std::chrono::round<TDuration>(std::chrono::nanoseconds(timestamp.Nanoseconds));
+						Convert::Detail::SafeAddDuration(outTimePoint, leftTime);
+					}
 				}
 				return true;
 			}
@@ -119,6 +134,73 @@ namespace BitSerializer
 				{
 					throw SerializationException(SerializationErrorCode::Overflow,
 						"Target timepoint range is not sufficient to deserialize binary timestamp");
+				}
+			}
+			return false;
+		}
+
+		template <class TRep, class TPeriod>
+		bool SafeConvertToBinTimestamp(const std::chrono::duration<TRep, TPeriod>& duration, CBinTimestamp& outTimestamp, const SerializationOptions& options)
+		{
+			try
+			{
+				// When duration period is equal or greater than seconds
+				if constexpr (std::ratio_greater_equal_v<TPeriod, std::chrono::seconds::period>)
+				{
+					outTimestamp.Seconds = Convert::Detail::SafeDurationCast<std::chrono::seconds>(duration).count();
+					outTimestamp.Nanoseconds = 0;
+				}
+				else
+				{
+					outTimestamp.Seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+					const auto leftTime = duration - std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(std::chrono::seconds(outTimestamp.Seconds));
+					outTimestamp.Nanoseconds = static_cast<int32_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(leftTime).count());
+				}
+				return true;
+			}
+			catch (const std::out_of_range&)
+			{
+				if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow,
+						"Target duration range is not sufficient to serialize timepoint");
+				}
+			}
+			return false;
+		}
+
+		template <class TRep, class TPeriod>
+		bool SafeConvertFromBinTimestamp(const CBinTimestamp& timestamp, std::chrono::duration<TRep, TPeriod>& outDuration, const SerializationOptions& options)
+		{
+			using TDuration = std::chrono::duration<TRep, TPeriod>;
+			try
+			{
+				outDuration = Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.Seconds));
+				if (timestamp.Nanoseconds)
+				{
+					// When duration period is greater than seconds (allowed rounding only seconds fractions)
+					if constexpr (std::ratio_greater_v<TPeriod, std::chrono::seconds::period>)
+					{
+						if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+						{
+							throw SerializationException(SerializationErrorCode::Overflow,
+								"The precision of target duration type is not sufficient to store nanoseconds");
+						}
+					}
+					else
+					{
+						// Only seconds fractions can be rounded to target type
+						Convert::Detail::SafeAddDuration(outDuration, std::chrono::round<TDuration>(std::chrono::nanoseconds(timestamp.Nanoseconds)));
+					}
+				}
+				return true;
+			}
+			catch (const std::out_of_range&)
+			{
+				if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow,
+						"Target duration range is not sufficient to deserialize binary timestamp");
 				}
 			}
 			return false;
@@ -211,18 +293,37 @@ namespace BitSerializer
 	template <typename TArchive, typename TKey, typename TRep, typename TPeriod>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::duration<TRep, TPeriod>& value)
 	{
-		if constexpr (TArchive::IsLoading())
+		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
 		{
-			std::string isoDate;
-			if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
-				return Detail::SafeConvertIsoDuration(isoDate, value, archive.GetOptions());
+			// Serialize as binary timestamp
+			Detail::CBinTimestamp timestamp;
+			if constexpr (TArchive::IsLoading())
+			{
+				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
+					&& Detail::SafeConvertFromBinTimestamp(timestamp, value, archive.GetOptions());
 			}
-			return false;
+			else
+			{
+				return SafeConvertToBinTimestamp(value, timestamp, archive.GetOptions())
+					&& archive.SerializeValue(std::forward<TKey>(key), timestamp);
+			}
 		}
 		else
 		{
-			std::string isoDate = Convert::ToString(value);
-			return Serialize(archive, std::forward<TKey>(key), isoDate);
+			// Serialize as ISO 8601
+			if constexpr (TArchive::IsLoading())
+			{
+				std::string isoDate;
+				if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
+					return Detail::SafeConvertIsoDuration(isoDate, value, archive.GetOptions());
+				}
+				return false;
+			}
+			else
+			{
+				std::string isoDate = Convert::ToString(value);
+				return Serialize(archive, std::forward<TKey>(key), isoDate);
+			}
 		}
 	}
 
@@ -232,18 +333,37 @@ namespace BitSerializer
 	template<typename TArchive, typename TRep, typename TPeriod>
 	bool Serialize(TArchive& archive, std::chrono::duration<TRep, TPeriod>& value)
 	{
-		if constexpr (TArchive::IsLoading())
+		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)
 		{
-			std::string isoDate;
-			if (Serialize(archive, isoDate)) {
-				return Detail::SafeConvertIsoDuration(isoDate, value, archive.GetOptions());
+			// Serialize as binary timestamp
+			Detail::CBinTimestamp timestamp;
+			if constexpr (TArchive::IsLoading())
+			{
+				return archive.SerializeValue(timestamp)
+					&& Detail::SafeConvertFromBinTimestamp(timestamp, value, archive.GetOptions());
 			}
-			return false;
+			else
+			{
+				return SafeConvertToBinTimestamp(value, timestamp, archive.GetOptions())
+					&& archive.SerializeValue(timestamp);
+			}
 		}
 		else
 		{
-			std::string isoDate = Convert::ToString(value);
-			return Serialize(archive, isoDate);
+			// Serialize as ISO 8601
+			if constexpr (TArchive::IsLoading())
+			{
+				std::string isoDate;
+				if (Serialize(archive, isoDate)) {
+					return Detail::SafeConvertIsoDuration(isoDate, value, archive.GetOptions());
+				}
+				return false;
+			}
+			else
+			{
+				std::string isoDate = Convert::ToString(value);
+				return Serialize(archive, isoDate);
+			}
 		}
 	}
 }

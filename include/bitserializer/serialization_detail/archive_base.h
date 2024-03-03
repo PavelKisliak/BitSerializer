@@ -120,8 +120,18 @@ namespace Detail
 			, Nanoseconds(nanoseconds)
 		{ }
 
+		bool operator==(const CBinTimestamp& rhs) const
+		{
+			return Seconds == rhs.Seconds && Nanoseconds == rhs.Nanoseconds;
+		}
+
+		[[nodiscard]] std::string ToString() const
+		{
+			return std::to_string(Seconds) + " " + std::to_string(Nanoseconds);
+		}
+
 		int64_t Seconds{};
-		uint32_t Nanoseconds{};		// Must not be larger than 999999999
+		int32_t Nanoseconds{};		// Must not be larger than 999999999
 	};
 
 	/// <summary>

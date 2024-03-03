@@ -348,3 +348,27 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteMapWhenSizeFitToUint32)
 	this->mMsgPackWriter->BeginMap(mapSize);
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }
+
+//-----------------------------------------------------------------------------
+// Tests of writing timestamps
+//-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackWriterTest, ShouldWriteTimestamp32)
+{
+	BitSerializer::Detail::CBinTimestamp timeSpec(0x8090A0B0);
+	this->mMsgPackWriter->WriteValue(timeSpec);
+	EXPECT_EQ("\xD6\xFF\x80\x90\xA0\xB0", this->TakeResult());
+}
+
+TYPED_TEST(MsgPackWriterTest, ShouldWriteTimestamp64)
+{
+	BitSerializer::Detail::CBinTimestamp timeSpec(0x10203040, 0x01020304);
+	this->mMsgPackWriter->WriteValue(timeSpec);
+	EXPECT_EQ("\xD7\xFF\x04\x08\x0C\x10\x10\x20\x30\x40", this->TakeResult());
+}
+
+TYPED_TEST(MsgPackWriterTest, ShouldWriteTimestamp96)
+{
+	BitSerializer::Detail::CBinTimestamp timeSpec(0x0102030405060708, 0x090A0B0C);
+	this->mMsgPackWriter->WriteValue(timeSpec);
+	EXPECT_EQ("\xC7\x0C\xFF\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C", this->TakeResult());
+}

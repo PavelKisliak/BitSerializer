@@ -55,7 +55,7 @@ namespace
 
 	struct ByteCodeMetaInfo
 	{
-		ByteCodeMetaInfo(MsgPack::Detail::ValueType InType, uint_fast8_t InFixedSeq = 0, uint_fast8_t InDataSize = 0, uint_fast8_t InExtSize = 0)
+		constexpr ByteCodeMetaInfo(MsgPack::Detail::ValueType InType, uint_fast8_t InFixedSeq = 0, uint_fast8_t InDataSize = 0, uint_fast8_t InExtSize = 0)
 			: Type(InType)
 			, FixedSeq(InFixedSeq)
 			, DataSize(InDataSize)
@@ -162,15 +162,15 @@ namespace
 		{ ValueType::SignedInteger, 0, 8 },
 
 		// fixext 1 (0xd4)
-		{ ValueType::Ext, 0, 2 },
+		{ ValueType::Ext, 1, 1 },
 		// fixext 2 (0xd5)
-		{ ValueType::Ext, 0, 3 },
+		{ ValueType::Ext, 2, 1 },
 		// fixext 4 (0xd6)
-		{ ValueType::Ext, 0, 5 },
+		{ ValueType::Ext, 4, 1 },
 		// fixext 8 (0xd7)
-		{ ValueType::Ext, 0, 9 },
+		{ ValueType::Ext, 8, 1 },
 		// fixext 16 (0xd8)
-		{ ValueType::Ext, 0, 17 },
+		{ ValueType::Ext, 16, 1 },
 
 		// str 8 (0xd9)
 		{ ValueType::String, 0, 0, 1 },
@@ -196,6 +196,15 @@ namespace
 		{ SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }, { SInt }
 	};
 
+	struct ExtTypeInfo
+	{
+		ValueType ValueType = ValueType::Ext;
+		size_t DataOffset = 0;
+		uint32_t Size = 0;
+		char ByteCode = 0;
+		char ExtTypeCode = 0;
+	};
+
 	void HandleMismatchedTypesPolicy(MsgPack::Detail::ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
 	{
 		// Null value is excluded from MismatchedTypesPolicy processing
@@ -213,16 +222,6 @@ namespace
 //-----------------------------------------------------------------------------
 namespace
 {
-	MsgPack::Detail::ValueType ReadValueTypeImpl(std::string_view inputData, const size_t& pos)
-	{
-		if (pos < inputData.size())
-		{
-			const auto byteCode = static_cast<uint_fast8_t>(inputData[pos]);
-			return ByteCodeTable[byteCode].Type;
-		}
-		throw ParsingException("No more values to read", 0, pos);
-	}
-
 	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
 	void GetValue(std::string_view inputData, size_t& pos, T& outValue)
 	{
@@ -276,62 +275,62 @@ namespace
 	{
 		if (pos < inputData.size())
 		{
-			const char ch = inputData[pos];
-			if (ch >= -32)
+			const char byteCode = inputData[pos];
+			if (byteCode >= -32)
 			{
 				++pos;
-				return Detail::SafeNumberCast(ch, outValue, serializationOptions.overflowNumberPolicy);
+				return Detail::SafeNumberCast(byteCode, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xCC')
+			if (byteCode == '\xCC')
 			{
 				++pos;
 				uint8_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xCD')
+			if (byteCode == '\xCD')
 			{
 				++pos;
 				uint16_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xCE')
+			if (byteCode == '\xCE')
 			{
 				++pos;
 				uint32_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xCF')
+			if (byteCode == '\xCF')
 			{
 				++pos;
 				uint64_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xD0')
+			if (byteCode == '\xD0')
 			{
 				++pos;
 				int8_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xD1')
+			if (byteCode == '\xD1')
 			{
 				++pos;
 				int16_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xD2')
+			if (byteCode == '\xD2')
 			{
 				++pos;
 				int32_t val;
 				GetValue(inputData, pos, val);
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xD3')
+			if (byteCode == '\xD3')
 			{
 				++pos;
 				int64_t val;
@@ -339,18 +338,66 @@ namespace
 				return Detail::SafeNumberCast(val, outValue, serializationOptions.overflowNumberPolicy);
 			}
 			// Read from boolean
-			if (ch == '\xC2')
+			if (byteCode == '\xC2')
 			{
 				++pos;
 				return Detail::SafeNumberCast(0, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			if (ch == '\xC3')
+			if (byteCode == '\xC3')
 			{
 				++pos;
 				return Detail::SafeNumberCast(1, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			HandleMismatchedTypesPolicy(ReadValueTypeImpl(inputData, pos), serializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(ByteCodeTable[static_cast<uint_fast8_t>(byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
 			return false;
+		}
+		throw ParsingException("No more values to read", 0, pos);
+	}
+
+	bool ReadExtFamilyType(std::string_view inputData, size_t pos, ExtTypeInfo& extTypeInfo)
+	{
+		if (pos < inputData.size())
+		{
+			extTypeInfo.ByteCode = inputData[pos];
+			const auto& metaInfo = ByteCodeTable[static_cast<uint8_t>(extTypeInfo.ByteCode)];
+			if (metaInfo.Type != ValueType::Ext) {
+				return false;
+			}
+
+			// Ext format family with fixed data size
+			if (metaInfo.FixedSeq)
+			{
+				extTypeInfo.Size = metaInfo.FixedSeq;
+				extTypeInfo.DataOffset = 1 + metaInfo.DataSize;
+				if (pos + extTypeInfo.DataOffset < inputData.size())
+				{
+					extTypeInfo.ExtTypeCode = inputData[pos + 1];
+					// Currently only timestamp is specified as extension type
+					if (extTypeInfo.ExtTypeCode == -1) {
+						extTypeInfo.ValueType = ValueType::Timestamp;
+					}
+					return true;
+				}
+				throw ParsingException("Unexpected end of input archive", 0, pos);
+			}
+
+			// Ext format family with specified size
+			if (metaInfo.ExtSize)
+			{
+				extTypeInfo.Size = ReadExtSize(metaInfo.ExtSize, inputData, pos + 1);
+				extTypeInfo.DataOffset = 1 + metaInfo.DataSize + metaInfo.ExtSize;
+				if (pos + extTypeInfo.DataOffset < inputData.size())
+				{
+					extTypeInfo.ExtTypeCode = inputData[pos + 1 + metaInfo.DataSize];
+					// Currently only timestamp is specified as extension type
+					if (extTypeInfo.ExtTypeCode == -1) {
+						extTypeInfo.ValueType = ValueType::Timestamp;
+					}
+					return true;
+				}
+				throw ParsingException("Unexpected end of input archive", 0, pos);
+			}
+			throw std::runtime_error("Internal error: invalid external type descriptor");
 		}
 		throw ParsingException("No more values to read", 0, pos);
 	}
@@ -375,7 +422,19 @@ namespace BitSerializer::MsgPack::Detail
 
 	ValueType CMsgPackStringReader::ReadValueType()
 	{
-		return ReadValueTypeImpl(mInputData, mPos);
+		if (mPos < mInputData.size())
+		{
+			const char byteCode = mInputData[mPos];
+			const auto& metaInfo = ByteCodeTable[static_cast<uint8_t>(byteCode)];
+			if (metaInfo.Type == ValueType::Ext)
+			{
+				ExtTypeInfo extTypeInfo;
+				ReadExtFamilyType(mInputData, mPos, extTypeInfo);
+				return extTypeInfo.ValueType;
+			}
+			return metaInfo.Type;
+		}
+		throw ParsingException("No more values to read", 0, mPos);
 	}
 
 	bool CMsgPackStringReader::ReadValue(std::nullptr_t&)
@@ -552,6 +611,41 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
+	bool CMsgPackStringReader::ReadValue(CBinTimestamp& timestamp)
+	{
+		ExtTypeInfo extTypeInfo;
+		if (ReadExtFamilyType(mInputData, mPos, extTypeInfo) && extTypeInfo.ExtTypeCode == -1)
+		{
+			mPos += extTypeInfo.DataOffset;
+			if (extTypeInfo.Size == 4)
+			{
+				uint32_t data32;
+				GetValue(mInputData, mPos, data32);
+				timestamp.Seconds = data32;
+				timestamp.Nanoseconds = 0;
+				return true;
+			}
+			if (extTypeInfo.Size == 8)
+			{
+				uint64_t data64;
+				GetValue(mInputData, mPos, data64);
+				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003ffffffffL);
+				timestamp.Nanoseconds = static_cast<uint32_t>(data64 >> 34);
+				return true;
+			}
+			if (extTypeInfo.Size == 12)
+			{
+				GetValue(mInputData, mPos, timestamp.Seconds);
+				GetValue(mInputData, mPos, timestamp.Nanoseconds);
+				return true;
+			}
+			throw SerializationException(SerializationErrorCode::ParsingError,
+				"Invalid size of timestamp: " + Convert::ToString(extTypeInfo.Size));
+		}
+		HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+		return false;
+	}
+
 	bool CMsgPackStringReader::ReadArraySize(size_t& arraySize)
 	{
 		if (mPos < mInputData.size())
@@ -666,8 +760,7 @@ namespace BitSerializer::MsgPack::Detail
 	{
 		if (mPos < mInputData.size())
 		{
-			const auto byteCode = static_cast<uint_fast8_t>(mInputData[mPos++]);
-			const auto& byteCodeInfo = ByteCodeTable[byteCode];
+			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint_fast8_t>(mInputData[mPos++])];
 
 			size_t size = byteCodeInfo.DataSize;
 			uint32_t extSize = 0;
@@ -851,6 +944,58 @@ namespace
 		}
 		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
 	}
+
+	bool ReadExtFamilyType(Detail::CBinaryStreamReader& binaryStreamReader, ExtTypeInfo& extTypeInfo)
+	{
+		if (const auto byteCode = binaryStreamReader.PeekByte())
+		{
+			extTypeInfo.ByteCode = *byteCode;
+			const auto& metaInfo = ByteCodeTable[static_cast<uint8_t>(extTypeInfo.ByteCode)];
+			if (metaInfo.Type != ValueType::Ext) {
+				return false;
+			}
+
+			// Ext format family with fixed data size
+			const auto prevPos = binaryStreamReader.GetPosition();
+			binaryStreamReader.GotoNextByte();
+			if (metaInfo.FixedSeq)
+			{
+				extTypeInfo.Size = metaInfo.FixedSeq;
+				extTypeInfo.DataOffset = 1 + metaInfo.DataSize;
+				if (const auto extCode = binaryStreamReader.ReadByte())
+				{
+					extTypeInfo.ExtTypeCode = *extCode;
+					// Currently only timestamp is specified as extension type
+					if (extTypeInfo.ExtTypeCode == -1) {
+						extTypeInfo.ValueType = ValueType::Timestamp;
+					}
+					binaryStreamReader.SetPosition(prevPos);
+					return true;
+				}
+				throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+			}
+
+			// Ext format family with specified size
+			if (metaInfo.ExtSize)
+			{
+				extTypeInfo.Size = ReadExtSize(binaryStreamReader, metaInfo.ExtSize);
+				extTypeInfo.DataOffset = 1 + metaInfo.DataSize + metaInfo.ExtSize;
+				if (const auto extCode = binaryStreamReader.ReadByte())
+				{
+					extTypeInfo.ExtTypeCode = *extCode;
+					// Currently only timestamp is specified as extension type
+					if (extTypeInfo.ExtTypeCode == -1) {
+						extTypeInfo.ValueType = ValueType::Timestamp;
+					}
+					binaryStreamReader.SetPosition(prevPos);
+					return true;
+				}
+				throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+			}
+			throw std::runtime_error("Internal error: invalid external type descriptor");
+		}
+		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
+	}
 }
 
 namespace BitSerializer::MsgPack::Detail
@@ -864,7 +1009,14 @@ namespace BitSerializer::MsgPack::Detail
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
-			return ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type;
+			const auto& metaInfo = ByteCodeTable[static_cast<uint8_t>(*byteCode)];
+			if (metaInfo.Type == ValueType::Ext)
+			{
+				ExtTypeInfo extTypeInfo;
+				ReadExtFamilyType(mBinaryStreamReader, extTypeInfo);
+				return extTypeInfo.ValueType;
+			}
+			return metaInfo.Type;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
@@ -1028,6 +1180,7 @@ namespace BitSerializer::MsgPack::Detail
 			}
 
 			mBuffer.clear();
+			mBuffer.reserve(remainingSize);
 			while (remainingSize != 0)
 			{
 				if (std::string_view chunk = mBinaryStreamReader.ReadByChunks(remainingSize); !chunk.empty())
@@ -1044,6 +1197,41 @@ namespace BitSerializer::MsgPack::Detail
 			return true;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+	}
+
+	bool CMsgPackStreamReader::ReadValue(CBinTimestamp& timestamp)
+	{
+		ExtTypeInfo extTypeInfo;
+		if (ReadExtFamilyType(mBinaryStreamReader, extTypeInfo) && extTypeInfo.ExtTypeCode == -1)
+		{
+			mBinaryStreamReader.SetPosition(mBinaryStreamReader.GetPosition() + extTypeInfo.DataOffset);
+			if (extTypeInfo.Size == 4)
+			{
+				uint32_t data32;
+				GetValue(mBinaryStreamReader, data32);
+				timestamp.Seconds = data32;
+				timestamp.Nanoseconds = 0;
+				return true;
+			}
+			if (extTypeInfo.Size == 8)
+			{
+				uint64_t data64;
+				GetValue(mBinaryStreamReader, data64);
+				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003ffffffffL);
+				timestamp.Nanoseconds = static_cast<uint32_t>(data64 >> 34);
+				return true;
+			}
+			if (extTypeInfo.Size == 12)
+			{
+				GetValue(mBinaryStreamReader, timestamp.Seconds);
+				GetValue(mBinaryStreamReader, timestamp.Nanoseconds);
+				return true;
+			}
+			throw SerializationException(SerializationErrorCode::ParsingError,
+				"Invalid size of timestamp: " + Convert::ToString(extTypeInfo.Size));
+		}
+		HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+		return false;
 	}
 
 	bool CMsgPackStreamReader::ReadArraySize(size_t& arraySize)
@@ -1157,7 +1345,7 @@ namespace BitSerializer::MsgPack::Detail
 	{
 		if (const auto byteCode = mBinaryStreamReader.ReadByte())
 		{
-			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint8_t>(*byteCode)];
+			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint_fast8_t>(*byteCode)];
 
 			size_t size = byteCodeInfo.DataSize;
 			uint32_t extSize = 0;

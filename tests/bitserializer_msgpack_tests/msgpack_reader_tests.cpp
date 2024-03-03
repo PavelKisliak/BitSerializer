@@ -715,6 +715,102 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadMapWhenSizeFitToUint32)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of reading timestamps
+//-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp32)
+{
+	this->PrepareReader({
+		'\xD6', '\xFF', '\x10', '\x20', '\x30', '\x40',
+		'\xD6', '\xFF', '\x80', '\x90', '\xA0', '\xB0'
+		});
+	BitSerializer::Detail::CBinTimestamp timestamp;
+
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_EQ(0x10203040, timestamp.Seconds);
+	EXPECT_EQ(0, timestamp.Nanoseconds);
+
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_EQ(0x8090A0B0, timestamp.Seconds);
+	EXPECT_EQ(0, timestamp.Nanoseconds);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp64)
+{
+	this->PrepareReader({
+		'\xD7', '\xFF', '\x04', '\x08', '\x0C', '\x10', '\x10', '\x20', '\x30', '\x40',
+		'\xD7', '\xFF', '\x05', '\x09', '\x0D', '\x20', '\x20', '\x30', '\x40', '\x50'
+		});
+	BitSerializer::Detail::CBinTimestamp timestamp;
+
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_EQ(0x10203040, timestamp.Seconds);
+	EXPECT_EQ(0x01020304, timestamp.Nanoseconds);
+
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_EQ(0x20304050, timestamp.Seconds);
+	EXPECT_EQ(0x01424348, timestamp.Nanoseconds);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp96)
+{
+	this->PrepareReader({
+		'\xC7', '\x0C', '\xFF', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', '\x08', '\x09', '\x0A', '\x0B', '\x0C',
+		'\xC7', '\x0C', '\xFF', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', '\x18', '\x19', '\x1A', '\x1B', '\x1C'
+		});
+	BitSerializer::Detail::CBinTimestamp timestamp;
+
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_EQ(0x0102030405060708, timestamp.Seconds);
+	EXPECT_EQ(0x090A0B0C, timestamp.Nanoseconds);
+
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_EQ(0x1112131415161718, timestamp.Seconds);
+	EXPECT_EQ(0x191A1B1C, timestamp.Nanoseconds);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp32)
+{
+	BitSerializer::Detail::CBinTimestamp timestamp;
+
+	this->PrepareReader(std::string({ '\xD6',  }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xD6', '\xFF' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xD6', '\xFF', '\x10' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp64)
+{
+	BitSerializer::Detail::CBinTimestamp timestamp;
+
+	this->PrepareReader(std::string({ '\xD7', }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xD7', '\xFF' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xD7', '\xFF', '\x04' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp96)
+{
+	BitSerializer::Detail::CBinTimestamp timestamp;
+
+	this->PrepareReader(std::string({ '\xC7', }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xC7', '\xFF' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\xC7', '\xFF', '\x11' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+}
+
+//-----------------------------------------------------------------------------
 // Tests of get/set positions
 //-----------------------------------------------------------------------------
 TYPED_TEST(MsgPackReaderTest, ShouldGetPosition)
@@ -879,6 +975,27 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfFixArray)
 		this->PrepareReader({ static_cast<char>(i | 0b10010000) });
 		EXPECT_EQ(expectedType, this->mMsgPackReader->ReadValueType());
 	}
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfTimestamp32)
+{
+	this->PrepareReader({ '\xD6', '\xFF', '\x10', '\x20', '\x30', '\x40' });
+	EXPECT_EQ(BitSerializer::MsgPack::Detail::ValueType::Timestamp, this->mMsgPackReader->ReadValueType());
+	EXPECT_EQ(0, this->mMsgPackReader->GetPosition());
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfTimestamp64)
+{
+	this->PrepareReader({ '\xD7', '\xFF', '\x04', '\x08', '\x0C', '\x10', '\x10', '\x20', '\x30', '\x40' });
+	EXPECT_EQ(BitSerializer::MsgPack::Detail::ValueType::Timestamp, this->mMsgPackReader->ReadValueType());
+	EXPECT_EQ(0, this->mMsgPackReader->GetPosition());
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfTimestamp96)
+{
+	this->PrepareReader({ '\xC7', '\x0C', '\xFF', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', '\x08', '\x09', '\x0A', '\x0B', '\x0C' });
+	EXPECT_EQ(BitSerializer::MsgPack::Detail::ValueType::Timestamp, this->mMsgPackReader->ReadValueType());
+	EXPECT_EQ(0, this->mMsgPackReader->GetPosition());
 }
 
 //-----------------------------------------------------------------------------

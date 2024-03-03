@@ -24,6 +24,13 @@ namespace
 		outputString.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 
+	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	void PushValue(std::string& outputString, T value)
+	{
+		const auto networkVal = Memory::NativeToBigEndian(value);
+		outputString.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
+	}
+
 	//------------------------------------------------------------------------------
 
 	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
@@ -37,6 +44,13 @@ namespace
 	void PushValue(std::ostream& outputStream, uint8_t code, T value)
 	{
 		outputStream.put(static_cast<char>(code));
+		const auto networkVal = Memory::NativeToBigEndian(value);
+		outputStream.write(reinterpret_cast<const char*>(&networkVal), sizeof(T));
+	}
+
+	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	void PushValue(std::ostream& outputStream, T value)
+	{
 		const auto networkVal = Memory::NativeToBigEndian(value);
 		outputStream.write(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
@@ -171,6 +185,34 @@ namespace BitSerializer::MsgPack::Detail
 			}
 		}
 		mOutputString.append(value);
+	}
+
+	void CMsgPackStringWriter::WriteValue(const BitSerializer::Detail::CBinTimestamp& timestamp)
+	{
+		if (timestamp.Seconds >> 34 == 0)
+		{
+			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34) | timestamp.Seconds;
+			if ((data64 & 0xffffffff00000000L) == 0)
+			{
+				// timestamp 32
+				mOutputString.push_back('\xD6');
+				PushValue(mOutputString, -1, static_cast<uint32_t>(data64));
+			}
+			else
+			{
+				// timestamp 64
+				mOutputString.push_back('\xD7');
+				PushValue(mOutputString, -1, data64);
+			}
+		}
+		else
+		{
+			mOutputString.push_back('\xC7');
+			mOutputString.push_back(12);
+			// timestamp 96
+			PushValue(mOutputString, -1, timestamp.Seconds);
+			PushValue(mOutputString, timestamp.Nanoseconds);
+		}
 	}
 
 	void CMsgPackStringWriter::BeginArray(size_t arraySize)
@@ -356,6 +398,34 @@ namespace BitSerializer::MsgPack::Detail
 			}
 		}
 		mOutputStream.write(value.data(), static_cast<std::streamsize>(value.size()));
+	}
+
+	void CMsgPackStreamWriter::WriteValue(const BitSerializer::Detail::CBinTimestamp& timestamp)
+	{
+		if (timestamp.Seconds >> 34 == 0)
+		{
+			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34) | timestamp.Seconds;
+			if ((data64 & 0xffffffff00000000L) == 0)
+			{
+				// timestamp 32
+				mOutputStream.put('\xD6');
+				PushValue(mOutputStream, -1, static_cast<uint32_t>(data64));
+			}
+			else
+			{
+				// timestamp 64
+				mOutputStream.put('\xD7');
+				PushValue(mOutputStream, -1, data64);
+			}
+		}
+		else
+		{
+			mOutputStream.put('\xC7');
+			mOutputStream.put(12);
+			// timestamp 96
+			PushValue(mOutputStream, -1, timestamp.Seconds);
+			PushValue(mOutputStream, timestamp.Nanoseconds);
+		}
 	}
 
 	void CMsgPackStreamWriter::BeginArray(size_t arraySize)

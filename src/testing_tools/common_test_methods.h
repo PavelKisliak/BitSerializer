@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -11,7 +11,7 @@
 
 
 /// <summary>
-/// Test template of serialization for fundamental type.
+/// Test template of serialization to root scope of archive (single value types).
 /// </summary>
 /// <param name="value">The value.</param>
 template <typename TArchive, typename T>
@@ -27,6 +27,26 @@ void TestSerializeType(T&& value)
 
 	// Assert
 	GTestExpectEq(value, actual);
+}
+
+/// <summary>
+/// Test template of serialization single values with loading to different type.
+/// </summary>
+/// <param name="value">Source test value.</param>
+/// <param name="expected">Expected value</param>
+template <typename TArchive, typename TSource, typename TExpected>
+void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive;
+	TExpected actual{};
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(value, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	GTestExpectEq(expected, actual);
 }
 
 /// <summary>

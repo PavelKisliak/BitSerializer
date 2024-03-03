@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "testing_tools/auto_fixture.h"
 
 using namespace BitSerializer;
 
@@ -27,8 +28,8 @@ TEST(ConvertStd, ConvertAnsiPathToAnyString) {
 }
 
 TEST(ConvertStd, ConvertNativePathToUtf8) {
-	EXPECT_EQ(u8"c:/Привет Мир", Convert::ToString(std::filesystem::path(_UPATH("c:/Привет Мир"))));
-	EXPECT_EQ(u8"c:/世界，您好", Convert::ToString(std::filesystem::path(_UPATH("c:/世界，您好"))));
+	EXPECT_EQ(UTF8("c:/Привет Мир"), Convert::ToString(std::filesystem::path(_UPATH("c:/Привет Мир"))));
+	EXPECT_EQ(UTF8("c:/世界，您好"), Convert::ToString(std::filesystem::path(_UPATH("c:/世界，您好"))));
 }
 
 TEST(ConvertStd, ConvertNativePathToWString) {

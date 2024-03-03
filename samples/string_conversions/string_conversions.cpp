@@ -66,7 +66,7 @@ int main()
 
 	// Convert from one UTF string to another (there is used "syntax sugar" function ToString() which is equivalent to Convert::To<std::string>)
 	const auto u8Str = Convert::ToString(u"Привет мир!");
-	assert(u8"Привет мир!" == u8Str);
+	assert(reinterpret_cast<const char*>(u8"Привет мир!") == u8Str);
 
 	// Conversion with error handling (overflow, parse errors, etc)
 	if (auto result = Convert::TryTo<char>("500")) {

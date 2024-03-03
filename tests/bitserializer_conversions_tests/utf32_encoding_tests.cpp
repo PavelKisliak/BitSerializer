@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "testing_tools/string_utils.h"
 
 using namespace BitSerializer;
 
@@ -94,8 +95,8 @@ TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromAnsi) {
 }
 
 TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf8) {
-	EXPECT_EQ(U"Привет мир!", EncodeUtf32(u8"Привет мир!"));
-	EXPECT_EQ(U"世界，您好！", EncodeUtf32(u8"世界，您好！"));
+	EXPECT_EQ(U"Привет мир!", EncodeUtf32(UTF8("Привет мир!")));
+	EXPECT_EQ(U"世界，您好！", EncodeUtf32(UTF8("世界，您好！")));
 }
 
 TEST_F(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf16) {
@@ -159,8 +160,8 @@ TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToAnsi) {
 }
 
 TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf8) {
-	EXPECT_EQ(u8"Привет мир!", DecodeUtf32As<std::string>(U"Привет мир!"));
-	EXPECT_EQ(u8"世界，您好！", DecodeUtf32As<std::string>(U"世界，您好！"));
+	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf32As<std::string>(U"Привет мир!"));
+	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf32As<std::string>(U"世界，您好！"));
 }
 
 TEST_F(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf16) {
@@ -205,8 +206,8 @@ TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromAnsi) {
 }
 
 TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf8) {
-	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(u8"Привет мир!"));
-	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(u8"世界，您好！"));
+	EXPECT_EQ(SwapByteOrder(U"Привет мир!"), EncodeUtf32(UTF8("Привет мир!")));
+	EXPECT_EQ(SwapByteOrder(U"世界，您好！"), EncodeUtf32(UTF8("世界，您好！")));
 }
 
 TEST_F(Utf32BeEncodeTest, ShouldEncodeUtf32BeFromUtf16) {
@@ -270,8 +271,8 @@ TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToAnsi) {
 }
 
 TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf8) {
-	EXPECT_EQ(u8"Привет мир!", DecodeUtf32As<std::string>(SwapByteOrder(U"Привет мир!")));
-	EXPECT_EQ(u8"世界，您好！", DecodeUtf32As<std::string>(SwapByteOrder(U"世界，您好！")));
+	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf32As<std::string>(SwapByteOrder(U"Привет мир!")));
+	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf32As<std::string>(SwapByteOrder(U"世界，您好！")));
 }
 
 TEST_F(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf16) {

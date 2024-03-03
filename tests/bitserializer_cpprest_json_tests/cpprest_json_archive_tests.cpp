@@ -65,7 +65,7 @@ TEST(JsonRestCpp, SerializeNullptr)
 //-----------------------------------------------------------------------------
 TEST(JsonRestCpp, SerializeUtf8Sting) {
 	TestSerializeType<JsonArchive, std::string>("Test ANSI string");
-	TestSerializeType<JsonArchive, std::string>(u8"Test UTF8 string - Привет мир!");
+	TestSerializeType<JsonArchive, std::string>(UTF8("Test UTF8 string - Привет мир!"));
 }
 
 TEST(JsonRestCpp, SerializeUnicodeString) {

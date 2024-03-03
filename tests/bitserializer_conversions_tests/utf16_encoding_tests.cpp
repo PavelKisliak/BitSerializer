@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "testing_tools/string_utils.h"
 
 using namespace BitSerializer;
 
@@ -94,12 +95,12 @@ TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromAnsi) {
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf8) {
-	EXPECT_EQ(u"Привет мир!", EncodeUtf16(u8"Привет мир!"));
-	EXPECT_EQ(u"世界，您好！", EncodeUtf16(u8"世界，您好！"));
+	EXPECT_EQ(u"Привет мир!", EncodeUtf16(UTF8("Привет мир!")));
+	EXPECT_EQ(u"世界，您好！", EncodeUtf16(UTF8("世界，您好！")));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf8Surrogates) {
-	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(u8"😀😎🙋"));
+	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(UTF8("😀😎🙋")));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf16) {
@@ -147,8 +148,8 @@ TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToAnsi) {
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf8) {
-	EXPECT_EQ(u8"Привет мир!", DecodeUtf16As<std::string>(u"Привет мир!"));
-	EXPECT_EQ(u8"世界，您好！", DecodeUtf16As<std::string>(u"世界，您好！"));
+	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf16As<std::string>(u"Привет мир!"));
+	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf16As<std::string>(u"世界，您好！"));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf16) {
@@ -228,7 +229,7 @@ TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 
 	// Assert
 	EXPECT_EQ(expectedPos, actualPos);
-	EXPECT_EQ(u8"test_тест", actual);
+	EXPECT_EQ(UTF8("test_тест"), actual);
 }
 TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf16)
 {
@@ -270,12 +271,12 @@ TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromAnsi) {
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8) {
-	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(u8"Привет мир!"));
-	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(u8"世界，您好！"));
+	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(UTF8("Привет мир!")));
+	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(UTF8("世界，您好！")));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8Surrogates) {
-	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(u8"😀😎🙋"));
+	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(UTF8("😀😎🙋")));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16) {
@@ -323,8 +324,8 @@ TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToAnsi) {
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf8) {
-	EXPECT_EQ(u8"Привет мир!", DecodeUtf16As<std::string>(SwapByteOrder(u"Привет мир!")));
-	EXPECT_EQ(u8"世界，您好！", DecodeUtf16As<std::string>(SwapByteOrder(u"世界，您好！")));
+	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf16As<std::string>(SwapByteOrder(u"Привет мир!")));
+	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf16As<std::string>(SwapByteOrder(u"世界，您好！")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16Le) {
@@ -400,7 +401,7 @@ TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 
 	// Assert
 	EXPECT_EQ(expectedPos, actualPos);
-	EXPECT_EQ(u8"test_тест", actual);
+	EXPECT_EQ(UTF8("test_тест"), actual);
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDecodeToUtf16)

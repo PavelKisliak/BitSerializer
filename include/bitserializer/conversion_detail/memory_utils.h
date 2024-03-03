@@ -3,14 +3,14 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 202002L) || __cplusplus >= 202002L)
+#if defined(__cpp_lib_endian)
 #include <bit>
 #endif
 
 
 namespace BitSerializer::Memory
 {
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 202002L) || __cplusplus >= 202002L)
+#if defined(__cpp_lib_endian)
 	using Endian = std::endian;
 #else
 	/// <summary>

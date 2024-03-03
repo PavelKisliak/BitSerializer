@@ -22,9 +22,9 @@ TEST(TranscodeStrings, DecodeUtf8ToAnyStringType) {
 }
 
 TEST(TranscodeStrings, EncodeUtf8FromAnyStringType) {
-	EXPECT_EQ(u8"Привет мир!", Convert::ToString(L"Привет мир!"));
-	EXPECT_EQ(u8"Привет мир!", Convert::ToString(u"Привет мир!"));
-	EXPECT_EQ(u8"Привет мир!", Convert::ToString(U"Привет мир!"));
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::ToString(L"Привет мир!"));
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::ToString(u"Привет мир!"));
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::ToString(U"Привет мир!"));
 }
 
 TEST(TranscodeStrings, DecodeUtf16ToUtf32) {

@@ -47,7 +47,7 @@ TEST(BaseTypes, SerializeNullptr) {
 TEST(BaseTypes, SerializeUtf8Sting)
 {
 	TestSerializeType<ArchiveStub, std::string>("Test ANSI string");
-	TestSerializeType<ArchiveStub, std::string>(u8"Test UTF8 string - Привет мир!");
+	TestSerializeType<ArchiveStub, std::string>(UTF8("Test UTF8 string - Привет мир!"));
 }
 
 TEST(BaseTypes, SerializeUnicodeString)

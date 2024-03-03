@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <tuple>
+#include "string_utils.h"
 #include "bitserializer/convert.h"
 
 /// <summary>
@@ -92,7 +93,7 @@ static void BuildFixture(bool& value)				{ value = static_cast<bool>(std::rand()
 static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand() % 1000 + 1) * 1.141592f; }
 static void BuildFixture(double& value)				{ value = static_cast<double>(std::rand() % 100000 + 1) * 1.141592; }
 static void BuildFixture(std::nullptr_t& value)		{ value = nullptr; }
-static void BuildFixture(std::string& value)		{ value = u8"UTF-8 Тест_" + std::to_string(std::rand()); }
+static void BuildFixture(std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
 static void BuildFixture(std::wstring& value)		{ value = L"WString Тест_" + std::to_wstring(std::rand()); }
 static void BuildFixture(std::u16string& value)		{ value = u"UTF-16 Тест_" + BitSerializer::Convert::To<std::u16string>(std::rand()); }
 static void BuildFixture(std::u32string& value)		{ value = U"UTF-32 Тест_" + BitSerializer::Convert::To<std::u32string>(std::rand()); }

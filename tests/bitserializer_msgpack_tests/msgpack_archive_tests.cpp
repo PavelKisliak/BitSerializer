@@ -73,7 +73,7 @@ TEST(MsgPackArchive, SerializeNullptr)
 TEST(MsgPackArchive, SerializeUtf8Sting)
 {
 	TestSerializeType<MsgPackArchive, std::string>("Test ANSI string");
-	TestSerializeType<MsgPackArchive, std::string>(u8"Test UTF8 string - Привет мир!");
+	TestSerializeType<MsgPackArchive, std::string>(UTF8("Test UTF8 string - Привет мир!"));
 }
 
 TEST(MsgPackArchive, SerializeUnicodeString)

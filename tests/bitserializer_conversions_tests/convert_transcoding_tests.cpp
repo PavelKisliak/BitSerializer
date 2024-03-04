@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -16,9 +16,9 @@ TEST(TranscodeStrings, StringToTheSameStringType) {
 }
 
 TEST(TranscodeStrings, DecodeUtf8ToAnyStringType) {
-	EXPECT_EQ(L"Привет мир!", Convert::ToWString(u8"Привет мир!"));
-	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(u8"Привет мир!"));
-	EXPECT_EQ(U"Привет мир!", Convert::To<std::u32string>(u8"Привет мир!"));
+	EXPECT_EQ(L"Привет мир!", Convert::ToWString(UTF8("Привет мир!")));
+	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(UTF8("Привет мир!")));
+	EXPECT_EQ(U"Привет мир!", Convert::To<std::u32string>(UTF8("Привет мир!")));
 }
 
 TEST(TranscodeStrings, EncodeUtf8FromAnyStringType) {

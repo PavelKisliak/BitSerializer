@@ -184,7 +184,7 @@ if(BUILD_MSGPACK_ARCHIVE)
     set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
     add_library(${MSGPACK_ARCHIVE_NAME} STATIC
        "src/msgpack/msgpack_archive.cpp"
-       "src/msgPack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
+       "src/msgpack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
        "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp")
     add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
 
@@ -201,8 +201,11 @@ endif()
 #################################################################################
 # Tests (optional)
 #################################################################################
-if(BUILD_TESTS)
+if(BUILD_TESTS OR BUILD_BENCHMARKS)
     add_subdirectory(src/testing_tools)
+endif()
+
+if(BUILD_TESTS)
     include(GoogleTest)
     enable_testing()
     set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)

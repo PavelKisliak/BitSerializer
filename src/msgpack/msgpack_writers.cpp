@@ -9,14 +9,14 @@ namespace
 {
 	using namespace BitSerializer;
 
-	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
 		outputString.push_back(static_cast<char>(value));
 	}
 
-	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
@@ -24,7 +24,7 @@ namespace
 		outputString.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 
-	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::string& outputString, T value)
 	{
 		const auto networkVal = Memory::NativeToBigEndian(value);
@@ -33,14 +33,14 @@ namespace
 
 	//------------------------------------------------------------------------------
 
-	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::ostream& outputStream, uint8_t code, T value)
 	{
 		outputStream.put(static_cast<char>(code));
 		outputStream.put(static_cast<char>(value));
 	}
 
-	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::ostream& outputStream, uint8_t code, T value)
 	{
 		outputStream.put(static_cast<char>(code));
@@ -48,7 +48,7 @@ namespace
 		outputStream.write(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 
-	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::ostream& outputStream, T value)
 	{
 		const auto networkVal = Memory::NativeToBigEndian(value);

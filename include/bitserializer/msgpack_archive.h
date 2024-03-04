@@ -93,7 +93,6 @@ public:
 		}
 	}
 
-	template <>
 	bool operator==(const std::string& value) const {
 		auto& ref = std::get<std::string_view>(mTuple);
 		return mLast == &ref && ref == value;
@@ -101,7 +100,7 @@ public:
 
 	template <typename T, size_t ArraySize>
 	bool operator==(T(&value)[ArraySize]) const {
-		auto& ref = std::get<std::string_view>(mTuple);
+		const auto& ref = std::get<std::string_view>(mTuple);
 		return mLast == &ref && ref == value;
 	}
 

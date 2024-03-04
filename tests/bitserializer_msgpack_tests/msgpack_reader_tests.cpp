@@ -17,7 +17,7 @@ TYPED_TEST_SUITE(MsgPackReaderTest, Implementations);
 
 namespace
 {
-	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
 	std::string EncodeIntegralValue(uint8_t code, T value)
 	{
 		std::string outStr;
@@ -26,7 +26,7 @@ namespace
 		return outStr;
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 2 && std::is_integral_v<T>, int> = 0>
 	std::string EncodeIntegralValue(uint8_t code, T value)
 	{
 		std::string outStr;
@@ -37,7 +37,7 @@ namespace
 		return outStr;
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 4 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 4 && std::is_integral_v<T>, int> = 0>
 	std::string EncodeIntegralValue(uint8_t code, T value)
 	{
 		std::string outStr;
@@ -50,7 +50,7 @@ namespace
 		return outStr;
 	}
 
-	template <typename T, std::enable_if_t<sizeof T == 8 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 8 && std::is_integral_v<T>, int> = 0>
 	std::string EncodeIntegralValue(uint8_t code, T value)
 	{
 		std::string outStr;
@@ -72,7 +72,7 @@ namespace
 TYPED_TEST(MsgPackReaderTest, ShouldReadNil)
 {
 	this->PrepareReader("\xC0");
-	nullptr_t value;
+	std::nullptr_t value;
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 }
 

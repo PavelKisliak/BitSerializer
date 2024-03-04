@@ -55,7 +55,7 @@ namespace
 
 	struct ByteCodeMetaInfo
 	{
-		constexpr ByteCodeMetaInfo(MsgPack::Detail::ValueType InType, uint_fast8_t InFixedSeq = 0, uint_fast8_t InDataSize = 0, uint_fast8_t InExtSize = 0)
+		constexpr ByteCodeMetaInfo(ValueType InType, uint_fast8_t InFixedSeq = 0, uint_fast8_t InDataSize = 0, uint_fast8_t InExtSize = 0)
 			: Type(InType)
 			, FixedSeq(InFixedSeq)
 			, DataSize(InDataSize)
@@ -198,17 +198,17 @@ namespace
 
 	struct ExtTypeInfo
 	{
-		ValueType ValueType = ValueType::Ext;
+		MsgPack::Detail::ValueType ValueType = ValueType::Ext;
 		size_t DataOffset = 0;
 		uint32_t Size = 0;
 		char ByteCode = 0;
 		char ExtTypeCode = 0;
 	};
 
-	void HandleMismatchedTypesPolicy(MsgPack::Detail::ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
+	void HandleMismatchedTypesPolicy(ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
 	{
 		// Null value is excluded from MismatchedTypesPolicy processing
-		if (actualType != MsgPack::Detail::ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		if (actualType != ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 		{
 			throw SerializationException(SerializationErrorCode::MismatchedTypes,
 				"The type of target field does not match the value being loaded");
@@ -222,7 +222,7 @@ namespace
 //-----------------------------------------------------------------------------
 namespace
 {
-	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
 	void GetValue(std::string_view inputData, size_t& pos, T& outValue)
 	{
 		if (pos < inputData.size())
@@ -234,7 +234,7 @@ namespace
 		}
 	}
 
-	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void GetValue(std::string_view inputData, size_t& pos, T& outValue)
 	{
 		if (pos + sizeof(T) <= inputData.size())
@@ -815,7 +815,7 @@ namespace BitSerializer::MsgPack::Detail
 //-----------------------------------------------------------------------------
 namespace
 {
-	template <typename T, std::enable_if_t<sizeof T == 1 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
 	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
 	{
 		if (const auto value = binaryStreamReader.ReadByte())
@@ -827,7 +827,7 @@ namespace
 		}
 	}
 
-	template <typename T, std::enable_if_t<sizeof T >= 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
 	{
 		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())

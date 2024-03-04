@@ -23,5 +23,5 @@ if(BUILD_CSV_ARCHIVE)
 endif()
 
 if(BUILD_MSGPACK_ARCHIVE)
-    add_subdirectory(bitserializer_msgPack_tests)
+    add_subdirectory(bitserializer_msgpack_tests)
 endif()

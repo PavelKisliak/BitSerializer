@@ -4,7 +4,7 @@
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/common_json_test_methods.h"
-#include "msgpack_archive_fixture.h"
+#include "bitserializer/msgpack_archive.h"
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/ctime.h"
 

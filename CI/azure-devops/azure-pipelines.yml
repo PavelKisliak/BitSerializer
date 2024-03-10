@@ -55,11 +55,11 @@ jobs:
 
   - template: unix-jobs-template.yml
     parameters:
-      name: 'Ubuntu_GCC_12'
+      name: 'Ubuntu_GCC_12_CXX20'
       image: 'ubuntu-latest'
       installToolsCmd: 'sudo apt-get install gcc-12 g++-12'
       vcpkgTriplet: "x64-linux"
-      cmakeGenArgs: '-DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12 $(CmakeGenOptions)'
+      cmakeGenArgs: '-DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12 $(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
 
   - template: unix-jobs-template.yml
     parameters:
@@ -71,11 +71,11 @@ jobs:
 
   - template: unix-jobs-template.yml
     parameters:
-      name: 'Ubuntu_Clang_14'
+      name: 'Ubuntu_Clang_14_CXX20'
       image: 'ubuntu-latest'
       installToolsCmd: 'sudo apt-get install clang-14 --install-suggests'
       vcpkgTriplet: "x64-linux"
-      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 $(CmakeGenOptions)'
+      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 $(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
 
   - template: unix-jobs-template.yml
     parameters:

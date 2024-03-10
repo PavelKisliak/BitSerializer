@@ -99,10 +99,10 @@ TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkipFromObject)
 {
 	// Arrange
 	ArchiveStub::preferred_output_format testArchive;
-	auto& binObjRef = testArchive.emplace<Detail::TestIoDataObject>();
-	Detail::TestIoData strIoData;
-	strIoData.emplace<std::wstring>(L"Invalid date");
-	binObjRef.emplace(std::wstring(L"Time"), std::move(strIoData));
+	auto& binObjRef = testArchive.Data->emplace<Detail::TestIoDataObjectPtr>(std::make_shared<Detail::TestIoDataObject>());
+	Detail::TestIoDataPtr strIoData = std::make_shared<Detail::TestIoData>();
+	strIoData->emplace<std::wstring>(L"Invalid date");
+	binObjRef->emplace(std::wstring(L"Time"), std::move(strIoData));
 
 	// Act / Assert
 	try
@@ -122,10 +122,10 @@ TEST(STD_CtimeAsBin, SkipInvalidIsoDateInObjectWhenPolicyIsSkip)
 {
 	// Arrange
 	ArchiveStub::preferred_output_format testArchive;
-	auto& binObjRef = testArchive.emplace<Detail::TestIoDataObject>();
-	Detail::TestIoData strIoData;
-	strIoData.emplace<std::wstring>(L"Invalid date");
-	binObjRef.emplace(std::wstring(L"Time"), std::move(strIoData));
+	auto& binObjRef = testArchive.Data->emplace<Detail::TestIoDataObjectPtr>(std::make_shared<Detail::TestIoDataObject>());
+	Detail::TestIoDataPtr strIoData = std::make_shared<Detail::TestIoData>();
+	strIoData->emplace<std::wstring>(L"Invalid date");
+	binObjRef->emplace(std::wstring(L"Time"), std::move(strIoData));
 	TestCTime testEntity;
 	auto expected = testEntity.Time;
 
@@ -160,7 +160,7 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 	// Arrange
 	Detail::CBinTimestamp timestamp(59, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	time_t actual = 0;
 	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
@@ -188,10 +188,10 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
 	// Arrange
 	BinArchiveStub::preferred_output_format binArchive;
 	Detail::CBinTimestamp timestamp(59, 999999999);
-	auto& binObjRef = binArchive.emplace<Detail::BinTestIoDataObject>();
-	Detail::BinTestIoData timestampIoData;
-	timestampIoData.emplace<Detail::CBinTimestamp>(timestamp);
-	binObjRef.emplace(std::string("Time"), std::move(timestampIoData));
+	auto& binObjRef = binArchive.Data->emplace<Detail::BinTestIoDataObjectPtr>(std::make_shared<Detail::BinTestIoDataObject>());
+	Detail::BinTestIoDataPtr timestampIoData = std::make_shared<Detail::BinTestIoData>();
+	timestampIoData->emplace<Detail::CBinTimestamp>(timestamp);
+	binObjRef->emplace(std::string("Time"), std::move(timestampIoData));
 
 	// Act
 	TestCTime testEntity;

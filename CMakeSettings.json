@@ -376,6 +376,138 @@
       ]
     },
     {
+      "name": "Linux-GCC12-CXX20-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_CXX_STANDARD=20",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "Linux-GCC12-CXX20-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_CXX_STANDARD=20",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
       "name": "Linux-Clang8-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
@@ -448,6 +580,138 @@
       "cmakeExecutable": "cmake",
       "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
       "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "Linux-Clang14-CXX20-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_STANDARD=20",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "Linux-Clang14-CXX20-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_STANDARD=20",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ],

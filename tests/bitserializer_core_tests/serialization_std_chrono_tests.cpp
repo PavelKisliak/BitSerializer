@@ -443,7 +443,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestamp)
 	// Arrange
 	BinArchiveStub::preferred_output_format outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
-	outputArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	outputArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
 	try
@@ -466,7 +466,7 @@ TEST(STD_ChronoAsBin, SkipTooBigTimestampWhenPolicyIsSkip)
 	// Arrange
 	BinArchiveStub::preferred_output_format outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
-	outputArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	outputArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Load as time_point
 	using TimePoint = time_point<system_clock, nanoseconds>;
@@ -490,10 +490,10 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestampFromObject)
 
 	BinArchiveStub::preferred_output_format outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
-	auto& binObjRef = outputArchive.emplace<Detail::BinTestIoDataObject>();
-	Detail::BinTestIoData timestampIoData;
-	timestampIoData.emplace<Detail::CBinTimestamp>(timestamp);
-	binObjRef.emplace(std::string(TestObject::KeyName), std::move(timestampIoData));
+	auto& binObjRef = outputArchive.Data->emplace<Detail::BinTestIoDataObjectPtr>(std::make_shared<Detail::BinTestIoDataObject>());
+	Detail::BinTestIoDataPtr timestampIoData = std::make_shared<Detail::BinTestIoData>();
+	timestampIoData->emplace<Detail::CBinTimestamp>(timestamp);
+	binObjRef->emplace(std::string(TestObject::KeyName), std::move(timestampIoData));
 
 	// Act / Assert
 	try
@@ -518,10 +518,10 @@ TEST(STD_ChronoAsBin, SkipTooBigTimestampInObjectWhenPolicyIsSkip)
 
 	BinArchiveStub::preferred_output_format outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
-	auto& binObjRef = outputArchive.emplace<Detail::BinTestIoDataObject>();
-	Detail::BinTestIoData timestampIoData;
-	timestampIoData.emplace<Detail::CBinTimestamp>(timestamp);
-	binObjRef.emplace(std::string(TestObject::KeyName), std::move(timestampIoData));
+	auto& binObjRef = outputArchive.Data->emplace<Detail::BinTestIoDataObjectPtr>(std::make_shared<Detail::BinTestIoDataObject>());
+	Detail::BinTestIoDataPtr timestampIoData = std::make_shared<Detail::BinTestIoData>();
+	timestampIoData->emplace<Detail::CBinTimestamp>(timestamp);
+	binObjRef->emplace(std::string(TestObject::KeyName), std::move(timestampIoData));
 
 	TestObject testObj;
 	const auto expected = testObj.GetValue();
@@ -553,7 +553,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenTimepointCannotBeRounded)
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
 	try
@@ -573,7 +573,7 @@ TEST(STD_ChronoAsBin, SkipErrorOfRoundingTimepointWhenPolicyIsSkip)
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act
 	SerializationOptions options;
@@ -647,7 +647,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigDuration)
 	// Arrange
 	Detail::CBinTimestamp timestamp(256);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
 	try
@@ -668,7 +668,7 @@ TEST(STD_ChronoAsBin, SkipTooBigDurationWhenPolicyIsSkip)
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act
 	SerializationOptions options;
@@ -698,7 +698,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenDurationCannotBeRounded)
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
 	try
@@ -718,7 +718,7 @@ TEST(STD_ChronoAsBin, SkipErrorOfRoundingDurationWhenPolicyIsSkip)
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
 	BinArchiveStub::preferred_output_format binArchive;
-	binArchive.emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act
 	SerializationOptions options;

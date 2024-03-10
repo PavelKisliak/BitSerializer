@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <type_traits>
 #if defined(__cpp_lib_endian)
 #include <bit>
 #endif
@@ -137,8 +138,8 @@ namespace BitSerializer::Memory
 			return Reverse(*mBaseIt);
 		}
 
-		bool operator==(const TBaseIt& rhs) const { return mBaseIt == rhs; }
-		bool operator!=(const TBaseIt& rhs) const { return mBaseIt != rhs; }
+		bool operator==(const ReverseEndianIterator<TBaseIt>& rhs) const { return mBaseIt == rhs.mBaseIt; }
+		bool operator!=(const ReverseEndianIterator<TBaseIt>& rhs) const { return mBaseIt != rhs.mBaseIt; }
 		TBaseIt& operator++() noexcept { return ++mBaseIt; }
 		operator const TBaseIt& () const { return mBaseIt; }
 

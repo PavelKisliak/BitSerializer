@@ -313,6 +313,11 @@ TEST(MsgPackArchive, SerializeClassWithFloatAsKey)
 	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<double>>());
 }
 
+TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
+{
+	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::CBinTimestamp>>());
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

@@ -23,6 +23,7 @@
 #include <tuple>
 #include "string_utils.h"
 #include "bitserializer/convert.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 /// <summary>
 /// Checks that the class has static BuildFixture() method.
@@ -205,6 +206,37 @@ static void BuildFixture(std::chrono::duration<TRep, TPeriod>& duration)
 	std::uniform_int_distribution distr(std::numeric_limits<TRep>::min(), std::numeric_limits<TRep>::max());
 
 	duration = std::chrono::duration<TRep, TPeriod>(distr(gen));
+}
+
+namespace std
+{
+	/// <summary>
+	/// Specialization of `std::numeric_limits<T>` for `CBinTimestamp`.
+	/// </summary>
+	template<>
+	class numeric_limits<BitSerializer::Detail::CBinTimestamp>
+	{
+	public:
+		static BitSerializer::Detail::CBinTimestamp min()
+		{
+			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint32_t>::min());
+		}
+
+		static BitSerializer::Detail::CBinTimestamp max()
+		{
+			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::max(), std::numeric_limits<uint32_t>::max());
+		}
+	};
+}
+
+/// <summary>
+/// Builds the test fixture for CBinTimestamp
+/// </summary>
+/// <param name="timestamp">The reference to binary timestamp.</param>
+static void BuildFixture(BitSerializer::Detail::CBinTimestamp& timestamp)
+{
+	BuildFixture(timestamp.Seconds);
+	BuildFixture(timestamp.Nanoseconds);
 }
 
 /// <summary>

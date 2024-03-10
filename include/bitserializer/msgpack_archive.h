@@ -898,6 +898,11 @@ private:
 				return callback(ref);
 			}
 			break;
+		case ValueType::Timestamp:
+			if (auto& ref = mCurrentKey.GetValueRef<CBinTimestamp>(); mMsgPackReader->ReadValue(ref)) {
+				return callback(ref);
+			}
+			break;
 		default:
 			throw ParsingException("Unsupported key type");
 		}

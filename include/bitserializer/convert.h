@@ -1,12 +1,15 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <optional>
+#include "bitserializer/config.h"
 #include "conversion_detail/convert_fundamental.h"
 #include "conversion_detail/convert_detail.h"
-#include "conversion_detail/convert_std.h"
+#if BITSERIALIZER_HAS_FILESYSTEM
+#include "conversion_detail/convert_filesystem.h"
+#endif
 #include "conversion_detail/convert_chrono.h"
 
 namespace BitSerializer::Convert

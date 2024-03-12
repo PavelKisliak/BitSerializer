@@ -4,6 +4,9 @@
 *******************************************************************************/
 #pragma once
 #include <type_traits>
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
 #if defined(__cpp_lib_endian)
 #include <bit>
 #endif

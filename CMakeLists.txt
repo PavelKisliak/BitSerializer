@@ -80,6 +80,12 @@ include_directories(
   "${CMAKE_CURRENT_LIST_DIR}/include"
 )
 
+# Automatic detection of std::filesystem availability
+if(NOT DEFINED BITSERIALIZER_HAS_FILESYSTEM)
+  include(CheckCXXSymbolExists)
+  check_cxx_symbol_exists(std::filesystem::path::preferred_separator filesystem BITSERIALIZER_HAS_FILESYSTEM)
+endif()
+
 #################################################################################
 # Targets configuration
 #################################################################################
@@ -102,10 +108,12 @@ target_include_directories(${BITSERIALIZER_CORE_NAME} INTERFACE
 
 target_compile_features(${BITSERIALIZER_CORE_NAME} INTERFACE cxx_std_17)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-      target_link_libraries(${BITSERIALIZER_CORE_NAME} INTERFACE stdc++fs)
-    endif()
+if(BITSERIALIZER_HAS_FILESYSTEM)
+  if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+        target_link_libraries(${BITSERIALIZER_CORE_NAME} INTERFACE stdc++fs)
+      endif()
+  endif()
 endif()
 
 # BitSerializer cpprestjson archive

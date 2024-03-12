@@ -1,10 +1,10 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include "bitserializer/pugixml_archive.h"
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/common_xml_test_methods.h"
+#include "bitserializer/pugixml_archive.h"
 
 using BitSerializer::Xml::PugiXml::XmlArchive;
 

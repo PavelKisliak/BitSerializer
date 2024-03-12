@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -146,7 +146,7 @@ namespace BitSerializer
 	{
 		using preferred_stream_char_type = typename TArchive::preferred_stream_char_type;
 		std::basic_ifstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
-		stream.open(std::forward<TString>(path), std::ios::in | std::ios::binary);
+		stream.open(path, std::ios::in | std::ios::binary);
 		if (stream.is_open())
 			LoadObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
 		else
@@ -164,7 +164,7 @@ namespace BitSerializer
 	{
 		using preferred_stream_char_type = typename TArchive::preferred_stream_char_type;
 		std::basic_ofstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
-		stream.open(std::forward<TString>(path), std::ios::out | std::ios::binary);
+		stream.open(path, std::ios::out | std::ios::binary);
 		if (stream.is_open())
 			SaveObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
 		else

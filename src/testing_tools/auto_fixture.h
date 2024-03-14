@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <tuple>
+#include <filesystem>
 #include "string_utils.h"
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -271,6 +272,15 @@ static T BuildFixture()
 	T fixture;
 	BuildFixture(fixture);
 	return fixture;
+}
+
+/// <summary>
+/// Builds the test fixture for std::filesystem::path value.
+/// </summary>
+/// <param name="path">The reference to path.</param>
+static void BuildFixture(std::filesystem::path& path)
+{
+	path = std::filesystem::temp_directory_path() / (BuildFixture<std::string>() + ".txt");
 }
 
 template <typename T, size_t Size>

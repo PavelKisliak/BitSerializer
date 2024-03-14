@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     serialization_std_containers_tests.cpp
     serialization_std_types_tests.cpp
     serialization_std_chrono_tests.cpp
+    serialization_std_filesystem_tests.cpp
     serialization_ctime_tests.cpp
     validators_tests.cpp
     key_value_tests.cpp

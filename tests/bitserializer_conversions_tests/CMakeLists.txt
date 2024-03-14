@@ -15,7 +15,7 @@ add_executable(${PROJECT_NAME}
     convert_traits_tests.cpp
     convert_classes_tests.cpp
     convert_transcoding_tests.cpp
-    convert_std_tests.cpp
+    convert_filesystem_tests.cpp
     convert_chrono_tests.cpp
     convert_custom_string_tests.cpp
 )

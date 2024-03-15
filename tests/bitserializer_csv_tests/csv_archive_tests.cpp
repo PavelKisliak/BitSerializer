@@ -79,9 +79,9 @@ TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScope) {
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
-TEST_F(CsvArchiveTests, SerializeArrayToStream)
+TEST_F(CsvArchiveTests, SerializeArrayOfClassesToStream)
 {
-	TestClassWithSubType<std::string> testArray[3];
+	TestClassWithSubTypes<int, double, std::string> testArray[3];
 	BuildFixture(testArray);
 	TestSerializeArrayToStream<CsvArchive, char>(testArray);
 }

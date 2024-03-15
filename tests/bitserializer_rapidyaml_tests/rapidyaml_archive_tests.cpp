@@ -190,6 +190,13 @@ TEST(RapidYamlArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<YamlArchive, char>(BuildFixture<TestPointClass>());
 }
 
+TEST(RapidYamlArchive, SerializeArrayOfClassesToStream)
+{
+	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	BuildFixture(testArray);
+	TestSerializeArrayToStream<YamlArchive, char>(testArray);
+}
+
 TEST(RapidYamlArchive, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<YamlArchive, char>(TestValue);

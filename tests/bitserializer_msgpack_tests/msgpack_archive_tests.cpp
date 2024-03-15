@@ -223,7 +223,6 @@ TEST(MsgPackArchive, SerializeClassWithMemberInteger)
 
 TEST(MsgPackArchive, SerializeClassWithMemberFloat)
 {
-	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
 	TestSerializeClass<MsgPackArchive>(TestClassWithSubTypes(-3.141592654f, 0.0f, -3.141592654f));
 }
 
@@ -291,6 +290,9 @@ TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<MsgPackArchive>(fixture);
 }
 
+//-----------------------------------------------------------------------------
+// Tests of serialization for classes with non-string keys (MsgPack feature)
+//-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassWithIntAsKey)
 {
 	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int8_t>>());
@@ -326,26 +328,23 @@ TEST(MsgPackArchive, ShouldReturnPathInObjectScopeWhenLoading)
 	TestGetPathInJsonObjectScopeWhenLoading<MsgPackArchive>();
 }
 
-//TEST(MsgPackArchive, ShouldReturnPathInObjectScopeWhenSaving)
-//{
-//	TestGetPathInJsonObjectScopeWhenSaving<MsgPackArchive>();
-//}
-
 TEST(MsgPackArchive, ShouldReturnPathInArrayScopeWhenLoading)
 {
 	TestGetPathInJsonArrayScopeWhenLoading<MsgPackArchive>();
 }
-
-//TEST(MsgPackArchive, ShouldReturnPathInArrayScopeWhenSaving)
-//{
-//	TestGetPathInJsonArrayScopeWhenSaving<MsgPackArchive>();
-//}
 
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<MsgPackArchive, char>(BuildFixture<TestPointClass>());
+}
+
+TEST(MsgPackArchive, SerializeArrayOfClassesToStream)
+{
+	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	BuildFixture(testArray);
+	TestSerializeArrayToStream<MsgPackArchive, char>(testArray);
 }
 
 TEST(MsgPackArchive, SerializeToFile) {

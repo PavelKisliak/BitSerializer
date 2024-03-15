@@ -224,6 +224,13 @@ TEST(JsonRestCpp, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive, char>(BuildFixture<TestPointClass>());
 }
 
+TEST(JsonRestCpp, SerializeArrayOfClassesToStream)
+{
+	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	BuildFixture(testArray);
+	TestSerializeArrayToStream<JsonArchive, char>(testArray);
+}
+
 TEST(JsonRestCpp, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<JsonArchive, char>(TestValue);

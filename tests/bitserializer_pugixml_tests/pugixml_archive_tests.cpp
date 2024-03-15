@@ -185,6 +185,13 @@ TEST(PugiXmlArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<XmlArchive, char>(BuildFixture<TestPointClass>());
 }
 
+TEST(PugiXmlArchive, SerializeArrayOfClassesToStream)
+{
+	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	BuildFixture(testArray);
+	TestSerializeArrayToStream<XmlArchive, char>(testArray);
+}
+
 TEST(PugiXmlArchive, SerializeUnicodeToUtf8Stream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
 	TestSerializeClassToStream<XmlArchive, char>(TestValue);

@@ -437,6 +437,7 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	static_assert(!std::is_same_v<TSourceType, TTargetType>);
 
 	TestClassWithSubType<TSourceType> sourceObj[1];
+	// Loading with "Required" validator for force throw ValidationException
 	TestClassWithSubType<TTargetType, true> targetObj[1];
 
 	BitSerializer::SerializationOptions options;

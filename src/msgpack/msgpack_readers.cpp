@@ -199,21 +199,11 @@ namespace
 	struct ExtTypeInfo
 	{
 		MsgPack::Detail::ValueType ValueType = ValueType::Ext;
-		size_t DataOffset = 0;
+		uint8_t DataOffset = 0;
 		uint32_t Size = 0;
 		char ByteCode = 0;
 		char ExtTypeCode = 0;
 	};
-
-	void HandleMismatchedTypesPolicy(ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
-	{
-		// Null value is excluded from MismatchedTypesPolicy processing
-		if (actualType != ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-		{
-			throw SerializationException(SerializationErrorCode::MismatchedTypes,
-				"The type of target field does not match the value being loaded");
-		}
-	}
 }
 
 
@@ -268,6 +258,69 @@ namespace
 			return sz32;
 		}
 		throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
+	}
+
+	void SkipValueImpl(std::string_view inputData, size_t& pos)
+	{
+		if (pos < inputData.size())
+		{
+			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint_fast8_t>(inputData[pos++])];
+
+			size_t size = byteCodeInfo.DataSize;
+			uint32_t extSize = 0;
+			if (byteCodeInfo.FixedSeq)
+			{
+				extSize += byteCodeInfo.FixedSeq;
+			}
+			else if (byteCodeInfo.ExtSize)
+			{
+				size += byteCodeInfo.ExtSize;
+				extSize = ReadExtSize(byteCodeInfo.ExtSize, inputData, pos);
+			}
+
+			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::BinaryArray || byteCodeInfo.Type == ValueType::Ext)
+			{
+				size += extSize;
+				extSize = 0;
+			}
+
+			if (pos + size <= inputData.size())
+			{
+				pos += size;
+				if (extSize)
+				{
+					if (byteCodeInfo.Type == ValueType::Map)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValueImpl(inputData, pos);
+							SkipValueImpl(inputData, pos);
+						}
+					}
+					else if (byteCodeInfo.Type == ValueType::Array)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValueImpl(inputData, pos);
+						}
+					}
+				}
+				return;
+			}
+			throw ParsingException("Unexpected end of input archive", 0, pos);
+		}
+		throw ParsingException("No more values to read", 0, pos);
+	}
+
+	void HandleMismatchedTypesPolicy(std::string_view inputData, size_t& pos, ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
+	{
+		// Null value is excluded from MismatchedTypesPolicy processing
+		if (actualType != ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
+		}
+		SkipValueImpl(inputData, pos);
 	}
 
 	template <typename T>
@@ -348,7 +401,7 @@ namespace
 				++pos;
 				return Detail::SafeNumberCast(1, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			HandleMismatchedTypesPolicy(ByteCodeTable[static_cast<uint_fast8_t>(byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(inputData, pos, ByteCodeTable[static_cast<uint_fast8_t>(byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, pos);
@@ -448,7 +501,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mPos);
@@ -527,7 +580,7 @@ namespace BitSerializer::MsgPack::Detail
 				return BitSerializer::Detail::SafeNumberCast(temp, value, mSerializationOptions.overflowNumberPolicy);
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mPos);
@@ -557,7 +610,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mPos);
@@ -596,7 +649,7 @@ namespace BitSerializer::MsgPack::Detail
 			}
 			else
 			{
-				HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+				HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 				return false;
 			}
 
@@ -642,7 +695,7 @@ namespace BitSerializer::MsgPack::Detail
 			throw SerializationException(SerializationErrorCode::ParsingError,
 				"Invalid size of timestamp: " + Convert::ToString(extTypeInfo.Size));
 		}
-		HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+		HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 		return false;
 	}
 
@@ -674,7 +727,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mPos);
@@ -708,7 +761,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mPos);
@@ -758,54 +811,7 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringReader::SkipValue()
 	{
-		if (mPos < mInputData.size())
-		{
-			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint_fast8_t>(mInputData[mPos++])];
-
-			size_t size = byteCodeInfo.DataSize;
-			uint32_t extSize = 0;
-			if (byteCodeInfo.FixedSeq)
-			{
-				extSize += byteCodeInfo.FixedSeq;
-			}
-			else if (byteCodeInfo.ExtSize)
-			{
-				size += byteCodeInfo.ExtSize;
-				extSize = ReadExtSize(byteCodeInfo.ExtSize, mInputData, mPos);
-			}
-
-			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::BinaryArray || byteCodeInfo.Type == ValueType::Ext)
-			{
-				size += extSize;
-				extSize = 0;
-			}
-
-			if (mPos + size <= mInputData.size())
-			{
-				mPos += size;
-				if (extSize)
-				{
-					if (byteCodeInfo.Type == ValueType::Map)
-					{
-						for (uint32_t i = 0; i < extSize; ++i)
-						{
-							SkipValue();
-							SkipValue();
-						}
-					}
-					else if (byteCodeInfo.Type == ValueType::Array)
-					{
-						for (uint32_t i = 0; i < extSize; ++i)
-						{
-							SkipValue();
-						}
-					}
-				}
-				return;
-			}
-			throw ParsingException("Unexpected end of input archive", 0, mPos);
-		}
-		throw ParsingException("No more values to read", 0, mPos);
+		SkipValueImpl(mInputData, mPos);
 	}
 }
 
@@ -860,6 +866,67 @@ namespace
 			return sz32;
 		}
 		throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
+	}
+
+	void SkipValueImpl(Detail::CBinaryStreamReader& binaryStreamReader)
+	{
+		if (const auto byteCode = binaryStreamReader.ReadByte())
+		{
+			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint_fast8_t>(*byteCode)];
+
+			size_t size = byteCodeInfo.DataSize;
+			uint32_t extSize = 0;
+			if (byteCodeInfo.FixedSeq)
+			{
+				extSize += byteCodeInfo.FixedSeq;
+			}
+			else if (byteCodeInfo.ExtSize)
+			{
+				extSize = ReadExtSize(binaryStreamReader, byteCodeInfo.ExtSize);
+			}
+
+			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::BinaryArray || byteCodeInfo.Type == ValueType::Ext)
+			{
+				size += extSize;
+				extSize = 0;
+			}
+
+			if (size == 0 || binaryStreamReader.SetPosition(binaryStreamReader.GetPosition() + size))
+			{
+				if (extSize)
+				{
+					if (byteCodeInfo.Type == ValueType::Map)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValueImpl(binaryStreamReader);
+							SkipValueImpl(binaryStreamReader);
+						}
+					}
+					else if (byteCodeInfo.Type == ValueType::Array)
+					{
+						for (uint32_t i = 0; i < extSize; ++i)
+						{
+							SkipValueImpl(binaryStreamReader);
+						}
+					}
+				}
+				return;
+			}
+			throw ParsingException("Unexpected end of input archive", 0, binaryStreamReader.GetPosition());
+		}
+		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
+	}
+
+	void HandleMismatchedTypesPolicy(Detail::CBinaryStreamReader& binaryStreamReader, ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
+	{
+		// Null value is excluded from MismatchedTypesPolicy processing
+		if (actualType != ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
+		}
+		SkipValueImpl(binaryStreamReader);
 	}
 
 	template <typename T>
@@ -939,7 +1006,7 @@ namespace
 				binaryStreamReader.GotoNextByte();
 				return Detail::SafeNumberCast(1, outValue, serializationOptions.overflowNumberPolicy);
 			}
-			HandleMismatchedTypesPolicy(ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(binaryStreamReader, ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
@@ -1030,7 +1097,7 @@ namespace BitSerializer::MsgPack::Detail
 				mBinaryStreamReader.GotoNextByte();
 				return true;
 			}
-			HandleMismatchedTypesPolicy(ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mBinaryStreamReader, ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, mSerializationOptions.mismatchedTypesPolicy);
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
@@ -1107,7 +1174,7 @@ namespace BitSerializer::MsgPack::Detail
 				return BitSerializer::Detail::SafeNumberCast(temp, value, mSerializationOptions.overflowNumberPolicy);
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
@@ -1136,7 +1203,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
@@ -1175,7 +1242,7 @@ namespace BitSerializer::MsgPack::Detail
 			}
 			else
 			{
-				HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+				HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 				return false;
 			}
 
@@ -1230,7 +1297,7 @@ namespace BitSerializer::MsgPack::Detail
 			throw SerializationException(SerializationErrorCode::ParsingError,
 				"Invalid size of timestamp: " + Convert::ToString(extTypeInfo.Size));
 		}
-		HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+		HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 		return false;
 	}
 
@@ -1261,7 +1328,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
@@ -1294,7 +1361,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 
-			HandleMismatchedTypesPolicy(ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
@@ -1343,51 +1410,6 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStreamReader::SkipValue()
 	{
-		if (const auto byteCode = mBinaryStreamReader.ReadByte())
-		{
-			const auto& byteCodeInfo = ByteCodeTable[static_cast<uint_fast8_t>(*byteCode)];
-
-			size_t size = byteCodeInfo.DataSize;
-			uint32_t extSize = 0;
-			if (byteCodeInfo.FixedSeq)
-			{
-				extSize += byteCodeInfo.FixedSeq;
-			}
-			else if (byteCodeInfo.ExtSize)
-			{
-				extSize = ReadExtSize(mBinaryStreamReader, byteCodeInfo.ExtSize);
-			}
-
-			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::BinaryArray || byteCodeInfo.Type == ValueType::Ext)
-			{
-				size += extSize;
-				extSize = 0;
-			}
-
-			if (mBinaryStreamReader.SetPosition(mBinaryStreamReader.GetPosition() + size))
-			{
-				if (extSize)
-				{
-					if (byteCodeInfo.Type == ValueType::Map)
-					{
-						for (uint32_t i = 0; i < extSize; ++i)
-						{
-							SkipValue();
-							SkipValue();
-						}
-					}
-					else if (byteCodeInfo.Type == ValueType::Array)
-					{
-						for (uint32_t i = 0; i < extSize; ++i)
-						{
-							SkipValue();
-						}
-					}
-				}
-				return;
-			}
-			throw ParsingException("Unexpected end of input archive", 0, mBinaryStreamReader.GetPosition());
-		}
-		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
+		SkipValueImpl(mBinaryStreamReader);
 	}
 }

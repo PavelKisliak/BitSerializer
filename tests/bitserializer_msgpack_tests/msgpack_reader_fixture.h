@@ -17,17 +17,16 @@ public:
 		BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy = BitSerializer::MismatchedTypesPolicy::ThrowError)
 	{
 		mTestMsgPack = std::move(testMsgPack);
-		BitSerializer::SerializationOptions serializationOptions;
-		serializationOptions.overflowNumberPolicy = overflowNumberPolicy;
-		serializationOptions.mismatchedTypesPolicy = mismatchedTypesPolicy;
+		mSerializationOptions.overflowNumberPolicy = overflowNumberPolicy;
+		mSerializationOptions.mismatchedTypesPolicy = mismatchedTypesPolicy;
 		if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStringReader>)
 		{
-			mMsgPackReader = std::make_shared<TReader>(mTestMsgPack, serializationOptions);
+			mMsgPackReader = std::make_shared<TReader>(mTestMsgPack, mSerializationOptions);
 		}
 		else if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader>)
 		{
 			mInputStream = std::make_optional<std::istringstream>(mTestMsgPack);
-			mMsgPackReader = std::make_shared<TReader>(mInputStream.value(), serializationOptions);
+			mMsgPackReader = std::make_shared<TReader>(mInputStream.value(), mSerializationOptions);
 		}
 	}
 
@@ -42,6 +41,7 @@ public:
 
 protected:
 	std::string mTestMsgPack;
+	BitSerializer::SerializationOptions mSerializationOptions;
 	std::shared_ptr<TReader> mMsgPackReader;
 	std::optional<std::istringstream> mInputStream;
 };

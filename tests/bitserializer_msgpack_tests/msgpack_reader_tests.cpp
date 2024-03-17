@@ -87,6 +87,22 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadBoolean)
 	EXPECT_EQ(false, value);
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadBooleanToWrongType)
+{
+	this->PrepareReader("\xC3");
+	std::string_view wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipBooleanWhenPolicyIsSkip)
+{
+	this->PrepareReader("\xC3", BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	std::string_view wrongType;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_TRUE(wrongType.empty());
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
 //-----------------------------------------------------------------------------
 // Tests of reading integral values
 //-----------------------------------------------------------------------------
@@ -409,6 +425,39 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadIntFromBoolean)
 	EXPECT_EQ(1, value);
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadInt32ToWrongType)
+{
+	this->PrepareReader({	'\xD2', '\x80', '\x00', '\x00', '\x00' });
+	std::string_view wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipInt32WhenPolicyIsSkip)
+{
+	this->PrepareReader({ '\xD2', '\x80', '\x00', '\x00', '\x00' },
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	std::string_view wrongType;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_TRUE(wrongType.empty());
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenOverflowInt16)
+{
+	this->PrepareReader({ '\xD2', '\x80', '\x00', '\x00', '\x00' });
+	int16_t shortInt;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(shortInt), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipInt16OverflowWhenPolicyIsSkip)
+{
+	this->PrepareReader({ '\xD2', '\x80', '\x00', '\x00', '\x00' }, BitSerializer::OverflowNumberPolicy::Skip);
+	int16_t shortInt = 0x1020;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(shortInt));
+	EXPECT_EQ(0x1020, shortInt);
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
 //-----------------------------------------------------------------------------
 // Tests of reading floating types
 //-----------------------------------------------------------------------------
@@ -437,6 +486,40 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadDoubleFromFloat)
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_FLOAT_EQ(3.14f, static_cast<float>(value));		// Cast back to float for able to compare
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFloatToWrongType)
+{
+	this->PrepareReader("\xCA\x40\x48\xF5\xC3");
+	std::string_view wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFloatWhenPolicyIsSkip)
+{
+	this->PrepareReader("\xCA\x40\x48\xF5\xC3",
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	std::string_view wrongType;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_TRUE(wrongType.empty());
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadDoubleToWrongType)
+{
+	this->PrepareReader("\xCB\x40\x09\x21\xFB\x54\x52\x45\x50");
+	std::string_view wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipDoubleWhenPolicyIsSkip)
+{
+	this->PrepareReader("\xCB\x40\x09\x21\xFB\x54\x52\x45\x50",
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	std::string_view wrongType;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_TRUE(wrongType.empty());
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
 }
 
 //-----------------------------------------------------------------------------
@@ -510,6 +593,25 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfString)
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(actualStr), BitSerializer::ParsingException);
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadStringToWrongType)
+{
+	const auto testStr = this->GenTestString(std::numeric_limits<uint8_t>::max());
+	this->PrepareReader(std::string({ '\xD9', '\xFF' }) + testStr);
+	bool wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenPolicyIsSkip)
+{
+	const auto testStr = this->GenTestString(std::numeric_limits<uint8_t>::max());
+	this->PrepareReader(std::string({ '\xD9', '\xFF' }) + testStr,
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	int wrongType = 0x70605040;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_EQ(0x70605040, wrongType);
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
 //-----------------------------------------------------------------------------
 // Tests of reading arrays
 //-----------------------------------------------------------------------------
@@ -567,6 +669,23 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeFitToUint32)
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadArraySize(size));
 	EXPECT_EQ(0x40302010, size);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedArrayToWrongType)
+{
+	this->PrepareReader({static_cast<char>(0b10010010), '\xC2', '\xC3' });
+	bool wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedArrayWhenPolicyIsSkip)
+{
+	this->PrepareReader({ static_cast<char>(0b10010010), '\xC2', '\xC3' },
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	int wrongType = 0x70605040;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_EQ(0x70605040, wrongType);
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
 }
 
 //-----------------------------------------------------------------------------
@@ -655,6 +774,23 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenUnexpectedEnd)
 	EXPECT_THROW(this->mMsgPackReader->ReadBinary(), BitSerializer::ParsingException);
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadBinaryArrayToWrongType)
+{
+	this->PrepareReader({ '\xC4', '\x03', '\x01', '\x02', '\x03' });
+	bool wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipBinaryArrayWhenPolicyIsSkip)
+{
+	this->PrepareReader({ '\xC4', '\x03', '\x01', '\x02', '\x03' },
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	int wrongType = 0x70605040;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_EQ(0x70605040, wrongType);
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
 //-----------------------------------------------------------------------------
 // Tests of reading maps
 //-----------------------------------------------------------------------------
@@ -712,6 +848,25 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadMapWhenSizeFitToUint32)
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadMapSize(size));
 	EXPECT_EQ(0x40302010, size);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedMapToWrongType)
+{
+	this->PrepareReader({
+		static_cast<char>(0b10000001), '\x01', '\x10'
+	});
+	bool wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedMapWhenPolicyIsSkip)
+{
+	this->PrepareReader({static_cast<char>(0b10000010), '\x01', '\x10', '\x02', '\x20' },
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	int wrongType = 0x70605040;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_EQ(0x70605040, wrongType);
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
 }
 
 //-----------------------------------------------------------------------------
@@ -808,6 +963,23 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp96
 
 	this->PrepareReader(std::string({ '\xC7', '\x0C', '\xFF' }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadTimestampToWrongType)
+{
+	this->PrepareReader({ '\xD6', '\xFF', '\x10', '\x20', '\x30', '\x40' });
+	std::string_view wrongType;
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipTimestampWhenPolicyIsSkip)
+{
+	this->PrepareReader({ '\xD6', '\xFF', '\x10', '\x20', '\x30', '\x40' }, 
+		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	std::string_view wrongType;
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
+	EXPECT_TRUE(wrongType.empty());
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
 }
 
 //-----------------------------------------------------------------------------

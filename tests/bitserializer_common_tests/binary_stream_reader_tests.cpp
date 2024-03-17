@@ -324,7 +324,24 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockWhenSizeLessThanChunk)
 	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
 }
 
-TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenNoMoreData)
+TEST_F(BinaryStreamReaderTest, ShouldReadMultipleSolidBlocksExceedChunkSize)
+{
+	// Arrange
+	PrepareStreamReader(reader_type::chunk_size + 4);
+
+	// Act
+	const std::string actual1(mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size));
+	const std::string actual2(mBinaryStreamReader->ReadSolidBlock(4));
+
+	// Assert
+	ASSERT_EQ(reader_type::chunk_size, actual1.size());
+	ASSERT_EQ(4, actual2.size());
+	EXPECT_EQ(mInputString.substr(0, reader_type::chunk_size), actual1);
+	EXPECT_EQ(mInputString.substr(reader_type::chunk_size), actual2);
+	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
+}
+
+TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenEmptySource)
 {
 	// Arrange
 	PrepareStreamReader(0);
@@ -335,6 +352,22 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenNoMoreData)
 	// Assert
 	ASSERT_TRUE(actual.empty());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
+}
+
+TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenNoMoreData)
+{
+	// Arrange
+	PrepareStreamReader(reader_type::chunk_size + 1);
+
+	// Act
+	const std::string actual1(mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size));
+	const std::string actual2(mBinaryStreamReader->ReadSolidBlock(2));
+
+	// Assert
+	ASSERT_EQ(reader_type::chunk_size, actual1.size());
+	EXPECT_EQ(mInputString.substr(0, reader_type::chunk_size), actual1);
+	EXPECT_TRUE(actual2.empty());
+	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
 }
 
 TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenInputDataSizeIsLess)

@@ -144,6 +144,20 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItAfterCachedChunk)
 	EXPECT_EQ(mInputString[testPos], *actualByte);
 }
 
+TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItAlreadyInTheEndOfData)
+{
+	// Arrange
+	constexpr size_t testBlockSize = 5;
+	PrepareStreamReader(testBlockSize);
+
+	// Act
+	const bool result = mBinaryStreamReader->SetPosition(testBlockSize);
+
+	// Assert
+	ASSERT_TRUE(result);
+	EXPECT_EQ(testBlockSize, mBinaryStreamReader->GetPosition());
+}
+
 TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItBeforeCachedChunk)
 {
 	// Arrange

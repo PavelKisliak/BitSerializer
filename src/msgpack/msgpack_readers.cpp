@@ -125,11 +125,11 @@ namespace
 		{ ValueType::Boolean },
 
 		// Binary 8 (0xc4)
-		{ ValueType::Unknown, 0, 0, 1 },
+		{ ValueType::BinaryArray, 0, 0, 1 },
 		// Binary 16 (0xc5)
-		{ ValueType::Unknown, 0, 0, 2 },
+		{ ValueType::BinaryArray, 0, 0, 2 },
 		// Binary 32 (0xc6)
-		{ ValueType::Unknown, 0, 0, 4 },
+		{ ValueType::BinaryArray, 0, 0, 4 },
 
 		// ext 8 (0xc7)
 		{ ValueType::Ext, 0, 1, 1 },
@@ -774,7 +774,7 @@ namespace BitSerializer::MsgPack::Detail
 				extSize = ReadExtSize(byteCodeInfo.ExtSize, mInputData, mPos);
 			}
 
-			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::Ext)
+			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::BinaryArray || byteCodeInfo.Type == ValueType::Ext)
 			{
 				size += extSize;
 				extSize = 0;
@@ -1358,7 +1358,7 @@ namespace BitSerializer::MsgPack::Detail
 				extSize = ReadExtSize(mBinaryStreamReader, byteCodeInfo.ExtSize);
 			}
 
-			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::Ext)
+			if (byteCodeInfo.Type == ValueType::String || byteCodeInfo.Type == ValueType::BinaryArray || byteCodeInfo.Type == ValueType::Ext)
 			{
 				size += extSize;
 				extSize = 0;

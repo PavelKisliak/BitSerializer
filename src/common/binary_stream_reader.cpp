@@ -93,7 +93,7 @@ namespace BitSerializer::Detail
 
 		if (mStartDataPtr + blockSize > mEndDataPtr)
 		{
-			if (!ReadNextChunk() || mStartDataPtr + blockSize < mEndDataPtr)
+			if (!ReadNextChunk() || mStartDataPtr + blockSize > mEndDataPtr)
 			{
 				return {};
 			}

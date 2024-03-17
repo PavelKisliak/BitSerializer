@@ -1219,6 +1219,42 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint32)
 	EXPECT_EQ(std::hash<std::string>()(expectedStr), std::hash<std::string_view>()(actualStr));
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldSkipBinArrayWhenSizeFitToUint8)
+{
+	this->PrepareReader({
+		'\xC4', '\x03', '\x01', '\x02', '\x03',
+		'\xC4', '\x01', '\x10' });
+	this->mMsgPackReader->SkipValue();
+	size_t arraySize;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(arraySize));
+	EXPECT_EQ(1, arraySize);
+	EXPECT_EQ('\x10', this->mMsgPackReader->ReadBinary());
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipBinArrayWhenSizeFitToUint16)
+{
+	this->PrepareReader({
+		'\xC5', '\x00', '\x03', '\x01', '\x02', '\x03',
+		'\xC5', '\x00', '\x01', '\x10' });
+	this->mMsgPackReader->SkipValue();
+	size_t arraySize;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(arraySize));
+	EXPECT_EQ(1, arraySize);
+	EXPECT_EQ('\x10', this->mMsgPackReader->ReadBinary());
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldSkipBinArrayWhenSizeFitToUint32)
+{
+	this->PrepareReader({
+		'\xC6', '\x00', '\x00', '\x00', '\x03', '\x01', '\x02', '\x03',
+		'\xC6', '\x00', '\x00', '\x00', '\x01', '\x10' });
+	this->mMsgPackReader->SkipValue();
+	size_t arraySize;
+	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(arraySize));
+	EXPECT_EQ(1, arraySize);
+	EXPECT_EQ('\x10', this->mMsgPackReader->ReadBinary());
+}
+
 TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedExt1)
 {
 	this->PrepareReader({

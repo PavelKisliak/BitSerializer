@@ -48,6 +48,7 @@ enum class ValueType
 	Double,
 	String,
 	Array,
+	BinaryArray,
 	Map,
 	Ext,
 	Timestamp

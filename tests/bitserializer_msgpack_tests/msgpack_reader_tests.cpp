@@ -803,10 +803,10 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp96
 	this->PrepareReader(std::string({ '\xC7', }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
 
-	this->PrepareReader(std::string({ '\xC7', '\xFF' }));
+	this->PrepareReader(std::string({ '\xC7', '\x0C' }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
 
-	this->PrepareReader(std::string({ '\xC7', '\xFF', '\x11' }));
+	this->PrepareReader(std::string({ '\xC7', '\x0C', '\xFF' }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
 }
 

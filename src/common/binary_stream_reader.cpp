@@ -40,7 +40,7 @@ namespace BitSerializer::Detail
 			return true;
 		}
 
-		if (!mStream.seekg(static_cast<std::streamoff>(pos)).fail())
+		if (pos == mStreamPos || !mStream.seekg(static_cast<std::streamoff>(pos)).fail())
 		{
 			mStreamPos = pos;
 			// Invalidate cache
@@ -128,6 +128,11 @@ namespace BitSerializer::Detail
 
 	bool CBinaryStreamReader::ReadNextChunk()
 	{
+		if (IsEnd())
+		{
+			return false;
+		}
+
 		if (mStartDataPtr == mEndBufferPtr)
 		{
 			mStartDataPtr = mEndDataPtr = mBuffer;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -57,6 +57,11 @@ namespace BitSerializer::Convert::Detail
 	template <typename T, typename TOutStr>
 	constexpr bool has_internal_ToString_v = has_internal_ToString<T, TOutStr>::value;
 
+	template <typename T>
+	constexpr bool has_any_internal_ToString_v = has_internal_ToString<T, std::basic_string<char>>::value
+		|| has_internal_ToString<T, std::basic_string<char16_t>>::value
+		|| has_internal_ToString<T, std::basic_string<char32_t>>::value;
+
 
 	template <typename T, typename TInStr>
 	struct has_internal_FromString
@@ -76,29 +81,8 @@ namespace BitSerializer::Convert::Detail
 	template <typename T, typename TInStr>
 	constexpr bool has_internal_FromString_v = has_internal_FromString<T, TInStr>::value;
 
-	//------------------------------------------------------------------------------
-
 	template <typename T>
-	struct is_convertible_to_string_view
-	{
-	private:
-		template <typename TSym, typename TAllocator>
-		static std::basic_string_view<TSym> ToStringView(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& in);
-
-		template <typename TSym>
-		static std::basic_string_view<TSym> ToStringView(const TSym* in);
-
-		template <typename TObj>
-		static decltype(ToStringView(std::declval<TObj>()), void(), std::true_type()) test(int);
-
-		template <typename>
-		static std::false_type test(...);
-
-	public:
-		typedef decltype(test<T>(0)) type;
-		enum { value = type::value };
-	};
-
-	template <typename T>
-	constexpr bool is_convertible_to_string_view_v = is_convertible_to_string_view<T>::value;
+	constexpr bool has_any_internal_FromString_v = has_internal_FromString<T, std::basic_string_view<char>>::value
+		|| has_internal_FromString<T, std::basic_string_view<char16_t>>::value
+		|| has_internal_FromString<T, std::basic_string_view<char32_t>>::value;
 }

@@ -28,17 +28,15 @@ private:
 };
 
 template <typename T>
-static std::errc To(const T& in, CCustomString& out)
+static void To(const T& in, CCustomString& out)
 {
 	out.Append(Convert::To<std::string>(in));
-	return std::errc();
 }
 
 template <typename T>
-static std::errc To(const CCustomString& in, T& out)
+static void To(const CCustomString& in, T& out)
 {
 	out = Convert::To<T>(in.ToGenericString());
-	return std::errc();
 }
 
 //-----------------------------------------------------------------------------

@@ -17,6 +17,7 @@ The library provides several public functions for convert types:
 - `std::optional<TOut> TryTo<TOut>(TIn&& value)` throws nothing
 - `std::string ToString(TIn&& value)` just "syntax sugar" for `To<std::string>()`
 - `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
+- `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported
 
 Under the hood, integer types are converting via modern `std::from_chars()`, but any other via functions from older C++ (there is a delay in their implementation by GCC and CLANG compilers).
 ```cpp
@@ -125,7 +126,7 @@ Date, time and duration can be converted to string representation of ISO 8601 an
 - ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports up to 9 digits, which is enough for values with nanosecond precision.
 - Both decimal separators (dot and comma) are supported for fractions of a second.
 - According to standard, to represent years before 0000 or after 9999 uses additional '-' or '+' sign.
-- The dates range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
+- The date range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
 - Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
 - According to the C++20 standard, the EPOCH date for `system_clock` types is considered as *1970-01-01 00:00:00 UTC* excluding leap seconds.
 - For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
@@ -143,6 +144,12 @@ Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CRawTime
 time_t time = Convert::To<CRawTime>("1969-12-31T23:59:59Z");
 std::string utc = Convert::ToString(CRawTime(time));
 ```
+
+### Conversion std::filesystem::path
+
+The library allows to convert `std::filesystem::path` to `std::basic_string` family types and vice versa.
+Like the other parts, it knows how to transcode the path between different UTF encodings.
+Support of `std::filesystem` can be disabled via definition`BITSERIALIZER_HAS_FILESYSTEM 0`.
 
 ### Conversion custom classes
 There are several ways to convert custom classes from/to strings:

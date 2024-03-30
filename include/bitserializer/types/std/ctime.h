@@ -5,6 +5,7 @@
 #pragma once
 #include <ctime>
 #include "bitserializer/conversion_detail/convert_chrono.h"
+#include "bitserializer/serialization_detail/bin_timestamp.h"
 
 namespace BitSerializer
 {

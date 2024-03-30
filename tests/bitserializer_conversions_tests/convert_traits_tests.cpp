@@ -125,8 +125,8 @@ TEST(ConvertTraits, ShouldDetectWhetherConversionIsPossible)
 	// Test convert with externally overloaded conversion methods
 	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<ExternalConversionFixture, std::string>));
 
-	//EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::chrono::seconds, Detail::CBinTimestamp>));
-	//EXPECT_TRUE((Convert::Detail::is_convert_supported_v<Detail::CBinTimestamp, std::chrono::seconds>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::chrono::seconds, Detail::CBinTimestamp>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<Detail::CBinTimestamp, std::chrono::seconds>));
 
 	// Test non-convertible classes
 	EXPECT_FALSE((Convert::Detail::is_convert_supported_v<std::string_view, NotConvertibleFixture>));

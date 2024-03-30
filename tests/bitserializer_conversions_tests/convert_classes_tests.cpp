@@ -158,17 +158,15 @@ public:
 
 
 // ReSharper disable once CppDeclaratorNeverUsed
-static std::errc To(const Utf8ExternalConvertFixture& in, std::string& out)
+static void To(const Utf8ExternalConvertFixture& in, std::string& out)
 {
 	out = in.value;
-	return std::errc();
 }
 
 // ReSharper disable once CppDeclaratorNeverUsed
-static std::errc To(std::string_view in, Utf8ExternalConvertFixture& out)
+static void To(std::string_view in, Utf8ExternalConvertFixture& out)
 {
 	out.value = in;
-	return std::errc();
 }
 
 TEST(ConvertClasses, ConvertToStringViaExternalConvertFunc) {

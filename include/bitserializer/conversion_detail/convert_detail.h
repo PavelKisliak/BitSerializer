@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -13,7 +13,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF string to any other UTF format.
 	/// </summary>
 	template <typename TInSym, typename TOutSym, typename TAllocator>
-	void To(const std::basic_string_view<TInSym>& in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
+	void To(std::basic_string_view<TInSym> in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
 	{
 		// Assign to the same char type
 		if constexpr (sizeof(TInSym) == sizeof(TOutSym)) {
@@ -73,7 +73,7 @@ namespace BitSerializer::Convert::Detail
 	/// Not all of these methods are required, but for avoid performance issues (for transcoding),
 	/// it is recommended to implement conversion methods for most commonly used types.
 	/// </summary>
-	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
+	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(has_any_internal_ToString_v<T> || has_global_to_string_v<T, std::basic_string<char, std::char_traits<char>>>), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		constexpr auto hasGlobalToString = has_global_to_string_v<T, std::basic_string<char, std::char_traits<char>>>;
@@ -81,9 +81,7 @@ namespace BitSerializer::Convert::Detail
 		constexpr auto hasInternalToUtf16String = has_internal_ToString_v<T, std::u16string>;
 		constexpr auto hasInternalToUtf32String = has_internal_ToString_v<T, std::u32string>;
 
-		// Read the description of this function to find out how to fix this error
-		static_assert(hasGlobalToString || hasInternalToString || hasInternalToUtf16String || hasInternalToUtf32String,
-			"Not found any conversion methods for this class, internals or externals");
+		static_assert(hasGlobalToString || hasInternalToString || hasInternalToUtf16String || hasInternalToUtf32String);
 
 		if constexpr (sizeof(TSym) == sizeof(char))
 		{
@@ -150,18 +148,14 @@ namespace BitSerializer::Convert::Detail
 	/// it is recommended to implement conversion methods for most commonly used types.
 	/// You also could implement templated FromString method which converts any string types.
 	/// </summary>
-	template <class T, typename TSym, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
+	template <class T, typename TSym, std::enable_if_t<(has_any_internal_FromString_v<T>), int> = 0>
 	void To(const std::basic_string_view<TSym, std::char_traits<TSym>>& in, T& out)
 	{
-		constexpr auto hasInternalFromString_Utf8 = has_internal_FromString_v<T, std::basic_string_view<char, std::char_traits<char>>>
-			// For temporary compatibility with previous version
-			|| has_internal_FromString_v<T, std::basic_string<char, std::char_traits<char>>>;
+		constexpr auto hasInternalFromString_Utf8 = has_internal_FromString_v<T, std::basic_string_view<char, std::char_traits<char>>>;
 		constexpr auto hasInternalFromString_Utf16 = has_internal_FromString_v<T, std::basic_string_view<char16_t, std::char_traits<char16_t>>>;
 		constexpr auto hasInternalFromString_Utf32 = has_internal_FromString_v<T, std::basic_string_view<char32_t, std::char_traits<char32_t>>>;
 
-		// Read the description of this function to find out how to fix this error
-		static_assert(hasInternalFromString_Utf8 || hasInternalFromString_Utf16 || hasInternalFromString_Utf32,
-			"Not found any conversion methods for this class, internals or externals");
+		static_assert(hasInternalFromString_Utf8 || hasInternalFromString_Utf16 || hasInternalFromString_Utf32);
 
 		if constexpr (sizeof(TSym) == sizeof(char))
 		{
@@ -228,14 +222,15 @@ namespace BitSerializer::Convert::Detail
 	/// Converts any UTF string to suitable string_view.
 	/// </summary>
 	template <typename TSym, typename TAllocator>
-	std::basic_string_view<TSym> ToStringView(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& in) {
+	constexpr std::basic_string_view<TSym> ToStringView(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& in) noexcept {
 		return in;
 	}
 
 	/// <summary>
 	/// Converts any c-string to suitable string_view.
 	/// </summary>
-	template <typename TSym> std::basic_string_view<TSym> ToStringView(const TSym* in) {
+	template <typename TSym>
+	constexpr std::basic_string_view<TSym> ToStringView(const TSym* in) noexcept {
 		return in;
 	}
 }

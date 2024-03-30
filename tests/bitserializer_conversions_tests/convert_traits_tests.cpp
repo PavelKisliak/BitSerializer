@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -95,4 +95,40 @@ TEST(ConvertTraits, ShouldDetectConversibilityToStringView) {
 	EXPECT_FALSE(Convert::Detail::is_convertible_to_string_view_v<std::string_view>);
 	EXPECT_FALSE(Convert::Detail::is_convertible_to_string_view_v<int>);
 	EXPECT_FALSE(Convert::Detail::is_convertible_to_string_view_v<NotConvertibleFixture>);
+}
+
+//-----------------------------------------------------------------------------
+TEST(ConvertTraits, ShouldDetectWhetherConversionIsPossible)
+{
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<int, std::string>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<float, std::u16string>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<double, std::u32string>));
+
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::string, int>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::u16string, float>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::u32string, double>));
+
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::string_view, int>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::u16string_view, float>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::u32string_view, double>));
+
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<const char*, int>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<const char16_t*, float>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<const char32_t*, double>));
+
+	// Test convert with internal string conversion methods (FromString(), ToString())
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::string, InternalConversionFixture>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<const char*, InternalConversionFixture>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::string_view, InternalConversionFixture>));
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<InternalConversionFixture, std::string>));
+
+	// Test convert with externally overloaded conversion methods
+	EXPECT_TRUE((Convert::Detail::is_convert_supported_v<ExternalConversionFixture, std::string>));
+
+	//EXPECT_TRUE((Convert::Detail::is_convert_supported_v<std::chrono::seconds, Detail::CBinTimestamp>));
+	//EXPECT_TRUE((Convert::Detail::is_convert_supported_v<Detail::CBinTimestamp, std::chrono::seconds>));
+
+	// Test non-convertible classes
+	EXPECT_FALSE((Convert::Detail::is_convert_supported_v<std::string_view, NotConvertibleFixture>));
+	EXPECT_FALSE((Convert::Detail::is_convert_supported_v<NotConvertibleFixture, std::string>));
 }

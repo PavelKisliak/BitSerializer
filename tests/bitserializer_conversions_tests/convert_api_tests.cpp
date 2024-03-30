@@ -7,6 +7,36 @@
 
 using namespace BitSerializer;
 
+/// <summary>
+/// Test class without any conversions methods (internal or external).
+/// </summary>
+class NotConvertibleFixture { };
+
+//-----------------------------------------------------------------------------
+// Test IsConvertible<>()
+//-----------------------------------------------------------------------------
+TEST(ConvertApi, ShouldDetectWhetherTypeIsConvertible)
+{
+	EXPECT_TRUE((Convert::IsConvertible<int, std::string>()));
+	EXPECT_TRUE((Convert::IsConvertible<std::u16string, int>()));
+	EXPECT_TRUE((Convert::IsConvertible<const char16_t*, float>()));
+	EXPECT_TRUE((Convert::IsConvertible<std::u32string_view, double>()));
+
+	// Test convert with internal string conversion methods (FromString(), ToString())
+	EXPECT_TRUE((Convert::IsConvertible<std::string, TestPointClass>()));
+	EXPECT_TRUE((Convert::IsConvertible<std::string_view, TestPointClass>()));
+	EXPECT_TRUE((Convert::IsConvertible<const char*, TestPointClass>()));
+	EXPECT_TRUE((Convert::IsConvertible<TestPointClass, std::string>()));
+
+	// Test convert with externally overloaded conversion methods
+	//EXPECT_TRUE((Convert::IsConvertible<std::chrono::nanoseconds, Detail::CBinTimestamp>()));
+	//EXPECT_TRUE((Convert::IsConvertible<Detail::CBinTimestamp, std::chrono::nanoseconds>()));
+
+	// Test non-convertible classes
+	EXPECT_FALSE((Convert::IsConvertible<std::string_view, NotConvertibleFixture>()));
+	EXPECT_FALSE((Convert::IsConvertible<NotConvertibleFixture, std::string>()));
+}
+
 //-----------------------------------------------------------------------------
 // Test To<>()
 //-----------------------------------------------------------------------------
@@ -82,13 +112,13 @@ TEST(ConvertApi, ToWString) {
 //-----------------------------------------------------------------------------
 TEST(ConvertApi, ConvertUtfTypeToStream) {
 	std::ostringstream oss;
-	oss << BitSerializer::Convert::UtfType::Utf16le;
+	oss << Convert::UtfType::Utf16le;
 	EXPECT_EQ("UTF-16LE", oss.str());
 }
 
 TEST(ConvertApi, ConvertUtfTypeFromStream) {
 	std::stringstream stream("UTF-32LE");
-	BitSerializer::Convert::UtfType actual;
+	Convert::UtfType actual;
 	stream >> actual;
 	EXPECT_EQ(BitSerializer::Convert::UtfType::Utf32le, actual);
 }

@@ -11,9 +11,19 @@
 #include "conversion_detail/convert_filesystem.h"
 #endif
 #include "conversion_detail/convert_chrono.h"
+#include "conversion_detail/convert_traits.h"
 
 namespace BitSerializer::Convert
 {
+	/// <summary>
+	/// Checks whether conversion from `TIn` to `TOut` is supported.
+	/// </summary>
+	template <typename TIn, typename TOut>
+	constexpr bool IsConvertible()
+	{
+		return Detail::is_convert_supported_v<TIn, TOut>;
+	}
+
 	/// <summary>
 	/// Universal function for convert value.
 	/// </summary>
@@ -24,22 +34,30 @@ namespace BitSerializer::Convert
 	template <typename TOut, typename TIn>
 	TOut To(TIn&& value)
 	{
+		constexpr bool isSame = std::is_same_v<TOut, std::decay_t<TIn>>;
+		constexpr bool isConvertible = IsConvertible<TIn, TOut>();
+
+		// You may need to implement internal or external conversion functions for your types (see: "docs/bitserializer_convert.md").
+		static_assert(isSame || isConvertible, "BitSerializer::Convert. Converting these types is not supported.");
+
 		// Convert to the same type
 		if constexpr (std::is_same_v<TOut, std::decay_t<TIn>>) {
-			return value;
+			return std::forward<TIn>(value);
 		}
 		else
 		{
 			TOut result;
-			using namespace Detail;
-			if constexpr (is_convertible_to_string_view_v<TIn>) {
-				// String types like std::basic_string and c-strings must be converted to string_view
-				To(ToStringView(value), result);
+			if constexpr (isConvertible)
+			{
+				using namespace Detail;
+				if constexpr (is_convertible_to_string_view_v<TIn>) {
+					// String types like std::basic_string and c-strings must be converted to string_view
+					To(ToStringView(value), result);
+				}
+				else {
+					To(std::forward<TIn>(value), result);
+				}
 			}
-			else {
-				To(std::forward<TIn>(value), result);
-			}
-
 			return result;
 		}
 	}

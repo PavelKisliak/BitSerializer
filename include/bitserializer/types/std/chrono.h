@@ -1,10 +1,11 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <chrono>
 #include <type_traits>
+#include "bitserializer/serialization_detail/bin_timestamp.h"
 
 namespace BitSerializer
 {

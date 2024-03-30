@@ -24,7 +24,7 @@
 #include <filesystem>
 #include "string_utils.h"
 #include "bitserializer/convert.h"
-#include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/bin_timestamp.h"
 
 /// <summary>
 /// Checks that the class has static BuildFixture() method.

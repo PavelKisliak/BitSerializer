@@ -29,8 +29,8 @@ TEST(ConvertApi, ShouldDetectWhetherTypeIsConvertible)
 	EXPECT_TRUE((Convert::IsConvertible<TestPointClass, std::string>()));
 
 	// Test convert with externally overloaded conversion methods
-	//EXPECT_TRUE((Convert::IsConvertible<std::chrono::nanoseconds, Detail::CBinTimestamp>()));
-	//EXPECT_TRUE((Convert::IsConvertible<Detail::CBinTimestamp, std::chrono::nanoseconds>()));
+	EXPECT_TRUE((Convert::IsConvertible<std::chrono::nanoseconds, Detail::CBinTimestamp>()));
+	EXPECT_TRUE((Convert::IsConvertible<Detail::CBinTimestamp, std::chrono::nanoseconds>()));
 
 	// Test non-convertible classes
 	EXPECT_FALSE((Convert::IsConvertible<std::string_view, NotConvertibleFixture>()));

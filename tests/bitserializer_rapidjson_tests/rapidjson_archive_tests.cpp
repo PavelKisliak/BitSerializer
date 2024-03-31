@@ -210,6 +210,16 @@ TEST(RapidJsonArchive, SerializeClassWithSubTwoDimArray)
 	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
+TEST(RapidJsonArchive, ShouldVisitKeysInObjectScopeWhenReadValues)
+{
+	TestVisitKeysInObjectScope<JsonArchive>();
+}
+
+TEST(RapidJsonArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
+{
+	TestVisitKeysInObjectScope<JsonArchive>(true);
+}
+
 TEST(RapidJsonArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
@@ -226,11 +236,6 @@ TEST(RapidJsonArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
 	TestSerializeClass<JsonArchive>(fixture);
-}
-
-TEST(RapidJsonArchive, ShouldVisitKeysInObjectScope)
-{
-	TestVisitKeysInObjectScope<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

@@ -775,13 +775,14 @@ public:
 	void VisitKeys(TCallback&& fn)
 	{
 		mMsgPackReader->SetPosition(mStartPos);
-		for (mIndex = 0; mIndex < mSize; ++mIndex)
+		for (mIndex = 0; mIndex < mSize;)
 		{
 			ReadKey(fn);
 			// Need to skip value if it was not read (current key is not empty)
 			if (mCurrentKey)
 			{
 				mMsgPackReader->SkipValue();
+				++mIndex;
 			}
 		}
 	}

@@ -137,6 +137,16 @@ TEST(RapidYamlArchive, ShouldAllowToLoadFloatFromInteger)
 	EXPECT_EQ(100, actual.GetValue());
 }
 
+TEST(RapidYamlArchive, ShouldVisitKeysInObjectScopeWhenReadValues)
+{
+	TestVisitKeysInObjectScope<YamlArchive>();
+}
+
+TEST(RapidYamlArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
+{
+	TestVisitKeysInObjectScope<YamlArchive>(true);
+}
+
 TEST(RapidYamlArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
@@ -153,11 +163,6 @@ TEST(RapidYamlArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
 	TestSerializeClass<YamlArchive>(fixture);
-}
-
-TEST(RapidYamlArchive, ShouldVisitKeysInObjectScope)
-{
-	TestVisitKeysInObjectScope<YamlArchive>();
 }
 
 //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -8,7 +8,129 @@
 using namespace BitSerializer;
 
 //-----------------------------------------------------------------------------
-// Test conversion for fundamental types
+// Test conversion of any fundamental type to any other fundamental type.
+//-----------------------------------------------------------------------------
+TEST(ConvertFundamentals, ToTheSameType)
+{
+	EXPECT_EQ(true, Convert::To<bool>(true));
+	EXPECT_EQ(false, Convert::To<bool>(false));
+
+	EXPECT_EQ(std::numeric_limits<int>::min(), Convert::To<int>(std::numeric_limits<int>::min()));
+	EXPECT_EQ(std::numeric_limits<int>::max(), Convert::To<int>(std::numeric_limits<int>::max()));
+
+	EXPECT_EQ(std::numeric_limits<uint64_t>::min(), Convert::To<uint64_t>(std::numeric_limits<uint64_t>::min()));
+	EXPECT_EQ(std::numeric_limits<uint64_t>::max(), Convert::To<uint64_t>(std::numeric_limits<uint64_t>::max()));
+
+	EXPECT_EQ(3.14f, Convert::To<float>(3.14f));
+	EXPECT_EQ(3.141592654, Convert::To<double>(3.141592654));
+}
+
+TEST(ConvertFundamentals, BoolToUnsigned)
+{
+	EXPECT_EQ(0, Convert::To<bool>(false));
+	EXPECT_EQ(1, Convert::To<bool>(true));
+}
+
+TEST(ConvertFundamentals, BoolFromIntegers)
+{
+	EXPECT_EQ(false, Convert::To<bool>(0));
+	EXPECT_EQ(true, Convert::To<bool>(1u));
+}
+
+TEST(ConvertFundamentals, BoolFromTooBigIntegerThrowException)
+{
+	EXPECT_THROW(Convert::To<bool>(2), std::out_of_range);
+	EXPECT_THROW(Convert::To<bool>(-1), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, IntMaxToUnsigned)
+{
+	EXPECT_EQ(127, Convert::To<uint8_t>(std::numeric_limits<int8_t>::max()));
+	EXPECT_EQ(32767, Convert::To<uint16_t>(std::numeric_limits<int16_t>::max()));
+	EXPECT_EQ(2147483647, Convert::To<uint32_t>(std::numeric_limits<int32_t>::max()));
+	EXPECT_EQ(9223372036854775807, Convert::To<uint64_t>(std::numeric_limits<int64_t>::max()));
+}
+
+TEST(ConvertFundamentals, IntToIntWithLessSize)
+{
+	EXPECT_EQ(-128, Convert::To<int8_t>(static_cast<int16_t>(-128)));
+	EXPECT_EQ(-32768, Convert::To<int16_t>(static_cast<int32_t>(-32768)));
+	EXPECT_EQ(-2147483648, Convert::To<int32_t>(static_cast<int64_t>(-2147483648)));
+}
+
+TEST(ConvertFundamentals, UnsignedToUnsignedWithLessSize)
+{
+	EXPECT_EQ(255, Convert::To<uint8_t>(static_cast<uint16_t>(255)));
+	EXPECT_EQ(65535, Convert::To<uint16_t>(static_cast<uint32_t>(65535)));
+	EXPECT_EQ(4294967295, Convert::To<uint32_t>(static_cast<uint64_t>(4294967295)));
+}
+
+TEST(ConvertFundamentals, IntToFloatingTypes)
+{
+	EXPECT_EQ(12345.f, Convert::To<float>(12345));
+	EXPECT_EQ(12345.0, Convert::To<double>(12345));
+}
+
+TEST(ConvertFundamentals, IntFromFloatingTypesThrowException)
+{
+	EXPECT_THROW( Convert::To<int>(12345.f), std::out_of_range);
+	EXPECT_THROW(Convert::To<int>(12345.0), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, IntFromTooBigIntThrowException)
+{
+	EXPECT_THROW(Convert::To<int8_t>(128), std::out_of_range);
+	EXPECT_THROW(Convert::To<int8_t>(-129), std::out_of_range);
+
+	EXPECT_THROW(Convert::To<int16_t>(32768), std::out_of_range);
+	EXPECT_THROW(Convert::To<int16_t>(-32769), std::out_of_range);
+
+	EXPECT_THROW(Convert::To<int32_t>(2147483648ll), std::out_of_range);
+	EXPECT_THROW(Convert::To<int32_t>(-2147483649ll), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, UnsignedFromNegativeIntThrowException)
+{
+	EXPECT_THROW(Convert::To<uint8_t>(-1), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint16_t>(std::numeric_limits<int16_t>::min()), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, UnsignedFromTooBigUnsignedThrowException)
+{
+	EXPECT_THROW(Convert::To<uint8_t>(256), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint16_t>(65536), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint32_t>(4294967296ll), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, FloatFromDouble)
+{
+	EXPECT_EQ(0.0f, Convert::To<float>(0.0));
+	EXPECT_EQ(3.14f, Convert::To<float>(3.14));
+
+	constexpr float lowestFloat = std::numeric_limits<float>::lowest();
+	EXPECT_EQ(lowestFloat, Convert::To<float>(static_cast<double>(lowestFloat)));
+}
+
+TEST(ConvertFundamentals, FloatFromTooBigDoubleThrowException)
+{
+	constexpr auto sourceNumber = static_cast<double>(std::numeric_limits<float>::max()) * 1.00001;
+	EXPECT_THROW(Convert::To<float>(sourceNumber), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, FloatFromTooBigNegativeDoubleThrowException)
+{
+	constexpr auto sourceNumber = static_cast<double>(std::numeric_limits<float>::lowest()) * 1.00001;
+	EXPECT_THROW(Convert::To<float>(sourceNumber), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, DoubleFromFloatMax)
+{
+	EXPECT_EQ(static_cast<double>(std::numeric_limits<float>::min()), Convert::To<double>(std::numeric_limits<float>::min()));
+	EXPECT_EQ(static_cast<double>(std::numeric_limits<float>::max()), Convert::To<double>(std::numeric_limits<float>::max()));
+}
+
+//-----------------------------------------------------------------------------
+// Test conversion for fundamental types to/from strings
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, BoolFromStringWithDigit) {
 	EXPECT_EQ(false, Convert::To<bool>("  0  "));

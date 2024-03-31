@@ -72,10 +72,15 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 	}
 }
 
-TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScope) {
+TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScopeWhenReadValues)
+{
 	TestVisitKeysInObjectScope<CsvArchive>();
 }
 
+TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScopeWhenSkipValues)
+{
+	TestVisitKeysInObjectScope<CsvArchive>(true);
+}
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------

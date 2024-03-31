@@ -126,6 +126,16 @@ TEST(PugiXmlArchive, ShouldAllowToLoadFloatFromInteger)
 	EXPECT_EQ(100, actual.GetValue());
 }
 
+TEST(PugiXmlArchive, ShouldVisitKeysInObjectScopeWhenReadValues)
+{
+	TestVisitKeysInObjectScope<XmlArchive>();
+}
+
+TEST(PugiXmlArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
+{
+	TestVisitKeysInObjectScope<XmlArchive>(true);
+}
+
 TEST(PugiXmlArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
@@ -142,10 +152,6 @@ TEST(PugiXmlArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
 	TestSerializeClass<XmlArchive>(fixture);
-}
-
-TEST(PugiXmlArchive, ShouldVisitKeysInObjectScope) {
-	TestVisitKeysInObjectScope<XmlArchive>();
 }
 
 //-----------------------------------------------------------------------------

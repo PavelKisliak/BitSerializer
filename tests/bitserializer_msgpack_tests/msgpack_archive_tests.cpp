@@ -267,9 +267,14 @@ TEST(MsgPackArchive, SerializeClassWithSubTwoDimArray)
 	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
-TEST(MsgPackArchive, ShouldVisitKeysInObjectScope)
+TEST(MsgPackArchive, ShouldVisitKeysInObjectScopeWhenReadValues)
 {
 	TestVisitKeysInObjectScope<MsgPackArchive>();
+}
+
+TEST(MsgPackArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
+{
+	TestVisitKeysInObjectScope<MsgPackArchive>(true);
 }
 
 TEST(MsgPackArchive, SerializeClassInReverseOrder)

@@ -5,6 +5,7 @@
 #pragma once
 #include <filesystem>
 #include <optional>
+#include <map>
 #include "common_test_entities.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/array.h"
@@ -482,15 +483,15 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 /// Template for test visiting keys in the object scope.
 /// </summary>
 template <typename TArchive>
-void TestVisitKeysInObjectScope()
+void TestVisitKeysInObjectScope(bool skipValues=false)
 {
 	// Arrange
-	std::vector<typename TArchive::key_type> expectedKeys{
-		BitSerializer::Convert::To<typename TArchive::key_type>("x"),
-		BitSerializer::Convert::To<typename TArchive::key_type>("y")
-	};
 	TestPointClass testObj[1];
 	::BuildFixture(testObj);
+	const std::map<typename TArchive::key_type, decltype(testObj->x), std::less<>> expectedValues {
+		{ BitSerializer::Convert::To<typename TArchive::key_type>("x"), testObj->x },
+		{ BitSerializer::Convert::To<typename TArchive::key_type>("y"), testObj->y }
+	};
 
 	using OutputFormat = typename TArchive::preferred_output_format;
 	OutputFormat outputData;
@@ -500,20 +501,29 @@ void TestVisitKeysInObjectScope()
 	typename TArchive::input_archive_type inputArchive(static_cast<const OutputFormat&>(outputData), context);
 
 	// Act / Assert
-	auto arrScope = inputArchive.OpenArrayScope(0);
+	auto arrScope = inputArchive.OpenArrayScope(std::size(testObj));
 	ASSERT_TRUE(arrScope.has_value());
 	auto objScope = arrScope->OpenObjectScope(0);
 	ASSERT_TRUE(objScope.has_value());
 
 	size_t index = 0;
-	objScope->VisitKeys([&expectedKeys, &index](auto&& key)
+	objScope->VisitKeys([&objScope, &expectedValues, &index, &skipValues](auto&& key)
 	{
 		using T = std::decay_t<decltype(key)>;
-		ASSERT_TRUE(index < expectedKeys.size());
+		ASSERT_TRUE(index < expectedValues.size());
 		if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>)
 		{
-			EXPECT_EQ(expectedKeys[index], key);
+			auto it = expectedValues.find(key);
+			ASSERT_TRUE(it != expectedValues.cend());
+
+			if (!skipValues)
+			{
+				decltype(testObj->x) actualValue;
+				objScope->SerializeValue(key, actualValue);
+				EXPECT_EQ(it->second, actualValue);
+			}
 		}
 		++index;
 	});
+	EXPECT_EQ(expectedValues.size(), index);
 }

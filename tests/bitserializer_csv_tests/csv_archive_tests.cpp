@@ -15,6 +15,7 @@ using BitSerializer::Csv::CsvArchive;
 TEST_F(CsvArchiveTests, SerializeArrayOfClasses)
 {
 	TestSerializeArray<CsvArchive, TestPointClass>();
+	TestSerializeArray<CsvArchive, TestClassWithSubTypes<bool, int, std::string>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -81,6 +82,12 @@ TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScopeWhenSkipValues)
 {
 	TestVisitKeysInObjectScope<CsvArchive>(true);
 }
+
+TEST_F(CsvArchiveTests, SerializeClassInReverseOrder)
+{
+	TestSerializeArray<CsvArchive, TestClassWithReverseLoad<bool, int, std::string>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------

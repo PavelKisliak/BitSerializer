@@ -109,7 +109,7 @@ TEST(BinTimestamp, ConvertToChronoTimepointWithAllowedRounding)
 // Tests conversion CBinTimestamp from/to std::chrono::duration
 //-----------------------------------------------------------------------------
 
-TEST(BinTimestamp, ShouldConvertFromChronoDuration)
+TEST(BinTimestamp, ConvertFromChronoDuration)
 {
 	const auto timepoint1 = Convert::To<CBinTimestamp>(100s);
 	EXPECT_EQ(100, timepoint1.Seconds);

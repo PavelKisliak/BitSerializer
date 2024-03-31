@@ -259,8 +259,8 @@ void TestSerializeStlContainer()
 	TContainer actual{};
 
 	// Act
-	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);
-	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
+	auto archiveData = BitSerializer::SaveObject<TArchive>(expected);
+	BitSerializer::LoadObject<TArchive>(actual, archiveData);
 
 	// Assert
 	EXPECT_EQ(expected, actual);
@@ -279,8 +279,8 @@ void TestLoadToNotEmptyContainer(size_t targetContainerSize)
 	TContainer actual(targetContainerSize);
 
 	// Act
-	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);
-	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
+	auto archiveData = BitSerializer::SaveObject<TArchive>(expected);
+	BitSerializer::LoadObject<TArchive>(actual, archiveData);
 
 	// Assert
 	EXPECT_EQ(expected, actual);
@@ -300,8 +300,8 @@ void TestSerializeStlContainer(std::function<void(const TContainer&, const TCont
 	TContainer actual{};
 
 	// Act
-	auto jsonResult = BitSerializer::SaveObject<TArchive>(expected);
-	BitSerializer::LoadObject<TArchive>(actual, jsonResult);
+	auto archiveData = BitSerializer::SaveObject<TArchive>(expected);
+	BitSerializer::LoadObject<TArchive>(actual, archiveData);
 
 	// Assert
 	assertFunc(expected, actual);

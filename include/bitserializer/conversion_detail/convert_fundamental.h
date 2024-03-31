@@ -39,7 +39,7 @@ namespace BitSerializer::Convert::Detail
 				}
 				else
 				{
-					throw std::out_of_range("Floating point number cannot be converted to integer without losing precision");
+					throw std::invalid_argument("Floating point number cannot be converted to integer without losing precision");
 				}
 			}
 			else if constexpr (std::is_same_v<bool, TSource> || std::is_same_v<bool, TTarget>)

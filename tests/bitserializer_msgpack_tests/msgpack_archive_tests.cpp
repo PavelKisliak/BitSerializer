@@ -7,6 +7,7 @@
 #include "bitserializer/msgpack_archive.h"
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/ctime.h"
+#include "bitserializer/types/std/map.h"
 
 using namespace BitSerializer;
 using BitSerializer::MsgPack::MsgPackArchive;
@@ -323,6 +324,32 @@ TEST(MsgPackArchive, SerializeClassWithFloatAsKey)
 TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 {
 	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::CBinTimestamp>>());
+}
+
+//-----------------------------------------------------------------------------
+// Test serialization std::map
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeMapWithIntAsKey) {
+
+	TestSerializeStlContainer<MsgPackArchive, std::map<int, int>>();
+}
+
+TEST(MsgPackArchive, SerializeMapWithfloatAsKey) {
+	TestSerializeStlContainer<MsgPackArchive, std::map<float, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<double, int>>();
+}
+
+TEST(MsgPackArchive, SerializeMapWithChronoDurationAsKey) {
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::seconds, int>>();
+}
+
+TEST(MsgPackArchive, SerializeMapWithChronoTimePointAsKey) {
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::system_clock::time_point, int>>();
+}
+
+TEST(MsgPackArchive, SerializeMapWithStringAsKey) {
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::string, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::wstring, int>>();
 }
 
 //-----------------------------------------------------------------------------

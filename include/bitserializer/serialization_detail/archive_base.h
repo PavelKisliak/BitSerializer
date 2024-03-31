@@ -156,6 +156,50 @@ namespace Detail
 		}
 		return result;
 	}
+
+	/// <summary>
+	/// Converts types according to policy.
+	/// </summary>
+	template <typename TSource, typename TTarget>
+	bool ConvertByPolicy(const TSource& sourceValue, TTarget& targetValue, const SerializationOptions& options)
+	{
+		try
+		{
+			if constexpr (Convert::IsConvertible<TSource, TTarget>())
+			{
+				targetValue = Convert::To<TTarget>(sourceValue);
+				return true;
+			}
+			else
+			{
+				if (options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						"The target field type does not match the value being loaded");
+				}
+			}
+		}
+		catch (const std::invalid_argument&)
+		{
+			if (options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::MismatchedTypes,
+					"The target field type does not match the value being loaded");
+			}
+		}
+		catch (const std::out_of_range&)
+		{
+			if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::Overflow,
+					"The target field range is insufficient for the value being loaded");
+			}
+		}
+		catch (...) {
+			throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error when convert value");
+		}
+		return false;
+	}
 }
 
 }

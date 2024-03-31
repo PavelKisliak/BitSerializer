@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -232,6 +232,10 @@ TEST(STD_Containers, SerializeMultiSetAsClassMember) {
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeMapWithIntAsKey) {
 	TestSerializeStlContainer<ArchiveStub, std::map<int, int>>();
+}
+
+TEST(STD_Containers, SerializeMapWithChronoDurationAsKey) {
+	TestSerializeStlContainer<ArchiveStub, std::map<std::chrono::seconds, int>>();
 }
 
 TEST(STD_Containers, SerializeMapWithStringAsKey) {

@@ -73,8 +73,8 @@ TEST(ConvertFundamentals, IntToFloatingTypes)
 
 TEST(ConvertFundamentals, IntFromFloatingTypesThrowException)
 {
-	EXPECT_THROW( Convert::To<int>(12345.f), std::out_of_range);
-	EXPECT_THROW(Convert::To<int>(12345.0), std::out_of_range);
+	EXPECT_THROW( Convert::To<int>(12345.f), std::invalid_argument);
+	EXPECT_THROW(Convert::To<int>(12345.0), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, IntFromTooBigIntThrowException)

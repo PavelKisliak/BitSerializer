@@ -214,9 +214,9 @@ TEST(SerializationArchiveTraits, ShouldCheckThatStringTypeConvertibleToOneFromTu
 }
 
 TEST(SerializationArchiveTraits, ShouldCheckThatIntegralTypeConvertibleToOneFromTuple) {
-	bool testResult1 = is_convertible_to_one_from_tuple_v<int16_t, std::tuple<int64_t>>;
+	bool testResult1 = is_convertible_to_one_from_tuple_v<int16_t, std::tuple<float, int64_t>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_convertible_to_one_from_tuple_v<uint8_t, std::tuple<uint64_t>>;
+	bool testResult2 = is_convertible_to_one_from_tuple_v<uint8_t, std::tuple<std::string, uint64_t>>;
 	EXPECT_TRUE(testResult2);
 
 	bool testResult3 = is_convertible_to_one_from_tuple_v<bool, std::tuple<uint8_t>>;

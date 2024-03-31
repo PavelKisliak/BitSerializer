@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <type_traits>
 #include "bitserializer/convert.h"
+#include "bitserializer/serialization_detail/bin_timestamp.h"
 
 namespace BitSerializer
 {
@@ -42,14 +43,24 @@ namespace BitSerializer
 			using TValue = typename TMap::mapped_type;
 
 			constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<TMapKey, typename TArchive::supported_key_types>;
+			constexpr auto hasSupportBinTimestamp = BitSerializer::is_convertible_to_one_from_tuple_v<CBinTimestamp, typename TArchive::supported_key_types>;
 			if constexpr (TArchive::IsSaving())
 			{
 				for (auto& elem : cont)
 				{
-					if constexpr (hasSupportKeyType)
+					// If the archive supports the exact key type
+					if constexpr (hasSupportKeyType) {
 						Serialize(scope, elem.first, elem.second);
+					}
+					// If the archive supports serialization CBinTimestamp and key is convertible to it
+					else if constexpr (hasSupportBinTimestamp && Convert::IsConvertible<TMapKey, CBinTimestamp>())
+					{
+						const auto timestamp = Convert::To<CBinTimestamp>(elem.first);
+						Serialize(scope, timestamp, elem.second);
+					}
 					else
 					{
+						// Save key as string
 						const auto strKey = Convert::To<typename TArchive::key_type>(elem.first);
 						Serialize(scope, strKey, elem.second);
 					}
@@ -62,7 +73,7 @@ namespace BitSerializer
 
 				if constexpr (has_reserve_v<TMap>)
 				{
-					// Reserve map capacity (like for std::unordered_map) when is known approximate size
+					// Reserve map capacity (like for std::unordered_map) when the approximate size is known
 					if (const auto estimatedSize = scope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::OnlyExistKeys) {
 						cont.reserve(estimatedSize);
 					}
@@ -71,53 +82,25 @@ namespace BitSerializer
 				auto hint = cont.begin();
 				scope.VisitKeys([mapLoadMode, &scope, &cont, &hint](auto&& archiveKey)
 				{
-					// Convert archive key to key type of target map
+					// Converting an archive key to key type of target map
 					TMapKey key;
-					if constexpr (std::is_convertible_v<TMapKey, typename TArchive::key_type>) {
-						key = archiveKey;
-					}
-					else
+					if (ConvertByPolicy(archiveKey, key, scope.GetOptions()))
 					{
-						try {
-							key = Convert::To<TMapKey>(archiveKey);
-						}
-						catch (const std::invalid_argument&)
+						switch (mapLoadMode)
 						{
-							if (scope.GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-							{
-								throw SerializationException(SerializationErrorCode::MismatchedTypes,
-									"The value being loaded cannot be converted to target map key");
-							}
-							return;
-						}
-						catch (const std::out_of_range&)
-						{
-							if (scope.GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
-							{
-								throw SerializationException(SerializationErrorCode::Overflow,
-									"The size of target map key is not sufficient to store value from the parsed string");
-							}
-							return;
-						}
-						catch (...) {
-							throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error when parsing string");
-						}
-					}
-
-					switch (mapLoadMode)
-					{
-					case MapLoadMode::Clean:
-						hint = cont.emplace_hint(hint, std::move(key), TValue());
-						Serialize(scope, archiveKey, hint->second);
-						break;
-					case MapLoadMode::OnlyExistKeys:
-						hint = cont.find(key);
-						if (hint != cont.end())
+						case MapLoadMode::Clean:
+							hint = cont.emplace_hint(hint, std::move(key), TValue());
 							Serialize(scope, archiveKey, hint->second);
-						break;
-					case MapLoadMode::UpdateKeys:
-						Serialize(scope, archiveKey, cont[key]);
-						break;
+							break;
+						case MapLoadMode::OnlyExistKeys:
+							hint = cont.find(key);
+							if (hint != cont.end())
+								Serialize(scope, archiveKey, hint->second);
+							break;
+						case MapLoadMode::UpdateKeys:
+							Serialize(scope, archiveKey, cont[key]);
+							break;
+						}
 					}
 				});
 			}

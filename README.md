@@ -10,9 +10,11 @@ ___
 - Cross-platform (Windows, Linux, MacOS).
 
 ### Main features:
-- One common interface for different kind of formats (currently supported JSON, XML, YAML and CSV).
+- One common interface for different kind of formats (currently supported JSON, XML, YAML, CSV and MsgPack).
+- Modular architecture, no need to install all archives.
 - Simple syntax which is similar to serialization in the Boost library.
 - Customizable validation of deserialized values with producing an output list of errors.
+- Support loading named fields in any order with conditions (for version control).
 - Support serialization for enum types (via declaring names map).
 - Support serialization for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
 - Support serialization to streams and files.
@@ -49,6 +51,8 @@ For check performance overhead, was developed a single thread test that serializ
 | RapidYAML | YAML | Load object | 3277 fields/ms | 3552 fields/ms | **(-7.7%)** |
 | Built-in | CSV | Save object | 15566 fields/ms | N/A | N/A |
 | Built-in | CSV | Load object | 17368 fields/ms | N/A | N/A |
+| Built-in | MsgPack | Save object | ToDo fields/ms | N/A | N/A |
+| Built-in | MsgPack | Load object | ToDo fields/ms | N/A | N/A |
 
 Measured in **fields/ms** - how many fields are written per millisecond, more is better. Results are depend to system hardware and compiler options, but you can evaluate the BitSerializer overhead and formats efficiency. The source code of the test also available [here](benchmarks/archives).
 
@@ -80,6 +84,7 @@ ___
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
 - [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
 - [CSV archive "bitserializer-csv"](docs/bitserializer_csv.md)
+- [MsgPack archive "bitserializer-msgpack"](docs/bitserializer_msgpack.md)
 
 ___
 
@@ -88,14 +93,14 @@ ___
 BitSerializer requires the installation of third-party libraries, this will depend on which archives you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#details-of-archives) for specific archives.
-#### VCPKG
+#### VCPKG (MsgPack is not published yet)
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
 {
     "dependencies": [
         {
             "name": "bitserializer",
-            "features": [ "cpprestjson-archive", "rapidjson-archive", "pugixml-archive", "rapidyaml-archive", "csv-archive" ]
+            "features": [ "cpprestjson-archive", "rapidjson-archive", "pugixml-archive", "rapidyaml-archive", "csv-archive", "msgpack-archive" ]
         }
     ]
 }
@@ -103,10 +108,10 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 Enumerate features which you need, by default all are disabled.
 Alternatively, you can install the library via the command line:
 ```shell
-> vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive]
+> vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
-#### Conan
+#### Conan (MsgPack is not published yet)
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
@@ -118,6 +123,7 @@ bitserializer:with_rapidjson=True
 bitserializer:with_pugixml=True
 bitserializer:with_rapidyaml=True
 bitserializer:with_csv=True
+bitserializer:with_msgpack=True
 ```
 Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
 ```shell
@@ -127,7 +133,7 @@ Alternatively, you can install via below command (this is just example without s
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git
 $ # Enable only archives which you need (by default all are disabled)
-$ cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON
+$ cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
@@ -143,6 +149,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::pugixml-archive
     BitSerializer::rapidyaml-archive
     BitSerializer::csv-archive
+    BitSerializer::msgpack-archive
 )
 ```
 
@@ -567,11 +574,12 @@ BitSerializer has built-in serialization for all STD containers and most other c
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/ctime.h"
+#include "bitserializer/types/std/filesystem.h"
 ```
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
 ### Specifics of serialization STD map
-Due to the fact that the map key is used as a key (in JSON for example), it must be convertible to `std::string` (by default supported all of fundamental types).
+BitSerializer does not add any system information when saving the map, for example serialization to JSON would look like this:
 ```cpp
 std::map<std::string, int> testMap = 
 	{ { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };
@@ -606,7 +614,8 @@ const std::string inputJson = R"([{"One":1,"Three":3,"Two":2},{"Five":5,"Four":4
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
-If you want to use your own class as a key, you should add conversion methods to it. There are several options with internal and external functions, please look details [here](docs\bitserializer_convert.md). You also can override serialization function `SerializeObject()` for your type of map. For example, you can implement two internal methods in your type:
+Since all of the most well-known text formats (such as JSON) allow only text keys, BitSerializer attempts to convert the map key to a string (except binary formats like MsgPack).
+Out of the box, the library supports all the fundamental types (e.g. `bool`, `int`, `float`) as well as some of the `std` ones (`filesystem::path`, `chrono::timepoint`, etc), but if you want to use your own type as the key, you need to implement the conversion to a string. There are several options with internal and external functions, see details [here](docs\bitserializer_convert.md). For example, you can implement two internal methods in your type:
 ```cpp
 class YourCustomKey
 {
@@ -636,7 +645,7 @@ Time point notes:
 - ISO-8601 doesn't specify precision for fractions of second, BitSerializer supports up to 9 digits, which is enough for values with nanosecond precision.
 - Both decimal separators (dot and comma) are supported for fractions of a second.
 - According to standard, to represent years before 0000 or after 9999 uses additional '-' or '+' sign.
-- The dates range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
+- The date range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
 - Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
 - According to the C++20 standard, the EPOCH date for `system_clock` types is considered as *1970-01-01 00:00:00 UTC* excluding leap seconds.
 - For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
@@ -893,4 +902,4 @@ Thanks
 
 License
 ----
-MIT, Copyright (C) 2018-2023 by Pavel Kisliak, made in Belarus 🇧🇾
+MIT, Copyright (C) 2018-2024 by Pavel Kisliak, made in Belarus 🇧🇾

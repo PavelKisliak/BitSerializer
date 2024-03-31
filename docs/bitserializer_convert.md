@@ -1,14 +1,15 @@
 ### [BitSerializer](../README.md) / Convert
 
-String conversion submodule of **BitSerializer** library. Basically, it is just convenient wrapper around STD, but with some interesting features:
+Type conversion submodule of **BitSerializer** library. Basically, it is just convenient wrapper around STD, but with some interesting features:
 
-- Supports modern STD types - `string_view`, `u16string` and `u32string`.
-- Supports conversion `chrono::time_point` and `chrono::duration` to/from ISO8601 strings.
-- Supports UTF transcoding between all STD string types.
-- Converts any fundamental types to any STD string types and vice versa.
-- Converts enum types via declaring names map.
-- Allows to overload conversion functions for custom types.
-- Simple API - only two main functions `Convert::To<>()` and `Convert::TryTo<>()`.
+- Supports modern STD types - `string_view`, `u16string` and `u32string`
+- Supports conversion `chrono::time_point` and `chrono::duration` to/from ISO8601 strings
+- Supports UTF transcoding between all STD string types
+- Conversion any fundamental type to any STD string types and vice versa
+- Conversion any fundamental type to any other fundamental type with overflow checking
+- Conversion enum types via declaring names map
+- Allows to overload conversion functions for custom types
+- Simple API - only two main functions `Convert::To<>()` and `Convert::TryTo<>()`
 
 ### Conversion fundamental types
 The library provides several public functions for convert types:

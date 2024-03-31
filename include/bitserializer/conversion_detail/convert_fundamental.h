@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -14,6 +14,57 @@
 
 namespace BitSerializer::Convert::Detail
 {
+	/// <summary>
+	/// Converts any of fundamental types to any other fundamental type.
+	/// </summary>
+	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource>&& std::is_arithmetic_v<TTarget>, int> = 0>
+	void To(const TSource& sourceValue, TTarget& targetValue)
+	{
+		if constexpr (std::is_same_v<TSource, TTarget>)
+		{
+			targetValue = sourceValue;
+		}
+		else
+		{
+			bool result;
+			if constexpr (std::is_floating_point_v<TSource>)
+			{
+				if constexpr (std::is_floating_point_v<TTarget>)
+				{
+					if (result = sizeof(TTarget) > sizeof(TSource)
+						|| (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()); result)
+					{
+						targetValue = static_cast<TTarget>(sourceValue);
+					}
+				}
+				else
+				{
+					throw std::out_of_range("Floating point number cannot be converted to integer without losing precision");
+				}
+			}
+			else if constexpr (std::is_same_v<bool, TSource> || std::is_same_v<bool, TTarget>)
+			{
+				auto value = static_cast<TTarget>(sourceValue);
+				if (result = static_cast<TSource>(value) == sourceValue; result) {
+					targetValue = value;
+				}
+			}
+			else
+			{
+				auto value = static_cast<TTarget>(sourceValue);
+				result = (static_cast<TSource>(value) == sourceValue) && !((value > 0 && sourceValue < 0) || (value < 0 && sourceValue > 0));
+				if (result) {
+					targetValue = value;
+				}
+			}
+
+			if (!result)
+			{
+				throw std::out_of_range("Target type size is insufficient");
+			}
+		}
+	}
+
 	/// <summary>
 	/// Converts any UTF string to integer types.
 	/// </summary>

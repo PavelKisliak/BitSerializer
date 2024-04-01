@@ -370,7 +370,7 @@ public:
 	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->WriteValue(key);
 		WriteValue(value);
 		++mIndex;
 		return true;
@@ -380,7 +380,7 @@ public:
 	bool SerializeValue(TKey&& key, std::nullptr_t& value)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->WriteValue(key);
 		WriteValue(value);
 		++mIndex;
 		return true;
@@ -390,7 +390,7 @@ public:
 	std::optional<CMsgPackWriteArrayScope<TWriter>> OpenArrayScope(TKey&& key, size_t arraySize)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->WriteValue(key);
 		mMsgPackWriter->BeginArray(arraySize);
 		++mIndex;
 		return std::make_optional<CMsgPackWriteArrayScope<TWriter>>(arraySize, mMsgPackWriter, GetContext());
@@ -400,7 +400,7 @@ public:
 	[[nodiscard]] std::optional<CMsgPackWriteObjectScope<TWriter>> OpenObjectScope(TKey&& key, size_t mapSize)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->WriteValue(key);
 		mMsgPackWriter->BeginMap(mapSize);
 		++mIndex;
 		return std::make_optional<CMsgPackWriteObjectScope<TWriter>>(mapSize, mMsgPackWriter, GetContext());
@@ -410,7 +410,7 @@ public:
 	[[nodiscard]] std::optional<CMsgPackWriteBinaryScope<TWriter>> OpenBinaryScope(TKey&& key, size_t binarySize)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(Convert::Detail::ToStringView(key));
+		mMsgPackWriter->WriteValue(key);
 		mMsgPackWriter->BeginBinary(binarySize);
 		++mIndex;
 		return std::make_optional<CMsgPackWriteBinaryScope<TWriter>>(binarySize, mMsgPackWriter, GetContext());

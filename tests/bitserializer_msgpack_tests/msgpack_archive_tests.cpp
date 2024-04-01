@@ -332,24 +332,27 @@ TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 TEST(MsgPackArchive, SerializeMapWithIntAsKey) {
 
 	TestSerializeStlContainer<MsgPackArchive, std::map<int, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<int, std::string>>();
 }
 
 TEST(MsgPackArchive, SerializeMapWithfloatAsKey) {
 	TestSerializeStlContainer<MsgPackArchive, std::map<float, int>>();
-	TestSerializeStlContainer<MsgPackArchive, std::map<double, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<double, std::string>>();
 }
 
 TEST(MsgPackArchive, SerializeMapWithChronoDurationAsKey) {
-	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::seconds, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::nanoseconds, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::nanoseconds, std::u16string>>();
 }
 
 TEST(MsgPackArchive, SerializeMapWithChronoTimePointAsKey) {
 	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::system_clock::time_point, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::chrono::system_clock::time_point, std::u32string>>();
 }
 
 TEST(MsgPackArchive, SerializeMapWithStringAsKey) {
 	TestSerializeStlContainer<MsgPackArchive, std::map<std::string, int>>();
-	TestSerializeStlContainer<MsgPackArchive, std::map<std::wstring, int>>();
+	TestSerializeStlContainer<MsgPackArchive, std::map<std::wstring, std::string>>();
 }
 
 //-----------------------------------------------------------------------------

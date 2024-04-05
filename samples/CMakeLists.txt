@@ -25,4 +25,8 @@ if(BUILD_CSV_ARCHIVE)
     add_subdirectory(serialize_to_csv)
 endif()
 
+if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_MSGPACK_ARCHIVE)
+    add_subdirectory(msgpack_vs_json)
+endif()
+
 add_subdirectory(string_conversions)

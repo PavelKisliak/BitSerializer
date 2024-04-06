@@ -329,10 +329,30 @@ TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 //-----------------------------------------------------------------------------
 // Test serialization std::map
 //-----------------------------------------------------------------------------
-TEST(MsgPackArchive, SerializeMapWithIntAsKey) {
+TEST(MsgPackArchive, SerializeMapWithIntAsKey)
+{
+	TestSerializeType<MsgPackArchive>(std::map<int8_t, int>{
+		{ std::numeric_limits<int8_t>::min(), 1 },
+		{ std::numeric_limits<int8_t>::max(), 2 }
+	});
 
-	TestSerializeStlContainer<MsgPackArchive, std::map<int, int>>();
-	TestSerializeStlContainer<MsgPackArchive, std::map<int, std::string>>();
+	TestSerializeType<MsgPackArchive>(std::map<int64_t, int>{
+		{ std::numeric_limits<int64_t>::min(), 1 },
+		{ std::numeric_limits<int64_t>::max(), 2 }
+	});
+}
+
+TEST(MsgPackArchive, SerializeMapWithUnsignedIntAsKey)
+{
+	TestSerializeType<MsgPackArchive>(std::map<uint8_t, std::string>{
+		{ std::numeric_limits<uint8_t>::min(), "1" },
+		{ std::numeric_limits<uint8_t>::max(), "2" }
+	});
+
+	TestSerializeType<MsgPackArchive>(std::map<uint64_t, std::string>{
+		{ std::numeric_limits<uint64_t>::min(), "1" },
+		{ std::numeric_limits<uint64_t>::max(), "2" }
+	});
 }
 
 TEST(MsgPackArchive, SerializeMapWithfloatAsKey) {

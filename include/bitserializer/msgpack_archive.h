@@ -81,10 +81,16 @@ public:
 		if constexpr (std::is_integral_v<T> && (std::is_unsigned_v<T> || std::is_signed_v<T>))
 		{
 			if (auto& refUnsigned = std::get<uint64_t>(mTuple); mLast == &refUnsigned) {
-				return refUnsigned == value;
+				return value >= 0 && refUnsigned == static_cast<std::make_unsigned_t<T>>(value);
 			}
-			if (auto& refSigned = std::get<int64_t>(mTuple); mLast == &refSigned) {
-				return refSigned == value;
+			if (auto& refSigned = std::get<int64_t>(mTuple); mLast == &refSigned)
+			{
+				if constexpr (std::is_signed_v<T>) {
+					return refSigned == value;
+				}
+				else {
+					return value <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) && refSigned == static_cast<int64_t>(value);
+				}
 			}
 			return false;
 		}

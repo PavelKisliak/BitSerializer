@@ -73,7 +73,7 @@ TEST(ConvertFundamentals, IntToFloatingTypes)
 
 TEST(ConvertFundamentals, IntFromFloatingTypesThrowException)
 {
-	EXPECT_THROW( Convert::To<int>(12345.f), std::invalid_argument);
+	EXPECT_THROW(Convert::To<int>(12345.f), std::invalid_argument);
 	EXPECT_THROW(Convert::To<int>(12345.0), std::invalid_argument);
 }
 
@@ -356,6 +356,11 @@ TEST(ConvertFundamentals, FloatFromStringWithWrongTextShouldThrowException) {
 	EXPECT_THROW(Convert::To<float>("test"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<float>(u"#150"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<float>(U"x45.4"), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, FloatFromStringWithTooBigValueShouldThrowException) {
+	EXPECT_THROW(Convert::To<float>("1.79769313486232e+308"), std::out_of_range);
+	EXPECT_EQ(47.946864f, Convert::To<float>("47.946864")) << "Should convert normally after failure";
 }
 
 TEST(ConvertFundamentals, FloatToString) {

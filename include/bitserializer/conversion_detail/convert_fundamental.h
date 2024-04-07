@@ -131,7 +131,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		T result;
 		bool isNaN;
-		static constexpr size_t bufSize = 64;
+		constexpr size_t bufSize = 64;
 		const size_t size = (in.size() < bufSize) ? in.size() : bufSize - 1;
 		if constexpr (std::is_same_v<char, TSym>)
 		{
@@ -161,7 +161,7 @@ namespace BitSerializer::Convert::Detail
 			isNaN = utf8Str.data() == endPos;
 		}
 
-		if (errno == ERANGE) {
+		if (result == std::numeric_limits<T>::infinity()) {
 			throw std::out_of_range("Argument out of range");
 		}
 		if (isNaN) {
@@ -270,7 +270,8 @@ namespace BitSerializer::Convert::Detail
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		constexpr auto bufSize = std::numeric_limits<T>::digits + 1;
-		if constexpr (sizeof(TSym) == sizeof(wchar_t)) {
+		if constexpr (sizeof(TSym) == sizeof(wchar_t))
+		{
 			wchar_t buf[bufSize];
 			const int result = swprintf(buf, bufSize, _formatTemplates::_getW<T>(), in);
 			if (result < 0 || result >= bufSize) {

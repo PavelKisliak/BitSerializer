@@ -253,8 +253,8 @@ namespace BitSerializer::Convert::Detail
 		template <typename T> const char* _get() { throw; }
 		template <typename T> const wchar_t* _getW() { throw; }
 
-		template <>	constexpr const char* _get<float>() { return "%.6g"; }
-		template <>	constexpr const wchar_t* _getW<float>() { return L"%.6g"; }
+		template <>	constexpr const char* _get<float>() { return "%.7g"; }
+		template <>	constexpr const wchar_t* _getW<float>() { return L"%.7g"; }
 
 		template <>	constexpr const char* _get<double>() { return "%.15g"; }
 		template <>	constexpr const wchar_t* _getW<double>() { return L"%.15g"; }

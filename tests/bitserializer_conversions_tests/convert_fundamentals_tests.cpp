@@ -344,8 +344,8 @@ TEST(ConvertFundamentals, UInt64ToString) {
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(0.f, Convert::To<float>("  0  "));
-	EXPECT_EQ(123.123f, Convert::To<float>(u"  123.123  "));
-	EXPECT_EQ(-123.123f, Convert::To<float>(U"  -123.123  "));
+	EXPECT_EQ(123.4567f, Convert::To<float>(u"  123.4567  "));
+	EXPECT_EQ(-123.4567f, Convert::To<float>(U"  -123.4567  "));
 }
 
 TEST(ConvertFundamentals, FloatFromEmptyStringShouldThrowException) {
@@ -367,8 +367,8 @@ TEST(ConvertFundamentals, FloatToString) {
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, DoubleFromString) {
 	EXPECT_EQ(-0.0, Convert::To<double>("  -0  "));
-	EXPECT_EQ(1234567.1234567, Convert::To<double>(u"  1234567.1234567  "));
-	EXPECT_EQ(-1234567.1234567, Convert::To<double>(U"  -1234567.1234567  "));
+	EXPECT_EQ(1234567.12345678, Convert::To<double>(u"  1234567.12345678  "));
+	EXPECT_EQ(-1234567.12345678, Convert::To<double>(U"  -1234567.12345678  "));
 }
 
 TEST(ConvertFundamentals, DoubleFromEmptyStringShouldThrowException) {
@@ -383,8 +383,8 @@ TEST(ConvertFundamentals, DoubleFromStringWithWrongTextShouldThrowException) {
 
 TEST(ConvertFundamentals, DoubleToString) {
 	EXPECT_EQ("0", Convert::ToString(0.0));
-	EXPECT_EQ(u"-1234567.1234567", Convert::To<std::u16string>(-1234567.1234567));
-	EXPECT_EQ(U"1234567.1234567", Convert::To<std::u32string>(1234567.1234567));
+	EXPECT_EQ(u"-1234567.12345678", Convert::To<std::u16string>(-1234567.12345678));
+	EXPECT_EQ(U"1234567.12345678", Convert::To<std::u32string>(1234567.12345678));
 }
 
 //-----------------------------------------------------------------------------

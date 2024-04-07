@@ -219,6 +219,8 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenMissedRequiredValue) {
 }
 
 //-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
@@ -233,6 +235,9 @@ TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
@@ -241,7 +246,9 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToInteger) {
 }
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<CsvArchive, std::string, double>(MismatchedTypesPolicy::Skip);
 }
+
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<CsvArchive, float, uint32_t>(MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::Skip);
@@ -254,7 +261,8 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadNullToAnyType) {
 }
 
 //-----------------------------------------------------------------------------
-
+// Test OverflowNumberPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<CsvArchive, int32_t, bool>(OverflowNumberPolicy::ThrowError);
 }
@@ -274,6 +282,9 @@ TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<CsvArchive, double, float>(OverflowNumberPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<CsvArchive, int32_t, bool>(OverflowNumberPolicy::Skip);
 }

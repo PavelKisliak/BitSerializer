@@ -281,6 +281,8 @@ TEST(JsonRestCpp, ThrowValidationExceptionWhenMissedRequiredValue) {
 }
 
 //-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
@@ -294,6 +296,14 @@ TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
 	TestMismatchedTypesPolicy<JsonArchive, int32_t, std::string>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
+TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
+	TestMismatchedTypesPolicy<JsonArchive, float, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+//-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
@@ -302,15 +312,12 @@ TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadStringToInteger) {
 }
 TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<JsonArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<JsonArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<JsonArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
-}
-TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadFloatToInt) {
-	TestMismatchedTypesPolicy<JsonArchive, float, int>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
@@ -320,7 +327,8 @@ TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadNullToAnyType) {
 }
 
 //-----------------------------------------------------------------------------
-
+// Test OverflowNumberPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
 }
@@ -340,6 +348,9 @@ TEST(JsonRestCpp, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(JsonRestCpp, ThrowValidationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<JsonArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
 }

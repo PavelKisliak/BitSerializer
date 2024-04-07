@@ -459,7 +459,9 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 }
 
 //-----------------------------------------------------------------------------
-TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
+// Test MismatchedTypesPolicy::ThrowError
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, TestThrowPolicyForArrayWhenMismatchedLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
@@ -469,7 +471,6 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
 
-
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
 	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
 }
@@ -478,6 +479,9 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
 	TestMismatchedTypesPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
@@ -489,10 +493,6 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
 }
 
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<MsgPackArchive, float, uint32_t>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<MsgPackArchive, double, uint32_t>(MismatchedTypesPolicy::Skip);
-}
-TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadFloatToInt) {
 	TestMismatchedTypesPolicy<MsgPackArchive, float, int>(MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::Skip);
 }
@@ -504,7 +504,8 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 }
 
 //-----------------------------------------------------------------------------
-
+// Test OverflowNumberPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<MsgPackArchive, int32_t, bool>(OverflowNumberPolicy::ThrowError);
 }
@@ -524,6 +525,9 @@ TEST(MsgPackArchive, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<MsgPackArchive, double, float>(OverflowNumberPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowValidationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<MsgPackArchive, int32_t, bool>(OverflowNumberPolicy::Skip);
 }

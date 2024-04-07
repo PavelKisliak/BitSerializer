@@ -390,8 +390,9 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 			}
 		}
 	}
-	TestClassWithSubType<TSourceType> sourceObj[1] = { TestClassWithSubType<TSourceType>(testValue) };
-	TestClassWithSubType<TTargetType, true> targetObj[1];
+	TestClassWithSubTypes<TSourceType, TSourceType> sourceObj[1]{ { testValue, BuildFixture<TSourceType>() } };
+	TestClassWithSubTypes<TTargetType, TSourceType> targetObj[1];
+	targetObj->WithRequired();
 
 	BitSerializer::SerializationOptions options;
 	options.overflowNumberPolicy = overflowNumberPolicy;
@@ -424,6 +425,8 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
 			EXPECT_EQ(1, ex.GetValidationErrors().size());
 		}
+		// Second value should be loaded
+		GTestExpectEq(std::get<1>(sourceObj[0]), std::get<1>(targetObj[0]));
 		break;
 	}
 }
@@ -437,9 +440,12 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	// Arrange
 	static_assert(!std::is_same_v<TSourceType, TTargetType>);
 
-	TestClassWithSubType<TSourceType> sourceObj[1];
+	// Use array with one object for be compatible with CSV
+	TestClassWithSubTypes<TSourceType, TTargetType> sourceObj[1];
+	BuildFixture(sourceObj);
+	TestClassWithSubTypes<TTargetType, TTargetType> targetObj[1];
 	// Loading with "Required" validator for force throw ValidationException
-	TestClassWithSubType<TTargetType, true> targetObj[1];
+	targetObj->WithRequired();
 
 	BitSerializer::SerializationOptions options;
 	options.mismatchedTypesPolicy = mismatchedTypesPolicy;
@@ -464,6 +470,8 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
 			EXPECT_EQ(1, ex.GetValidationErrors().size());
 		}
+		// Second value should be loaded
+		GTestExpectEq(std::get<1>(sourceObj[0]), std::get<1>(targetObj[0]));
 	}
 	catch (const BitSerializer::SerializationException& ex)
 	{

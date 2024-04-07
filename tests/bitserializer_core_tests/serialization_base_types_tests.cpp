@@ -343,6 +343,7 @@ TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToInteger) {
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<ArchiveStub, std::string, double>(MismatchedTypesPolicy::Skip);
 }
 
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInteger) {

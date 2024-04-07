@@ -332,6 +332,8 @@ TEST(PugiXmlArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 }
 
 //-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<XmlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
@@ -341,11 +343,15 @@ TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
 TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<XmlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
+
 TEST(PugiXmlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<XmlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<XmlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<XmlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
@@ -354,7 +360,9 @@ TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
 }
 TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<XmlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<XmlArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
+
 TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<XmlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<XmlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
@@ -366,6 +374,8 @@ TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<XmlArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<XmlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
@@ -386,6 +396,9 @@ TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<XmlArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowValidationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<XmlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
 }

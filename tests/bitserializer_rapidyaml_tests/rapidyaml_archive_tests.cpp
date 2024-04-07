@@ -264,6 +264,8 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 }
 
 //-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
@@ -278,6 +280,9 @@ TEST(RapidYamlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
@@ -286,7 +291,9 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<YamlArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
+
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<YamlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
@@ -299,7 +306,8 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 }
 
 //-----------------------------------------------------------------------------
-
+// Test OverflowNumberPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<YamlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::ThrowError);
 }
@@ -319,6 +327,9 @@ TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<YamlArchive, double, float>(BitSerializer::OverflowNumberPolicy::ThrowError);
 }
 
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenOverflowBool) {
 	TestOverflowNumberPolicy<YamlArchive, int32_t, bool>(BitSerializer::OverflowNumberPolicy::Skip);
 }

@@ -271,6 +271,12 @@ public:
 		SerializeImpl(archive);
 	}
 
+	TestClassWithSubTypes<Args...>& WithRequired()
+	{
+		mRequired = true;
+		return *this;
+	}
+
 protected:
 	template <class TArchive, std::size_t Index = 0, bool Reverse=false>
 	void SerializeImpl(TArchive& archive)
@@ -282,7 +288,14 @@ protected:
 			decltype(auto) member = std::get<Index>(*this);
 
 			static const auto key = "Member_" + BitSerializer::Convert::ToString(Index);
-			archive << BitSerializer::AutoKeyValue(key, member);
+			if (mRequired)
+			{
+				archive << BitSerializer::AutoKeyValue(key, member, BitSerializer::Required());
+			}
+			else
+			{
+				archive << BitSerializer::AutoKeyValue(key, member);
+			}
 
 			// Serialize next value
 			if constexpr (Reverse)
@@ -295,6 +308,8 @@ protected:
 			}
 		}
 	}
+
+	bool mRequired = false;
 };
 
 //-----------------------------------------------------------------------------

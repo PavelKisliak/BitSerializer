@@ -474,9 +474,19 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
 	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
 }
-TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<MsgPackArchive, float, int>(MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, int32_t[3]>(MismatchedTypesPolicy::ThrowError);
+}
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToBinArray) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, char[3]>(MismatchedTypesPolicy::ThrowError);
+}
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::ThrowError);
 }
 
 //-----------------------------------------------------------------------------
@@ -501,6 +511,16 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, int32_t[3]>(MismatchedTypesPolicy::Skip);
+}
+TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToBinArray) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, char[3]>(MismatchedTypesPolicy::Skip);
+}
+TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

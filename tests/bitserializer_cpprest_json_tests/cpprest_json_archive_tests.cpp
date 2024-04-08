@@ -301,6 +301,13 @@ TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
 	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+//TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
+//	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+//}
+//TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
+//	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+//}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
@@ -324,6 +331,13 @@ TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(JsonRestCpp, ThrowValidationExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

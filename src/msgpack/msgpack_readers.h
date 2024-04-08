@@ -12,12 +12,12 @@ namespace BitSerializer::MsgPack::Detail
 	class CMsgPackStringReader final : public IMsgPackReader
 	{
 	public:
-		CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions);
+		CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept;
 
 		[[nodiscard]] size_t GetPosition() const noexcept override { return mPos; }
 		void SetPosition(size_t pos) override;
 		[[nodiscard]] ValueType ReadValueType() override;
-		[[nodiscard]] bool IsEnd() const override { return mPos == mInputData.size(); }
+		[[nodiscard]] bool IsEnd() const noexcept override { return mPos == mInputData.size(); }
 
 		bool ReadValue(std::nullptr_t&) override;
 		bool ReadValue(bool& value) override;
@@ -57,7 +57,7 @@ namespace BitSerializer::MsgPack::Detail
 	class CMsgPackStreamReader final : public IMsgPackReader
 	{
 	public:
-		CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions);
+		CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions) noexcept;
 
 		[[nodiscard]] size_t GetPosition() const noexcept override {
 			return mBinaryStreamReader.GetPosition();
@@ -65,7 +65,7 @@ namespace BitSerializer::MsgPack::Detail
 		void SetPosition(size_t pos) override {
 			mBinaryStreamReader.SetPosition(pos);
 		}
-		[[nodiscard]] bool IsEnd() const override {
+		[[nodiscard]] bool IsEnd() const noexcept override {
 			return mBinaryStreamReader.IsEnd();
 		}
 

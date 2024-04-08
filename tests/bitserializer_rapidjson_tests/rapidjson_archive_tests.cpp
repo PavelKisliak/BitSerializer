@@ -433,6 +433,13 @@ TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
 	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+//TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
+//	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+//}
+//TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
+//	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+//}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
@@ -460,6 +467,13 @@ TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

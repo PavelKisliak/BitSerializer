@@ -458,7 +458,7 @@ namespace
 
 namespace BitSerializer::MsgPack::Detail
 {
-	CMsgPackStringReader::CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions)
+	CMsgPackStringReader::CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept
 		: mInputData(inputData)
 		, mSerializationOptions(serializationOptions)
 	{ }
@@ -796,6 +796,8 @@ namespace BitSerializer::MsgPack::Detail
 				binarySize = sz32;
 				return true;
 			}
+			HandleMismatchedTypesPolicy(mInputData, mPos, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			return false;
 		}
 		throw ParsingException("No more values to read", 0, mPos);
 	}
@@ -1067,7 +1069,7 @@ namespace
 
 namespace BitSerializer::MsgPack::Detail
 {
-	CMsgPackStreamReader::CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions)
+	CMsgPackStreamReader::CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions) noexcept
 		: mBinaryStreamReader(inputStream)
 		, mSerializationOptions(serializationOptions)
 	{ }

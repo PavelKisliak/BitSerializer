@@ -71,7 +71,7 @@ public:
 	CVariableKey(const CVariableKey&) = delete;
 	CVariableKey& operator=(const CVariableKey&) = delete;
 
-	operator bool() const {
+	operator bool() const noexcept {
 		return mLast != nullptr;
 	}
 
@@ -530,7 +530,7 @@ template <class TReader> class CMsgPackReadObjectScope;
 class CMsgPackScopeBase : public MsgPackArchiveTraits
 {
 public:
-	CMsgPackScopeBase(CMsgPackScopeBase* parentScope = nullptr)
+	CMsgPackScopeBase(CMsgPackScopeBase* parentScope = nullptr) noexcept
 		: mParentScope(parentScope)
 	{ }
 
@@ -602,7 +602,7 @@ public:
 	/// <summary>
 	/// Returns `true` when all no more values to load.
 	/// </summary>
-	[[nodiscard]] bool IsEnd() const
+	[[nodiscard]] bool IsEnd() const noexcept
 	{
 		return mIndex == mSize;
 	}
@@ -688,7 +688,7 @@ public:
 	/// <summary>
 	/// Returns `true` when all no more values to load.
 	/// </summary>
-	[[nodiscard]] bool IsEnd() const
+	[[nodiscard]] bool IsEnd() const noexcept
 	{
 		return mIndex == mSize;
 	}
@@ -827,9 +827,7 @@ public:
 		{
 			mCurrentKey.Reset();
 			++mIndex;
-			if (mMsgPackReader->ReadValue(value))
-				return true;
-			return false;
+			return mMsgPackReader->ReadValue(value);
 		}
 		return false;
 	}
@@ -842,6 +840,7 @@ public:
 			if (size_t sz = 0; mMsgPackReader->ReadArraySize(sz)) {
 				return std::make_optional<CMsgPackReadArrayScope<TReader>>(sz, mMsgPackReader, GetContext(), this);
 			}
+			OnFinishChildScope();
 		}
 		return std::nullopt;
 	}
@@ -854,6 +853,7 @@ public:
 			if (size_t sz = 0; mMsgPackReader->ReadMapSize(sz)) {
 				return std::make_optional<CMsgPackReadObjectScope<TReader>>(sz, mMsgPackReader, GetContext(), this);
 			}
+			OnFinishChildScope();
 		}
 		return std::nullopt;
 	}
@@ -866,6 +866,7 @@ public:
 			if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
 				return std::make_optional<CMsgPackReadBinaryScope<TReader>>(sz, mMsgPackReader, GetContext(), this);
 			}
+			OnFinishChildScope();
 		}
 		return std::nullopt;
 	}

@@ -15,12 +15,12 @@ namespace BitSerializer::Detail
 		ReadNextChunk();
 	}
 
-	bool CBinaryStreamReader::IsEnd() const
+	bool CBinaryStreamReader::IsEnd() const noexcept
 	{
 		return mStartDataPtr == mEndDataPtr && mStream.eof();
 	}
 
-	bool CBinaryStreamReader::IsFailed() const
+	bool CBinaryStreamReader::IsFailed() const noexcept
 	{
 		return mStream.fail();
 	}

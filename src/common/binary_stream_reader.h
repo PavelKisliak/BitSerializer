@@ -20,8 +20,8 @@ namespace BitSerializer::Detail
 		CBinaryStreamReader& operator=(CBinaryStreamReader&&) = delete;
 		~CBinaryStreamReader() = default;
 
-		[[nodiscard]] bool IsEnd() const;
-		[[nodiscard]] bool IsFailed() const;
+		[[nodiscard]] bool IsEnd() const noexcept;
+		[[nodiscard]] bool IsFailed() const noexcept;
 		[[nodiscard]] size_t GetPosition() const noexcept;
 		bool SetPosition(size_t pos);
 

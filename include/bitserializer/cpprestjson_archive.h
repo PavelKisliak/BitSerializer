@@ -232,6 +232,7 @@ public:
 			if (jsonValue.is_object()) {
 				return std::make_optional<JsonObjectScope<TMode>>(&jsonValue, this->GetContext(), this);
 			}
+			HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			return std::nullopt;
 		}
 		else
@@ -249,6 +250,7 @@ public:
 			if (jsonValue.is_array()) {
 				return std::make_optional<JsonArrayScope<TMode>>(&jsonValue, this->GetContext(), this);
 			}
+			HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			return std::nullopt;
 		}
 		else
@@ -352,11 +354,13 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr && jsonValue->is_object())
+			if (auto* jsonValue = LoadJsonValue(key))
 			{
-				decltype(auto) node = const_cast<web::json::value*>(jsonValue);
-				return std::make_optional<JsonObjectScope<TMode>>(node, this->GetContext(), this, key);
+				if (jsonValue->is_object())
+				{
+					return std::make_optional<JsonObjectScope<TMode>>(jsonValue, this->GetContext(), this, key);
+				}
+				HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
 			return std::nullopt;
 		}
@@ -371,9 +375,14 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = LoadJsonValue(key);
-			if (jsonValue != nullptr && jsonValue->is_array())
-				return std::make_optional<JsonArrayScope<TMode>>(jsonValue, this->GetContext(), this, key);
+			if (auto* jsonValue = LoadJsonValue(key))
+			{
+				if (jsonValue->is_array())
+				{
+					return std::make_optional<JsonArrayScope<TMode>>(jsonValue, this->GetContext(), this, key);
+				}
+				HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else
@@ -499,7 +508,12 @@ public:
 	std::optional<JsonObjectScope<TMode>> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)	{
-			return mRootJson.is_object() ? std::make_optional<JsonObjectScope<TMode>>(&mRootJson, this->GetContext()) : std::nullopt;
+			if (mRootJson.is_object())
+			{
+				return std::make_optional<JsonObjectScope<TMode>>(&mRootJson, this->GetContext());
+			}
+			HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			return std::nullopt;
 		}
 		else
 		{
@@ -510,8 +524,14 @@ public:
 
 	std::optional<JsonArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 	{
-		if constexpr (TMode == SerializeMode::Load) {
-			return mRootJson.is_array() ? std::make_optional<JsonArrayScope<TMode>>(&mRootJson, this->GetContext()) : std::nullopt;
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (mRootJson.is_array())
+			{
+				return std::make_optional<JsonArrayScope<TMode>>(&mRootJson, this->GetContext());
+			}
+			HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			return std::nullopt;
 		}
 		else
 		{

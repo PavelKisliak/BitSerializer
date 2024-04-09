@@ -301,12 +301,12 @@ TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
 	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
-//TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
-//	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-//}
-//TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
-//	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-//}
+TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(JsonRestCpp, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
 
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip

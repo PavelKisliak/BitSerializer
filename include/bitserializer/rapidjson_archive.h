@@ -246,6 +246,7 @@ public:
 			if (jsonValue.IsObject()) {
 				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this->GetContext(), this);
 			}
+			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			return std::nullopt;
 		}
 		else
@@ -264,6 +265,7 @@ public:
 			if (jsonValue.IsArray()) {
 				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this->GetContext(), this);
 			}
+			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			return std::nullopt;
 		}
 		else
@@ -381,9 +383,14 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = LoadJsonValue(std::forward<TKey>(key));
-			if (jsonValue != nullptr && jsonValue->IsObject())
-				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
+			if (auto* jsonValue = LoadJsonValue(std::forward<TKey>(key)))
+			{
+				if (jsonValue->IsObject())
+				{
+					return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
+				}
+				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else
@@ -399,9 +406,14 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = LoadJsonValue(std::forward<TKey>(key));
-			if (jsonValue != nullptr && jsonValue->IsArray())
-				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
+			if (auto* jsonValue = LoadJsonValue(std::forward<TKey>(key)))
+			{
+				if (jsonValue->IsArray())
+				{
+					return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
+				}
+				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else
@@ -566,9 +578,12 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return mRootJson.IsArray()
-				? std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext())
-				: std::nullopt;
+			if (mRootJson.IsArray())
+			{
+				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
+			}
+			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			return std::nullopt;
 		}
 		else
 		{
@@ -584,9 +599,12 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			return mRootJson.IsObject()
-				? std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext())
-				: std::nullopt;
+			if (mRootJson.IsObject())
+			{
+				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
+			}
+			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			return std::nullopt;
 		}
 		else
 		{

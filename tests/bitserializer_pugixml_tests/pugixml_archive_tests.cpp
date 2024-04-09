@@ -349,12 +349,12 @@ TEST(PugiXmlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<XmlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
-//TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
-//	TestMismatchedTypesPolicy<XmlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-//}
-//TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
-//	TestMismatchedTypesPolicy<XmlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-//}
+TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<XmlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(PugiXmlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<XmlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
 
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip

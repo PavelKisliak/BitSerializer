@@ -174,6 +174,15 @@ namespace BitSerializer::Yaml::RapidYaml {
 				});
 			}
 
+			static void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)
+			{
+				if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						"The type of target field does not match the value being loaded");
+				}
+			}
+
 			RapidYamlNode mNode;
 			RapidYamlScopeBase* mParent;
 			key_type_view mParentKey;
@@ -257,7 +266,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 					if (mIndex < mSize)
 					{
 						auto yamlValue = LoadNextItem();
-						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this) : std::nullopt;
+						if (yamlValue.is_map())
+						{
+							return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this);
+						}
+						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 					}
 					return std::nullopt;
 				}
@@ -282,7 +295,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 					if (mIndex < mSize)
 					{
 						auto yamlValue = LoadNextItem();
-						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this) : std::nullopt;
+						if (yamlValue.is_seq())
+						{
+							return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this);
+						}
+						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 					}
 					return std::nullopt;
 				}
@@ -383,7 +400,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
 					if (yamlValue.valid())
-						return yamlValue.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key) : std::nullopt;
+					{
+						if (yamlValue.is_map())
+						{
+							return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key);
+						}
+						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+					}
 					return std::nullopt;
 				}
 				else
@@ -408,7 +431,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 				{
 					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
 					if (yamlValue.valid())
-						return yamlValue.is_seq() ? std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this, key) : std::nullopt;
+					{
+						if (yamlValue.is_seq())
+						{
+							return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this, key);
+						}
+						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+					}
 					return std::nullopt;
 				}
 				else
@@ -489,8 +518,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// </summary>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
 			{
-				if constexpr (TMode == SerializeMode::Load) {
-					return mRootNode.is_map() ? std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+				if constexpr (TMode == SerializeMode::Load)
+				{
+					if (mRootNode.is_map())
+					{
+						return std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext());
+					}
+					HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+					return std::nullopt;
 				}
 				else
 				{
@@ -505,10 +540,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="arraySize">The size of array (required only for save mode).</param>
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 			{
-				if constexpr (TMode == SerializeMode::Load) {
-					return mRootNode.is_seq()
-						? std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext(), mRootNode.num_children())
-						: std::nullopt;
+				if constexpr (TMode == SerializeMode::Load)
+				{
+					if (mRootNode.is_seq())
+					{
+						return std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext(), mRootNode.num_children());
+					}
+					HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+					return std::nullopt;
 				}
 				else
 				{

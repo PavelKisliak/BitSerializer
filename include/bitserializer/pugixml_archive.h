@@ -154,6 +154,15 @@ namespace PugiXmlExtensions
 		return node.path();
 #endif
 	}
+
+	inline void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)
+	{
+		if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+		{
+			throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				"The type of target field does not match the value being loaded");
+		}
+	}
 }
 
 
@@ -222,10 +231,13 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto xmlNode = LoadNextItem();
-			if (xmlNode.first_child().type() == pugi::node_element)
+			if (auto xmlNode = LoadNextItem())
 			{
-				return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
+				if (xmlNode.first_child().type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
 			return std::nullopt;
 		}
@@ -240,10 +252,13 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto xmlNode = LoadNextItem();
-			if (xmlNode.first_child().type() == pugi::node_element)
+			if (auto xmlNode = LoadNextItem())
 			{
-				return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
+				if (xmlNode.first_child().type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
 			return std::nullopt;
 		}
@@ -438,8 +453,15 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			return child.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			if (auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key)))
+			{
+				if (child.first_child().type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
+			return std::nullopt;
 		}
 		else
 		{
@@ -453,8 +475,15 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto node = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			return node.first_child().type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			if (auto node = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key)))
+			{
+				if (node.first_child().type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
+			return std::nullopt;
 		}
 		else
 		{
@@ -525,8 +554,15 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto childNode = mRootXml.first_child();
-			return childNode.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(childNode, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			if (auto childNode = mRootXml.first_child())
+			{
+				if (childNode.type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlArrayScope<TMode>>(childNode, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
+			return std::nullopt;
 		}
 		else
 		{
@@ -540,8 +576,15 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto node = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
-			return node.type() == pugi::node_element ? std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			if (auto node = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key)))
+			{
+				if (node.type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
+			return std::nullopt;
 		}
 		else
 		{
@@ -554,8 +597,15 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto node = mRootXml.first_child();
-			return node.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+			if (auto node = mRootXml.first_child())
+			{
+				if (node.type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
+			return std::nullopt;
 		}
 		else
 		{
@@ -567,9 +617,18 @@ public:
 	template <typename TKey>
 	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
 	{
-		if constexpr (TMode == SerializeMode::Load) {
-			auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key));
-			return child.type() == pugi::node_element ? std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext()) : std::nullopt;
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			if (auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key)))
+			{
+				if (child.type() == pugi::node_element)
+				{
+					return std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
+				}
+				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
+			return std::nullopt;
+			
 		}
 		else
 		{

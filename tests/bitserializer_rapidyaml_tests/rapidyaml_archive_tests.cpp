@@ -280,12 +280,12 @@ TEST(RapidYamlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
-//TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
-//	TestMismatchedTypesPolicy<YamlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-//}
-//TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
-//	TestMismatchedTypesPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-//}
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<YamlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
 
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip

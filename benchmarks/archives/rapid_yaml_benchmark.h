@@ -44,7 +44,7 @@ public:
 			yamlObj.append_child() << ryml::key("MultiLineString") << obj.mMultiLineString;
 		}
 
-		mNativeLibOutputData = ryml::emitrs<std::string>(tree);
+		mNativeLibOutputData = ryml::emitrs_yaml<std::string>(tree);
 		return mNativeLibOutputData.size();
 	}
 

@@ -15,6 +15,29 @@
 #include <ryml/ryml_std.hpp>
 #include <ryml/ryml.hpp>
 
+namespace c4::yml
+{
+	// Dummy
+	template <typename T>
+	void emitrs_yaml();
+
+	// Detect existence of new ryml API function emitrs_yaml (ToDo: remove in one of future releases)
+	template <typename T>
+	struct ryml_has_emitrs_yaml
+	{
+	private:
+		template <typename U>
+		static std::enable_if_t<std::is_same_v<U, decltype(emitrs_yaml<U>(std::declval<Tree>()))>, std::true_type> test(int);
+
+		template <typename>
+		static std::false_type test(...);
+
+	public:
+		typedef decltype(test<T>(0)) type;
+		enum { value = type::value };
+	};
+}
+
 namespace BitSerializer::Yaml::RapidYaml {
 	namespace Detail {
 
@@ -567,8 +590,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 					{
 						using T = std::decay_t<decltype(arg)>;
 						auto& options = TArchiveScope<TMode>::GetOptions();
-						if constexpr (std::is_same_v<T, std::string*>) {
-							*arg = ryml::emitrs<std::string>(mTree);
+						if constexpr (std::is_same_v<T, std::string*>)
+						{
+							if constexpr (c4::yml::ryml_has_emitrs_yaml<std::string>::value)
+							{
+								*arg = ryml::emitrs_yaml<std::string>(mTree);
+							}
+							else
+							{
+								*arg = ryml::emitrs<std::string>(mTree);
+							}
 						}
 						else if constexpr (std::is_same_v<T, std::ostream*>)
 						{

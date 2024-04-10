@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -9,6 +9,7 @@
 #include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/atomic.h"
 
 //-----------------------------------------------------------------------------
 // Serialization tests for STL types.
@@ -92,7 +93,7 @@ TEST(STD_Types, SerializeUniquePtrAsClassMember) {
 
 TEST(STD_Types, SerializeUniquePtrAsClassMemberWithNull) {
 	using TestType = std::unique_ptr<std::string>;
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::unique_ptr<std::string>>(TestType()));
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType(TestType()));
 }
 
 //-----------------------------------------------------------------------------
@@ -114,5 +115,42 @@ TEST(STD_Types, SerializeSharedPtrAsClassMember) {
 
 TEST(STD_Types, SerializeSharedPtrAsClassMemberWithNull) {
 	using TestType = std::shared_ptr<std::string>;
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::shared_ptr<std::string>>(TestType()));
+	TestSerializeClass<ArchiveStub>(TestClassWithSubType(TestType()));
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::atomic
+//-----------------------------------------------------------------------------
+class TestClassWithAtomic
+{
+public:
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << AutoKeyValue("testBool", testBool);
+		archive << AutoKeyValue("testInt", testInt);
+	}
+
+	void Assert(const TestClassWithAtomic& actual) const
+	{
+		EXPECT_EQ(testBool, actual.testBool);
+		EXPECT_EQ(testInt, actual.testInt);
+	}
+
+	std::atomic_bool testBool = BuildFixture<bool>();
+	std::atomic_int testInt = BuildFixture<int>();
+};
+
+TEST(STD_Types, SerializeAtomicAsClassMember)
+{
+	TestSerializeClass<ArchiveStub>(TestClassWithAtomic());
+}
+
+TEST(STD_Types, SerializeAtomic)
+{
+	std::atomic_bool testBool = BuildFixture<bool>();
+	TestSerializeType<ArchiveStub>(testBool);
+
+	std::atomic_int testInt = BuildFixture<int>();
+	TestSerializeType<ArchiveStub>(testInt);
 }

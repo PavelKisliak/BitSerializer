@@ -12,6 +12,15 @@
 
 
 /// <summary>
+/// Approximately compares two floating point numbers based on passed epsilon.
+/// </summary>
+template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
+static bool ApproximatelyEqual(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
+{
+	return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+/// <summary>
 /// Test template of serialization to root scope of archive (single value types).
 /// </summary>
 /// <param name="value">The value.</param>

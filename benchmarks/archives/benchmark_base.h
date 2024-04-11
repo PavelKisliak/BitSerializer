@@ -154,8 +154,9 @@ public:
 		assert(mTestBoolValue == rhs.mTestBoolValue);
 		assert(mTestCharValue == rhs.mTestCharValue);
 		assert(mTestInt64Value == rhs.mTestInt64Value);
-		assert(mTestFloatValue == rhs.mTestFloatValue);
-		assert(mTestDoubleValue == rhs.mTestDoubleValue);
+		// Approximately compare floating point numbers due to possible loss precision when store in the text formats
+		assert(ApproximatelyEqual(mTestFloatValue, rhs.mTestFloatValue, std::numeric_limits<float>::epsilon() * 5));
+		assert(ApproximatelyEqual(mTestDoubleValue, rhs.mTestDoubleValue, std::numeric_limits<double>::epsilon() * 5));
 		assert(mTestString1 == rhs.mTestString1);
 		assert(mTestString2 == rhs.mTestString2);
 		assert(mTestString3 == rhs.mTestString3);

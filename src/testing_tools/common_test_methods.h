@@ -263,7 +263,7 @@ void TestSerializeStlContainer()
 	BitSerializer::LoadObject<TArchive>(actual, archiveData);
 
 	// Assert
-	EXPECT_EQ(expected, actual);
+	GTestExpectEq(expected, actual);
 }
 
 /// <summary>

@@ -19,6 +19,7 @@
 #include <unordered_set>
 #include <map>
 #include <unordered_map>
+#include <valarray>
 #include <type_traits>
 #include <tuple>
 #include <filesystem>
@@ -460,5 +461,15 @@ static void BuildFixture(std::multimap<TKey, TValue>& cont)
 		TValue value;
 		BuildFixture(value);
 		cont.emplace(key, std::move(value));
+	}
+}
+
+template <typename T>
+static void BuildFixture(std::valarray<T>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+	for (size_t i = 0; i < size; i++) {
+		BuildFixture(cont[i]);
 	}
 }

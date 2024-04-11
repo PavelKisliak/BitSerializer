@@ -1,8 +1,7 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-
 #pragma once
 #include <optional>
 #include <memory>
@@ -63,6 +62,16 @@ template<typename TValue, size_t ArraySize>
 void GTestExpectEq(TValue(&expected)[ArraySize], TValue(&actual)[ArraySize])
 {
 	for (int i = 0; i < ArraySize; ++i)
+	{
+		GTestExpectEq(expected[i], actual[i]);
+	}
+}
+
+template<typename TValue>
+void GTestExpectEq(const std::valarray<TValue>& expected, const std::valarray<TValue>& actual)
+{
+	ASSERT_EQ(expected.size(), actual.size());
+	for (int i = 0; i < actual.size(); ++i)
 	{
 		GTestExpectEq(expected[i], actual[i]);
 	}

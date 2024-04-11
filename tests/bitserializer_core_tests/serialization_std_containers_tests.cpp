@@ -17,6 +17,7 @@
 #include "bitserializer/types/std/unordered_set.h"
 #include "bitserializer/types/std/map.h"
 #include "bitserializer/types/std/unordered_map.h"
+#include "bitserializer/types/std/valarray.h"
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL containers.
@@ -356,4 +357,17 @@ TEST(STD_Containers, SerializeMultimapMapAsClassMember) {
 	auto fixture = TestClassWithSubType<test_type>(AssertMultimap<test_type>);
 	BuildFixture(fixture);
 	TestSerializeClass<ArchiveStub>(fixture);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::valarray
+//-----------------------------------------------------------------------------
+TEST(STD_Containers, SerializeValarrayWithIntAsKey) {
+	using test_type = std::valarray<int>;
+	TestSerializeStlContainer<ArchiveStub, test_type>();
+}
+
+TEST(STD_Containers, SerializeValarrayAsClassMember) {
+	using test_type = std::valarray<float>;
+	TestSerializeStlContainer<ArchiveStub, test_type>();
 }

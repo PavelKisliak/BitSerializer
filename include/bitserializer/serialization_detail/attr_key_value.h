@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -52,6 +52,7 @@ template<class TAttrKey, class TValue, class... Validators>
 class AutoAttributeValue : public AttributeValue<TAttrKey, TValue, Validators...>
 {
 public:
+	[[deprecated("Use regular KeyValue() for all cases")]]
 	AutoAttributeValue(TAttrKey&& key, TValue& value, Validators&&... validators)
 		: AttributeValue<TAttrKey, TValue, Validators...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), std::forward<Validators>(validators)...)
 	{}

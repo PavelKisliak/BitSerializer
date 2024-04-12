@@ -168,7 +168,7 @@ struct IntFieldsCounterFixture
 	void Serialize(TArchive& archive)
 	{
 		archive << KeyValue("x", x);
-		archive << AutoKeyValue("y", y);
+		archive << KeyValue("y", y);
 	}
 };
 
@@ -192,7 +192,7 @@ struct FieldsCounterFixtureWithInheritance : IntFieldsCounterFixture
 template<typename TArchive>
 void SerializeObject(TArchive& archive, ExtFieldsCounterFixture& fixture)
 {
-	archive << KeyValue("x", fixture.x) << AutoKeyValue("y", fixture.y) << KeyValue("z", fixture.z);
+	archive << KeyValue("x", fixture.x) << KeyValue("y", fixture.y) << KeyValue("z", fixture.z);
 }
 
 template <bool IsBinary = false>

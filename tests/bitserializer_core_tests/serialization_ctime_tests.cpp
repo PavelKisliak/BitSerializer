@@ -21,7 +21,7 @@ struct TestCTime
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << AutoKeyValue("Time", CTimeRef(Time));
+		archive << KeyValue("Time", CTimeRef(Time));
 	}
 
 	time_t Time = 0;

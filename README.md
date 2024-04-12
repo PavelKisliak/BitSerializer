@@ -34,7 +34,7 @@ ___
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
   - Dependencies which are required by selected type of archive.
 
-(*) Minimal requirement for RapidYaml archive is VS2019 (with using the latest version of RapidYaml library 0.4.1).
+(\*) Minimal requirement for RapidYaml archive is VS2019 (with using the latest version of RapidYaml library 0.4.1).
 
 ### Performance
 For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
@@ -181,7 +181,7 @@ int main()
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys (with using `AutoKeyValue()`), but remember that transcoding takes additional time and, of course, it is better to use string types which are natively supported by a particular archive, usually `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys, but remember that transcoding takes additional time and, of course, it is better to use string types which are natively supported by a particular archive, usually this is `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
 ```cpp
 class TestUnicodeClass
 {
@@ -190,13 +190,13 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		// Serialize UTF-8 string with key in UTF-16
-		archive << AutoKeyValue(u"Utf16Key", mUtf8StringValue);
+		archive << KeyValue(u"Utf16Key", mUtf8StringValue);
 
 		// Serialize UTF-16 string with key in UTF-32
-		archive << AutoKeyValue(U"Utf32Key", mUtf16StringValue);
+		archive << KeyValue(U"Utf32Key", mUtf16StringValue);
 
 		// Serialize UTF-32 string with key in UTF-8
-		archive << AutoKeyValue(u8"Utf8Key", mUtf32StringValue);
+		archive << KeyValue(u8"Utf8Key", mUtf32StringValue);
 	};
 
 private:
@@ -268,7 +268,7 @@ Returns result
 	]
 }
 ```
-For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. The type of key should be supported by target archive, usually they requires UTF-8 string. In some cases can be useful the `AutoKeyValue` adapter, which automatically converts a key to type expected by the archive. Using this adapter makes sense with **CppRestJson** archive (which has different key types on different platforms), or with **PugiXml** archive (which can be compiled with `PUGIXML_WCHAR_MODE`).  One more possible case, if you would like to use UTF-16, UTF-32 or some custom string implementation as keys. For get maximum performance, better to avoid any conversions.
+For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. Usually the type of key is UTF-8 string, but you are free to use any other convertible type (`std::u16string`, `std::u32string` or any numeric types). For example, MsgPack archive has native support for numbers as keys, they will be converted to string when use with another archive. For get maximum performance, better to avoid any conversions.
 
 ### Serializing base class
 To serialize the base class, use the helper method `BaseObject()`, as in the next example.
@@ -323,17 +323,17 @@ template<typename TArchive>
 void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
 	// Serialize public property
-	archive << AutoKeyValue("x", testThirdPartyClass.x);
+	archive << KeyValue("x", testThirdPartyClass.x);
 
 	// Serialize private property
 	if constexpr (TArchive::IsLoading()) {
 		int y = 0;
-		archive << AutoKeyValue("y", y);
+		archive << KeyValue("y", y);
 		testThirdPartyClass.SetY(y);
 	}
 	else {
 		const int y = testThirdPartyClass.GetY();
-		archive << AutoKeyValue("y", y);
+		archive << KeyValue("y", y);
 	}
 }
 
@@ -499,8 +499,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << AutoKeyValue("x", x);
-		archive << AutoKeyValue("y", y);
+		archive << KeyValue("x", x);
+		archive << KeyValue("y", y);
 	}
 
 	int x, y;
@@ -526,7 +526,7 @@ XML: <?xml version="1.0"?><root><x>100</x><y>200</y></root>
 The code for serialization has difference only in template parameter - **JsonArchive** and **XmlArchive**.
 But here are some moments which need comments. As you can see in the XML was created node with name "root". This is auto generated name when it was not specified explicitly for root node. The library does this just to smooth out differences in the structure of formats. But you are free to set name of root node if needed:
 ```cpp
-const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(AutoKeyValue("Point", testObj));
+const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", testObj));
 ```
 The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also allow to customize the serialization behavior for different formats:
 ```cpp
@@ -541,8 +541,8 @@ The second thing which you would like to customize is default structure of outpu
 		}
 		else
 		{
-			archive << AutoKeyValue("x", x);
-			archive << AutoKeyValue("y", y);
+			archive << KeyValue("x", x);
+			archive << KeyValue("y", y);
 		}
 	}
 ```
@@ -556,6 +556,7 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 ### Serialization STD types
 BitSerializer has built-in serialization for all STD containers and most other commonly used types. For add support of required STD type just need to include related header file.
 ```cpp
+#include "bitserializer/types/std/atomic.h"
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/deque.h"
@@ -568,6 +569,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 #include "bitserializer/types/std/unordered_set.h"
 #include "bitserializer/types/std/map.h"
 #include "bitserializer/types/std/unordered_map.h"
+#include "bitserializer/types/std/valarray.h"
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/optional.h"
@@ -708,8 +710,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << AutoKeyValue("x", x);
-		archive << AutoKeyValue("y", y);
+		archive << KeyValue("x", x);
+		archive << KeyValue("y", y);
 	}
 
 	int x = 0, y = 0;

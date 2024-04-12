@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -57,7 +57,7 @@ union TestUnion
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::AutoKeyValue("value", mIntValue);
+		archive << BitSerializer::KeyValue("value", mIntValue);
 	}
 
 	int mIntValue;
@@ -110,8 +110,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::AutoKeyValue("x", x);
-		archive << BitSerializer::AutoKeyValue("y", y);
+		archive << BitSerializer::KeyValue("x", x);
+		archive << BitSerializer::KeyValue("y", y);
 	}
 
 	int x = 0;
@@ -156,8 +156,8 @@ public:
 	{
 		archive << BitSerializer::BaseObject<TestPointClass>(*this);
 
-		archive << BitSerializer::AutoKeyValue(L"TestUInt32", mTestUInt32);
-		archive << BitSerializer::AutoKeyValue(L"TestUInt64", mTestUInt64);
+		archive << BitSerializer::KeyValue(L"TestUInt32", mTestUInt32);
+		archive << BitSerializer::KeyValue(L"TestUInt64", mTestUInt64);
 	}
 
 private:
@@ -206,10 +206,10 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
 		if constexpr (RequiredValidator == true) {
-			archive << BitSerializer::AutoKeyValue(KeyName, mTestValue, BitSerializer::Required());
+			archive << BitSerializer::KeyValue(KeyName, mTestValue, BitSerializer::Required());
 		}
 		else {
-			archive << BitSerializer::AutoKeyValue(KeyName, mTestValue);
+			archive << BitSerializer::KeyValue(KeyName, mTestValue);
 		}
 	}
 
@@ -290,11 +290,11 @@ protected:
 			static const auto key = "Member_" + BitSerializer::Convert::ToString(Index);
 			if (mRequired)
 			{
-				archive << BitSerializer::AutoKeyValue(key, member, BitSerializer::Required());
+				archive << BitSerializer::KeyValue(key, member, BitSerializer::Required());
 			}
 			else
 			{
-				archive << BitSerializer::AutoKeyValue(key, member);
+				archive << BitSerializer::KeyValue(key, member);
 			}
 
 			// Serialize next value
@@ -385,7 +385,7 @@ public:
 
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
-		archive << BitSerializer::AutoKeyValue(L"TestArray", mTestArray);
+		archive << BitSerializer::KeyValue(L"TestArray", mTestArray);
 	}
 
 private:
@@ -414,7 +414,7 @@ public:
 
 	template <class TArchive>
 	void Serialize(TArchive& archive) {
-		archive << BitSerializer::AutoKeyValue(L"TestTwoDimArray", mTestTwoDimArray);
+		archive << BitSerializer::KeyValue(L"TestTwoDimArray", mTestTwoDimArray);
 	}
 
 private:
@@ -434,13 +434,13 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::AutoKeyValue("ExistField", mExistField, BitSerializer::Required());
+		archive << BitSerializer::KeyValue("ExistField", mExistField, BitSerializer::Required());
 
 		// Trying to load not existing field
 		if constexpr (TArchive::IsLoading())
 		{
 			TestType notExistField{};
-			archive << BitSerializer::AutoKeyValue(L"NotExistingField", notExistField, BitSerializer::Required());
+			archive << BitSerializer::KeyValue(L"NotExistingField", notExistField, BitSerializer::Required());
 		}
 	}
 
@@ -460,7 +460,7 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << BitSerializer::AutoKeyValue("TestField", mTestField, BitSerializer::Required());
+		archive << BitSerializer::KeyValue("TestField", mTestField, BitSerializer::Required());
 	}
 
 private:

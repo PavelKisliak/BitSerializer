@@ -87,14 +87,7 @@ XML with defined root name: <?xml version="1.0"?><Point><x>10</x><y>20</y></Poin
 XML without defined root name: <?xml version="1.0"?><root><x>10</x><y>20</y></root>
 ```
 
-By default, **PugiXml** uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be **wchar_t** (and BitSerializer also will need the same key type too). You can use universal adapters such `AutoKeyValue` and `AutoAttributeValue()` for do not care about key types but with possible performance penalty for conversion.
-```cpp
-	void Serialize(TArchive& archive)
-	{
-		archive << AutoAttributeValue("Foo", foo);
-		archive << AutoKeyValue("bar", bar);
-	}
-```
+By default, **PugiXml** uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be **wchar_t**. In any case, BitSerializer adapts the key to the target archive.
 
 #### Serialization attributes
 The XML nodes perfectly fits to common BitSerialazer interface, but serialization attributes is a bit specific, for support them, BitSerializer has one more helper class - `AttributeValue`.
@@ -121,9 +114,9 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << AutoAttributeValue("Type", mType);
-		archive << AutoAttributeValue("Width", mWidth);
-		archive << AutoAttributeValue("Height", mHeight);
+		archive << AttributeValue("Type", mType);
+		archive << AttributeValue("Width", mWidth);
+		archive << AttributeValue("Height", mHeight);
 	}
 
 	std::string mType;
@@ -138,7 +131,7 @@ int main()
 		{ 20, 5 },
 		{ 50, 25 }
 	};
-	const auto result = BitSerializer::SaveObject<XmlArchive>(AutoKeyValue("Shapes", Shapes));
+	const auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Shapes", Shapes));
 	std::cout << result << std::endl;
 	return 0;
 }

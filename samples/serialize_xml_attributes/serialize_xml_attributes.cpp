@@ -20,9 +20,9 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << AutoAttributeValue("Type", mType);
-		archive << AutoAttributeValue("Width", mWidth);
-		archive << AutoAttributeValue("Height", mHeight);
+		archive << AttributeValue("Type", mType);
+		archive << AttributeValue("Width", mWidth);
+		archive << AttributeValue("Height", mHeight);
 	}
 
 	std::string mType;
@@ -37,7 +37,7 @@ int main()
 		{ 20, 5 },
 		{ 50, 25 }
 	};
-	const auto result = BitSerializer::SaveObject<XmlArchive>(AutoKeyValue("Shapes", Shapes));
+	const auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Shapes", Shapes));
 	std::cout << result << std::endl;
 	return 0;
 }

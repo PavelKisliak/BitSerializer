@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -93,32 +93,4 @@ TEST(AttributeValue, ShouldStoreValidators)
 	});
 	EXPECT_EQ(2, knownArgs);
 	EXPECT_EQ(0, unknownArgs);
-}
-
-//-----------------------------------------------------------------------------
-// Tests of AutoAttributeValue
-//-----------------------------------------------------------------------------
-TEST(AutoAttributeValue, ShouldConvertKeyToRequiredType)
-{
-	// Arrange
-	const wchar_t* key = L"key1";
-	int value = 10;
-
-	// Act
-	const auto attrValue = AutoAttributeValue(key, value).AdaptAndMoveToBaseAttributeValue<std::string>();
-
-	// Assert
-	EXPECT_EQ("key1", attrValue.GetKey());
-}
-
-TEST(AutoAttributeValue, ShouldStoreRefToValue)
-{
-	// Arrange
-	int value = 10;
-
-	// Act
-	const auto attrValue = AutoAttributeValue("key", value);
-
-	// Assert
-	EXPECT_TRUE(&attrValue.GetValue() == &value);
 }

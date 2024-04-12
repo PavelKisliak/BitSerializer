@@ -127,8 +127,8 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << AutoKeyValue("testBool", testBool);
-		archive << AutoKeyValue("testInt", testInt);
+		archive << KeyValue("testBool", testBool);
+		archive << KeyValue("testInt", testInt);
 	}
 
 	void Assert(const TestClassWithAtomic& actual) const

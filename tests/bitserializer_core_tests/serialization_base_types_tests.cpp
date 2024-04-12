@@ -245,7 +245,7 @@ public:
 template<typename TArchive>
 void SerializeObject(TArchive& archive, TestGlobalSerializeObjectFixture& fixture)
 {
-	archive << AutoKeyValue("Value", fixture.value);
+	archive << KeyValue("Value", fixture.value);
 }
 
 TEST(BaseTypes, ShouldSerializeClassViaGlobalSerializeObject) {

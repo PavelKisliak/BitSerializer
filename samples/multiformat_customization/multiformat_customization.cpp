@@ -20,13 +20,13 @@ public:
 		// Serialize as attributes when archive type is XML
 		if constexpr (TArchive::archive_type == ArchiveType::Xml)
 		{
-			archive << AutoAttributeValue("x", x);
-			archive << AutoAttributeValue("y", y);
+			archive << AttributeValue("x", x);
+			archive << AttributeValue("y", y);
 		}
 		else
 		{
-			archive << AutoKeyValue("x", x);
-			archive << AutoKeyValue("y", y);
+			archive << KeyValue("x", x);
+			archive << KeyValue("y", y);
 		}
 	}
 
@@ -41,7 +41,7 @@ int main()
 	std::cout << "JSON: " << jsonResult << std::endl;
 
 	// Used explicitly defined root node name "Point" (to avoid auto-generated name "root")
-	const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(AutoKeyValue("Point", testObj));
+	const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", testObj));
 	std::cout << "XML: " << xmlResult << std::endl;
 	return 0;
 }

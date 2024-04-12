@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -19,32 +19,35 @@ namespace BitSerializer::KeyValueProxy
 	template <class TArchive, class TKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TValidators...>&& keyValue)
 	{
-		constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>;
-		static_assert(hasSupportKeyType, "BitSerializer. The archive doesn't support this key type.");
-
-		if constexpr (hasSupportKeyType)
+		bool result;
+		if constexpr (BitSerializer::is_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>)
 		{
-			const bool result = Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
+			result = Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
+		}
+		else
+		{
+			const auto key = Convert::To<typename TArchive::key_type>(keyValue.GetKey());
+			result = Serialize(archive, key, keyValue.GetValue());
+		}
 
-			// Validation when loading
-			if constexpr (TArchive::IsLoading())
+		// Validation when loading
+		if constexpr (TArchive::IsLoading())
+		{
+			keyValue.VisitArgs([result, &keyValue, &archive](auto& handler)
 			{
-				keyValue.VisitArgs([result, &keyValue, &archive](auto& handler)
-				{
-					using Type = std::decay_t<decltype(handler)>;
-					constexpr auto isValidator = is_validator_v<Type, TValue>;
-					static_assert(isValidator, "Unknown signature of passed KeyValue argument");
+				using Type = std::decay_t<decltype(handler)>;
+				constexpr auto isValidator = is_validator_v<Type, TValue>;
+				static_assert(isValidator, "Unknown signature of passed KeyValue argument");
 
-					if constexpr (isValidator)
+				if constexpr (isValidator)
+				{
+					if (auto validationError = handler(keyValue.GetValue(), result))
 					{
-						if (auto validationError = handler(keyValue.GetValue(), result))
-						{
-							auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
-							archive.GetContext().AddValidationError(std::move(path), std::move(*validationError));
-						}
+						auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
+						archive.GetContext().AddValidationError(std::move(path), std::move(*validationError));
 					}
-				});
-			}
+				}
+			});
 		}
 	}
 

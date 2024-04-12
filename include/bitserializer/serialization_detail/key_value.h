@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -75,6 +75,7 @@ template<class TKey, class TValue, class... Validators>
 class AutoKeyValue : public KeyValue<TKey, TValue, Validators...>
 {
 public:
+	[[deprecated("Use regular KeyValue() for all cases")]]
 	explicit AutoKeyValue(TKey&& key, TValue&& value, Validators&&... validators)
 		: KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), std::forward<Validators>(validators)...)
 	{}

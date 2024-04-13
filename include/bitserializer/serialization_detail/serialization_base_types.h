@@ -96,31 +96,6 @@ namespace BitSerializer
 	//-----------------------------------------------------------------------------
 	// Serialize enum types
 	//-----------------------------------------------------------------------------
-	namespace Detail
-	{
-		template <class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
-		bool ConvertStringToEnumByPolicy(const std::string& str, TValue& out_value, MismatchedTypesPolicy policy)
-		{
-			try
-			{
-				out_value = Convert::To<TValue>(str);
-				return true;
-			}
-			catch (const std::invalid_argument&)
-			{
-				if (policy == MismatchedTypesPolicy::ThrowError)
-				{
-					throw SerializationException(SerializationErrorCode::MismatchedTypes,
-						"The string (" + str + ") cannot be converted to target enum");
-				}
-			}
-			catch (...) {
-				throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error when converting enum to string");
-			}
-			return false;
-		}
-	}
-
 	template <class TArchive, typename TKey, class TValue, std::enable_if_t<std::is_enum_v<TValue>, int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
@@ -128,7 +103,7 @@ namespace BitSerializer
 		{
 			std::string str;
 			if (Serialize(archive, std::forward<TKey>(key), str)) {
-				return Detail::ConvertStringToEnumByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy);
+				return Detail::ConvertByPolicy(str, value, archive.GetOptions());
 			}
 			return false;
 		}
@@ -147,7 +122,7 @@ namespace BitSerializer
 		{
 			std::string str;
 			if (Serialize(archive, str)) {
-				return Detail::ConvertStringToEnumByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy);
+				return Detail::ConvertByPolicy(str, value, archive.GetOptions());
 			}
 			return false;
 		}

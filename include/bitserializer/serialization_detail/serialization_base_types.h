@@ -1,8 +1,9 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cstddef>
 #include <type_traits>
 #include "object_traits.h"
 #include "archive_traits.h"
@@ -34,6 +35,61 @@ namespace BitSerializer
 
 		if constexpr (hasValueTypeSupport) {
 			return archive.SerializeValue(value);
+		}
+		return false;
+	}
+
+	//-----------------------------------------------------------------------------
+	// Serialize std::byte
+	//-----------------------------------------------------------------------------
+	template <typename TArchive, typename TKey>
+	bool Serialize(TArchive& archive, TKey&& key, std::byte& value)
+	{
+		constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, unsigned char, TKey>;
+		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
+
+		if constexpr (hasValueWithKeySupport)
+		{
+			unsigned char temp;
+			if constexpr (TArchive::IsLoading())
+			{
+				if (archive.SerializeValue(std::forward<TKey>(key), temp))
+				{
+					value = static_cast<std::byte>(temp);
+					return true;
+				}
+			}
+			else
+			{
+				temp = static_cast<unsigned char>(value);
+				return archive.SerializeValue(std::forward<TKey>(key), temp);
+			}
+		}
+		return false;
+	}
+
+	template <typename TArchive>
+	bool Serialize(TArchive& archive, std::byte& value)
+	{
+		constexpr auto hasValueTypeSupport = can_serialize_value_v<TArchive, unsigned char>;
+		static_assert(hasValueTypeSupport, "BitSerializer. The archive doesn't support serialize fundamental type without key on this level.");
+
+		if constexpr (hasValueTypeSupport)
+		{
+			unsigned char temp;
+			if constexpr (TArchive::IsLoading())
+			{
+				if (archive.SerializeValue(temp))
+				{
+					value = static_cast<std::byte>(temp);
+					return true;
+				}
+			}
+			else
+			{
+				temp = static_cast<unsigned char>(value);
+				return archive.SerializeValue(temp);
+			}
 		}
 		return false;
 	}

@@ -41,6 +41,11 @@ TEST(BaseTypes, SerializeNullptr) {
 	TestSerializeType<ArchiveStub, std::nullptr_t>(nullptr);
 }
 
+TEST(BaseTypes, SerializeStdByte) {
+	TestSerializeType<ArchiveStub, std::byte>(std::numeric_limits<std::byte>::min());
+	TestSerializeType<ArchiveStub, std::byte>(std::numeric_limits<std::byte>::max());
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -190,6 +195,10 @@ TEST(BaseTypes, SerializeClassWithMemberDouble) {
 
 TEST(BaseTypes, SerializeClassWithMemberNullptr) {
 	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+}
+
+TEST(BaseTypes, SerializeClassWithMemberStdByte) {
+	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::byte>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberString) {

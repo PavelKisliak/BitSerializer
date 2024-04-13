@@ -101,6 +101,11 @@ static void BuildFixture(std::wstring& value)		{ value = L"WString Тест_" + 
 static void BuildFixture(std::u16string& value)		{ value = u"UTF-16 Тест_" + BitSerializer::Convert::To<std::u16string>(std::rand()); }
 static void BuildFixture(std::u32string& value)		{ value = U"UTF-32 Тест_" + BitSerializer::Convert::To<std::u32string>(std::rand()); }
 
+static void BuildFixture(std::byte& value)
+{
+	value = static_cast<std::byte>(std::rand() % std::numeric_limits<unsigned char>::max());
+}
+
 template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 static void BuildFixture(T& value)
 {

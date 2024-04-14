@@ -796,8 +796,9 @@ BitSerializer allows to add an arbitrary number of validation rules to the named
 ```cpp
 archive << KeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
 ```
-For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization when all errors have been collected.
-The map of validation errors can be get by calling method `GetValidationErrors()`, it contains paths to fields with errors lists.
+For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization (when all errors have been collected).
+By default, the number of errors is unlimited, but it can be set using `maxValidationErrors` in `SerializationOptions`.
+The map of validation errors can be get by calling method `GetValidationErrors()` from the exception object, it contains paths to fields with errors lists.
 
 Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`.
 Validator `Range` can be used with all types which have operators '<' and '>'.

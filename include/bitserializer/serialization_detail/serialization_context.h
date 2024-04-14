@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -14,7 +14,7 @@ namespace BitSerializer
 	class SerializationContext
 	{
 	public:
-		explicit SerializationContext(const SerializationOptions& serializationOptions)
+		explicit SerializationContext(const SerializationOptions& serializationOptions) noexcept
 			: mSerializationOptions(serializationOptions)
 		{ }
 
@@ -29,6 +29,12 @@ namespace BitSerializer
 			}
 			else {
 				it->second.push_back(std::move(errorMsg));
+			}
+
+			// Immediately throw `ValidationException` when `MaxValidationErrors` is exceeded
+			if (mSerializationOptions.maxValidationErrors > 0 && static_cast<size_t>(mSerializationOptions.maxValidationErrors) == mErrorsMap.size())
+			{
+				OnFinishSerialization();
 			}
 		}
 

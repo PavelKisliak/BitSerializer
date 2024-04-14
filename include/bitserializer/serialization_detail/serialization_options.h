@@ -108,6 +108,12 @@ namespace BitSerializer
 		MismatchedTypesPolicy mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
 
 		/// <summary>
+		/// The maximum number of validation errors that will be collected before an exception is thrown ().
+		///	The default value is "0", which means unlimited quantity. Number of errors for each particular field is unlimited in any case.
+		/// </summary>
+		uint32_t maxValidationErrors = 0;
+
+		/// <summary>
 		/// Values separator, currently used only for CSV format (allowed: ',', ';', '\t', ' ', '|').
 		/// </summary>
 		char valuesSeparator = ',';

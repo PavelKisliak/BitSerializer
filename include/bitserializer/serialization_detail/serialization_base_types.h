@@ -377,19 +377,20 @@ namespace BitSerializer
 	/// Serializes the base class.
 	/// </summary>
 	template <typename TArchive, class TBase>
-	void Serialize(TArchive& archive, BaseObject<TBase>&& value)
+	bool Serialize(TArchive& archive, BaseObject<TBase>&& value)
 	{
-		constexpr auto isSerializableClass = has_serialize_method_v<TBase>;
-		static_assert(isSerializableClass, "BitSerializer. The class must have Serialize() method internally or externally (in namespace BitSerializer).");
+		constexpr auto hasSerializeMethod = has_serialize_method_v<TBase>;
+		constexpr auto isObjectScope = is_object_scope_v<TArchive, typename TArchive::key_type>;
 
-		if constexpr (isSerializableClass) {
-			constexpr auto isObjectScope = is_object_scope_v<TArchive, typename TArchive::key_type>;
-			static_assert(isObjectScope, "BitSerializer. The archive doesn't support serialize base class on this level.");
+		static_assert(hasSerializeMethod, "BitSerializer. The class must have defined Serialize() method or global function SerializeObject()");
+		static_assert(isObjectScope, "BitSerializer. The archive doesn't support serialize base class on this level.");
 
-			if constexpr (isObjectScope) {
-				value.Object.TBase::Serialize(archive);
-			}
+		if constexpr (hasSerializeMethod && isObjectScope)
+		{
+			value.Object.TBase::Serialize(archive);
+			return true;
 		}
+		return false;
 	}
 
 	//-----------------------------------------------------------------------------

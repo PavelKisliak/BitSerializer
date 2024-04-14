@@ -271,7 +271,7 @@ Returns result
 For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. Usually the type of key is UTF-8 string, but you are free to use any other convertible type (`std::u16string`, `std::u32string` or any numeric types). For example, MsgPack archive has native support for numbers as keys, they will be converted to string when use with another archive. For get maximum performance, better to avoid any conversions.
 
 ### Serializing base class
-To serialize the base class, use the helper method `BaseObject()`, as in the next example.
+To serialize the base class, use the helper method `BaseObject()`, like as in the next example.
 ```cpp
 template <class TArchive>
 void Serialize(TArchive& archive)
@@ -280,6 +280,7 @@ void Serialize(TArchive& archive)
 	archive << KeyValue("TestInt", TestInt);
 };
 ```
+One limitation is that the base class must have an internal `Serialize()` method, unfortunately there is no way to use an external `SerialzeObject()`.
 
 ### Serializing third party class
 As alternative for internal `Serialize()` method also exists approach with defining global functions, it will be useful in next cases:

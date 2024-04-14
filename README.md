@@ -482,7 +482,7 @@ enum class HttpMethod {
 
 REGISTER_ENUM(HttpMethod, {
 	{ HttpMethod::Delete,   "delete" },
-	{ HttpMethod::Get,      "get" },
+	{ HttpMethod::Get,       "get" },
 	{ HttpMethod::Head,     "head" }
 })
 ```

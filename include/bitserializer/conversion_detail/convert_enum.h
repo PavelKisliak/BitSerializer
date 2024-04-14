@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -22,11 +22,6 @@
 #define REGISTER_ENUM(enumType, ...) namespace { \
 	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::Register(__VA_ARGS__); \
 }
-
-/// Deprecated enum registration
-#define REGISTER_ENUM_MAP(enumType) namespace { \
-	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::RegisterDeprecated(
-#define END_ENUM_MAP() ); }
 
 /// <summary>
 /// Declares I/O streams operators for enum (register the enum via REGISTER_ENUM macro).
@@ -60,7 +55,7 @@ namespace BitSerializer::Convert::Detail
 		std::string_view Name;
 
 		EnumMetadata() = default;
-		EnumMetadata(TEnum value, const char* name)
+		EnumMetadata(TEnum value, const char* name) noexcept
 			: Value(value), Name(name)
 		{ }
 	};
@@ -70,12 +65,6 @@ namespace BitSerializer::Convert::Detail
 	class EnumRegistry
 	{
 	public:
-		template <size_t Size>
-		[[deprecated("Please use new macro REGISTER_ENUM() for registration enum types")]]
-		static bool Register_(const EnumMetadata<TEnum>(&descriptors)[Size]) {
-			return Register<Size>(descriptors);
-		}
-
 		template <size_t Size>
 		static bool Register(const EnumMetadata<TEnum>(&descriptors)[Size])
 		{

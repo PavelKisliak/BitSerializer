@@ -10,7 +10,7 @@ ___
 - Cross-platform (Windows, Linux, MacOS).
 
 ### Main features:
-- One common interface for different kind of formats (currently supported JSON, XML, YAML, CSV and MsgPack).
+- One common interface for different kind of formats (currently supported JSON, XML, YAML, CSV and MsgPack\*).
 - Modular architecture, no need to install all archives.
 - Simple syntax which is similar to serialization in the Boost library.
 - Customizable validation of deserialized values with producing an output list of errors.
@@ -21,6 +21,8 @@ ___
 - Encoding to various UTF formats.
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
 
+(\*) MsgPack is not released yet.
+
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
@@ -29,12 +31,13 @@ ___
 | [pugixml-archive](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
 | [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
 | [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
+| [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
   - Dependencies which are required by selected type of archive.
 
-(\*) Minimal requirement for RapidYaml archive is VS2019 (with using the latest version of RapidYaml library 0.4.1).
+(\*) Minimal requirement for RapidYaml archive is VS2019.
 
 ### Performance
 For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.

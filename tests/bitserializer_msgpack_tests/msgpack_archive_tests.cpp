@@ -296,6 +296,13 @@ TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<MsgPackArchive>(fixture);
 }
 
+TEST(MsgPackArchive, SerializeClassWithSkippingFields)
+{
+	TestClassWithVersioning arrayOfObjects[3];
+	BuildFixture(arrayOfObjects);
+	TestSerializeType<MsgPackArchive>(arrayOfObjects);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes with non-string keys (MsgPack feature)
 //-----------------------------------------------------------------------------
@@ -461,7 +468,7 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
-TEST(MsgPackArchive, TestThrowPolicyForArrayWhenMismatchedLoadStringToBoolean) {
+TEST(MsgPackArchive, ThrowPolicyForArrayWhenMismatchedLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {

@@ -29,14 +29,14 @@ void TestSerializeType(T&& value)
 {
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive;
-	std::decay_t<T> actual;
+	std::remove_reference_t<T> actual;
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputArchive);
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	GTestExpectEq(value, actual);
+	GTestExpectEq(std::forward<T>(value), actual);
 }
 
 /// <summary>

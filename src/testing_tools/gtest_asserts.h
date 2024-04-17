@@ -7,8 +7,27 @@
 #include <memory>
 #include <gtest/gtest.h>
 
-template <typename T>
+template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
+void GTestExpectEq(T expected, T actual)
+{
+	EXPECT_EQ(expected, actual);
+}
+
+template <typename T, std::enable_if_t<std::is_class_v<T>, int> = 0>
 void GTestExpectEq(const T& expected, const T& actual)
+{
+	if constexpr (has_assert_method_v<std::decay_t<T>>)
+	{
+		expected.Assert(actual);
+	}
+	else
+	{
+		EXPECT_EQ(expected, actual);
+	}
+}
+
+template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+void GTestExpectEq(T expected, T actual)
 {
 	EXPECT_EQ(expected, actual);
 }
@@ -59,7 +78,7 @@ void GTestExpectEq(const std::optional<TValue>& expected, const std::optional<TV
 }
 
 template<typename TValue, size_t ArraySize>
-void GTestExpectEq(TValue(&expected)[ArraySize], TValue(&actual)[ArraySize])
+void GTestExpectEq(const TValue(&expected)[ArraySize], const TValue(&actual)[ArraySize])
 {
 	for (int i = 0; i < ArraySize; ++i)
 	{

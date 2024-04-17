@@ -238,6 +238,13 @@ TEST(RapidJsonArchive, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<JsonArchive>(fixture);
 }
 
+TEST(RapidJsonArchive, SerializeClassWithSkippingFields)
+{
+	TestClassWithVersioning arrayOfObjects[3];
+	BuildFixture(arrayOfObjects);
+	TestSerializeType<JsonArchive>(arrayOfObjects);
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

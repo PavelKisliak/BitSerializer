@@ -204,6 +204,13 @@ TEST(JsonRestCpp, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<JsonArchive>(fixture);
 }
 
+TEST(JsonRestCpp, SerializeClassWithSkippingFields)
+{
+	TestClassWithVersioning arrayOfObjects[3];
+	BuildFixture(arrayOfObjects);
+	TestSerializeType<JsonArchive>(arrayOfObjects);
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

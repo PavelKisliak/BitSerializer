@@ -467,6 +467,52 @@ private:
 	TestType mTestField;
 };
 
+class TestClassWithVersioning
+{
+public:
+	static void BuildFixture(TestClassWithVersioning& fixture)
+	{
+		::BuildFixture(fixture.name);
+		::BuildFixture(fixture.age);
+	}
+
+	void Assert(const TestClassWithVersioning& rhs) const
+	{
+		GTestExpectEq(name, rhs.name);
+		GTestExpectEq(age, rhs.age);
+		GTestExpectEq(rate, rhs.rate);
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		if constexpr (TArchive::IsSaving())
+		{
+			auto deprecatedField1 = ::BuildFixture<std::string>();
+			auto deprecatedField2 = ::BuildFixture<bool>();
+			auto deprecatedField3 = ::BuildFixture<int>();
+			auto deprecatedField4 = ::BuildFixture<double>();
+
+			archive << BitSerializer::KeyValue("deprecatedField1", deprecatedField1);
+			archive << BitSerializer::KeyValue("name", name);
+			archive << BitSerializer::KeyValue("deprecatedField2", deprecatedField2);
+			archive << BitSerializer::KeyValue("age", age);
+			archive << BitSerializer::KeyValue("deprecatedField3", deprecatedField3);
+			archive << BitSerializer::KeyValue("rate", rate);
+			archive << BitSerializer::KeyValue("deprecatedField4", deprecatedField4);
+		}
+		else
+		{
+			archive << BitSerializer::KeyValue("name", name);
+			archive << BitSerializer::KeyValue("age", age);
+		}
+	}
+
+	std::string name;
+	uint8_t age{};
+	double rate{};
+};
+
 //-----------------------------------------------------------------------------
 template <class ...Args>
 class TestClassWithAttributes : public std::tuple<Args...>

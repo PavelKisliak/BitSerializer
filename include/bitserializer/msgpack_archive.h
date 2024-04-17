@@ -752,6 +752,18 @@ public:
 		, mSize(mapSize)
 	{ }
 
+	~CMsgPackReadObjectScope() override
+	{
+		ResetKey();
+		// Skip key/values that was not read
+		for (size_t c = mIndex; c < mSize; ++c)
+		{
+			mMsgPackReader->SkipValue();
+			mMsgPackReader->SkipValue();
+			++mIndex;
+		}
+	}
+
 	/// <summary>
 	/// Gets the current path in MsgPack.
 	/// </summary>
@@ -780,6 +792,7 @@ public:
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
+		ResetKey();
 		mMsgPackReader->SetPosition(mStartPos);
 		for (mIndex = 0; mIndex < mSize;)
 		{
@@ -787,6 +800,7 @@ public:
 			// Need to skip value if it was not read (current key is not empty)
 			if (mCurrentKey)
 			{
+				mCurrentKey.Reset();
 				mMsgPackReader->SkipValue();
 				++mIndex;
 			}
@@ -926,8 +940,7 @@ private:
 			if (mCurrentKey == key) {
 				return true;
 			}
-			mMsgPackReader->SkipValue();
-			++mIndex;
+			ResetKey();
 		}
 
 		for (size_t c = 0; c < mSize; ++c)
@@ -946,6 +959,16 @@ private:
 		}
 		mCurrentKey.Reset();
 		return false;
+	}
+
+	void ResetKey()
+	{
+		if (mCurrentKey)
+		{
+			mCurrentKey.Reset();
+			mMsgPackReader->SkipValue();
+			++mIndex;
+		}
 	}
 
 	TReader* mMsgPackReader;

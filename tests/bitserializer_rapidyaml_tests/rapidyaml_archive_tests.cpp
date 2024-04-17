@@ -165,6 +165,13 @@ TEST(RapidYamlArchive, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<YamlArchive>(fixture);
 }
 
+TEST(RapidYamlArchive, SerializeClassWithSkippingFields)
+{
+	TestClassWithVersioning arrayOfObjects[3];
+	BuildFixture(arrayOfObjects);
+	TestSerializeType<YamlArchive>(arrayOfObjects);
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

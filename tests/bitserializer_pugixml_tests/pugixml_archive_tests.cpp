@@ -154,6 +154,13 @@ TEST(PugiXmlArchive, SerializeClassInReverseOrderWithSubObject)
 	TestSerializeClass<XmlArchive>(fixture);
 }
 
+TEST(PugiXmlArchive, SerializeClassWithSkippingFields)
+{
+	TestClassWithVersioning arrayOfObjects[3];
+	BuildFixture(arrayOfObjects);
+	TestSerializeType<XmlArchive>(arrayOfObjects);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for attributes
 //-----------------------------------------------------------------------------

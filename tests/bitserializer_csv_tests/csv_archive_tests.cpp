@@ -88,6 +88,13 @@ TEST_F(CsvArchiveTests, SerializeClassInReverseOrder)
 	TestSerializeArray<CsvArchive, TestClassWithReverseLoad<bool, int, std::string>>();
 }
 
+TEST_F(CsvArchiveTests, SerializeClassWithSkippingFields)
+{
+	TestClassWithVersioning arrayOfObjects[3];
+	BuildFixture(arrayOfObjects);
+	TestSerializeType<CsvArchive>(arrayOfObjects);
+}
+
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -113,7 +113,7 @@ TEST(RapidJsonArchive, SerializeArrayOfIntegers)
 TEST(RapidJsonArchive, SerializeArrayOfFloats)
 {
 	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
-	TestSerializeVector<JsonArchive, float>({ -3.141592654f, 0.0f, -3.141592654f });
+	TestSerializeType<JsonArchive>(std::vector{ -3.141592654f, 0.0f, -3.141592654f });
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfDoubles)

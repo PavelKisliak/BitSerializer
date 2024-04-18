@@ -21,7 +21,7 @@ static bool ApproximatelyEqual(T a, T b, T epsilon = std::numeric_limits<T>::eps
 }
 
 /// <summary>
-/// Test template of serialization to root scope of archive (single value types).
+/// Test template for value serialization to root scope of archive.
 /// </summary>
 /// <param name="value">The value.</param>
 template <typename TArchive, typename T>
@@ -37,6 +37,26 @@ void TestSerializeType(T&& value)
 
 	// Assert
 	GTestExpectEq(std::forward<T>(value), actual);
+}
+
+/// <summary>
+/// Test template for key and value pair serialization to root scope of archive.
+/// </summary>
+/// <param name="key">The key.</param>
+/// <param name="value">The value.</param>
+template <class TArchive, class TKey, class TValue>
+void TestSerializeType(TKey&& key, TValue&& value)
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive;
+	std::remove_reference_t<TValue> actual;
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(BitSerializer::KeyValue(key, value), outputArchive);
+	BitSerializer::LoadObject<TArchive>(BitSerializer::KeyValue(key, actual), outputArchive);
+
+	// Assert
+	GTestExpectEq(value, actual);
 }
 
 /// <summary>
@@ -126,25 +146,6 @@ void TestSerializeTwoDimensionalArray()
 			GTestExpectEq(testArray[i][c], actual[i][c]);
 		}
 	}
-}
-
-/// <summary>
-/// Test template of serialization for class with key (must have constant method Assert()).
-/// </summary>
-/// <param name="value">The value.</param>
-template <typename TArchive, typename T>
-void TestSerializeClassWithKey(T&& value)
-{
-	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
-	std::decay_t<T> actual;
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(BitSerializer::KeyValue(L"Root", value), outputArchive);
-	BitSerializer::LoadObject<TArchive>(BitSerializer::KeyValue("Root", actual), outputArchive);
-
-	// Assert
-	value.Assert(actual);
 }
 
 /// <summary>

@@ -62,7 +62,7 @@ TEST(PugiXmlArchive, SerializeTwoDimensionalArray) {
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SerializeClassWithKeyOnRootLevel) {
-	TestSerializeClassWithKey<XmlArchive>(BuildFixture<TestClassWithSubTypes<int16_t>>());
+	TestSerializeType<XmlArchive>("Root", BuildFixture<TestClassWithSubTypes<int16_t>>());
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberBoolean) {

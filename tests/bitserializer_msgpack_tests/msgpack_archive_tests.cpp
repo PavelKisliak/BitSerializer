@@ -172,7 +172,7 @@ TEST(MsgPackArchive, SerializeArrayOfIntegers)
 
 TEST(MsgPackArchive, SerializeArrayOfFloats)
 {
-	TestSerializeVector<MsgPackArchive, float>({ -3.141592654f, 0.0f, -3.141592654f });
+	TestSerializeArray<MsgPackArchive, float>();
 }
 
 TEST(MsgPackArchive, SerializeArrayOfDoubles)

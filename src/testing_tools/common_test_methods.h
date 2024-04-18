@@ -83,29 +83,6 @@ void TestSerializeArray()
 }
 
 /// <summary>
-/// Test template of serialization for vector.
-/// </summary>
-template<typename TArchive, typename TValue>
-void TestSerializeVector(std::initializer_list<TValue> testValues)
-{
-	// Arrange
-	std::vector<TValue> testArray = { std::move(testValues) };
-	typename TArchive::preferred_output_format outputArchive;
-	std::vector<TValue> actual;
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-
-	// Assert
-	ASSERT_EQ(testArray.size(), actual.size());
-	for (size_t i = 0; i < testArray.size(); i++)
-	{
-		GTestExpectEq(testArray[i], actual[i]);
-	}
-}
-
-/// <summary>
 /// Test template of serialization for c-array.
 /// </summary>
 template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>

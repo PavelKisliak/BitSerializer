@@ -135,19 +135,19 @@ TEST(MsgPackArchive, SerializeTimestamp96)
 TEST(MsgPackArchive, SerializeTimestamp32AsClassMember)
 {
 	TestClassWithSubType<std::chrono::duration<uint32_t>> testEntity;
-	TestSerializeClass<MsgPackArchive>(testEntity);
+	TestSerializeType<MsgPackArchive>(testEntity);
 }
 
 TEST(MsgPackArchive, SerializeTimestamp64AsClassMember)
 {
 	TestClassWithSubType<std::chrono::duration<int64_t>> testEntity;
-	TestSerializeClass<MsgPackArchive>(testEntity);
+	TestSerializeType<MsgPackArchive>(testEntity);
 }
 
 TEST(MsgPackArchive, SerializeTimestamp96AsClassMember)
 {
 	TestClassWithSubType<std::chrono::nanoseconds> testEntity;
-	TestSerializeClass<MsgPackArchive>(testEntity);
+	TestSerializeType<MsgPackArchive>(testEntity);
 }
 
 //-----------------------------------------------------------------------------
@@ -212,60 +212,60 @@ TEST(MsgPackArchive, SerializeTwoDimensionalArray)
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassWithMemberBoolean)
 {
-	TestSerializeClass<MsgPackArchive>(TestClassWithSubTypes<bool>(false));
-	TestSerializeClass<MsgPackArchive>(TestClassWithSubTypes<bool>(true));
+	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes<bool>(false));
+	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes<bool>(true));
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberInteger)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
-	TestSerializeClass<MsgPackArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberFloat)
 {
-	TestSerializeClass<MsgPackArchive>(TestClassWithSubTypes(-3.141592654f, 0.0f, -3.141592654f));
+	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes(-3.141592654f, 0.0f, -3.141592654f));
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberDouble)
 {
-	TestSerializeClass<MsgPackArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberNullptr)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberString)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(MsgPackArchive, SerializeClassHierarchy)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithInheritance>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberClass)
 {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassType>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassType>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithSubArray)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithSubArrayOfClasses)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithSubTwoDimArray)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
 TEST(MsgPackArchive, ShouldVisitKeysInObjectScopeWhenReadValues)
@@ -281,19 +281,19 @@ TEST(MsgPackArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
 TEST(MsgPackArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
-	TestSerializeClass<MsgPackArchive>(fixture);
+	TestSerializeType<MsgPackArchive>(fixture);
 }
 
 TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubArray)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
-	TestSerializeClass<MsgPackArchive>(fixture);
+	TestSerializeType<MsgPackArchive>(fixture);
 }
 
 TEST(MsgPackArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
-	TestSerializeClass<MsgPackArchive>(fixture);
+	TestSerializeType<MsgPackArchive>(fixture);
 }
 
 TEST(MsgPackArchive, SerializeClassWithSkippingFields)
@@ -308,29 +308,29 @@ TEST(MsgPackArchive, SerializeClassWithSkippingFields)
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassWithIntAsKey)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int8_t>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int16_t>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int32_t>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int64_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int8_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int16_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int32_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int64_t>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithUIntAsKey)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint8_t>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint16_t>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint32_t>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint64_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint8_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint16_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint32_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint64_t>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithFloatAsKey)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<float>>());
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<double>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<float>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<double>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 {
-	TestSerializeClass<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::CBinTimestamp>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::CBinTimestamp>>());
 }
 
 //-----------------------------------------------------------------------------

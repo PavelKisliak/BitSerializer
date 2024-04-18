@@ -92,7 +92,7 @@ TEST(BaseTypes, SerializeEnumAsRootThrowMismatchedTypesExceptionWhenLoadInvalid)
 
 TEST(BaseTypes, SerializeEnumAsClassMember) {
 	TestClassWithSubType testEntity(TestEnum::Three);
-	TestSerializeClass<ArchiveStub>(testEntity);
+	TestSerializeType<ArchiveStub>(testEntity);
 }
 
 TEST(BaseTypes, SerializeEnumAsClassMemberThrowMismatchedTypesExceptionWhenLoadInvalid)
@@ -173,57 +173,57 @@ TEST(BaseTypes, ShouldThrowExceptionWhenLoadToArrayWithBiggerAmountOfElements) {
 // Tests of serialization for classes and unions
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, SerializeClassWithMemberBoolean) {
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<bool>(false));
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<bool>(true));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<bool>(false));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<bool>(true));
 }
 
 TEST(BaseTypes, SerializeUnion) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestUnion>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestUnion>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberInteger) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberFloat) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<float>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<float>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberDouble) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<double>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<double>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberNullptr) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberStdByte) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::byte>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::byte>>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberString) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
 }
 
 TEST(BaseTypes, SerializeClassHierarchy) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithInheritance>());
 }
 
 TEST(BaseTypes, SerializeClassWithMemberClass) {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassType>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassType>());
 }
 
 TEST(BaseTypes, SerializeClassWithSubArray) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubArray<int64_t>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubArray<int64_t>>());
 }
 
 TEST(BaseTypes, SerializeClassWithSubArrayOfClasses) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
 }
 
 TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
 TEST(BaseTypes, ShouldVisitKeysInObjectScope) {
@@ -258,8 +258,8 @@ void SerializeObject(TArchive& archive, TestGlobalSerializeObjectFixture& fixtur
 }
 
 TEST(BaseTypes, ShouldSerializeClassViaGlobalSerializeObject) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestGlobalSerializeObjectFixture>());
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<TestGlobalSerializeObjectFixture>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestGlobalSerializeObjectFixture>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<TestGlobalSerializeObjectFixture>>());
 }
 
 //-----------------------------------------------------------------------------
@@ -299,8 +299,8 @@ void SerializeArray(TArchive& archive, TestGlobalSerializeArrayFixture& fixture)
 }
 
 TEST(BaseTypes, ShouldSerializeArrayViaGlobalSerializeArray) {
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestGlobalSerializeArrayFixture>());
-	TestSerializeClass<ArchiveStub>(BuildFixture<TestClassWithSubTypes<TestGlobalSerializeArrayFixture>>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestGlobalSerializeArrayFixture>());
+	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<TestGlobalSerializeArrayFixture>>());
 }
 
 //-----------------------------------------------------------------------------

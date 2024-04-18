@@ -67,60 +67,60 @@ TEST(RapidYamlArchive, SerializeTwoDimensionalArray)
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeClassWithMemberBoolean)
 {
-	TestSerializeClass<YamlArchive>(TestClassWithSubTypes<bool>(false));
-	TestSerializeClass<YamlArchive>(TestClassWithSubTypes<bool>(true));
+	TestSerializeType<YamlArchive>(TestClassWithSubTypes<bool>(false));
+	TestSerializeType<YamlArchive>(TestClassWithSubTypes<bool>(true));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberInteger)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
-	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberFloat)
 {
-	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
+	TestSerializeType<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberDouble)
 {
-	TestSerializeClass<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+	TestSerializeType<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberNullptr)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberString)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(RapidYamlArchive, SerializeClassHierarchy)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithInheritance>());
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberClass)
 {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassType>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassType>());
 }
 
 TEST(RapidYamlArchive, SerializeClassWithSubArray)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
 }
 
 TEST(RapidYamlArchive, SerializeClassWithSubArrayOfClasses)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
 }
 
 TEST(RapidYamlArchive, SerializeClassWithSubTwoDimArray)
 {
-	TestSerializeClass<YamlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
 TEST(RapidYamlArchive, ShouldAllowToLoadBooleanFromInteger)
@@ -150,19 +150,19 @@ TEST(RapidYamlArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
 TEST(RapidYamlArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
-	TestSerializeClass<YamlArchive>(fixture);
+	TestSerializeType<YamlArchive>(fixture);
 }
 
 TEST(RapidYamlArchive, SerializeClassInReverseOrderWithSubArray)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
-	TestSerializeClass<YamlArchive>(fixture);
+	TestSerializeType<YamlArchive>(fixture);
 }
 
 TEST(RapidYamlArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
-	TestSerializeClass<YamlArchive>(fixture);
+	TestSerializeType<YamlArchive>(fixture);
 }
 
 TEST(RapidYamlArchive, SerializeClassWithSkippingFields)

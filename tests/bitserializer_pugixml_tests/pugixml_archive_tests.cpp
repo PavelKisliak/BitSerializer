@@ -66,50 +66,50 @@ TEST(PugiXmlArchive, SerializeClassWithKeyOnRootLevel) {
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberBoolean) {
-	TestSerializeClass<XmlArchive>(TestClassWithSubTypes<bool>(false));
-	TestSerializeClass<XmlArchive>(TestClassWithSubTypes<bool>(true));
+	TestSerializeType<XmlArchive>(TestClassWithSubTypes<bool>(false));
+	TestSerializeType<XmlArchive>(TestClassWithSubTypes<bool>(true));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberInteger) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
-	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberFloat) {
-	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
+	TestSerializeType<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<float>::min(), 0.0f, std::numeric_limits<float>::max()));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberDouble) {
-	TestSerializeClass<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+	TestSerializeType<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberNullptr) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberString) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(PugiXmlArchive, SerializeClassHierarchy) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithInheritance>());
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberClass) {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassType>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassType>());
 }
 
 TEST(PugiXmlArchive, SerializeClassWithSubArray) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
 }
 
 TEST(PugiXmlArchive, SerializeClassWithSubArrayOfClasses) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
 }
 
 TEST(PugiXmlArchive, SerializeClassWithSubTwoDimArray) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
 TEST(PugiXmlArchive, ShouldAllowToLoadBooleanFromInteger)
@@ -139,19 +139,19 @@ TEST(PugiXmlArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
 TEST(PugiXmlArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
-	TestSerializeClass<XmlArchive>(fixture);
+	TestSerializeType<XmlArchive>(fixture);
 }
 
 TEST(PugiXmlArchive, SerializeClassInReverseOrderWithSubArray)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
-	TestSerializeClass<XmlArchive>(fixture);
+	TestSerializeType<XmlArchive>(fixture);
 }
 
 TEST(PugiXmlArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
-	TestSerializeClass<XmlArchive>(fixture);
+	TestSerializeType<XmlArchive>(fixture);
 }
 
 TEST(PugiXmlArchive, SerializeClassWithSkippingFields)
@@ -165,23 +165,23 @@ TEST(PugiXmlArchive, SerializeClassWithSkippingFields)
 // Tests of serialization for attributes
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SerializeAttributesWithBoolean) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<bool>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithAttributes<bool>>());
 }
 
 TEST(PugiXmlArchive, SerializeAttributesWithIntegers) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithAttributes<int8_t, uint8_t, int64_t, uint64_t>>());
 }
 
 TEST(PugiXmlArchive, SerializeAttributesWithFloats) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<float, double>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithAttributes<float, double>>());
 }
 
 TEST(PugiXmlArchive, SerializeAttributesWithNullptr) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<std::nullptr_t>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithAttributes<std::nullptr_t>>());
 }
 
 TEST(PugiXmlArchive, SerializeAttributesWithString) {
-	TestSerializeClass<XmlArchive>(BuildFixture<TestClassWithAttributes<std::string, std::wstring>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithAttributes<std::string, std::wstring>>());
 }
 
 //-----------------------------------------------------------------------------

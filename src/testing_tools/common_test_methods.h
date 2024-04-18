@@ -152,25 +152,6 @@ void TestSerializeTwoDimensionalArray()
 }
 
 /// <summary>
-/// Test template of serialization for class (must have constant method Assert()).
-/// </summary>
-/// <param name="value">The value.</param>
-template <typename TArchive, typename T>
-void TestSerializeClass(T&& value)
-{
-	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
-	std::decay_t<T> actual;
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(value, outputArchive);
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-
-	// Assert
-	value.Assert(actual);
-}
-
-/// <summary>
 /// Test template of serialization for class with key (must have constant method Assert()).
 /// </summary>
 /// <param name="value">The value.</param>

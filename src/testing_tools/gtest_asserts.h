@@ -13,7 +13,7 @@ void GTestExpectEq(T expected, T actual)
 	EXPECT_EQ(expected, actual);
 }
 
-template <typename T, std::enable_if_t<std::is_class_v<T>, int> = 0>
+template <typename T, std::enable_if_t<std::is_class_v<T> || std::is_union_v<T>, int> = 0>
 void GTestExpectEq(const T& expected, const T& actual)
 {
 	if constexpr (has_assert_method_v<std::decay_t<T>>)

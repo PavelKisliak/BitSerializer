@@ -153,61 +153,61 @@ TEST(RapidJsonArchive, SerializeTwoDimensionalArray)
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeClassWithMemberBoolean)
 {
-	TestSerializeClass<JsonArchive>(TestClassWithSubTypes<bool>(false));
-	TestSerializeClass<JsonArchive>(TestClassWithSubTypes<bool>(true));
+	TestSerializeType<JsonArchive>(TestClassWithSubTypes<bool>(false));
+	TestSerializeType<JsonArchive>(TestClassWithSubTypes<bool>(true));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberInteger)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
-	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberFloat)
 {
 	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
-	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(-3.141592654f, 0.0f, -3.141592654f));
+	TestSerializeType<JsonArchive>(TestClassWithSubTypes(-3.141592654f, 0.0f, -3.141592654f));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberDouble)
 {
-	TestSerializeClass<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+	TestSerializeType<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberNullptr)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::nullptr_t>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberString)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassHierarchy)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithInheritance>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberClass)
 {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassType>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassType>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSubArray)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubArray<int64_t>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSubArrayOfClasses)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubArray<TestPointClass>>());
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSubTwoDimArray)
 {
-	TestSerializeClass<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTwoDimArray<int32_t>>());
 }
 
 TEST(RapidJsonArchive, ShouldVisitKeysInObjectScopeWhenReadValues)
@@ -223,19 +223,19 @@ TEST(RapidJsonArchive, ShouldVisitKeysInObjectScopeWhenSkipValues)
 TEST(RapidJsonArchive, SerializeClassInReverseOrder)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, float, std::string>>();
-	TestSerializeClass<JsonArchive>(fixture);
+	TestSerializeType<JsonArchive>(fixture);
 }
 
 TEST(RapidJsonArchive, SerializeClassInReverseOrderWithSubArray)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, std::array<uint64_t, 5>, std::string>>();
-	TestSerializeClass<JsonArchive>(fixture);
+	TestSerializeType<JsonArchive>(fixture);
 }
 
 TEST(RapidJsonArchive, SerializeClassInReverseOrderWithSubObject)
 {
 	auto fixture = BuildFixture<TestClassWithReverseLoad<int, bool, TestPointClass, std::string>>();
-	TestSerializeClass<JsonArchive>(fixture);
+	TestSerializeType<JsonArchive>(fixture);
 }
 
 TEST(RapidJsonArchive, SerializeClassWithSkippingFields)

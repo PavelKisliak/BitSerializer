@@ -223,6 +223,7 @@ TEST(ConvertByPolicyTest, ConvertToString)
 	EXPECT_TRUE(Detail::ConvertByPolicy(true, targetStr, options));
 	EXPECT_EQ("true", targetStr);
 
+	targetStr.clear();
 	EXPECT_TRUE(Detail::ConvertByPolicy(10, targetStr, options));
 	EXPECT_EQ("10", targetStr);
 }

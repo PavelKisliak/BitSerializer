@@ -62,16 +62,16 @@ TEST(STD_Chrono, SerializeTimePointWithInt8AsRep)
 TEST(STD_Chrono, SerializeTimePointAsClassMember)
 {
 	TestClassWithSubType<time_point<system_clock, seconds>> testEntitySec;
-	TestSerializeClass<ArchiveStub>(testEntitySec);
+	TestSerializeType<ArchiveStub>(testEntitySec);
 
 	TestClassWithSubType<time_point<system_clock, milliseconds>> testEntityMs;
-	TestSerializeClass<ArchiveStub>(testEntityMs);
+	TestSerializeType<ArchiveStub>(testEntityMs);
 
 	TestClassWithSubType<time_point<system_clock, microseconds>> testEntityUs;
-	TestSerializeClass<ArchiveStub>(testEntityUs);
+	TestSerializeType<ArchiveStub>(testEntityUs);
 
 	TestClassWithSubType<time_point<system_clock, nanoseconds>> testEntityNs;
-	TestSerializeClass<ArchiveStub>(testEntityNs);
+	TestSerializeType<ArchiveStub>(testEntityNs);
 }
 
 TEST(STD_Chrono, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDate)
@@ -240,16 +240,16 @@ TEST(STD_Chrono, SerializeDurationMaxValues)
 TEST(STD_Chrono, SerializeDurationAsClassMember)
 {
 	TestClassWithSubType<seconds> testEntitySec;
-	TestSerializeClass<ArchiveStub>(testEntitySec);
+	TestSerializeType<ArchiveStub>(testEntitySec);
 
 	TestClassWithSubType<milliseconds> testEntityMs;
-	TestSerializeClass<ArchiveStub>(testEntityMs);
+	TestSerializeType<ArchiveStub>(testEntityMs);
 
 	TestClassWithSubType<microseconds> testEntityUs;
-	TestSerializeClass<ArchiveStub>(testEntityUs);
+	TestSerializeType<ArchiveStub>(testEntityUs);
 
 	TestClassWithSubType<nanoseconds> testEntityNs;
-	TestSerializeClass<ArchiveStub>(testEntityNs);
+	TestSerializeType<ArchiveStub>(testEntityNs);
 }
 
 TEST(STD_Chrono, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDuration)
@@ -479,7 +479,7 @@ TEST(STD_ChronoAsBin, SkipTooBigTimestampWhenPolicyIsSkip)
 
 TEST(STD_ChronoAsBin, SerializeTimePointAsClassMember) {
 	TestClassWithSubType<time_point<system_clock, nanoseconds>> testEntity;
-	TestSerializeClass<BinArchiveStub>(testEntity);
+	TestSerializeType<BinArchiveStub>(testEntity);
 }
 
 TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestampFromObject)
@@ -630,16 +630,16 @@ TEST(STD_ChronoAsBin, SerializeDurationMaxValues)
 TEST(STD_ChronoAsBin, SerializeDurationAsClassMember)
 {
 	TestClassWithSubType<seconds> testEntitySec;
-	TestSerializeClass<BinArchiveStub>(testEntitySec);
+	TestSerializeType<BinArchiveStub>(testEntitySec);
 
 	TestClassWithSubType<milliseconds> testEntityMs;
-	TestSerializeClass<BinArchiveStub>(testEntityMs);
+	TestSerializeType<BinArchiveStub>(testEntityMs);
 
 	TestClassWithSubType<microseconds> testEntityUs;
-	TestSerializeClass<BinArchiveStub>(testEntityUs);
+	TestSerializeType<BinArchiveStub>(testEntityUs);
 
 	TestClassWithSubType<nanoseconds> testEntityNs;
-	TestSerializeClass<BinArchiveStub>(testEntityNs);
+	TestSerializeType<BinArchiveStub>(testEntityNs);
 }
 
 TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigDuration)

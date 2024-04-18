@@ -32,11 +32,11 @@ TEST(STD_Filesystem, SerializeArrayOfPaths) {
 TEST(STD_Filesystem, SerializePathAsClassMember)
 {
 	TestClassWithSubType testEntity(std::filesystem::temp_directory_path());
-	TestSerializeClass<ArchiveStub>(testEntity);
+	TestSerializeType<ArchiveStub>(testEntity);
 }
 
 TEST(STD_Filesystem, SerializePathWithUnicodeAsClassMember)
 {
 	TestClassWithSubType testEntity(std::filesystem::temp_directory_path() / u"Привет мир!.txt");
-	TestSerializeClass<ArchiveStub>(testEntity);
+	TestSerializeType<ArchiveStub>(testEntity);
 }

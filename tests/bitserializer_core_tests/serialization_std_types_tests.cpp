@@ -29,7 +29,7 @@ TEST(STD_Types, SerializePair) {
 
 TEST(STD_Types, SerializePairAsClassMember) {
 	TestClassWithSubType<std::pair<std::string, int>> testEntity;
-	TestSerializeClass<ArchiveStub>(testEntity);
+	TestSerializeType<ArchiveStub>(testEntity);
 }
 
 //-----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ TEST(STD_Types, SerializeTupleThrowMismatchedTypesExceptionWhenLargerSize) {
 
 TEST(STD_Types, SerializeTupleAsClassMember) {
 	TestClassWithSubType<std::tuple<std::string, int, float, bool>> testEntity;
-	TestSerializeClass<ArchiveStub>(testEntity);
+	TestSerializeType<ArchiveStub>(testEntity);
 }
 
 //-----------------------------------------------------------------------------
@@ -67,11 +67,11 @@ TEST(STD_Types, SerializeOptionalWithNull) {
 }
 
 TEST(STD_Types, SerializeOptionalAsClassMember) {
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::optional<float>>());
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<std::optional<float>>());
 }
 
 TEST(STD_Types, SerializeOptionalAsClassMemberWithNull) {
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::optional<float>>(std::nullopt));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<std::optional<float>>(std::nullopt));
 }
 
 //-----------------------------------------------------------------------------
@@ -88,12 +88,12 @@ TEST(STD_Types, SerializeUniquePtrWithNull) {
 }
 
 TEST(STD_Types, SerializeUniquePtrAsClassMember) {
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::unique_ptr<std::string>>());
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<std::unique_ptr<std::string>>());
 }
 
 TEST(STD_Types, SerializeUniquePtrAsClassMemberWithNull) {
 	using TestType = std::unique_ptr<std::string>;
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType(TestType()));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(TestType()));
 }
 
 //-----------------------------------------------------------------------------
@@ -110,12 +110,12 @@ TEST(STD_Types, SerializeSharedPtrWithNull) {
 }
 
 TEST(STD_Types, SerializeSharedPtrAsClassMember) {
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType<std::shared_ptr<std::string>>());
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<std::shared_ptr<std::string>>());
 }
 
 TEST(STD_Types, SerializeSharedPtrAsClassMemberWithNull) {
 	using TestType = std::shared_ptr<std::string>;
-	TestSerializeClass<ArchiveStub>(TestClassWithSubType(TestType()));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(TestType()));
 }
 
 //-----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ public:
 
 TEST(STD_Types, SerializeAtomicAsClassMember)
 {
-	TestSerializeClass<ArchiveStub>(TestClassWithAtomic());
+	TestSerializeType<ArchiveStub>(TestClassWithAtomic());
 }
 
 TEST(STD_Types, SerializeAtomic)

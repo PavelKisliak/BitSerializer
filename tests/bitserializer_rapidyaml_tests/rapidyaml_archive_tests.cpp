@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2020-2023 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2024 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"

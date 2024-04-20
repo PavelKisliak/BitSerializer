@@ -23,6 +23,26 @@ static bool ApproximatelyEqual(T a, T b, T epsilon = std::numeric_limits<T>::eps
 /// <summary>
 /// Test template for value serialization to root scope of archive.
 /// </summary>
+template <typename TArchive, typename TValue>
+void TestSerializeType()
+{
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive;
+	TValue expected{};
+	::BuildFixture(expected);
+	TValue actual{};
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(expected, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	GTestExpectEq(expected, actual);
+}
+
+/// <summary>
+/// Test template for value serialization to root scope of archive.
+/// </summary>
 /// <param name="value">The value.</param>
 template <typename TArchive, typename T>
 void TestSerializeType(T&& value)
@@ -215,26 +235,6 @@ void TestSerializeArrayToFile()
 }
 
 /// <summary>
-/// Test template of serialization for STL containers.
-/// </summary>
-template <typename TArchive, typename TContainer>
-void TestSerializeStlContainer()
-{
-	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
-	TContainer expected{};
-	::BuildFixture(expected);
-	TContainer actual{};
-
-	// Act
-	auto archiveData = BitSerializer::SaveObject<TArchive>(expected);
-	BitSerializer::LoadObject<TArchive>(actual, archiveData);
-
-	// Assert
-	GTestExpectEq(expected, actual);
-}
-
-/// <summary>
 /// Template for test loading to not empty container.
 /// </summary>
 template <typename TArchive, typename TContainer>
@@ -252,44 +252,6 @@ void TestLoadToNotEmptyContainer(size_t targetContainerSize)
 
 	// Assert
 	EXPECT_EQ(expected, actual);
-}
-
-/// <summary>
-/// Test template of serialization for STL containers with custom assert function.
-/// </summary>
-/// <param name="assertFunc">The assertion function.</param>
-template <typename TArchive, typename TContainer>
-void TestSerializeStlContainer(std::function<void(const TContainer&, const TContainer&)> assertFunc)
-{
-	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
-	TContainer expected{};
-	::BuildFixture(expected);
-	TContainer actual{};
-
-	// Act
-	auto archiveData = BitSerializer::SaveObject<TArchive>(expected);
-	BitSerializer::LoadObject<TArchive>(actual, archiveData);
-
-	// Assert
-	assertFunc(expected, actual);
-}
-
-/// <summary>
-/// Asserts the multimap container.
-/// </summary>
-/// <param name="expected">The expected.</param>
-/// <param name="actual">The actual.</param>
-template <typename TContainer>
-void AssertMultimap(const TContainer& expected, const TContainer& actual)
-{
-	ASSERT_EQ(expected.size(), actual.size());
-	// Order of values can be rearranged after loading
-	for (auto& elem : actual) {
-		auto expectedElementsRange = expected.equal_range(elem.first);
-		auto result = std::find(expectedElementsRange.first, expectedElementsRange.second, elem);
-		ASSERT_TRUE(result != expectedElementsRange.second);
-	}
 }
 
 /// <summary>

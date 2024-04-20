@@ -26,7 +26,7 @@ TEST(STD_Filesystem, SerializePathWithUnicode) {
 }
 
 TEST(STD_Filesystem, SerializeArrayOfPaths) {
-	TestSerializeStlContainer<ArchiveStub, std::array<std::filesystem::path, 100>>();
+	TestSerializeType<ArchiveStub, std::array<std::filesystem::path, 100>>();
 }
 
 TEST(STD_Filesystem, SerializePathAsClassMember)

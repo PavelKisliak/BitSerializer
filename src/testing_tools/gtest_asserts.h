@@ -6,6 +6,7 @@
 #include <optional>
 #include <memory>
 #include <gtest/gtest.h>
+#include "bitserializer/serialization_detail/generic_container.h"
 
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 void GTestExpectEq(T expected, T actual)
@@ -93,5 +94,24 @@ void GTestExpectEq(const std::valarray<TValue>& expected, const std::valarray<TV
 	for (int i = 0; i < actual.size(); ++i)
 	{
 		GTestExpectEq(expected[i], actual[i]);
+	}
+}
+
+template<typename TValue>
+void GTestExpectEq(const std::priority_queue<TValue>& expected, const std::priority_queue<TValue>& actual)
+{
+	GTestExpectEq(BitSerializer::Detail::GetBaseContainer(expected), BitSerializer::Detail::GetBaseContainer(actual));
+}
+
+template<typename TKey, typename TValue>
+void GTestExpectEq(const std::multimap<TKey, TValue>& expected, const std::multimap<TKey, TValue>& actual)
+{
+	ASSERT_EQ(expected.size(), actual.size());
+	// Order of values can be rearranged after loading
+	for (auto& elem : actual)
+	{
+		auto expectedElementsRange = expected.equal_range(elem.first);
+		auto result = std::find(expectedElementsRange.first, expectedElementsRange.second, elem);
+		ASSERT_TRUE(result != expectedElementsRange.second);
 	}
 }

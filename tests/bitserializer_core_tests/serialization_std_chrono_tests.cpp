@@ -203,7 +203,7 @@ TEST(STD_Chrono, SkipErrorOfRoundingTimepointWhenPolicyIsSkip)
 
 TEST(STD_Chrono, SerializeArrayOfTimePoints) {
 	using TimePointMs = time_point<system_clock, milliseconds>;
-	TestSerializeStlContainer<ArchiveStub, std::array<TimePointMs, 100>>();
+	TestSerializeType<ArchiveStub, std::array<TimePointMs, 100>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -381,7 +381,7 @@ TEST(STD_Chrono, SkipErrorOfRoundingDurationWhenPolicyIsSkip)
 }
 
 TEST(STD_Chrono, SerializeArrayOfDurations) {
-	TestSerializeStlContainer<ArchiveStub, std::array<seconds, 100>>();
+	TestSerializeType<ArchiveStub, std::array<seconds, 100>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -588,7 +588,7 @@ TEST(STD_ChronoAsBin, SkipErrorOfRoundingTimepointWhenPolicyIsSkip)
 TEST(STD_ChronoAsBin, SerializeArrayOfTimePoints)
 {
 	using TimePointMs = time_point<system_clock, nanoseconds>;
-	TestSerializeStlContainer<BinArchiveStub, std::array<TimePointMs, 100>>();
+	TestSerializeType<BinArchiveStub, std::array<TimePointMs, 100>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -731,5 +731,5 @@ TEST(STD_ChronoAsBin, SkipErrorOfRoundingDurationWhenPolicyIsSkip)
 }
 
 TEST(STD_ChronoAsBin, SerializeArrayOfDurations) {
-	TestSerializeStlContainer<BinArchiveStub, std::array<seconds, 100>>();
+	TestSerializeType<BinArchiveStub, std::array<seconds, 100>>();
 }

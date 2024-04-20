@@ -29,4 +29,8 @@ if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_MSGPACK_ARCHIVE)
     add_subdirectory(msgpack_vs_json)
 endif()
 
+if(BUILD_MSGPACK_ARCHIVE)
+    add_subdirectory(versioning)
+endif()
+
 add_subdirectory(string_conversions)

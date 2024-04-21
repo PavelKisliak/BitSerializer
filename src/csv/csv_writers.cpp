@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_writers.h"
@@ -106,7 +106,7 @@ namespace BitSerializer::Csv::Detail
 		mEstimatedSize = size;
 	}
 
-	void CCsvStringWriter::WriteValue(const std::string_view& key, const std::string& value)
+	void CCsvStringWriter::WriteValue(const std::string_view& key, std::string_view value)
 	{
 		// Write keys only when it's first row
 		if (mRowIndex == 0 && mWithHeader)
@@ -181,7 +181,7 @@ namespace BitSerializer::Csv::Detail
 		}
 	}
 
-	void CCsvStreamWriter::WriteValue(const std::string_view& key, const std::string& value)
+	void CCsvStreamWriter::WriteValue(const std::string_view& key, std::string_view value)
 	{
 		// Write keys only when it's first row
 		if (mRowIndex == 0 && mWithHeader)

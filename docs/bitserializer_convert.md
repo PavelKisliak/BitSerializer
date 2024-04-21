@@ -6,7 +6,7 @@ Type conversion submodule of **BitSerializer** library. Basically, it is just co
 - Supports conversion `chrono::time_point` and `chrono::duration` to/from ISO8601 strings
 - Supports UTF transcoding between all STD string types
 - Conversion any fundamental type to any STD string types and vice versa
-- Conversion any fundamental type to any other fundamental type with overflow checking
+- Conversion any fundamental type to any other fundamental type with overflow checking (not available in v0.50)
 - Conversion enum types via declaring names map
 - Allows to overload conversion functions for custom types
 - Simple API - only two main functions `Convert::To<>()` and `Convert::TryTo<>()`
@@ -18,7 +18,7 @@ The library provides several public functions for convert types:
 - `std::optional<TOut> TryTo<TOut>(TIn&& value)` throws nothing
 - `std::string ToString(TIn&& value)` just "syntax sugar" for `To<std::string>()`
 - `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
-- `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported
+- `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported (not available in v0.50)
 
 Under the hood, integer types are converting via modern `std::from_chars()`, but any other via functions from older C++ (there is a delay in their implementation by GCC and CLANG compilers).
 ```cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -37,14 +37,12 @@ TEST(ConvertApi, ShouldDetectWhetherTypeIsConvertible)
 	EXPECT_FALSE((Convert::IsConvertible<NotConvertibleFixture, std::string>()));
 }
 
+
 //-----------------------------------------------------------------------------
 // Test To<>()
 //-----------------------------------------------------------------------------
 TEST(ConvertApi, ShouldConvertFromRawCString) {
-	EXPECT_EQ(-100500, Convert::To<int32_t>(std::string_view("  -100500  ")));
-	EXPECT_EQ(-100500, Convert::To<int32_t>(std::wstring_view(L"  -100500  ")));
-	EXPECT_EQ(-100500, Convert::To<int32_t>(std::u16string_view(u"  -100500  ")));
-	EXPECT_EQ(-100500, Convert::To<int32_t>(std::u32string_view(U"  -100500  ")));
+	EXPECT_EQ(-100500, Convert::To<int32_t>("  -100500  "));
 }
 
 TEST(ConvertApi, ShouldConvertFromStringView) {
@@ -68,6 +66,16 @@ TEST(ConvertApi, ShouldReturnTheSamePointerWhenConvertToSameType) {
 
 TEST(ConvertApi, ShouldReturnTheSameValueWhenConvertToSameType) {
 	EXPECT_EQ(500, Convert::To<int>(500));
+}
+
+TEST(ConvertApi, ShouldMoveStringValue)
+{
+	const auto stringCapacity = std::string().capacity();
+	std::string sourceStr(stringCapacity + 1, '*');
+	const char* expectedPtr = sourceStr.data();
+
+	auto targetStr = Convert::To<std::string>(std::move(sourceStr));
+	EXPECT_EQ(expectedPtr, targetStr.data());
 }
 
 TEST(ConvertApi, ShouldThrowExceptionWhenBadArgument) {

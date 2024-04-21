@@ -294,18 +294,11 @@ public:
 		return true;
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TAllocator>
+	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		CheckEnd();
-		if constexpr (std::is_same_v<TSym, char>) {
-			mMsgPackWriter->WriteValue(value);
-		}
-		else
-		{
-			const std::string str = Convert::ToString(value);
-			mMsgPackWriter->WriteValue(str);
-		}
+		mMsgPackWriter->WriteValue(value);
 		++mIndex;
 		return true;
 	}
@@ -362,32 +355,23 @@ public:
 		, mSize(mapSize)
 	{ }
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
 		mMsgPackWriter->WriteValue(key);
-		WriteValue(value);
+		mMsgPackWriter->WriteValue(value);
 		++mIndex;
 		return true;
 	}
 
-	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	template <typename TKey, typename TAllocator>
+	bool SerializeValue(TKey&& key, std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		CheckEnd();
 		mMsgPackWriter->WriteValue(key);
-		WriteValue(value);
-		++mIndex;
-		return true;
-	}
-
-	template <typename TKey>
-	bool SerializeValue(TKey&& key, std::nullptr_t& value)
-	{
-		CheckEnd();
-		mMsgPackWriter->WriteValue(key);
-		WriteValue(value);
+		mMsgPackWriter->WriteValue(value);
 		++mIndex;
 		return true;
 	}
@@ -423,25 +407,6 @@ public:
 	}
 
 private:
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
-	void WriteValue(T& value)
-	{
-		mMsgPackWriter->WriteValue(value);
-	}
-
-	template <typename TSym, typename TAllocator>
-	void WriteValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-	{
-		if constexpr (std::is_same_v<TSym, char>) {
-			mMsgPackWriter->WriteValue(value);
-		}
-		else
-		{
-			const std::string str = Convert::ToString(value);
-			mMsgPackWriter->WriteValue(str);
-		}
-	}
-
 	void CheckEnd() const
 	{
 		if (mIndex == mSize)
@@ -480,17 +445,10 @@ public:
 		return true;
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TAllocator>
+	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
-		if constexpr (std::is_same_v<TSym, char>) {
-			mMsgPackWriter->WriteValue(value);
-		}
-		else
-		{
-			const std::string str = Convert::ToString(value);
-			mMsgPackWriter->WriteValue(str);
-		}
+		mMsgPackWriter->WriteValue(value);
 		return true;
 	}
 
@@ -534,13 +492,6 @@ public:
 		: mParentScope(parentScope)
 	{ }
 
-	virtual ~CMsgPackScopeBase()
-	{
-		if (mParentScope) {
-			mParentScope->OnFinishChildScope();
-		}
-	}
-
 	/// <summary>
 	/// Gets the current path in MsgPack.
 	/// </summary>
@@ -553,6 +504,13 @@ public:
 	virtual void OnFinishChildScope() {}
 
 protected:
+	~CMsgPackScopeBase()
+	{
+		if (mParentScope) {
+			mParentScope->OnFinishChildScope();
+		}
+	}
+
 	CMsgPackScopeBase* mParentScope = nullptr;
 };
 
@@ -658,19 +616,14 @@ public:
 		return false;
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TAllocator>
+	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		CheckEnd();
 		std::string_view str;
 		if (mMsgPackReader->ReadValue(str))
 		{
-			if constexpr (std::is_same_v<TSym, char>) {
-				value.assign(str);
-			}
-			else {
-				value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(str);
-			}
+			value.assign(str);
 			++mIndex;
 			return true;
 		}
@@ -752,7 +705,7 @@ public:
 		, mSize(mapSize)
 	{ }
 
-	~CMsgPackReadObjectScope() override
+	~CMsgPackReadObjectScope()
 	{
 		ResetKey();
 		// Skip key/values that was not read
@@ -801,24 +754,15 @@ public:
 		}
 	}
 
-	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	template <typename TKey, typename TAllocator>
+	bool SerializeValue(TKey&& key, std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		if (FindValueByKey(key))
 		{
 			std::string_view str;
 			if (mMsgPackReader->ReadValue(str))
 			{
-				if constexpr (std::is_same_v<TSym, char>) {
-					value.assign(str);
-				}
-				else
-				{
-					if (auto result = Convert::TryTo<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(str); result.has_value())
-					{
-						value = std::move(result.value());
-					}
-				}
+				value.assign(str);
 				mCurrentKey.Reset();
 				++mIndex;
 				return true;
@@ -828,7 +772,7 @@ public:
 		return false;
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (FindValueByKey(key))
@@ -996,18 +940,13 @@ public:
 		return mMsgPackReader->ReadValue(value);
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	template <typename TAllocator>
+	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		std::string_view str;
 		if (mMsgPackReader->ReadValue(str))
 		{
-			if constexpr (std::is_same_v<TSym, char>) {
-				value.assign(str);
-			}
-			else {
-				value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(str);
-			}
+			value.assign(str);
 			return true;
 		}
 		return false;

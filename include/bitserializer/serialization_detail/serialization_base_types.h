@@ -127,12 +127,32 @@ namespace BitSerializer
 	template <class TArchive, typename TKey, typename TSym, typename TAllocator>
 	bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		constexpr auto hasStringWithKeySupport = can_serialize_value_with_key_v<TArchive,
+		constexpr auto hasExactStringWithKeySupport = can_serialize_value_with_key_v<TArchive,
 			std::basic_string<TSym, std::char_traits<TSym>, TAllocator>, TKey>;
-		static_assert(hasStringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
+		constexpr auto hasUtf8StringWithKeySupport = can_serialize_value_with_key_v<TArchive, std::string, TKey>;
 
-		if constexpr (hasStringWithKeySupport) {
+		static_assert(hasExactStringWithKeySupport || hasUtf8StringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
+
+		// Archive supports exact passed string type
+		if constexpr (hasExactStringWithKeySupport) {
 			return archive.SerializeValue(std::forward<TKey>(key), value);
+		}
+		// Need to convert string to Utf-8
+		else if constexpr (hasUtf8StringWithKeySupport)
+		{
+			std::string temp;
+			if constexpr (TArchive::IsLoading())
+			{
+				if (archive.SerializeValue(std::forward<TKey>(key), temp))
+				{
+					return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+				}
+			}
+			else
+			{
+				temp = Convert::ToString(value);
+				return archive.SerializeValue(std::forward<TKey>(key), temp);
+			}
 		}
 		return false;
 	}
@@ -140,11 +160,31 @@ namespace BitSerializer
 	template <class TArchive, typename TSym, typename TAllocator>
 	bool Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		constexpr auto hasStringSupport = can_serialize_value_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
-		static_assert(hasStringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
+		constexpr auto hasExactStringSupport = can_serialize_value_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
+		constexpr auto hasUtf8StringSupport = can_serialize_value_v<TArchive, std::string>;
 
-		if constexpr (hasStringSupport) {
+		static_assert(hasExactStringSupport || hasUtf8StringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
+
+		// Archive supports exact passed string type
+		if constexpr (hasExactStringSupport) {
 			return archive.SerializeValue(value);
+		}
+		// Need to convert string to Utf-8
+		else if constexpr (hasUtf8StringSupport)
+		{
+			std::string temp;
+			if constexpr (TArchive::IsLoading())
+			{
+				if (archive.SerializeValue(temp))
+				{
+					return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+				}
+			}
+			else
+			{
+				temp = Convert::ToString(value);
+				return archive.SerializeValue(temp);
+			}
 		}
 		return false;
 	}

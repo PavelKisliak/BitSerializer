@@ -25,9 +25,9 @@ namespace BitSerializer::Convert
 	}
 
 	/// <summary>
-	/// Universal function for convert value.
+	/// Generic function for converting a value.
 	/// </summary>
-	/// <param name="value">The input value.</param>
+	/// <param name="value">The source value.</param>
 	/// <returns>The converted value</returns>
 	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
 	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
@@ -75,10 +75,10 @@ namespace BitSerializer::Convert
 	}
 
 	/// <summary>
-	/// Converts value to the wide string (UTF-16), just syntax sugar of To<std::wstring>() function.
+	/// Converts value to the wide string, just syntax sugar of To<std::wstring>() function.
 	/// </summary>
 	/// <param name="value">The input value.</param>
-	/// <returns>UTF-16 string</returns>
+	/// <returns>Wide string</returns>
 	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
 	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
 	template <typename TIn>
@@ -87,7 +87,7 @@ namespace BitSerializer::Convert
 	}
 
 	/// <summary>
-	/// Universal function for convert value which no throws exceptions.
+	/// Generic function for converting a value (does not throw exceptions).
 	/// </summary>
 	/// <param name="value">The input value.</param>
 	/// <returns>The converted value or empty when occurred an error</returns>

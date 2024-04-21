@@ -89,27 +89,27 @@ protected:
 			return std::is_null_pointer_v<T>;
 		}
 
-		using BitSerializer::Detail::SafeNumberCast;
+		using BitSerializer::Detail::ConvertByPolicy;
 		if constexpr (std::is_integral_v<T>)
 		{
 			if (jsonValue.IsNumber())
 			{
 				if (jsonValue.IsInt64()) {
-					return SafeNumberCast(jsonValue.GetInt64(), value, serializationOptions.overflowNumberPolicy);
+					return ConvertByPolicy(jsonValue.GetInt64(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 				}
 				if (jsonValue.IsUint64()) {
-					return SafeNumberCast(jsonValue.GetUint64(), value, serializationOptions.overflowNumberPolicy);
+					return ConvertByPolicy(jsonValue.GetUint64(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 				}
 			}
 			else if (jsonValue.IsBool())
 			{
-				return SafeNumberCast(jsonValue.GetBool(), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(jsonValue.GetBool(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (jsonValue.IsNumber()) {
-				return SafeNumberCast(jsonValue.GetDouble(), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(jsonValue.GetDouble(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 		}
 

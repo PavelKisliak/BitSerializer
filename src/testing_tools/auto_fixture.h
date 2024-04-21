@@ -125,15 +125,14 @@ static void BuildFixture(TValue(&arr)[ArraySize])
 	if constexpr (std::is_arithmetic_v<TValue>)
 	{
 		// Using min/max values as generated elements in the array
-		if constexpr (ArraySize > 2)
+		arr[0] = std::numeric_limits<TValue>::lowest();
+		if constexpr (ArraySize > 1)
 		{
-			arr[0] = std::numeric_limits<TValue>::lowest();
-			arr[1] = 1;
-			for (size_t i = 2; i < (ArraySize - 1); i++) {
+			for (size_t i = 1; i < (ArraySize - 1); i++) {
 				BuildFixture(arr[i]);
 			}
+			arr[ArraySize - 1] = std::numeric_limits<TValue>::max();
 		}
-		arr[ArraySize-1] = std::numeric_limits<TValue>::max();
 	}
 	else
 	{

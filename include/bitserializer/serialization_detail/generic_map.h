@@ -84,7 +84,7 @@ namespace BitSerializer
 				{
 					// Converting an archive key to key type of target map
 					TMapKey key;
-					if (ConvertByPolicy(archiveKey, key, scope.GetOptions()))
+					if (ConvertByPolicy(archiveKey, key, scope.GetOptions().mismatchedTypesPolicy, scope.GetOptions().overflowNumberPolicy))
 					{
 						switch (mapLoadMode)
 						{

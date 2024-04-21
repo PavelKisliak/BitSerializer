@@ -22,11 +22,11 @@ namespace BitSerializer
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
-					&& Detail::ConvertByPolicy(timestamp, tpValue, archive.GetOptions());
+					&& Detail::ConvertByPolicy(timestamp, tpValue, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			else
 			{
-				return Detail::ConvertByPolicy(tpValue, timestamp, archive.GetOptions())
+				return Detail::ConvertByPolicy(tpValue, timestamp, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy)
 					&& archive.SerializeValue(std::forward<TKey>(key), timestamp);
 			}
 		}
@@ -37,7 +37,7 @@ namespace BitSerializer
 			{
 				std::string isoDate;
 				if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
-					return Detail::ConvertByPolicy(isoDate, tpValue, archive.GetOptions());
+					return Detail::ConvertByPolicy(isoDate, tpValue, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 				}
 				return false;
 			}
@@ -62,11 +62,11 @@ namespace BitSerializer
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(timestamp)
-					&& Detail::ConvertByPolicy(timestamp, tpValue, archive.GetOptions());
+					&& Detail::ConvertByPolicy(timestamp, tpValue, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			else
 			{
-				return Detail::ConvertByPolicy(tpValue, timestamp, archive.GetOptions())
+				return Detail::ConvertByPolicy(tpValue, timestamp, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy)
 					&& archive.SerializeValue(timestamp);
 			}
 		}
@@ -77,7 +77,7 @@ namespace BitSerializer
 			{
 				std::string isoDate;
 				if (Serialize(archive, isoDate)) {
-					return Detail::ConvertByPolicy(isoDate, tpValue, archive.GetOptions());
+					return Detail::ConvertByPolicy(isoDate, tpValue, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 				}
 				return false;
 			}
@@ -102,11 +102,11 @@ namespace BitSerializer
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
-					&& Detail::ConvertByPolicy(timestamp, value, archive.GetOptions());
+					&& Detail::ConvertByPolicy(timestamp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			else
 			{
-				return Detail::ConvertByPolicy(value, timestamp, archive.GetOptions())
+				return Detail::ConvertByPolicy(value, timestamp, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy)
 					&& archive.SerializeValue(std::forward<TKey>(key), timestamp);
 			}
 		}
@@ -117,7 +117,7 @@ namespace BitSerializer
 			{
 				std::string isoDate;
 				if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
-					return Detail::ConvertByPolicy(isoDate, value, archive.GetOptions());
+					return Detail::ConvertByPolicy(isoDate, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 				}
 				return false;
 			}
@@ -142,11 +142,11 @@ namespace BitSerializer
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(timestamp)
-					&& Detail::ConvertByPolicy(timestamp, value, archive.GetOptions());
+					&& Detail::ConvertByPolicy(timestamp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			else
 			{
-				return Detail::ConvertByPolicy(value, timestamp, archive.GetOptions())
+				return Detail::ConvertByPolicy(value, timestamp, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy)
 					&& archive.SerializeValue(timestamp);
 			}
 		}
@@ -157,7 +157,7 @@ namespace BitSerializer
 			{
 				std::string isoDate;
 				if (Serialize(archive, isoDate)) {
-					return Detail::ConvertByPolicy(isoDate, value, archive.GetOptions());
+					return Detail::ConvertByPolicy(isoDate, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 				}
 				return false;
 			}

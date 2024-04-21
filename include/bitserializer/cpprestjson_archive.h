@@ -88,7 +88,7 @@ protected:
 			return std::is_null_pointer_v<T>;
 		}
 
-		using BitSerializer::Detail::SafeNumberCast;
+		using BitSerializer::Detail::ConvertByPolicy;
 		if constexpr (std::is_integral_v<T>)
 		{
 			if (jsonValue.is_number())
@@ -96,20 +96,20 @@ protected:
 				if (jsonValue.is_integer())
 				{
 					if (jsonValue.as_number().is_int64()) {
-						return SafeNumberCast(jsonValue.as_number().to_int64(), value, serializationOptions.overflowNumberPolicy);
+						return ConvertByPolicy(jsonValue.as_number().to_int64(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 					}
-					return SafeNumberCast(jsonValue.as_number().to_uint64(), value, serializationOptions.overflowNumberPolicy);
+					return ConvertByPolicy(jsonValue.as_number().to_uint64(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 				}
 			}
 			else if (jsonValue.is_boolean())
 			{
-				return SafeNumberCast(jsonValue.as_bool(), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(jsonValue.as_bool(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (jsonValue.is_number()) {
-				return SafeNumberCast(jsonValue.as_double(), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(jsonValue.as_double(), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 		}
 

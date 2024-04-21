@@ -119,27 +119,27 @@ protected:
 			return std::is_null_pointer_v<T>;
 		}
 
-		using Detail::SafeNumberCast;
+		using Detail::ConvertByPolicy;
 		if constexpr (std::is_integral_v<T>)
 		{
 			if (std::holds_alternative<int64_t>(ioData))
 			{
-				return SafeNumberCast(std::get<int64_t>(ioData), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(std::get<int64_t>(ioData), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 			if (std::holds_alternative<uint64_t>(ioData))
 			{
-				return SafeNumberCast(std::get<uint64_t>(ioData), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(std::get<uint64_t>(ioData), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 			if (std::holds_alternative<bool>(ioData))
 			{
-				return SafeNumberCast(std::get<bool>(ioData), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(std::get<bool>(ioData), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 		}
 		else if constexpr (std::is_floating_point_v<T>)
 		{
 			if (std::holds_alternative<double>(ioData))
 			{
-				return SafeNumberCast(std::get<double>(ioData), value, serializationOptions.overflowNumberPolicy);
+				return ConvertByPolicy(std::get<double>(ioData), value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 		}
 

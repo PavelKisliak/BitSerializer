@@ -285,7 +285,7 @@ public:
 		, mSize(arraySize)
 	{ }
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, BitSerializer::Detail::CBinTimestamp>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
@@ -362,7 +362,7 @@ public:
 		, mSize(mapSize)
 	{ }
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<std::decay_t<T>, BitSerializer::Detail::CBinTimestamp>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
@@ -797,13 +797,7 @@ public:
 		for (mIndex = 0; mIndex < mSize;)
 		{
 			ReadKey(fn);
-			// Need to skip value if it was not read (current key is not empty)
-			if (mCurrentKey)
-			{
-				mCurrentKey.Reset();
-				mMsgPackReader->SkipValue();
-				++mIndex;
-			}
+			ResetKey();
 		}
 	}
 
@@ -996,7 +990,7 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, BitSerializer::Detail::CBinTimestamp>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value) const
 	{
 		return mMsgPackReader->ReadValue(value);

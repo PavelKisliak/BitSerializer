@@ -161,7 +161,7 @@ namespace Detail
 	/// Converts types according to policy.
 	/// </summary>
 	template <typename TSource, typename TTarget>
-	bool ConvertByPolicy(const TSource& sourceValue, TTarget& targetValue, const SerializationOptions& options)
+	bool ConvertByPolicy(const TSource& sourceValue, TTarget& targetValue, MismatchedTypesPolicy mismatchedTypesPolicy, OverflowNumberPolicy overflowNumberPolicy)
 	{
 		try
 		{
@@ -172,7 +172,7 @@ namespace Detail
 			}
 			else
 			{
-				if (options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::MismatchedTypes,
 						"The target field type does not match the value being loaded");
@@ -181,7 +181,7 @@ namespace Detail
 		}
 		catch (const std::invalid_argument&)
 		{
-			if (options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+			if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 			{
 				throw SerializationException(SerializationErrorCode::MismatchedTypes,
 					"The target field type does not match the value being loaded");
@@ -189,7 +189,7 @@ namespace Detail
 		}
 		catch (const std::out_of_range&)
 		{
-			if (options.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			if (overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 			{
 				throw SerializationException(SerializationErrorCode::Overflow,
 					"The target field range is insufficient for the value being loaded");

@@ -198,101 +198,85 @@ class NonConvertibleFixture { };
 
 TEST(ConvertByPolicyTest, ConvertFundamentalTypes)
 {
-	const SerializationOptions options;
-
 	uint8_t targetUint8 = 0;
-	EXPECT_TRUE(Detail::ConvertByPolicy(true, targetUint8, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy(true, targetUint8, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(1, targetUint8);
 
 	uint16_t targetInt16;
 	constexpr int16_t sourceNumber = std::numeric_limits<int16_t>::max();
-	EXPECT_TRUE(Detail::ConvertByPolicy(sourceNumber, targetInt16, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy(sourceNumber, targetInt16, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(sourceNumber, targetInt16);
 
 	float targetFloat = 0.f;
 	constexpr auto sourceDouble = static_cast<double>(std::numeric_limits<float>::min());
-	EXPECT_TRUE(Detail::ConvertByPolicy(sourceDouble, targetFloat, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy(sourceDouble, targetFloat, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(sourceDouble, targetFloat);
 }
 
 TEST(ConvertByPolicyTest, ConvertToString)
 {
-	const SerializationOptions options;
-
 	std::string targetStr;
-	EXPECT_TRUE(Detail::ConvertByPolicy(true, targetStr, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy(true, targetStr, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ("true", targetStr);
 
 	targetStr.clear();
-	EXPECT_TRUE(Detail::ConvertByPolicy(10, targetStr, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy(10, targetStr, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ("10", targetStr);
 }
 
 TEST(ConvertByPolicyTest, ConvertFromString)
 {
-	const SerializationOptions options;
-
 	bool targetBool = false;
-	EXPECT_TRUE(Detail::ConvertByPolicy("true", targetBool, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy("true", targetBool, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(true, targetBool);
 
 	uint16_t targetInt16;
-	EXPECT_TRUE(Detail::ConvertByPolicy("10925", targetInt16, options));
+	EXPECT_TRUE(Detail::ConvertByPolicy("10925", targetInt16, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(10925, targetInt16);
 }
 
 TEST(ConvertByPolicyTest, ThrowExceptionWhenOverflowType)
 {
-	const SerializationOptions options;
-
 	int targetInteger = 0;
-	EXPECT_THROW(Detail::ConvertByPolicy(std::numeric_limits<int64_t>::max(), targetInteger, options), SerializationException);
+	EXPECT_THROW(Detail::ConvertByPolicy(std::numeric_limits<int64_t>::max(), targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
 	EXPECT_EQ(0, targetInteger);
 
-	EXPECT_THROW(Detail::ConvertByPolicy(std::numeric_limits<int64_t>::min(), targetInteger, options), SerializationException);
+	EXPECT_THROW(Detail::ConvertByPolicy(std::numeric_limits<int64_t>::min(), targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
 	EXPECT_EQ(0, targetInteger);
 }
 
 TEST(ConvertByPolicyTest, SkipOverflowValueWhenPolicyIsSkip)
 {
-	SerializationOptions options;
-	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
-
 	bool targetBoolean = false;
-	EXPECT_FALSE(Detail::ConvertByPolicy(2, targetBoolean, options));
+	EXPECT_FALSE(Detail::ConvertByPolicy(2, targetBoolean, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
 	EXPECT_EQ(false, targetBoolean);
 
 	uint8_t targetUint8 = 0;
-	EXPECT_FALSE(Detail::ConvertByPolicy(-1, targetUint8, options));
+	EXPECT_FALSE(Detail::ConvertByPolicy(-1, targetUint8, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
 	EXPECT_EQ(0, targetUint8);
 
 	float targetFloat = 0.f;
 	constexpr auto sourceDouble = static_cast<double>(std::numeric_limits<float>::max()) * 1.00001;
-	EXPECT_FALSE(Detail::ConvertByPolicy(sourceDouble, targetFloat, options));
+	EXPECT_FALSE(Detail::ConvertByPolicy(sourceDouble, targetFloat, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
 	EXPECT_EQ(0.f, targetFloat);
 }
 
 TEST(ConvertByPolicyTest, ThrowExceptionWhenMismatchedType)
 {
-	const SerializationOptions options;
-
 	int targetInteger = 0;
-	EXPECT_THROW(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, options), SerializationException);
+	EXPECT_THROW(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
 	EXPECT_EQ(0, targetInteger);
 
-	EXPECT_THROW(Detail::ConvertByPolicy("InvalidNumber", targetInteger, options), SerializationException);
+	EXPECT_THROW(Detail::ConvertByPolicy("InvalidNumber", targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
 	EXPECT_EQ(0, targetInteger);
 }
 
 TEST(ConvertByPolicyTest, SkipMismatchedTypeWhenPolicyIsSkip)
 {
-	SerializationOptions options;
-	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
-
 	int targetInteger = 0;
-	EXPECT_FALSE(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, options));
+	EXPECT_FALSE(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(0, targetInteger);
 
-	EXPECT_FALSE(Detail::ConvertByPolicy("InvalidNumber", targetInteger, options));
+	EXPECT_FALSE(Detail::ConvertByPolicy("InvalidNumber", targetInteger, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(0, targetInteger);
 }

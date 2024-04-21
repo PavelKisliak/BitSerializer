@@ -159,7 +159,7 @@ namespace BitSerializer
 		{
 			std::string str;
 			if (Serialize(archive, std::forward<TKey>(key), str)) {
-				return Detail::ConvertByPolicy(str, value, archive.GetOptions());
+				return Detail::ConvertByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			return false;
 		}
@@ -178,7 +178,7 @@ namespace BitSerializer
 		{
 			std::string str;
 			if (Serialize(archive, str)) {
-				return Detail::ConvertByPolicy(str, value, archive.GetOptions());
+				return Detail::ConvertByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			return false;
 		}

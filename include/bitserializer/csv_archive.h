@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -39,7 +39,7 @@ public:
 	virtual ~ICsvWriter() = default;
 
 	virtual void SetEstimatedSize(size_t size) = 0;
-	virtual void WriteValue(const std::string_view& key, const std::string& value) = 0;
+	virtual void WriteValue(const std::string_view& key, std::string_view value) = 0;
 	virtual void NextLine() = 0;
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 };
@@ -85,21 +85,15 @@ public:
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
-		mCsvWriter->WriteValue(std::forward<TKey>(key), Convert::ToString(value));
+		auto temp = Convert::ToString(value);
+		mCsvWriter->WriteValue(std::forward<TKey>(key), std::string_view(temp));
 		return true;
 	}
 
-	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, std::string_view& value)
 	{
-		if constexpr (std::is_same_v<TSym, char>)
-		{
-			mCsvWriter->WriteValue(std::forward<TKey>(key), value);
-		}
-		else
-		{
-			mCsvWriter->WriteValue(std::forward<TKey>(key), Convert::ToString(value));
-		}
+		mCsvWriter->WriteValue(std::forward<TKey>(key), value);
 		return true;
 	}
 
@@ -211,28 +205,6 @@ public:
 		}
 	}
 
-	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
-	{
-		if (std::string_view strValue; mCsvReader->ReadValue(key, strValue))
-		{
-			if constexpr (std::is_same_v<TSym, char>)
-			{
-				value = strValue;
-				return true;
-			}
-			else
-			{
-				if (auto result = Convert::TryTo<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(strValue); result.has_value())
-				{
-					value = std::move(result.value());
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
@@ -267,6 +239,32 @@ public:
 						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}
+		}
+		return false;
+	}
+
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, std::string_view& value)
+	{
+		return mCsvReader->ReadValue(key, value);
+	}
+
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, std::nullptr_t&)
+	{
+		if (std::string_view strValue; mCsvReader->ReadValue(key, strValue))
+		{
+			if (strValue.empty())
+			{
+				return true;
+			}
+			if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::MismatchedTypes,
+					std::string("The type of target field '") + key + "' does not match the value being loaded: " + std::string(strValue) +
+					", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+			}
+			return false;
 		}
 		return false;
 	}

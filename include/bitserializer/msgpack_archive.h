@@ -285,17 +285,9 @@ public:
 		, mSize(arraySize)
 	{ }
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
-	{
-		CheckEnd();
-		mMsgPackWriter->WriteValue(value);
-		++mIndex;
-		return true;
-	}
-
-	template <typename TAllocator>
-	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		CheckEnd();
 		mMsgPackWriter->WriteValue(value);
@@ -356,18 +348,8 @@ public:
 	{ }
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
-	{
-		CheckEnd();
-		mMsgPackWriter->WriteValue(key);
-		mMsgPackWriter->WriteValue(value);
-		++mIndex;
-		return true;
-	}
-
-	template <typename TKey, typename TAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		CheckEnd();
 		mMsgPackWriter->WriteValue(key);
@@ -438,15 +420,9 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
-	{
-		mMsgPackWriter->WriteValue(value);
-		return true;
-	}
-
-	template <typename TAllocator>
-	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
 	{
 		mMsgPackWriter->WriteValue(value);
 		return true;
@@ -604,26 +580,13 @@ public:
 		return path;
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
 		if (mMsgPackReader->ReadValue(value))
 		{
-			++mIndex;
-			return true;
-		}
-		return false;
-	}
-
-	template <typename TAllocator>
-	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
-	{
-		CheckEnd();
-		std::string_view str;
-		if (mMsgPackReader->ReadValue(str))
-		{
-			value.assign(str);
 			++mIndex;
 			return true;
 		}
@@ -754,25 +717,8 @@ public:
 		}
 	}
 
-	template <typename TKey, typename TAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<char, std::char_traits<char>, TAllocator>& value)
-	{
-		if (FindValueByKey(key))
-		{
-			std::string_view str;
-			if (mMsgPackReader->ReadValue(str))
-			{
-				value.assign(str);
-				mCurrentKey.Reset();
-				++mIndex;
-				return true;
-			}
-			return false;
-		}
-		return false;
-	}
-
-	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (FindValueByKey(key))
@@ -934,22 +880,11 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<std::decay_t<T>, CBinTimestamp>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value) const
 	{
 		return mMsgPackReader->ReadValue(value);
-	}
-
-	template <typename TAllocator>
-	bool SerializeValue(std::basic_string<char, std::char_traits<char>, TAllocator>& value)
-	{
-		std::string_view str;
-		if (mMsgPackReader->ReadValue(str))
-		{
-			value.assign(str);
-			return true;
-		}
-		return false;
 	}
 
 	[[nodiscard]] std::optional<CMsgPackReadArrayScope<IMsgPackReader>> OpenArrayScope(size_t) const

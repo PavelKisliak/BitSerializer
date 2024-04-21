@@ -129,29 +129,47 @@ namespace BitSerializer
 	{
 		constexpr auto hasExactStringWithKeySupport = can_serialize_value_with_key_v<TArchive,
 			std::basic_string<TSym, std::char_traits<TSym>, TAllocator>, TKey>;
-		constexpr auto hasUtf8StringWithKeySupport = can_serialize_value_with_key_v<TArchive, std::string, TKey>;
+		constexpr auto hasStringViewWithKeySupport = can_serialize_value_with_key_v<TArchive, std::string_view, TKey>;
 
-		static_assert(hasExactStringWithKeySupport || hasUtf8StringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
+		static_assert(hasExactStringWithKeySupport || hasStringViewWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
 
 		// Archive supports exact passed string type
 		if constexpr (hasExactStringWithKeySupport) {
 			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
-		// Need to convert string to Utf-8
-		else if constexpr (hasUtf8StringWithKeySupport)
+		// Need to convert string to Utf-8 string_view
+		else if constexpr (hasStringViewWithKeySupport)
 		{
-			std::string temp;
 			if constexpr (TArchive::IsLoading())
 			{
+				std::string_view temp;
 				if (archive.SerializeValue(std::forward<TKey>(key), temp))
 				{
-					return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+					if constexpr (std::is_same_v<char, TSym>)
+					{
+						value.assign(temp);
+						return true;
+					}
+					else
+					{
+						return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+					}
 				}
 			}
 			else
 			{
-				temp = Convert::ToString(value);
-				return archive.SerializeValue(std::forward<TKey>(key), temp);
+				std::string_view tempStrView;
+				if constexpr (std::is_same_v<char, TSym>)
+				{
+					tempStrView = value;
+					return archive.SerializeValue(std::forward<TKey>(key), tempStrView);
+				}
+				else
+				{
+					const std::string temp = Convert::ToString(value);
+					tempStrView = temp;
+					return archive.SerializeValue(std::forward<TKey>(key), tempStrView);
+				}
 			}
 		}
 		return false;
@@ -161,29 +179,47 @@ namespace BitSerializer
 	bool Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
 		constexpr auto hasExactStringSupport = can_serialize_value_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
-		constexpr auto hasUtf8StringSupport = can_serialize_value_v<TArchive, std::string>;
+		constexpr auto hasUtf8StringViewSupport = can_serialize_value_v<TArchive, std::string_view>;
 
-		static_assert(hasExactStringSupport || hasUtf8StringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
+		static_assert(hasExactStringSupport || hasUtf8StringViewSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
 
 		// Archive supports exact passed string type
 		if constexpr (hasExactStringSupport) {
 			return archive.SerializeValue(value);
 		}
-		// Need to convert string to Utf-8
-		else if constexpr (hasUtf8StringSupport)
+		// Need to convert string to Utf-8 string_view
+		else if constexpr (hasUtf8StringViewSupport)
 		{
-			std::string temp;
 			if constexpr (TArchive::IsLoading())
 			{
+				std::string_view temp;
 				if (archive.SerializeValue(temp))
 				{
-					return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+					if constexpr (std::is_same_v<char, TSym>)
+					{
+						value.assign(temp);
+						return true;
+					}
+					else
+					{
+						return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+					}
 				}
 			}
 			else
 			{
-				temp = Convert::ToString(value);
-				return archive.SerializeValue(temp);
+				std::string_view tempStrView;
+				if constexpr (std::is_same_v<char, TSym>)
+				{
+					tempStrView = value;
+					return archive.SerializeValue(tempStrView);
+				}
+				else
+				{
+					const std::string temp = Convert::ToString(value);
+					tempStrView = temp;
+					return archive.SerializeValue(tempStrView);
+				}
 			}
 		}
 		return false;

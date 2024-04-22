@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020-2022 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2024 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -142,8 +142,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return false;
 			}
 
-			template <typename TSym, typename TAllocator>
-			static bool LoadValue(const RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, const SerializationOptions& serializationOptions)
+			static bool LoadValue(const RapidYamlNode& yamlValue, std::string_view& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -153,11 +152,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 
 				const auto str = yamlValue.val();
-				if constexpr (std::is_same_v<TSym, std::string::value_type>)
-					value.assign(str.data(), str.size());
-				else {
-					value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::string_view(str.data(), str.size()));
-				}
+				value = std::string_view(str.data(), str.size());
 				return true;
 			}
 
@@ -176,15 +171,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				} else {
 					yamlValue << value;
 				}
-			}
-
-			template <typename TSym, typename TAllocator>
-			static void SaveValue(RapidYamlNode& yamlValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
-			{
-				if constexpr (std::is_same_v<TSym, std::string::value_type>)
-					yamlValue << value;
-				else
-					yamlValue << Convert::To<std::string>(value);
 			}
 
 			static bool IsNullYamlValue(c4::csubstr str)
@@ -259,7 +245,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// Serialize value.
 			/// </summary>
 			/// <param name="value">The value.</param>
-			template <typename T>
+			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			bool SerializeValue(T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -273,6 +259,25 @@ namespace BitSerializer::Yaml::RapidYaml {
 					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					SaveValue(yamlValue, value);
+					mIndex++;
+					return true;
+				}
+				return false;
+			}
+
+			bool SerializeValue(std::string_view& value)
+			{
+				if constexpr (TMode == SerializeMode::Load)
+				{
+					if (mIndex < GetEstimatedSize()) {
+						return LoadValue(LoadNextItem(), value);
+					}
+				}
+				else
+				{
+					assert(mIndex < GetEstimatedSize());
+					auto yamlValue = mNode.append_child();
+					yamlValue << c4::csubstr(value.data(), value.size());
 					mIndex++;
 					return true;
 				}
@@ -394,7 +399,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// </summary>
 			/// <param name="key">The key of child node.</param>
 			/// <param name="value">The value.</param>
-			template <typename TKey, typename T>
+			template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			bool SerializeValue(TKey&& key, T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -408,6 +413,24 @@ namespace BitSerializer::Yaml::RapidYaml {
 					auto yamlValue = mNode.append_child();
 					yamlValue << ryml::key(key);
 					SaveValue(yamlValue, value);
+					return true;
+				}
+			}
+
+			template <typename TKey>
+			bool SerializeValue(TKey&& key, std::string_view& value)
+			{
+				if constexpr (TMode == SerializeMode::Load)
+				{
+					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
+					return yamlValue.valid() ? LoadValue(yamlValue, value) : false;
+				}
+				else
+				{
+					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
+					auto yamlValue = mNode.append_child();
+					yamlValue << ryml::key(key);
+					yamlValue << c4::csubstr(value.data(), value.size());
 					return true;
 				}
 			}

@@ -114,32 +114,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 
 				const auto str = std::string_view(yamlValue.val().data(), yamlValue.val().size());
-				try
-				{
-					if constexpr (!std::is_null_pointer_v<T>)
-					{
-						value = Convert::To<T>(str);
-						return true;
-					}
-					throw std::exception();
-				}
-				catch (const std::out_of_range&)
-				{
-					if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
-					{
-						throw SerializationException(SerializationErrorCode::Overflow,
-							std::string("The size of target field is not sufficient to deserialize number: ").append(str));
-					}
-				}
-				catch (...)
-				{
-					if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
-					{
-						throw SerializationException(SerializationErrorCode::MismatchedTypes,
-							std::string("The type of target field does not match the value being loaded: ").append(str));
-					}
-				}
-				return false;
+				return BitSerializer::Detail::ConvertByPolicy(str, value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 
 			static bool LoadValue(const RapidYamlNode& yamlValue, std::string_view& value)

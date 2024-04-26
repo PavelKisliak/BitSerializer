@@ -46,6 +46,7 @@ jobs:
   - script: |
       mkdir build.debug
       mkdir build.release
+      cmake --version
     displayName: Make Build directories
 
   - task: CMake@1

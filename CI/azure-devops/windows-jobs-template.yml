@@ -39,6 +39,7 @@ jobs:
 
   - script: |
       mkdir build
+      cmake --version
     displayName: Make Build Directory
 
   - task: CMake@1

@@ -22,6 +22,7 @@ struct CsvArchiveTraits
 	static constexpr ArchiveType archive_type = ArchiveType::Csv;
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
+	using string_view_type = std::string_view;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -91,7 +92,7 @@ public:
 	}
 
 	template <typename TKey>
-	bool SerializeValue(TKey&& key, std::string_view& value)
+	bool SerializeValue(TKey&& key, string_view_type& value)
 	{
 		mCsvWriter->WriteValue(std::forward<TKey>(key), value);
 		return true;
@@ -244,7 +245,7 @@ public:
 	}
 
 	template <typename TKey>
-	bool SerializeValue(TKey&& key, std::string_view& value)
+	bool SerializeValue(TKey&& key, string_view_type& value)
 	{
 		return mCsvReader->ReadValue(key, value);
 	}

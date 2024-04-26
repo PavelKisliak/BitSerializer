@@ -16,6 +16,9 @@ public:
 
 	bool operator<(const CMyString& rhs) const { return this->mString < rhs.mString; }
 
+	const char* data() const noexcept { return mString.data(); }
+	size_t size() const noexcept { return mString.size(); }
+
 	// Required methods for conversion from/to std::string (can be implemented as external functions)
 	std::string ToString() const { return mString; }
 	void FromString(std::string_view str) { mString = str; }
@@ -28,25 +31,19 @@ private:
 template <class TArchive, typename TKey>
 bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
 {
-	constexpr auto hasStringWithKeySupport = can_serialize_value_with_key_v<TArchive, std::string, TKey>;
-	static_assert(hasStringWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
-
-	if constexpr (hasStringWithKeySupport)
+	if constexpr (TArchive::IsLoading())
 	{
-		if constexpr (TArchive::IsLoading())
+		std::string_view stringView;
+		if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
 		{
-			std::string str;
-			if (archive.SerializeValue(std::forward<TKey>(key), str))
-			{
-				value.FromString(str);
-				return true;
-			}
+			value.FromString(stringView);
+			return true;
 		}
-		else
-		{
-			std::string str = value.ToString();
-			return archive.SerializeValue(std::forward<TKey>(key), str);
-		}
+	}
+	else
+	{
+		std::string_view stringView(value.data(), value.size());
+		return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
 	}
 	return false;
 }
@@ -55,25 +52,19 @@ bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
 template <class TArchive>
 bool Serialize(TArchive& archive, CMyString& value)
 {
-	constexpr auto hasStringSupport = can_serialize_value_v<TArchive, std::string>;
-	static_assert(hasStringSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
-
-	if constexpr (hasStringSupport)
+	if constexpr (TArchive::IsLoading())
 	{
-		if constexpr (TArchive::IsLoading())
+		std::string_view stringView;
+		if (Detail::SerializeString(archive, stringView))
 		{
-			std::string str;
-			if (archive.SerializeValue(str))
-			{
-				value.FromString(str);
-				return true;
-			}
+			value.FromString(stringView);
+			return true;
 		}
-		else
-		{
-			std::string str = value.ToString();
-			return archive.SerializeValue(str);
-		}
+	}
+	else
+	{
+		std::string_view stringView(value.data(), value.size());
+		return Detail::SerializeString(archive, stringView);
 	}
 	return false;
 }

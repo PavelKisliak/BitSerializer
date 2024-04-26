@@ -56,6 +56,7 @@ struct ArchiveStubTraits
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::wstring;
 	using supported_key_types = TSupportedKeyTypes<std::wstring>;
+	using string_view_type = std::basic_string_view<wchar_t>;
 	using preferred_output_format = TestIoDataRoot;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = false;
@@ -171,26 +172,18 @@ protected:
 			ioData.emplace<std::nullptr_t>(value);
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool LoadString(const TestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool LoadString(const TestIoData& ioData, string_view_type& value)
 	{
 		if (!std::holds_alternative<key_type>(ioData))
 			return false;
 
-		if constexpr (std::is_same_v<TSym, key_type::value_type>)
-			value = std::get<key_type>(ioData);
-		else
-			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::get<key_type>(ioData));
+		value = std::get<key_type>(ioData);
 		return true;
 	}
 
-	template <typename TSym, typename TAllocator>
-	void SaveString(TestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SaveString(TestIoData& ioData, string_view_type& value)
 	{
-		if constexpr (std::is_same_v<TSym, key_type::value_type>)
-			ioData.emplace<key_type>(value);
-		else
-			ioData.emplace<key_type>(Convert::ToWString(value));
+		ioData.emplace<key_type>(value);
 	}
 
 	TestIoDataPtr mNode;
@@ -240,8 +233,7 @@ public:
 		return mIndex == std::get<TestIoDataArrayPtr>(*mNode)->size();
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if (TestIoDataPtr ioData = LoadNextItem())
 		{
@@ -365,8 +357,7 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(const key_type& key, string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -503,8 +494,7 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 			return LoadString(*mInputData->Data, value);

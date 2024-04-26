@@ -56,6 +56,7 @@ struct BinArchiveStubTraits
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<std::string>;
+	using string_view_type = std::string_view;
 	using preferred_output_format = BinTestIoDataRoot;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = true;
@@ -171,26 +172,17 @@ protected:
 			ioData.emplace<std::nullptr_t>(value);
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool LoadString(const BinTestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool LoadString(const BinTestIoData& ioData, string_view_type& value)
 	{
 		if (!std::holds_alternative<key_type>(ioData))
 			return false;
 
-		if constexpr (std::is_same_v<TSym, key_type::value_type>)
-			value = std::get<key_type>(ioData);
-		else
-			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(std::get<key_type>(ioData));
-		return true;
+		value = std::get<key_type>(ioData);
 	}
 
-	template <typename TSym, typename TAllocator>
-	void SaveString(BinTestIoData& ioData, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	void SaveString(BinTestIoData& ioData, string_view_type& value)
 	{
-		if constexpr (std::is_same_v<TSym, key_type::value_type>)
-			ioData.emplace<key_type>(value);
-		else
-			ioData.emplace<key_type>(Convert::ToWString(value));
+		ioData.emplace<key_type>(value);
 	}
 
 	BinTestIoDataPtr mNode;
@@ -240,8 +232,7 @@ public:
 		return mIndex == std::get<BinTestIoDataArrayPtr>(*mNode)->size();
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if (BinTestIoDataPtr ioData = LoadNextItem())
 		{
@@ -387,8 +378,7 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(const key_type& key, string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{

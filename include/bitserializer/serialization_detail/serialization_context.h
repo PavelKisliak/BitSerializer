@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <variant>
 #include "serialization_options.h"
 #include "errors_handling.h"
 
@@ -45,7 +46,21 @@ namespace BitSerializer
 			}
 		}
 
+		template <class TString>
+		TString& GetStringValueBuffer()
+		{
+			if (std::holds_alternative<TString>(mStringValueBuffer))
+			{
+				return std::get<TString>(mStringValueBuffer);
+			}
+			// Should be initialized only once per serialization session
+			return mStringValueBuffer.emplace<TString>();
+		}
+
 	private:
+		using StringsVariant = std::variant<std::string, std::wstring, std::u16string, std::u32string>;
+
+		StringsVariant mStringValueBuffer;
 		ValidationMap mErrorsMap;
 		const SerializationOptions& mSerializationOptions;
 	};

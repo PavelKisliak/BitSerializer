@@ -83,4 +83,4 @@ jobs:
       image: 'macOS-11'
       vcpkgTriplet: "x64-osx"
       vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
-      cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_RAPIDYAML_ARCHIVE=OFF'
+      cmakeGenArgs: '$(CmakeGenOptions)'

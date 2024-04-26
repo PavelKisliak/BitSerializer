@@ -124,53 +124,113 @@ namespace BitSerializer
 	//------------------------------------------------------------------------------
 	// Serialize string types
 	//------------------------------------------------------------------------------
-	template <class TArchive, typename TKey, typename TSym, typename TAllocator>
-	bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	namespace Detail
 	{
-		constexpr auto hasExactStringWithKeySupport = can_serialize_value_with_key_v<TArchive,
-			std::basic_string<TSym, std::char_traits<TSym>, TAllocator>, TKey>;
-		constexpr auto hasStringViewWithKeySupport = can_serialize_value_with_key_v<TArchive, std::string_view, TKey>;
-
-		static_assert(hasExactStringWithKeySupport || hasStringViewWithKeySupport, "BitSerializer. The archive doesn't support serialize string type with key on this level.");
-
-		// Archive supports exact passed string type
-		if constexpr (hasExactStringWithKeySupport) {
-			return archive.SerializeValue(std::forward<TKey>(key), value);
-		}
-		// Need to convert string to Utf-8 string_view
-		else if constexpr (hasStringViewWithKeySupport)
+		/// <summary>
+		/// Generic function for serialization string_view with key (the value will be valid until the next call).
+		/// </summary>
+		template <class TArchive, typename TKey, typename TSym>
+		bool SerializeString(TArchive& archive, TKey&& key, std::basic_string_view<TSym>& value)
 		{
-			if constexpr (TArchive::IsLoading())
+			using archive_string_view = typename TArchive::string_view_type;
+			using archive_char_type = typename archive_string_view::value_type;
+
+			constexpr auto hasKnownStringViewWithKeySupport = can_serialize_value_with_key_v<TArchive, archive_string_view, TKey>;
+			constexpr auto hasExactStringViewWithKeySupport = can_serialize_value_with_key_v<TArchive, std::basic_string_view<TSym>, TKey>;
+			static_assert(hasExactStringViewWithKeySupport || hasKnownStringViewWithKeySupport,
+				"BitSerializer. The archive doesn't support serialize string type with key on this level.");
+
+			if constexpr (hasExactStringViewWithKeySupport)
 			{
-				std::string_view temp;
-				if (archive.SerializeValue(std::forward<TKey>(key), temp))
+				return archive.SerializeValue(std::forward<TKey>(key), value);
+			}
+			else if constexpr (hasKnownStringViewWithKeySupport)
+			{
+				if constexpr (TArchive::IsLoading())
 				{
-					if constexpr (std::is_same_v<char, TSym>)
+					archive_string_view archiveStringView;
+					if (archive.SerializeValue(std::forward<TKey>(key), archiveStringView))
 					{
-						value.assign(temp);
+						auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<TSym>>();
+						valueBuffer.clear();
+						Convert::Detail::To(archiveStringView, valueBuffer);
+						value = std::basic_string_view<TSym>(valueBuffer);
 						return true;
 					}
-					else
-					{
-						return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
-					}
-				}
-			}
-			else
-			{
-				std::string_view tempStrView;
-				if constexpr (std::is_same_v<char, TSym>)
-				{
-					tempStrView = value;
-					return archive.SerializeValue(std::forward<TKey>(key), tempStrView);
 				}
 				else
 				{
-					const std::string temp = Convert::ToString(value);
-					tempStrView = temp;
-					return archive.SerializeValue(std::forward<TKey>(key), tempStrView);
+					auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<archive_char_type>>();
+					valueBuffer.clear();
+					Convert::Detail::To(value, valueBuffer);
+					archive_string_view archiveStringView(valueBuffer);
+					return archive.SerializeValue(std::forward<TKey>(key), archiveStringView);
 				}
 			}
+			return false;
+		}
+
+		/// <summary>
+		/// Generic function for serialization string_view (the value will be valid until the next call).
+		/// </summary>
+		template <class TArchive, typename TSym>
+		bool SerializeString(TArchive& archive, std::basic_string_view<TSym>& value)
+		{
+			using archive_string_view = typename TArchive::string_view_type;
+			using archive_char_type = typename archive_string_view::value_type;
+
+			constexpr auto hasExactStringViewSupport = can_serialize_value_v<TArchive, std::basic_string_view<TSym>>;
+			constexpr auto hasKnownStringViewSupport = can_serialize_value_v < TArchive, archive_string_view>;
+			static_assert(hasExactStringViewSupport || hasKnownStringViewSupport,
+				"BitSerializer. The archive doesn't support serialize string type without key on this level.");
+
+			if constexpr (hasExactStringViewSupport)
+			{
+				return archive.SerializeValue(value);
+			}
+			else if constexpr (hasKnownStringViewSupport)
+			{
+				if constexpr (TArchive::IsLoading())
+				{
+					archive_string_view archiveStringView;
+					if (archive.SerializeValue(archiveStringView))
+					{
+						auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<TSym>>();
+						valueBuffer.clear();
+						Convert::Detail::To(archiveStringView, valueBuffer);
+						value = std::basic_string_view<TSym>(valueBuffer);
+						return true;
+					}
+				}
+				else
+				{
+					auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<archive_char_type>>();
+					valueBuffer.clear();
+					Convert::Detail::To(value, valueBuffer);
+					archive_string_view archiveStringView(valueBuffer.data(), valueBuffer.size());
+					return archive.SerializeValue(archiveStringView);
+				}
+			}
+			return false;
+		}
+	}
+
+	template <class TArchive, typename TKey, typename TSym, typename TAllocator>
+	bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::basic_string_view<TSym> stringView;
+			if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
+			{
+				value.assign(stringView);
+				return true;
+			}
+		}
+		else
+		{
+			std::basic_string_view<TSym> stringView(value);
+			return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
 		}
 		return false;
 	}
@@ -178,49 +238,19 @@ namespace BitSerializer
 	template <class TArchive, typename TSym, typename TAllocator>
 	bool Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
 	{
-		constexpr auto hasExactStringSupport = can_serialize_value_v<TArchive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>;
-		constexpr auto hasUtf8StringViewSupport = can_serialize_value_v<TArchive, std::string_view>;
-
-		static_assert(hasExactStringSupport || hasUtf8StringViewSupport, "BitSerializer. The archive doesn't support serialize string type without key on this level.");
-
-		// Archive supports exact passed string type
-		if constexpr (hasExactStringSupport) {
-			return archive.SerializeValue(value);
-		}
-		// Need to convert string to Utf-8 string_view
-		else if constexpr (hasUtf8StringViewSupport)
+		if constexpr (TArchive::IsLoading())
 		{
-			if constexpr (TArchive::IsLoading())
+			std::basic_string_view<TSym> stringView;
+			if (Detail::SerializeString(archive, stringView))
 			{
-				std::string_view temp;
-				if (archive.SerializeValue(temp))
-				{
-					if constexpr (std::is_same_v<char, TSym>)
-					{
-						value.assign(temp);
-						return true;
-					}
-					else
-					{
-						return Detail::ConvertByPolicy(temp, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
-					}
-				}
+				value.assign(stringView);
+				return true;
 			}
-			else
-			{
-				std::string_view tempStrView;
-				if constexpr (std::is_same_v<char, TSym>)
-				{
-					tempStrView = value;
-					return archive.SerializeValue(tempStrView);
-				}
-				else
-				{
-					const std::string temp = Convert::ToString(value);
-					tempStrView = temp;
-					return archive.SerializeValue(tempStrView);
-				}
-			}
+		}
+		else
+		{
+			std::basic_string_view<TSym> stringView(value);
+			return Detail::SerializeString(archive, stringView);
 		}
 		return false;
 	}

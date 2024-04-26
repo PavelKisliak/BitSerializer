@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -27,9 +27,11 @@ struct PugiXmlArchiveTraits
 #ifdef PUGIXML_WCHAR_MODE
 	using key_type = std::wstring;
 	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*>;
+	using string_view_type = std::basic_string_view<wchar_t>;
 #else
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, const char*>;
+	using string_view_type = std::basic_string_view<char>;
 #endif
 
 	using preferred_output_format = std::string;
@@ -75,7 +77,7 @@ namespace PugiXmlExtensions
 		return node.attribute(key);
 	}
 
-	template <typename T>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 	bool LoadValue(const pugi::xml_node& node, T& value, const SerializationOptions& serializationOptions)
 	{
 		try
@@ -111,22 +113,18 @@ namespace PugiXmlExtensions
 		return node.empty();
 	}
 
-	template <typename TSym, typename TStrAllocator>
-	bool LoadValue(const pugi::xml_node& node, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value, const SerializationOptions& serializationOptions)
+	inline bool LoadValue(const pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type& value, const SerializationOptions& serializationOptions)
 	{
 		// Empty node is treated as Null
 		if (const auto strValue = node.text().as_string(nullptr))
 		{
-			if constexpr (std::is_same_v<TSym, pugi::char_t>)
-				value = strValue;
-			else
-				value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(strValue);
+			value = strValue;
 			return true;
 		}
 		return false;
 	}
 
-	template <typename T>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 	void SaveValue(const pugi::xml_node& node, const T& value) {
 		node.text().set(value);
 	}
@@ -137,13 +135,9 @@ namespace PugiXmlExtensions
 		node.text().set(value);
 	}
 
-	template <typename TSym, typename TStrAllocator>
-	void SaveValue(const pugi::xml_node& node, const std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	inline void SaveValue(const pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type& value)
 	{
-		if constexpr (std::is_same_v<TSym, pugi::char_t>)
-			node.text().set(value.c_str());
-		else
-			node.text().set(Convert::To<pugi::string_t>(value).c_str());
+		node.text().set(value.data(), value.size());
 	}
 
 	[[nodiscard]] inline std::string GetPath(const pugi::xml_node& node)
@@ -208,7 +202,8 @@ public:
 		return mValueIt == mNode.end();
 	}
 
-	template<typename T>
+	template<typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, string_view_type>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
@@ -354,8 +349,8 @@ public:
 		}
 	}
 
-	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -363,10 +358,7 @@ public:
 			if (attr.empty())
 				return false;
 
-			if constexpr (std::is_same_v<TSym, pugi::char_t>)
-				value = attr.as_string();
-			else
-				value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>>(attr.as_string());
+			value = attr.as_string();
 			return true;
 		}
 		else
@@ -375,10 +367,7 @@ public:
 			if (attr.empty())
 				return false;
 
-			if constexpr (std::is_same_v<TSym, pugi::char_t>)
-				attr.set_value(value.c_str());
-			else
-				attr.set_value(Convert::To<pugi::string_t>(value).c_str());
+			attr.set_value(value.data(), value.size());
 			return true;
 		}
 	}
@@ -428,7 +417,8 @@ public:
 		return PugiXmlExtensions::GetPath(mNode);
 	}
 
-	template <typename TKey, typename T>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
+		|| std::is_same_v<T, string_view_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)

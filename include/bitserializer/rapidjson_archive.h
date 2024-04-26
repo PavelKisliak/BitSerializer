@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -32,6 +32,7 @@ struct RapidJsonArchiveTraits
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using supported_key_types = TSupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
+	using string_view_type = std::basic_string_view<typename TEncoding::Ch>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -55,6 +56,7 @@ class RapidJsonScopeBase : public RapidJsonArchiveTraits<TEncoding>
 public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
+	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
 
 	RapidJsonScopeBase(RapidJsonNode* node, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
 		: mNode(node)
@@ -117,8 +119,7 @@ protected:
 		return false;
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool LoadValue(const RapidJsonNode& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, const SerializationOptions& serializationOptions)
+	bool LoadValue(const RapidJsonNode& jsonValue, string_view_type& value, const SerializationOptions& serializationOptions)
 	{
 		if (!jsonValue.IsString())
 		{
@@ -126,23 +127,14 @@ protected:
 			return false;
 		}
 
-		if constexpr (std::is_same_v<TSym, typename RapidJsonNode::EncodingType::Ch>)
-			value = jsonValue.GetString();
-		else
-			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.GetString());
+		value = string_view_type(jsonValue.GetString(), jsonValue.GetStringLength());
 		return true;
 	}
 
-	template <typename TSym, typename TAllocator, typename TRapidAllocator>
-	RapidJsonNode MakeRapidJsonNodeFromString(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, TRapidAllocator& allocator)
+	template <typename TRapidAllocator>
+	RapidJsonNode MakeRapidJsonNodeFromString(string_view_type value, TRapidAllocator& allocator)
 	{
-		using TargetSymType = typename TEncoding::Ch;
-		if constexpr (std::is_same_v<TSym, TargetSymType>)
-			return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
-		else {
-			const auto str = Convert::To<std::basic_string<TargetSymType, std::char_traits<TargetSymType>>>(value);
-			return RapidJsonNode(str.data(), static_cast<rapidjson::SizeType>(str.size()), allocator);
-		}
+		return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
 	}
 
 	static void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)
@@ -171,6 +163,7 @@ public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
 	using iterator = typename RapidJsonNode::ValueIterator;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
+	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
 
 	RapidJsonArrayScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
 		: TArchiveScope<TMode>(serializationContext)
@@ -224,8 +217,7 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TStrAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -322,6 +314,7 @@ public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
 	using key_type = typename RapidJsonArchiveTraits<TEncoding>::key_type;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
+	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
 	using key_raw_ptr = const typename TEncoding::Ch*;
 
 	RapidJsonObjectScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
@@ -365,8 +358,8 @@ public:
 		}
 	}
 
-	template <typename TKey, typename TSym, typename TStrAllocator>
-	bool SerializeValue(TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TStrAllocator>& value)
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -486,6 +479,8 @@ protected:
 	using char_type = typename TEncoding::Ch;
 
 public:
+	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
+
 	RapidJsonRootScope(const std::string_view& encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
@@ -556,20 +551,14 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			return this->LoadValue(mRootJson, value, this->GetOptions());
 		}
 		else
 		{
-			if constexpr (std::is_same_v<TSym, char_type>)
-				mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
-			else {
-				const auto str = Convert::To<std::basic_string<char_type, std::char_traits<char_type>>>(value);
-				mRootJson.SetString(str.data(), static_cast<rapidjson::SizeType>(str.size()), mRootJson.GetAllocator());
-			}
+			mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
 			return true;
 		}
 	}

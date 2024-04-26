@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -33,6 +33,7 @@ struct JsonArchiveTraits
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<std::string>;
 #endif
+	using string_view_type = std::basic_string_view<utility::char_t>;
 	using preferred_output_format = std::string;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -117,8 +118,7 @@ protected:
 		return false;
 	}
 
-	template <typename TSym, typename TAllocator>
-	static bool LoadValue(const web::json::value& jsonValue, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value, const SerializationOptions& serializationOptions)
+	static bool LoadValue(const web::json::value& jsonValue, string_view_type& value, const SerializationOptions& serializationOptions)
 	{
 		if (!jsonValue.is_string())
 		{
@@ -126,10 +126,7 @@ protected:
 			return false;
 		}
 
-		if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-			value = jsonValue.as_string();
-		else
-			value = Convert::To<std::basic_string<TSym, std::char_traits<TSym>, TAllocator>>(jsonValue.as_string());
+		value = jsonValue.as_string();
 		return true;
 	}
 
@@ -208,18 +205,14 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			return LoadValue(LoadNextItem(), value, this->GetOptions());
 		}
 		else
 		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				SaveJsonValue(web::json::value(value));
-			else
-				SaveJsonValue(web::json::value(Convert::To<utility::string_t>(value)));
+			SaveJsonValue(web::json::value(utility::string_t(value)));
 			return true;
 		}
 	}
@@ -332,8 +325,7 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(const key_type& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(const key_type& key, string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -342,10 +334,7 @@ public:
 		}
 		else
 		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				SaveJsonValue(key, web::json::value(value));
-			else
-				SaveJsonValue(key, web::json::value(Convert::To<utility::string_t>(value)));
+			SaveJsonValue(key, web::json::value(utility::string_t(value)));
 			return true;
 		}
 	}
@@ -489,18 +478,14 @@ public:
 		}
 	}
 
-	template <typename TSym, typename TAllocator>
-	bool SerializeValue(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	bool SerializeValue(string_view_type& value)
 	{
 		if constexpr (TMode == SerializeMode::Load) {
 			return LoadValue(mRootJson, value, this->GetOptions());
 		}
 		else
 		{
-			if constexpr (std::is_same_v<TSym, utility::string_t::value_type>)
-				mRootJson = web::json::value(value);
-			else
-				mRootJson = web::json::value(Convert::To<utility::string_t>(value));
+			mRootJson = web::json::value(utility::string_t(value));
 			return true;
 		}
 	}

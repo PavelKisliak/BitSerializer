@@ -50,6 +50,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			static constexpr ArchiveType archive_type = ArchiveType::Yaml;
 			using key_type = std::string;
 			using supported_key_types = TSupportedKeyTypes<const char*, key_type>;
+			using string_view_type = std::string_view;
 			using preferred_output_format = std::string;
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
@@ -117,7 +118,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return BitSerializer::Detail::ConvertByPolicy(str, value, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 
-			static bool LoadValue(const RapidYamlNode& yamlValue, std::string_view& value)
+			static bool LoadValue(const RapidYamlNode& yamlValue, string_view_type& value)
 			{
 				if (!yamlValue.is_val() && !yamlValue.is_keyval())
 					return false;
@@ -127,7 +128,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 
 				const auto str = yamlValue.val();
-				value = std::string_view(str.data(), str.size());
+				value = string_view_type(str.data(), str.size());
 				return true;
 			}
 
@@ -240,7 +241,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return false;
 			}
 
-			bool SerializeValue(std::string_view& value)
+			bool SerializeValue(string_view_type& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -393,7 +394,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			template <typename TKey>
-			bool SerializeValue(TKey&& key, std::string_view& value)
+			bool SerializeValue(TKey&& key, string_view_type& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{

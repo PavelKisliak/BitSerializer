@@ -27,6 +27,7 @@ struct MsgPackArchiveTraits
 	static constexpr ArchiveType archive_type = ArchiveType::MsgPack;
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view, int64_t, uint64_t, float, double, CBinTimestamp>;
+	using string_view_type = std::string_view;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
@@ -348,7 +349,7 @@ public:
 	{ }
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
@@ -421,7 +422,7 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		mMsgPackWriter->WriteValue(value);
@@ -581,7 +582,7 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
@@ -718,7 +719,7 @@ public:
 	}
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (FindValueByKey(key))
@@ -881,7 +882,7 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, CBinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, CBinTimestamp>, int> = 0>
 	bool SerializeValue(T& value) const
 	{
 		return mMsgPackReader->ReadValue(value);

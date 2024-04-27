@@ -72,7 +72,7 @@ ___
 - [Serialization STD types](#serialization-std-types)
 - [Specifics of serialization STD map](#specifics-of-serialization-std-map)
 - [Serialization date and time](#serialization-date-and-time)
-- [Conditions for checking the serialization mode](#conditions-for-checking-the-serialization-mode)
+- [Conditional loading and versioning](#conditional-loading-and-versioning)
 - [Serializing custom classes representing a string or number](#serializing-custom-classes-representing-a-string-or-number)
 - [Serialization to streams and files](#serialization-to-streams-and-files)
 - [Error handling](#error-handling)
@@ -555,30 +555,102 @@ void Serialize(TArchive& archive)
 }
 ```
 
-### Conditions for checking the serialization mode
+### Conditional loading and versioning
+
+The functional style of serialization used in BitSerializer has one advantage over the declarative one - you can write branches depending on the data.
 To check the current serialization mode, use two static methods - `IsLoading()` and `IsSaving()`. As they are «constexpr», you will not have any overhead.
 ```cpp
 class Foo
 public:
-	template <class TArchive>
-	inline void Serialize(TArchive& archive)
-	{
-		if constexpr (TArchive::IsLoading()) {
-			// Code which executes in loading mode
-		}
-		else {
-			// Code which executes in saving mode
-		}
-	
-		if constexpr (TArchive::IsSaving()) {
-			// Code which executes in saving mode
-		}
-		else {
-			// Code which executes in loading mode
-		}
-	}
+    template <class TArchive>
+    inline void Serialize(TArchive& archive)
+    {
+        if constexpr (TArchive::IsLoading()) {
+            // Code which executes in loading mode
+        }
+        else {
+            // Code which executes in saving mode
+        }
+    }
 }
 ```
+This can be most useful when you need to support multiple versions of a model. By default, library does not add any system fields (like as a version of object), but it's not difficult to add version when you will need:
+```cpp
+// Old version of test object (no needs to keep old models, just as example)
+struct TestUserV1
+{
+    std::string name;           // Deprecated, need to split to first and last name
+    uint8_t age{};
+    uint32_t lastOrderId{};     // Deprecated, need to remove
+
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("name", name, Required());
+        archive << KeyValue("age", age);
+        archive << KeyValue("lastOrderId", lastOrderId);
+    }
+};
+
+// Actual model
+struct TestUser
+{
+    // Introduce version field
+    static constexpr int16_t CurrentVersion = 1;
+
+    std::string firstName;
+    std::string lastName;
+    uint8_t age{};
+    std::string country;
+
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        // Load 'version' field if exists
+        int16_t version = TArchive::IsSaving() ? CurrentVersion : 0;
+        archive << KeyValue("version", version);
+
+        if constexpr (TArchive::IsLoading())
+        {
+            if (version == 0)
+            {
+                // Import name from old format
+                std::string name;
+                archive << KeyValue("name", name, Required());
+                const auto spacePos = name.find(' ');
+                firstName = name.substr(0, spacePos);
+                lastName = spacePos != std::string::npos ? name.substr(spacePos + 1) : "";
+            }
+            else
+            {
+                archive << KeyValue("firstName", firstName, Required());
+                archive << KeyValue("lastName", lastName, Required());
+            }
+        }
+        archive << KeyValue("age", age);
+        archive << KeyValue("country", country);
+    }
+};
+
+int main()
+{
+    // Save old version
+    std::vector<TestUserV1> oldUsers {
+        { "John Smith", 35, 1254 },
+        { "Emily Roberts", 27, 4546 },
+        { "James Murphy", 32, 10653 }
+    };
+    const auto archive = BitSerializer::SaveObject<MsgPackArchive>(oldUsers);
+
+    // Loading with import to new version
+    std::vector<TestUser> newUsers;
+    BitSerializer::LoadObject<MsgPackArchive>(newUsers, archive);
+
+    return 0;
+}
+```
+[See full sample](samples/versioning/versioning.cpp)
+
 
 ### Serializing custom classes representing a string or number
 This chapter describes how to implement serialization for classes which should be represented in the output format as base types, like number, boolean or string. Let's imagine that you would like to implement serialization of your own `std::string` alternative, which is called `CMyString`. For this purpose you need two global functions with the following signatures:
@@ -734,7 +806,7 @@ int main()
 	return 0;
 }
 ```
-[See full sample](samples/validation/serialize_to_stream.cpp)
+[See full sample](samples/serialize_to_stream/serialize_to_stream.cpp)
 
 For save/load to files, BitSerializer provides the following functions (which are just wrappers of serialization methods to streams):
 ```cpp

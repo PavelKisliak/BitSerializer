@@ -27,6 +27,7 @@ struct TestUserV1
 // Actual model
 struct TestUser
 {
+	// Introduce version field
 	static constexpr int16_t CurrentVersion = 1;
 
 	std::string firstName;
@@ -37,8 +38,8 @@ struct TestUser
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		// Introduce version field
-		int16_t version = 0;
+		// Load 'version' field if exists
+		int16_t version = TArchive::IsSaving() ? CurrentVersion : 0;
 		archive << KeyValue("version", version);
 
 		if constexpr (TArchive::IsLoading())

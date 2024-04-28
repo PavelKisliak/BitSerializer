@@ -121,36 +121,13 @@ TEST(STD_Types, SerializeSharedPtrAsClassMemberWithNull) {
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::atomic
 //-----------------------------------------------------------------------------
-class TestClassWithAtomic
-{
-public:
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << KeyValue("testBool", testBool);
-		archive << KeyValue("testInt", testInt);
-	}
-
-	void Assert(const TestClassWithAtomic& actual) const
-	{
-		EXPECT_EQ(testBool, actual.testBool);
-		EXPECT_EQ(testInt, actual.testInt);
-	}
-
-	std::atomic_bool testBool = BuildFixture<bool>();
-	std::atomic_int testInt = BuildFixture<int>();
-};
-
 TEST(STD_Types, SerializeAtomicAsClassMember)
 {
-	TestSerializeType<ArchiveStub>(TestClassWithAtomic());
+	TestSerializeType<ArchiveStub>(TestClassWithSubTypes<std::atomic_bool, std::atomic_int> ());
 }
 
 TEST(STD_Types, SerializeAtomic)
 {
-	std::atomic_bool testBool = BuildFixture<bool>();
-	TestSerializeType<ArchiveStub>(testBool);
-
-	std::atomic_int testInt = BuildFixture<int>();
-	TestSerializeType<ArchiveStub>(testInt);
+	TestSerializeType<ArchiveStub, std::atomic_bool>();
+	TestSerializeType<ArchiveStub, std::atomic_int>();
 }

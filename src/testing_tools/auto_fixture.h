@@ -23,6 +23,7 @@
 #include <type_traits>
 #include <tuple>
 #include <filesystem>
+#include <atomic>
 #include "string_utils.h"
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
@@ -111,6 +112,14 @@ static void BuildFixture(T& value)
 {
 	const auto randIndex = std::rand() % BitSerializer::Convert::Detail::EnumRegistry<T>::size();
 	value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->Value;
+}
+
+template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
+static void BuildFixture(std::atomic<T>& value)
+{
+	T temp;
+	::BuildFixture<T>(temp);
+	value = temp;
 }
 
 /// <summary>

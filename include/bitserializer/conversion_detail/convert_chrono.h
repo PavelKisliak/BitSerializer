@@ -37,7 +37,7 @@ namespace BitSerializer
 namespace BitSerializer::Convert::Detail
 {
 	constexpr size_t UtcBufSize = 32;
-	static constexpr int DaysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+	constexpr int DaysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 	template <class TFractions = std::chrono::nanoseconds,
 		std::enable_if_t<TFractions::period::num == 1 && std::chrono::seconds::period::den < TFractions::period::den, int> = 0>

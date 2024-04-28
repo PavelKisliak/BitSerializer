@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -131,14 +131,15 @@ public:
 		::BuildFixture(fixture.mTestDoubleValue);
 		::BuildFixture(fixture.mTestString1);
 		::BuildFixture(fixture.mTestString2);
-		::BuildFixture(fixture.mTestString3);
 		if constexpr (std::is_same_v<TKeyCharType, char>)
 		{
+			fixture.mTestUnicodeString = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
 			fixture.mStringWithQuotes = "Test \"<quoted>\" string";
 			fixture.mMultiLineString = "Test\nmulti\nline\nstring";
 		}
 		else
 		{
+			fixture.mTestUnicodeString = L"Съешь ещё этих мягких французских булок, да выпей чаю";
 			fixture.mStringWithQuotes = L"Test \"<quoted>\" string";
 			fixture.mMultiLineString = L"Test\nmulti\nline\nstring";
 		}
@@ -179,7 +180,7 @@ public:
 		Assert("TestDoubleValue", mTestDoubleValue, rhs.mTestDoubleValue);
 		Assert("TestString1", mTestString1, rhs.mTestString1);
 		Assert("TestString2", mTestString2, rhs.mTestString2);
-		Assert("TestString3", mTestString3, rhs.mTestString3);
+		Assert("TestString3", mTestUnicodeString, rhs.mTestUnicodeString);
 		Assert("StringWithQuotes", mStringWithQuotes, rhs.mStringWithQuotes);
 		Assert("MultiLineString", mMultiLineString, rhs.mMultiLineString);
 	}
@@ -196,7 +197,7 @@ public:
 			archive << BitSerializer::KeyValue("TestDoubleValue", mTestDoubleValue);
 			archive << BitSerializer::KeyValue("TestString1", mTestString1);
 			archive << BitSerializer::KeyValue("TestString2", mTestString2);
-			archive << BitSerializer::KeyValue("TestString3", mTestString3);
+			archive << BitSerializer::KeyValue("TestString3", mTestUnicodeString);
 			archive << BitSerializer::KeyValue("StringWithQuotes", mStringWithQuotes);
 			archive << BitSerializer::KeyValue("MultiLineString", mMultiLineString);
 		}
@@ -209,7 +210,7 @@ public:
 			archive << BitSerializer::KeyValue(L"TestDoubleValue", mTestDoubleValue);
 			archive << BitSerializer::KeyValue(L"TestString1", mTestString1);
 			archive << BitSerializer::KeyValue(L"TestString2", mTestString2);
-			archive << BitSerializer::KeyValue(L"TestString3", mTestString3);
+			archive << BitSerializer::KeyValue(L"TestString3", mTestUnicodeString);
 			archive << BitSerializer::KeyValue(L"StringWithQuotes", mStringWithQuotes);
 			archive << BitSerializer::KeyValue(L"MultiLineString", mMultiLineString);
 		}
@@ -222,7 +223,7 @@ public:
 	double mTestDoubleValue = 0.0;
 	string_t mTestString1;
 	string_t mTestString2;
-	string_t mTestString3;
+	string_t mTestUnicodeString;
 	string_t mStringWithQuotes;
 	string_t mMultiLineString;
 };

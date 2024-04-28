@@ -39,7 +39,7 @@ public:
 				<< c4::fmt::real(obj.mTestDoubleValue, std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
 			yamlObj.append_child() << ryml::key("TestString1") << obj.mTestString1;
 			yamlObj.append_child() << ryml::key("TestString2") << obj.mTestString2;
-			yamlObj.append_child() << ryml::key("TestString3") << obj.mTestString3;
+			yamlObj.append_child() << ryml::key("UnicodeString") << obj.mTestUnicodeString;
 			yamlObj.append_child() << ryml::key("StringWithQuotes") << obj.mStringWithQuotes;
 			yamlObj.append_child() << ryml::key("MultiLineString") << obj.mMultiLineString;
 		}
@@ -68,7 +68,7 @@ public:
 			yamlVal["TestDoubleValue"] >> obj.mTestDoubleValue;
 			yamlVal["TestString1"] >> obj.mTestString1;
 			yamlVal["TestString2"] >> obj.mTestString2;
-			yamlVal["TestString3"] >> obj.mTestString3;
+			yamlVal["UnicodeString"] >> obj.mTestUnicodeString;
 			yamlVal["StringWithQuotes"] >> obj.mStringWithQuotes;
 			yamlVal["MultiLineString"] >> obj.mMultiLineString;
 		}

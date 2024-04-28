@@ -4,7 +4,6 @@
 *******************************************************************************/
 #pragma once
 #include <tuple>
-#include <limits>
 #include "serialization_context.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 

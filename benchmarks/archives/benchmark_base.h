@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -149,19 +149,39 @@ public:
 		return 10;
 	}
 
+	template <typename T>
+	static void Assert(const char* fieldName, const T& val1, const T& val2)
+	{
+		if constexpr (std::is_floating_point_v<T>)
+		{
+			// Approximately compare floating point numbers due to possible loss precision when store in the text formats
+			if (ApproximatelyEqual(val1, val2, std::numeric_limits<T>::epsilon() * 5))
+			{
+				return;
+			}
+		}
+		else
+		{
+			if (val1 == val2)
+			{
+				return;
+			}
+		}
+		throw std::runtime_error(std::string(" - Failed verification on field '") + fieldName + "': " + BitSerializer::Convert::ToString(val1) + " != " + BitSerializer::Convert::ToString(val2));
+	}
+
 	void Assert(const TestModelWithBasicTypes& rhs) const
 	{
-		assert(mTestBoolValue == rhs.mTestBoolValue);
-		assert(mTestCharValue == rhs.mTestCharValue);
-		assert(mTestInt64Value == rhs.mTestInt64Value);
-		// Approximately compare floating point numbers due to possible loss precision when store in the text formats
-		assert(ApproximatelyEqual(mTestFloatValue, rhs.mTestFloatValue, std::numeric_limits<float>::epsilon() * 5));
-		assert(ApproximatelyEqual(mTestDoubleValue, rhs.mTestDoubleValue, std::numeric_limits<double>::epsilon() * 5));
-		assert(mTestString1 == rhs.mTestString1);
-		assert(mTestString2 == rhs.mTestString2);
-		assert(mTestString3 == rhs.mTestString3);
-		assert(mStringWithQuotes == rhs.mStringWithQuotes);
-		assert(mMultiLineString == rhs.mMultiLineString);
+		Assert("TestBoolValue", mTestBoolValue, rhs.mTestBoolValue);
+		Assert("TestCharValue", mTestCharValue, rhs.mTestCharValue);
+		Assert("TestInt64Value", mTestInt64Value, rhs.mTestInt64Value);
+		Assert("TestFloatValue", mTestFloatValue, rhs.mTestFloatValue);
+		Assert("TestDoubleValue", mTestDoubleValue, rhs.mTestDoubleValue);
+		Assert("TestString1", mTestString1, rhs.mTestString1);
+		Assert("TestString2", mTestString2, rhs.mTestString2);
+		Assert("TestString3", mTestString3, rhs.mTestString3);
+		Assert("StringWithQuotes", mStringWithQuotes, rhs.mStringWithQuotes);
+		Assert("MultiLineString", mMultiLineString, rhs.mMultiLineString);
 	}
 
 	template <class TArchive>

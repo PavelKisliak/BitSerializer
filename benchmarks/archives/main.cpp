@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <iostream>
@@ -60,7 +60,6 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 	TestArchiveResult metadata(performanceTest.GetArchiveName());
 
 	int progressPercent = -1;
-	bool needVerify = true;
 
 	const auto beginTime = Timer::now();
 	const auto endTime = beginTime + std::chrono::seconds(testTime);
@@ -119,12 +118,8 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 			}
 		}
 
-		// Check integrity (for test serialization via native library)
-		if (needVerify)
-		{
-			needVerify = false;
-			performanceTest.Assert();
-		}
+		// Check integrity of loaded data
+		performanceTest.Assert();
 	}
 
 	std::cout << "\r";

@@ -39,7 +39,7 @@ public:
 			jObj[_XPLATSTR("TestDoubleValue")] = web::json::value(obj.mTestDoubleValue);
 			jObj[_XPLATSTR("TestString1")] = web::json::value(obj.mTestString1);
 			jObj[_XPLATSTR("TestString2")] = web::json::value(obj.mTestString2);
-			jObj[_XPLATSTR("TestString3")] = web::json::value(obj.mTestString3);
+			jObj[_XPLATSTR("UnicodeString")] = web::json::value(obj.mTestUnicodeString);
 			jObj[_XPLATSTR("StringWithQuotes")] = web::json::value(obj.mStringWithQuotes);
 			jObj[_XPLATSTR("MultiLineString")] = web::json::value(obj.mMultiLineString);
 			++i;
@@ -78,7 +78,7 @@ public:
 			obj.mTestDoubleValue = jObj.find(_XPLATSTR("TestDoubleValue"))->second.as_double();
 			obj.mTestString1 = jObj.find(_XPLATSTR("TestString1"))->second.as_string();
 			obj.mTestString2 = jObj.find(_XPLATSTR("TestString2"))->second.as_string();
-			obj.mTestString3 = jObj.find(_XPLATSTR("TestString3"))->second.as_string();
+			obj.mTestUnicodeString = jObj.find(_XPLATSTR("UnicodeString"))->second.as_string();
 			obj.mStringWithQuotes = jObj.find(_XPLATSTR("StringWithQuotes"))->second.as_string();
 			obj.mMultiLineString = jObj.find(_XPLATSTR("MultiLineString"))->second.as_string();
 			++i;

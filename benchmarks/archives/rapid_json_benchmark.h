@@ -43,8 +43,8 @@ public:
 				item.mTestString1.data(), static_cast<rapidjson::SizeType>(item.mTestString1.size())), allocator);
 			jsonObject.AddMember("TestString2", RapidJsonNode::StringRefType(
 				item.mTestString2.data(), static_cast<rapidjson::SizeType>(item.mTestString2.size())), allocator);
-			jsonObject.AddMember("TestString3", RapidJsonNode::StringRefType(
-				item.mTestString3.data(), static_cast<rapidjson::SizeType>(item.mTestString3.size())), allocator);
+			jsonObject.AddMember("UnicodeString", RapidJsonNode::StringRefType(
+				item.mTestUnicodeString.data(), static_cast<rapidjson::SizeType>(item.mTestUnicodeString.size())), allocator);
 			jsonObject.AddMember("StringWithQuotes", RapidJsonNode::StringRefType(
 				item.mStringWithQuotes.data(), static_cast<rapidjson::SizeType>(item.mStringWithQuotes.size())), allocator);
 			jsonObject.AddMember("MultiLineString", RapidJsonNode::StringRefType(
@@ -81,7 +81,7 @@ public:
 			obj.mTestDoubleValue = jObj.FindMember("TestDoubleValue")->value.GetDouble();
 			obj.mTestString1 = jObj.FindMember("TestString1")->value.GetString();
 			obj.mTestString2 = jObj.FindMember("TestString2")->value.GetString();
-			obj.mTestString3 = jObj.FindMember("TestString3")->value.GetString();
+			obj.mTestUnicodeString = jObj.FindMember("UnicodeString")->value.GetString();
 			obj.mStringWithQuotes = jObj.FindMember("StringWithQuotes")->value.GetString();
 			obj.mMultiLineString = jObj.FindMember("MultiLineString")->value.GetString();
 			++i;

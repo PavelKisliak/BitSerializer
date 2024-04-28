@@ -34,7 +34,7 @@ public:
 			objectNode.append_child(PUGIXML_TEXT("TestDoubleValue")).text().set(item.mTestDoubleValue);
 			objectNode.append_child(PUGIXML_TEXT("TestString1")).text().set(item.mTestString1.c_str());
 			objectNode.append_child(PUGIXML_TEXT("TestString2")).text().set(item.mTestString2.c_str());
-			objectNode.append_child(PUGIXML_TEXT("TestString3")).text().set(item.mTestString3.c_str());
+			objectNode.append_child(PUGIXML_TEXT("UnicodeString")).text().set(item.mTestUnicodeString.c_str());
 			objectNode.append_child(PUGIXML_TEXT("StringWithQuotes")).text().set(item.mStringWithQuotes.c_str());
 			objectNode.append_child(PUGIXML_TEXT("MultiLineString")).text().set(item.mMultiLineString.c_str());
 		}
@@ -67,7 +67,7 @@ public:
 			obj.mTestDoubleValue = it->child(PUGIXML_TEXT("TestDoubleValue")).text().as_double();
 			obj.mTestString1 = it->child(PUGIXML_TEXT("TestString1")).text().as_string();
 			obj.mTestString2 = it->child(PUGIXML_TEXT("TestString2")).text().as_string();
-			obj.mTestString3 = it->child(PUGIXML_TEXT("TestString3")).text().as_string();
+			obj.mTestUnicodeString = it->child(PUGIXML_TEXT("UnicodeString")).text().as_string();
 			obj.mStringWithQuotes = it->child(PUGIXML_TEXT("StringWithQuotes")).text().as_string();
 			obj.mMultiLineString = it->child(PUGIXML_TEXT("MultiLineString")).text().as_string();
 			++i;

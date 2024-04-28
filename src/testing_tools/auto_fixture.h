@@ -197,7 +197,7 @@ static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
 		std::max(tpMinSec, time_0000_01_01T00_00_00),
 		std::min(tpMaxSec, time_9999_12_31T23_59_59));
 
-	timePoint = std::chrono::time_point<TClock, TDuration>(std::chrono::seconds(distr(gen)));
+	timePoint = std::chrono::time_point<TClock, TDuration>(std::chrono::duration_cast<TDuration>(std::chrono::seconds(distr(gen))));
 }
 
 /// <summary>
@@ -209,7 +209,8 @@ static void BuildFixture(std::chrono::duration<TRep, TPeriod>& duration)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution distr(std::numeric_limits<TRep>::min(), std::numeric_limits<TRep>::max());
+	using TCommon = std::common_type_t<TRep, intmax_t>;
+	std::uniform_int_distribution<TCommon> distr(std::numeric_limits<TRep>::min(), std::numeric_limits<TRep>::max());
 
 	duration = std::chrono::duration<TRep, TPeriod>(distr(gen));
 }

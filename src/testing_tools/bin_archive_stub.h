@@ -178,6 +178,7 @@ protected:
 			return false;
 
 		value = std::get<key_type>(ioData);
+		return true;
 	}
 
 	void SaveString(BinTestIoData& ioData, string_view_type& value)

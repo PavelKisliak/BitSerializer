@@ -31,6 +31,7 @@ void TestSerializeType()
 	TValue expected{};
 	::BuildFixture(expected);
 	TValue actual{};
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(expected, outputArchive);
@@ -50,6 +51,7 @@ void TestSerializeType(T&& value)
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive;
 	std::remove_reference_t<T> actual;
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputArchive);
@@ -70,6 +72,7 @@ void TestSerializeType(TKey&& key, TValue&& value)
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive;
 	std::remove_reference_t<TValue> actual;
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(BitSerializer::KeyValue(key, value), outputArchive);
@@ -90,6 +93,7 @@ void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive;
 	TExpected actual{};
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputArchive);
@@ -110,6 +114,7 @@ void TestSerializeArray()
 	BuildFixture(testArray);
 	typename TArchive::preferred_output_format outputArchive;
 	TValue actual[TargetArraySize];
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
@@ -133,6 +138,7 @@ void TestSerializeArrayWithKey()
 	BuildFixture(testArray);
 	typename TArchive::preferred_output_format outputArchive;
 	TValue actual[TargetArraySize];
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(BitSerializer::KeyValue(L"Root", testArray), outputArchive);
@@ -155,6 +161,7 @@ void TestSerializeTwoDimensionalArray()
 	BuildFixture(testArray);
 	typename TArchive::preferred_output_format outputArchive;
 	TValue actual[ArraySize1][ArraySize2];
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
@@ -179,6 +186,7 @@ void TestSerializeClassToStream(T&& value)
 	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
 	string_stream_type outputStream;
 	std::decay_t<T> actual;
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(value, outputStream);
@@ -199,6 +207,7 @@ void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
 	string_stream_type outputStream;
 	T actual[ArraySize];
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputStream);
@@ -222,6 +231,7 @@ void TestSerializeArrayToFile()
 	auto path = std::filesystem::temp_directory_path() / "TestArchive.data";
 	TestPointClass testArray[ArraySize], actual[ArraySize];
 	BuildFixture(testArray);
+	::BuildFixture(actual);
 
 	// Act
 	BitSerializer::SaveObjectToFile<TArchive>(testArray, path);
@@ -245,6 +255,7 @@ void TestLoadToNotEmptyContainer(size_t targetContainerSize)
 	TContainer expected{};
 	::BuildFixture(expected);
 	TContainer actual(targetContainerSize);
+	::BuildFixture(actual);
 
 	// Act
 	auto archiveData = BitSerializer::SaveObject<TArchive>(expected);

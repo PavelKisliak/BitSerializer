@@ -118,7 +118,7 @@ In the square brackets enumerated all available formats, install only which you 
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
-bitserializer/0.50
+bitserializer/0.65
 
 [options]
 bitserializer:with_cpprestsdk=True
@@ -130,7 +130,7 @@ bitserializer:with_msgpack=True
 ```
 Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
 ```shell
-> conan install bitserializer/0.50@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
+> conan install bitserializer/0.65@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
 ```
 #### Installation via CMake on a Unix system
 ```sh

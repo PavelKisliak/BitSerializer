@@ -67,7 +67,7 @@ target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_msgpack` option:
 ```
 [requires]
-bitserializer/0.50
+bitserializer/0.65
 
 [options]
 bitserializer:with_msgpack=True
@@ -100,3 +100,9 @@ find_package(bitserializer CONFIG REQUIRED
     NO_DEFAULT_PATH)
 target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
 ```
+
+### Samples
+The following two examples are designed specially to demonstrate MsgPack:
+- [MsgPack vs JSON](../samples/msgpack_vs_json/msgpack_vs_json.cpp) - demonstrates the features of MsgPack
+- [Versioning](../samples/versioning/versioning.cpp) - demonstrates how to implement versioning
+All other examples may also be useful, as serialization to MsgPack is similar to other archives, please learn them with using main [README.md](../README.md).

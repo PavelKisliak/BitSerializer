@@ -35,7 +35,7 @@ target_link_libraries(main PRIVATE BitSerializer::cpprestjson-archive)
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_cpprestsdk` option:
 ```
 [requires]
-bitserializer/0.50
+bitserializer/0.65
 
 [options]
 bitserializer:with_cpprestsdk=True

@@ -72,4 +72,51 @@ namespace BitSerializer::Convert::Detail
 		}
 		out = result;
 	}
+
+	namespace _formatTemplates
+	{
+		template <typename T> const char* _get() { throw; }
+		template <typename T> const wchar_t* _getW() { throw; }
+
+		template <>	constexpr const char* _get<float>() { return "%.7g"; }
+		template <>	constexpr const wchar_t* _getW<float>() { return L"%.7g"; }
+
+		template <>	constexpr const char* _get<double>() { return "%.15g"; }
+		template <>	constexpr const wchar_t* _getW<double>() { return L"%.15g"; }
+
+		template <>	constexpr const char* _get<long double>() { return "%.15Lg"; }
+		template <>	constexpr const wchar_t* _getW<long double>() { return L"%.15Lg"; }
+	}
+
+	/// <summary>
+	/// Converts any floating point types to any UTF string.
+	/// </summary>
+	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
+	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		constexpr auto bufSize = std::numeric_limits<T>::digits + 1;
+		if constexpr (sizeof(TSym) == sizeof(wchar_t))
+		{
+			wchar_t buf[bufSize];
+			const int result = swprintf(buf, bufSize, _formatTemplates::_getW<T>(), in);
+			if (result < 0 || result >= bufSize) {
+				throw std::overflow_error("Internal error");
+			}
+			out.append(std::cbegin(buf), std::cbegin(buf) + result);
+		}
+		else
+		{
+			char buf[bufSize];
+			const int result = snprintf(buf, bufSize, _formatTemplates::_get<T>(), in);
+			if (result < 0 || result >= bufSize) {
+				throw std::overflow_error("Internal error");
+			}
+			if constexpr (std::is_same_v<char, TSym>) {
+				out.append(std::cbegin(buf), std::cbegin(buf) + result);
+			}
+			else {
+				Utf8::Decode(buf, buf + result, out);
+			}
+		}
+	}
 }

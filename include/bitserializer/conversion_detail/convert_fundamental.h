@@ -3,9 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include <charconv>
 #include <limits>
 #include <stdexcept>
@@ -178,67 +175,42 @@ namespace BitSerializer::Convert::Detail
 	//------------------------------------------------------------------------------
 
 	/// <summary>
-	/// Converts any integer types to any UTF string.
+	/// Converts any integer and floating types (except compatibility mode) to any UTF string.
 	/// </summary>
-	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_integral_v<T>), int> = 0>
+	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_integral_v<T>
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
+	|| std::is_floating_point_v<T>
+#endif
+		), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		if constexpr (std::is_same_v<char, TSym>) {
-			out.append(std::to_string(in));
-		}
-		else if constexpr (std::is_same_v<TSym, wchar_t>) {
-			out.append(std::to_wstring(in));
-		}
-		else
+		constexpr auto bufSize = 32;
+		if constexpr (std::is_same_v<char, TSym>)
 		{
-			const auto utf8Str = std::to_string(in);
-			Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
-		}
-	}
-
-	namespace _formatTemplates
-	{
-		template <typename T> const char* _get() { throw; }
-		template <typename T> const wchar_t* _getW() { throw; }
-
-		template <>	constexpr const char* _get<float>() { return "%.7g"; }
-		template <>	constexpr const wchar_t* _getW<float>() { return L"%.7g"; }
-
-		template <>	constexpr const char* _get<double>() { return "%.15g"; }
-		template <>	constexpr const wchar_t* _getW<double>() { return L"%.15g"; }
-
-		template <>	constexpr const char* _get<long double>() { return "%.15Lg"; }
-		template <>	constexpr const wchar_t* _getW<long double>() { return L"%.15Lg"; }
-	}
-
-	/// <summary>
-	/// Converts any floating point types to any UTF string.
-	/// </summary>
-	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
-	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
-	{
-		constexpr auto bufSize = std::numeric_limits<T>::digits + 1;
-		if constexpr (sizeof(TSym) == sizeof(wchar_t))
-		{
-			wchar_t buf[bufSize];
-			const int result = swprintf(buf, bufSize, _formatTemplates::_getW<T>(), in);
-			if (result < 0 || result >= bufSize) {
-				throw std::overflow_error("Internal error");
+			const auto origSize = out.size();
+			out.resize(origSize + bufSize);
+			const std::to_chars_result rc = std::to_chars(out.data() + origSize, out.data() + out.size(), in);
+			if (rc.ec == std::errc())
+			{
+				out.resize(rc.ptr - out.data());
 			}
-			out.append(std::cbegin(buf), std::cbegin(buf) + result);
+			else
+			{
+				out.resize(origSize);
+				throw std::runtime_error("Unknown error");
+			}
 		}
 		else
 		{
 			char buf[bufSize];
-			const int result = snprintf(buf, bufSize, _formatTemplates::_get<T>(), in);
-			if (result < 0 || result >= bufSize) {
-				throw std::overflow_error("Internal error");
+			const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
+			if (rc.ec == std::errc())
+			{
+				Utf8::Decode(buf, rc.ptr, out);
 			}
-			if constexpr (std::is_same_v<char, TSym>) {
-				out.append(std::cbegin(buf), std::cbegin(buf) + result);
-			}
-			else {
-				Utf8::Decode(buf, buf + result, out);
+			else
+			{
+				throw std::runtime_error("Unknown error");
 			}
 		}
 	}

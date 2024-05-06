@@ -369,6 +369,11 @@ TEST(ConvertFundamentals, FloatToString) {
 	EXPECT_EQ("23613", Convert::ToString(23613.f));
 }
 
+TEST(ConvertFundamentals, FloatMaxToString) {
+	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<float>::lowest()).empty());
+	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<float>::max()).empty());
+}
+
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, DoubleFromString) {
 	EXPECT_EQ(-0.0, Convert::To<double>("  -0  "));
@@ -390,6 +395,11 @@ TEST(ConvertFundamentals, DoubleToString) {
 	EXPECT_EQ("0", Convert::ToString(0.0));
 	EXPECT_EQ(u"-1234567.12345678", Convert::To<std::u16string>(-1234567.12345678));
 	EXPECT_EQ(U"1234567.12345678", Convert::To<std::u32string>(1234567.12345678));
+}
+
+TEST(ConvertFundamentals, DoubleMaxToString) {
+	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<double>::lowest()).empty());
+	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<double>::max()).empty());
 }
 
 //-----------------------------------------------------------------------------
@@ -414,4 +424,9 @@ TEST(ConvertFundamentals, LongDoubleToString) {
 	EXPECT_EQ("-0", Convert::ToString(-0.0L));
 	EXPECT_EQ(u"3.14159265358979", Convert::To<std::u16string>(3.14159265358979L));
 	EXPECT_EQ(U"-3.14159265358979", Convert::To<std::u32string>(-3.14159265358979L));
+}
+
+TEST(ConvertFundamentals, LongDoubleMaxToString) {
+	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<long double>::lowest()).empty());
+	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<long double>::max()).empty());
 }

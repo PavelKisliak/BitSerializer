@@ -184,34 +184,19 @@ namespace BitSerializer::Convert::Detail
 		), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		constexpr auto bufSize = 32;
+		char buf[32];
+		const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
+		if (rc.ec != std::errc())
+		{
+			throw std::runtime_error("Internal error, insufficient buffer size");
+		}
 		if constexpr (std::is_same_v<char, TSym>)
 		{
-			const auto origSize = out.size();
-			out.resize(origSize + bufSize);
-			const std::to_chars_result rc = std::to_chars(out.data() + origSize, out.data() + out.size(), in);
-			if (rc.ec == std::errc())
-			{
-				out.resize(rc.ptr - out.data());
-			}
-			else
-			{
-				out.resize(origSize);
-				throw std::runtime_error("Unknown error");
-			}
+			out.append(buf, rc.ptr);
 		}
 		else
 		{
-			char buf[bufSize];
-			const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
-			if (rc.ec == std::errc())
-			{
-				Utf8::Decode(buf, rc.ptr, out);
-			}
-			else
-			{
-				throw std::runtime_error("Unknown error");
-			}
+			Utf8::Decode(buf, rc.ptr, out);
 		}
 	}
 

@@ -20,7 +20,7 @@ The library provides several public functions for convert types:
 - `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
 - `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported (not available in v0.65)
 
-Under the hood, integer types are converting via modern `std::from_chars()`, but any other via functions from older C++ (there is a delay in their implementation by GCC and CLANG compilers).
+Under the hood, integer and floating types are converting via modern `std::from_chars()` and `std::to_chars()`, except for old versions of GCC and CLANG compilers, which do not support floating types. In this case, will be used older (and significantly slower) functions from C++11.
 ```cpp
 #include "bitserializer/convert.h"
 

@@ -41,22 +41,19 @@ namespace BitSerializer::Convert
 		static_assert(isSame || isConvertible, "BitSerializer::Convert. Converting these types is not supported.");
 
 		// Convert to the same type
-		if constexpr (std::is_same_v<TOut, std::decay_t<TIn>>) {
+		if constexpr (isSame) {
 			return std::forward<TIn>(value);
 		}
-		else
+		else if constexpr (isConvertible)
 		{
 			TOut result;
-			if constexpr (isConvertible)
-			{
-				using namespace Detail;
-				if constexpr (is_convertible_to_string_view_v<TIn>) {
-					// String types like std::basic_string and c-strings must be converted to string_view
-					To(ToStringView(value), result);
-				}
-				else {
-					To(std::forward<TIn>(value), result);
-				}
+			using namespace Detail;
+			if constexpr (is_convertible_to_string_view_v<TIn>) {
+				// String types like std::basic_string and c-strings must be converted to string_view
+				To(ToStringView(value), result);
+			}
+			else {
+				To(std::forward<TIn>(value), result);
 			}
 			return result;
 		}

@@ -124,21 +124,23 @@ public:
 
 	static void BuildFixture(TestModelWithBasicTypes& fixture)
 	{
-		::BuildFixture(fixture.mTestBoolValue);
-		::BuildFixture(fixture.mTestCharValue);
-		::BuildFixture(fixture.mTestInt64Value);
-		::BuildFixture(fixture.mTestFloatValue);
-		::BuildFixture(fixture.mTestDoubleValue);
-		::BuildFixture(fixture.mTestString1);
-		::BuildFixture(fixture.mTestString2);
+		fixture.mTestBoolValue = true;
+		fixture.mTestCharValue = -100;
+		fixture.mTestInt64Value = 123456789;
+		fixture.mTestFloatValue = 3.141592f;
+		fixture.mTestDoubleValue = -3.141592654;
 		if constexpr (std::is_same_v<TKeyCharType, char>)
 		{
+			fixture.mTestString1 = "Test string 1";
+			fixture.mTestString2 = "Test string 2";
 			fixture.mTestUnicodeString = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
 			fixture.mStringWithQuotes = "Test \"<quoted>\" string";
 			fixture.mMultiLineString = "Test\nmulti\nline\nstring";
 		}
 		else
 		{
+			fixture.mTestString1 = L"Test string 1";
+			fixture.mTestString2 = L"Test string 2";
 			fixture.mTestUnicodeString = L"Съешь ещё этих мягких французских булок, да выпей чаю";
 			fixture.mStringWithQuotes = L"Test \"<quoted>\" string";
 			fixture.mMultiLineString = L"Test\nmulti\nline\nstring";

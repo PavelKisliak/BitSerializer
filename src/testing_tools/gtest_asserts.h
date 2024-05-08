@@ -81,7 +81,7 @@ void GTestExpectEq(const std::optional<TValue>& expected, const std::optional<TV
 template<typename TValue, size_t ArraySize>
 void GTestExpectEq(const TValue(&expected)[ArraySize], const TValue(&actual)[ArraySize])
 {
-	for (int i = 0; i < ArraySize; ++i)
+	for (size_t i = 0; i < ArraySize; ++i)
 	{
 		GTestExpectEq(expected[i], actual[i]);
 	}
@@ -91,7 +91,7 @@ template<typename TValue>
 void GTestExpectEq(const std::valarray<TValue>& expected, const std::valarray<TValue>& actual)
 {
 	ASSERT_EQ(expected.size(), actual.size());
-	for (int i = 0; i < actual.size(); ++i)
+	for (size_t i = 0; i < actual.size(); ++i)
 	{
 		GTestExpectEq(expected[i], actual[i]);
 	}

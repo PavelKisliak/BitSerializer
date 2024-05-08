@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (C) 2020-2022 by Pavel Kisliak                                      #
+# Copyright (C) 2020-2024 by Pavel Kisliak                                      #
 # This file is part of BitSerializer library, licensed under the MIT license.   #
 #################################################################################
 cmake_minimum_required(VERSION 3.10)
@@ -13,7 +13,7 @@ set(VCPKG_FEATURE_FLAGS "versions")
 
 project(bitserializer
   VERSION 0.65.0
-  DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV)"
+  DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV, MsgPack)"
   LANGUAGES CXX)
 
 include(GNUInstallDirs)
@@ -293,6 +293,6 @@ if(BUILD_CSV_ARCHIVE)
 endif()
 
 if(BUILD_MSGPACK_ARCHIVE)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/msgPack_archive.h
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/msgpack_archive.h
             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
 endif()

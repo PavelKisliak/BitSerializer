@@ -23,10 +23,13 @@
 namespace BitSerializer::Json::RapidJson {
 namespace Detail {
 
+template <typename TSym>
+using RapidJsonEncoding = typename rapidjson::UTF8<TSym>;
+
 /// <summary>
 /// The traits of JSON archive based on RapidJson
 /// </summary>
-template <class TEncoding>
+template <class TEncoding = RapidJsonEncoding<char>>
 struct RapidJsonArchiveTraits
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
@@ -470,7 +473,7 @@ protected:
 /// <summary>
 /// JSON root scope (can serialize one value, array or object without key)
 /// </summary>
-template <SerializeMode TMode, class TEncoding>
+template <SerializeMode TMode, class TEncoding = RapidJsonEncoding<char>>
 class RapidJsonRootScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 protected:
@@ -687,8 +690,8 @@ private:
 /// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
 /// </summary>
 using JsonArchive = TArchiveBase<
-	Detail::RapidJsonArchiveTraits<rapidjson::UTF8<>>,
-	Detail::RapidJsonRootScope<SerializeMode::Load, rapidjson::UTF8<>>,
-	Detail::RapidJsonRootScope<SerializeMode::Save, rapidjson::UTF8<>>>;
+	Detail::RapidJsonArchiveTraits<>,
+	Detail::RapidJsonRootScope<SerializeMode::Load>,
+	Detail::RapidJsonRootScope<SerializeMode::Save>>;
 
 }

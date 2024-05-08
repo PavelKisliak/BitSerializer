@@ -597,6 +597,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 							}
 							else
 							{
+								// For keep compatibility with old versions of RapidYaml library
 								*arg = ryml::emitrs<std::string>(mTree);
 							}
 						}

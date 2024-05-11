@@ -191,19 +191,23 @@ endif()
 if(BUILD_MSGPACK_ARCHIVE)
     set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
     add_library(${MSGPACK_ARCHIVE_NAME} STATIC
+       # Include source files directly from common-lib as it currently uses only by MsgPack archive
+       "src/common/binary_stream_reader.cpp"
        "src/msgpack/msgpack_archive.cpp"
        "src/msgpack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
-       "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp")
+       "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp"
+    )
     add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
+
+    target_include_directories(${MSGPACK_ARCHIVE_NAME} PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
     target_link_libraries(${MSGPACK_ARCHIVE_NAME}
         INTERFACE
             ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
-        PRIVATE
-            common
     )
 
-    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME} common)
+    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
 endif()
 
 #################################################################################

@@ -7,6 +7,9 @@
 
 namespace BitSerializer::Convert::Detail
 {
+	/// <summary>
+	/// Checks whether the type can be converted to std::basic_string_view.
+	/// </summary>
 	template <typename T>
 	struct is_convertible_to_string_view
 	{
@@ -26,7 +29,7 @@ namespace BitSerializer::Convert::Detail
 	constexpr bool is_convertible_to_string_view_v = is_convertible_to_string_view<T>::value;
 
 	/// <summary>
-	/// Checks if conversion is supported.
+	/// Checks if the conversion is supported.
 	/// </summary>
 	template <typename TSource, typename TTarget>
 	struct is_convert_supported

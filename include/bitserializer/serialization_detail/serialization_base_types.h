@@ -263,9 +263,10 @@ namespace BitSerializer
 	{
 		if constexpr (TArchive::IsLoading())
 		{
-			std::string str;
-			if (Serialize(archive, std::forward<TKey>(key), str)) {
-				return Detail::ConvertByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+			std::string_view stringView;
+			if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
+			{
+				return Detail::ConvertByPolicy(stringView, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			return false;
 		}
@@ -282,9 +283,10 @@ namespace BitSerializer
 	{
 		if constexpr (TArchive::IsLoading())
 		{
-			std::string str;
-			if (Serialize(archive, str)) {
-				return Detail::ConvertByPolicy(str, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+			std::string_view stringView;
+			if (Detail::SerializeString(archive, stringView))
+			{
+				return Detail::ConvertByPolicy(stringView, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
 			}
 			return false;
 		}

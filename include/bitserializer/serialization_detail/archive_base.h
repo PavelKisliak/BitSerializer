@@ -111,13 +111,13 @@ namespace Detail
 	/// Converts types according to policy.
 	/// </summary>
 	template <typename TSource, typename TTarget>
-	bool ConvertByPolicy(const TSource& sourceValue, TTarget& targetValue, MismatchedTypesPolicy mismatchedTypesPolicy, OverflowNumberPolicy overflowNumberPolicy)
+	bool ConvertByPolicy(TSource&& sourceValue, TTarget& targetValue, MismatchedTypesPolicy mismatchedTypesPolicy, OverflowNumberPolicy overflowNumberPolicy)
 	{
 		try
 		{
 			if constexpr (Convert::IsConvertible<TSource, TTarget>())
 			{
-				targetValue = Convert::To<TTarget>(sourceValue);
+				targetValue = Convert::To<TTarget>(std::forward<TSource>(sourceValue));
 				return true;
 			}
 			else

@@ -272,9 +272,12 @@ namespace BitSerializer
 		}
 		else
 		{
-			// May throw exception when enum is not registered or has invalid value
-			auto str = Convert::ToString(value);
-			return Serialize(archive, std::forward<TKey>(key), str);
+			if (auto metadata = Convert::Detail::EnumRegistry<TValue>::GetEnumMetadata(value))
+			{
+				std::string_view valueName(metadata->Name);
+				return Detail::SerializeString(archive, std::forward<TKey>(key), valueName);
+			}
+			throw std::invalid_argument("Enum with passed value is not registered");
 		}
 	}
 
@@ -292,9 +295,12 @@ namespace BitSerializer
 		}
 		else
 		{
-			// May throw exception when enum is not registered or has invalid value
-			auto str = Convert::ToString(value);
-			return Serialize(archive, str);
+			if (auto metadata = Convert::Detail::EnumRegistry<TValue>::GetEnumMetadata(value))
+			{
+				std::string_view valueName(metadata->Name);
+				return Detail::SerializeString(archive, valueName);
+			}
+			throw std::invalid_argument("Enum with passed value is not registered");
 		}
 	}
 

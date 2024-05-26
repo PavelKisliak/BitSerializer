@@ -6,7 +6,6 @@
 #include <string>
 #include <cctype>
 #include <cstring>
-#include <algorithm>
 #include <stdexcept>
 
 
@@ -31,7 +30,7 @@ template <typename TSym> \
 std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, enum2Type value) \
 { \
 	std::basic_string<TSym, std::char_traits<TSym>> str; \
-	BitSerializer::Convert::Detail::EnumRegistry<enum2Type>::ToString(value, str); \
+	BitSerializer::Convert::Detail::To(value, str); \
 	return stream << str; \
 } \
 template <class TSym, class TTraits = std::char_traits<TSym>> \
@@ -40,7 +39,7 @@ std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>&
 	TSym sym; std::basic_string<TSym, TTraits> str; \
 	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = stream.get()) { \
 		str.push_back(sym); } \
-	BitSerializer::Convert::Detail::EnumRegistry<enum2Type>::FromString(std::basic_string_view<TSym>(str), value); \
+	BitSerializer::Convert::Detail::To(std::basic_string_view<TSym>(str), value); \
 	return stream; \
 } \
 
@@ -68,7 +67,7 @@ namespace BitSerializer::Convert::Detail
 		template <size_t Size>
 		static bool Register(const EnumMetadata<TEnum>(&descriptors)[Size])
 		{
-			// Check is that type was already registered
+			// Check that this type has not yet been registered
 			if (mBeginIt != nullptr) {
 				return false;
 			}
@@ -80,46 +79,51 @@ namespace BitSerializer::Convert::Detail
 			return true;
 		}
 
-		static const EnumMetadata<TEnum>& GetEnumMetadata(TEnum val)
+		static bool IsRegistered() noexcept
 		{
-			const auto it = std::find_if(mBeginIt, mEndIt, [val](const EnumMetadata<TEnum>& metadata) {
-				return metadata.Value == val;
-			});
-			if (it == cend()) {
-				throw std::invalid_argument("Enum with passed value is not registered");
+			return mBeginIt != mEndIt;
+		}
+
+		static const EnumMetadata<TEnum>* GetEnumMetadata(TEnum val) noexcept
+		{
+			for (auto it = mBeginIt; it != mEndIt; ++it)
+			{
+				if (it->Value == val)
+				{
+					return it;
+				}
 			}
-			return *it;
+			return nullptr;
 		}
 
 		template <typename TSym>
-		static const EnumMetadata<TEnum>& GetEnumMetadata(std::basic_string_view<TSym> name)
+		static const EnumMetadata<TEnum>* GetEnumMetadata(std::basic_string_view<TSym> name)
 		{
-			const auto it = std::find_if(mBeginIt, mEndIt, [name](const auto& metadata) {
-				return std::equal(name.cbegin(), name.cend(), metadata.Name.cbegin(), metadata.Name.cend(), [](const TSym lhs, const char rhs) {
-					return std::tolower(static_cast<int>(lhs)) == std::tolower(rhs);
-				});
-			});
-			if (it == cend()) {
-				throw std::invalid_argument("Enum with passed name is not registered");
+			const auto nameSize = name.size();
+			for (auto it = mBeginIt; it != mEndIt; ++it)
+			{
+				if (it->Name.size() == nameSize)
+				{
+					bool isMatched = true;
+					for (auto i = 0; i < nameSize; ++i)
+					{
+						if (std::tolower(static_cast<int>(it->Name[i])) != std::tolower(name[i]))
+						{
+							isMatched = false;
+							break;
+						}
+					}
+					if (isMatched)
+					{
+						return it;
+					}
+				}
 			}
-			return *it;
-		}
-
-		template <typename TSym, typename TAllocator>
-		static void ToString(TEnum val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
-		{
-			const auto& metadata = GetEnumMetadata(val);
-			ret_Str.append(metadata.Name.cbegin(), metadata.Name.cend());
-		}
-
-		template <typename TSym>
-		static void FromString(std::basic_string_view<TSym> str, TEnum& ret_Val)
-		{
-			ret_Val = GetEnumMetadata(str).Value;
+			return nullptr;
 		}
 
 		[[nodiscard]] static size_t size() noexcept {
-			return cend() - cbegin();
+			return mEndIt - mBeginIt;
 		}
 
 		[[nodiscard]] static const EnumMetadata<TEnum>* cbegin() noexcept {
@@ -134,4 +138,34 @@ namespace BitSerializer::Convert::Detail
 		static inline EnumMetadata<TEnum>* mBeginIt = nullptr;
 		static inline EnumMetadata<TEnum>* mEndIt = nullptr;
 	};
+
+	//------------------------------------------------------------------------------
+
+	/// <summary>
+	/// Converts any UTF string to enum types.
+	/// </summary>
+	template <typename T, typename TSym, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	void To(std::basic_string_view<TSym> in, T& out)
+	{
+		if (auto metadata = EnumRegistry<T>::GetEnumMetadata(in))
+		{
+			out = metadata->Value;
+			return;
+		}
+		throw std::invalid_argument("Enum with passed name is not registered");
+	}
+
+	/// <summary>
+	/// Converts enum types to any UTF string
+	/// </summary>
+	template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	void To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
+	{
+		if (auto metadata = EnumRegistry<T>::GetEnumMetadata(val))
+		{
+			ret_Str.append(metadata->Name.cbegin(), metadata->Name.cend());
+			return;
+		}
+		throw std::invalid_argument("Enum with passed value is not registered");
+	}
 }

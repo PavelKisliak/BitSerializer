@@ -5,7 +5,6 @@
 #pragma once
 #include "convert_utf.h"
 #include "object_traits.h"
-#include "convert_enum.h"
 
 namespace BitSerializer::Convert::Detail
 {
@@ -39,24 +38,6 @@ namespace BitSerializer::Convert::Detail
 			out.reserve(out.size() + in.size());
 			Utf16Le::Encode(in.cbegin(), in.cend(), out);
 		}
-	}
-
-	//------------------------------------------------------------------------------
-
-	/// <summary>
-	/// Converts any UTF string to enum types.
-	/// </summary>
-	template <typename T, typename TSym, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	void To(std::basic_string_view<TSym> in, T& out) {
-		EnumRegistry<T>::FromString(in, out);
-	}
-
-	/// <summary>
-	/// Converts enum types to any UTF string
-	/// </summary>
-	template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	void To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str) {
-		EnumRegistry<T>::ToString(val, ret_Str);
 	}
 
 	//-----------------------------------------------------------------------------

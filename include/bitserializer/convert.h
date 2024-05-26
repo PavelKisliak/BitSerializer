@@ -7,6 +7,7 @@
 #include "bitserializer/config.h"
 #include "conversion_detail/convert_fundamental.h"
 #include "conversion_detail/convert_detail.h"
+#include "conversion_detail/convert_enum.h"
 #if BITSERIALIZER_HAS_FILESYSTEM
 #include "conversion_detail/convert_filesystem.h"
 #endif

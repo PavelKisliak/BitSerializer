@@ -3,8 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <string>
-#include <optional>
 #include "object_traits.h"
 #include "bitserializer/convert.h"
 

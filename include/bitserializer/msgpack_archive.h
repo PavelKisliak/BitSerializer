@@ -5,9 +5,7 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include <string>
 #include <type_traits>
-#include <variant>
 #include <functional>
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"

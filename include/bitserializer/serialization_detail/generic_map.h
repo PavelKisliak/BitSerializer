@@ -3,8 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <algorithm>
-#include <type_traits>
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 

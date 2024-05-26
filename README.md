@@ -820,6 +820,7 @@ First, let's list what are considered as errors and will throw exception:
  - Syntax errors in the input source (e.g. JSON)
  - When one or more user's validation rules were not passed
  - When a type from the archive (source format, like JSON) does not match to the target value (can be configured via `MismatchedTypesPolicy`)
+ - When an enum type is not registered or its value is invalid
  - When size of target type is not enough for loading value (can be configured via `OverflowNumberPolicy`)
  - When target array with fixed size does not match the number of loading items
  - Invalid configuration in the `SerializationOptions`

@@ -23,7 +23,8 @@ namespace BitSerializer
 		OutOfRange,
 		Overflow,
 		MismatchedTypes,
-		FailedValidation
+		FailedValidation,
+		UnregisteredEnum
 	};
 
 	REGISTER_ENUM(SerializationErrorCode, {
@@ -34,7 +35,8 @@ namespace BitSerializer
 		{ SerializationErrorCode::OutOfRange, "Out of range" },
 		{ SerializationErrorCode::Overflow, "Overflow" },
 		{ SerializationErrorCode::MismatchedTypes, "Mismatched types" },
-		{ SerializationErrorCode::FailedValidation, "Failed validation" }
+		{ SerializationErrorCode::FailedValidation, "Failed validation" },
+		{ SerializationErrorCode::UnregisteredEnum, "Unregistered enum" }
 	})
 
 	using ValidationErrors = std::vector<std::string>;

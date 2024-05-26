@@ -14,6 +14,11 @@
 
 using namespace BitSerializer;
 
+enum class UnregisteredEnum
+{
+	One, Two, Three
+};
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -90,6 +95,41 @@ TEST(BaseTypes, SerializeEnumAsRootThrowMismatchedTypesExceptionWhenLoadInvalid)
 	EXPECT_FALSE(true);
 }
 
+TEST(BaseTypes, SerializeUnregisteredEnumAsRootShouldThrowException)
+{
+	try
+	{
+		UnregisteredEnum testValue = UnregisteredEnum::One;
+		ArchiveStub::preferred_output_format outputArchive;
+		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::UnregisteredEnum, ex.GetErrorCode());
+		EXPECT_STREQ("Unregistered enum", ex.what());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(BaseTypes, SerializeUnknownEnumAsRootShouldThrowException)
+{
+	try
+	{
+		auto testValue = static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max());
+		ArchiveStub::preferred_output_format outputArchive;
+		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::UnregisteredEnum, ex.GetErrorCode());
+		const std::string errStr = "Unregistered enum: Enum value (" + std::to_string(std::numeric_limits<int>::max()) + ") is invalid or not registered";
+		EXPECT_EQ(errStr, ex.what());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
 TEST(BaseTypes, SerializeEnumAsClassMember) {
 	TestClassWithSubType testEntity(TestEnum::Three);
 	TestSerializeType<ArchiveStub>(testEntity);
@@ -111,6 +151,41 @@ TEST(BaseTypes, SerializeEnumAsClassMemberThrowMismatchedTypesExceptionWhenLoadI
 	catch (const SerializationException& ex)
 	{
 		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(BaseTypes, SerializeUnregisteredEnumAsClassMemberShouldThrowException)
+{
+	try
+	{
+		TestClassWithSubType objWithInvalidEnum(UnregisteredEnum::One);
+		ArchiveStub::preferred_output_format outputArchive;
+		BitSerializer::SaveObject<ArchiveStub>(objWithInvalidEnum, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::UnregisteredEnum, ex.GetErrorCode());
+		EXPECT_STREQ("Unregistered enum", ex.what());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(BaseTypes, SerializeUnknownEnumAsClassMemberShouldThrowException)
+{
+	try
+	{
+		TestClassWithSubType objWithInvalidEnum(static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max()));
+		ArchiveStub::preferred_output_format outputArchive;
+		BitSerializer::SaveObject<ArchiveStub>(objWithInvalidEnum, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::UnregisteredEnum, ex.GetErrorCode());
+		const std::string errStr = "Unregistered enum: Enum value (" + std::to_string(std::numeric_limits<int>::max()) + ") is invalid or not registered";
+		EXPECT_EQ(errStr, ex.what());
 		return;
 	}
 	EXPECT_FALSE(true);

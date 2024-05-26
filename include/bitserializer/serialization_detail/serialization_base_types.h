@@ -277,7 +277,12 @@ namespace BitSerializer
 				std::string_view valueName(metadata->Name);
 				return Detail::SerializeString(archive, std::forward<TKey>(key), valueName);
 			}
-			throw std::invalid_argument("Enum with passed value is not registered");
+			if (Convert::Detail::EnumRegistry<TValue>::IsRegistered())
+			{
+				throw SerializationException(SerializationErrorCode::UnregisteredEnum,
+					"Enum value (" + Convert::ToString(static_cast<std::underlying_type_t<TValue>>(value)) + ") is invalid or not registered");
+			}
+			throw SerializationException(SerializationErrorCode::UnregisteredEnum);
 		}
 	}
 
@@ -300,7 +305,12 @@ namespace BitSerializer
 				std::string_view valueName(metadata->Name);
 				return Detail::SerializeString(archive, valueName);
 			}
-			throw std::invalid_argument("Enum with passed value is not registered");
+			if (Convert::Detail::EnumRegistry<TValue>::IsRegistered())
+			{
+				throw SerializationException(SerializationErrorCode::UnregisteredEnum,
+					"Enum value (" + Convert::ToString(static_cast<std::underlying_type_t<TValue>>(value)) + ") is invalid or not registered");
+			}
+			throw SerializationException(SerializationErrorCode::UnregisteredEnum);
 		}
 	}
 

@@ -2,26 +2,18 @@
 
 ___
 
-### Design goals:
-- Make a thin wrapper around existing libraries for have one common serialization interface.
-- Make it easy to serialize for all built-in C++ and STD types.
-- Follow ISO data exchange standards for easy integration with other systems.
-- Good test coverage for keep stability of project.
-- Cross-platform (Windows, Linux, MacOS).
-
 ### Main features:
-- One common interface for different kind of formats (currently supported JSON, XML, YAML, CSV and MsgPack\*).
+- One common interface for various types of text and binary formats.
 - Modular architecture, no need to install all archives.
-- Simple syntax which is similar to serialization in the Boost library.
+- Functional serialization style similar to the Boost library.
 - Customizable validation of deserialized values with producing an output list of errors.
+- Configurable set of policies to control overflow and type mismatch errors.
 - Support loading named fields in any order with conditions (for version control).
-- Support serialization for enum types (via declaring names map).
 - Support serialization for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
-- Support serialization to streams and files.
+- Support serialization for enum types (via declaring names map).
+- Support serialization to memory, streams and files.
 - Encoding to various UTF formats.
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
-
-(\*) MsgPack is not released yet.
 
 #### Supported formats:
 | BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
@@ -33,10 +25,15 @@ ___
 | [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
+(\*) MsgPack is not released yet.
+
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
-  - Dependencies which are required by selected type of archive.
+  - Supported platforms: Windows, Linux, MacOS.
+  - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
+(\*) Big endian platforms are not supported.
+(\*) Work without exceptions is not supported.
 (\*) Minimal requirement for RapidYaml archive is VS2019.
 
 ### Performance
@@ -93,7 +90,7 @@ ___
 
 
 ### How to install
-BitSerializer requires the installation of third-party libraries, this will depend on which archives you need.
+Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#details-of-archives) for specific archives.
 #### VCPKG (MsgPack is not published yet)

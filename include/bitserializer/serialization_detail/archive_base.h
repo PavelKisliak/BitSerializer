@@ -133,8 +133,20 @@ namespace Detail
 		{
 			if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 			{
-				throw SerializationException(SerializationErrorCode::MismatchedTypes,
-					"The target field type does not match the value being loaded");
+				if constexpr (std::is_enum_v<TSource>)
+				{
+					if (Convert::Detail::EnumRegistry<TSource>::IsRegistered())
+					{
+						throw SerializationException(SerializationErrorCode::UnregisteredEnum,
+							"Enum value (" + Convert::ToString(static_cast<std::underlying_type_t<TSource>>(sourceValue)) + ") is invalid or not registered");
+					}
+					throw SerializationException(SerializationErrorCode::UnregisteredEnum);
+				}
+				else
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						"The target field type does not match the value being loaded");
+				}
 			}
 		}
 		catch (const std::out_of_range&)

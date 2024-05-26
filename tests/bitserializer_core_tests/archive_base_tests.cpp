@@ -12,6 +12,11 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 class NonConvertibleFixture { };
 
+enum class UnregisteredEnum
+{
+	One, Two, Three
+};
+
 TEST(ConvertByPolicyTest, ConvertFundamentalTypes)
 {
 	uint8_t targetUint8 = 0;
@@ -95,4 +100,11 @@ TEST(ConvertByPolicyTest, SkipMismatchedTypeWhenPolicyIsSkip)
 
 	EXPECT_FALSE(Detail::ConvertByPolicy("InvalidNumber", targetInteger, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(0, targetInteger);
+}
+
+TEST(ConvertByPolicyTest, ThrowExceptionWhenUnregisteredEnum)
+{
+	UnregisteredEnum targetEnum = UnregisteredEnum::One;
+	EXPECT_THROW(Detail::ConvertByPolicy("Two", targetEnum, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(UnregisteredEnum::One, targetEnum);
 }

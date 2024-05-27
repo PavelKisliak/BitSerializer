@@ -9,8 +9,8 @@ ___
 - Customizable validation of deserialized values with producing an output list of errors.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Support loading named fields in any order with conditions (for version control).
-- Support serialization for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
-- Support serialization for enum types (via declaring names map).
+- Serialization support for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
+- Support for serializing enum types as an integer or string (via declaring names map).
 - Support serialization to memory, streams and files.
 - Encoding to various UTF formats.
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
@@ -350,7 +350,12 @@ int main()
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
 ### Serializing enum types
-To be able to serialize enum types, you must register a map with string equivalents in the your HEADER file.
+Enum types can be serialized as integers or as strings, as you prefer.
+By default, enum types are serialized as strings, to serialize them as integers, use the `EnumAsBin` wrapper:
+```cpp
+archive << MakeKeyValue("EnumValue", EnumAsBin(enumValue));
+```
+To be able to serialize `enum` types as string, you need to register a map with string equivalents in the your HEADER file.
 ```cpp
 // file HttpMethods.h
 #pragma once

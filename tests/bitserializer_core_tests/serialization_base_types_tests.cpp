@@ -192,6 +192,51 @@ TEST(BaseTypes, SerializeUnknownEnumAsClassMemberShouldThrowException)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for enum as integers
+//-----------------------------------------------------------------------------
+struct TestEnumAsBin
+{
+	TestEnumAsBin() = default;
+	TestEnumAsBin(TestEnum testEnumValue) : TestEnumValue(testEnumValue) { }
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << KeyValue("TestEnum", EnumAsBin(TestEnumValue));
+	}
+
+	TestEnum TestEnumValue = TestEnum::One;
+};
+
+TEST(BaseTypes, SerializeEnumBinAsRoot)
+{
+	// Arrange
+	TestEnum expected = TestEnum::Three, actual = TestEnum::One;
+	ArchiveStub::preferred_output_format testArchive;
+
+	// Act
+	BitSerializer::SaveObject<ArchiveStub>(EnumAsBin(expected), testArchive);
+	BitSerializer::LoadObject<ArchiveStub>(EnumAsBin(actual), testArchive);
+
+	// Assert
+	EXPECT_EQ(expected, actual);
+}
+
+TEST(BaseTypes, SerializeEnumTypeAsClassMember)
+{
+	// Arrange
+	TestEnumAsBin expected(TestEnum::Four), actual;
+	ArchiveStub::preferred_output_format testArchive;
+
+	// Act
+	BitSerializer::SaveObject<ArchiveStub>(expected, testArchive);
+	BitSerializer::LoadObject<ArchiveStub>(actual, testArchive);
+
+	// Assert
+	EXPECT_EQ(expected.TestEnumValue, actual.TestEnumValue);
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for c-arrays (at root scope of archive)
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, SerializeArrayOfBooleans) {

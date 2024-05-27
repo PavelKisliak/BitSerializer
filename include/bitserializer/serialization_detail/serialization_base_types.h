@@ -314,6 +314,33 @@ namespace BitSerializer
 		}
 	}
 
+	/// <summary>
+	/// Allows to serialize enum types as integers.
+	///	Usage example: archive << MakeKeyValue("EnumValue", EnumAsBin(enumValue));
+	/// </summary>
+	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	struct EnumAsBin
+	{
+		using value_type = std::underlying_type_t<T>;
+
+		explicit EnumAsBin(T& value) noexcept : Value(value) {}
+		value_type& GetUnderlyingValue() noexcept { return reinterpret_cast<value_type&>(Value); }
+
+		T& Value;
+	};
+
+	template <class TArchive, typename TKey, class TValue>
+	bool Serialize(TArchive& archive, TKey&& key, EnumAsBin<TValue> value)
+	{
+		return Serialize(archive, std::forward<TKey>(key), value.GetUnderlyingValue());
+	}
+
+	template <class TArchive, class TValue>
+	bool Serialize(TArchive& archive, EnumAsBin<TValue> value)
+	{
+		return Serialize(archive, value.GetUnderlyingValue());
+	}
+
 	//------------------------------------------------------------------------------
 	// Serialize classes
 	//------------------------------------------------------------------------------

@@ -54,31 +54,31 @@ When name for root node was not provided, BitSerializer uses default name "**roo
 class CPoint
 {
 public:
-	CPoint(const int x, const int y) : X(x), Y(y) { }
+    CPoint(const int x, const int y) : X(x), Y(y) { }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << KeyValue("x", X);
-		archive << KeyValue("y", Y);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("x", X);
+        archive << KeyValue("y", Y);
+    }
 
-	int X, Y;
+    int X, Y;
 };
 
 int main()
 {
-	CPoint point(10, 20);
+    CPoint point(10, 20);
 
-	// Serialize object with defined name of root node
-	auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", point));
-	std::cout << "XML with defined root name: " << result << std::endl;
+    // Serialize object with defined name of root node
+    auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", point));
+    std::cout << "XML with defined root name: " << result << std::endl;
 
-	// Serialize object without defined name of root node
-	result = BitSerializer::SaveObject<XmlArchive>(point);
-	std::cout << "XML without defined root name: " << result << std::endl;
+    // Serialize object without defined name of root node
+    result = BitSerializer::SaveObject<XmlArchive>(point);
+    std::cout << "XML without defined root name: " << result << std::endl;
 
-	return 0;
+    return 0;
 }
 ```
 This example outputs to the console:
@@ -103,37 +103,37 @@ using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 class CRectangle
 {
 public:
-	CRectangle() = default;
+    CRectangle() = default;
 
-	CRectangle(const int Width, const int Height)
-		: mType("Rectangle")
-		, mWidth(Width)
-		, mHeight(Height)
-	{ }
+    CRectangle(const int Width, const int Height)
+        : mType("Rectangle")
+        , mWidth(Width)
+        , mHeight(Height)
+    { }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << AttributeValue("Type", mType);
-		archive << AttributeValue("Width", mWidth);
-		archive << AttributeValue("Height", mHeight);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << AttributeValue("Type", mType);
+        archive << AttributeValue("Width", mWidth);
+        archive << AttributeValue("Height", mHeight);
+    }
 
-	std::string mType;
-	int mWidth = 0;
-	int mHeight = 0;
+    std::string mType;
+    int mWidth = 0;
+    int mHeight = 0;
 };
 
 int main()
 {
-	std::vector<CRectangle> Shapes = {
-		{ 5, 10 },
-		{ 20, 5 },
-		{ 50, 25 }
-	};
-	const auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Shapes", Shapes));
-	std::cout << result << std::endl;
-	return 0;
+    std::vector<CRectangle> Shapes = {
+        { 5, 10 },
+        { 20, 5 },
+        { 50, 25 }
+    };
+    const auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Shapes", Shapes));
+    std::cout << result << std::endl;
+    return 0;
 }
 ```
 [See full sample](../samples/serialize_xml_attributes/serialize_xml_attributes.cpp)
@@ -152,32 +152,32 @@ using namespace BitSerializer;
 class CPoint
 {
 public:
-	CPoint(const int x, const int y) : X(x), Y(y) { }
+    CPoint(const int x, const int y) : X(x), Y(y) { }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << AttributeValue("x", X);
-		archive << AttributeValue("y", Y);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << AttributeValue("x", X);
+        archive << AttributeValue("y", Y);
+    }
 
-	int X, Y;
+    int X, Y;
 };
 
 int main()
 {
-	std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
+    std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
 
-	SerializationOptions serializationOptions;
-	serializationOptions.formatOptions.enableFormat = true;
-	serializationOptions.formatOptions.paddingChar = ' ';
-	serializationOptions.formatOptions.paddingCharNum = 2;
+    SerializationOptions serializationOptions;
+    serializationOptions.formatOptions.enableFormat = true;
+    serializationOptions.formatOptions.paddingChar = ' ';
+    serializationOptions.formatOptions.paddingCharNum = 2;
 
-	std::string result;
-	BitSerializer::SaveObject<XmlArchive>(KeyValue("Points", points), result, serializationOptions);
-	std::cout << result << std::endl;
+    std::string result;
+    BitSerializer::SaveObject<XmlArchive>(KeyValue("Points", points), result, serializationOptions);
+    std::cout << result << std::endl;
 
-	return 0;
+    return 0;
 }
 ```
 This code outputs to the console:

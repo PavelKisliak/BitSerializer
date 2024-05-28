@@ -76,20 +76,20 @@ using YamlArchive = BitSerializer::Yaml::RapidYaml::YamlArchive;
 class СDevice
 {
 public:
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << KeyValue("IP", mIp);
-		archive << KeyValue("Owner", mOwner);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("IP", mIp);
+        archive << KeyValue("Owner", mOwner);
+    }
 
-	std::string mIp;
-	std::string mOwner;
+    std::string mIp;
+    std::string mOwner;
 };
 
 int main()
 {
-	const char* srcStr = R"(
+    const char* srcStr = R"(
 Tablet:
    IP: 192.168.0.1
    Owner: Artsiom
@@ -101,25 +101,25 @@ Laptop:
    Owner: Alex
 )";
 
-	// Loading from YAML
-	std::map<std::string, СDevice> devices;
-	BitSerializer::LoadObject<YamlArchive>(devices, srcStr);
+    // Loading from YAML
+    std::map<std::string, СDevice> devices;
+    BitSerializer::LoadObject<YamlArchive>(devices, srcStr);
 
-	std::cout << "Loaded devices list from YAML: " << std::endl;
-	for (const auto& device : devices)
-	{
-		std::cout << "Type: " << device.first
-			<< "\tIP: " << device.second.mIp
-			<< "\tOwner: " << device.second.mOwner
-			<< std::endl;
-	}
+    std::cout << "Loaded devices list from YAML: " << std::endl;
+    for (const auto& device : devices)
+    {
+        std::cout << "Type: " << device.first
+            << "\tIP: " << device.second.mIp
+            << "\tOwner: " << device.second.mOwner
+            << std::endl;
+    }
 
-	// Save back to YAML
-	std::string outputStr;
-	BitSerializer::SaveObject<YamlArchive>(devices, outputStr);
-	std::cout << std::endl << "Saved result in YAML:" << std::endl << outputStr << std::endl;
+    // Save back to YAML
+    std::string outputStr;
+    BitSerializer::SaveObject<YamlArchive>(devices, outputStr);
+    std::cout << std::endl << "Saved result in YAML:" << std::endl << outputStr << std::endl;
 
-	return 0;
+    return 0;
 }
 ```
 [See full sample](../samples/serialize_map_to_yaml/serialize_map_to_yaml.cpp)

@@ -65,32 +65,32 @@ using namespace BitSerializer::Json::RapidJson;
 class CPoint
 {
 public:
-	CPoint(const int x, const int y) : X(x), Y(y) { }
+    CPoint(const int x, const int y) : X(x), Y(y) { }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << KeyValue("x", X);
-		archive << KeyValue("y", Y);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("x", X);
+        archive << KeyValue("y", Y);
+    }
 
-	int X, Y;
+    int X, Y;
 };
 
 int main()
 {
-	std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
+    std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
 
-	SerializationOptions serializationOptions;
-	serializationOptions.formatOptions.enableFormat = true;
-	serializationOptions.formatOptions.paddingChar = ' ';
-	serializationOptions.formatOptions.paddingCharNum = 2;
+    SerializationOptions serializationOptions;
+    serializationOptions.formatOptions.enableFormat = true;
+    serializationOptions.formatOptions.paddingChar = ' ';
+    serializationOptions.formatOptions.paddingCharNum = 2;
 
-	std::string result;
-	BitSerializer::SaveObject<JsonArchive>(points, result, serializationOptions);
-	std::cout << result << std::endl;
+    std::string result;
+    BitSerializer::SaveObject<JsonArchive>(points, result, serializationOptions);
+    std::cout << result << std::endl;
 
-	return 0;
+    return 0;
 }
 ```
 This code outputs to the console:

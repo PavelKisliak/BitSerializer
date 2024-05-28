@@ -16,7 +16,7 @@ ___
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
 
 #### Supported formats:
-| BitSerializer sub-module | Format | Encoding | Pretty format | Based on |
+| Component | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
 | [cpprestjson-archive](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ✖ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
 | [rapidjson-archive](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
@@ -25,15 +25,15 @@ ___
 | [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
-(\*) MsgPack is not released yet.
+(\*) **MsgPack** is not released yet.
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
   - Supported platforms: Windows, Linux, MacOS.
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Big endian platforms are not supported.
-(\*) Work without exceptions is not supported.
+(\*) Big endian platforms are not supported.\
+(\*) Work without exceptions is not supported.\
 (\*) Minimal requirement for RapidYaml archive is VS2019.
 
 ### Performance
@@ -137,7 +137,7 @@ $ cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBU
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
-You will also need to install dev-packages of base libraries, currently available only `rapidjson-dev` and `libpugixml-dev`, the rest need to be built manually (CSV archive does not require any dependencies).
+You will also need to install dev-packages of base libraries, currently available only `rapidjson-dev` and `libpugixml-dev`, the rest need to be built manually (CSV and MsgPack archives do not require any dependencies).
 
 #### How to use with CMake
 ```cmake
@@ -165,16 +165,16 @@ using JsonArchive = BitSerializer::Json::CppRest::JsonArchive;
 
 int main()
 {
-	std::string expected = "Hello world!";
-	auto json = BitSerializer::SaveObject<JsonArchive>(expected);
+    std::string expected = "Hello world!";
+    auto json = BitSerializer::SaveObject<JsonArchive>(expected);
 
-	std::string result;
-	BitSerializer::LoadObject<JsonArchive>(result, json);
+    std::string result;
+    BitSerializer::LoadObject<JsonArchive>(result, json);
 
-	assert(result == expected);
-	std::cout << result << std::endl;
+    assert(result == expected);
+    std::cout << result << std::endl;
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 ```
 [See full sample](samples/hello_world/hello_world.cpp)
@@ -186,23 +186,23 @@ Besides multiple input and output UTF-formats that BitSerializer supports, it al
 class TestUnicodeClass
 {
 public:
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		// Serialize UTF-8 string with key in UTF-16
-		archive << KeyValue(u"Utf16Key", mUtf8StringValue);
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        // Serialize UTF-8 string with key in UTF-16
+        archive << KeyValue(u"Utf16Key", mUtf8StringValue);
 
-		// Serialize UTF-16 string with key in UTF-32
-		archive << KeyValue(U"Utf32Key", mUtf16StringValue);
+        // Serialize UTF-16 string with key in UTF-32
+        archive << KeyValue(U"Utf32Key", mUtf16StringValue);
 
-		// Serialize UTF-32 string with key in UTF-8
-		archive << KeyValue(u8"Utf8Key", mUtf32StringValue);
-	};
+        // Serialize UTF-32 string with key in UTF-8
+        archive << KeyValue(u8"Utf8Key", mUtf32StringValue);
+    };
 
 private:
-	std::string mUtf8StringValue;
-	std::u16string mUtf16StringValue;
-	std::u32string mUtf32StringValue;
+    std::string mUtf8StringValue;
+    std::u16string mUtf16StringValue;
+    std::u32string mUtf32StringValue;
 };
 ```
 
@@ -222,50 +222,50 @@ using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 class TestSimpleClass
 {
 public:
-	TestSimpleClass()
-		: testBool(true)
-		, testString(L"Hello world!")
-	{
-		for (size_t i = 0; i < 3; i++)
-		{
-			for (size_t k = 0; k < 2; k++) {
-				testTwoDimensionArray[i][k] = i * 10 + k;
-			}
-		}
-	}
+    TestSimpleClass()
+        : testBool(true)
+        , testString(L"Hello world!")
+    {
+        for (size_t i = 0; i < 3; i++)
+        {
+            for (size_t k = 0; k < 2; k++) {
+                testTwoDimensionArray[i][k] = i * 10 + k;
+            }
+        }
+    }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		using namespace BitSerializer;
-		archive << KeyValue("TestBool", testBool);
-		archive << KeyValue("TestString", testString);
-		archive << KeyValue("TestTwoDimensionArray", testTwoDimensionArray);
-	};
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        using namespace BitSerializer;
+        archive << KeyValue("TestBool", testBool);
+        archive << KeyValue("TestString", testString);
+        archive << KeyValue("TestTwoDimensionArray", testTwoDimensionArray);
+    };
 
 private:
-	bool testBool;
-	std::wstring testString;
-	size_t testTwoDimensionArray[3][2];
+    bool testBool;
+    std::wstring testString;
+    size_t testTwoDimensionArray[3][2];
 };
 
 int main()
 {
-	auto simpleObj = TestSimpleClass();
-	auto result = BitSerializer::SaveObject<JsonArchive>(simpleObj);
+    auto simpleObj = TestSimpleClass();
+    auto result = BitSerializer::SaveObject<JsonArchive>(simpleObj);
     return 0;
 }
 ```
 Returns result
 ```json
 {
-	"TestBool": true,
-	"TestString": "Hello world!",
-	"TestTwoDimensionArray": [
-		[0, 1],
-		[10, 11],
-		[20, 21]
-	]
+    "TestBool": true,
+    "TestString": "Hello world!",
+    "TestTwoDimensionArray": [
+        [0, 1],
+        [10, 11],
+        [20, 21]
+    ]
 }
 ```
 For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. Usually the type of key is UTF-8 string, but you are free to use any other convertible type (`std::u16string`, `std::u32string` or any numeric types). For example, MsgPack archive has native support for numbers as keys, they will be converted to string when use with another archive. For get maximum performance, better to avoid any conversions.
@@ -276,8 +276,8 @@ To serialize the base class, use the helper method `BaseObject()`, like as in th
 template <class TArchive>
 void Serialize(TArchive& archive)
 {
-	archive << BaseObject<MyBaseClass>(*this);
-	archive << KeyValue("TestInt", TestInt);
+    archive << BaseObject<MyBaseClass>(*this);
+    archive << KeyValue("TestInt", TestInt);
 };
 ```
 One limitation is that the base class must have an internal `Serialize()` method, unfortunately there is no way to use an external `SerialzeObject()`.
@@ -307,54 +307,55 @@ using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 class TestThirdPartyClass
 {
 public:
-	TestThirdPartyClass(int x, int y)
-		: x(x), y(y)
-	{ }
+    TestThirdPartyClass(int x, int y)
+        : x(x), y(y)
+    { }
 
-	int x;
+    int x;
 
-	int GetY() const noexcept { return y; }
-	void SetY(int y) noexcept { this->y = y; }
+    int GetY() const noexcept { return y; }
+    void SetY(int y) noexcept { this->y = y; }
 
 private:
-	int y;
+    int y;
 };
 
 template<typename TArchive>
 void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
-	// Serialize public property
-	archive << KeyValue("x", testThirdPartyClass.x);
+    // Serialize public property
+    archive << KeyValue("x", testThirdPartyClass.x);
 
-	// Serialize private property
-	if constexpr (TArchive::IsLoading()) {
-		int y = 0;
-		archive << KeyValue("y", y);
-		testThirdPartyClass.SetY(y);
-	}
-	else {
-		const int y = testThirdPartyClass.GetY();
-		archive << KeyValue("y", y);
-	}
+    // Serialize private property
+    if constexpr (TArchive::IsLoading()) {
+        int y = 0;
+        archive << KeyValue("y", y);
+        testThirdPartyClass.SetY(y);
+    }
+    else {
+        const int y = testThirdPartyClass.GetY();
+        archive << KeyValue("y", y);
+    }
 }
 
 
 int main()
 {
-	auto testObj = TestThirdPartyClass(100, 200);
-	const auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
-	std::cout << result << std::endl;
-	return 0;
+    auto testObj = TestThirdPartyClass(100, 200);
+    const auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
+    std::cout << result << std::endl;
+    return 0;
 }
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
 ### Serializing enum types
 Enum types can be serialized as integers or as strings, as you prefer.
-By default, enum types are serialized as strings, to serialize them as integers, use the `EnumAsBin` wrapper:
+By default, they serializing as strings, to serialize as integers, use the `EnumAsBin` wrapper:
 ```cpp
 archive << MakeKeyValue("EnumValue", EnumAsBin(enumValue));
 ```
+(`EnumAsBin` wrapper is not available in the previously released version 0.65)\
 To be able to serialize `enum` types as string, you need to register a map with string equivalents in the your HEADER file.
 ```cpp
 // file HttpMethods.h
@@ -362,15 +363,15 @@ To be able to serialize `enum` types as string, you need to register a map with 
 #include "bitserializer\string_conversion.h"
 
 enum class HttpMethod {
-	Delete = 1,
-	Get = 2,
-	Head = 3
+    Delete = 1,
+    Get = 2,
+    Head = 3
 };
 
 REGISTER_ENUM(HttpMethod, {
-	{ HttpMethod::Delete,   "delete" },
-	{ HttpMethod::Get,       "get" },
-	{ HttpMethod::Head,     "head" }
+    { HttpMethod::Delete,   "delete" },
+    { HttpMethod::Get,       "get" },
+    { HttpMethod::Head,     "head" }
 })
 ```
 
@@ -380,30 +381,30 @@ One of the advantages of BitSerializer is the ability to serialize to multiple f
 class CPoint
 {
 public:
-	CPoint(int x, int y)
-		: x(x), y(y)
-	{ }
+    CPoint(int x, int y)
+        : x(x), y(y)
+    { }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << KeyValue("x", x);
-		archive << KeyValue("y", y);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("x", x);
+        archive << KeyValue("y", y);
+    }
 
-	int x, y;
+    int x, y;
 };
 
 int main()
 {
-	auto testObj = CPoint(100, 200);
+    auto testObj = CPoint(100, 200);
 
-	const auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testObj);
-	std::cout << "JSON: " << jsonResult << std::endl;
+    const auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testObj);
+    std::cout << "JSON: " << jsonResult << std::endl;
 
-	const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(testObj);
-	std::cout << "XML: " << xmlResult << std::endl;
-	return 0;
+    const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(testObj);
+    std::cout << "XML: " << xmlResult << std::endl;
+    return 0;
 }
 ```
 The output result of this code:
@@ -418,21 +419,21 @@ const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", t
 ```
 The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also allow to customize the serialization behavior for different formats:
 ```cpp
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		// Serialize as attributes when archive type is XML
-		if constexpr (TArchive::archive_type == ArchiveType::Xml)
-		{
-			archive << MakeAutoAttributeValue("x", x);
-			archive << MakeAutoAttributeValue("y", y);
-		}
-		else
-		{
-			archive << KeyValue("x", x);
-			archive << KeyValue("y", y);
-		}
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        // Serialize as attributes when archive type is XML
+        if constexpr (TArchive::archive_type == ArchiveType::Xml)
+        {
+            archive << MakeAutoAttributeValue("x", x);
+            archive << MakeAutoAttributeValue("y", y);
+        }
+        else
+        {
+            archive << KeyValue("x", x);
+            archive << KeyValue("y", y);
+        }
+    }
 ```
 With these changes, the result of this code will look like this:
 ```
@@ -472,29 +473,29 @@ Few words about serialization smart pointers. There is no any system footprints 
 BitSerializer does not add any system information when saving the map, for example serialization to JSON would look like this:
 ```cpp
 std::map<std::string, int> testMap = 
-	{ { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };
+    { { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };
 auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testMap);
 ```
 Returns result
 ```json
 {
-	"Five": 5,
-	"Four": 4,
-	"One": 1,
-	"Three": 3,
-	"Two": 2
+    "Five": 5,
+    "Four": 4,
+    "One": 1,
+    "Three": 3,
+    "Two": 2
 }
 ```
 
 Below is a more complex example, where loading a vector of maps from JSON.
 ```json
 [{
-	"One": 1,
-	"Three": 3,
-	"Two": 2
+    "One": 1,
+    "Three": 3,
+    "Two": 2
 }, {
-	"Five": 5,
-	"Four": 4
+    "Five": 5,
+    "Four": 4
 }]
 ```
 Code:
@@ -509,8 +510,8 @@ Out of the box, the library supports all the fundamental types (e.g. `bool`, `in
 ```cpp
 class YourCustomKey
 {
-	std::string ToString() const { }
-	void FromString(std::string_view str)
+    std::string ToString() const { }
+    void FromString(std::string_view str)
 }
 ```
 
@@ -680,85 +681,85 @@ using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 class CMyString
 {
 public:
-	CMyString() = default;
-	CMyString(const char* str) : mString(str) { }
+    CMyString() = default;
+    CMyString(const char* str) : mString(str) { }
 
-	bool operator<(const CMyString& rhs) const { return this->mString < rhs.mString; }
+    bool operator<(const CMyString& rhs) const { return this->mString < rhs.mString; }
 
-	const char* data() const noexcept { return mString.data(); }
-	size_t size() const noexcept { return mString.size(); }
+    const char* data() const noexcept { return mString.data(); }
+    size_t size() const noexcept { return mString.size(); }
 
-	// Required methods for conversion from/to std::string (can be implemented as external functions)
-	std::string ToString() const { return mString; }
-	void FromString(std::string_view str) { mString = str; }
+    // Required methods for conversion from/to std::string (can be implemented as external functions)
+    std::string ToString() const { return mString; }
+    void FromString(std::string_view str) { mString = str; }
 
 private:
-	std::string mString;
+    std::string mString;
 };
 
 // Serializes CMyString with key
 template <class TArchive, typename TKey>
 bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
 {
-	if constexpr (TArchive::IsLoading())
-	{
-		std::string_view stringView;
-		if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
-		{
-			value.FromString(stringView);
-			return true;
-		}
-	}
-	else
-	{
-		std::string_view stringView(value.data(), value.size());
-		return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
-	}
-	return false;
+    if constexpr (TArchive::IsLoading())
+    {
+        std::string_view stringView;
+        if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
+        {
+            value.FromString(stringView);
+            return true;
+        }
+    }
+    else
+    {
+        std::string_view stringView(value.data(), value.size());
+        return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
+    }
+    return false;
 }
 
 // Serializes CMyString without key
 template <class TArchive>
 bool Serialize(TArchive& archive, CMyString& value)
 {
-	if constexpr (TArchive::IsLoading())
-	{
-		std::string_view stringView;
-		if (Detail::SerializeString(archive, stringView))
-		{
-			value.FromString(stringView);
-			return true;
-		}
-	}
-	else
-	{
-		std::string_view stringView(value.data(), value.size());
-		return Detail::SerializeString(archive, stringView);
-	}
-	return false;
+    if constexpr (TArchive::IsLoading())
+    {
+        std::string_view stringView;
+        if (Detail::SerializeString(archive, stringView))
+        {
+            value.FromString(stringView);
+            return true;
+        }
+    }
+    else
+    {
+        std::string_view stringView(value.data(), value.size());
+        return Detail::SerializeString(archive, stringView);
+    }
+    return false;
 }
 
 int main()
 {
-	// Save list of custom strings to JSON
-	std::vector<CMyString> srcStrList = { "Red", "Green", "Blue" };
-	std::string jsonResult;
-	SerializationOptions serializationOptions;
-	serializationOptions.formatOptions.enableFormat = true;
-	BitSerializer::SaveObject<JsonArchive>(srcStrList, jsonResult, serializationOptions);
-	std::cout << "Saved JSON: " << jsonResult << std::endl;
+    // Save list of custom strings to JSON
+    std::vector<CMyString> srcStrList = { "Red", "Green", "Blue" };
+    std::string jsonResult;
+    SerializationOptions serializationOptions;
+    serializationOptions.formatOptions.enableFormat = true;
+    BitSerializer::SaveObject<JsonArchive>(srcStrList, jsonResult, serializationOptions);
+    std::cout << "Saved JSON: " << jsonResult << std::endl;
 
-	// Load JSON-object to std::map based on custom strings
-	std::map<CMyString, CMyString> mapResult;
-	const std::string srcJson = R"({ "Background": "Blue", "PenColor": "White", "PenSize": "3", "PenOpacity": "50" })";
-	BitSerializer::LoadObject<JsonArchive>(mapResult, srcJson);
-	std::cout << std::endl << "Loaded map: " << std::endl;
-	for (const auto& val : mapResult)
-	{
-		std::cout << "\t" << val.first.ToString() << ": " << val.second.ToString() << std::endl;
-	}
+    // Load JSON-object to std::map based on custom strings
+    std::map<CMyString, CMyString> mapResult;
+    const std::string srcJson = R"({ "Background": "Blue", "PenColor": "White", "PenSize": "3", "PenOpacity": "50" })";
+    BitSerializer::LoadObject<JsonArchive>(mapResult, srcJson);
+    std::cout << std::endl << "Loaded map: " << std::endl;
+    for (const auto& val : mapResult)
+    {
+        std::cout << "\t" << val.first.ToString() << ": " << val.second.ToString() << std::endl;
+    }
 
-	return 0;
+    return 0;
 }
 ```
 [See full sample](samples/serialize_custom_string/serialize_custom_string.cpp)
@@ -772,48 +773,48 @@ The following example shows how to save/load to `std::stream`:
 class CPoint
 {
 public:
-	CPoint() = default;
-	CPoint(int x, int y)
-		: x(x), y(y)
-	{ }
+    CPoint() = default;
+    CPoint(int x, int y)
+        : x(x), y(y)
+    { }
 
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << KeyValue("x", x);
-		archive << KeyValue("y", y);
-	}
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("x", x);
+        archive << KeyValue("y", y);
+    }
 
-	int x = 0, y = 0;
+    int x = 0, y = 0;
 };
 
 int main()
 {
-	auto testObj = CPoint(100, 200);
+    auto testObj = CPoint(100, 200);
 
-	SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.encoding = Convert::UtfType::Utf8;
-	serializationOptions.streamOptions.writeBom = false;
+    SerializationOptions serializationOptions;
+    serializationOptions.streamOptions.encoding = Convert::UtfType::Utf8;
+    serializationOptions.streamOptions.writeBom = false;
 
-	// Save to string stream
-	std::stringstream outputStream;
-	BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions);
-	std::cout << outputStream.str() << std::endl;
+    // Save to string stream
+    std::stringstream outputStream;
+    BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions);
+    std::cout << outputStream.str() << std::endl;
 
-	// Load from string stream
-	CPoint loadedObj;
-	BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
+    // Load from string stream
+    CPoint loadedObj;
+    BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
 
-	assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);
-	return 0;
+    assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);
+    return 0;
 }
 ```
 [See full sample](samples/serialize_to_stream/serialize_to_stream.cpp)
 
 For save/load to files, BitSerializer provides the following functions (which are just wrappers of serialization methods to streams):
 ```cpp
-	BitSerializer::SaveObjectToFile<TArchive>(obj, path);
-	BitSerializer::LoadObjectFromFile<TArchive>(obj, path);
+BitSerializer::SaveObjectToFile<TArchive>(obj, path);
+BitSerializer::LoadObjectFromFile<TArchive>(obj, path);
 ```
 
 ### Error handling
@@ -839,25 +840,25 @@ You can handle `std::exception` just for log errors, but if you need to provide 
 ```cpp
 try
 {
-	int testInt;
-	BitSerializer::LoadObject<JsonArchive>(testInt, L"10 ?");
+    int testInt;
+    BitSerializer::LoadObject<JsonArchive>(testInt, L"10 ?");
 }
 catch (const BitSerializer::ParsingException& ex)
 {
-	// Parsing error: Malformed token
-	std::string message = ex.what();
-	size_t line = ex.Line;
-	size_t offset = ex.Offset;
+    // Parsing error: Malformed token
+    std::string message = ex.what();
+    size_t line = ex.Line;
+    size_t offset = ex.Offset;
 }
 catch (const BitSerializer::ValidationException& ex)
 {
-	// Handle validation errors
-	const auto& validationErrors = ex.GetValidationErrors();
+    // Handle validation errors
+    const auto& validationErrors = ex.GetValidationErrors();
 }
 catch (const std::exception& ex)
 {
-	// Handle any other errors
-	std::string message = ex.what();
+    // Handle any other errors
+    std::string message = ex.what();
 }
 ```
 
@@ -880,60 +881,60 @@ using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 class UserModel
 {
 public:
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		using namespace BitSerializer;
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        using namespace BitSerializer;
 
-		archive << KeyValue("Id", mId, Required());
-		archive << KeyValue("Age", mAge, Required(), Range(0, 150));
-		archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
-		archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
-		// Custom validation with lambda
-		archive << KeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
-		{
-			// Loaded string should has text without spaces or should be NULL
-			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
-				return std::nullopt;
-			return "The field must not contain spaces";
-		});
-	}
+        archive << KeyValue("Id", mId, Required());
+        archive << KeyValue("Age", mAge, Required(), Range(0, 150));
+        archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
+        archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
+        // Custom validation with lambda
+        archive << KeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
+        {
+            // Loaded string should has text without spaces or should be NULL
+            if (!isLoaded || value.find_first_of(' ') == std::string::npos)
+                return std::nullopt;
+            return "The field must not contain spaces";
+        });
+    }
 
 private:
-	uint64_t mId = 0;
-	uint16_t mAge = 0;
-	std::string mFirstName;
-	std::string mLastName;
-	std::string mNickName;
+    uint64_t mId = 0;
+    uint16_t mAge = 0;
+    std::string mFirstName;
+    std::string mLastName;
+    std::string mNickName;
 };
 
 int main()
 {
-	UserModel user;
-	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
-	try
-	{
-		BitSerializer::LoadObject<JsonArchive>(user, json);
-	}
-	catch (BitSerializer::ValidationException& ex)
-	{
-		const auto& validationErrors = ex.GetValidationErrors();
-		std::cout << "Validation errors: " << std::endl;
-		for (const auto& keyErrors : validationErrors)
-		{
-			std::cout << "Path: " << keyErrors.first << std::endl;
-			for (const auto& err : keyErrors.second)
-			{
-				std::cout << "\t" << err << std::endl;
-			}
-		}
-	}
-	catch (std::exception& ex)
-	{
-		std::cout << ex.what();
-	}
+    UserModel user;
+    const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+    try
+    {
+        BitSerializer::LoadObject<JsonArchive>(user, json);
+    }
+    catch (BitSerializer::ValidationException& ex)
+    {
+        const auto& validationErrors = ex.GetValidationErrors();
+        std::cout << "Validation errors: " << std::endl;
+        for (const auto& keyErrors : validationErrors)
+        {
+            std::cout << "Path: " << keyErrors.first << std::endl;
+            for (const auto& err : keyErrors.second)
+            {
+                std::cout << "\t" << err << std::endl;
+            }
+        }
+    }
+    catch (std::exception& ex)
+    {
+        std::cout << ex.what();
+    }
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 ```
 [See full sample](samples/validation/validation.cpp)
@@ -959,7 +960,7 @@ If you try to serialize an object that is not supported at the current level of 
 template <class TArchive>
 inline void Serialize(TArchive& archive)
 {
-    // Error    C2338	BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
+    // Error    C2338   BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
     archive << testBool;
     // Proper use
     archive << KeyValue("testString", testString);

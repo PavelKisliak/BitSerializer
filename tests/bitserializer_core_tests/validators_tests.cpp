@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018 by Pavel Kisliak                                          *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -13,10 +13,10 @@ using namespace BitSerializer;
 TEST(ValidatorRequired, ShouldNotReturnErrorIfValueIsLoaded)
 {
 	// Arrange
-	auto validator = Required();
+	const auto validator = Required();
 
 	// Act
-	auto result = validator(10, true);
+	const auto result = validator(10, true);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -25,14 +25,27 @@ TEST(ValidatorRequired, ShouldNotReturnErrorIfValueIsLoaded)
 TEST(ValidatorRequired, ShouldReturnErrorIfValueIsNotLoaded)
 {
 	// Arrange
-	auto validator = Required();
+	const auto validator = Required();
 
 	// Act
-	auto result = validator(10, false);
+	const auto result = validator(10, false);
 
 	// Assert
 	ASSERT_TRUE(result.has_value());
 	EXPECT_FALSE(result->empty());
+}
+
+TEST(ValidatorRequired, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Required("Custom error message");
+
+	// Act
+	const auto result = validator(10, false);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
 }
 
 //-----------------------------------------------------------------------------
@@ -41,23 +54,22 @@ TEST(ValidatorRequired, ShouldReturnErrorIfValueIsNotLoaded)
 TEST(ValidatorRange, ShouldAlwaysPassIfValueIsNotLoaded)
 {
 	// Arrange
-	auto validator = Range(10, 20);
+	const auto validator = Range(10, 20);
 
 	// Act
-	auto result = validator(0, false);
+	const auto result = validator(0, false);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
 }
 
-
 TEST(ValidatorRange, ShouldNotReturnErrorIfValueIsInRangeLoaded)
 {
 	// Arrange
-	auto validator = Range(1, 1);
+	const auto validator = Range(1, 1);
 
 	// Act
-	auto result = validator(1, true);
+	const auto result = validator(1, true);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -66,10 +78,10 @@ TEST(ValidatorRange, ShouldNotReturnErrorIfValueIsInRangeLoaded)
 TEST(ValidatorRange, ShouldReturnErrorIfValueIsLessThanMin)
 {
 	// Arrange
-	auto validator = Range(10, 20);
+	const auto validator = Range(10, 20);
 
 	// Act
-	auto result = validator(9, true);
+	const auto result = validator(9, true);
 
 	// Assert
 	ASSERT_TRUE(result.has_value());
@@ -79,14 +91,27 @@ TEST(ValidatorRange, ShouldReturnErrorIfValueIsLessThanMin)
 TEST(ValidatorRange, ShouldReturnErrorIfValueIsGreaterThanMax)
 {
 	// Arrange
-	auto validator = Range(10, 20);
+	const auto validator = Range(10, 20);
 
 	// Act
-	auto result = validator(21, true);
+	const auto result = validator(21, true);
 
 	// Assert
 	ASSERT_TRUE(result.has_value());
 	EXPECT_FALSE(result->empty());
+}
+
+TEST(ValidatorRange, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Range(1, 2, "Custom error message");
+
+	// Act
+	const auto result = validator(3, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
 }
 
 //-----------------------------------------------------------------------------
@@ -95,11 +120,11 @@ TEST(ValidatorRange, ShouldReturnErrorIfValueIsGreaterThanMax)
 TEST(ValidatorMinSize, ShouldAlwaysPassIfValueIsNotLoaded)
 {
 	// Arrange
-	auto validator = MinSize(10);
-	std::string testValue(9, '#');
+	const auto validator = MinSize(10);
+	const std::string testValue(9, '#');
 
 	// Act
-	auto result = validator(testValue, false);
+	const auto result = validator(testValue, false);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -108,11 +133,11 @@ TEST(ValidatorMinSize, ShouldAlwaysPassIfValueIsNotLoaded)
 TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsEqual)
 {
 	// Arrange
-	auto validator = MinSize(10);
-	std::string testValue(10, '#');
+	const auto validator = MinSize(10);
+	const std::string testValue(10, '#');
 
 	// Act
-	auto result = validator(testValue, true);
+	const auto result = validator(testValue, true);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -121,11 +146,11 @@ TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsEqual)
 TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsGreater)
 {
 	// Arrange
-	auto validator = MinSize(10);
-	std::string testValue(11, '#');
+	const auto validator = MinSize(10);
+	const std::string testValue(11, '#');
 
 	// Act
-	auto result = validator(testValue, true);
+	const auto result = validator(testValue, true);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -134,14 +159,28 @@ TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsGreater)
 TEST(ValidatorMinSize, ShouldReturnErrorIfSizeIsLess)
 {
 	// Arrange
-	auto validator = MinSize(10);
-	std::string testValue(9, '#');
+	const auto validator = MinSize(10);
+	const std::string testValue(9, '#');
 
 	// Act
-	auto result = validator(testValue, true);
+	const auto result = validator(testValue, true);
 
 	// Assert
 	EXPECT_TRUE(result.has_value());
+}
+
+TEST(ValidatorMinSize, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = MinSize(10, "Custom error message");
+	const std::string testValue(9, '#');
+
+	// Act
+	const auto result = validator(testValue, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
 }
 
 //-----------------------------------------------------------------------------
@@ -150,11 +189,11 @@ TEST(ValidatorMinSize, ShouldReturnErrorIfSizeIsLess)
 TEST(ValidatorMaxSize, ShouldAlwaysPassIfValueIsNotLoaded)
 {
 	// Arrange
-	auto validator = MaxSize(10);
-	std::string testValue(11, '#');
+	const auto validator = MaxSize(10);
+	const std::string testValue(11, '#');
 
 	// Act
-	auto result = validator(testValue, false);
+	const auto result = validator(testValue, false);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -163,11 +202,11 @@ TEST(ValidatorMaxSize, ShouldAlwaysPassIfValueIsNotLoaded)
 TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsEqual)
 {
 	// Arrange
-	auto validator = MaxSize(10);
-	std::string testValue(10, '#');
+	const auto validator = MaxSize(10);
+	const std::string testValue(10, '#');
 
 	// Act
-	auto result = validator(testValue, true);
+	const auto result = validator(testValue, true);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -176,11 +215,11 @@ TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsEqual)
 TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsLess)
 {
 	// Arrange
-	auto validator = MaxSize(10);
-	std::string testValue(9, '#');
+	const auto validator = MaxSize(10);
+	const std::string testValue(9, '#');
 
 	// Act
-	auto result = validator(testValue, true);
+	const auto result = validator(testValue, true);
 
 	// Assert
 	EXPECT_FALSE(result.has_value());
@@ -189,14 +228,28 @@ TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsLess)
 TEST(ValidatorMaxSize, ShouldReturnErrorIfSizeIsGreater)
 {
 	// Arrange
-	auto validator = MaxSize(10);
-	std::string testValue(11, '#');
+	const auto validator = MaxSize(10);
+	const std::string testValue(11, '#');
 
 	// Act
-	auto result = validator(testValue, true);
+	const auto result = validator(testValue, true);
 
 	// Assert
 	EXPECT_TRUE(result.has_value());
+}
+
+TEST(ValidatorMaxSize, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = MaxSize(10, "Custom error message");
+	const std::string testValue(11, '#');
+
+	// Act
+	const auto result = validator(testValue, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
 }
 
 //-----------------------------------------------------------------------------
@@ -205,7 +258,7 @@ TEST(ValidatorMaxSize, ShouldReturnErrorIfSizeIsGreater)
 TEST(ValidatorEmail, TestDifferentStringTypes)
 {
 	// Arrange
-	constexpr auto validator = Email();
+	const auto validator = Email();
 
 	// Act / Assert
 	EXPECT_FALSE(validator("simple@example.com", true).has_value());
@@ -218,7 +271,7 @@ TEST(ValidatorEmail, TestDifferentStringTypes)
 TEST(ValidatorEmail, TestValidEmails)
 {
 	// Arrange
-	constexpr auto validator = Email();
+	const auto validator = Email();
 
 	// Test local part
 	EXPECT_FALSE(validator("simple@example.com", true).has_value());
@@ -243,7 +296,7 @@ TEST(ValidatorEmail, TestValidEmails)
 TEST(ValidatorEmail, TestInvalidEmails)
 {
 	// Arrange
-	constexpr auto validator = Email();
+	const auto validator = Email();
 
 	// Test local part
 	EXPECT_TRUE(validator("", true).has_value()) << "Empty string";
@@ -282,4 +335,17 @@ TEST(ValidatorEmail, TestInvalidEmails)
 	EXPECT_TRUE(validator("john_doe@too.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long"
 		".long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long.long"
 		".long.long.long.long.domain.csnet", true).has_value()) << "Too long domain part";
+}
+
+TEST(ValidatorEmail, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Email("Custom error message");
+
+	// Act
+	const auto result = validator("abc.example.com", true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
 }

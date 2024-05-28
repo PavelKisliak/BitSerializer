@@ -3,14 +3,14 @@
 ___
 
 ### Main features:
-- One common interface for various types of text and binary formats.
+- One common interface - easily switch between human-readable JSON and fast MsgPack.
 - Modular architecture, no need to install all archives.
 - Functional serialization style similar to the Boost library.
 - Customizable validation of deserialized values with producing an output list of errors.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Support loading named fields in any order with conditions (for version control).
-- Serialization support for the most commonly used STD containers and types including modern `std::u16string` and `std::u32string`.
-- Support for serializing enum types as an integer or string (via declaring names map).
+- Serialization support for almost all STD containers and types.
+- Support for serializing enum types as integers or strings as you wish.
 - Support serialization to memory, streams and files.
 - Encoding to various UTF formats.
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
@@ -32,9 +32,11 @@ ___
   - Supported platforms: Windows, Linux, MacOS.
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Big endian platforms are not supported.\
-(\*) Work without exceptions is not supported.\
 (\*) Minimal requirement for RapidYaml archive is VS2019.
+
+#### Limitations:
+ - Big endian platforms are not supported.\
+ - Work without exceptions is not supported.\
 
 ### Performance
 For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
@@ -870,6 +872,10 @@ archive << KeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
 For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization (when all errors have been collected).
 By default, the number of errors is unlimited, but it can be set using `maxValidationErrors` in `SerializationOptions`.
 The map of validation errors can be get by calling method `GetValidationErrors()` from the exception object, it contains paths to fields with errors lists.
+The default error message can be overridden (you can also pass string ID for further localization):
+```cpp
+archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
+```
 
 Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`.
 Validator `Range` can be used with all types which have operators '<' and '>'.
@@ -887,7 +893,7 @@ public:
         using namespace BitSerializer;
 
         archive << KeyValue("Id", mId, Required());
-        archive << KeyValue("Age", mAge, Required(), Range(0, 150));
+        archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
         archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
         archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
         // Custom validation with lambda
@@ -943,7 +949,7 @@ The result of execution this code:
 ```text
 Validation errors:
 Path: /Age
-        Value must be between 0 and 150
+        Age should be in the range 0...150
 Path: /FirstName
         The maximum size of this field should be not greater than 16
 Path: /LastName

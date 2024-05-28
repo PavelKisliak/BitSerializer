@@ -14,6 +14,10 @@ namespace BitSerializer
 	class Required
 	{
 	public:
+		Required(const char* errorMessage = "This field is required")
+			: mErrorMessage(errorMessage)
+		{ }
+
 		template <class TValue>
 		std::optional<std::string> operator() (const TValue&, bool isLoaded) const noexcept
 		{
@@ -21,10 +25,12 @@ namespace BitSerializer
 				return std::nullopt;
 			}
 
-			return "This field is required";
+			return mErrorMessage;
 		}
-	};
 
+	private:
+		const char* mErrorMessage;
+	};
 
 	/// <summary>
 	/// Validates that field is in required range.
@@ -33,11 +39,11 @@ namespace BitSerializer
 	class Range
 	{
 	public:
-		Range(const TValue& min, const TValue& max)
+		Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
 			: mMin(min)
 			, mMax(max)
-		{
-		}
+			, mErrorMessage(errorMessage)
+		{ }
 
 		std::optional<std::string> operator() (const TValue& value, bool isLoaded) const
 		{
@@ -46,7 +52,11 @@ namespace BitSerializer
 				return std::nullopt;
 			}
 
-			if (value < mMin || value > mMax) {
+			if (value < mMin || value > mMax)
+			{
+				if (mErrorMessage) {
+					return mErrorMessage;
+				}
 				return "Value must be between " + Convert::ToString(mMin) + " and " + Convert::ToString(mMax);
 			}
 
@@ -56,8 +66,8 @@ namespace BitSerializer
 	private:
 		TValue mMin;
 		TValue mMax;
+		const char* mErrorMessage;
 	};
-
 
 	/// <summary>
 	/// Validates that size of field (string, container) is greater or equal than specified value.
@@ -65,10 +75,10 @@ namespace BitSerializer
 	class MinSize
 	{
 	public:
-		MinSize(const size_t minSize) noexcept
+		MinSize(const size_t minSize, const char* errorMessage = nullptr) noexcept
 			: mMinSize(minSize)
-		{
-		}
+			, mErrorMessage(errorMessage)
+		{ }
 
 		template <class TValue>
 		std::optional<std::string> operator() (const TValue& value, bool isLoaded) const
@@ -87,6 +97,9 @@ namespace BitSerializer
 					return std::nullopt;
 				}
 
+				if (mErrorMessage) {
+					return mErrorMessage;
+				}
 				return "The minimum size of this field should be " + Convert::ToString(mMinSize);
 			}
 			return std::nullopt;
@@ -94,6 +107,7 @@ namespace BitSerializer
 
 	private:
 		size_t mMinSize;
+		const char* mErrorMessage;
 	};
 
 	/// <summary>
@@ -102,10 +116,10 @@ namespace BitSerializer
 	class MaxSize
 	{
 	public:
-		MaxSize(const size_t maxSize) noexcept
+		MaxSize(const size_t maxSize, const char* errorMessage = nullptr) noexcept
 			: mMaxSize(maxSize)
-		{
-		}
+			, mErrorMessage(errorMessage)
+		{ }
 
 		template <class TValue>
 		std::optional<std::string> operator() (const TValue& value, bool isLoaded) const
@@ -124,6 +138,9 @@ namespace BitSerializer
 					return std::nullopt;
 				}
 
+				if (mErrorMessage) {
+					return mErrorMessage;
+				}
 				return "The maximum size of this field should be not greater than " + Convert::ToString(mMaxSize);
 			}
 			return std::nullopt;
@@ -131,6 +148,7 @@ namespace BitSerializer
 
 	private:
 		size_t mMaxSize;
+		const char* mErrorMessage;
 	};
 
 	/// <summary>
@@ -140,6 +158,10 @@ namespace BitSerializer
 	class Email
 	{
 	public:
+		Email(const char* errorMessage = "Invalid email address") noexcept
+			: mErrorMessage(errorMessage)
+		{ }
+
 		template <typename T, std::enable_if_t<Convert::Detail::is_convertible_to_string_view_v<T>, int> = 0>
 		std::optional<std::string> operator() (T&& value, bool isLoaded) const
 		{
@@ -230,7 +252,10 @@ namespace BitSerializer
 				isValid = false;
 			}
 
-			return isValid ? std::nullopt : std::make_optional("Invalid email address");
+			return isValid ? std::nullopt : std::make_optional(mErrorMessage);
 		}
+
+	private:
+		const char* mErrorMessage;
 	};
 }

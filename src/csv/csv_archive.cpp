@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
@@ -18,7 +18,7 @@ namespace
 			== std::cend(CsvArchiveTraits::allowed_separators))
 		{
 			throw SerializationException(SerializationErrorCode::InvalidOptions,
-				std::string("Unsupported value separator '") + separator + '"');
+				std::string("Unsupported value separator '") + separator + '\'');
 		}
 	}
 }

@@ -4,8 +4,8 @@
 *******************************************************************************/
 #pragma once
 #include <variant>
-#include "serialization_options.h"
-#include "errors_handling.h"
+#include "bitserializer/serialization_detail/serialization_options.h"
+#include "bitserializer/serialization_detail/errors_handling.h"
 
 namespace BitSerializer
 {

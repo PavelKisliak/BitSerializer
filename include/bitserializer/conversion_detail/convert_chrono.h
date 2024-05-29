@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * Copyright (C) 2017 Howard Hinnant (datetime algorithms from 'date' library)  *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -11,7 +11,7 @@
 #include <chrono>
 #include <charconv>
 #include <optional>
-#include "convert_utf.h"
+#include "bitserializer/conversion_detail/convert_utf.h"
 
 
 namespace BitSerializer

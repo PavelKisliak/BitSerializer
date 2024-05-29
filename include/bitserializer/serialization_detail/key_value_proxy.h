@@ -3,10 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "key_value.h"
-#include "attr_key_value.h"
-#include "archive_traits.h"
-#include "serialization_context.h"
+#include "bitserializer/serialization_detail/key_value.h"
+#include "bitserializer/serialization_detail/attr_key_value.h"
+#include "bitserializer/serialization_detail/archive_traits.h"
+#include "bitserializer/serialization_detail/serialization_context.h"
 
 namespace BitSerializer::KeyValueProxy
 {

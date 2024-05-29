@@ -10,8 +10,8 @@
 #include <iterator>
 #include <string>
 #include <cstring>
-#include "memory_utils.h"
-#include "convert_enum.h"
+#include "bitserializer/conversion_detail/memory_utils.h"
+#include "bitserializer/conversion_detail/convert_enum.h"
 
 namespace BitSerializer::Convert
 {

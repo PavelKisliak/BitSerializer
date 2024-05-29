@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <tuple>
-#include "serialization_context.h"
+#include "bitserializer/serialization_detail/serialization_context.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 
 namespace BitSerializer {

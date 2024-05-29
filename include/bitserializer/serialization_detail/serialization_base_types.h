@@ -5,9 +5,9 @@
 #pragma once
 #include <cstddef>
 #include <type_traits>
-#include "object_traits.h"
-#include "archive_traits.h"
-#include "errors_handling.h"
+#include "bitserializer/serialization_detail/object_traits.h"
+#include "bitserializer/serialization_detail/archive_traits.h"
+#include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/convert.h"
 
 namespace BitSerializer

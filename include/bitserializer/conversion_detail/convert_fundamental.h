@@ -8,9 +8,9 @@
 #include <stdexcept>
 #include "bitserializer/config.h"
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
-#include "convert_compatibility.h"
+#include "bitserializer/conversion_detail/convert_compatibility.h"
 #endif
-#include "convert_utf.h"
+#include "bitserializer/conversion_detail/convert_utf.h"
 
 namespace BitSerializer::Convert::Detail
 {

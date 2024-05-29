@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <string>
 #include <optional>
-#include "archive_base.h"
+#include "bitserializer/serialization_detail/archive_base.h"
 
 namespace BitSerializer {
 

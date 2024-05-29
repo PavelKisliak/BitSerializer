@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <limits>
 #include <stdexcept>
-#include "convert_utf.h"
+#include "bitserializer/conversion_detail/convert_utf.h"
 
 namespace BitSerializer::Convert::Detail
 {

@@ -5,7 +5,7 @@
 #pragma once
 #include <tuple>
 #include <utility>
-#include "serialization_context.h"
+#include "bitserializer/serialization_detail/serialization_context.h"
 
 namespace BitSerializer {
 

@@ -4,8 +4,8 @@
 *******************************************************************************/
 #pragma once
 #include <type_traits>
-#include "archive_base.h"
-#include "object_traits.h"
+#include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/object_traits.h"
 
 namespace BitSerializer {
 

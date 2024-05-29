@@ -3,8 +3,8 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "convert_utf.h"
-#include "object_traits.h"
+#include "bitserializer/conversion_detail/convert_utf.h"
+#include "bitserializer/conversion_detail/object_traits.h"
 
 namespace BitSerializer::Convert::Detail
 {

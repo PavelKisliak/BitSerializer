@@ -13,11 +13,12 @@ public:
 		using namespace BitSerializer;
 
 		archive << KeyValue("Id", mId, Required());
-		archive << KeyValue("Age", mAge, Required(), Range(0, 150));
+		archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
 		archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
 		archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
+		archive << KeyValue("Email", mEmail, Required(), Email());
 		// Custom validation with lambda
-		archive << KeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
+		archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string>
 		{
 			// Loaded string should has text without spaces or should be NULL
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
@@ -31,13 +32,14 @@ private:
 	uint16_t mAge = 0;
 	std::string mFirstName;
 	std::string mLastName;
+	std::string mEmail;
 	std::string mNickName;
 };
 
 int main()
 {
 	UserModel user;
-	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000", "Email": "smith 2000@mail.com" })";
 	try
 	{
 		BitSerializer::LoadObject<JsonArchive>(user, json);

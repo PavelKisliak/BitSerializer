@@ -877,9 +877,10 @@ The default error message can be overridden (you can also pass string ID for fur
 archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
 ```
 
-Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`.
-Validator `Range` can be used with all types which have operators '<' and '>'.
-Validators `MinSize` and `MaxSize` can be applied to all values which have `size()` method.
+Basically implemented few validators: `Required`, `Range`, `MinSize`, `MaxSize`, `Email`.\
+Validator `Range` can be used with all types which have operators '<' and '>'.\
+Validators `MinSize` and `MaxSize` can be applied to all values which have `size()` method.\
+The `Email` validator is generally complies with the RFC standard, except: quoted parts, comments, SMTPUTF8 and IP address as domain part.
 This list will be extended in future.
 ```cpp
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
@@ -896,8 +897,9 @@ public:
         archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
         archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
         archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
+        archive << KeyValue("Email", mEmail, Required(), Email());
         // Custom validation with lambda
-        archive << KeyValue("NickName", mNickName, [](const std::string& value, const bool isLoaded) -> std::optional<std::string>
+        archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string>
         {
             // Loaded string should has text without spaces or should be NULL
             if (!isLoaded || value.find_first_of(' ') == std::string::npos)
@@ -911,13 +913,14 @@ private:
     uint16_t mAge = 0;
     std::string mFirstName;
     std::string mLastName;
+    std::string mEmail;
     std::string mNickName;
 };
 
 int main()
 {
     UserModel user;
-    const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000" })";
+    const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000", "Email": "smith 2000@mail.com" })";
     try
     {
         BitSerializer::LoadObject<JsonArchive>(user, json);
@@ -950,6 +953,8 @@ The result of execution this code:
 Validation errors:
 Path: /Age
         Age should be in the range 0...150
+Path: /Email
+        Invalid email address
 Path: /FirstName
         The maximum size of this field should be not greater than 16
 Path: /LastName

@@ -104,5 +104,5 @@ target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
 ### Samples
 The following two examples are designed specially to demonstrate MsgPack:
 - [MsgPack vs JSON](../samples/msgpack_vs_json/msgpack_vs_json.cpp) - demonstrates the features of MsgPack
-- [Versioning](../samples/versioning/versioning.cpp) - demonstrates how to implement versioning
+- [Versioning](../samples/versioning/versioning.cpp) - demonstrates how to implement versioning.
 All other examples may also be useful, as serialization to MsgPack is similar to other archives, please learn them with using main [README.md](../README.md).

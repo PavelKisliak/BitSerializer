@@ -35,26 +35,26 @@ ___
 (\*) Minimal requirement for RapidYaml archive is VS2019.
 
 #### Limitations:
- - Big endian platforms are not supported.\
- - Work without exceptions is not supported.\
+ - Big endian platforms are not supported.
+ - Work without exceptions is not supported.
 
 ### Performance
 For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
 
 | Base library name | Format | Operation | BitSerializer | Native API | Difference |
 | ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 14474 fields/ms  | 14667 fields/ms | **(-1.3%)** |
-| RapidJson | JSON | Load object | 9192 fields/ms | 9880 fields/ms | **(-7%)** |
-| C++ REST SDK | JSON | Save object | 2586 fields/ms | 2617 fields/ms | **(-1.2%)** |
-| C++ REST SDK | JSON | Load object | 2741 fields/ms | 2741 fields/ms | **(0%)** |
-| PugiXml | XML | Save object | 8753 fields/ms | 9016 fields/ms | **(-2.9%)** |
-| PugiXml | XML | Load object | 12644 fields/ms | 14103 fields/ms | **(-10.3%)** |
-| RapidYAML | YAML | Save object | 780 fields/ms | 788 fields/ms | **(-1%)** |
-| RapidYAML | YAML | Load object | 3277 fields/ms | 3552 fields/ms | **(-7.7%)** |
-| Built-in | CSV | Save object | 15566 fields/ms | N/A | N/A |
-| Built-in | CSV | Load object | 17368 fields/ms | N/A | N/A |
-| Built-in | MsgPack | Save object | ToDo fields/ms | N/A | N/A |
-| Built-in | MsgPack | Load object | ToDo fields/ms | N/A | N/A |
+| RapidJson | JSON | Save object | 13636 fields/ms  | 13866 fields/ms | **(-1.7%)** |
+| RapidJson | JSON | Load object | 8639 fields/ms | 8967 fields/ms | **(-3.7%)** |
+| C++ REST SDK | JSON | Save object | 2766 fields/ms | 2787 fields/ms | **(-0.8%)** |
+| C++ REST SDK | JSON | Load object | 2727 fields/ms | 2743 fields/ms | **(-0.6%)** |
+| PugiXml | XML | Save object | 9910 fields/ms | 9851 fields/ms | **(+0.6%)** |
+| PugiXml | XML | Load object | 14602 fields/ms | 15942 fields/ms | **(-8.4%)** |
+| RapidYAML | YAML | Save object | 1689 fields/ms | 1737 fields/ms | **(-2.8%)** |
+| RapidYAML | YAML | Load object | 3226 fields/ms | 3481 fields/ms | **(-7.3%)** |
+| Built-in | CSV | Save object | 33000 fields/ms | N/A | N/A |
+| Built-in | CSV | Load object | 15278 fields/ms | N/A | N/A |
+| Built-in | MsgPack | Save object | 75000 fields/ms | N/A | N/A |
+| Built-in | MsgPack | Load object | 48529 fields/ms | N/A | N/A |
 
 Measured in **fields/ms** - how many fields are written per millisecond, more is better. Results are depend to system hardware and compiler options, but you can evaluate the BitSerializer overhead and formats efficiency. The source code of the test also available [here](benchmarks/archives).
 

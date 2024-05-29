@@ -47,7 +47,7 @@ target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
 ```
 
 ### Implementation detail
-One of unique features in **YAML** is **dictionaries**, are a little more advanced than **JSON**, it allows to make sequence with named objects, for example:
+One of unique features in **YAML** is **dictionaries**, they are a little more advanced than **JSON**, they allow to make a sequence with named objects, for example:
 ```yaml
 - shape1: { type: square, width: 100, height: 100 }
 - shape2: { type: circle, rarius: 50 }

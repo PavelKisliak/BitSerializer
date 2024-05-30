@@ -1,5 +1,35 @@
 # BitSerializer (History log)
 
+##### What's new in version 0.70 (WIP):
+
+- [ ! ] Added new archive for serialization to [MsgPack](docs/bitserializer_msgpack.md) (built-in implementation, no dependencies).
+- [ ! ] Improved performance for all archives (sufficiently for ** CSV**).
+- [ ! ] Deprecated `AutoKeyValue` and `AutoAttributeValue` (use regular `KeyValue` and `AttributeValue` for all cases).
+- [ ! ] Deprecated `Version` structure, please use similar macros `BITSERIALIZER_VERSION_*`.
+- [ ! ] Optimized string serialization, especially for your own types (use internal function `Detail::SerializeString()`).
+- [ + ] Added support for serialization types: `std::filesystem::path`, `std::atomic type`, `std::byte` and `std::valarray`.
+- [ + ] Added `config.h` file with version macros and several other library options (disable `std::filesystem`, etc).
+- [ + ] Added `EnumAsBin` wrapper for able to serialize enum types as integers (registration is not required in this case).
+- [ * ] Implemented `Overflow` and `Mismatched` policies for `std::chrono` types serialization.
+- [ * ] Fixed handling mismatch types for cases when target value is array or object.
+- [ * ] Changed `OverflowTypeException` to `MismatchedTypeException` when try to load float to int.
+- [ + ] Added the ability to pass custom error messages to validators.
+- [ + ] Added email validator.
+- [ + ] Added new samples "msgpack_vs_json" and "versioning".
+- [ + ] Added new option `maxValidationErrors` to `SerializationOptions`.
+- [ * ] `SerializationException` with error code `UnregisteredEnum` will be thrown when serializing unregistered enum.
+- [ + ] [Convert] Added new API function `IsConvertible<TIn, TOut>()`.
+- [ + ] [Convert] Use modern `from_chars()` and `to_chars()` for converting float types (if they available).
+- [ + ] [Convert] Allowed to convert any of fundamental types to any other fundamental type.
+- [ * ] [Convert] Fixed floating numbers conversion after failure due to overflow.
+- [ * ] [Convert] Increased number of significant digits for float from 6 to 7.
+- [ * ] [Convert] Changed exception type to `invalid_argument` when converting a string with floating point number to integer.
+- [ * ] [Convert] Fixed convert (and serialization) negative `std::duration` with fractions of second.
+- [ * ] Fixed compatibility with C++ 20.
+- [ - ] Removed deprecated `REGISTER_ENUM_MAP`.
+- [ * ] [RapidYaml] Replaced usages of deprecated API function (compatibility is preserved).
+- [ * ] [RapidYaml] Changed serialization of boolean values to "true|false", as in other archives (thanks @psallandre).
+
 ##### What's new in version 0.65 (12 September 2023):
 
 - [ ! ] The repository has been migrated to GitHub.

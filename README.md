@@ -3,7 +3,7 @@
 ___
 
 ### Main features:
-- One common interface - easily switch between human-readable JSON and fast MsgPack.
+- One common interface for all formats - easily switch between human-readable JSON and fast MsgPack.
 - Modular architecture, no need to install all archives.
 - Functional serialization style similar to the Boost library.
 - Customizable validation of deserialized values with producing an output list of errors.
@@ -519,7 +519,7 @@ class YourCustomKey
 
 ### Serialization date and time
 *(Feature is not available in the previously released version 0.50)*<br>
-The  ISO 8601 standard was chosen as the representation for the date, time and duration in the target archive. Some of other libraries prefer to use binary representation (which is definitely faster), but this option has been rejected as non-portable. In any case, you are free to make your own implementation if needed. For enable serialization of the `std::chrono` and `time_t` types as ISO strings,  just include these headers:
+The  ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:
 ```cpp
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/ctime.h"
@@ -666,9 +666,7 @@ bool Serialize(TArchive& archive, TKey&& key, CMyString& value);
 template <class TArchive>
 bool Serialize(TArchive& archive, CMyString& value);
 ```
-These two functions are necessary for serialization any type with and without **key** into the output archive. For example, object in the JSON format, has named properties, but JSON-array can contain only values.
-The BitSerializer's archives works with `std::basic_string<>`, so you need to convert your custom string before serialize. The best way is to implement string conversion methods as required by BitSerialzer ([see more](docs/bitserializer_convert.md)), this will also help you get the ability to serialize `std::map`, where the custom string is used as the key.
-This all looks a little more complicated than serializing the object, but the code is pretty simple, please have a look at the example below:
+These two functions are necessary for serialization any type with and without **key** into the output archive. For example, object in the JSON format, has named properties, but JSON-array can contain only values. Additionally, for serialize a custom string (like `CMyString`), need to implement string conversion methods ([read more about convert sub-module](docs/bitserializer_convert.md)). This will allow to serialize `std::map`, where `CMyString` is used as the key. This all looks a little more complicated than serializing the object, but the code is pretty simple, please have a look at the example below:
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"

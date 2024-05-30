@@ -5,7 +5,7 @@
 #pragma once
 
 #define BITSERIALIZER_VERSION_MAJOR 0
-#define BITSERIALIZER_VERSION_MINOR 65
+#define BITSERIALIZER_VERSION_MINOR 70
 #define BITSERIALIZER_VERSION_PATCH 0
 #define BITSERIALIZER_VERSION (BITSERIALIZER_VERSION_MAJOR * 10000 + BITSERIALIZER_VERSION_MINOR * 100 + BITSERIALIZER_VERSION_PATCH)
 
@@ -14,7 +14,7 @@
 #endif
 
 #ifndef BITSERIALIZER_HAS_FLOAT_FROM_CHARS
-#if defined(_MSC_VER) || (defined __GNUC__ && not defined __clang__ && __GNUC__ > 11) || (defined __clang__ && __clang_major__ > 13)
+#if defined(_MSC_VER) || (defined __GNUC__ && !defined __clang__ && __GNUC__ > 11) || (defined __clang__ && __clang_major__ > 13)
 #define BITSERIALIZER_HAS_FLOAT_FROM_CHARS 1
 #else
 #define BITSERIALIZER_HAS_FLOAT_FROM_CHARS 0

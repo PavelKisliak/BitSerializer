@@ -5,14 +5,14 @@
 #pragma once
 #include <optional>
 #include "bitserializer/config.h"
-#include "conversion_detail/convert_fundamental.h"
-#include "conversion_detail/convert_detail.h"
-#include "conversion_detail/convert_enum.h"
+#include "bitserializer/conversion_detail/convert_fundamental.h"
+#include "bitserializer/conversion_detail/convert_detail.h"
+#include "bitserializer/conversion_detail/convert_enum.h"
 #if BITSERIALIZER_HAS_FILESYSTEM
-#include "conversion_detail/convert_filesystem.h"
+#include "bitserializer/conversion_detail/convert_filesystem.h"
 #endif
-#include "conversion_detail/convert_chrono.h"
-#include "conversion_detail/convert_traits.h"
+#include "bitserializer/conversion_detail/convert_chrono.h"
+#include "bitserializer/conversion_detail/convert_traits.h"
 
 namespace BitSerializer::Convert
 {

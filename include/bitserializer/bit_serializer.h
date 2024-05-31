@@ -4,11 +4,11 @@
 *******************************************************************************/
 #pragma once
 #include <fstream>
-#include "config.h"
-#include "serialization_detail/serialization_base_types.h"
-#include "serialization_detail/key_value_proxy.h"
-#include "serialization_detail/validators.h"
-#include "serialization_detail/serialization_context.h"
+#include "bitserializer/config.h"
+#include "bitserializer/serialization_detail/serialization_base_types.h"
+#include "bitserializer/serialization_detail/key_value_proxy.h"
+#include "bitserializer/serialization_detail/validators.h"
+#include "bitserializer/serialization_detail/serialization_context.h"
 
 namespace BitSerializer
 {

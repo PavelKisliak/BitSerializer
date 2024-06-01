@@ -9,7 +9,7 @@ ___
 - Customizable validation of deserialized values with producing an output list of errors.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Support loading named fields in any order with conditions (for version control).
-- Serialization support for almost all STD containers and types.
+- Serialization support for almost all STD containers and types (including Unicode strings).
 - Support for serializing enum types as integers or strings as you wish.
 - Support serialization to memory, streams and files.
 - Encoding to various UTF formats.
@@ -372,7 +372,7 @@ enum class HttpMethod {
 
 REGISTER_ENUM(HttpMethod, {
     { HttpMethod::Delete,   "delete" },
-    { HttpMethod::Get,       "get" },
+    { HttpMethod::Get,      "get" },
     { HttpMethod::Head,     "head" }
 })
 ```

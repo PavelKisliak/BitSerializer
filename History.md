@@ -1,9 +1,9 @@
 # BitSerializer (History log)
 
-##### What's new in version 0.70 (WIP):
+##### What's new in version 0.70 (31 May 2024):
 
 - [ ! ] Added new archive for serialization to [MsgPack](docs/bitserializer_msgpack.md) (built-in implementation, no dependencies).
-- [ ! ] Improved performance for all archives (sufficiently for ** CSV**).
+- [ ! ] Improved performance for all archives (sufficiently for **CSV**).
 - [ ! ] Deprecated `AutoKeyValue` and `AutoAttributeValue` (use regular `KeyValue` and `AttributeValue` for all cases).
 - [ ! ] Deprecated `Version` structure, please use similar macros `BITSERIALIZER_VERSION_*`.
 - [ ! ] Optimized string serialization, especially for your own types (use internal function `Detail::SerializeString()`).

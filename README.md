@@ -12,7 +12,7 @@ ___
 - Serialization support for almost all STD containers and types (including Unicode strings).
 - Support for serializing enum types as integers or strings as you wish.
 - Support serialization to memory, streams and files.
-- Encoding to various UTF formats.
+- Full Unicode support with automatic detection and transcoding (except YAML).
 - Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
 
 #### Supported formats:
@@ -25,7 +25,7 @@ ___
 | [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
-(\*) **MsgPack** is available since v0.70 (not published yet to VCPKG and Conan).
+(\*) **MsgPack** is available since v0.70 (not published yet to Conan).
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
@@ -95,7 +95,7 @@ ___
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#details-of-archives) for specific archives.
-#### VCPKG (MsgPack is not published yet)
+#### VCPKG
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
 {

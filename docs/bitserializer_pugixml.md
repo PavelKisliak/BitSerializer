@@ -35,7 +35,7 @@ target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_pugixml` option:
 ```
 [requires]
-bitserializer/0.65
+bitserializer/0.70
 
 [options]
 bitserializer:with_pugixml=True

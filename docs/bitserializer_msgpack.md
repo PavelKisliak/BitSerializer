@@ -63,11 +63,11 @@ If you are using CMake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
 ```
-#### Conan (not published yet)
+#### Conan
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_msgpack` option:
 ```
 [requires]
-bitserializer/0.65
+bitserializer/0.70
 
 [options]
 bitserializer:with_msgpack=True

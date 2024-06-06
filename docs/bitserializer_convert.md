@@ -18,7 +18,7 @@ The library provides several public functions for convert types:
 - `std::optional<TOut> TryTo<TOut>(TIn&& value)` throws nothing
 - `std::string ToString(TIn&& value)` just "syntax sugar" for `To<std::string>()`
 - `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
-- `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported (not available in v0.65)
+- `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported
 
 Under the hood, integer and floating types are converting via modern `std::from_chars()` and `std::to_chars()`, except for old versions of GCC and CLANG compilers, which do not support floating types. In this case, will be used older (and significantly slower) functions from C++11.
 ```cpp

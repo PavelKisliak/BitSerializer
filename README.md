@@ -25,7 +25,7 @@ ___
 | [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
-(\*) **MsgPack** is available since v0.70 (not published yet to Conan).
+(\*) **MsgPack** is available since v0.70.
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
@@ -113,11 +113,11 @@ Alternatively, you can install the library via the command line:
 > vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
-#### Conan (MsgPack is not published yet)
+#### Conan
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
-bitserializer/0.65
+bitserializer/0.70
 
 [options]
 bitserializer:with_cpprestsdk=True
@@ -129,7 +129,7 @@ bitserializer:with_msgpack=True
 ```
 Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
 ```shell
-> conan install bitserializer/0.65@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
+> conan install bitserializer/0.70@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
 ```
 #### Installation via CMake on a Unix system
 ```sh
@@ -357,7 +357,6 @@ By default, they serializing as strings, to serialize as integers, use the `Enum
 ```cpp
 archive << MakeKeyValue("EnumValue", EnumAsBin(enumValue));
 ```
-(`EnumAsBin` wrapper is not available in the previously released version 0.65)\
 To be able to serialize `enum` types as string, you need to register a map with string equivalents in the your HEADER file.
 ```cpp
 // file HttpMethods.h
@@ -763,7 +762,6 @@ int main()
 }
 ```
 [See full sample](samples/serialize_custom_string/serialize_custom_string.cpp)
-[!] Note: the previous version (0.65) used a different approach.
 
 ### Serialization to streams and files
 All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.

@@ -105,7 +105,7 @@ namespace BitSerializer::Convert::Detail
 				if (it->Name.size() == nameSize)
 				{
 					bool isMatched = true;
-					for (auto i = 0; i < nameSize; ++i)
+					for (size_t i = 0; i < nameSize; ++i)
 					{
 						if (std::tolower(static_cast<int>(it->Name[i])) != std::tolower(name[i]))
 						{

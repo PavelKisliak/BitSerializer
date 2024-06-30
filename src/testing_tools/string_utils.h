@@ -3,6 +3,8 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <algorithm>
+#include "bitserializer/conversion_detail/memory_utils.h"
 
 #if defined(__cpp_lib_char8_t)
 inline auto makeUtf8(const char8_t* s)
@@ -24,3 +26,45 @@ inline auto makeUtf8(const char8_t* s)
 #else
 #define UPATH(x) UTF8(x)
 #endif
+
+// Converts native c-string to big-endian representation
+template<typename TSym, size_t ArraySize>
+auto NativeStringToBigEndian(const TSym(&str)[ArraySize])
+{
+	std::basic_string<TSym> result;
+	if constexpr (ArraySize != 0)
+	{
+		std::transform(std::cbegin(str), std::cbegin(str) + (ArraySize - 1), std::back_inserter(result), &BitSerializer::Memory::NativeToBigEndian<TSym>);
+	}
+	return result;
+}
+
+// Converts native std::string to big-endian representation
+template<typename TChar, typename TAllocator>
+auto NativeStringToBigEndian(const std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& str)
+{
+	std::basic_string<TChar, std::char_traits<TChar>, TAllocator> result;
+	std::transform(std::cbegin(str), std::cend(str), std::back_inserter(result), &BitSerializer::Memory::NativeToBigEndian<TChar>);
+	return result;
+}
+
+// Converts native c-string to little-endian representation
+template<typename TChar, size_t ArraySize>
+auto NativeStringToLittleEndian(const TChar(&str)[ArraySize])
+{
+	std::basic_string<TChar> result;
+	if constexpr (ArraySize != 0)
+	{
+		std::transform(std::cbegin(str), std::cbegin(str) + (ArraySize - 1), std::back_inserter(result), &BitSerializer::Memory::NativeToLittleEndian<TChar>);
+	}
+	return result;
+}
+
+// Converts native std::string to little-endian representation
+template<typename TChar, typename TAllocator>
+auto NativeStringToLittleEndian(const std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& str)
+{
+	std::basic_string<TChar, std::char_traits<TChar>, TAllocator> result;
+	std::transform(std::cbegin(str), std::cend(str), std::back_inserter(result), &BitSerializer::Memory::NativeToLittleEndian<TChar>);
+	return result;
+}

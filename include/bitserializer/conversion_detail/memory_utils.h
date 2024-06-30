@@ -67,6 +67,20 @@ namespace BitSerializer::Memory
 	}
 
 	/// <summary>
+	/// Reverses byte order in the passed sequence of integral values.
+	/// </summary>
+	template <typename TIterator, std::enable_if_t<std::is_integral_v<typename std::iterator_traits<TIterator>::value_type>, int> = 0>
+	constexpr void Reverse(TIterator in, const TIterator& end) noexcept
+	{
+		if constexpr (sizeof (typename std::iterator_traits<TIterator>::value_type) > 1)
+		{
+			for (auto it = in; it != end; ++it) {
+				*it = Reverse(*it);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Converts native representation of integer value to big endian.
 	/// </summary>
 	template <typename T>
@@ -129,7 +143,11 @@ namespace BitSerializer::Memory
 	class ReverseEndianIterator
 	{
 	public:
-		using value_type = std::decay_t<decltype(*std::declval<TBaseIt>())>;
+		using iterator_category = typename std::iterator_traits<TBaseIt>::iterator_category;
+		using value_type = typename std::iterator_traits<TBaseIt>::value_type;
+		using difference_type = typename std::iterator_traits<TBaseIt>::difference_type;
+		using pointer = typename std::iterator_traits<TBaseIt>::pointer;
+		using reference = typename std::iterator_traits<TBaseIt>::reference;
 
 		explicit ReverseEndianIterator(TBaseIt it)
 			: mBaseIt(std::move(it))
@@ -140,13 +158,43 @@ namespace BitSerializer::Memory
 		value_type operator*() const noexcept {
 			return Reverse(*mBaseIt);
 		}
-
-		bool operator==(const ReverseEndianIterator<TBaseIt>& rhs) const { return mBaseIt == rhs.mBaseIt; }
-		bool operator!=(const ReverseEndianIterator<TBaseIt>& rhs) const { return mBaseIt != rhs.mBaseIt; }
+		constexpr difference_type operator-(const ReverseEndianIterator<TBaseIt>& rhs) const noexcept {
+			return mBaseIt - rhs.mBaseIt;
+		}
+		constexpr difference_type operator+(const ReverseEndianIterator<TBaseIt>& rhs) const noexcept {
+			return mBaseIt + rhs.mBaseIt;
+		}
+		constexpr ReverseEndianIterator<TBaseIt>& operator+=(difference_type diff) noexcept {
+			mBaseIt += diff;
+			return *this;
+		}
+		constexpr ReverseEndianIterator<TBaseIt>& operator-=(difference_type diff) noexcept {
+			mBaseIt -= diff;
+			return *this;
+		}
+		bool operator==(const ReverseEndianIterator<TBaseIt>& rhs) const noexcept { return mBaseIt == rhs.mBaseIt; }
+		bool operator!=(const ReverseEndianIterator<TBaseIt>& rhs) const noexcept { return mBaseIt != rhs.mBaseIt; }
 		TBaseIt& operator++() noexcept { return ++mBaseIt; }
+
 		operator const TBaseIt& () const { return mBaseIt; }
 
 	private:
 		TBaseIt mBaseIt;
 	};
+
+	/// <summary>
+	/// Makes an adapter for an iterator that converts integers to native endianness.
+	/// </summary>
+	template <Endian SourceEndianness, typename TBaseIt>
+	constexpr auto MakeIteratorAdapter(TBaseIt it)
+	{
+		if constexpr (SourceEndianness == Endian::native || sizeof(typename std::iterator_traits<TBaseIt>::value_type) == 1)
+		{
+			return it;
+		}
+		else
+		{
+			return ReverseEndianIterator(std::move(it));
+		}
+	}
 }

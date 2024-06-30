@@ -31,12 +31,12 @@ namespace BitSerializer::Convert::Detail
 		// Decode from Utf-16 to Utf-32
 		else if constexpr (sizeof(TInSym) == sizeof(char16_t)) {
 			out.reserve(out.size() + in.size());
-			Utf16Le::Decode(in.cbegin(), in.cend(), out);
+			Utf16::Decode(in.cbegin(), in.cend(), out);
 		}
 		// Encode to Utf-16 from Utf-32
 		else if constexpr (sizeof(TInSym) == sizeof(char32_t)) {
 			out.reserve(out.size() + in.size());
-			Utf16Le::Encode(in.cbegin(), in.cend(), out);
+			Utf16::Encode(in.cbegin(), in.cend(), out);
 		}
 	}
 
@@ -88,7 +88,7 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding to UTF-16
 			} else if constexpr (hasInternalToUtf32String) {
 				const auto utf32Str = in.ToU32String();
-				Utf16Le::Encode(utf32Str.cbegin(), utf32Str.cend(), out);
+				Utf16::Encode(utf32Str.cbegin(), utf32Str.cend(), out);
 			} else if constexpr (hasInternalToString) {
 				const auto utf8Str = in.ToString();
 				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
@@ -106,7 +106,7 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding to UTF-32
 			else if constexpr (hasInternalToUtf16String) {
 				const auto utf16Str = in.ToU16String();
-				Utf16Le::Decode(utf16Str.cbegin(), utf16Str.cend(), out);
+				Utf16::Decode(utf16Str.cbegin(), utf16Str.cend(), out);
 			} else if constexpr (hasInternalToString) {
 				auto utf8Str = in.ToString();
 				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
@@ -148,13 +148,13 @@ namespace BitSerializer::Convert::Detail
 			else if constexpr (hasInternalFromString_Utf16)
 			{
 				std::u16string utf16Str;
-				Utf16Le::Encode(in.cbegin(), in.cend(), utf16Str);
+				Utf16::Encode(in.cbegin(), in.cend(), utf16Str);
 				out.FromString(utf16Str);
 			}
 			else if constexpr (hasInternalFromString_Utf32)
 			{
 				std::u32string utf32Str;
-				Utf32Le::Encode(in.cbegin(), in.cend(), utf32Str);
+				Utf32::Encode(in.cbegin(), in.cend(), utf32Str);
 				out.FromString(utf32Str);
 			}
 		}
@@ -173,7 +173,7 @@ namespace BitSerializer::Convert::Detail
 			else if constexpr (hasInternalFromString_Utf32)
 			{
 				std::u32string utf32Str;
-				Utf32Le::Encode(in.cbegin(), in.cend(), utf32Str);
+				Utf32::Encode(in.cbegin(), in.cend(), utf32Str);
 				out.FromString(utf32Str);
 			}
 		}
@@ -191,7 +191,7 @@ namespace BitSerializer::Convert::Detail
 			}
 			else if constexpr (hasInternalFromString_Utf16) {
 				std::u16string utf16Str;
-				Utf16Le::Encode(in.cbegin(), in.cend(), utf16Str);
+				Utf16::Encode(in.cbegin(), in.cend(), utf16Str);
 				out.FromString(utf16Str);
 			}
 		}

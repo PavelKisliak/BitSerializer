@@ -99,17 +99,17 @@ namespace BitSerializer::Convert
 		using char_type = char;
 		static constexpr UtfType utfType = UtfType::Utf8;
 		static constexpr char bom[] = { '\xEF', '\xBB', '\xBF' };
-		static constexpr bool lowEndian = true;
+		static constexpr Memory::Endian endianness = Memory::Endian::native == Memory::Endian::little ? Memory::Endian::little : Memory::Endian::big;
 
 		/// <summary>
 		/// Decodes UTF-8 to UTF-16 or UTF-32.
 		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
-			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 8-bit characters");
+			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "The input sequence must be 8-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
 
 			int tails;
@@ -204,7 +204,7 @@ namespace BitSerializer::Convert
 		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char), "Output string must be 8-bit characters (e.g. std::string)");
@@ -286,24 +286,24 @@ namespace BitSerializer::Convert
 		}
 	};
 
-	
-	class Utf16Le
+
+	class Utf16
 	{
 	public:
 		using char_type = char16_t;
-		static constexpr UtfType utfType = UtfType::Utf16le;
+		static constexpr UtfType utfType = Memory::Endian::native == Memory::Endian::little ? UtfType::Utf16le : UtfType::Utf16be;
 		static constexpr char bom[] = { '\xFF', '\xFE' };
-		static constexpr bool lowEndian = true;
+		static constexpr Memory::Endian endianness = Memory::Endian::native == Memory::Endian::little ? Memory::Endian::little : Memory::Endian::big;
 
 		/// <summary>
-		/// Decodes UTF-16LE to UTF-32, UTF-16 (copies 'as is') or UTF-8.
+		/// Decodes UTF-16 to UTF-32, UTF-16 (copies 'as is') or UTF-8.
 		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
-			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 16-bit characters");
+			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "The input sequence must be 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
 
 			if constexpr (sizeof(TOutChar) == sizeof(char))
@@ -365,11 +365,11 @@ namespace BitSerializer::Convert
 		}
 
 		/// <summary>
-		/// Encodes to UTF-16LE from UTF-32, UTF-16 (copies 'as is') or UTF-8.
+		/// Encodes to UTF-16 from UTF-32, UTF-16 (copies 'as is') or UTF-8.
 		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char16_t), "Output string must be 16-bit characters (e.g. std::u16string)");
@@ -418,26 +418,62 @@ namespace BitSerializer::Convert
 	};
 
 
+	class Utf16Le
+	{
+	public:
+		using char_type = char16_t;
+		static constexpr UtfType utfType = UtfType::Utf16le;
+		static constexpr char bom[] = { '\xFF', '\xFE' };
+		static constexpr Memory::Endian endianness = Memory::Endian::little;
+
+		/// <summary>
+		/// Decodes UTF-16LE to UTF-32, UTF-16 or UTF-8.
+		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+		{
+			return Utf16::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, encodePolicy, errorMark);
+		}
+
+		/// <summary>
+		/// Encodes to UTF-16LE from UTF-32, UTF-16 or UTF-8.
+		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+		{
+			static_assert(sizeof(TOutChar) == sizeof(char16_t), "Output string must be 16-bit characters (e.g. std::u16string)");
+
+			const size_t startOutPos = outStr.size();
+			auto it = Utf16::Encode(in, end, outStr, encodePolicy, errorMark);
+			if constexpr (endianness != Utf16::endianness) {
+				Memory::Reverse(outStr.begin() + startOutPos, outStr.end());
+			}
+			return it;
+		}
+	};
+
+
 	class Utf16Be
 	{
 	public:
 		using char_type = char16_t;
 		static constexpr UtfType utfType = UtfType::Utf16be;
 		static constexpr char bom[] = { '\xFE', '\xFF' };
-		static constexpr bool lowEndian = false;
+		static constexpr Memory::Endian endianness = Memory::Endian::big;
 
 		/// <summary>
 		/// Decodes UTF-16BE to UTF-32, UTF-16 or UTF-8.
 		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
-			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 16-bit characters");
-			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
-
-			return Utf16Le::Decode(Memory::ReverseEndianIterator<TInIt>(in), Memory::ReverseEndianIterator<TInIt>(end), outStr, encodePolicy, errorMark);
+			return Utf16::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, encodePolicy, errorMark);
 		}
 
 		/// <summary>
@@ -445,38 +481,39 @@ namespace BitSerializer::Convert
 		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::ThrowException, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char16_t), "Output string must be 16-bit characters (e.g. std::u16string)");
 
 			const size_t startOutPos = outStr.size();
-			auto it = Utf16Le::Encode(in, end, outStr, encodePolicy, errorMark);
-
-			std::for_each(outStr.begin() + startOutPos, outStr.end(), [](TOutChar& sym) {
-				sym = static_cast<TOutChar>(sym >> 8) | static_cast<TOutChar>(sym << 8);
-			});
+			auto it = Utf16::Encode(in, end, outStr, encodePolicy, errorMark);
+			if constexpr (endianness != Utf16::endianness) {
+				Memory::Reverse(outStr.begin() + startOutPos, outStr.end());
+			}
 			return it;
 		}
 	};
 
-	class Utf32Le
+
+	class Utf32
 	{
 	public:
 		using char_type = char32_t;
 		static constexpr UtfType utfType = UtfType::Utf32le;
 		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
-		static constexpr bool lowEndian = true;
+		static constexpr Memory::Endian endianness = Memory::Endian::native == Memory::Endian::little ? Memory::Endian::little : Memory::Endian::big;
 
 		/// <summary>
-		/// Decodes UTF-32LE to UTF-32 (copies 'as is'), UTF-16 or UTF-8.
+		/// Decodes UTF-32 to UTF-32 (copies 'as is'), UTF-16 or UTF-8.
 		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
-			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 32-bit characters");
+			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "The input sequence must be 8-bit characters");
+			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
 
 			if constexpr (sizeof(TOutChar) == sizeof(char_type))
 			{
@@ -486,7 +523,7 @@ namespace BitSerializer::Convert
 			}
 			else if constexpr (sizeof(TOutChar) == sizeof(Utf16Le::char_type))
 			{
-				return Utf16Le::Encode(in, end, outStr, encodePolicy, errorMark);
+				return Utf16::Encode(in, end, outStr, encodePolicy, errorMark);
 			}
 			else if constexpr (sizeof(TOutChar) == sizeof(Utf8::char_type))
 			{
@@ -496,16 +533,16 @@ namespace BitSerializer::Convert
 		}
 
 		/// <summary>
-		/// Encodes UTF-32LE from UTF-32 (copies 'as is'), UTF-16 or UTF-8.
+		/// Encodes UTF-32 from UTF-32 (copies 'as is'), UTF-16 or UTF-8.
 		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char32_t), "Output string must be 32-bit characters (e.g. std::u32string)");
 
-			using TInCharType = decltype(*in);
+			using TInCharType = typename std::iterator_traits<TInIt>::value_type;
 			if constexpr (sizeof(TInCharType) == sizeof(char_type))
 			{
 				for (; in != end; ++in) {
@@ -514,7 +551,7 @@ namespace BitSerializer::Convert
 			}
 			else if constexpr (sizeof(TInCharType) == sizeof(Utf16Le::char_type))
 			{
-				return Utf16Le::Decode(in, end, outStr, encodePolicy, errorMark);
+				return Utf16::Decode(in, end, outStr, encodePolicy, errorMark);
 			}
 			else if constexpr (sizeof(TInCharType) == sizeof(Utf8::char_type))
 			{
@@ -525,46 +562,75 @@ namespace BitSerializer::Convert
 	};
 
 
+	class Utf32Le
+	{
+	public:
+		using char_type = char32_t;
+		static constexpr UtfType utfType = UtfType::Utf32le;
+		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
+		static constexpr Memory::Endian endianness = Memory::Endian::little;
+
+		/// <summary>
+		/// Decodes UTF-32LE to UTF-32, UTF-16 or UTF-8.
+		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+		{
+			return Utf32::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, encodePolicy, errorMark);
+		}
+
+		/// <summary>
+		/// Encodes UTF-32LE from UTF-32, UTF-16 or UTF-8.
+		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+		{
+			const size_t startOutPos = outStr.size();
+			auto it = Utf32::Encode(in, end, outStr, encodePolicy, errorMark);
+			if constexpr (endianness != Utf32::endianness) {
+				Memory::Reverse(outStr.begin() + startOutPos, outStr.end());
+			}
+			return it;
+		}
+	};
+
+
 	class Utf32Be
 	{
 	public:
 		using char_type = char32_t;
 		static constexpr UtfType utfType = UtfType::Utf32be;
 		static constexpr char bom[] = { '\x00', '\x00', '\xFE', '\xFF' };
-		static constexpr bool lowEndian = false;
+		static constexpr Memory::Endian endianness = Memory::Endian::big;
 
 		/// <summary>
 		/// Decodes UTF-32BE to UTF-32, UTF-16 or UTF-8.
 		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Decode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
-			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "Input stream should represents sequence of 32-bit characters");
-			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
-
-			return Utf32Le::Decode(Memory::ReverseEndianIterator<TInIt>(in), Memory::ReverseEndianIterator<TInIt>(end), outStr, encodePolicy, errorMark);
+			return Utf32::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, encodePolicy, errorMark);
 		}
 
 		/// <summary>
-		/// Encodes UTF-32BE from UTF-32, UTF-16 or UTF-8
+		/// Encodes UTF-32BE from UTF-32, UTF-16 or UTF-8.
 		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
-		static TInIt Encode(TInIt in, const TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
-			using TInCharType = decltype(*in);
-			static_assert(sizeof(TInCharType) == sizeof(char) || sizeof(TInCharType) == sizeof(char16_t) || sizeof(TInCharType) == sizeof(char32_t), "Input stream should represents sequence of 8, 16 or 32-bit characters");
-			static_assert(sizeof(TOutChar) == sizeof(char_type), "Output string must be 32-bit characters (e.g. std::u32string)");
-
 			const size_t startOutPos = outStr.size();
-			auto it = Utf32Le::Encode(in, end, outStr, encodePolicy, errorMark);
-
-			std::for_each(outStr.begin() + startOutPos, outStr.end(), [](TOutChar& sym) {
-				sym = (sym >> 24) | ((sym << 8) & 0x00FF0000) | ((sym >> 8) & 0x0000FF00) | (sym << 24);
-			});
+			auto it = Utf32::Encode(in, end, outStr, encodePolicy, errorMark);
+			if constexpr (endianness != Utf32::endianness) {
+				Memory::Reverse(outStr.begin() + startOutPos, outStr.end());
+			}
 			return it;
 		}
 	};
@@ -634,7 +700,7 @@ namespace BitSerializer::Convert
 				// Detecting UTF-32 (LE/BE)
 				if (i % sizeof(Utf32Le::char_type) == 0 && i + sizeof(Utf32Le::char_type) < inputString.size())
 				{
-					if (const uint32_t sym = *reinterpret_cast<const uint32_t*>(&inputString[i]); sym != 0)
+					if (const uint32_t sym = Memory::NativeToLittleEndian(*reinterpret_cast<const uint32_t*>(&inputString[i])); sym != 0)
 					{
 						if ((sym & 0b11111111111111110000000000000000) == 0)
 						{
@@ -651,7 +717,7 @@ namespace BitSerializer::Convert
 				// Detecting UTF-16 (LE/BE)
 				if (i % sizeof(Utf16Le::char_type) == 0 && i + sizeof(Utf16Le::char_type) < inputString.size())
 				{
-					if (const uint16_t sym = *reinterpret_cast<const uint16_t*>(&inputString[i]); sym != 0)
+					if (const uint16_t sym = Memory::NativeToLittleEndian(*reinterpret_cast<const uint16_t*>(&inputString[i])); sym != 0)
 					{
 						if ((sym & 0b1111111100000000) == 0)
 						{
@@ -737,12 +803,10 @@ namespace BitSerializer::Convert
 	/// <summary>
 	/// Allows to read streams in various UTF encodings with automatic detection.
 	/// </summary>
-	template <typename TTargetUtfType, size_t ChunkSize = 256>
+	template <typename TTargetCharType, size_t ChunkSize = 256>
 	class CEncodedStreamReader
 	{
 	public:
-		using utf_type = TTargetUtfType;
-		using target_char_type = typename TTargetUtfType::char_type;
 		static constexpr size_t chunk_size = ChunkSize;
 
 		CEncodedStreamReader(const CEncodedStreamReader&) = delete;
@@ -751,16 +815,14 @@ namespace BitSerializer::Convert
 		CEncodedStreamReader& operator=(CEncodedStreamReader&&) = delete;
 		~CEncodedStreamReader() = default;
 
-		CEncodedStreamReader(std::istream& inputStream, EncodeErrorPolicy encodeErrorPolicy = EncodeErrorPolicy::WriteErrorMark,
-			const target_char_type* errorMark = Detail::GetDefaultErrorMark<target_char_type>())
+		explicit CEncodedStreamReader(std::istream& inputStream, EncodeErrorPolicy encodeErrorPolicy = EncodeErrorPolicy::WriteErrorMark,
+			const TTargetCharType* errorMark = Detail::GetDefaultErrorMark<TTargetCharType>())
 			: mInputStream(inputStream)
 			, mEncodeErrorPolicy(encodeErrorPolicy)
 			, mErrorMark(errorMark)
 		{
 			static_assert((ChunkSize % 4) == 0, "Chunk size must be a multiple of 4");
 			static_assert(ChunkSize >= 32, "Chunk size must be at least 32 bytes for correctly detect the encoding");
-			static_assert(std::is_same_v<TTargetUtfType, Utf8> || std::is_same_v<TTargetUtfType, Utf16Le> || std::is_same_v<TTargetUtfType, Utf32Le>, 
-				"TTargetUtfType can be only UTF-8, UTF-16Le or UTF-32Le");
 
 			if (ReadNextEncodedChunk())
 			{
@@ -771,7 +833,7 @@ namespace BitSerializer::Convert
 		}
 
 		template<typename TAllocator>
-		bool ReadChunk(std::basic_string<target_char_type, std::char_traits<target_char_type>, TAllocator>& outStr)
+		bool ReadChunk(std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>, TAllocator>& outStr)
 		{
 			if (IsEnd())
 			{
@@ -787,14 +849,14 @@ namespace BitSerializer::Convert
 			switch (mUtfType)
 			{
 			case UtfType::Utf8:
-				if constexpr (std::is_same_v<TTargetUtfType, Utf8>)
+				if constexpr (std::is_same_v<TTargetCharType, char>)
 				{
 					outStr.append(mStartDataPtr, mEndDataPtr);
 					mStartDataPtr = mEndDataPtr = mEncodedBuffer;
 				}
 				else
 				{
-					mStartDataPtr = TTargetUtfType::Encode(mStartDataPtr, mEndDataPtr, outStr, mEncodeErrorPolicy, mErrorMark);
+					mStartDataPtr = Utf8::Decode(mStartDataPtr, mEndDataPtr, outStr, mEncodeErrorPolicy, mErrorMark);
 				}
 				break;
 			case UtfType::Utf16le:
@@ -812,8 +874,6 @@ namespace BitSerializer::Convert
 			case UtfType::Utf32be:
 				mStartDataPtr = reinterpret_cast<char*>(Utf32Be::Decode(
 					reinterpret_cast<Utf32Be::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<Utf32Be::char_type>(), outStr, mEncodeErrorPolicy, mErrorMark));
-				break;
-			default:
 				break;
 			}
 			assert(mStartDataPtr <= mEndDataPtr);
@@ -867,7 +927,7 @@ namespace BitSerializer::Convert
 		UtfType mUtfType;
 		std::istream& mInputStream;
 		EncodeErrorPolicy mEncodeErrorPolicy;
-		const target_char_type* mErrorMark;
+		const TTargetCharType* mErrorMark;
 		char mEncodedBuffer[ChunkSize];
 		char* const mEndBufferPtr = mEncodedBuffer + ChunkSize;
 		char* mStartDataPtr = mEncodedBuffer;

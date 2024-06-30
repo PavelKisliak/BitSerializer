@@ -72,58 +72,45 @@ protected:
 class Utf16LeDecodeTest : public Utf16DecodeBaseFixture<Convert::Utf16Le> {};
 class Utf16BeDecodeTest : public Utf16DecodeBaseFixture<Convert::Utf16Be> {};
 
-namespace 
-{
-	template <typename TOutputString = std::u16string>
-	TOutputString SwapByteOrder(const std::u16string& str)
-	{
-		TOutputString result;
-		std::transform(std::cbegin(str), std::cend(str), std::back_inserter(result), [](auto sym) -> char16_t {
-			return (sym >> 8) | (sym << 8);
-		});
-		return result;
-	}
-}
-
 #pragma warning(push)
 #pragma warning(disable: 4566)
 //-----------------------------------------------------------------------------
 // UTF-16 LE: Tests for encoding string
 //-----------------------------------------------------------------------------
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromAnsi) {
-	EXPECT_EQ(u"Hello world!", EncodeUtf16("Hello world!"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"Hello world!"), EncodeUtf16("Hello world!"));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf8) {
-	EXPECT_EQ(u"Привет мир!", EncodeUtf16(UTF8("Привет мир!")));
-	EXPECT_EQ(u"世界，您好！", EncodeUtf16(UTF8("世界，您好！")));
+	EXPECT_EQ(NativeStringToLittleEndian(u"Привет мир!"), EncodeUtf16(UTF8("Привет мир!")));
+	EXPECT_EQ(NativeStringToLittleEndian(u"世界，您好！"), EncodeUtf16(UTF8("世界，您好！")));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf8Surrogates) {
-	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(UTF8("😀😎🙋")));
+	EXPECT_EQ(NativeStringToLittleEndian(u"😀😎🙋"), EncodeUtf16(UTF8("😀😎🙋")));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf16) {
-	EXPECT_EQ(u"Привет мир!", EncodeUtf16(u"Привет мир!"));
-	EXPECT_EQ(u"世界，您好！", EncodeUtf16(u"世界，您好！"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"Привет мир!"), EncodeUtf16(u"Привет мир!"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"世界，您好！"), EncodeUtf16(u"世界，您好！"));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf16Surrogates) {
-	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(u"😀😎🙋"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"😀😎🙋"), EncodeUtf16(u"😀😎🙋"));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromWString) {
-	EXPECT_EQ(u"Привет мир!", EncodeUtf16(L"Привет мир!"));
-	EXPECT_EQ(u"世界，您好！", EncodeUtf16(L"世界，您好！"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"Привет мир!"), EncodeUtf16(L"Привет мир!"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"世界，您好！"), EncodeUtf16(L"世界，您好！"));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf32) {
-	EXPECT_EQ(u"Привет мир!", EncodeUtf16(U"Привет мир!"));
-	EXPECT_EQ(u"世界，您好！", EncodeUtf16(U"世界，您好！"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"Привет мир!"), EncodeUtf16(U"Привет мир!"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"世界，您好！"), EncodeUtf16(U"世界，您好！"));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldEncodeUtf16FromUtf32Surrogates) {
-	EXPECT_EQ(u"😀😎🙋", EncodeUtf16(U"😀😎🙋"));
+	EXPECT_EQ(NativeStringToLittleEndian(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
 }
 
 TEST_F(Utf16LeEncodeTest, ShouldReturnIteratorToEnd)
@@ -144,69 +131,69 @@ TEST_F(Utf16LeEncodeTest, ShouldReturnIteratorToEnd)
 // UTF-16 LE: Tests decoding string
 //-----------------------------------------------------------------------------
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToAnsi) {
-	EXPECT_EQ("Hello world!", DecodeUtf16As<std::string>(u"Hello world!"));
+	EXPECT_EQ("Hello world!", DecodeUtf16As<std::string>(NativeStringToLittleEndian(u"Hello world!")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf8) {
-	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf16As<std::string>(u"Привет мир!"));
-	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf16As<std::string>(u"世界，您好！"));
+	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf16As<std::string>(NativeStringToLittleEndian(u"Привет мир!")));
+	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf16As<std::string>(NativeStringToLittleEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf16) {
-	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(u"Hello world!"));
-	EXPECT_EQ(u"Привет мир!", DecodeUtf16As<std::u16string>(u"Привет мир!"));
-	EXPECT_EQ(u"世界，您好！", DecodeUtf16As<std::u16string>(u"世界，您好！"));
+	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(NativeStringToLittleEndian(u"Hello world!")));
+	EXPECT_EQ(u"Привет мир!", DecodeUtf16As<std::u16string>(NativeStringToLittleEndian(u"Привет мир!")));
+	EXPECT_EQ(u"世界，您好！", DecodeUtf16As<std::u16string>(NativeStringToLittleEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf16WithSurrogates) {
-	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(u"😀😎🙋"));
+	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(NativeStringToLittleEndian(u"😀😎🙋")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToWString) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(u"Hello world!"));
-	EXPECT_EQ(L"Привет мир!", DecodeUtf16As<std::wstring>(u"Привет мир!"));
-	EXPECT_EQ(L"世界，您好！", DecodeUtf16As<std::wstring>(u"世界，您好！"));
+	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(NativeStringToLittleEndian(u"Hello world!")));
+	EXPECT_EQ(L"Привет мир!", DecodeUtf16As<std::wstring>(NativeStringToLittleEndian(u"Привет мир!")));
+	EXPECT_EQ(L"世界，您好！", DecodeUtf16As<std::wstring>(NativeStringToLittleEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf32) {
-	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(u"Hello world!"));
-	EXPECT_EQ(U"Привет мир!", DecodeUtf16As<std::u32string>(u"Привет мир!"));
-	EXPECT_EQ(U"世界，您好！", DecodeUtf16As<std::u32string>(u"世界，您好！"));
+	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(u"Hello world!")));
+	EXPECT_EQ(U"Привет мир!", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(u"Привет мир!")));
+	EXPECT_EQ(U"世界，您好！", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldDecodeUtf16ToUtf32WithSurrogates) {
-	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(u"😀😎🙋"));
+	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(u"😀😎🙋")));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldPutErrorMarkWhenSurrogateStartsWithWrongCode) {
 	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
-	EXPECT_EQ(U"☐☐test☐☐", DecodeUtf16As<std::u32string>(wrongStartCodes + u"test" + wrongStartCodes, Convert::EncodeErrorPolicy::WriteErrorMark));
+	EXPECT_EQ(U"☐☐test☐☐", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(wrongStartCodes + u"test" + wrongStartCodes), Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldPutErrorMarkWhenNoSecondCodeInSurrogate) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"☐test", DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::WriteErrorMark));
+	EXPECT_EQ(U"☐test", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldPutCustomErrorMarkWhenError) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"<ERROR>test", DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::WriteErrorMark, U"<ERROR>"));
+	EXPECT_EQ(U"<ERROR>test", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::WriteErrorMark, U"<ERROR>"));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldHandlePolicyThrowException) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_THROW(DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
+	EXPECT_THROW(DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldHandlePolicySkip) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"test", DecodeUtf16As<std::u32string>(notFullSurrogatePair + u"test", Convert::EncodeErrorPolicy::Skip));
+	EXPECT_EQ(U"test", DecodeUtf16As<std::u32string>(NativeStringToLittleEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::Skip));
 }
 
 TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToEnd)
 {
 	// Arrange
-	constexpr std::u16string_view testStr = u"test";
+	const std::u16string testStr = NativeStringToLittleEndian(u"test");
 
 	// Act
 	std::u32string actualStr;
@@ -220,7 +207,7 @@ TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 {
 	// Arrange
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = u"test_тест" + croppedSequence;
+	const std::u16string testStr = NativeStringToLittleEndian(u"test_тест" + croppedSequence);
 	const size_t expectedPos = testStr.size() - croppedSequence.size();
 
 	// Act
@@ -235,7 +222,7 @@ TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 {
 	// Arrange
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = u"test_тест" + croppedSequence;
+	const std::u16string testStr = NativeStringToLittleEndian(u"test_тест" + croppedSequence);
 	const size_t expectedPos = testStr.size() - croppedSequence.size();
 
 	// Act
@@ -251,7 +238,7 @@ TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 {
 	// Arrange
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = u"test_тест" + croppedSequence;
+	const std::u16string testStr = NativeStringToLittleEndian(u"test_тест" + croppedSequence);
 	const size_t expectedPos = testStr.size() - croppedSequence.size();
 
 	// Act
@@ -267,39 +254,39 @@ TEST_F(Utf16LeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 // UTF-16 BE: Tests for encoding string
 //-----------------------------------------------------------------------------
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromAnsi) {
-	EXPECT_EQ(SwapByteOrder(u"Hello world!"), EncodeUtf16("Hello world!"));
+	EXPECT_EQ(NativeStringToBigEndian(u"Hello world!"), EncodeUtf16("Hello world!"));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8) {
-	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(UTF8("Привет мир!")));
-	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(UTF8("世界，您好！")));
+	EXPECT_EQ(NativeStringToBigEndian(u"Привет мир!"), EncodeUtf16(UTF8("Привет мир!")));
+	EXPECT_EQ(NativeStringToBigEndian(u"世界，您好！"), EncodeUtf16(UTF8("世界，您好！")));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8Surrogates) {
-	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(UTF8("😀😎🙋")));
+	EXPECT_EQ(NativeStringToBigEndian(u"😀😎🙋"), EncodeUtf16(UTF8("😀😎🙋")));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16) {
-	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(u"Привет мир!"));
-	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(u"世界，您好！"));
+	EXPECT_EQ(NativeStringToBigEndian(u"Привет мир!"), EncodeUtf16(u"Привет мир!"));
+	EXPECT_EQ(NativeStringToBigEndian(u"世界，您好！"), EncodeUtf16(u"世界，您好！"));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16Surrogates) {
-	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(u"😀😎🙋"));
+	EXPECT_EQ(NativeStringToBigEndian(u"😀😎🙋"), EncodeUtf16(u"😀😎🙋"));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromWString) {
-	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(L"Привет мир!"));
-	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(L"世界，您好！"));
+	EXPECT_EQ(NativeStringToBigEndian(u"Привет мир!"), EncodeUtf16(L"Привет мир!"));
+	EXPECT_EQ(NativeStringToBigEndian(u"世界，您好！"), EncodeUtf16(L"世界，您好！"));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32) {
-	EXPECT_EQ(SwapByteOrder(u"Привет мир!"), EncodeUtf16(U"Привет мир!"));
-	EXPECT_EQ(SwapByteOrder(u"世界，您好！"), EncodeUtf16(U"世界，您好！"));
+	EXPECT_EQ(NativeStringToBigEndian(u"Привет мир!"), EncodeUtf16(U"Привет мир!"));
+	EXPECT_EQ(NativeStringToBigEndian(u"世界，您好！"), EncodeUtf16(U"世界，您好！"));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32Surrogates) {
-	EXPECT_EQ(SwapByteOrder(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
+	EXPECT_EQ(NativeStringToBigEndian(u"😀😎🙋"), EncodeUtf16(U"😀😎🙋"));
 }
 
 TEST_F(Utf16BeEncodeTest, ShouldReturnIteratorToEnd)
@@ -320,65 +307,65 @@ TEST_F(Utf16BeEncodeTest, ShouldReturnIteratorToEnd)
 // UTF-16 BE: Tests decoding string
 //-----------------------------------------------------------------------------
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToAnsi) {
-	EXPECT_EQ("Hello world!", DecodeUtf16As<std::string>(SwapByteOrder(u"Hello world!")));
+	EXPECT_EQ("Hello world!", DecodeUtf16As<std::string>(NativeStringToBigEndian(u"Hello world!")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf8) {
-	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf16As<std::string>(SwapByteOrder(u"Привет мир!")));
-	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf16As<std::string>(SwapByteOrder(u"世界，您好！")));
+	EXPECT_EQ(UTF8("Привет мир!"), DecodeUtf16As<std::string>(NativeStringToBigEndian(u"Привет мир!")));
+	EXPECT_EQ(UTF8("世界，您好！"), DecodeUtf16As<std::string>(NativeStringToBigEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16Le) {
-	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(SwapByteOrder(u"Hello world!")));
-	EXPECT_EQ(u"Привет мир!", DecodeUtf16As<std::u16string>(SwapByteOrder(u"Привет мир!")));
-	EXPECT_EQ(u"世界，您好！", DecodeUtf16As<std::u16string>(SwapByteOrder(u"世界，您好！")));
+	EXPECT_EQ(u"Hello world!", DecodeUtf16As<std::u16string>(NativeStringToBigEndian(u"Hello world!")));
+	EXPECT_EQ(u"Привет мир!", DecodeUtf16As<std::u16string>(NativeStringToBigEndian(u"Привет мир!")));
+	EXPECT_EQ(u"世界，您好！", DecodeUtf16As<std::u16string>(NativeStringToBigEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16LeWithSurrogates) {
-	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(SwapByteOrder(u"😀😎🙋")));
+	EXPECT_EQ(u"😀😎🙋", DecodeUtf16As<std::u16string>(NativeStringToBigEndian(u"😀😎🙋")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToWString) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(SwapByteOrder(u"Hello world!")));
-	EXPECT_EQ(L"Привет мир!", DecodeUtf16As<std::wstring>(SwapByteOrder(u"Привет мир!")));
-	EXPECT_EQ(L"世界，您好！", DecodeUtf16As<std::wstring>(SwapByteOrder(u"世界，您好！")));
+	EXPECT_EQ(L"Hello world!", DecodeUtf16As<std::wstring>(NativeStringToBigEndian(u"Hello world!")));
+	EXPECT_EQ(L"Привет мир!", DecodeUtf16As<std::wstring>(NativeStringToBigEndian(u"Привет мир!")));
+	EXPECT_EQ(L"世界，您好！", DecodeUtf16As<std::wstring>(NativeStringToBigEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32) {
-	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(SwapByteOrder(u"Hello world!")));
-	EXPECT_EQ(U"Привет мир!", DecodeUtf16As<std::u32string>(SwapByteOrder(u"Привет мир!")));
-	EXPECT_EQ(U"世界，您好！", DecodeUtf16As<std::u32string>(SwapByteOrder(u"世界，您好！")));
+	EXPECT_EQ(U"Hello world!", DecodeUtf16As<std::u32string>(NativeStringToBigEndian(u"Hello world!")));
+	EXPECT_EQ(U"Привет мир!", DecodeUtf16As<std::u32string>(NativeStringToBigEndian(u"Привет мир!")));
+	EXPECT_EQ(U"世界，您好！", DecodeUtf16As<std::u32string>(NativeStringToBigEndian(u"世界，您好！")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32WithSurrogates) {
-	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(SwapByteOrder(u"😀😎🙋")));
+	EXPECT_EQ(U"😀😎🙋", DecodeUtf16As<std::u32string>(NativeStringToBigEndian(u"😀😎🙋")));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldPutErrorMarkWhenSurrogateStartsWithWrongCode) {
 	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
 	EXPECT_EQ(U"☐☐test☐☐",
-		DecodeUtf16As<std::u32string>(SwapByteOrder(wrongStartCodes + u"test" + wrongStartCodes), Convert::EncodeErrorPolicy::WriteErrorMark));
+		DecodeUtf16As<std::u32string>(NativeStringToBigEndian(wrongStartCodes + u"test" + wrongStartCodes), Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldPutErrorMarkWhenNoSecondCodeInSurrogate) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"☐test", DecodeUtf16As<std::u32string>(SwapByteOrder(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::WriteErrorMark));
+	EXPECT_EQ(U"☐test", DecodeUtf16As<std::u32string>(NativeStringToBigEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::WriteErrorMark));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldHandlePolicyThrowException) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_THROW(DecodeUtf16As<std::u32string>(SwapByteOrder(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
+	EXPECT_THROW(DecodeUtf16As<std::u32string>(NativeStringToBigEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldHandlePolicySkip) {
 	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	EXPECT_EQ(U"test", DecodeUtf16As<std::u32string>(SwapByteOrder(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::Skip));
+	EXPECT_EQ(U"test", DecodeUtf16As<std::u32string>(NativeStringToBigEndian(notFullSurrogatePair + u"test"), Convert::EncodeErrorPolicy::Skip));
 }
 
 TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToEnd)
 {
 	// Arrange
-	const std::u16string testStr = SwapByteOrder(u"test");
+	const std::u16string testStr = NativeStringToBigEndian(u"test");
 
 	// Act
 	std::u32string actualStr;
@@ -392,7 +379,7 @@ TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 {
 	// Arrange
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = SwapByteOrder(u"test_тест" + croppedSequence);
+	const std::u16string testStr = NativeStringToBigEndian(u"test_тест" + croppedSequence);
 	const size_t expectedPos = testStr.size() - croppedSequence.size();
 
 	// Act
@@ -408,7 +395,7 @@ TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 {
 	// Arrange
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = SwapByteOrder(u"test_тест" + croppedSequence);
+	const std::u16string testStr = NativeStringToBigEndian(u"test_тест" + croppedSequence);
 	const size_t expectedPos = testStr.size() - croppedSequence.size();
 
 	// Act
@@ -424,7 +411,7 @@ TEST_F(Utf16BeDecodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEndWhenDec
 {
 	// Arrange
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = SwapByteOrder(u"test_тест" + croppedSequence);
+	const std::u16string testStr = NativeStringToBigEndian(u"test_тест" + croppedSequence);
 	const size_t expectedPos = testStr.size() - croppedSequence.size();
 
 	// Act

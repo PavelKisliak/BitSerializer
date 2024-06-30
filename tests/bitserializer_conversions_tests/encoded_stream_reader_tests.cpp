@@ -8,7 +8,7 @@
 using namespace BitSerializer;
 
 using testing::Types;
-typedef Types<Convert::Utf8, Convert::Utf16Le, Convert::Utf32Le> Implementations;
+typedef Types<char, char16_t, char32_t, wchar_t> Implementations;
 
 // Tests for all implementations of ICsvReader
 TYPED_TEST_SUITE(EncodedStreamReaderTest, Implementations);

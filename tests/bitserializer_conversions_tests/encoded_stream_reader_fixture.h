@@ -5,27 +5,26 @@
 #pragma once
 #include <memory>
 #include <gtest/gtest.h>
-#include "bitserializer/conversion_detail/convert_utf.h"
+#include "bitserializer/convert.h"
 
-template <class TTargetUtfType>
+template <class TTargetCharType>
 class EncodedStreamReaderTest : public ::testing::Test
 {
 public:
 	// Use minimal chunk size for simplify testing all streaming cases
-	using reader_type = BitSerializer::Convert::CEncodedStreamReader<TTargetUtfType, 32>;
-	using target_char_type = typename TTargetUtfType::char_type;
-	using target_string_type = std::basic_string<target_char_type, std::char_traits<target_char_type>>;
+	using reader_type = BitSerializer::Convert::CEncodedStreamReader<TTargetCharType, 32>;
+	using target_string_type = std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>>;
 
 	template <typename TSourceUtfType>
 	void PrepareEncodedStreamReader(std::u32string_view testStr, bool addBom = false,
 		BitSerializer::Convert::EncodeErrorPolicy encodeErrorPolicy = BitSerializer::Convert::EncodeErrorPolicy::WriteErrorMark,
-		const target_char_type* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<target_char_type>())
+		const TTargetCharType* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<TTargetCharType>())
 	{
 		using source_char_type = typename TSourceUtfType::char_type;
 		using source_string_type = std::basic_string<source_char_type, std::char_traits<source_char_type>>;
 
-		// Prepare expected string in target UTF encoding
-		auto it = TTargetUtfType::Encode(testStr.cbegin(), testStr.cend(), mExpectedString, encodeErrorPolicy, errorMark);
+		// Prepare expected string in the native UTF encoding
+		mExpectedString = BitSerializer::Convert::To<target_string_type>(testStr);
 
 		// Encode test string to specified UTF which will be used as source of stream
 		if (addBom) {

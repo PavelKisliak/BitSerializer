@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -24,12 +24,13 @@ protected:
 		if (withBom) {
 			sourceStr.append(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
 		}
-		// UTF encoding but just for ANSI range
+
+		// Simple UTF encoding just for ANSI range
 		for (const char ch : testAnsiCsv)
 		{
 			for (size_t c = 0; c < sizeof(char_type); c++)
 			{
-				if constexpr (TUtfTraits::lowEndian) {
+				if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::native) {
 					sourceStr.push_back(c ? 0 : ch);
 				}
 				else {
@@ -87,7 +88,7 @@ protected:
 		// UTF decoding but just for ANSI range
 		string_type actualJson;
 		const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-		if constexpr (TUtfTraits::lowEndian) {
+		if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::native) {
 			actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
 		}
 		else

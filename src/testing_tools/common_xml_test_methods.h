@@ -26,7 +26,7 @@ void TestLoadXmlFromEncodedStream(const bool withBom)
 	{
 		for (size_t c = 0; c < sizeof(char_type); c++)
 		{
-			if constexpr (TUtfTraits::lowEndian) {
+			if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::little) {
 				sourceStr.push_back(c ? 0 : ch);
 			}
 			else {
@@ -84,7 +84,7 @@ void TestSaveXmlToEncodedStream(const bool withBom)
 	// UTF decoding but just for ANSI range
 	string_type actualXml;
 	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-	if constexpr (TUtfTraits::lowEndian) {
+	if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::little) {
 		actualXml.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
 	}
 	else

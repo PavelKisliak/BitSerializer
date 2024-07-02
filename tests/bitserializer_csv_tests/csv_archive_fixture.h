@@ -18,26 +18,19 @@ protected:
 	{
 		// Arrange
 		using char_type = typename TUtfTraits::char_type;
-		const std::string testAnsiCsv = "TestValue\r\nHello world!";
+		constexpr std::string_view testAnsiCsv = "TestValue\r\nHello world!";
 		std::string sourceStr;
 		// Add Bom (if required)
 		if (withBom) {
 			sourceStr.append(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
 		}
 
-		// Simple UTF encoding just for ANSI range
-		for (const char ch : testAnsiCsv)
-		{
-			for (size_t c = 0; c < sizeof(char_type); c++)
-			{
-				if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::native) {
-					sourceStr.push_back(c ? 0 : ch);
-				}
-				else {
-					sourceStr.push_back(c == (sizeof(char_type) - 1) ? ch : 0);
-				}
-			}
+		// Simple UTF encoding (just for ANSI range)
+		std::basic_string<typename TUtfTraits::char_type> temp(BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiCsv)), BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiCsv)));
+		if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
+			BitSerializer::Memory::Reverse(begin(temp), end(temp));
 		}
+		sourceStr.append(reinterpret_cast<const char*>(temp.data()), temp.size() * sizeof(typename TUtfTraits::char_type));
 		std::stringstream inputStream(sourceStr);
 
 		// Act
@@ -85,22 +78,12 @@ protected:
 			dataSize -= sizeof(TUtfTraits::bom);
 			EXPECT_EQ(expectedBom, actualBom);
 		}
-		// UTF decoding but just for ANSI range
+		// Simple UTF decoding (just for ANSI range)
 		string_type actualJson;
 		const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-		if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::native) {
-			actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
-		}
-		else
-		{
-			for (size_t i = 0; i < targetCharCount; i++)
-			{
-				char_type ch = 0;
-				for (size_t c = 0; c < sizeof(char_type); c++) {
-					ch = (ch << 8) | dataIt[i * sizeof(char_type) + c];
-				}
-				actualJson.push_back(ch);
-			}
+		actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+		if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
+			BitSerializer::Memory::Reverse(actualJson.begin(), actualJson.end());
 		}
 		// Test JSON
 		EXPECT_EQ(expectedCsv, actualJson);

@@ -17,7 +17,7 @@ pr:
 
 variables:
 - name: CmakeGenOptions
-  value: -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+  value: -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
   readonly: true
 
 jobs:
@@ -71,16 +71,32 @@ jobs:
 
   - template: unix-jobs-template.yml
     parameters:
-      name: 'Ubuntu_Clang_15_CXX20'
+      name: 'Ubuntu_Clang_13_CXX17'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install clang-15 --install-suggests'
+      installToolsCmd: 'sudo apt-get install clang-13 --install-suggests'
       vcpkgTriplet: "x64-linux"
-      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15 $(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
+      cmakeGenArgs: '-DCMAKE_C_COMPILER=clang-13 -DCMAKE_CXX_COMPILER=clang++-13 $(CmakeGenOptions)'
 
   - template: unix-jobs-template.yml
     parameters:
-      name: 'MacOS_AppleClang_13'
+      name: 'MacOS12_AppleClang_14'
       image: 'macOS-12'
+      vcpkgTriplet: "x64-osx"
+      vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
+      cmakeGenArgs: '$(CmakeGenOptions)'
+
+  - template: unix-jobs-template.yml
+    parameters:
+      name: 'MacOS13_AppleClang'
+      image: 'macOS-13'
+      vcpkgTriplet: "x64-osx"
+      vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
+      cmakeGenArgs: '$(CmakeGenOptions)'
+
+  - template: unix-jobs-template.yml
+    parameters:
+      name: 'MacOS14_AppleClang'
+      image: 'macOS-14'
       vcpkgTriplet: "x64-osx"
       vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
       cmakeGenArgs: '$(CmakeGenOptions)'

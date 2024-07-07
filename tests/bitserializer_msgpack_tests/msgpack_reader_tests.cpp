@@ -26,44 +26,13 @@ namespace
 		return outStr;
 	}
 
-	template <typename T, std::enable_if_t<sizeof(T) == 2 && std::is_integral_v<T>, int> = 0>
+	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	std::string EncodeIntegralValue(uint8_t code, T value)
 	{
 		std::string outStr;
 		outStr.push_back(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outStr.push_back(valPtr[1]);
-		outStr.push_back(valPtr[0]);
-		return outStr;
-	}
-
-	template <typename T, std::enable_if_t<sizeof(T) == 4 && std::is_integral_v<T>, int> = 0>
-	std::string EncodeIntegralValue(uint8_t code, T value)
-	{
-		std::string outStr;
-		outStr.push_back(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outStr.push_back(valPtr[3]);
-		outStr.push_back(valPtr[2]);
-		outStr.push_back(valPtr[1]);
-		outStr.push_back(valPtr[0]);
-		return outStr;
-	}
-
-	template <typename T, std::enable_if_t<sizeof(T) == 8 && std::is_integral_v<T>, int> = 0>
-	std::string EncodeIntegralValue(uint8_t code, T value)
-	{
-		std::string outStr;
-		outStr.push_back(static_cast<char>(code));
-		const char* valPtr = reinterpret_cast<const char*>(&value);
-		outStr.push_back(valPtr[7]);
-		outStr.push_back(valPtr[6]);
-		outStr.push_back(valPtr[5]);
-		outStr.push_back(valPtr[4]);
-		outStr.push_back(valPtr[3]);
-		outStr.push_back(valPtr[2]);
-		outStr.push_back(valPtr[1]);
-		outStr.push_back(valPtr[0]);
+		const auto networkVal = BitSerializer::Memory::NativeToBigEndian(value);
+		outStr.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 		return outStr;
 	}
 }

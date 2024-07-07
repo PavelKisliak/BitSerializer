@@ -35,7 +35,7 @@ ___
 (\*) Minimal requirement for RapidYaml archive is VS2019.
 
 #### Limitations:
- - Big endian platforms are not supported.
+ - Big endian platforms are not supported (WIP, should work in the latest `master`, but only for archives without third party dependencies - CSV, MsgPack).
  - Work without exceptions is not supported.
 
 ### Performance

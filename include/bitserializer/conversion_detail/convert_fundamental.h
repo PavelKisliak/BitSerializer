@@ -184,7 +184,7 @@ namespace BitSerializer::Convert::Detail
 		), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		char buf[32];
+		char buf[42];
 		const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
 		if (rc.ec != std::errc())
 		{

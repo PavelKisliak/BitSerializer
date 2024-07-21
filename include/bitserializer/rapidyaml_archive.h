@@ -54,7 +54,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			using RapidYamlNode = ryml::NodeRef;
 			using key_type_view = std::basic_string_view<key_type::value_type>;
 
-			explicit RapidYamlScopeBase(const RapidYamlNode& node, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {}) noexcept
+			RapidYamlScopeBase() = default;
+			RapidYamlScopeBase(const RapidYamlNode& node, RapidYamlScopeBase* parent, key_type_view parentKey) noexcept
 				: mNode(node)
 				, mParent(parent)
 				, mParentKey(parentKey)
@@ -146,7 +147,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			RapidYamlNode mNode;
-			RapidYamlScopeBase* mParent;
+			RapidYamlScopeBase* mParent = nullptr;
 			key_type_view mParentKey;
 		};
 
@@ -460,19 +461,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 		public:
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
 			RapidYamlRootScope& operator=(const RapidYamlRootScope&) = delete;
+			RapidYamlRootScope(RapidYamlRootScope&&) = delete;
+			RapidYamlRootScope& operator=(RapidYamlRootScope&&) = delete;
 
-			RapidYamlRootScope(const char* inputStr, SerializationContext& serializationContext)
+			RapidYamlRootScope(std::string_view inputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
-				, RapidYamlScopeBase(mRootNode)
-				, mOutput(nullptr)
-			{
-				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-				Parse<c4::yml::Parser>(inputStr);
-			}
-
-			RapidYamlRootScope(const std::string& inputStr, SerializationContext& serializationContext)
-				: TArchiveScope<TMode>(serializationContext)
-				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -481,15 +474,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
-				, RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStr)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
+				mNode = mTree.rootref();
 			}
 
 			RapidYamlRootScope(std::istream& inputStream, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
-				, RapidYamlScopeBase(mRootNode)
 				, mOutput(nullptr)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -506,11 +498,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			RapidYamlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
-				, RapidYamlScopeBase(mRootNode)
 				, mOutput(&outputStream)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
+				mNode = mTree.rootref();
 			}
+
+			~RapidYamlRootScope() = default;
 
 			/// <summary>
 			/// Returns root node as object type in YAML.
@@ -519,17 +513,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					if (mRootNode.is_map())
+					if (mNode.is_map())
 					{
-						return std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext());
+						return std::make_optional<RapidYamlObjectScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext());
 					}
 					HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 					return std::nullopt;
 				}
 				else
 				{
-					mRootNode |= ryml::MAP;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext());
+					mNode |= ryml::MAP;
+					return std::make_optional<RapidYamlObjectScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext());
 				}
 			}
 
@@ -541,17 +535,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					if (mRootNode.is_seq())
+					if (mNode.is_seq())
 					{
-						return std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext(), mRootNode.num_children());
+						return std::make_optional<RapidYamlArrayScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext(), mNode.num_children());
 					}
 					HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 					return std::nullopt;
 				}
 				else
 				{
-					mRootNode |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(mRootNode, TArchiveScope<TMode>::GetContext(), arraySize);
+					mNode |= ryml::SEQ;
+					return std::make_optional<RapidYamlArrayScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext(), arraySize);
 				}
 			}
 
@@ -583,15 +577,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 		private:
-			RapidYamlRootScope(RapidYamlRootScope&&) = default;
-			RapidYamlRootScope& operator=(RapidYamlRootScope&&) = default;
-
 			template <typename T>
 			void Parse(std::string_view inputStr)
 			{
 				T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
 				mTree = parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()));
-				mRootNode = mTree.rootref();
+				mNode = mTree.rootref();
 			}
 
 			static void ErrorCallback(const char* msg, size_t length, ryml::Location location, [[maybe_unused]] void* user_data)
@@ -600,7 +591,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			ryml::Tree mTree;
-			RapidYamlNode mRootNode = mTree.rootref();
 			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
 		};
 	}

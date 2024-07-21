@@ -993,9 +993,9 @@ TYPED_TEST(MsgPackReaderTest, ShouldCheckIsEnd)
 TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfFixedSignedInt)
 {
 	constexpr auto expectedType = BitSerializer::MsgPack::Detail::ValueType::SignedInteger;
-	for (char i = -32; i < 0; ++i)
+	for (int i = 0xE0; i <= 0xFF; ++i)
 	{
-		this->PrepareReader({ i });
+		this->PrepareReader({ static_cast<char>(i) });
 		EXPECT_EQ(expectedType, this->mMsgPackReader->ReadValueType());
 	}
 }
@@ -1148,7 +1148,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipFixInt)
 	{
 		this->PrepareReader({ static_cast<char>(i), '\x10' });
 		this->mMsgPackReader->SkipValue();
-		char value = -128;
+		char value = '\x80';
 		EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 		EXPECT_EQ(16, value);
 	}
@@ -1179,7 +1179,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBoolean)
 TYPED_TEST(MsgPackReaderTest, ShouldSkipFloat)
 {
 	this->PrepareReader("\xCA\x40\x48\xF5\xC3\x10");
-	char value = -1;
+	char value = '\xFF';
 
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
@@ -1189,7 +1189,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipFloat)
 TYPED_TEST(MsgPackReaderTest, ShouldSkipDouble)
 {
 	this->PrepareReader("\xCB\x40\x09\x21\xFB\x54\x52\x45\x50\x10");
-	char value = -1;
+	char value = '\xFF';
 
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));

@@ -328,62 +328,62 @@ namespace
 	{
 		if (pos < inputData.size())
 		{
-			const char byteCode = inputData[pos];
-			if (byteCode >= -32)
+			const auto byteCode = static_cast<uint_fast8_t>(inputData[pos]);
+			if (byteCode < 0x80 || byteCode >= 0xE0)
 			{
 				++pos;
-				return Detail::ConvertByPolicy(byteCode, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
+				return Detail::ConvertByPolicy(static_cast<int8_t>(byteCode), outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCC')
+			if (byteCode == 0xCC)
 			{
 				++pos;
 				uint8_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCD')
+			if (byteCode == 0xCD)
 			{
 				++pos;
 				uint16_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCE')
+			if (byteCode == 0xCE)
 			{
 				++pos;
 				uint32_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCF')
+			if (byteCode == 0xCF)
 			{
 				++pos;
 				uint64_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD0')
+			if (byteCode == 0xD0)
 			{
 				++pos;
 				int8_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD1')
+			if (byteCode == 0xD1)
 			{
 				++pos;
 				int16_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD2')
+			if (byteCode == 0xD2)
 			{
 				++pos;
 				int32_t val;
 				GetValue(inputData, pos, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD3')
+			if (byteCode == 0xD3)
 			{
 				++pos;
 				int64_t val;
@@ -391,12 +391,12 @@ namespace
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 			// Read from boolean
-			if (byteCode == '\xC2')
+			if (byteCode == 0xC2)
 			{
 				++pos;
 				return Detail::ConvertByPolicy(0, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xC3')
+			if (byteCode == 0xC3)
 			{
 				++pos;
 				return Detail::ConvertByPolicy(1, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
@@ -426,7 +426,7 @@ namespace
 				{
 					extTypeInfo.ExtTypeCode = inputData[pos + 1];
 					// Currently only timestamp is specified as extension type
-					if (extTypeInfo.ExtTypeCode == -1) {
+					if (extTypeInfo.ExtTypeCode == '\xFF') {
 						extTypeInfo.ValueType = ValueType::Timestamp;
 					}
 					return true;
@@ -443,7 +443,7 @@ namespace
 				{
 					extTypeInfo.ExtTypeCode = inputData[pos + 1 + metaInfo.DataSize];
 					// Currently only timestamp is specified as extension type
-					if (extTypeInfo.ExtTypeCode == -1) {
+					if (extTypeInfo.ExtTypeCode == '\xFF') {
 						extTypeInfo.ValueType = ValueType::Timestamp;
 					}
 					return true;
@@ -667,7 +667,7 @@ namespace BitSerializer::MsgPack::Detail
 	bool CMsgPackStringReader::ReadValue(CBinTimestamp& timestamp)
 	{
 		ExtTypeInfo extTypeInfo;
-		if (ReadExtFamilyType(mInputData, mPos, extTypeInfo) && extTypeInfo.ExtTypeCode == -1)
+		if (ReadExtFamilyType(mInputData, mPos, extTypeInfo) && extTypeInfo.ExtTypeCode == '\xFF')
 		{
 			mPos += extTypeInfo.DataOffset;
 			if (extTypeInfo.Size == 4)
@@ -934,63 +934,64 @@ namespace
 	template <typename T>
 	bool ReadInteger(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue, const SerializationOptions& serializationOptions)
 	{
-		if (const auto byteCode = binaryStreamReader.PeekByte())
+		if (const auto optByteCode = binaryStreamReader.PeekByte())
 		{
-			if (byteCode >= -32)
+			const auto byteCode = static_cast<uint_fast8_t>(optByteCode.value());
+			if (byteCode < 0x80 || byteCode >= 0xE0)
 			{
 				binaryStreamReader.GotoNextByte();
-				return Detail::ConvertByPolicy(*byteCode, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
+				return Detail::ConvertByPolicy(static_cast<int8_t>(byteCode), outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCC')
+			if (byteCode == 0xCC)
 			{
 				binaryStreamReader.GotoNextByte();
 				uint8_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCD')
+			if (byteCode == 0xCD)
 			{
 				binaryStreamReader.GotoNextByte();
 				uint16_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCE')
+			if (byteCode == 0xCE)
 			{
 				binaryStreamReader.GotoNextByte();
 				uint32_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xCF')
+			if (byteCode == 0xCF)
 			{
 				binaryStreamReader.GotoNextByte();
 				uint64_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD0')
+			if (byteCode == 0xD0)
 			{
 				binaryStreamReader.GotoNextByte();
 				int8_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD1')
+			if (byteCode == 0xD1)
 			{
 				binaryStreamReader.GotoNextByte();
 				int16_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD2')
+			if (byteCode == 0xD2)
 			{
 				binaryStreamReader.GotoNextByte();
 				int32_t val;
 				GetValue(binaryStreamReader, val);
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xD3')
+			if (byteCode == 0xD3)
 			{
 				binaryStreamReader.GotoNextByte();
 				int64_t val;
@@ -998,17 +999,17 @@ namespace
 				return Detail::ConvertByPolicy(val, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
 			// Read from boolean
-			if (byteCode == '\xC2')
+			if (byteCode == 0xC2)
 			{
 				binaryStreamReader.GotoNextByte();
 				return Detail::ConvertByPolicy(0, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			if (byteCode == '\xC3')
+			if (byteCode == 0xC3)
 			{
 				binaryStreamReader.GotoNextByte();
 				return Detail::ConvertByPolicy(1, outValue, serializationOptions.mismatchedTypesPolicy, serializationOptions.overflowNumberPolicy);
 			}
-			HandleMismatchedTypesPolicy(binaryStreamReader, ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, serializationOptions.mismatchedTypesPolicy);
+			HandleMismatchedTypesPolicy(binaryStreamReader, ByteCodeTable[byteCode].Type, serializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
 		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
@@ -1035,7 +1036,7 @@ namespace
 				{
 					extTypeInfo.ExtTypeCode = *extCode;
 					// Currently only timestamp is specified as extension type
-					if (extTypeInfo.ExtTypeCode == -1) {
+					if (extTypeInfo.ExtTypeCode == '\xFF') {
 						extTypeInfo.ValueType = ValueType::Timestamp;
 					}
 					binaryStreamReader.SetPosition(prevPos);
@@ -1053,7 +1054,7 @@ namespace
 				{
 					extTypeInfo.ExtTypeCode = *extCode;
 					// Currently only timestamp is specified as extension type
-					if (extTypeInfo.ExtTypeCode == -1) {
+					if (extTypeInfo.ExtTypeCode == '\xFF') {
 						extTypeInfo.ValueType = ValueType::Timestamp;
 					}
 					binaryStreamReader.SetPosition(prevPos);
@@ -1271,7 +1272,7 @@ namespace BitSerializer::MsgPack::Detail
 	bool CMsgPackStreamReader::ReadValue(CBinTimestamp& timestamp)
 	{
 		ExtTypeInfo extTypeInfo;
-		if (ReadExtFamilyType(mBinaryStreamReader, extTypeInfo) && extTypeInfo.ExtTypeCode == -1)
+		if (ReadExtFamilyType(mBinaryStreamReader, extTypeInfo) && extTypeInfo.ExtTypeCode == '\xFF')
 		{
 			mBinaryStreamReader.SetPosition(mBinaryStreamReader.GetPosition() + extTypeInfo.DataOffset);
 			if (extTypeInfo.Size == 4)

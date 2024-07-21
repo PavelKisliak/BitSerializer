@@ -26,11 +26,11 @@ protected:
 		}
 
 		// Simple UTF encoding (just for ANSI range)
-		std::basic_string<typename TUtfTraits::char_type> temp(BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiCsv)), BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiCsv)));
+		std::basic_string<char_type> temp(BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiCsv)), BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiCsv)));
 		if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
 			BitSerializer::Memory::Reverse(begin(temp), end(temp));
 		}
-		sourceStr.append(reinterpret_cast<const char*>(temp.data()), temp.size() * sizeof(typename TUtfTraits::char_type));
+		sourceStr.append(reinterpret_cast<const char*>(temp.data()), temp.size() * sizeof(char_type));
 		std::stringstream inputStream(sourceStr);
 
 		// Act

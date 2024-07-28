@@ -10,6 +10,7 @@
 #include <iterator>
 #include <string>
 #include <cstring>
+#include <variant>
 #include "bitserializer/conversion_detail/memory_utils.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 
@@ -207,6 +208,7 @@ namespace BitSerializer::Convert
 		static TInIt Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			EncodeErrorPolicy encodePolicy = EncodeErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
+			static_assert(sizeof(decltype(*in)) > sizeof(char_type), "The input sequence must be at least 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char), "Output string must be 8-bit characters (e.g. std::string)");
 
 			using InCharType = decltype(*in);
@@ -928,9 +930,81 @@ namespace BitSerializer::Convert
 		std::istream& mInputStream;
 		EncodeErrorPolicy mEncodeErrorPolicy;
 		const TTargetCharType* mErrorMark;
-		char mEncodedBuffer[ChunkSize];
+		char mEncodedBuffer[ChunkSize]{};
 		char* const mEndBufferPtr = mEncodedBuffer + ChunkSize;
 		char* mStartDataPtr = mEncodedBuffer;
 		char* mEndDataPtr = mEncodedBuffer;
+	};
+
+	/// <summary>
+	/// Allows to write any string types to streams in various UTF encodings.
+	/// </summary>
+	class CEncodedStreamWriter
+	{
+	public:
+		CEncodedStreamWriter(std::ostream& outputStream, UtfType targetUtfType, bool addBom)
+			: mOutputStream(outputStream)
+		{
+			switch (targetUtfType)
+			{
+			case UtfType::Utf8:
+				mUtfToolset.emplace<std::pair<Utf8, std::string>>();
+				break;
+			case UtfType::Utf16le:
+				mUtfToolset.emplace<std::pair<Utf16Le, std::u16string>>();
+				break;
+			case UtfType::Utf16be:
+				mUtfToolset.emplace<std::pair<Utf16Be, std::u16string>>();
+				break;
+			case UtfType::Utf32le:
+				mUtfToolset.emplace<std::pair<Utf32Le, std::u32string>>();
+				break;
+			case UtfType::Utf32be:
+				mUtfToolset.emplace<std::pair<Utf32Be, std::u32string>>();
+				break;
+			}
+
+			if (addBom)
+			{
+				WriteBom(mOutputStream, targetUtfType);
+			}
+		}
+
+		template <typename TCharType>
+		void Write(const std::basic_string_view<TCharType>& str)
+		{
+			std::visit([str, this](auto&& utfToolset)
+			{
+				if constexpr (sizeof(TCharType) == 1 && sizeof(decltype(utfToolset.second.front())) == 1)
+				{
+					// Write "as is", when source and output are UTF-8
+					mOutputStream.write(reinterpret_cast<const char*>(str.data()), static_cast<std::streamsize>(str.size()));
+				}
+				else
+				{
+					utfToolset.second.clear();
+					utfToolset.first.Encode(str.data(), str.data() +  str.size(), utfToolset.second);
+					mOutputStream.write(reinterpret_cast<const char*>(utfToolset.second.data()),
+						static_cast<std::streamsize>(utfToolset.second.size() * sizeof(decltype(utfToolset.second.front()))));
+				}
+			}, mUtfToolset);
+		}
+
+		template <typename TCharType, typename TAllocator>
+		void Write(const std::basic_string<TCharType, std::char_traits<TCharType>, TAllocator>& str)
+		{
+			Write(std::basic_string_view<TCharType>(str.data(), str.size()));
+		}
+
+		template <typename TCharType, size_t ArraySize>
+		void Write(const TCharType(&str)[ArraySize])
+		{
+			Write(std::basic_string_view<TCharType>(std::cbegin(str), std::size(str)));
+		}
+
+	private:
+		using UtfVariant = std::variant<std::pair<Utf8, std::string>, std::pair<Utf16Le, std::u16string>, std::pair<Utf16Be, std::u16string>, std::pair<Utf32Le, std::u32string>, std::pair<Utf32Be, std::u32string>>;
+		std::ostream& mOutputStream;
+		UtfVariant mUtfToolset;
 	};
 }

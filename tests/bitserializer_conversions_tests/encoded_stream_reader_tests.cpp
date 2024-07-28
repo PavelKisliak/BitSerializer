@@ -10,7 +10,7 @@ using namespace BitSerializer;
 using testing::Types;
 typedef Types<char, char16_t, char32_t, wchar_t> Implementations;
 
-// Tests for all implementations of ICsvReader
+// Tests for all possible variants of UTF encoding
 TYPED_TEST_SUITE(EncodedStreamReaderTest, Implementations);
 
 

@@ -40,10 +40,9 @@ namespace BitSerializer::Csv::Detail
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
 
 	private:
-		std::ostream& mOutputStream;
+		Convert::CEncodedStreamWriter mEncodedStream;
 		const bool mWithHeader;
 		const char mSeparator;
-		const StreamOptions mStreamOptions;
 
 		std::string mCsvHeader;
 		std::string mCurrentRow;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2020-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -21,19 +21,13 @@ void TestLoadXmlFromEncodedStream(const bool withBom)
 	if (withBom) {
 		sourceStr.append(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
 	}
-	// UTF encoding but just for ANSI range
-	for (const char ch : testAnsiXml)
-	{
-		for (size_t c = 0; c < sizeof(char_type); c++)
-		{
-			if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::little) {
-				sourceStr.push_back(c ? 0 : ch);
-			}
-			else {
-				sourceStr.push_back(c == (sizeof(char_type) - 1) ? ch : 0);
-			}
-		}
+
+	// Simple UTF encoding (just for ANSI range)
+	std::basic_string<char_type> temp(BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiXml)), BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiXml)));
+	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
+		BitSerializer::Memory::Reverse(begin(temp), end(temp));
 	}
+	sourceStr.append(reinterpret_cast<const char*>(temp.data()), temp.size() * sizeof(char_type));
 	std::stringstream inputStream(sourceStr);
 
 	// Act
@@ -81,22 +75,12 @@ void TestSaveXmlToEncodedStream(const bool withBom)
 		dataSize -= sizeof(TUtfTraits::bom);
 		EXPECT_EQ(expectedBom, actualBom);
 	}
-	// UTF decoding but just for ANSI range
+	// Simple UTF decoding (just for ANSI range)
 	string_type actualXml;
 	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-	if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::little) {
-		actualXml.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
-	}
-	else
-	{
-		for (size_t i = 0; i < targetCharCount; i++)
-		{
-			char_type ch = 0;
-			for (size_t c = 0; c < sizeof(char_type); c++) {
-				ch = (ch << 8) | dataIt[i * sizeof(char_type) + c];
-			}
-			actualXml.push_back(ch);
-		}
+	actualXml.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
+		BitSerializer::Memory::Reverse(actualXml.begin(), actualXml.end());
 	}
 	// Test XML
 	EXPECT_TRUE(actualXml.find(expectedXml) == 0);

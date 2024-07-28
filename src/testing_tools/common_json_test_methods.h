@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -161,25 +161,19 @@ void TestLoadJsonFromEncodedStream(const bool withBom)
 {
 	// Arrange
 	using char_type = typename TUtfTraits::char_type;
-	const std::string testAnsiJson = "{\"TestValue\":\"Hello world!\"}";
+	const std::string testAnsiJson = R"({"TestValue":"Hello world!"})";
 	std::string sourceStr;
 	// Add Bom (if required)
 	if (withBom) {
 		sourceStr.append(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
 	}
-	// UTF encoding but just for ANSI range
-	for (const char ch : testAnsiJson)
-	{
-		for (size_t c = 0; c < sizeof(char_type); c++)
-		{
-			if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::little) {
-				sourceStr.push_back(c ? 0 : ch);
-			}
-			else {
-				sourceStr.push_back(c == (sizeof(char_type) - 1) ? ch : 0);
-			}
-		}
+
+	// Simple UTF encoding (just for ANSI range)
+	std::basic_string<char_type> temp(BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiJson)), BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiJson)));
+	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
+		BitSerializer::Memory::Reverse(begin(temp), end(temp));
 	}
+	sourceStr.append(reinterpret_cast<const char*>(temp.data()), temp.size() * sizeof(char_type));
 	std::stringstream inputStream(sourceStr);
 
 	// Act
@@ -201,7 +195,7 @@ void TestSaveJsonToEncodedStream(const bool withBom)
 	using string_type = std::basic_string<char_type, std::char_traits<char_type>>;
 	static_assert(sizeof(TUtfTraits::bom) % sizeof(char_type) == 0);
 
-	const std::string expectedJsonInAnsi = "{\"TestValue\":\"Hello world!\"}";
+	const std::string expectedJsonInAnsi = R"({"TestValue":"Hello world!"})";
 	const string_type expectedJson(std::cbegin(expectedJsonInAnsi), std::cend(expectedJsonInAnsi));
 
 	std::stringstream outputStream;
@@ -227,22 +221,12 @@ void TestSaveJsonToEncodedStream(const bool withBom)
 		dataSize -= sizeof(TUtfTraits::bom);
 		EXPECT_EQ(expectedBom, actualBom);
 	}
-	// UTF decoding but just for ANSI range
+	// Simple UTF decoding (just for ANSI range)
 	string_type actualJson;
 	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-	if constexpr (TUtfTraits::endianness == BitSerializer::Memory::Endian::little) {
-		actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
-	}
-	else
-	{
-		for (size_t i = 0; i < targetCharCount; i++)
-		{
-			char_type ch = 0;
-			for (size_t c = 0; c < sizeof(char_type); c++) {
-				ch = (ch << 8) | dataIt[i * sizeof(char_type) + c];
-			}
-			actualJson.push_back(ch);
-		}
+	actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
+		BitSerializer::Memory::Reverse(actualJson.begin(), actualJson.end());
 	}
 	// Test JSON
 	EXPECT_EQ(expectedJson, actualJson);

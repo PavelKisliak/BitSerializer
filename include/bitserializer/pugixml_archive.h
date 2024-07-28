@@ -504,7 +504,7 @@ public:
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_auto);
+		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_utf8);
 		if (!result)
 			throw ParsingException(result.description(), 0, result.offset);
 	}
@@ -642,11 +642,8 @@ public:
 
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
-					std::ostringstream stream;
-					auto decl = mRootXml.prepend_child(pugi::node_declaration);
-					decl.append_attribute(PUGIXML_TEXT("version")) = PUGIXML_TEXT("1.0");
-					mRootXml.print(stream, indent.c_str(), flags, pugi::encoding_utf8);
-					*arg = stream.str();
+					CXmlStringWriter xmlStringWriter(*arg);
+					mRootXml.save(xmlStringWriter, indent.c_str(), flags, pugi::encoding_utf8);
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
@@ -680,6 +677,22 @@ private:
 				(strEncodingType.has_value() ? strEncodingType.value() : std::to_string(static_cast<int>(utfType))));
 		}
 	}
+
+	class CXmlStringWriter : public pugi::xml_writer
+	{
+	public:
+		CXmlStringWriter(std::string& outputStr)
+			: mOutputString(outputStr)
+		{ }
+
+		void write(const void* data, size_t size) override
+		{
+			mOutputString.append(static_cast<const PUGIXML_CHAR*>(data), size);
+		}
+
+	private:
+		std::string& mOutputString;
+	};
 
 	pugi::xml_document mRootXml;
 	std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;

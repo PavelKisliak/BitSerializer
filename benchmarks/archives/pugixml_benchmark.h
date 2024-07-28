@@ -40,16 +40,16 @@ public:
 		}
 
 		// Build
-		out_string_stream_t stream;
-		mDoc.save(stream, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
-		mNativeLibOutputData = stream.str();
+		mNativeLibOutputData.clear();
+		CXmlStringWriter xmlStringWriter(mNativeLibOutputData);
+		mDoc.save(xmlStringWriter, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
 		return mNativeLibOutputData.size();
 	}
 
 	size_t LoadModelViaNativeLib() override
 	{
 		pugi::xml_document mDoc;
-		const auto result = mDoc.load_buffer(mNativeLibOutputData.data(), mNativeLibOutputData.size(), pugi::parse_default, pugi::encoding_auto);
+		const auto result = mDoc.load_buffer(mNativeLibOutputData.data(), mNativeLibOutputData.size(), pugi::parse_default, pugi::encoding_utf8);
 		if (!result)
 			throw std::runtime_error("PugiXml parse error");
 
@@ -89,6 +89,22 @@ public:
 	}
 
 	private:
+		class CXmlStringWriter : public pugi::xml_writer
+		{
+		public:
+			CXmlStringWriter(output_format_t& outputStr)
+				: mOutputString(outputStr)
+			{ }
+
+			void write(const void* data, size_t size) override
+			{
+				mOutputString.append(static_cast<const PUGIXML_CHAR*>(data), size);
+			}
+
+		private:
+			output_format_t& mOutputString;
+		};
+
 		model_t mNativeLibModel;
 		output_format_t mNativeLibOutputData;
 };

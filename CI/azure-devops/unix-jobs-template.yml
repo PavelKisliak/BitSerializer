@@ -3,14 +3,18 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
+# [Optional] Install additional tools command line
+  installToolsCmd: ''
+# [Required] URL to download the compiler
+  compilerUrl: ''
 # [Optional] Directory with cached packages
   vcpkgCacheDir: /home/vsts/.cache/vcpkg/archives/
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
-# [Optional] Install additional tools command line
-  installToolsCmd: ''
+# [Optional] Enable build Debug version
+  enableDebugBuild: false
 
 jobs:
 - job: ${{ parameters.name }}
@@ -23,6 +27,14 @@ jobs:
       ${{ parameters.installToolsCmd }}
     displayName: 'Install build tools'
     condition: ne('${{ parameters.installToolsCmd }}', '')
+
+  - script: |
+      echo --- Download compiler ---
+      wget ${{ parameters.compilerUrl }} -O compiler.tar.xz
+      echo --- Extract compiler ---
+      sudo tar -xf compiler.tar.xz -C /usr/
+    displayName: 'Install compiler'
+    condition: ne('${{ parameters.compilerUrl }}', '')
 
   - script: |
       echo --- Clone latest VCPKG ---
@@ -52,37 +64,23 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build.debug'
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
     displayName: 'Cmake - generate debug'
-
-  - task: CMake@1
-    inputs:
-      workingDirectory: 'build.release'
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
-    displayName: 'Cmake - generate release'
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
 
   - script: |
       cd build.debug
       cmake --build .
     displayName: 'Build [Debug]'
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
 
   - script: |
       cd build.debug
       ctest -C Debug -T test --output-on-failure
     displayName: 'Run tests [Debug]'
     continueOnError: true
-
-  - script: |
-      cd build.release
-      cmake --build .
-    displayName: 'Build [Release]'
-
-  - script: |
-      cd build.release
-      ctest -C Release -T test --output-on-failure
-    displayName: 'Run tests [Release]'
-    continueOnError: true
-
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
+    
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'cTest'
@@ -92,6 +90,24 @@ jobs:
       buildPlatform: 'x64'
       buildConfiguration: 'Debug'
     displayName: 'Publish Test results [Debug]'
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
+
+  - task: CMake@1
+    inputs:
+      workingDirectory: 'build.release'
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
+    displayName: 'Cmake - generate release'
+
+  - script: |
+      cd build.release
+      ninja
+    displayName: 'Build [Release]'
+
+  - script: |
+      cd build.release
+      ctest -C Release -T test --output-on-failure
+    displayName: 'Run tests [Release]'
+    continueOnError: true
 
   - task: PublishTestResults@2
     inputs:

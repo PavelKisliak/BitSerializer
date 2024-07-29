@@ -770,6 +770,138 @@
           "type": "BOOL"
         }
       ]
+    },
+    {
+      "name": "Arm64be-Linux-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_TOOLCHAIN_FILE=/home/pavel/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=bitserializer-arm64be-linux -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${remoteCMakeListsRoot}/cmake/toolchains/arm64be-linux-toolchain.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "Arm64be-Linux-Release",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "cmakeExecutable": "cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", "bin" ],
+      "cmakeCommandArgs": "-DCMAKE_TOOLCHAIN_FILE=/home/pavel/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=bitserializer-arm64be-linux -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${remoteCMakeListsRoot}/cmake/toolchains/arm64be-linux-toolchain.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_x64" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "variables": [
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CPPRESTJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }

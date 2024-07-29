@@ -9,6 +9,8 @@ parameters:
   vcpkgTriplet: 'x64-windows'
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
+# [Optional] Enable build Debug version
+  enableDebugBuild: false
 
 jobs:
 - job: ${{ parameters.name }}
@@ -52,12 +54,14 @@ jobs:
       cd build
       cmake --build . --config Debug
     displayName: 'Build [Debug]'
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
 
   - script: |
       cd build
       ctest -C Debug -T test --output-on-failure
     displayName: 'Run tests [Debug]'
     continueOnError: true
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
 
   - task: PublishTestResults@2
     inputs:
@@ -68,6 +72,7 @@ jobs:
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: 'Debug'
     displayName: 'Publish Test results [Debug]'
+    condition: eq('${{ parameters.enableDebugBuild }}', true)
 
   - script: |
       cd build
@@ -89,4 +94,3 @@ jobs:
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: 'Release'
     displayName: 'Publish Test results [Release]'
-

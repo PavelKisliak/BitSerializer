@@ -1,7 +1,8 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <cstdint>
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
 
@@ -468,24 +469,31 @@ TEST(ConvertChrono, ConvertStringToDurationShouldThrowExceptionWhenOverflow) {
 // Test conversion from time_t to std::string
 //-----------------------------------------------------------------------------
 
+#if INTPTR_MAX == INT64_MAX
 constexpr time_t ctime0000_01_01T00_00_00 = -62167219200;
 constexpr time_t ctime1583_01_01T00_00_00 = -12212553600;
+#endif
+constexpr time_t ctime1901_12_13T20_45_52 = -2147483648;	// Min for int32_t
 constexpr time_t ctime1969_08_01T00_00_00 = -13219200;
 constexpr time_t ctime1969_12_31T00_59_00 = -82860;
 constexpr time_t ctime1969_12_31T06_53_00 = -61620;
 constexpr time_t ctime1969_12_31T23_59_59 = -1;
 constexpr time_t ctime1970_01_01T00_00_00 = 0;
 constexpr time_t ctime1970_01_01T00_00_01 = 1;
-constexpr time_t ctime2044_01_01T00_00_00 = 2335219200;
+constexpr time_t ctime2038_01_19T03_14_07 = 2147483647;		// Max for int32_t
+#if INTPTR_MAX == INT64_MAX
 constexpr time_t ctime9999_12_31T23_59_59 = 253402300799;
+#endif
 
 //-----------------------------------------------------------------------------
 
 TEST(ConvertChrono, ConvertCTimeSinceEpochToUtcString) {
 	EXPECT_EQ("1970-01-01T00:00:00Z", Convert::To<std::string>(CRawTime(ctime1970_01_01T00_00_00)));
 	EXPECT_EQ(u"1970-01-01T00:00:01Z", Convert::To<std::u16string>(CRawTime(ctime1970_01_01T00_00_01)));
-	EXPECT_EQ(U"2044-01-01T00:00:00Z", Convert::To<std::u32string>(CRawTime(ctime2044_01_01T00_00_00)));
+	EXPECT_EQ(U"2038-01-19T03:14:07Z", Convert::To<std::u32string>(CRawTime(ctime2038_01_19T03_14_07)));
+#if INTPTR_MAX == INT64_MAX
 	EXPECT_EQ(L"9999-12-31T23:59:59Z", Convert::To<std::wstring>(CRawTime(ctime9999_12_31T23_59_59)));
+#endif
 }
 
 TEST(ConvertChrono, ConvertCTimeBeforeEpochToUtcString) {
@@ -493,8 +501,11 @@ TEST(ConvertChrono, ConvertCTimeBeforeEpochToUtcString) {
 	EXPECT_EQ("1969-12-31T06:53:00Z", Convert::ToString(CRawTime(ctime1969_12_31T06_53_00)));
 	EXPECT_EQ("1969-12-31T00:59:00Z", Convert::ToString(CRawTime(ctime1969_12_31T00_59_00)));
 	EXPECT_EQ("1969-08-01T00:00:00Z", Convert::ToString(CRawTime(ctime1969_08_01T00_00_00)));
+	EXPECT_EQ("1901-12-13T20:45:52Z", Convert::ToString(CRawTime(ctime1901_12_13T20_45_52)));
+#if INTPTR_MAX == INT64_MAX
 	EXPECT_EQ("1583-01-01T00:00:00Z", Convert::ToString(CRawTime(ctime1583_01_01T00_00_00)));
 	EXPECT_EQ("0000-01-01T00:00:00Z", Convert::ToString(CRawTime(ctime0000_01_01T00_00_00)));
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -503,8 +514,10 @@ TEST(ConvertChrono, ConvertCTimeBeforeEpochToUtcString) {
 TEST(ConvertChrono, ConvertUtcSinceEpochStringToCTime) {
 	EXPECT_EQ(ctime1970_01_01T00_00_00, Convert::To<CRawTime>("1970-01-01T00:00:00Z"));
 	EXPECT_EQ(ctime1970_01_01T00_00_01, Convert::To<CRawTime>(u"1970-01-01T00:00:01Z"));
-	EXPECT_EQ(ctime2044_01_01T00_00_00, Convert::To<CRawTime>(U"2044-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime2038_01_19T03_14_07, Convert::To<CRawTime>(U"2038-01-19T03:14:07Z"));
+#if INTPTR_MAX == INT64_MAX
 	EXPECT_EQ(ctime9999_12_31T23_59_59, Convert::To<CRawTime>(L"9999-12-31T23:59:59Z"));
+#endif
 }
 
 TEST(ConvertChrono, ConvertUtcBeforeEpochStringToCTime) {
@@ -512,8 +525,10 @@ TEST(ConvertChrono, ConvertUtcBeforeEpochStringToCTime) {
 	EXPECT_EQ(ctime1969_12_31T06_53_00, Convert::To<CRawTime>("1969-12-31T06:53:00Z"));
 	EXPECT_EQ(ctime1969_12_31T00_59_00, Convert::To<CRawTime>("1969-12-31T00:59:00Z"));
 	EXPECT_EQ(ctime1969_08_01T00_00_00, Convert::To<CRawTime>(u"1969-08-01T00:00:00Z"));
+#if INTPTR_MAX == INT64_MAX
 	EXPECT_EQ(ctime1583_01_01T00_00_00, Convert::To<CRawTime>(U"1583-01-01T00:00:00Z"));
 	EXPECT_EQ(ctime0000_01_01T00_00_00, Convert::To<CRawTime>(L"0000-01-01T00:00:00Z"));
+#endif
 }
 
 TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenEmpty) {

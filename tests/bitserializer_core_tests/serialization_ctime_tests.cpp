@@ -33,7 +33,7 @@ struct TestCTime
 TEST(STD_Ctime, SerializeTimeType)
 {
 	// Arrange
-	time_t expected = 2335219200, actual = 0;
+	time_t expected = std::numeric_limits<int32_t>::max(), actual = 0;
 	ArchiveStub::preferred_output_format testArchive;
 
 	// Act
@@ -84,7 +84,7 @@ TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkip)
 TEST(STD_Ctime, SerializeTimeTypeAsClassMember)
 {
 	// Arrange
-	TestCTime expected(2335219200), actual;
+	TestCTime expected(std::numeric_limits<int32_t>::max()), actual;
 	ArchiveStub::preferred_output_format testArchive;
 
 	// Act
@@ -144,7 +144,7 @@ TEST(STD_CtimeAsBin, SkipInvalidIsoDateInObjectWhenPolicyIsSkip)
 TEST(STD_CtimeAsBin, SerializeTimeType)
 {
 	// Arrange
-	time_t expected = 2335219200, actual = 0;
+	time_t expected = std::numeric_limits<int32_t>::max(), actual = 0;
 	BinArchiveStub::preferred_output_format binArchive;
 
 	// Act
@@ -172,7 +172,7 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 TEST(STD_CtimeAsBin, SerializeTimeTypeAsClassMember)
 {
 	// Arrange
-	TestCTime expected(2335219200), actual;
+	TestCTime expected(std::numeric_limits<int32_t>::max()), actual;
 	BinArchiveStub::preferred_output_format outputArchive;
 
 	// Act

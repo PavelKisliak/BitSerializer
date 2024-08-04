@@ -41,7 +41,7 @@ jobs:
 
   - template: windows-jobs-template.yml
     parameters:
-      name: 'Windows_VS2022_Win64'
+      name: 'Windows_VS2022_x64'
       image: 'windows-2022'
       platform: 'x64'
       vcpkgTriplet: "x64-windows"
@@ -77,11 +77,11 @@ jobs:
 
   - template: unix-jobs-template.yml
     parameters:
-      name: 'Ubuntu_Clang_13'
+      name: 'Ubuntu_Clang_15'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install clang-13 ninja-build --install-suggests'
+      installToolsCmd: 'sudo apt-get install clang-15 ninja-build --install-suggests'
       vcpkgTriplet: "x64-linux"
-      cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-13 -DCMAKE_CXX_COMPILER=clang++-13'
+      cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15'
       enableDebugBuild: false
 
   - template: unix-jobs-template.yml
@@ -102,6 +102,26 @@ jobs:
       vcpkgTriplet: "x64-osx"
       vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
       cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
+      enableDebugBuild: false
+
+  - template: unix-jobs-template.yml
+    parameters:
+      name: 'Arm32_Linux_GCC13'
+      image: 'ubuntu-latest'
+      installToolsCmd: 'sudo apt-get install ninja-build qemu-user'
+      compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
+      vcpkgTriplet: "bitserializer-arm32-linux"
+      cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake -DBUILD_RAPIDYAML_ARCHIVE=OFF'
+      enableDebugBuild: false
+
+  - template: unix-jobs-template.yml
+    parameters:
+      name: 'Arm64_Linux_GCC13_CXX20'
+      image: 'ubuntu-latest'
+      installToolsCmd: 'sudo apt-get install ninja-build qemu-user'
+      compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
+      vcpkgTriplet: "bitserializer-arm64-linux"
+      cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake -DBUILD_RAPIDYAML_ARCHIVE=OFF'
       enableDebugBuild: false
 
   - template: unix-jobs-template.yml

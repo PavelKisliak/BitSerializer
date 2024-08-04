@@ -30,7 +30,7 @@ jobs:
 
   - script: |
       echo --- Download compiler ---
-      wget ${{ parameters.compilerUrl }} -O compiler.tar.xz
+      wget -nv ${{ parameters.compilerUrl }} -O compiler.tar.xz
       echo --- Extract compiler ---
       sudo tar -xf compiler.tar.xz -C /usr/
     displayName: 'Install compiler'

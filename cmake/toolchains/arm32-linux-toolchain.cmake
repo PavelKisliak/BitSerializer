@@ -1,0 +1,17 @@
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+if(NOT DEFINED ARM32_GNU_TOOLCHAIN_ROOT)
+  set(ARM32_GNU_TOOLCHAIN_ROOT "/usr/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf")
+endif()
+
+set(tools "${ARM32_GNU_TOOLCHAIN_ROOT}/bin")
+set(CMAKE_C_COMPILER "${ARM32_GNU_TOOLCHAIN_ROOT}/bin/arm-none-linux-gnueabihf-gcc")
+set(CMAKE_CXX_COMPILER "${ARM32_GNU_TOOLCHAIN_ROOT}/bin/arm-none-linux-gnueabihf-g++")
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+set(CMAKE_CROSSCOMPILING_EMULATOR "qemu-arm;-L;${ARM32_GNU_TOOLCHAIN_ROOT}/arm-none-linux-gnueabihf/libc/")

@@ -29,13 +29,13 @@ ___
 
 #### Requirements:
   - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
-  - Supported platforms: Windows, Linux, MacOS.
+  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be).
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Minimal requirement for RapidYaml archive is VS2019.
+(\*) Minimal requirement for RapidYaml archive is VS2019, unstable on ARM architecture.
+(\*) The latest released version 0.70 does not support ARM architecture (please use latest `master` branch).
 
 #### Limitations:
- - Big endian platforms are not supported (WIP, should work in the latest `master`, but only for archives without third party dependencies - CSV, MsgPack).
  - Work without exceptions is not supported.
 
 ### Performance

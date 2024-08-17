@@ -108,7 +108,7 @@ jobs:
     parameters:
       name: 'Arm32_Linux_GCC13'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install ninja-build qemu-user'
+      installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
       compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
       vcpkgTriplet: "bitserializer-arm32-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake -DBUILD_RAPIDYAML_ARCHIVE=OFF'
@@ -118,7 +118,7 @@ jobs:
     parameters:
       name: 'Arm64_Linux_GCC13_CXX20'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install ninja-build qemu-user'
+      installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
       compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
       vcpkgTriplet: "bitserializer-arm64-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake -DBUILD_RAPIDYAML_ARCHIVE=OFF'
@@ -128,7 +128,7 @@ jobs:
     parameters:
       name: 'Arm64be_Linux_GCC13'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install ninja-build qemu-user'
+      installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
       compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
       vcpkgTriplet: "bitserializer-arm64be-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake -DBUILD_RAPIDYAML_ARCHIVE=OFF'

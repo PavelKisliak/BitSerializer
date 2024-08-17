@@ -32,7 +32,7 @@ ___
   - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be).
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Minimal requirement for RapidYaml archive is VS2019, unstable on ARM architecture.
+(\*) Minimal requirement for RapidYaml archive is VS2019, unstable on ARM architecture.\
 (\*) The latest released version 0.70 does not support ARM architecture (please use latest `master` branch).
 
 #### Limitations:

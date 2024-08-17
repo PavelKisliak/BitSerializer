@@ -80,7 +80,7 @@ jobs:
     displayName: 'Run tests [Debug]'
     continueOnError: true
     condition: eq('${{ parameters.enableDebugBuild }}', true)
-    
+
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'cTest'

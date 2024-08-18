@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include "bitserializer/convert.h"
+#include "bitserializer/types/std/pair.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 
 namespace BitSerializer
@@ -101,6 +102,35 @@ namespace BitSerializer
 						}
 					}
 				});
+			}
+		}
+
+		/// <summary>
+		/// Generic function for serialization multi maps. Serialized as an array of pairs because some archives may not support duplicate keys.
+		/// </summary>
+		template<typename TArchive, typename TMultiMap>
+		void SerializeMultiMapImpl(TArchive& arrayScope, TMultiMap& cont)
+		{
+			using TMapKey = typename TMultiMap::key_type;
+			using TValue = typename TMultiMap::mapped_type;
+
+			if constexpr (TArchive::IsLoading())
+			{
+				cont.clear();
+				auto hint = cont.begin();
+				while (!arrayScope.IsEnd())
+				{
+					typename TMultiMap::value_type pair;
+					if (Serialize(arrayScope, pair)) {
+						hint = cont.emplace_hint(hint, std::move(pair));
+					}
+				}
+			}
+			else
+			{
+				for (auto& elem : cont) {
+					Serialize(arrayScope, elem);
+				}
 			}
 		}
 	}

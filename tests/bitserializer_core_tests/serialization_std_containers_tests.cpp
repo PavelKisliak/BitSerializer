@@ -353,6 +353,39 @@ TEST(STD_Containers, SerializeUnorderedMapAsClassMember) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for std::unordered_multimap
+//-----------------------------------------------------------------------------
+TEST(STD_Containers, SerializeUnorderedMultimapWithIntAsKey) {
+	TestSerializeType<ArchiveStub, std::unordered_multimap<int, int>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultimapWithStringAsKey) {
+	TestSerializeType<ArchiveStub, std::unordered_multimap<std::string, int>>();
+	TestSerializeType<ArchiveStub, std::unordered_multimap<std::wstring, int>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultimapWithEnumAsKey) {
+	TestSerializeType<ArchiveStub, std::unordered_multimap<TestEnum, std::string>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultimapWithClassAsKey) {
+	TestSerializeType<ArchiveStub, std::unordered_multimap<TestPointClass, std::string>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultimapWithClassAsKeyAndClassAsValue) {
+	TestSerializeType<ArchiveStub, std::unordered_multimap<TestPointClass, TestPointClass>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultimapOfUnorderedMaps) {
+	TestSerializeType<ArchiveStub, std::unordered_multimap<std::string, std::unordered_multimap<int, std::wstring>>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultimapAsClassMember) {
+	using test_type = std::unordered_multimap<std::wstring, int>;
+	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for std::multimap
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeMultimapMapWithIntAsKey) {

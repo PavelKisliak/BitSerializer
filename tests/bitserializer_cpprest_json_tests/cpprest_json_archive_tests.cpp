@@ -267,6 +267,11 @@ TEST(JsonRestCpp, SaveToUtf8StreamWithBom) {
 
 TEST(JsonRestCpp, SerializeToFile) {
 	TestSerializeArrayToFile<JsonArchive>();
+	TestSerializeArrayToFile<JsonArchive>(true);
+}
+
+TEST(JsonRestCpp, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

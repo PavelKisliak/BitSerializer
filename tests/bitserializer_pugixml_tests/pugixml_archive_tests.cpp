@@ -291,6 +291,11 @@ TEST(PugiXmlArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 
 TEST(PugiXmlArchive, SerializeToFile) {
 	TestSerializeArrayToFile<XmlArchive>();
+	TestSerializeArrayToFile<XmlArchive>(true);
+}
+
+TEST(PugiXmlArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<XmlArchive>();
 }
 
 //-----------------------------------------------------------------------------

@@ -225,22 +225,54 @@ void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 /// Test template of serialization to file.
 /// </summary>
 template <typename TArchive, size_t ArraySize = 3>
-void TestSerializeArrayToFile()
+void TestSerializeArrayToFile(bool testOverwrite = false)
 {
 	// Arrange
-	auto path = std::filesystem::temp_directory_path() / "TestArchive.data";
+	auto testFilePath = std::filesystem::temp_directory_path() / ("TestArchive." + BitSerializer::Convert::ToString(TArchive::archive_type));
+	if (!testOverwrite)
+	{
+		std::filesystem::remove(testFilePath);
+	}
 	TestPointClass testArray[ArraySize], actual[ArraySize];
 	BuildFixture(testArray);
 	::BuildFixture(actual);
 
 	// Act
-	BitSerializer::SaveObjectToFile<TArchive>(testArray, path);
-	BitSerializer::LoadObjectFromFile<TArchive>(actual, path);
+	BitSerializer::SaveObjectToFile<TArchive>(testArray, testFilePath, {}, testOverwrite);
+	BitSerializer::LoadObjectFromFile<TArchive>(actual, testFilePath);
 
 	// Assert
 	for (size_t i = 0; i < ArraySize; i++)
 	{
 		testArray[i].Assert(actual[i]);
+	}
+}
+
+/// <summary>
+/// Template for test throwing exception when file already exists.
+/// </summary>
+template <typename TArchive>
+void TestThrowExceptionWhenFileAlreadyExists()
+{
+	// Arrange
+	const auto testFilePath = std::filesystem::temp_directory_path() / "TestArchive.data";
+	std::ofstream stream;
+	stream.open(testFilePath, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
+	ASSERT_TRUE(stream.is_open());
+	stream << std::string("Test");
+	stream.close();
+
+	// Act
+	try
+	{
+		TestPointClass testArray[1];
+		BitSerializer::SaveObjectToFile<TArchive>(testArray, testFilePath);
+		ASSERT_FALSE(true);
+	}
+	catch (BitSerializer::SerializationException& ex)
+	{
+		// Assert
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::InputOutputError, ex.GetErrorCode());
 	}
 }
 

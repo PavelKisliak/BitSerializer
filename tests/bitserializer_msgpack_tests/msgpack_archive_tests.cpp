@@ -411,6 +411,11 @@ TEST(MsgPackArchive, SerializeArrayOfClassesToStream)
 
 TEST(MsgPackArchive, SerializeToFile) {
 	TestSerializeArrayToFile<MsgPackArchive>();
+	TestSerializeArrayToFile<MsgPackArchive>(true);
+}
+
+TEST(MsgPackArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<MsgPackArchive>();
 }
 
 //-----------------------------------------------------------------------------

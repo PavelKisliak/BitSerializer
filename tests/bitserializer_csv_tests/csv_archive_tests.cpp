@@ -181,6 +181,11 @@ TEST_F(CsvArchiveTests, SaveToUtf32BeStreamWithBom) {
 
 TEST_F(CsvArchiveTests, SerializeToFile) {
 	TestSerializeArrayToFile<CsvArchive>();
+	TestSerializeArrayToFile<CsvArchive>(true);
+}
+
+TEST_F(CsvArchiveTests, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<CsvArchive>();
 }
 
 //-----------------------------------------------------------------------------

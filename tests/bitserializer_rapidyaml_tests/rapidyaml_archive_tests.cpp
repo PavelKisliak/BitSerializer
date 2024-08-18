@@ -230,6 +230,11 @@ TEST(RapidYamlArchive, SaveToUtf8StreamWithBom) {
 
 TEST(RapidYamlArchive, SerializeToFile) {
 	TestSerializeArrayToFile<YamlArchive>();
+	TestSerializeArrayToFile<YamlArchive>(true);
+}
+
+TEST(RapidYamlArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<YamlArchive>();
 }
 
 //-----------------------------------------------------------------------------

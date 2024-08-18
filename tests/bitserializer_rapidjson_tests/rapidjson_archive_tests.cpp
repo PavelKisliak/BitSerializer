@@ -376,6 +376,11 @@ TEST(RapidJsonArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 
 TEST(RapidJsonArchive, SerializeToFile) {
 	TestSerializeArrayToFile<JsonArchive>();
+	TestSerializeArrayToFile<JsonArchive>(true);
+}
+
+TEST(RapidJsonArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

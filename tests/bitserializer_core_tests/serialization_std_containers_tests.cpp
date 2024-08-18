@@ -209,6 +209,18 @@ TEST(STD_Containers, SerializeUnorderedSetAsClassMember) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for std::unordered_multiset
+//-----------------------------------------------------------------------------
+TEST(STD_Containers, SerializeUnorderedMultisetOfStrings) {
+	TestSerializeType<ArchiveStub, std::unordered_multiset<std::string>>();
+}
+
+TEST(STD_Containers, SerializeUnorderedMultisetAsClassMember) {
+	using test_type = std::unordered_multiset<std::string>;
+	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for std::multiset
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeMultiSetOfStrings) {

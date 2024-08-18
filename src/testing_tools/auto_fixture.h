@@ -420,6 +420,22 @@ static void BuildFixture(std::unordered_set<T>& cont)
 }
 
 template <typename T>
+static void BuildFixture(std::unordered_multiset<T>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	T element;
+	for (size_t i = 0; i < size; i++)
+	{
+		// Duplicated element
+		if (i % 2 == 0)
+			BuildFixture(element);
+		cont.insert(element);
+	}
+}
+
+template <typename T>
 static void BuildFixture(std::multiset<T>& cont)
 {
 	static constexpr int size = 7;

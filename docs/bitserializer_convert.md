@@ -236,8 +236,8 @@ In addition to simple UTF conversion via `Convert::To()` function, there is also
 
 They all have the same API:
 
-- `void Decode(beginIt, endIt, outStr, errSym)`
-- `void Encode(beginIt, endIt, outStr, errSym)`
+- `Decode(beginIt, endIt, outStr, encodePolicy, errorMark)`
+- `Encode(beginIt, endIt, outStr, encodePolicy, errorMark)`
 
 There are also exists two functions for detect the UTF encoding:
 

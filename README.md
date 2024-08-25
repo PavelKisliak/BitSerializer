@@ -77,16 +77,8 @@ ___
 - [Error handling](#error-handling)
 - [Validation of deserialized values](#validation-of-deserialized-values)
 - [Compile time checking](#compile-time-checking)
+- [What else to read](#what-else-to-read)
 - [Thanks](#thanks)
-- [License](#license)
-
-### Details of archives
-- [JSON archive "bitserializer-cpprestjson"](docs/bitserializer_cpprest_json.md)
-- [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
-- [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
-- [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
-- [CSV archive "bitserializer-csv"](docs/bitserializer_csv.md)
-- [MsgPack archive "bitserializer-msgpack"](docs/bitserializer_msgpack.md)
 
 ___
 
@@ -183,7 +175,7 @@ int main()
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to output format. You also free to use any string type as keys, but remember that transcoding takes additional time and, of course, it is better to use string types which are natively supported by a particular archive, usually this is `std::string` (UTF-8). In the example below, we show how BitSerializer allows to play with string types:
+Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to the output format. You also free to use any string type as keys, but remember that transcoding takes additional time and, of course, it is better to give preference to UTF-8 strings, since they are natively supported by all archives. In the example below, we show how BitSerializer allows to play with string types:
 ```cpp
 class TestUnicodeClass
 {
@@ -445,29 +437,30 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 
 ### Serialization STD types
 BitSerializer has built-in serialization for all STD containers and most other commonly used types. For add support of required STD type just need to include related header file.
-```cpp
-#include "bitserializer/types/std/atomic.h"
-#include "bitserializer/types/std/array.h"
-#include "bitserializer/types/std/vector.h"
-#include "bitserializer/types/std/deque.h"
-#include "bitserializer/types/std/bitset.h"
-#include "bitserializer/types/std/list.h"
-#include "bitserializer/types/std/forward_list.h"
-#include "bitserializer/types/std/queue.h"
-#include "bitserializer/types/std/stack.h"
-#include "bitserializer/types/std/set.h"
-#include "bitserializer/types/std/unordered_set.h"
-#include "bitserializer/types/std/map.h"
-#include "bitserializer/types/std/unordered_map.h"
-#include "bitserializer/types/std/valarray.h"
-#include "bitserializer/types/std/pair.h"
-#include "bitserializer/types/std/tuple.h"
-#include "bitserializer/types/std/optional.h"
-#include "bitserializer/types/std/memory.h"
-#include "bitserializer/types/std/chrono.h"
-#include "bitserializer/types/std/ctime.h"
-#include "bitserializer/types/std/filesystem.h"
-```
+| Types | Header |
+| ------ | ------ |
+| std::atomic | #include "bitserializer/types/std/atomic.h" |
+| std::array | #include "bitserializer/types/std/array.h" |
+| std::vector | #include "bitserializer/types/std/vector.h" |
+| std::deque | #include "bitserializer/types/std/deque.h" |
+| std::bitset | #include "bitserializer/types/std/bitset.h" |
+| std::list | #include "bitserializer/types/std/list.h" |
+| std::forward_list | #include "bitserializer/types/std/forward_list.h" |
+| std::queue, std::priority_queue | #include "bitserializer/types/std/queue.h" |
+| std::stack | #include "bitserializer/types/std/stack.h" |
+| std::set, std::multiset | #include "bitserializer/types/std/set.h" |
+| std::unordered_set, std::unordered_multiset | #include "bitserializer/types/std/unordered_set.h" |
+| std::map, std::multimap | #include "bitserializer/types/std/map.h" |
+| std::unordered_map, std::unordered_multimap | #include "bitserializer/types/std/unordered_map.h" |
+| std::valarray | #include "bitserializer/types/std/valarray.h" |
+| std::pair | #include "bitserializer/types/std/pair.h" |
+| std::tuple | #include "bitserializer/types/std/tuple.h" |
+| std::optional | #include "bitserializer/types/std/optional.h" |
+| std::unique_ptr, std::shared_ptr | #include "bitserializer/types/std/memory.h" |
+| std::chrono::time_point, std::chrono::time_point | #include "bitserializer/types/std/chrono.h" |
+| std::time_t | #include "bitserializer/types/std/ctime.h" |
+| std::filesystem::path | #include "bitserializer/types/std/filesystem.h" |
+
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
 ### Specifics of serialization STD map
@@ -974,14 +967,23 @@ inline void Serialize(TArchive& archive)
 };
 ```
 
-Thanks
-----
+### What else to read
+Each of the supported archives has its own page with details (installation, features, samples, etc.):
+- [JSON archive "bitserializer-cpprestjson"](docs/bitserializer_cpprest_json.md)
+- [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
+- [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
+- [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
+- [CSV archive "bitserializer-csv"](docs/bitserializer_csv.md)
+- [MsgPack archive "bitserializer-msgpack"](docs/bitserializer_msgpack.md)
+
+Additionally, you may want to use the [string conversion submodule](docs/bitserializer_convert.md).
+
+### Thanks
 - Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.
 - Evgeniy Gorbachov for help with implementation STD types serialization.
 - Mateusz Pusz for code review and useful advices.
 
-License
 ----
 MIT, Copyright (C) 2018-2024 by Pavel Kisliak, made in Belarus 🇧🇾

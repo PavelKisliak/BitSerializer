@@ -1,7 +1,10 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
 #include <gtest/gtest.h>
 #include "testing_tools/archive_stub.h"
 #include "testing_tools/common_test_methods.h"
@@ -58,6 +61,10 @@ TEST(BaseTypes, SerializeUtf8Sting)
 {
 	TestSerializeType<ArchiveStub, std::string>("Test ANSI string");
 	TestSerializeType<ArchiveStub, std::string>(UTF8("Test UTF8 string - Привет мир!"));
+#if defined(__cpp_lib_char8_t)
+	// ToDo: uncomment when gtest will allow to compare u8strings (https://github.com/google/googletest/issues/4591)
+	// TestSerializeType<ArchiveStub, std::u8string>(u8"Test UTF8 string - Привет мир!");
+#endif
 }
 
 TEST(BaseTypes, SerializeUnicodeString)

@@ -1,8 +1,11 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
 #include <cstdlib>
 #include <random>
 #include <chrono>
@@ -98,6 +101,9 @@ static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand
 static void BuildFixture(double& value)				{ value = static_cast<double>(std::rand() % 100000 + 1) * 1.141592; }
 static void BuildFixture(std::nullptr_t& value)		{ value = nullptr; }
 static void BuildFixture(std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
+#if defined(__cpp_lib_char8_t)
+static void BuildFixture(std::u8string& value) { value = u8"U8-string Тест_"; }// +BitSerializer::Convert::To<std::u8string>(std::rand()); }
+#endif
 static void BuildFixture(std::wstring& value)		{ value = L"WString Тест_" + std::to_wstring(std::rand()); }
 static void BuildFixture(std::u16string& value)		{ value = u"UTF-16 Тест_" + BitSerializer::Convert::To<std::u16string>(std::rand()); }
 static void BuildFixture(std::u32string& value)		{ value = U"UTF-32 Тест_" + BitSerializer::Convert::To<std::u32string>(std::rand()); }

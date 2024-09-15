@@ -3,6 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
 #include <variant>
 #include "bitserializer/serialization_detail/serialization_options.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
@@ -58,7 +61,11 @@ namespace BitSerializer
 		}
 
 	private:
-		using StringsVariant = std::variant<std::string, std::wstring, std::u16string, std::u32string>;
+		using StringsVariant = std::variant<std::string,
+#if defined(__cpp_lib_char8_t)
+			std::u8string,
+#endif
+			std::wstring, std::u16string, std::u32string>;
 
 		StringsVariant mStringValueBuffer;
 		ValidationMap mErrorsMap;

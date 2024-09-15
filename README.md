@@ -32,7 +32,8 @@ ___
   - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be).
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Minimal requirement for RapidYaml archive is VS2019, unstable on ARM architecture.\
+(\*) Minimal requirement for RapidYaml archive is VS2019.\
+(\*) The RapidYaml archive is unstable on ARM architecture.\
 (\*) The latest released version 0.70 does not support ARM architecture (please use latest `master` branch).
 
 #### Limitations:
@@ -100,6 +101,7 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 }
 ```
 Enumerate features which you need, by default all are disabled.
+
 Alternatively, you can install the library via the command line:
 ```shell
 > vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
@@ -171,7 +173,7 @@ int main()
     return EXIT_SUCCESS;
 }
 ```
-[See full sample](samples/hello_world/hello_world.cpp)
+[See full sample](samples/hello_world/hello_world.cpp)\
 There is no mistake as JSON format supported any type (object, array, number or string) at root level.
 
 ### Unicode support

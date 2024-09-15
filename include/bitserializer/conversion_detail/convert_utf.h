@@ -261,25 +261,25 @@ namespace BitSerializer::Convert
 				if (sym < 0x800)
 				{
 					outStr.append({
-						static_cast<char>(0b11000000 | (sym >> 6)),
-						static_cast<char>(0b10000000 | (sym & 0b00111111))
+						static_cast<TOutChar>(0b11000000 | (sym >> 6)),
+						static_cast<TOutChar>(0b10000000 | (sym & 0b00111111))
 						});
 				}
 				else if (sym < 0x10000)
 				{
 					outStr.append({
-						static_cast<char>(0b11100000 | (sym >> 12)),
-						static_cast<char>(0b10000000 | ((sym >> 6) & 0b00111111)),
-						static_cast<char>(0b10000000 | ((sym & 0b00111111)))
+						static_cast<TOutChar>(0b11100000 | (sym >> 12)),
+						static_cast<TOutChar>(0b10000000 | ((sym >> 6) & 0b00111111)),
+						static_cast<TOutChar>(0b10000000 | ((sym & 0b00111111)))
 						});
 				}
 				else
 				{
 					outStr.append({
-						static_cast<char>(0b11110000 | (sym >> 18)),
-						static_cast<char>(0b10000000 | ((sym >> 12) & 0b00111111)),
-						static_cast<char>(0b10000000 | ((sym >> 6) & 0b00111111)),
-						static_cast<char>(0b10000000 | ((sym & 0b00111111)))
+						static_cast<TOutChar>(0b11110000 | (sym >> 18)),
+						static_cast<TOutChar>(0b10000000 | ((sym >> 12) & 0b00111111)),
+						static_cast<TOutChar>(0b10000000 | ((sym >> 6) & 0b00111111)),
+						static_cast<TOutChar>(0b10000000 | ((sym & 0b00111111)))
 						});
 				}
 				startTailPos = in;

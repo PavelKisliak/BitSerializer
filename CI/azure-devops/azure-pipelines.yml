@@ -15,6 +15,14 @@ pr:
     - History.md
     - CMakeSettings.json
 
+schedules:
+  - cron: "0 6 * * Sat"
+    displayName: "Scheduled weekly build"
+    branches:
+      include:
+        - master
+    always: true
+
 variables:
 - name: CmakeGenOptions
   value: -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON

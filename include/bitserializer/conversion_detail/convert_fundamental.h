@@ -105,7 +105,6 @@ namespace BitSerializer::Convert::Detail
 		};
 
 		if constexpr (sizeof(TSym) == sizeof(char)) {
-			// Uses from_chars only for convert integers as GCC does not support floating types
 			validateResult(std::from_chars(it, end, out), in);
 		}
 		else {

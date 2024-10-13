@@ -75,7 +75,7 @@ public:
 	}
 
 	template <typename T>
-	bool operator==(const T& value) const
+	bool operator==(const T& value) const noexcept
 	{
 		if constexpr (std::is_integral_v<T> && (std::is_unsigned_v<T> || std::is_signed_v<T>))
 		{
@@ -100,13 +100,15 @@ public:
 		}
 	}
 
-	bool operator==(const std::string& value) const {
+	bool operator==(const std::string& value) const noexcept
+	{
 		auto& ref = std::get<std::string_view>(mTuple);
 		return mLast == &ref && ref == value;
 	}
 
 	template <typename T, size_t ArraySize>
-	bool operator==(T(&value)[ArraySize]) const {
+	bool operator==(T(&value)[ArraySize]) const noexcept
+	{
 		const auto& ref = std::get<std::string_view>(mTuple);
 		return mLast == &ref && ref == value;
 	}
@@ -120,7 +122,7 @@ public:
 	}
 
 	template <typename T>
-	T& GetValueRef()
+	T& GetValueRef() noexcept
 	{
 		auto& ref = std::get<T>(mTuple);
 		mLast = &ref;

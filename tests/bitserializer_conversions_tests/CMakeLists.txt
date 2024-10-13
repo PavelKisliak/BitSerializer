@@ -5,8 +5,10 @@ find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}
     convert_api_tests.cpp
     utf8_encoding_tests.cpp
-    utf16_encoding_tests.cpp
-    utf32_encoding_tests.cpp
+    utf16le_encoding_tests.cpp
+    utf16be_encoding_tests.cpp
+    utf32le_encoding_tests.cpp
+    utf32be_encoding_tests.cpp
     detect_encodings_fixture.h
     detect_encodings_tests.cpp
     encoded_stream_reader_fixture.h

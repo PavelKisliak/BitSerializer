@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -8,263 +8,515 @@
 
 using namespace BitSerializer;
 
-// UTF-8 encode test fixture
-class Utf8EncodeTest : public testing::Test
-{
-protected:
-	template <typename TOutStr = std::string>
-	static TOutStr EncodeUtf8(const std::wstring& unicodeStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
-		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
-	{
-		TOutStr result;
-		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, encodePolicy, errorMark);
-		return result;
-	}
-
-	template <typename TOutStr = std::string>
-	static TOutStr EncodeUtf8(const std::u16string& unicodeStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
-		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
-	{
-		TOutStr result;
-		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, encodePolicy, errorMark);
-		return result;
-	}
-
-	template <typename TOutStr = std::string>
-	static TOutStr EncodeUtf8(const std::u32string& unicodeStr, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
-		const typename TOutStr::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutStr::value_type>())
-	{
-		TOutStr result;
-		Convert::Utf8::Encode(unicodeStr.begin(), unicodeStr.end(), result, encodePolicy, errorMark);
-		return result;
-	}
-};
-
-// UTF-8 decode test fixture
-class Utf8DecodeTest : public testing::Test
-{
-protected:
-	template <typename TOutputString>
-	static TOutputString DecodeUtf8As(const std::string& utf8Str, Convert::EncodeErrorPolicy encodePolicy = Convert::EncodeErrorPolicy::WriteErrorMark,
-		const typename TOutputString::value_type* errorMark = Convert::Detail::GetDefaultErrorMark<typename TOutputString::value_type>())
-	{
-		TOutputString result;
-		Convert::Utf8::Decode(utf8Str.begin(), utf8Str.end(), result, encodePolicy, errorMark);
-		return result;
-	}
-};
-
-
 #pragma warning(push)
 #pragma warning(disable: 4566)
 //-----------------------------------------------------------------------------
 // Tests for encoding string to UTF-8
 //-----------------------------------------------------------------------------
-TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedOneOctet) {
-	EXPECT_EQ(1, EncodeUtf8(std::wstring({ 0x7f })).size());
-	EXPECT_EQ(UTF8("Hello world!"), EncodeUtf8(L"Hello world!"));
+TEST(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedOneOctet)
+{
+	// Arrange
+	std::string outString;
+	const std::wstring source = L"Hello world!";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("Hello world!"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedTwoOctets) {
-	EXPECT_EQ(2, EncodeUtf8(std::wstring({ 0x7ff })).size());
-	EXPECT_EQ(UTF8("Привет мир!"), EncodeUtf8(L"Привет мир!"));
+TEST(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedTwoOctets)
+{
+	// Arrange
+	std::string outString;
+	const std::wstring source = L"Привет мир!";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("Привет мир!"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedThreeOctets) {
-	EXPECT_EQ(3, EncodeUtf8(std::wstring({ 0xffff })).size());
-	EXPECT_EQ(UTF8("世界，您好！"), EncodeUtf8(L"世界，您好！"));
+TEST(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedThreeOctets)
+{
+	// Arrange
+	std::string outString;
+	const std::u32string source = U"世界，您好！";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("世界，您好！"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedFourOctets) {
-	EXPECT_EQ(4, EncodeUtf8(std::u32string({ 0x10FFFF })).size());
-	EXPECT_EQ(UTF8("😀😎🙋"), EncodeUtf8(U"😀😎🙋"));
+TEST(Utf8EncodeTest, ShouldEncodeUtf8WhenUsedFourOctets)
+{
+	// Arrange
+	std::string outString;
+	const std::u32string source = U"😀😎🙋";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("😀😎🙋"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8EncodeTest, ShouldEncodeUtf8WithDecodingSurrogatePairs) {
+TEST(Utf8EncodeTest, ShouldEncodeUtf8WithDecodingSurrogatePairs)
+{
+	// Arrange
+	std::string outString;
 	const std::u16string surrogatePair = u"\xD83D\xDE00";
-	EXPECT_EQ(UTF8("😀test😀"), EncodeUtf8(surrogatePair + u"test" + surrogatePair));
-}
-
-TEST_F(Utf8EncodeTest, ShouldEncodeInvalidSurrogatePairsAsErrorMark) {
-	EXPECT_EQ(UTF8("test☐"), EncodeUtf8(u"test\xDE00", Convert::EncodeErrorPolicy::WriteErrorMark));
-	EXPECT_EQ(UTF8("test☐тест"), EncodeUtf8(u"test\xD83Dтест", Convert::EncodeErrorPolicy::WriteErrorMark));
-}
-
-TEST_F(Utf8EncodeTest, ShouldPutCustomErrorMarkWhenError) {
-	EXPECT_EQ(UTF8("test<ERROR>"), EncodeUtf8(u"test\xDE00", Convert::EncodeErrorPolicy::WriteErrorMark, "<ERROR>"));
-}
-
-TEST_F(Utf8EncodeTest, ShouldHandlePolicyThrowException) {
-	EXPECT_THROW(EncodeUtf8(u"test\xDE00", Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
-}
-
-TEST_F(Utf8EncodeTest, ShouldHandlePolicySkip) {
-	EXPECT_EQ(UTF8("test"), EncodeUtf8(u"test\xDE00", Convert::EncodeErrorPolicy::Skip));
-}
-
-TEST_F(Utf8EncodeTest, ShouldReturnIteratorToEnd)
-{
-	// Arrange
-	constexpr std::u16string_view testStr = u"test";
+	const std::u16string source = surrogatePair + u"test" + surrogatePair;
 
 	// Act
-	std::string actualStr;
-	const auto actualIt = Convert::Utf8::Encode(testStr.cbegin(), testStr.cend(), actualStr);
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
-	EXPECT_TRUE(actualIt == testStr.cend());
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("😀test😀"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8EncodeTest, ShouldReturnIteratorToCroppedSurrogatePairAtEnd)
+TEST(Utf8EncodeTest, ShouldEncodeInvalidSurrogatePairsAsErrorMark)
 {
 	// Arrange
+	std::string outString;
+	const std::u16string source = u"\xDE00test\xDE00";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("☐test☐"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
+}
+
+TEST(Utf8EncodeTest, ShouldWriteCustomErrorMarkWhenError)
+{
+	// Arrange
+	std::string outString;
+	const std::u16string source = u"test\xDE00";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark, "<ERROR>");
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("test<ERROR>"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf8EncodeTest, ShouldHandlePolicyFail)
+{
+	// Arrange
+	std::string outString;
+	const std::u16string source = u"test\xDE00test";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Fail);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(UTF8("test"), outString);
+	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf8EncodeTest, ShouldHandlePolicySkip)
+{
+	// Arrange
+	std::string outString;
+	const std::u16string source = u"test\xDE00";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("test"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf8EncodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePair)
+{
+	// Arrange
+	std::string outString;
 	const std::u16string croppedSequence({ 0xD83D });
-	const std::u16string testStr = u"test_тест" + croppedSequence;
-	const size_t expectedPos = testStr.size() - croppedSequence.size();
+	const std::u16string source = u"test_тест" + croppedSequence;
+	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	std::string actual;
-	const size_t actualPos = Convert::Utf8::Encode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
-	EXPECT_EQ(expectedPos, actualPos);
-	EXPECT_EQ(UTF8("test_тест"), actual);
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(UTF8("test_тест"), outString);
+	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
+TEST(Utf8EncodeTest, ShouldAppendToExistingString)
+{
+	// Arrange
+	std::string outString = "Hello";
+	const std::wstring source = L" world!";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(UTF8("Hello world!"), outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
+}
 
 //-----------------------------------------------------------------------------
 // Tests for decoding string from UTF-8
 //-----------------------------------------------------------------------------
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedOneOctet) {
-	EXPECT_EQ(L"Hello world!", DecodeUtf8As<std::wstring>("Hello world!"));
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedOneOctet)
+{
+	// Arrange
+	std::wstring outString;
+	constexpr std::string_view source = "Hello world!";
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(L"Hello world!", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedTwoOctets) {
-	EXPECT_EQ(L"Привет мир!", DecodeUtf8As<std::wstring>(UTF8("Привет мир!")));
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedTwoOctets)
+{
+	// Arrange
+	std::u16string outString;
+	const std::string_view source = UTF8("Привет мир!");
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(u"Привет мир!", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedThreeOctets) {
-	EXPECT_EQ(L"世界，您好！", DecodeUtf8As<std::wstring>(UTF8("世界，您好！")));
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedThreeOctets)
+{
+	// Arrange
+	std::u16string outString;
+	const std::string_view source = UTF8("世界，您好！");
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(u"世界，您好！", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedFourOctets) {
-	EXPECT_EQ(U"😀😎🙋", DecodeUtf8As<std::u32string>(UTF8("😀😎🙋")));
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenUsedFourOctets)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string_view source = UTF8("😀😎🙋");
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"😀😎🙋", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedFiveOctets) {
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedFiveOctets)
+{
+	// Arrange
+	std::u32string outString;
 	const std::string fiveOctets({ char(0b11111000), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001) });
-	EXPECT_EQ(U"☐test☐", DecodeUtf8As<std::u32string>(fiveOctets + "test" + fiveOctets, Convert::EncodeErrorPolicy::WriteErrorMark));
+	const std::string source = fiveOctets + "test" + fiveOctets;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedSixOctets) {
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedSixOctets)
+{
+	// Arrange
+	std::u32string outString;
 	const std::string sixOctets({ char(0b11111100), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001) });
-	EXPECT_EQ(U"☐test☐", DecodeUtf8As<std::u32string>(sixOctets + "test" + sixOctets, Convert::EncodeErrorPolicy::WriteErrorMark));
+	const std::string source = sixOctets + "test" + sixOctets;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode) {
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode)
+{
+	// Arrange
+	std::u32string outString;
 	const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
-	EXPECT_EQ(U"☐☐test☐☐", DecodeUtf8As<std::u32string>(wrongStartCodes + "test" + wrongStartCodes, Convert::EncodeErrorPolicy::WriteErrorMark));
+	const std::string source = wrongStartCodes + "test" + wrongStartCodes;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"☐☐test☐☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(4, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail2InSequence) {
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail2InSequence)
+{
+	// Arrange
+	std::u32string outString;
 	const std::string wrongSequence({ char(0b11110111), char(0b11111111), char(0b10111111), char(0b10111111) });
-	EXPECT_EQ(U"☐test☐", DecodeUtf8As<std::u32string>(wrongSequence + "test" + wrongSequence, Convert::EncodeErrorPolicy::WriteErrorMark));
+	const std::string source = wrongSequence + "test" + wrongSequence;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail3InSequence) {
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail3InSequence)
+{
+	// Arrange
+	std::u32string outString;
 	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b11111111), char(0b10111111) });
-	EXPECT_EQ(U"☐test☐", DecodeUtf8As<std::u32string>(wrongSequence + "test" + wrongSequence, Convert::EncodeErrorPolicy::WriteErrorMark));
+	const std::string source = wrongSequence + "test" + wrongSequence;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence) {
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
-	EXPECT_EQ(U"☐test☐", DecodeUtf8As<std::u32string>(wrongSequence + "test" + wrongSequence, Convert::EncodeErrorPolicy::WriteErrorMark));
-}
-
-TEST_F(Utf8DecodeTest, ShouldHandlePolicyThrowException) {
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
-	EXPECT_THROW(DecodeUtf8As<std::u32string>(wrongSequence + "test", Convert::EncodeErrorPolicy::ThrowException), std::runtime_error);
-}
-
-TEST_F(Utf8DecodeTest, ShouldHandlePolicySkip) {
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
-	EXPECT_EQ(U"test", DecodeUtf8As<std::u32string>(wrongSequence + "test", Convert::EncodeErrorPolicy::Skip));
-}
-
-TEST_F(Utf8DecodeTest, ShouldReturnIteratorToCroppedTwoOctetsAtEnd)
+TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence)
 {
 	// Arrange
+	std::u32string outString;
+	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string source = wrongSequence + "test" + wrongSequence;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldHandlePolicyFail)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string source = "test" + wrongSequence + "test";
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Fail);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(U"test", outString);
+	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldHandlePolicySkip)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string source = wrongSequence + "test" + wrongSequence;
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"test", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedTwoOctetsAtEnd)
+{
+	// Arrange
+	std::u32string outString;
 	const std::string croppedSequence({ char(0b11011111) });
-	const std::string testStr = "test" + croppedSequence;
-	const size_t expectedPos = testStr.size() - croppedSequence.size();
+	const std::string source = "test" + croppedSequence;
+	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	std::u32string actual;
-	const size_t actualPos = Convert::Utf8::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
 
 	// Assert
-	EXPECT_EQ(expectedPos, actualPos);
-	EXPECT_EQ(U"test", actual);
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(U"test", outString);
+	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldReturnIteratorToCroppedThreeOctetsAtEnd)
+TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedThreeOctetsAtEnd)
 {
 	// Arrange
+	std::u32string outString;
 	const std::string croppedSequence({ char(0b11101111), char(0b10000001) });
-	const std::string testStr = "test" + croppedSequence;
-	const size_t expectedPos = testStr.size() - croppedSequence.size();
+	const std::string source = "test" + croppedSequence;
+	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	std::u32string actual;
-	const size_t actualPos = Convert::Utf8::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
 
 	// Assert
-	EXPECT_EQ(expectedPos, actualPos);
-	EXPECT_EQ(U"test", actual);
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(U"test", outString);
+	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldReturnIteratorToCroppedFourOctetsAtEnd)
+TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedFourOctetsAtEnd)
 {
 	// Arrange
+	std::u32string outString;
 	const std::string croppedSequence({ char(0b11110111), char(0b10000001), char(0b10000001) });
-	const std::string testStr = "test" + croppedSequence;
-	const size_t expectedPos = testStr.size() - croppedSequence.size();
+	const std::string source = "test" + croppedSequence;
+	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	std::u32string actual;
-	const size_t actualPos = Convert::Utf8::Decode(testStr.cbegin(), testStr.cend(), actual) - testStr.cbegin();
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
 
 	// Assert
-	EXPECT_EQ(expectedPos, actualPos);
-	EXPECT_EQ(U"test", actual);
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(U"test", outString);
+	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST_F(Utf8DecodeTest, ShouldNotDecodeSurrogatePairs) {
-	const std::string encodedSurrogatePair = "\xED\xA1\x8C\xED\xBE\xB4";
-	EXPECT_EQ(U"test☐☐", DecodeUtf8As<std::u32string>("test" + encodedSurrogatePair, Convert::EncodeErrorPolicy::WriteErrorMark));
-}
-
-TEST_F(Utf8DecodeTest, ShouldPutCustomErrorMarkWhenError) {
-	const std::string wrongSurrogate = "\xED\xA1\x8C\xED";
-	EXPECT_EQ(U"test<ERROR>", DecodeUtf8As<std::u32string>("test" + wrongSurrogate,
-		Convert::EncodeErrorPolicy::WriteErrorMark, U"<ERROR>"));
-}
-
-TEST_F(Utf8DecodeTest, ShouldDecodeAsSurrogatePairsWhenTargetIsUtf16) {
-	EXPECT_EQ(u"😀test🙋", DecodeUtf8As<std::u16string>(UTF8("😀test🙋")));
-}
-
-TEST_F(Utf8DecodeTest, ShouldReturnIteratorToEnd)
+TEST(Utf8DecodeTest, ShouldNotDecodeSurrogatePairs)
 {
 	// Arrange
-	constexpr std::string_view testStr = "test";
+	std::u32string outString;
+	const std::string source = "test\xED\xA1\x8C\xED\xBE\xB4";
 
 	// Act
-	std::u16string actualStr;
-	const auto actualIt = Convert::Utf8::Decode(testStr.cbegin(), testStr.cend(), actualStr);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
-	EXPECT_TRUE(actualIt == testStr.cend());
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"test☐☐", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldPutCustomErrorMarkWhenError)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string source = "test\xED\xA1\x8Ctest";
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(Convert::EncodingErrorCode::Success, result.ErrorCode);
+	EXPECT_EQ(U"test<ERROR>test", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldDecodeAsSurrogatePairsWhenTargetIsUtf16)
+{
+	// Arrange
+	std::u16string outString;
+	const std::string source = UTF8("😀test🙋");
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(Convert::EncodingErrorCode::Success, result.ErrorCode);
+	EXPECT_EQ(u"😀test🙋", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldAppendToExistingString)
+{
+	// Arrange
+	std::wstring outString = L"Hello";
+	constexpr std::string_view source = " world!";
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(L"Hello world!", outString);
+	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
 #pragma warning(pop)

@@ -15,13 +15,13 @@ public:
 	using target_char_type = typename TUtfType::char_type;
 
 	void PrepareEncodedData(std::u32string_view testStr,
-		BitSerializer::Convert::EncodeErrorPolicy encodeErrorPolicy = BitSerializer::Convert::EncodeErrorPolicy::WriteErrorMark,
+		BitSerializer::Convert::EncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::EncodingErrorPolicy::WriteErrorMark,
 		const target_char_type* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<target_char_type>())
 	{
 		// Encode string
 		using target_string_type = std::basic_string<target_char_type, std::char_traits<target_char_type>>;
 		target_string_type outputString;
-		auto it = TUtfType::Encode(testStr.cbegin(), testStr.cend(), outputString, encodeErrorPolicy);
+		auto it = TUtfType::Encode(testStr.cbegin(), testStr.cend(), outputString, encodingErrorPolicy);
 
 		// Prepare byte streams
 		mEncodedBuffer.append(reinterpret_cast<const char*>(outputString.data()), outputString.size() * sizeof(target_char_type));

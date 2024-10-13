@@ -38,10 +38,7 @@ namespace BitSerializer
 		template<typename TArchive, typename TMap>
 		static void SerializeMapImpl(TArchive& scope, TMap& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 		{
-			using TMapKey = typename TMap::key_type;
-			using TValue = typename TMap::mapped_type;
-
-			constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<TMapKey, typename TArchive::supported_key_types>;
+			constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<typename TMap::key_type, typename TArchive::supported_key_types>;
 			constexpr auto hasSupportBinTimestamp = BitSerializer::is_convertible_to_one_from_tuple_v<CBinTimestamp, typename TArchive::supported_key_types>;
 			if constexpr (TArchive::IsSaving())
 			{
@@ -52,7 +49,7 @@ namespace BitSerializer
 						Serialize(scope, elem.first, elem.second);
 					}
 					// If the archive supports serialization CBinTimestamp and key is convertible to it
-					else if constexpr (hasSupportBinTimestamp && Convert::IsConvertible<TMapKey, CBinTimestamp>())
+					else if constexpr (hasSupportBinTimestamp && Convert::IsConvertible<typename TMap::key_type, CBinTimestamp>())
 					{
 						const auto timestamp = Convert::To<CBinTimestamp>(elem.first);
 						Serialize(scope, timestamp, elem.second);
@@ -82,13 +79,13 @@ namespace BitSerializer
 				scope.VisitKeys([mapLoadMode, &scope, &cont, &hint](auto&& archiveKey)
 				{
 					// Converting an archive key to key type of target map
-					TMapKey key;
+					typename TMap::key_type key;
 					if (ConvertByPolicy(archiveKey, key, scope.GetOptions().mismatchedTypesPolicy, scope.GetOptions().overflowNumberPolicy))
 					{
 						switch (mapLoadMode)
 						{
 						case MapLoadMode::Clean:
-							hint = cont.emplace_hint(hint, std::move(key), TValue());
+							hint = cont.emplace_hint(hint, std::move(key), typename TMap::mapped_type());
 							Serialize(scope, archiveKey, hint->second);
 							break;
 						case MapLoadMode::OnlyExistKeys:
@@ -111,9 +108,6 @@ namespace BitSerializer
 		template<typename TArchive, typename TMultiMap>
 		void SerializeMultiMapImpl(TArchive& arrayScope, TMultiMap& cont)
 		{
-			using TMapKey = typename TMultiMap::key_type;
-			using TValue = typename TMultiMap::mapped_type;
-
 			if constexpr (TArchive::IsLoading())
 			{
 				cont.clear();

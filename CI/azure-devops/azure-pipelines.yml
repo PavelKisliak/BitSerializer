@@ -94,8 +94,8 @@ jobs:
 
   - template: unix-jobs-template.yml
     parameters:
-      name: 'MacOS12_AppleClang_14'
-      image: 'macOS-12'
+      name: 'MacOS13_AppleClang_14'
+      image: 'macOS-13'
       installToolsCmd: 'brew install ninja'
       vcpkgTriplet: "x64-osx"
       vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"

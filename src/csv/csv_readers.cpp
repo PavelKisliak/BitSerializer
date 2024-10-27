@@ -350,13 +350,15 @@ namespace BitSerializer::Csv::Detail
 			{
 				if (mCurrentPos == mDecodedBuffer.size())
 				{
-					if (!mEncodedStreamReader.ReadChunk(mDecodedBuffer))
+					const auto result = mEncodedStreamReader.ReadChunk(mDecodedBuffer);
+					if (result == Convert::EncodedStreamReadResult::EndFile)
 					{
 						// When reached end of file
 						endValuePos = mDecodedBuffer.size();
 						isEndLine = true;
 						break;
 					}
+					// ToDo: handle Convert::EncodedChunkReadResult::DecodeError when will be allowed set policy `EncodingErrorPolicy::Fail`
 				}
 
 				const char sym = mDecodedBuffer[mCurrentPos];

@@ -45,10 +45,12 @@ public:
 
 		for (int i = 0; i < MaxIterations; ++i)
 		{
-			if (!mEncodedStreamReader->ReadChunk(mActualString))
+			const auto result = mEncodedStreamReader->ReadChunk(mActualString);
+			if (result == BitSerializer::Convert::EncodedStreamReadResult::EndFile)
 			{
 				break;
 			}
+			ASSERT_TRUE(result != BitSerializer::Convert::EncodedStreamReadResult::DecodeError);
 			// For prevent infinite loop when something went wrong
 			ASSERT_TRUE(i < 100);
 		}

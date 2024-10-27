@@ -104,7 +104,7 @@ namespace BitSerializer::Convert
 	namespace Detail
 	{
 		template<typename TChar, typename TAllocator>
-		bool HandleEncodingError(std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& outStr, EncodingErrorPolicy encodingPolicy, const TChar* errorMark) noexcept
+		[[nodiscard]] bool HandleEncodingError(std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& outStr, EncodingErrorPolicy encodingPolicy, const TChar* errorMark) noexcept
 		{
 			switch (encodingPolicy)
 			{
@@ -838,6 +838,15 @@ namespace BitSerializer::Convert
 		}
 	}
 
+	/// <summary>
+	/// The result of reading next encoded chunk.
+	/// </summary>
+	enum class EncodedStreamReadResult
+	{
+		Success = 0,
+		DecodeError,	// May only occur when `EncodingErrorPolicy::Fail`
+		EndFile
+	};
 
 	/// <summary>
 	/// Allows to read streams in various UTF encodings with automatic detection.
@@ -872,19 +881,16 @@ namespace BitSerializer::Convert
 		}
 
 		template<typename TAllocator>
-		bool ReadChunk(std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>, TAllocator>& outStr)
+		EncodedStreamReadResult ReadChunk(std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>, TAllocator>& outStr)
 		{
-			if (IsEnd())
-			{
-				return false;
+			if (IsEnd()) {
+				return EncodedStreamReadResult::EndFile;
 			}
 
-			if (!ReadNextEncodedChunk() && mStartDataPtr == mEndDataPtr)
-			{
-				return false;
+			if (!ReadNextEncodedChunk() && mStartDataPtr == mEndDataPtr) {
+				return EncodedStreamReadResult::EndFile;
 			}
 
-			const auto prevOutSize = outStr.size();
 			switch (mUtfType)
 			{
 			case UtfType::Utf8:
@@ -892,35 +898,23 @@ namespace BitSerializer::Convert
 				{
 					outStr.append(mStartDataPtr, mEndDataPtr);
 					mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+					return EncodedStreamReadResult::Success;
 				}
 				else
 				{
-					DecodeChunk<Utf8>(outStr);
+					return DecodeChunk<Utf8>(outStr);
 				}
-				break;
 			case UtfType::Utf16le:
-				DecodeChunk<Utf16Le>(outStr);
-				break;
+				return DecodeChunk<Utf16Le>(outStr);
 			case UtfType::Utf16be:
-				DecodeChunk<Utf16Be>(outStr);
-				break;
+				return DecodeChunk<Utf16Be>(outStr);
 			case UtfType::Utf32le:
-				DecodeChunk<Utf32Le>(outStr);
-				break;
+				return DecodeChunk<Utf32Le>(outStr);
 			case UtfType::Utf32be:
-				DecodeChunk<Utf32Be>(outStr);
-				break;
+				return DecodeChunk<Utf32Be>(outStr);
 			}
-			assert(mStartDataPtr <= mEndDataPtr);
-
-			// Process as error when left few not decoded bytes at the end of stream (not complete UTF sequence)
-			if (mInputStream.eof() && mStartDataPtr != mEndDataPtr)
-			{
-				Detail::HandleEncodingError(outStr, mEncodingErrorPolicy, mErrorMark);
-				mStartDataPtr = mEndDataPtr = mEncodedBuffer;
-			}
-
-			return prevOutSize != outStr.size();
+			assert(false);
+			return EncodedStreamReadResult::DecodeError;
 		}
 
 		[[nodiscard]] bool IsEnd() const noexcept {
@@ -960,17 +954,23 @@ namespace BitSerializer::Convert
 		}
 
 		template <typename TUtf, typename TAllocator>
-		void DecodeChunk(std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>, TAllocator>& outStr)
+		EncodedStreamReadResult DecodeChunk(std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>, TAllocator>& outStr)
 		{
-			auto result = TUtf::Decode(reinterpret_cast<typename TUtf::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<typename TUtf::char_type>(), outStr, mEncodingErrorPolicy, mErrorMark);
-			if (result.ErrorCode == EncodingErrorCode::Success || result.ErrorCode == EncodingErrorCode::UnexpectedEnd)
+			const auto result = TUtf::Decode(reinterpret_cast<typename TUtf::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<typename TUtf::char_type>(), outStr, mEncodingErrorPolicy, mErrorMark);
+			mStartDataPtr = reinterpret_cast<char*>(result.Iterator);
+			assert(mStartDataPtr <= mEndDataPtr);
+			if (mInputStream.eof())
 			{
-				mStartDataPtr = reinterpret_cast<char*>(result.Iterator);
+				// Handle uncompleted sequence at the end of file
+				if (result.ErrorCode == EncodingErrorCode::UnexpectedEnd && Detail::HandleEncodingError(outStr, mEncodingErrorPolicy, mErrorMark))
+				{
+					mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+					return EncodedStreamReadResult::Success;
+				}
+				return result.ErrorCode == EncodingErrorCode::Success ? EncodedStreamReadResult::Success : EncodedStreamReadResult::DecodeError;
 			}
-			else
-			{
-				throw std::runtime_error("Unable to parse wrong UTF sequence");
-			}
+			// Ignore error code `UnexpectedEnd` if it's not end of file
+			return result.ErrorCode == EncodingErrorCode::Success || result.ErrorCode == EncodingErrorCode::UnexpectedEnd ? EncodedStreamReadResult::Success : EncodedStreamReadResult::DecodeError;
 		}
 
 		UtfType mUtfType;

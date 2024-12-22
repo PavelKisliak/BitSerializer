@@ -13,7 +13,7 @@ namespace BitSerializer::KeyValueProxy
 	template <class TArchive, class TValue>
 	void SplitAndSerialize(TArchive& archive, TValue&& value)
 	{
-		Serialize(archive, std::forward<TValue>(value));
+		Serialize(archive, value);
 	}
 
 	template <class TArchive, class TKey, class TValue, class... TValidators>

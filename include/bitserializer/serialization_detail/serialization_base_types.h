@@ -528,7 +528,7 @@ namespace BitSerializer
 	/// Serializes the base class.
 	/// </summary>
 	template <typename TArchive, class TBase>
-	bool Serialize(TArchive& archive, BaseObject<TBase>&& value)
+	bool Serialize(TArchive& archive, BaseObject<TBase>& value)
 	{
 		constexpr auto hasSerializeMethod = has_serialize_method_v<TBase>;
 		constexpr auto isObjectScope = is_object_scope_v<TArchive, typename TArchive::key_type>;
@@ -630,5 +630,22 @@ namespace BitSerializer
 			}
 		}
 		return false;
+	}
+
+	//-----------------------------------------------------------------------------
+	// Serialize constant values (only saving is allowed)
+	//-----------------------------------------------------------------------------
+	template <typename TArchive, typename TKey, typename TValue>
+	bool Serialize(TArchive& archive, TKey&& key, const TValue& value)
+	{
+		static_assert(!TArchive::IsLoading(), "BitSerializer. Cannot load into constant object.");
+		return Serialize(archive, std::forward<TKey>(key), const_cast<TValue&>(value));
+	}
+
+	template <typename TArchive, typename TValue>
+	bool Serialize(TArchive& archive, const TValue& value)
+	{
+		static_assert(!TArchive::IsLoading(), "BitSerializer. Cannot load into constant object.");
+		return Serialize(archive, const_cast<TValue&>(value));
 	}
 }

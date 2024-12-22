@@ -54,6 +54,16 @@ TEST(BaseTypes, SerializeStdByte) {
 	TestSerializeType<ArchiveStub, std::byte>(std::numeric_limits<std::byte>::max());
 }
 
+TEST(BaseTypes, SerializeConstValue)
+{
+	const int expected = BuildFixture<int>();
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(expected, outputArchive);
+	int actual;
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive);
+	EXPECT_EQ(expected, actual);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------

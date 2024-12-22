@@ -87,7 +87,7 @@ ___
 ### How to install
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
-Please follow [instructions](#details-of-archives) for specific archives.
+Please follow [instructions](#what-else-to-read) for specific archives.
 #### VCPKG
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json

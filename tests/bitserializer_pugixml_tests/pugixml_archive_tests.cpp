@@ -65,6 +65,15 @@ TEST(PugiXmlArchive, SerializeClassWithKeyOnRootLevel) {
 	TestSerializeType<XmlArchive>("Root", BuildFixture<TestClassWithSubTypes<int16_t>>());
 }
 
+TEST(PugiXmlArchive, SerializeConstClassWithKeyOnRootLevel) {
+	const auto expected = BuildFixture<TestPointClass>();
+	std::string outputArchive;
+	BitSerializer::SaveObject<XmlArchive>(BitSerializer::KeyValue("Point", expected), outputArchive);
+	TestPointClass actual;
+	BitSerializer::LoadObject<XmlArchive>(BitSerializer::KeyValue("Point", actual), outputArchive);
+	EXPECT_EQ(expected, actual);
+}
+
 TEST(PugiXmlArchive, SerializeClassWithMemberBoolean) {
 	TestSerializeType<XmlArchive>(TestClassWithSubTypes<bool>(false));
 	TestSerializeType<XmlArchive>(TestClassWithSubTypes<bool>(true));

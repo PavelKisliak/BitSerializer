@@ -258,4 +258,103 @@ namespace BitSerializer
 	private:
 		const char* mErrorMessage;
 	};
+
+	/// <summary>
+	/// Validates that string contains a phone number.
+	///	Allows to validate phones with various numbers of digits, optional plus, parentheses and dashes, e.g.: +555 (55) 555-55-55
+	/// </summary>
+	class PhoneNumber
+	{
+	public:
+		PhoneNumber(size_t minNumbers = 7, size_t maxNumbers = 15, bool isPlusRequired = true, const char* errorMessage = nullptr) noexcept
+			: mMinNumbers(minNumbers)
+			, mMaxNumbers(maxNumbers)
+			, mIsPlusRequired(isPlusRequired)
+			, mErrorMessage(errorMessage)
+		{ }
+
+		template <typename T, std::enable_if_t<Convert::Detail::is_convertible_to_string_view_v<T>, int> = 0>
+		std::optional<std::string> operator() (T&& value, bool isLoaded) const
+		{
+			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
+			if (!isLoaded) {
+				return std::nullopt;
+			}
+
+			bool hasPlus = false, isInParenthesis = false, isLastDigit = false;
+			size_t digitCount = 0;
+			const auto str = Convert::Detail::ToStringView(value);
+			const size_t strSize = str.size();
+			const char* error = nullptr;
+			using char_type = std::make_unsigned_t<typename decltype(str)::value_type>;
+			for (size_t i = 0; i < strSize && error == nullptr; ++i)
+			{
+				if (const char_type ch = str[i]; digitCount == 0 && ch == '+') {
+					hasPlus = true;
+				}
+				else if (ch >= '0' && ch <= '9')
+				{
+					++digitCount;
+					isLastDigit = true;
+				}
+				else if (ch != ' ')
+				{
+					if (ch == '-')
+					{
+						if (!isLastDigit || i + 1 == strSize) {
+							error = "Invalid phone number (dashes should be used to separate numbers)";
+						}
+					}
+					else if (ch == '(')
+					{
+						if (isInParenthesis) {
+							error = "Invalid phone number (contains nested parentheses)";
+						}
+						isInParenthesis = true;
+					}
+					else if (ch == ')')
+					{
+						if (isInParenthesis && isLastDigit) {
+							isInParenthesis = false;
+						}
+						else {
+							error = "Invalid phone number (invalid closing parenthesis)";
+						}
+					}
+					else {
+						error = "Invalid phone number (contains invalid characters)";
+					}
+					isLastDigit = false;
+				}
+			}
+
+			if (!hasPlus && mIsPlusRequired) {
+				error = "Invalid phone number (missing initial `+`)";
+			}
+
+			if (isInParenthesis) {
+				error = "Invalid phone number (missing closing parenthesis)";
+			}
+
+			if (error) {
+				return std::make_optional<std::string>(mErrorMessage ? mErrorMessage : error);
+			}
+
+			if (digitCount < mMinNumbers || digitCount > mMaxNumbers)
+			{
+				if (mMinNumbers == mMaxNumbers) {
+					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (must contain " + Convert::ToString(mMinNumbers) + " digits)");
+				}
+				return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (the number of digits must be from "
+					+ Convert::ToString(mMinNumbers) + " to " + Convert::ToString(mMaxNumbers) + ")");
+			}
+			return std::nullopt;
+		}
+
+	private:
+		size_t mMinNumbers;
+		size_t mMaxNumbers;
+		bool mIsPlusRequired;
+		const char* mErrorMessage;
+	};
 }

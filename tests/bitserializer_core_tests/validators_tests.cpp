@@ -349,3 +349,81 @@ TEST(ValidatorEmail, ShouldReturnCustomErrorMessage)
 	ASSERT_TRUE(result.has_value());
 	EXPECT_EQ("Custom error message", result.value());
 }
+
+//-----------------------------------------------------------------------------
+// Tests for 'PhoneNumber' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorPhoneNumber, TestDifferentStringTypes)
+{
+	// Arrange
+	const auto validator = PhoneNumber();
+
+	// Act / Assert
+	EXPECT_FALSE(validator("+123 (555) 555-55-55", true).has_value());
+	EXPECT_FALSE(validator(std::string("+123 (555) 555-55-55"), true).has_value());
+	EXPECT_FALSE(validator(std::u16string(u"+123 (555) 555-55-55"), true).has_value());
+	EXPECT_FALSE(validator(std::u32string(U"+123 (555) 555-55-55"), true).has_value());
+	EXPECT_FALSE(validator(std::wstring(L"+123 (555) 555-55-55"), true).has_value());
+}
+
+TEST(ValidatorPhoneNumber, TestValidPhones)
+{
+	const auto validator = PhoneNumber();
+
+	EXPECT_FALSE(validator("+1 (555) 555-55-55", true).has_value());
+
+	EXPECT_FALSE(validator("+44 20 7123 1234", true).has_value());
+	EXPECT_FALSE(validator("+91-22-27782183", true).has_value());
+	EXPECT_FALSE(validator(" +91 - 22 - 27782183 ", true).has_value());
+}
+
+TEST(ValidatorPhoneNumber, TestValidPhonesWithoutPlus)
+{
+	const auto validator = PhoneNumber(7, 15, false);
+
+	EXPECT_FALSE(validator("(555) 555-55-55", true).has_value());
+	EXPECT_FALSE(validator("44 20 7123 1234", true).has_value());
+	EXPECT_FALSE(validator(" (55) 555-5555 ", true).has_value());
+}
+
+TEST(ValidatorPhoneNumber, TestPhonesWithInvalidNumberOfDigits)
+{
+	const auto validator = PhoneNumber(6, 12);
+
+	EXPECT_TRUE(validator("+12345", true).has_value()) << "Should contain at least 6 digits";
+	EXPECT_TRUE(validator("+1234567890123", true).has_value()) << "Should contain maximum 12 digits";
+}
+
+TEST(ValidatorPhoneNumber, TestPhonesWithInvalidParenthesis)
+{
+	const auto validator = PhoneNumber(6, 12);
+
+	EXPECT_TRUE(validator("+1 ((555)) 555-55-55", true).has_value()) << "Nested parenthesis are not allowed";
+	EXPECT_TRUE(validator("+1 (555 555-55-55", true).has_value()) << "Missing closing parenthesis";
+	EXPECT_TRUE(validator("+1 (555) )555-55-55", true).has_value()) << "Invalid closing parenthesis";
+	EXPECT_TRUE(validator("+1 () 555-55-55", true).has_value()) << "Invalid closing parenthesis";
+	EXPECT_TRUE(validator("+1 555 555-55-55 )", true).has_value()) << "Invalid closing parenthesis";
+	EXPECT_TRUE(validator("+1 555 555-55-55 ()", true).has_value()) << "Invalid parenthesis";
+}
+
+TEST(ValidatorPhoneNumber, TestPhonesWithInvalidDashes)
+{
+	const auto validator = PhoneNumber(6, 12);
+
+	EXPECT_TRUE(validator("-1 (555) 555-5555", true).has_value()) << "The leading dash is not allowed";
+	EXPECT_TRUE(validator("-(555) 555-5555", true).has_value()) << "The leading dash is not allowed";
+	EXPECT_TRUE(validator("+1 (555) 555--5555", true).has_value()) << "The sequence of dashes is not allowed";
+	EXPECT_TRUE(validator("+1 (555) 555-5555-", true).has_value()) << "The dash at the end is not allowed";
+	EXPECT_TRUE(validator("+1 (555) -555-55-55", true).has_value()) << "Invalid dash after parenthesis";
+	EXPECT_TRUE(validator("+1 (-555) 555-55-55", true).has_value()) << "Invalid dash in the parenthesis";
+	EXPECT_TRUE(validator("+1 (555-) 555-55-55", true).has_value()) << "Invalid dash in the parenthesis";
+}
+
+TEST(ValidatorPhoneNumber, TestPhonesWithInvalidCharacters)
+{
+	const auto validator = PhoneNumber(6, 12);
+
+	EXPECT_TRUE(validator("*1 (555) 555-55-55", true).has_value());
+	EXPECT_TRUE(validator("1 (555) 555-55-55$", true).has_value());
+	EXPECT_TRUE(validator("1 (555) 555-55=55", true).has_value());
+}

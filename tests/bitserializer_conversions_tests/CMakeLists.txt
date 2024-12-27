@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
     encoded_stream_writer_fixture.h
     encoded_stream_writer_tests.cpp
     convert_fundamentals_tests.cpp
+    convert_enums_tests.cpp
     convert_traits_tests.cpp
     convert_classes_tests.cpp
     convert_transcoding_tests.cpp

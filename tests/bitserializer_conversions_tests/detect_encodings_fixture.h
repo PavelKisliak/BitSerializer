@@ -15,7 +15,7 @@ public:
 	using target_char_type = typename TUtfType::char_type;
 
 	void PrepareEncodedData(std::u32string_view testStr,
-		BitSerializer::Convert::EncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::EncodingErrorPolicy::WriteErrorMark,
+		BitSerializer::Convert::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::UtfEncodingErrorPolicy::WriteErrorMark,
 		const target_char_type* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<target_char_type>())
 	{
 		// Encode string

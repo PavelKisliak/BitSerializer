@@ -252,7 +252,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	const std::u16string source = NativeStringToLittleEndian(wrongStartCodes + u"test" + wrongStartCodes);
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -269,7 +269,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	const std::u16string source = NativeStringToLittleEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -286,7 +286,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 	const std::u16string source = NativeStringToLittleEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -303,7 +303,7 @@ TEST(Utf16LeDecodeTest, ShouldHandlePolicySkip)
 	const std::u16string source = NativeStringToLittleEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);

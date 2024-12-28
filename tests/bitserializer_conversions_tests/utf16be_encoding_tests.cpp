@@ -251,7 +251,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	const std::u16string source = NativeStringToBigEndian(wrongStartCodes + u"test" + wrongStartCodes);
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -268,7 +268,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -285,7 +285,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -302,7 +302,7 @@ TEST(Utf16BeDecodeTest, ShouldHandlePolicySkip)
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);

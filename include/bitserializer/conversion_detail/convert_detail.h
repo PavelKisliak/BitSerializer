@@ -14,7 +14,7 @@ namespace BitSerializer::Convert::Detail
 	template <typename TInSym, typename TOutSym, typename TAllocator>
 	void To(std::basic_string_view<TInSym> in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
 	{
-		if (!Utf::Transcode(in, out, EncodingErrorPolicy::Fail)) 	{
+		if (!Utf::Transcode(in, out, UtfEncodingErrorPolicy::Fail)) 	{
 			throw std::invalid_argument("The source string contains an invalid UTF sequence");
 		}
 	}

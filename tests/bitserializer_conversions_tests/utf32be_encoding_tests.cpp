@@ -101,7 +101,7 @@ TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	const std::u16string source = wrongStartCodes + u"test" + wrongStartCodes;
 
 	// Act
-	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -118,7 +118,7 @@ TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	const std::u16string source = notFullSurrogatePair + u"test";
 
 	// Act
-	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -135,7 +135,7 @@ TEST(Utf32BeEncodeTest, ShouldHandlePolicyFail)
 	const std::u16string source = u"test" + notFullSurrogatePair + u"test";
 
 	// Act
-	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Fail);
+	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Fail);
 
 	// Assert
 	EXPECT_FALSE(result);
@@ -152,7 +152,7 @@ TEST(Utf32BeEncodeTest, ShouldHandlePolicySkip)
 	const std::u16string source = u"test" + notFullSurrogatePair + u"123";
 
 	// Act
-	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::EncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf32Be::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);

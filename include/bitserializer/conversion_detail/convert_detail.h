@@ -14,29 +14,8 @@ namespace BitSerializer::Convert::Detail
 	template <typename TInSym, typename TOutSym, typename TAllocator>
 	void To(std::basic_string_view<TInSym> in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
 	{
-		// Assign to the same char type
-		if constexpr (sizeof(TInSym) == sizeof(TOutSym)) {
-			out.append(std::cbegin(in), std::cend(in));
-		}
-		// Decode from UTF-8 (to UTF-16 or UTF-32)
-		else if constexpr (sizeof(TInSym) == sizeof(char)) {
-			out.reserve(out.size() + in.size());
-			Utf8::Decode(in.cbegin(), in.cend(), out);
-		}
-		// Encode to UTF-8 (from UTF-16 or UTF-32)
-		else if constexpr (sizeof(TOutSym) == sizeof(char)) {
-			out.reserve(out.size() + in.size() * 2);
-			Utf8::Encode(in.cbegin(), in.cend(), out);
-		}
-		// Decode from Utf-16 to Utf-32
-		else if constexpr (sizeof(TInSym) == sizeof(char16_t)) {
-			out.reserve(out.size() + in.size());
-			Utf16::Decode(in.cbegin(), in.cend(), out);
-		}
-		// Encode to Utf-16 from Utf-32
-		else if constexpr (sizeof(TInSym) == sizeof(char32_t)) {
-			out.reserve(out.size() + in.size());
-			Utf16::Encode(in.cbegin(), in.cend(), out);
+		if (!Utf::Transcode(in, out, EncodingErrorPolicy::Fail)) 	{
+			throw std::invalid_argument("The source string contains an invalid UTF sequence");
 		}
 	}
 

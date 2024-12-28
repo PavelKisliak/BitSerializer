@@ -9,6 +9,7 @@ add_executable(${PROJECT_NAME}
     utf16be_encoding_tests.cpp
     utf32le_encoding_tests.cpp
     utf32be_encoding_tests.cpp
+    utf_transcoding_tests.cpp
     detect_encodings_fixture.h
     detect_encodings_tests.cpp
     encoded_stream_reader_fixture.h
@@ -19,7 +20,6 @@ add_executable(${PROJECT_NAME}
     convert_enums_tests.cpp
     convert_traits_tests.cpp
     convert_classes_tests.cpp
-    convert_transcoding_tests.cpp
     convert_filesystem_tests.cpp
     convert_chrono_tests.cpp
     convert_custom_string_tests.cpp

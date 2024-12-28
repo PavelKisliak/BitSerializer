@@ -146,7 +146,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-8 to UTF-16 or UTF-32.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -230,7 +229,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes to UTF-8 from UTF-16 or UTF-32.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -330,7 +328,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-16 to UTF-32, UTF-16 (copies 'as is') or UTF-8.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -405,7 +402,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes to UTF-16 from UTF-32, UTF-16 (copies 'as is') or UTF-8.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -467,7 +463,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-16LE to UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -478,7 +473,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes to UTF-16LE from UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -506,7 +500,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-16BE to UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -517,7 +510,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes UTF-16BE from UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -545,7 +537,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-32 to UTF-32 (copies 'as is'), UTF-16 or UTF-8.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -573,7 +564,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes UTF-32 from UTF-32 (copies 'as is'), UTF-16 or UTF-8.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -611,7 +601,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-32LE to UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -622,7 +611,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes UTF-32LE from UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -648,7 +636,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Decodes UTF-32BE to UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not decoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -659,7 +646,6 @@ namespace BitSerializer::Convert
 
 		/// <summary>
 		/// Encodes UTF-32BE from UTF-32, UTF-16 or UTF-8.
-		///	Returns iterator to the last not encoded character if the sequence (tails or surrogates) breaks at end of the input string.
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -671,6 +657,44 @@ namespace BitSerializer::Convert
 				Memory::Reverse(outStr.begin() + startOutPos, outStr.end());
 			}
 			return result;
+		}
+	};
+
+
+	namespace Utf
+	{
+		/// <summary>
+		/// Transcodes any UTF sequence to any other UTF string (in byte order of the current platform).
+		/// </summary>
+		template<typename TInIt, typename TOutChar, typename TAllocator>
+		EncodingResult<TInIt> Transcode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+			EncodingErrorPolicy errorPolicy = EncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+		{
+			using TInCharType = typename std::iterator_traits<TInIt>::value_type;
+			if constexpr (sizeof(TInCharType) == sizeof(TOutChar))
+			{
+				outStr.append(in, end);
+				return EncodingResult(EncodingErrorCode::Success, end, 0);
+			}
+			else if constexpr (sizeof(TOutChar) == 1) {
+				return Utf8::Encode(in, end, outStr, errorPolicy, errorMark);
+			}
+			else if constexpr (sizeof(TOutChar) == 2) {
+				return Utf16::Encode(in, end, outStr, errorPolicy, errorMark);
+			}
+			else {
+				return Utf32::Encode(in, end, outStr, errorPolicy, errorMark);
+			}
+		}
+
+		/// <summary>
+		/// Transcodes any UTF string_view to any other UTF string.
+		/// </summary>
+		template<typename TInChar, typename TOutChar, typename TAllocator>
+		EncodingResult<typename std::basic_string_view<TInChar>::iterator> Transcode(const std::basic_string_view<TInChar> sourceStr, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+			EncodingErrorPolicy errorPolicy = EncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+		{
+			return Transcode(sourceStr.cbegin(), sourceStr.cend(), outStr, errorPolicy, errorMark);
 		}
 	};
 
@@ -989,8 +1013,9 @@ namespace BitSerializer::Convert
 	class CEncodedStreamWriter
 	{
 	public:
-		CEncodedStreamWriter(std::ostream& outputStream, UtfType targetUtfType, bool addBom) noexcept
+		CEncodedStreamWriter(std::ostream& outputStream, UtfType targetUtfType, bool addBom, EncodingErrorPolicy encodingErrorPolicy = EncodingErrorPolicy::Skip) noexcept
 			: mOutputStream(outputStream)
+			, mEncodingErrorPolicy(encodingErrorPolicy)
 		{
 			switch (targetUtfType)
 			{
@@ -1030,7 +1055,7 @@ namespace BitSerializer::Convert
 				else
 				{
 					utfToolset.second.clear();
-					utfToolset.first.Encode(str.data(), str.data() +  str.size(), utfToolset.second);
+					utfToolset.first.Encode(str.data(), str.data() +  str.size(), utfToolset.second, mEncodingErrorPolicy);
 					mOutputStream.write(reinterpret_cast<const char*>(utfToolset.second.data()),
 						static_cast<std::streamsize>(utfToolset.second.size() * sizeof(decltype(utfToolset.second.front()))));
 				}
@@ -1053,5 +1078,6 @@ namespace BitSerializer::Convert
 		using UtfVariant = std::variant<std::pair<Utf8, std::string>, std::pair<Utf16Le, std::u16string>, std::pair<Utf16Be, std::u16string>, std::pair<Utf32Le, std::u32string>, std::pair<Utf32Be, std::u32string>>;
 		std::ostream& mOutputStream;
 		UtfVariant mUtfToolset;
+		EncodingErrorPolicy mEncodingErrorPolicy;
 	};
 }

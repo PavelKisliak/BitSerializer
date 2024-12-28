@@ -207,7 +207,7 @@ namespace BitSerializer
 					auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<archive_char_type>>();
 					valueBuffer.clear();
 					Convert::Detail::To(value, valueBuffer);
-					archive_string_view archiveStringView(valueBuffer.data(), valueBuffer.size());
+					archive_string_view archiveStringView(valueBuffer);
 					return archive.SerializeValue(archiveStringView);
 				}
 			}

@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -57,6 +57,38 @@ TEST(ConvertApi, ShouldConvertStdString) {
 	EXPECT_EQ(100500, Convert::To<int32_t>(std::wstring(L"  100500  ")));
 	EXPECT_EQ(100500, Convert::To<int32_t>(std::u16string(u"  100500  ")));
 	EXPECT_EQ(100500, Convert::To<int32_t>(std::u32string(U"  100500  ")));
+}
+
+#pragma warning(push)
+#pragma warning(disable: 4566)
+TEST(ConvertApi, ShouldConvertUtf8ToAnyStringType) {
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::ToString(UTF8("Привет мир!")));
+	EXPECT_EQ(L"😀😎🙋", Convert::ToWString(UTF8("😀😎🙋")));
+	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(UTF8("Привет мир!")));
+	EXPECT_EQ(U"Привет мир!", Convert::To<std::u32string>(UTF8("Привет мир!")));
+}
+
+TEST(ConvertApi, ShouldConvertUtf16ToAnyStringType) {
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::ToString(u"Привет мир!"));
+	EXPECT_EQ(L"😀😎🙋", Convert::ToWString(u"😀😎🙋"));
+	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(u"Привет мир!"));
+	EXPECT_EQ(U"Привет мир!", Convert::To<std::u32string>(u"Привет мир!"));
+}
+
+TEST(ConvertApi, ShouldConvertUtf32ToAnyStringType) {
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::ToString(U"Привет мир!"));
+	EXPECT_EQ(L"😀😎🙋", Convert::ToWString(U"😀😎🙋"));
+	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(U"Привет мир!"));
+	EXPECT_EQ(U"Привет мир!", Convert::To<std::u32string>(U"Привет мир!"));
+}
+#pragma warning(pop)
+
+TEST(ConvertApi, ShouldThrowExceptionWhenWrongUtfSequence)
+{
+	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string source = "test" + wrongSequence + "test";
+
+	EXPECT_THROW(Convert::To<std::u16string>(source), std::invalid_argument);
 }
 
 TEST(ConvertApi, ShouldReturnTheSamePointerWhenConvertToSameType) {

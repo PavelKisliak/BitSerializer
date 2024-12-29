@@ -41,9 +41,14 @@ namespace BitSerializer::Convert
 	/// </summary>
 	enum class UtfEncodingErrorPolicy
 	{
-		WriteErrorMark,
-		Fail,
-		Skip
+		/// <summary>
+		/// Skip invalid UTF sequence (by default it is replacing with an error mark, that can be customized).
+		/// </summary>
+		Skip,
+		/// <summary>
+		///  Will be thrown SerializationException with error code `SerializationErrorCode::MismatchedTypes`.
+		/// </summary>
+		ThrowError
 	};
 
 	/// <summary>
@@ -108,12 +113,12 @@ namespace BitSerializer::Convert
 		{
 			switch (encodingPolicy)
 			{
-			case UtfEncodingErrorPolicy::WriteErrorMark:
-				outStr.append(errorMark);
-				break;
-			case UtfEncodingErrorPolicy::Fail:
+			case UtfEncodingErrorPolicy::ThrowError:
 				return false;
 			case UtfEncodingErrorPolicy::Skip:
+				if (errorMark) {
+					outStr.append(errorMark);
+				}
 				break;
 			}
 			return true;
@@ -149,7 +154,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "The input sequence must be 8-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have at least 16-bit characters");
@@ -232,7 +237,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(decltype(*in)) > sizeof(char_type), "The input sequence must be at least 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char), "Output string must be 8-bit characters (e.g. std::string)");
@@ -331,7 +336,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "The input sequence must be 16-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
@@ -405,7 +410,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char16_t), "Output string must be 16-bit characters (e.g. std::u16string)");
 
@@ -466,7 +471,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			return Utf16::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
@@ -476,7 +481,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char16_t), "Output string must be 16-bit characters (e.g. std::u16string)");
 
@@ -503,7 +508,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			return Utf16::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
@@ -513,7 +518,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char16_t), "Output string must be 16-bit characters (e.g. std::u16string)");
 
@@ -540,7 +545,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(decltype(*in)) == sizeof(char_type), "The input sequence must be 32-bit characters");
 			static_assert(sizeof(TOutChar) == sizeof(char) || sizeof(TOutChar) == sizeof(char16_t) || sizeof(TOutChar) == sizeof(char32_t), "Output string should have 8, 16 or 32-bit characters");
@@ -567,7 +572,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			static_assert(sizeof(TOutChar) == sizeof(char32_t), "Output string must be 32-bit characters (e.g. std::u32string)");
 
@@ -604,7 +609,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			return Utf32::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
@@ -614,7 +619,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			const size_t startOutPos = outStr.size();
 			auto result = Utf32::Encode(in, end, outStr, errorPolicy, errorMark);
@@ -639,7 +644,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			return Utf32::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
@@ -649,7 +654,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static EncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			const size_t startOutPos = outStr.size();
 			auto result = Utf32::Encode(in, end, outStr, errorPolicy, errorMark);
@@ -668,7 +673,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		EncodingResult<TInIt> Transcode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			using TInCharType = typename std::iterator_traits<TInIt>::value_type;
 			if constexpr (sizeof(TInCharType) == sizeof(TOutChar))
@@ -692,7 +697,7 @@ namespace BitSerializer::Convert
 		/// </summary>
 		template<typename TInChar, typename TOutChar, typename TAllocator>
 		EncodingResult<typename std::basic_string_view<TInChar>::iterator> Transcode(const std::basic_string_view<TInChar> sourceStr, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
-			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::WriteErrorMark, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
+			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 		{
 			return Transcode(sourceStr.cbegin(), sourceStr.cend(), outStr, errorPolicy, errorMark);
 		}
@@ -887,7 +892,7 @@ namespace BitSerializer::Convert
 		CEncodedStreamReader& operator=(CEncodedStreamReader&&) = delete;
 		~CEncodedStreamReader() = default;
 
-		explicit CEncodedStreamReader(std::istream& inputStream, UtfEncodingErrorPolicy encodeErrorPolicy = UtfEncodingErrorPolicy::WriteErrorMark,
+		explicit CEncodedStreamReader(std::istream& inputStream, UtfEncodingErrorPolicy encodeErrorPolicy = UtfEncodingErrorPolicy::Skip,
 			const TTargetCharType* errorMark = Detail::GetDefaultErrorMark<TTargetCharType>())
 			: mInputStream(inputStream)
 			, mEncodingErrorPolicy(encodeErrorPolicy)

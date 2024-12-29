@@ -251,7 +251,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	const std::u16string source = NativeStringToBigEndian(wrongStartCodes + u"test" + wrongStartCodes);
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -268,7 +268,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -285,7 +285,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -294,7 +294,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 
-TEST(Utf16BeDecodeTest, ShouldHandlePolicySkip)
+TEST(Utf16BeDecodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
@@ -302,7 +302,7 @@ TEST(Utf16BeDecodeTest, ShouldHandlePolicySkip)
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"");
 
 	// Assert
 	EXPECT_TRUE(result);

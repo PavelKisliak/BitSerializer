@@ -17,7 +17,7 @@ public:
 
 	template <typename TSourceUtfType>
 	void PrepareEncodedStreamReader(std::u32string_view testStr, bool addBom = false,
-		BitSerializer::Convert::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::UtfEncodingErrorPolicy::WriteErrorMark,
+		BitSerializer::Convert::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::UtfEncodingErrorPolicy::Skip,
 		const TTargetCharType* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<TTargetCharType>())
 	{
 		using source_char_type = typename TSourceUtfType::char_type;

@@ -101,7 +101,7 @@ TEST(Utf8EncodeTest, ShouldEncodeInvalidSurrogatePairsAsErrorMark)
 	const std::u16string source = u"\xDE00test\xDE00";
 
 	// Act
-	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -117,7 +117,7 @@ TEST(Utf8EncodeTest, ShouldWriteCustomErrorMarkWhenError)
 	const std::u16string source = u"test\xDE00";
 
 	// Act
-	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark, "<ERROR>");
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, "<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -126,35 +126,35 @@ TEST(Utf8EncodeTest, ShouldWriteCustomErrorMarkWhenError)
 	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 
-TEST(Utf8EncodeTest, ShouldHandlePolicyFail)
-{
-	// Arrange
-	std::string outString;
-	const std::u16string source = u"test\xDE00test";
-
-	// Act
-	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Fail);
-
-	// Assert
-	EXPECT_FALSE(result);
-	EXPECT_EQ(UTF8("test"), outString);
-	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(1, result.InvalidSequencesCount);
-}
-
-TEST(Utf8EncodeTest, ShouldHandlePolicySkip)
+TEST(Utf8EncodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::string outString;
 	const std::u16string source = u"test\xDE00";
 
 	// Act
-	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, "");
 
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(UTF8("test"), outString);
 	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf8EncodeTest, ShouldHandlePolicyThrowError)
+{
+	// Arrange
+	std::string outString;
+	const std::u16string source = u"test\xDE00test";
+
+	// Act
+	const auto result = Convert::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(UTF8("test"), outString);
+	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 
@@ -268,7 +268,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedFiveOctets)
 	const std::string source = fiveOctets + "test" + fiveOctets;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -285,7 +285,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedSixOctets)
 	const std::string source = sixOctets + "test" + sixOctets;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -302,7 +302,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode)
 	const std::string source = wrongStartCodes + "test" + wrongStartCodes;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -319,7 +319,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail2InSequence)
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -336,7 +336,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail3InSequence)
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -353,7 +353,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence)
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -362,24 +362,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence)
 	EXPECT_EQ(2, result.InvalidSequencesCount);
 }
 
-TEST(Utf8DecodeTest, ShouldHandlePolicyFail)
-{
-	// Arrange
-	std::u32string outString;
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
-	const std::string source = "test" + wrongSequence + "test";
-
-	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Fail);
-
-	// Assert
-	EXPECT_FALSE(result);
-	EXPECT_EQ(U"test", outString);
-	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(1, result.InvalidSequencesCount);
-}
-
-TEST(Utf8DecodeTest, ShouldHandlePolicySkip)
+TEST(Utf8DecodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
@@ -387,13 +370,30 @@ TEST(Utf8DecodeTest, ShouldHandlePolicySkip)
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"");
 
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(U"test", outString);
 	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldHandlePolicyThrowError)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string source = "test" + wrongSequence + "test";
+
+	// Act
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(U"test", outString);
+	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 
 TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedTwoOctetsAtEnd)
@@ -460,7 +460,7 @@ TEST(Utf8DecodeTest, ShouldNotDecodeSurrogatePairs)
 	const std::string source = "test\xED\xA1\x8C\xED\xBE\xB4";
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -476,7 +476,7 @@ TEST(Utf8DecodeTest, ShouldPutCustomErrorMarkWhenError)
 	const std::string source = "test\xED\xA1\x8Ctest";
 
 	// Act
-	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
+	const auto result = Convert::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);

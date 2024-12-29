@@ -101,7 +101,7 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	const std::u16string source = wrongStartCodes + u"test" + wrongStartCodes;
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -118,7 +118,7 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	const std::u16string source = notFullSurrogatePair + u"test";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -127,24 +127,7 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 
-TEST(Utf32LeEncodeTest, ShouldHandlePolicyFail)
-{
-	// Arrange
-	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
-	const std::u16string source = u"test" + notFullSurrogatePair + u"test";
-
-	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Fail);
-
-	// Assert
-	EXPECT_FALSE(result);
-	EXPECT_EQ(NativeStringToLittleEndian(U"test"), outString);
-	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(1, result.InvalidSequencesCount);
-}
-
-TEST(Utf32LeEncodeTest, ShouldHandlePolicySkip)
+TEST(Utf32LeEncodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
@@ -152,12 +135,29 @@ TEST(Utf32LeEncodeTest, ShouldHandlePolicySkip)
 	const std::u16string source = u"test" + notFullSurrogatePair + u"123";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"");
 
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToLittleEndian(U"test123"), outString);
 	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1, result.InvalidSequencesCount);
+}
+
+TEST(Utf32LeEncodeTest, ShouldHandlePolicyThrowError)
+{
+	// Arrange
+	std::u32string outString;
+	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string source = u"test" + notFullSurrogatePair + u"test";
+
+	// Act
+	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(NativeStringToLittleEndian(U"test"), outString);
+	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 

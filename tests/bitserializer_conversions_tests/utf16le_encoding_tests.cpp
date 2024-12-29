@@ -252,7 +252,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	const std::u16string source = NativeStringToLittleEndian(wrongStartCodes + u"test" + wrongStartCodes);
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -269,7 +269,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	const std::u16string source = NativeStringToLittleEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark);
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -286,7 +286,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 	const std::u16string source = NativeStringToLittleEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::WriteErrorMark, U"<ERROR>");
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -295,7 +295,7 @@ TEST(Utf16LeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 	EXPECT_EQ(1, result.InvalidSequencesCount);
 }
 
-TEST(Utf16LeDecodeTest, ShouldHandlePolicySkip)
+TEST(Utf16LeDecodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
@@ -303,7 +303,7 @@ TEST(Utf16LeDecodeTest, ShouldHandlePolicySkip)
 	const std::u16string source = NativeStringToLittleEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf16Le::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"");
 
 	// Assert
 	EXPECT_TRUE(result);

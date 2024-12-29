@@ -656,19 +656,19 @@ public:
 	}
 
 private:
-	static pugi::xml_encoding ToPugiUtfType(const Convert::UtfType utfType)
+	static pugi::xml_encoding ToPugiUtfType(const Convert::Utf::UtfType utfType)
 	{
 		switch (utfType)
 		{
-		case Convert::UtfType::Utf8:
+		case Convert::Utf::UtfType::Utf8:
 			return pugi::xml_encoding::encoding_utf8;
-		case Convert::UtfType::Utf16le:
+		case Convert::Utf::UtfType::Utf16le:
 			return pugi::xml_encoding::encoding_utf16_le;
-		case Convert::UtfType::Utf16be:
+		case Convert::Utf::UtfType::Utf16be:
 			return pugi::xml_encoding::encoding_utf16_be;
-		case Convert::UtfType::Utf32le:
+		case Convert::Utf::UtfType::Utf32le:
 			return pugi::xml_encoding::encoding_utf32_le;
-		case Convert::UtfType::Utf32be:
+		case Convert::Utf::UtfType::Utf32be:
 			return pugi::xml_encoding::encoding_utf32_be;
 		default:
 			const auto strEncodingType = Convert::TryTo<std::string>(utfType);

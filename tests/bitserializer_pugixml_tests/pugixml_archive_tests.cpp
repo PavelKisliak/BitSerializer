@@ -220,79 +220,79 @@ TEST(PugiXmlArchive, SerializeUnicodeToUtf8Stream) {
 }
 
 TEST(PugiXmlArchive, LoadFromUtf8Stream) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(false);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 TEST(PugiXmlArchive, LoadFromUtf8StreamWithBom) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(true);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(PugiXmlArchive, LoadFromUtf16LeStream) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(false);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Le>(false);
 }
 TEST(PugiXmlArchive, LoadFromUtf16LeStreamWithBom) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(true);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Le>(true);
 }
 
 TEST(PugiXmlArchive, LoadFromUtf16BeStream) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(false);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Be>(false);
 }
 TEST(PugiXmlArchive, LoadFromUtf16BeStreamWithBom) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(true);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Be>(true);
 }
 
 TEST(PugiXmlArchive, LoadFromUtf32LeStream) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(false);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Le>(false);
 }
 TEST(PugiXmlArchive, LoadFromUtf32LeStreamWithBom) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(true);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Le>(true);
 }
 
 TEST(PugiXmlArchive, LoadFromUtf32BeStream) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(false);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Be>(false);
 }
 TEST(PugiXmlArchive, LoadFromUtf32BeStreamWithBom) {
-	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(true);
+	TestLoadXmlFromEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Be>(true);
 }
 
 TEST(PugiXmlArchive, SaveToUtf8Stream) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(false);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 TEST(PugiXmlArchive, SaveToUtf8StreamWithBom) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf8>(true);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(PugiXmlArchive, SaveToUtf16LeStream) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(false);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Le>(false);
 }
 TEST(PugiXmlArchive, SaveToUtf16LeStreamWithBom) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Le>(true);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Le>(true);
 }
 
 TEST(PugiXmlArchive, SaveToUtf16BeStream) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(false);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Be>(false);
 }
 TEST(PugiXmlArchive, SaveToUtf16BeStreamWithBom) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf16Be>(true);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf16Be>(true);
 }
 
 TEST(PugiXmlArchive, SaveToUtf32LeStream) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(false);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Le>(false);
 }
 TEST(PugiXmlArchive, SaveToUtf32LeStreamWithBom) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Le>(true);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Le>(true);
 }
 
 TEST(PugiXmlArchive, SaveToUtf32BeStream) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(false);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Be>(false);
 }
 TEST(PugiXmlArchive, SaveToUtf32BeStreamWithBom) {
-	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf32Be>(true);
+	TestSaveXmlToEncodedStream<XmlArchive, BitSerializer::Convert::Utf::Utf32Be>(true);
 }
 
 TEST(PugiXmlArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 {
 	BitSerializer::SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::UtfType>(-1);
+	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::Utf::UtfType>(-1);
 	std::stringstream outputStream;
 	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
 	EXPECT_THROW(BitSerializer::SaveObject<XmlArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);

@@ -65,7 +65,7 @@ namespace BitSerializer::Csv::Detail
 		bool ParseNextLine(std::vector<CValueMeta>& out_values);
 		std::string_view UnescapeValue(char* beginIt, char* endIt);
 
-		Convert::CEncodedStreamReader<char> mEncodedStreamReader;
+		Convert::Utf::CEncodedStreamReader<char> mEncodedStreamReader;
 		std::string mDecodedBuffer;
 		const bool mWithHeader;
 		const char mSeparator;

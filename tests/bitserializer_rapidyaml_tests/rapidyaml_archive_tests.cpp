@@ -215,17 +215,17 @@ TEST(RapidYamlArchive, SerializeUnicodeToEncodedStream) {
 }
 
 TEST(RapidYamlArchive, LoadFromUtf8Stream) {
-	TestLoadYamlFromEncodedStream<YamlArchive, BitSerializer::Convert::Utf8>(false);
+	TestLoadYamlFromEncodedStream<YamlArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 TEST(RapidYamlArchive, LoadFromUtf8StreamWithBom) {
-	TestLoadYamlFromEncodedStream<YamlArchive, BitSerializer::Convert::Utf8>(true);
+	TestLoadYamlFromEncodedStream<YamlArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(RapidYamlArchive, SaveToUtf8Stream) {
-	TestSaveYamlToEncodedStream<YamlArchive, BitSerializer::Convert::Utf8>(false);
+	TestSaveYamlToEncodedStream<YamlArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 TEST(RapidYamlArchive, SaveToUtf8StreamWithBom) {
-	TestSaveYamlToEncodedStream<YamlArchive, BitSerializer::Convert::Utf8>(true);
+	TestSaveYamlToEncodedStream<YamlArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(RapidYamlArchive, SerializeToFile) {

@@ -786,7 +786,7 @@ int main()
     auto testObj = CPoint(100, 200);
 
     SerializationOptions serializationOptions;
-    serializationOptions.streamOptions.encoding = Convert::UtfType::Utf8;
+    serializationOptions.streamOptions.encoding = Convert::Utf::UtfType::Utf8;
     serializationOptions.streamOptions.writeBom = false;
 
     // Save to string stream

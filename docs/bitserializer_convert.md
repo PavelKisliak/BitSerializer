@@ -228,11 +228,11 @@ As an examples, you also can see the conversion implementation for [filesystem::
 ### UTF encoding
 In addition to simple UTF conversion via `Convert::To()` function, there is also exists set of classes with more granular API for all kind of formats:
 
-- `Convert::Utf8`
-- `Convert::Utf16Le`
-- `Convert::Utf16Be`
-- `Convert::Utf32Le`
-- `Convert::Utf32Be`
+- `Convert::Utf::Utf8`
+- `Convert::Utf::Utf16Le`
+- `Convert::Utf::Utf16Be`
+- `Convert::Utf::Utf32Le`
+- `Convert::Utf::Utf32Be`
 
 They all have the same API:
 

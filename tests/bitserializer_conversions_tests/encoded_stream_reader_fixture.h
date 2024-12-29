@@ -12,13 +12,13 @@ class EncodedStreamReaderTest : public ::testing::Test
 {
 public:
 	// Use minimal chunk size for simplify testing all streaming cases
-	using reader_type = BitSerializer::Convert::CEncodedStreamReader<TTargetCharType, 32>;
+	using reader_type = BitSerializer::Convert::Utf::CEncodedStreamReader<TTargetCharType, 32>;
 	using target_string_type = std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>>;
 
 	template <typename TSourceUtfType>
 	void PrepareEncodedStreamReader(std::u32string_view testStr, bool addBom = false,
-		BitSerializer::Convert::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::UtfEncodingErrorPolicy::Skip,
-		const TTargetCharType* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<TTargetCharType>())
+		BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip,
+		const TTargetCharType* errorMark = BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<TTargetCharType>())
 	{
 		using source_char_type = typename TSourceUtfType::char_type;
 		using source_string_type = std::basic_string<source_char_type, std::char_traits<source_char_type>>;
@@ -46,11 +46,11 @@ public:
 		for (int i = 0; i < MaxIterations; ++i)
 		{
 			const auto result = mEncodedStreamReader->ReadChunk(mActualString);
-			if (result == BitSerializer::Convert::EncodedStreamReadResult::EndFile)
+			if (result == BitSerializer::Convert::Utf::EncodedStreamReadResult::EndFile)
 			{
 				break;
 			}
-			ASSERT_TRUE(result != BitSerializer::Convert::EncodedStreamReadResult::DecodeError);
+			ASSERT_TRUE(result != BitSerializer::Convert::Utf::EncodedStreamReadResult::DecodeError);
 			// For prevent infinite loop when something went wrong
 			ASSERT_TRUE(i < 100);
 		}

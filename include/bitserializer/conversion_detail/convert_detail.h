@@ -14,7 +14,7 @@ namespace BitSerializer::Convert::Detail
 	template <typename TInSym, typename TOutSym, typename TAllocator>
 	void To(std::basic_string_view<TInSym> in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
 	{
-		if (!Utf::Transcode(in, out, UtfEncodingErrorPolicy::ThrowError)) 	{
+		if (!Utf::Transcode(in, out, Utf::UtfEncodingErrorPolicy::ThrowError)) 	{
 			throw std::invalid_argument("The source string contains an invalid UTF sequence");
 		}
 	}
@@ -53,10 +53,10 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding to UTF-8
 			} else if constexpr (hasInternalToUtf16String) {
 				const auto utf16str = in.ToU16String();
-				Utf8::Encode(utf16str.cbegin(), utf16str.cend(), out);
+				Utf::Utf8::Encode(utf16str.cbegin(), utf16str.cend(), out);
 			} else if constexpr (hasInternalToUtf32String) {
 				const auto utf32str = in.ToU32String();
-				Utf8::Encode(utf32str.cbegin(), utf32str.cend(), out);
+				Utf::Utf8::Encode(utf32str.cbegin(), utf32str.cend(), out);
 			}
 		}
 		else if constexpr (sizeof(TSym) == sizeof(char16_t))
@@ -67,13 +67,13 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding to UTF-16
 			} else if constexpr (hasInternalToUtf32String) {
 				const auto utf32Str = in.ToU32String();
-				Utf16::Encode(utf32Str.cbegin(), utf32Str.cend(), out);
+				Utf::Utf16::Encode(utf32Str.cbegin(), utf32Str.cend(), out);
 			} else if constexpr (hasInternalToString) {
 				const auto utf8Str = in.ToString();
-				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+				Utf::Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
 			} else if constexpr (hasGlobalToString) {
 				const auto utf8Str = to_string(in);
-				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+				Utf::Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
 			}
 		}
 		else if constexpr (sizeof(TSym) == sizeof(char32_t))
@@ -85,13 +85,13 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding to UTF-32
 			else if constexpr (hasInternalToUtf16String) {
 				const auto utf16Str = in.ToU16String();
-				Utf16::Decode(utf16Str.cbegin(), utf16Str.cend(), out);
+				Utf::Utf16::Decode(utf16Str.cbegin(), utf16Str.cend(), out);
 			} else if constexpr (hasInternalToString) {
 				auto utf8Str = in.ToString();
-				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+				Utf::Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
 			} else if constexpr (hasGlobalToString) {
 				auto utf8Str = to_string(in);
-				Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
+				Utf::Utf8::Decode(utf8Str.cbegin(), utf8Str.cend(), out);
 			}
 		}
 	}
@@ -127,13 +127,13 @@ namespace BitSerializer::Convert::Detail
 			else if constexpr (hasInternalFromString_Utf16)
 			{
 				std::u16string utf16Str;
-				Utf16::Encode(in.cbegin(), in.cend(), utf16Str);
+				Utf::Utf16::Encode(in.cbegin(), in.cend(), utf16Str);
 				out.FromString(utf16Str);
 			}
 			else if constexpr (hasInternalFromString_Utf32)
 			{
 				std::u32string utf32Str;
-				Utf32::Encode(in.cbegin(), in.cend(), utf32Str);
+				Utf::Utf32::Encode(in.cbegin(), in.cend(), utf32Str);
 				out.FromString(utf32Str);
 			}
 		}
@@ -146,13 +146,13 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding
 			else if constexpr (hasInternalFromString_Utf8) {
 				std::string utf8Str;
-				Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+				Utf::Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 				out.FromString(utf8Str);
 			}
 			else if constexpr (hasInternalFromString_Utf32)
 			{
 				std::u32string utf32Str;
-				Utf32::Encode(in.cbegin(), in.cend(), utf32Str);
+				Utf::Utf32::Encode(in.cbegin(), in.cend(), utf32Str);
 				out.FromString(utf32Str);
 			}
 		}
@@ -165,12 +165,12 @@ namespace BitSerializer::Convert::Detail
 			// Otherwise use conversion methods for other encodings with transcoding
 			if constexpr (hasInternalFromString_Utf8) {
 				std::string utf8Str;
-				Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+				Utf::Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 				out.FromString(utf8Str);
 			}
 			else if constexpr (hasInternalFromString_Utf16) {
 				std::u16string utf16Str;
-				Utf16::Encode(in.cbegin(), in.cend(), utf16Str);
+				Utf::Utf16::Encode(in.cbegin(), in.cend(), utf16Str);
 				out.FromString(utf16Str);
 			}
 		}

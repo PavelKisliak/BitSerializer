@@ -44,7 +44,7 @@ namespace BitSerializer
 		/// <summary>
 		/// The encoding for output stream (applicable for formats which based on UTF encoded text).
 		/// </summary>
-		Convert::UtfType encoding = Convert::UtfType::Utf8;
+		Convert::Utf::UtfType encoding = Convert::Utf::UtfType::Utf8;
 	};
 
 	/// <summary>

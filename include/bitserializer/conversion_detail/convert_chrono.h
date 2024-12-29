@@ -352,7 +352,7 @@ namespace BitSerializer::Convert::Detail
 		else
 		{
 			std::string utf8Str;
-			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+			Utf::Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 			return parseDatetime(utf8Str.data(), utf8Str.data() + utf8Str.size());
 		}
 	}
@@ -679,7 +679,7 @@ namespace BitSerializer::Convert::Detail
 		else
 		{
 			std::string utf8Str;
-			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+			Utf::Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 			out = parseDuration(utf8Str.data(), utf8Str.data() + utf8Str.size());
 		}
 	}

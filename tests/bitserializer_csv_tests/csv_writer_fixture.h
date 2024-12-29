@@ -13,7 +13,7 @@ class CsvWriterTest : public ::testing::Test
 {
 public:
 	void PrepareCsvReader(bool withHeader, char separator = ',',
-		bool writeBom = false, BitSerializer::Convert::UtfType utfType = BitSerializer::Convert::UtfType::Utf8)
+		bool writeBom = false, BitSerializer::Convert::Utf::UtfType utfType = BitSerializer::Convert::Utf::UtfType::Utf8)
 	{
 		if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CCsvStringWriter>)
 		{

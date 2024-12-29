@@ -111,72 +111,72 @@ TEST_F(CsvArchiveTests, SerializeUnicodeToEncodedStream) {
 }
 
 TEST_F(CsvArchiveTests, LoadFromUtf8Stream) {
-	TestLoadCsvFromEncodedStream<Convert::Utf8>(false);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf8>(false);
 }
 TEST_F(CsvArchiveTests, LoadFromUtf8StreamWithBom) {
-	TestLoadCsvFromEncodedStream<Convert::Utf8>(true);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf8>(true);
 }
 TEST_F(CsvArchiveTests, LoadFromUtf16LeStream) {
-	TestLoadCsvFromEncodedStream<Convert::Utf16Le>(false);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf16Le>(false);
 }
 TEST_F(CsvArchiveTests, LoadFromUtf16LeStreamWithBom) {
-	TestLoadCsvFromEncodedStream<Convert::Utf16Le>(true);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf16Le>(true);
 }
 
 TEST_F(CsvArchiveTests, LoadFromUtf16BeStream) {
-	TestLoadCsvFromEncodedStream<Convert::Utf16Be>(false);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf16Be>(false);
 }
 TEST_F(CsvArchiveTests, LoadFromUtf16BeStreamWithBom) {
-	TestLoadCsvFromEncodedStream<Convert::Utf16Be>(true);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf16Be>(true);
 }
 
 TEST_F(CsvArchiveTests, LoadFromUtf32LeStream) {
-	TestLoadCsvFromEncodedStream<Convert::Utf32Le>(false);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf32Le>(false);
 }
 TEST_F(CsvArchiveTests, LoadFromUtf32LeStreamWithBom) {
-	TestLoadCsvFromEncodedStream<Convert::Utf32Le>(true);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf32Le>(true);
 }
 
 TEST_F(CsvArchiveTests, LoadFromUtf32BeStream) {
-	TestLoadCsvFromEncodedStream<Convert::Utf32Be>(false);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf32Be>(false);
 }
 TEST_F(CsvArchiveTests, LoadFromUtf32BeStreamWithBom) {
-	TestLoadCsvFromEncodedStream<Convert::Utf32Be>(true);
+	TestLoadCsvFromEncodedStream<Convert::Utf::Utf32Be>(true);
 }
 
 TEST_F(CsvArchiveTests, SaveToUtf8Stream) {
-	TestSaveCsvToEncodedStream<Convert::Utf8>(false);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf8>(false);
 }
 TEST_F(CsvArchiveTests, SaveToUtf8StreamWithBom) {
-	TestSaveCsvToEncodedStream<Convert::Utf8>(true);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf8>(true);
 }
 
 TEST_F(CsvArchiveTests, SaveToUtf16LeStream) {
-	TestSaveCsvToEncodedStream<Convert::Utf16Le>(false);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf16Le>(false);
 }
 TEST_F(CsvArchiveTests, SaveToUtf16LeStreamWithBom) {
-	TestSaveCsvToEncodedStream<Convert::Utf16Le>(true);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf16Le>(true);
 }
 
 TEST_F(CsvArchiveTests, SaveToUtf16BeStream) {
-	TestSaveCsvToEncodedStream<Convert::Utf16Be>(false);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf16Be>(false);
 }
 TEST_F(CsvArchiveTests, SaveToUtf16BeStreamWithBom) {
-	TestSaveCsvToEncodedStream<Convert::Utf16Be>(true);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf16Be>(true);
 }
 
 TEST_F(CsvArchiveTests, SaveToUtf32LeStream) {
-	TestSaveCsvToEncodedStream<Convert::Utf32Le>(false);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf32Le>(false);
 }
 TEST_F(CsvArchiveTests, SaveToUtf32LeStreamWithBom) {
-	TestSaveCsvToEncodedStream<Convert::Utf32Le>(true);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf32Le>(true);
 }
 
 TEST_F(CsvArchiveTests, SaveToUtf32BeStream) {
-	TestSaveCsvToEncodedStream<Convert::Utf32Be>(false);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf32Be>(false);
 }
 TEST_F(CsvArchiveTests, SaveToUtf32BeStreamWithBom) {
-	TestSaveCsvToEncodedStream<Convert::Utf32Be>(true);
+	TestSaveCsvToEncodedStream<Convert::Utf::Utf32Be>(true);
 }
 
 TEST_F(CsvArchiveTests, SerializeToFile) {

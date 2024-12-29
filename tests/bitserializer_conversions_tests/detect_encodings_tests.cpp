@@ -9,7 +9,7 @@
 using namespace BitSerializer;
 
 using testing::Types;
-typedef Types<Convert::Utf8, Convert::Utf16Le, Convert::Utf16Be, Convert::Utf32Le, Convert::Utf32Be> Implementations;
+typedef Types<Convert::Utf::Utf8, Convert::Utf::Utf16Le, Convert::Utf::Utf16Be, Convert::Utf::Utf32Le, Convert::Utf::Utf32Be> Implementations;
 
 TYPED_TEST_SUITE(DetectEncodingTest, Implementations);
 
@@ -18,11 +18,11 @@ TYPED_TEST_SUITE(DetectEncodingTest, Implementations);
 // Tests for detecting BOM (Byte Order Mark)
 //-----------------------------------------------------------------------------
 TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenInputDataIsEmpty) {
-	EXPECT_FALSE(Convert::StartsWithBom<typename TestFixture::utf_type>(""));
+	EXPECT_FALSE(Convert::Utf::StartsWithBom<typename TestFixture::utf_type>(""));
 }
 
 TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenNoBom) {
-	EXPECT_FALSE(Convert::StartsWithBom<typename TestFixture::utf_type>("test"));
+	EXPECT_FALSE(Convert::Utf::StartsWithBom<typename TestFixture::utf_type>("test"));
 }
 
 TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenBomIsNotFull)
@@ -32,7 +32,7 @@ TYPED_TEST(DetectEncodingTest, ShouldReturnFalseWhenBomIsNotFull)
 	this->mEncodedBuffer.pop_back();
 
 	// Act / Assert
-	EXPECT_FALSE(Convert::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
+	EXPECT_FALSE(Convert::Utf::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
 }
 
 TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentOnlyBom)
@@ -41,7 +41,7 @@ TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentOnlyBom)
 	this->AppendBom(TestFixture::utf_type::bom);
 
 	// Act / Assert
-	EXPECT_TRUE(Convert::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
+	EXPECT_TRUE(Convert::Utf::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
 }
 
 TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentBomAndText)
@@ -51,7 +51,7 @@ TYPED_TEST(DetectEncodingTest, ShouldReturnTrueWhenPresentBomAndText)
 	this->PrepareEncodedData(U"test!");
 
 	// Act / Assert
-	EXPECT_TRUE(Convert::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
+	EXPECT_TRUE(Convert::Utf::StartsWithBom<typename TestFixture::utf_type>(this->mEncodedBuffer));
 }
 
 //-----------------------------------------------------------------------------

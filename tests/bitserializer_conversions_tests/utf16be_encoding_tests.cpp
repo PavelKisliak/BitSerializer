@@ -20,7 +20,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromAnsi)
 	const std::string source = "Hello world!";
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -36,7 +36,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8)
 	const std::string source = UTF8("Привет мир!");
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -52,7 +52,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf8Surrogates)
 	const std::string source = UTF8("😀😎🙋");
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -68,7 +68,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16)
 	const std::u16string source = u"Привет мир!";
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -84,7 +84,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf16Surrogates)
 	const std::u16string source = u"😀😎🙋";
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -100,7 +100,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeFromUtf32)
 	const std::u32string source = U"世界，您好！";
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -116,7 +116,7 @@ TEST(Utf16BeEncodeTest, ShouldEncodeUtf16BeSurrogatesFromUtf32)
 	const std::u32string source = U"😀😎🙋";
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -134,11 +134,11 @@ TEST(Utf16BeEncodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePair)
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	const auto result = Convert::Utf16Be::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_FALSE(result);
-	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::UnexpectedEnd, result.ErrorCode);
 	EXPECT_EQ(NativeStringToBigEndian(u"test"), outString);
 	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(0, result.InvalidSequencesCount);
@@ -154,7 +154,7 @@ TEST(Utf16BeDecodeTest, ShouldDecodeUtf16BeToAnsi)
 	const std::u16string source = NativeStringToBigEndian(u"Hello world!");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -170,7 +170,7 @@ TEST(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf8)
 	const std::u16string source = NativeStringToBigEndian(u"Привет мир!");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -186,7 +186,7 @@ TEST(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16)
 	const std::u16string source = NativeStringToBigEndian(u"世界，您好！");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -202,7 +202,7 @@ TEST(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf16WithSurrogates)
 	const std::u16string source = NativeStringToBigEndian(u"😀😎🙋");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -218,7 +218,7 @@ TEST(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32)
 	const std::u16string source = NativeStringToBigEndian(u"世界，您好！");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -234,7 +234,7 @@ TEST(Utf16BeDecodeTest, ShouldDecodeUtf16BeToUtf32WithSurrogates)
 	const std::u16string source = NativeStringToBigEndian(u"😀😎🙋");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -247,11 +247,11 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesEnd, Convert::Unicode::LowSurrogatesStart });
+	const std::u16string wrongStartCodes({ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart });
 	const std::u16string source = NativeStringToBigEndian(wrongStartCodes + u"test" + wrongStartCodes);
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -264,11 +264,11 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -281,11 +281,11 @@ TEST(Utf16BeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"<ERROR>");
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip, U"<ERROR>");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -298,11 +298,11 @@ TEST(Utf16BeDecodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"");
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip, U"");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -320,11 +320,11 @@ TEST(Utf16BeDecodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePairAtEndWh
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_FALSE(result);
-	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::UnexpectedEnd, result.ErrorCode);
 	EXPECT_EQ("test", outString);
 	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(0, result.InvalidSequencesCount);
@@ -339,11 +339,11 @@ TEST(Utf16BeDecodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePairAtEndWh
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_FALSE(result);
-	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::UnexpectedEnd, result.ErrorCode);
 	EXPECT_EQ(u"test", outString);
 	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(0, result.InvalidSequencesCount);
@@ -358,11 +358,11 @@ TEST(Utf16BeDecodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePairAtEndWh
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
 	// Act
-	const auto result = Convert::Utf16Be::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf16Be::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_FALSE(result);
-	EXPECT_EQ(Convert::EncodingErrorCode::UnexpectedEnd, result.ErrorCode);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::UnexpectedEnd, result.ErrorCode);
 	EXPECT_EQ(U"test", outString);
 	EXPECT_EQ(expectedPos, std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(0, result.InvalidSequencesCount);

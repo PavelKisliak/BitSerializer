@@ -19,7 +19,7 @@ TYPED_TEST_SUITE(EncodedStreamReaderTest, Implementations);
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromInputStringLessThanChunkSize)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Cat");
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(U"Cat");
 
 	// Act
 	this->ReadFromStream();
@@ -31,7 +31,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromInputStringLessThanChunkSize)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromInputStringEqualWithChunkSize)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Test");
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(U"Test");
 
 	// Act
 	this->ReadFromStream();
@@ -43,7 +43,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromInputStringEqualWithChunkSize)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithoutBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
 
 	// Act
 	this->ReadFromStream();
@@ -55,7 +55,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithoutBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf8>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -67,7 +67,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf8StreamWithBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithoutBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf16Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf16Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
 
 	// Act
 	this->ReadFromStream();
@@ -79,7 +79,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithoutBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf16Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf16Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -91,7 +91,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16LeStreamWithBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithoutBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf16Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf16Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
 
 	// Act
 	this->ReadFromStream();
@@ -103,7 +103,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithoutBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf16Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf16Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -115,7 +115,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf16BeStreamWithBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithoutBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf32Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf32Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
 
 	// Act
 	this->ReadFromStream();
@@ -127,7 +127,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithoutBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf32Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf32Le>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();
@@ -139,7 +139,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32LeStreamWithBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32BeStreamWithoutBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf32Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf32Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", false);
 
 	// Act
 	this->ReadFromStream();
@@ -151,7 +151,7 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32BeStreamWithoutBom)
 TYPED_TEST(EncodedStreamReaderTest, ShouldReadFromUtf32BeStreamWithBom)
 {
 	// Arrange
-	this->template PrepareEncodedStreamReader<Convert::Utf32Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf32Be>(U"Съешь ещё этих мягких французских булок, да выпей чаю", true);
 
 	// Act
 	this->ReadFromStream();

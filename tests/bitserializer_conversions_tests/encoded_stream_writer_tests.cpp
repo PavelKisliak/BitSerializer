@@ -8,7 +8,7 @@
 using namespace BitSerializer;
 
 using testing::Types;
-typedef Types<Convert::Utf8, Convert::Utf16Le, Convert::Utf16Be, Convert::Utf32Le, Convert::Utf32Be> Implementations;
+typedef Types<Convert::Utf::Utf8, Convert::Utf::Utf16Le, Convert::Utf::Utf16Be, Convert::Utf::Utf32Le, Convert::Utf::Utf32Be> Implementations;
 
 // Tests for all possible variants of UTF encoding
 TYPED_TEST_SUITE(EncodedStreamWriterTest, Implementations);

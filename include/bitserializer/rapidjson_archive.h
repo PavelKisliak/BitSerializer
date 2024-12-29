@@ -663,19 +663,19 @@ public:
 	}
 
 private:
-	static rapidjson::UTFType ToRapidUtfType(const Convert::UtfType utfType)
+	static rapidjson::UTFType ToRapidUtfType(const Convert::Utf::UtfType utfType)
 	{
 		switch (utfType)
 		{
-		case Convert::UtfType::Utf8:
+		case Convert::Utf::UtfType::Utf8:
 			return rapidjson::UTFType::kUTF8;
-		case Convert::UtfType::Utf16le:
+		case Convert::Utf::UtfType::Utf16le:
 			return rapidjson::UTFType::kUTF16LE;
-		case Convert::UtfType::Utf16be:
+		case Convert::Utf::UtfType::Utf16be:
 			return rapidjson::UTFType::kUTF16BE;
-		case Convert::UtfType::Utf32le:
+		case Convert::Utf::UtfType::Utf32le:
 			return rapidjson::UTFType::kUTF32LE;
-		case Convert::UtfType::Utf32be:
+		case Convert::Utf::UtfType::Utf32be:
 			return rapidjson::UTFType::kUTF32BE;
 		default:
 			const auto strEncodingType = Convert::TryTo<std::string>(utfType);

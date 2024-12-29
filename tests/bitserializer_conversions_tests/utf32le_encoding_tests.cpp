@@ -20,7 +20,7 @@ TEST(Utf32LeEncodeTest, ShouldEncodeUtf32FromAnsi)
 	const std::string source = "Hello world!";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -36,7 +36,7 @@ TEST(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf8)
 	const std::string source = UTF8("Привет мир!");
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -52,7 +52,7 @@ TEST(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf16)
 	const std::u16string source = u"Привет мир!";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -68,7 +68,7 @@ TEST(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf16Surrogates)
 	const std::u16string source = u"😀😎🙋";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -84,7 +84,7 @@ TEST(Utf32LeEncodeTest, ShouldEncodeUtf32FromUtf32AsIs)
 	const std::u32string source = U"世界，您好！";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -97,11 +97,11 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string wrongStartCodes({ Convert::Unicode::LowSurrogatesStart });
+	const std::u16string wrongStartCodes({ Convert::Utf::UnicodeTraits::LowSurrogatesStart });
 	const std::u16string source = wrongStartCodes + u"test" + wrongStartCodes;
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -114,11 +114,11 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
 	const std::u16string source = notFullSurrogatePair + u"test";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -131,11 +131,11 @@ TEST(Utf32LeEncodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
 	const std::u16string source = u"test" + notFullSurrogatePair + u"123";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::Skip, U"");
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip, U"");
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -148,11 +148,11 @@ TEST(Utf32LeEncodeTest, ShouldHandlePolicyThrowError)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Unicode::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
 	const std::u16string source = u"test" + notFullSurrogatePair + u"test";
 
 	// Act
-	const auto result = Convert::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::UtfEncodingErrorPolicy::ThrowError);
+	const auto result = Convert::Utf::Utf32Le::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
 
 	// Assert
 	EXPECT_FALSE(result);
@@ -171,7 +171,7 @@ TEST(Utf32LeDecodeTest, ShouldDecodeUtf32ToAnsi)
 	const std::u32string source = NativeStringToLittleEndian(U"Hello world!");
 
 	// Act
-	const auto result = Convert::Utf32Le::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -187,7 +187,7 @@ TEST(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf8)
 	const std::u32string source = NativeStringToLittleEndian(U"Привет мир!");
 
 	// Act
-	const auto result = Convert::Utf32Le::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -203,7 +203,7 @@ TEST(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf16)
 	const std::u32string source = NativeStringToLittleEndian(U"世界，您好！");
 
 	// Act
-	const auto result = Convert::Utf32Le::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -219,7 +219,7 @@ TEST(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf16WithSurrogates)
 	const std::u32string source = NativeStringToLittleEndian(U"😀😎🙋");
 
 	// Act
-	const auto result = Convert::Utf32Le::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);
@@ -235,7 +235,7 @@ TEST(Utf32LeDecodeTest, ShouldDecodeUtf32ToUtf32AsIs)
 	const std::u32string source = NativeStringToLittleEndian(U"世界，您好！");
 
 	// Act
-	const auto result = Convert::Utf32Le::Decode(std::begin(source), std::end(source), outString);
+	const auto result = Convert::Utf::Utf32Le::Decode(std::begin(source), std::end(source), outString);
 
 	// Assert
 	EXPECT_TRUE(result);

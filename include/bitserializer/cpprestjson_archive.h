@@ -437,8 +437,8 @@ public:
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		const auto utfType = Convert::DetectEncoding(inputStream);
-		if (utfType != Convert::UtfType::Utf8) {
+		const auto utfType = Convert::Utf::DetectEncoding(inputStream);
+		if (utfType != Convert::Utf::UtfType::Utf8) {
 			throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
 		}
 
@@ -547,7 +547,7 @@ public:
 				else if constexpr (std::is_same_v<T, std::ostream*>)
 				{
 					if (this->GetOptions().streamOptions.writeBom) {
-						arg->write(Convert::Utf8::bom, sizeof Convert::Utf8::bom);
+						arg->write(Convert::Utf::Utf8::bom, sizeof Convert::Utf::Utf8::bom);
 					}
 					mRootJson.serialize(*arg);
 				}

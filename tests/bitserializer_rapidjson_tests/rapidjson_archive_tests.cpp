@@ -296,79 +296,79 @@ TEST(RapidJsonArchive, SerializeUnicodeToEncodedStream) {
 }
 
 TEST(RapidJsonArchive, LoadFromUtf8Stream) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 TEST(RapidJsonArchive, LoadFromUtf8StreamWithBom) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(RapidJsonArchive, LoadFromUtf16LeStream) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(false);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Le>(false);
 }
 TEST(RapidJsonArchive, LoadFromUtf16LeStreamWithBom) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(true);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Le>(true);
 }
 
 TEST(RapidJsonArchive, LoadFromUtf16BeStream) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(false);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Be>(false);
 }
 TEST(RapidJsonArchive, LoadFromUtf16BeStreamWithBom) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(true);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Be>(true);
 }
 
 TEST(RapidJsonArchive, LoadFromUtf32LeStream) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(false);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Le>(false);
 }
 TEST(RapidJsonArchive, LoadFromUtf32LeStreamWithBom) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(true);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Le>(true);
 }
 
 TEST(RapidJsonArchive, LoadFromUtf32BeStream) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(false);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Be>(false);
 }
 TEST(RapidJsonArchive, LoadFromUtf32BeStreamWithBom) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(true);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Be>(true);
 }
 
 TEST(RapidJsonArchive, SaveToUtf8Stream) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 TEST(RapidJsonArchive, SaveToUtf8StreamWithBom) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(RapidJsonArchive, SaveToUtf16LeStream) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(false);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Le>(false);
 }
 TEST(RapidJsonArchive, SaveToUtf16LeStreamWithBom) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Le>(true);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Le>(true);
 }
 
 TEST(RapidJsonArchive, SaveToUtf16BeStream) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(false);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Be>(false);
 }
 TEST(RapidJsonArchive, SaveToUtf16BeStreamWithBom) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf16Be>(true);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Be>(true);
 }
 
 TEST(RapidJsonArchive, SaveToUtf32LeStream) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(false);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Le>(false);
 }
 TEST(RapidJsonArchive, SaveToUtf32LeStreamWithBom) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Le>(true);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Le>(true);
 }
 
 TEST(RapidJsonArchive, SaveToUtf32BeStream) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(false);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Be>(false);
 }
 TEST(RapidJsonArchive, SaveToUtf32BeStreamWithBom) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf32Be>(true);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Be>(true);
 }
 
 TEST(RapidJsonArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 {
 	BitSerializer::SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::UtfType>(-1);
+	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::Utf::UtfType>(-1);
 	std::stringstream outputStream;
 	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
 	EXPECT_THROW(BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);

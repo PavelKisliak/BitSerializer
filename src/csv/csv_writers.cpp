@@ -126,7 +126,7 @@ namespace BitSerializer::Csv::Detail
 	//------------------------------------------------------------------------------
 
 	CCsvStreamWriter::CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator, const StreamOptions& streamOptions)
-		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, Convert::UtfEncodingErrorPolicy::ThrowError)
+		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, Convert::Utf::UtfEncodingErrorPolicy::ThrowError)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
 	{

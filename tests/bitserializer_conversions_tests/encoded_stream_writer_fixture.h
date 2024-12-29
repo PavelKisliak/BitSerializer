@@ -15,13 +15,13 @@ public:
 
 	void SetUp() override
 	{
-		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::CEncodedStreamWriter>(mOutputStream, TStreamEncode::utfType, false);
+		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TStreamEncode::utfType, false);
 	}
 
 	EncodedStreamWriterTest<TStreamEncode>& WithBom()
 	{
 		mWithBom = true;
-		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::CEncodedStreamWriter>(mOutputStream, TStreamEncode::utfType, true);
+		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TStreamEncode::utfType, true);
 		return *this;
 	}
 
@@ -70,7 +70,7 @@ public:
 	}
 
 protected:
-	std::shared_ptr<BitSerializer::Convert::CEncodedStreamWriter> mEncodedStreamWriter;
+	std::shared_ptr<BitSerializer::Convert::Utf::CEncodedStreamWriter> mEncodedStreamWriter;
 	std::ostringstream mOutputStream;
 	TStreamEncode mEncoder;
 	std::basic_string<encoded_char_type> mExpectedString;

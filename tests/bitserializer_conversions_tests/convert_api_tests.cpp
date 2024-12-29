@@ -148,17 +148,17 @@ TEST(ConvertApi, ToWString) {
 }
 
 //-----------------------------------------------------------------------------
-// Test registration of stream operations for Convert::UtfType
+// Test registration of stream operations for Convert::Utf::UtfType
 //-----------------------------------------------------------------------------
 TEST(ConvertApi, ConvertUtfTypeToStream) {
 	std::ostringstream oss;
-	oss << Convert::UtfType::Utf16le;
+	oss << Convert::Utf::UtfType::Utf16le;
 	EXPECT_EQ("UTF-16LE", oss.str());
 }
 
 TEST(ConvertApi, ConvertUtfTypeFromStream) {
 	std::stringstream stream("UTF-32LE");
-	Convert::UtfType actual;
+	Convert::Utf::UtfType actual;
 	stream >> actual;
-	EXPECT_EQ(BitSerializer::Convert::UtfType::Utf32le, actual);
+	EXPECT_EQ(BitSerializer::Convert::Utf::UtfType::Utf32le, actual);
 }

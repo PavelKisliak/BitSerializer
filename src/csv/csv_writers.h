@@ -40,7 +40,7 @@ namespace BitSerializer::Csv::Detail
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
 
 	private:
-		Convert::CEncodedStreamWriter mEncodedStream;
+		Convert::Utf::CEncodedStreamWriter mEncodedStream;
 		const bool mWithHeader;
 		const char mSeparator;
 

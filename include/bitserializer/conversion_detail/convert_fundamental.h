@@ -109,7 +109,7 @@ namespace BitSerializer::Convert::Detail
 		}
 		else {
 			std::string utf8Str;
-			Utf8::Encode(it, end, utf8Str);
+			Utf::Utf8::Encode(it, end, utf8Str);
 			validateResult(std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out), utf8Str);
 		}
 	}
@@ -195,7 +195,7 @@ namespace BitSerializer::Convert::Detail
 		}
 		else
 		{
-			Utf8::Decode(buf, rc.ptr, out);
+			Utf::Utf8::Decode(buf, rc.ptr, out);
 		}
 	}
 

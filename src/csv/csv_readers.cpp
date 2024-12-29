@@ -351,14 +351,14 @@ namespace BitSerializer::Csv::Detail
 				if (mCurrentPos == mDecodedBuffer.size())
 				{
 					const auto result = mEncodedStreamReader.ReadChunk(mDecodedBuffer);
-					if (result == Convert::EncodedStreamReadResult::EndFile)
+					if (result == Convert::Utf::EncodedStreamReadResult::EndFile)
 					{
 						// When reached end of file
 						endValuePos = mDecodedBuffer.size();
 						isEndLine = true;
 						break;
 					}
-					// ToDo: handle Convert::EncodedChunkReadResult::DecodeError when will be allowed set policy `EncodingErrorPolicy::Fail`
+					// ToDo: handle Convert::Utf::EncodedStreamReadResult::DecodeError when will be allowed set policy `UtfEncodingErrorPolicy::ThrowError`
 				}
 
 				const char sym = mDecodedBuffer[mCurrentPos];

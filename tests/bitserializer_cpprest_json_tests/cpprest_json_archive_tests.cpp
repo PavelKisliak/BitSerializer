@@ -250,19 +250,19 @@ TEST(JsonRestCpp, SerializeUnicodeToEncodedStream) {
 }
 
 TEST(JsonRestCpp, LoadFromUtf8Stream) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 
 TEST(JsonRestCpp, LoadFromUtf8StreamWithBom) {
-	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(JsonRestCpp, SaveToUtf8Stream) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(false);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
 }
 
 TEST(JsonRestCpp, SaveToUtf8StreamWithBom) {
-	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf8>(true);
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
 TEST(JsonRestCpp, SerializeToFile) {

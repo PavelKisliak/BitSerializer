@@ -15,8 +15,8 @@ public:
 	using target_char_type = typename TUtfType::char_type;
 
 	void PrepareEncodedData(std::u32string_view testStr,
-		BitSerializer::Convert::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::UtfEncodingErrorPolicy::Skip,
-		const target_char_type* errorMark = BitSerializer::Convert::Detail::GetDefaultErrorMark<target_char_type>())
+		BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip,
+		const target_char_type* errorMark = BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<target_char_type>())
 	{
 		// Encode string
 		using target_string_type = std::basic_string<target_char_type, std::char_traits<target_char_type>>;
@@ -39,8 +39,8 @@ public:
 	void TestDetectInString()
 	{
 		size_t dataOffset = 0;
-		const BitSerializer::Convert::UtfType expectedUtf = TUtfType::utfType;
-		EXPECT_EQ(expectedUtf, BitSerializer::Convert::DetectEncoding(mEncodedBuffer, dataOffset));
+		const BitSerializer::Convert::Utf::UtfType expectedUtf = TUtfType::utfType;
+		EXPECT_EQ(expectedUtf, BitSerializer::Convert::Utf::DetectEncoding(mEncodedBuffer, dataOffset));
 		// Validate data offset
 		EXPECT_EQ(mBomSize, dataOffset);
 	}
@@ -48,8 +48,8 @@ public:
 	void TestDetectInStream(bool skipBom = true)
 	{
 		std::stringstream encodedStream(mEncodedBuffer);
-		const BitSerializer::Convert::UtfType expectedUtf = TUtfType::utfType;
-		const auto actualUtf = BitSerializer::Convert::DetectEncoding(encodedStream, skipBom);
+		const BitSerializer::Convert::Utf::UtfType expectedUtf = TUtfType::utfType;
+		const auto actualUtf = BitSerializer::Convert::Utf::DetectEncoding(encodedStream, skipBom);
 		EXPECT_EQ(expectedUtf, actualUtf);
 		// Validate stream position
 		if (skipBom)

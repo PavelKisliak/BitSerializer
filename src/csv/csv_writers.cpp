@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_writers.h"
@@ -125,8 +125,9 @@ namespace BitSerializer::Csv::Detail
 
 	//------------------------------------------------------------------------------
 
-	CCsvStreamWriter::CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator, const StreamOptions& streamOptions)
-		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, Convert::Utf::UtfEncodingErrorPolicy::ThrowError)
+	CCsvStreamWriter::CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator,
+		Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy, const StreamOptions& streamOptions)
+		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, utfEncodingErrorPolicy)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
 	{
@@ -162,7 +163,9 @@ namespace BitSerializer::Csv::Detail
 			{
 				mCsvHeader.push_back('\r');
 				mCsvHeader.push_back('\n');
-				mEncodedStream.Write(mCsvHeader);
+				if (mEncodedStream.Write(mCsvHeader) != Convert::Utf::UtfEncodingErrorCode::Success) {
+					throw SerializationException(SerializationErrorCode::UtfEncodingError, "Unable to write CSV header, invalid UTF sequence in key(s)");
+				}
 			}
 			mPrevValuesCount = mValueIndex;
 		}
@@ -178,7 +181,9 @@ namespace BitSerializer::Csv::Detail
 
 		mCurrentRow.push_back('\r');
 		mCurrentRow.push_back('\n');
-		mEncodedStream.Write(mCurrentRow);
+		if (mEncodedStream.Write(mCurrentRow) != Convert::Utf::UtfEncodingErrorCode::Success) {
+			throw SerializationException(SerializationErrorCode::UtfEncodingError, "Unable to write CSV row: " + Convert::ToString(mRowIndex) + ", invalid UTF sequence in value(s)");
+		}
 
 		++mRowIndex;
 		mValueIndex = 0;

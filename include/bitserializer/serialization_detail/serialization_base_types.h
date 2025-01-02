@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -127,13 +127,28 @@ namespace BitSerializer
 	namespace Detail
 	{
 		/// <summary>
+		/// Transcodes string according to policy.
+		/// </summary>
+		template <typename TInChar, typename TOutChar>
+		void TranscodeStringByPolicy(const std::basic_string_view<TInChar>& sourceString, std::basic_string_view<TOutChar>& targetString, SerializationContext& serializationContext)
+		{
+			auto& valueBuffer = serializationContext.GetStringValueBuffer<std::basic_string<TOutChar>>();
+			valueBuffer.clear();
+			if (Convert::Utf::Transcode(sourceString, valueBuffer, serializationContext.GetOptions().utfEncodingErrorPolicy)) {
+				targetString = std::basic_string_view<TOutChar>(valueBuffer);
+			}
+			else {
+				throw SerializationException(SerializationErrorCode::UtfEncodingError);
+			}
+		}
+
+		/// <summary>
 		/// Generic function for serialization string_view with key (the value will be valid until the next call).
 		/// </summary>
 		template <class TArchive, typename TKey, typename TSym>
 		bool SerializeString(TArchive& archive, TKey&& key, std::basic_string_view<TSym>& value)
 		{
 			using archive_string_view = typename TArchive::string_view_type;
-			using archive_char_type = typename archive_string_view::value_type;
 
 			constexpr auto hasKnownStringViewWithKeySupport = can_serialize_value_with_key_v<TArchive, archive_string_view, TKey>;
 			constexpr auto hasExactStringViewWithKeySupport = can_serialize_value_with_key_v<TArchive, std::basic_string_view<TSym>, TKey>;
@@ -146,24 +161,18 @@ namespace BitSerializer
 			}
 			else if constexpr (hasKnownStringViewWithKeySupport)
 			{
+				archive_string_view archiveStringView;
 				if constexpr (TArchive::IsLoading())
 				{
-					archive_string_view archiveStringView;
 					if (archive.SerializeValue(std::forward<TKey>(key), archiveStringView))
 					{
-						auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<TSym>>();
-						valueBuffer.clear();
-						Convert::Detail::To(archiveStringView, valueBuffer);
-						value = std::basic_string_view<TSym>(valueBuffer);
+						TranscodeStringByPolicy(archiveStringView, value, archive.GetContext());
 						return true;
 					}
 				}
 				else
 				{
-					auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<archive_char_type>>();
-					valueBuffer.clear();
-					Convert::Detail::To(value, valueBuffer);
-					archive_string_view archiveStringView(valueBuffer);
+					TranscodeStringByPolicy(value, archiveStringView, archive.GetContext());
 					return archive.SerializeValue(std::forward<TKey>(key), archiveStringView);
 				}
 			}
@@ -177,7 +186,6 @@ namespace BitSerializer
 		bool SerializeString(TArchive& archive, std::basic_string_view<TSym>& value)
 		{
 			using archive_string_view = typename TArchive::string_view_type;
-			using archive_char_type = typename archive_string_view::value_type;
 
 			constexpr auto hasExactStringViewSupport = can_serialize_value_v<TArchive, std::basic_string_view<TSym>>;
 			constexpr auto hasKnownStringViewSupport = can_serialize_value_v < TArchive, archive_string_view>;
@@ -190,24 +198,18 @@ namespace BitSerializer
 			}
 			else if constexpr (hasKnownStringViewSupport)
 			{
+				archive_string_view archiveStringView;
 				if constexpr (TArchive::IsLoading())
 				{
-					archive_string_view archiveStringView;
 					if (archive.SerializeValue(archiveStringView))
 					{
-						auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<TSym>>();
-						valueBuffer.clear();
-						Convert::Detail::To(archiveStringView, valueBuffer);
-						value = std::basic_string_view<TSym>(valueBuffer);
+						TranscodeStringByPolicy(archiveStringView, value, archive.GetContext());
 						return true;
 					}
 				}
 				else
 				{
-					auto& valueBuffer = archive.GetContext().template GetStringValueBuffer<std::basic_string<archive_char_type>>();
-					valueBuffer.clear();
-					Convert::Detail::To(value, valueBuffer);
-					archive_string_view archiveStringView(valueBuffer);
+					TranscodeStringByPolicy(value, archiveStringView, archive.GetContext());
 					return archive.SerializeValue(archiveStringView);
 				}
 			}

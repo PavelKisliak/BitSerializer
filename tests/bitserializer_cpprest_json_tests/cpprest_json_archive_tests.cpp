@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -395,3 +395,15 @@ TEST(JsonRestCpp, ThrowValidationExceptionWhenNumberOverflowInt32) {
 TEST(JsonRestCpp, ThrowValidationExceptionWhenNumberOverflowFloat) {
 	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
 }
+
+//-----------------------------------------------------------------------------
+// Test UtfEncodingErrorPolicy
+//-----------------------------------------------------------------------------
+TEST(JsonRestCpp, ThrowSerializationExceptionWhenEncodingError) {
+	TestEncodingPolicy<JsonArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+}
+
+// ToDo: This test is disabled due to difficulties with handling encoding error in the CppRestJson library (policy `UtfEncodingErrorPolicy::Skip` does not work)
+//TEST(JsonRestCpp, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
+//	TestEncodingPolicy<JsonArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip);
+//}

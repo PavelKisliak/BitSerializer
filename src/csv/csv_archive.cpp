@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
@@ -34,7 +34,7 @@ namespace BitSerializer::Csv::Detail
 
 	CsvWriteRootScope::CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
-		, mCsvWriter(std::make_unique<CCsvStreamWriter>(outputStream, true, serializationContext.GetOptions().valuesSeparator, serializationContext.GetOptions().streamOptions))
+		, mCsvWriter(std::make_unique<CCsvStreamWriter>(outputStream, true, serializationContext.GetOptions().valuesSeparator, serializationContext.GetOptions().utfEncodingErrorPolicy, serializationContext.GetOptions().streamOptions))
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 	}

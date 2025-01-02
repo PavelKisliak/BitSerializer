@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -314,4 +314,15 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflowInt32) {
 }
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenNumberOverflowFloat) {
 	TestOverflowNumberPolicy<CsvArchive, double, float>(OverflowNumberPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Test UtfEncodingErrorPolicy
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenEncodingError) {
+	TestEncodingPolicy<CsvArchive>(Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+}
+
+TEST_F(CsvArchiveTests, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
+	TestEncodingPolicy<CsvArchive>(Convert::Utf::UtfEncodingErrorPolicy::Skip);
 }

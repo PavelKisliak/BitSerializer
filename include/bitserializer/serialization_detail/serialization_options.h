@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -106,6 +106,12 @@ namespace BitSerializer
 		/// </summary>
 		/// <seealso cref="MismatchedTypesPolicy" />
 		MismatchedTypesPolicy mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
+
+		/// <summary>
+		/// Policy for handle UTF encoding/decoding errors (for example, when UTF sequence is invalid).
+		/// </summary>
+		/// <seealso cref="Convert::Utf::UtfEncodingErrorPolicy" />
+		Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::ThrowError;
 
 		/// <summary>
 		/// The maximum number of validation errors that will be collected before an exception is thrown ().

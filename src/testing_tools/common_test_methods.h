@@ -1,5 +1,5 @@
-/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+﻿/*******************************************************************************
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -459,6 +459,64 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	}
 }
 
+/// <summary>
+/// Template for test encoding errors.
+/// </summary>
+template <typename TArchive>
+void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy)
+{
+	// Arrange (save object with wrong sequence)
+	const std::string wrongUtf8({ char(0b11111110), char(0b11111111) });
+	const std::string testUtf8Value = wrongUtf8 + "test_value" + wrongUtf8;
+
+	const std::u16string wrongUtf16({ BitSerializer::Convert::Utf::UnicodeTraits::LowSurrogatesEnd, BitSerializer::Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string testUtf16Value = wrongUtf16 + u"test_value" + wrongUtf16;
+
+	TestClassWithSubTypes<std::string, std::u16string> sourceObj[1]{ { testUtf8Value, testUtf16Value } };
+	TestClassWithSubTypes<std::u16string, std::string> targetObj[1];
+
+	BitSerializer::SerializationOptions options;
+	options.utfEncodingErrorPolicy = utfEncodingErrorPolicy;
+	typename TArchive::preferred_output_format outputArchive;
+
+	// Act / Assert
+	switch (utfEncodingErrorPolicy)
+	{
+	case BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::ThrowError:
+		try
+		{
+			BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive, options);
+			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+			EXPECT_TRUE(false) << "Should throw exception when encoding wrong UTF sequence";
+		}
+		catch (const BitSerializer::SerializationException& ex)
+		{
+			EXPECT_EQ(BitSerializer::SerializationErrorCode::UtfEncodingError, ex.GetErrorCode());
+		}
+		catch (...)
+		{
+			EXPECT_TRUE(false) << "Should throw BitSerializer::SerializationException type when encoding wrong UTF sequence";
+		}
+		break;
+
+	case BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip:
+		try
+		{
+			BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive, options);
+			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+#pragma warning(push)
+#pragma warning(disable: 4566)
+			EXPECT_EQ(u"☐☐test_value☐☐", std::get<0>(targetObj[0]));
+			EXPECT_EQ(UTF8("☐☐test_value☐☐"), std::get<1>(targetObj[0]));
+#pragma warning(pop)
+		}
+		catch (...)
+		{
+			EXPECT_TRUE(false) << "Should not throw exception when policy is `Skip`";
+		}
+		break;
+	}
+}
 
 /// <summary>
 /// Template for test visiting keys in the object scope.

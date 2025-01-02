@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -530,6 +530,17 @@ TEST(RapidJsonArchive, ThrowValidationExceptionWhenNumberOverflowInt32) {
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenNumberOverflowFloat) {
 	TestOverflowNumberPolicy<JsonArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Test UtfEncodingErrorPolicy
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, ThrowSerializationExceptionWhenEncodingError) {
+	TestEncodingPolicy<JsonArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+}
+
+TEST(RapidJsonArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
+	TestEncodingPolicy<JsonArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip);
 }
 
 #pragma warning(pop)

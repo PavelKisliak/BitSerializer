@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -20,6 +20,7 @@ namespace BitSerializer
 		ParsingError,
 		InputOutputError,
 		UnsupportedEncoding,
+		UtfEncodingError,
 		OutOfRange,
 		Overflow,
 		MismatchedTypes,
@@ -32,6 +33,7 @@ namespace BitSerializer
 		{ SerializationErrorCode::ParsingError, "Parsing error" },
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },
 		{ SerializationErrorCode::UnsupportedEncoding, "Unsupported encoding" },
+		{ SerializationErrorCode::UtfEncodingError, "UTF encoding error" },
 		{ SerializationErrorCode::OutOfRange, "Out of range" },
 		{ SerializationErrorCode::Overflow, "Overflow" },
 		{ SerializationErrorCode::MismatchedTypes, "Mismatched types" },

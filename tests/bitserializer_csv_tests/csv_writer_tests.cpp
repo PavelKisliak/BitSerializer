@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "bitserializer/csv_archive.h"
@@ -190,7 +190,7 @@ TYPED_TEST(CsvWriterTest, ShouldThrowExceptionWhenMismatchNumberOfValuesInRows)
 TYPED_TEST(CsvWriterTest, ShouldWriteBomWhenOutputToStream)
 {
 	// Arrange
-	this->PrepareCsvReader(true, ',', true);
+	this->PrepareCsvReader(true, ',', BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip, true);
 
 	// Act / Assert
 	this->mCsvWriter->WriteValue("Name1", "Value1");

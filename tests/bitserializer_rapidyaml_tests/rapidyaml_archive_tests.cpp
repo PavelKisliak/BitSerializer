@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2020-2024 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2025 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -373,4 +373,15 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenNumberOverflowInt32) {
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenNumberOverflowFloat) {
 	TestOverflowNumberPolicy<YamlArchive, double, float>(BitSerializer::OverflowNumberPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Test UtfEncodingErrorPolicy
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, ThrowSerializationExceptionWhenEncodingError) {
+	TestEncodingPolicy<YamlArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+}
+
+TEST(RapidYamlArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
+	TestEncodingPolicy<YamlArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip);
 }

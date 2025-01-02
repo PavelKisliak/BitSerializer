@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
@@ -351,14 +351,19 @@ namespace BitSerializer::Csv::Detail
 				if (mCurrentPos == mDecodedBuffer.size())
 				{
 					const auto result = mEncodedStreamReader.ReadChunk(mDecodedBuffer);
+					if (result == Convert::Utf::EncodedStreamReadResult::Success) {
+						continue;
+					}
+					// When reached end of file
 					if (result == Convert::Utf::EncodedStreamReadResult::EndFile)
 					{
-						// When reached end of file
 						endValuePos = mDecodedBuffer.size();
 						isEndLine = true;
 						break;
 					}
-					// ToDo: handle Convert::Utf::EncodedStreamReadResult::DecodeError when will be allowed set policy `UtfEncodingErrorPolicy::ThrowError`
+					if (result == Convert::Utf::EncodedStreamReadResult::DecodeError) {
+						throw SerializationException(SerializationErrorCode::UtfEncodingError, "The input stream might be corrupted, unable to decode UTF");
+					}
 				}
 
 				const char sym = mDecodedBuffer[mCurrentPos];

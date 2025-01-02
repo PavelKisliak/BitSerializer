@@ -9,7 +9,7 @@ ___
 - Customizable validation of deserialized values with producing an output list of errors.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Support loading named fields in any order with conditions (for version control).
-- Serialization support for almost all STD containers and types (including Unicode strings).
+- Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
 - Support for serializing enum types as integers or strings as you wish.
 - Support serialization to memory, streams and files.
 - Full Unicode support with automatic detection and transcoding (except YAML).
@@ -28,13 +28,13 @@ ___
 (\*) **MsgPack** is available since v0.70.
 
 #### Requirements:
-  - C++ 17 (VS2017, GCC-8, CLang-8, AppleCLang-12).
-  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be).
+  - C++ 17 (VS2017*, GCC-8, CLang-8, AppleCLang-12).
+  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be**).
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
 (\*) Minimal requirement for RapidYaml archive is VS2019.\
-(\*) The RapidYaml archive is unstable on ARM architecture.\
-(\*) The latest released version 0.70 does not support ARM architecture (please use latest `master` branch).
+(\*\*) The RapidYaml archive is unstable on ARM architecture.\
+(\*\*) The latest released version 0.70 does not support ARM architecture (please use latest `master` branch).
 
 #### Limitations:
  - Work without exceptions is not supported.
@@ -439,8 +439,10 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 
 ### Serialization STD types
 BitSerializer has built-in serialization for all STD containers and most other commonly used types. For add support of required STD type just need to include related header file.
-| Types | Header |
+| Types  | Header |
 | ------ | ------ |
+| std::basic_string<> | Part of the basic package |
+| std::byte | Part of the basic package |
 | std::atomic | #include "bitserializer/types/std/atomic.h" |
 | std::array | #include "bitserializer/types/std/array.h" |
 | std::vector | #include "bitserializer/types/std/vector.h" |
@@ -806,8 +808,11 @@ int main()
 
 For save/load to files, BitSerializer provides the following functions (which are just wrappers of serialization methods to streams):
 ```cpp
-BitSerializer::SaveObjectToFile<TArchive>(obj, path);
-BitSerializer::LoadObjectFromFile<TArchive>(obj, path);
+template <typename TArchive, typename T, typename TString>
+BitSerializer::SaveObjectToFile<TArchive>(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions, bool overwrite = false);
+
+template <typename TArchive, typename T, typename TString>
+BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions);
 ```
 
 ### Error handling
@@ -821,6 +826,7 @@ First, let's list what are considered as errors and will throw exception:
  - When target array with fixed size does not match the number of loading items
  - Invalid configuration in the `SerializationOptions`
  - Input/output file can't be opened for read/write
+ - UTF encoding/decoding errors (can be configured via `UtfEncodingErrorPolicy`)
  - Unsupported UTF encoding
 
 By default, any missed field in the input format (e.g. JSON) is not treated as an error, but you can add `Required()` validator if needed.

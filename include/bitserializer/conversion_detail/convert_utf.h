@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -1041,35 +1041,42 @@ namespace BitSerializer::Convert::Utf
 		}
 
 		template <typename TCharType>
-		void Write(const std::basic_string_view<TCharType>& str)
+		UtfEncodingErrorCode Write(const std::basic_string_view<TCharType>& str)
 		{
-			std::visit([str, this](auto&& utfToolset)
+			return std::visit([str, this](auto&& utfToolset) -> UtfEncodingErrorCode
 			{
 				if constexpr (sizeof(TCharType) == 1 && sizeof(decltype(utfToolset.second.front())) == 1)
 				{
 					// Write "as is", when source and output are UTF-8
 					mOutputStream.write(reinterpret_cast<const char*>(str.data()), static_cast<std::streamsize>(str.size()));
+					return UtfEncodingErrorCode::Success;
 				}
 				else
 				{
 					utfToolset.second.clear();
-					utfToolset.first.Encode(str.data(), str.data() + str.size(), utfToolset.second, mEncodingErrorPolicy);
-					mOutputStream.write(reinterpret_cast<const char*>(utfToolset.second.data()),
-						static_cast<std::streamsize>(utfToolset.second.size() * sizeof(decltype(utfToolset.second.front()))));
+					if (auto result = utfToolset.first.Encode(str.data(), str.data() + str.size(), utfToolset.second, mEncodingErrorPolicy))
+					{
+						mOutputStream.write(reinterpret_cast<const char*>(utfToolset.second.data()),
+							static_cast<std::streamsize>(utfToolset.second.size() * sizeof(decltype(utfToolset.second.front()))));
+						return UtfEncodingErrorCode::Success;
+					}
+					else {
+						return result.ErrorCode;
+					}
 				}
 			}, mUtfToolset);
 		}
 
 		template <typename TCharType, typename TAllocator>
-		void Write(const std::basic_string<TCharType, std::char_traits<TCharType>, TAllocator>& str)
+		UtfEncodingErrorCode Write(const std::basic_string<TCharType, std::char_traits<TCharType>, TAllocator>& str)
 		{
-			Write(std::basic_string_view<TCharType>(str.data(), str.size()));
+			return Write(std::basic_string_view<TCharType>(str.data(), str.size()));
 		}
 
 		template <typename TCharType, size_t ArraySize>
-		void Write(const TCharType(&str)[ArraySize])
+		UtfEncodingErrorCode Write(const TCharType(&str)[ArraySize])
 		{
-			Write(std::basic_string_view<TCharType>(std::cbegin(str), std::size(str)));
+			return Write(std::basic_string_view<TCharType>(std::cbegin(str), std::size(str)));
 		}
 
 	private:

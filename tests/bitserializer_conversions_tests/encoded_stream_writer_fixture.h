@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,26 +7,28 @@
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
 
-template <class TStreamEncode>
+template <class TUtfEncoder>
 class EncodedStreamWriterTest : public ::testing::Test
 {
 public:
-	using encoded_char_type = typename TStreamEncode::char_type;
+	using utf_encoder = TUtfEncoder;
+	using encoded_char_type = typename TUtfEncoder::char_type;
 
 	void SetUp() override
 	{
-		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TStreamEncode::utfType, false);
+		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TUtfEncoder::utfType, false);
 	}
 
-	EncodedStreamWriterTest<TStreamEncode>& WithBom()
+	EncodedStreamWriterTest<TUtfEncoder>& WithBom(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip)
 	{
 		mWithBom = true;
-		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TStreamEncode::utfType, true);
+		mUtfEncodingErrorPolicy = encodingErrorPolicy;
+		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TUtfEncoder::utfType, true, encodingErrorPolicy);
 		return *this;
 	}
 
 	template <typename TCharType>
-	void TestWrite(const std::basic_string_view<TCharType>& str)
+	BitSerializer::Convert::Utf::UtfEncodingErrorCode TestWrite(const std::basic_string_view<TCharType>& str)
 	{
 		// Encoding string for test assert
 		if constexpr (sizeof(encoded_char_type) == 1 && sizeof(TCharType) == 1)
@@ -35,16 +37,22 @@ public:
 		}
 		else
 		{
-			mEncoder.Encode(str.data(), str.data() + str.size(), mExpectedString);
+			mEncoder.Encode(str.data(), str.data() + str.size(), mExpectedString, mUtfEncodingErrorPolicy);
 		}
 		// Write to stream
-		mEncodedStreamWriter->Write(str);
+		return mEncodedStreamWriter->Write(str);
 	}
 
 	template <typename TCharType>
-	void TestWrite(const TCharType* str)
+	BitSerializer::Convert::Utf::UtfEncodingErrorCode TestWrite(const std::basic_string<TCharType>& str)
 	{
-		TestWrite(std::basic_string_view<TCharType>(str));
+		return TestWrite(std::basic_string_view<TCharType>(str));
+	}
+
+	template <typename TCharType>
+	BitSerializer::Convert::Utf::UtfEncodingErrorCode TestWrite(const TCharType* str)
+	{
+		return TestWrite(std::basic_string_view<TCharType>(str));
 	}
 
 	void Assert()
@@ -55,8 +63,8 @@ public:
 		size_t pos = 0;
 		if (mWithBom)
 		{
-			constexpr auto bomSize = sizeof(TStreamEncode::bom);
-			const std::string_view expectedBom(TStreamEncode::bom, bomSize);
+			constexpr auto bomSize = sizeof(TUtfEncoder::bom);
+			const std::string_view expectedBom(TUtfEncoder::bom, bomSize);
 			ASSERT_TRUE(bomSize <= streamData.size()) << "The number of encoded bytes is less than BOM size";
 			
 			const std::string_view actualBom(streamData.data(), bomSize);
@@ -72,7 +80,8 @@ public:
 protected:
 	std::shared_ptr<BitSerializer::Convert::Utf::CEncodedStreamWriter> mEncodedStreamWriter;
 	std::ostringstream mOutputStream;
-	TStreamEncode mEncoder;
+	BitSerializer::Convert::Utf::UtfEncodingErrorPolicy mUtfEncodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip;
+	TUtfEncoder mEncoder;
 	std::basic_string<encoded_char_type> mExpectedString;
 	bool mWithBom = false;
 };

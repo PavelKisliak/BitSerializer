@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "encoded_stream_writer_fixture.h"
@@ -88,4 +88,31 @@ TYPED_TEST(EncodedStreamWriterTest, ShouldWriteMixedStrings)
 
 	// Assert
 	this->Assert();
+}
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldSkipInvalidUtfWhenPolicyIsSkip)
+{
+	// Arrange
+	const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
+	const std::string source = wrongStartCodes + "test" + wrongStartCodes;
+	this->WithBom(Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Act / Assert
+	EXPECT_EQ(BitSerializer::Convert::Utf::UtfEncodingErrorCode::Success, this->TestWrite(source));
+	this->Assert();
+}
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldStopEncodingInvalidUtfWhenPolicyIsThrowError)
+{
+	// Skip for UTF-8 type since there is just copying data "as is" without analysis
+	if constexpr (!std::is_same_v<typename TestFixture::encoded_char_type, char>)
+	{
+		// Arrange
+		const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
+		const std::string source = wrongStartCodes + "test" + wrongStartCodes;
+		this->WithBom(Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+		// Act / Assert
+		EXPECT_EQ(BitSerializer::Convert::Utf::UtfEncodingErrorCode::InvalidSequence, this->TestWrite(source));
+	}
 }

@@ -82,6 +82,35 @@ void TestSerializeType(TKey&& key, TValue&& value)
 	GTestExpectEq(value, actual);
 }
 
+#if defined(__cpp_lib_memory_resource)
+/// <summary>
+/// Test template for PMR containers serialization.
+/// </summary>
+template <typename TArchive, typename TValue>
+void TestSerializePmrType()
+{
+	// Arrange
+	static_assert(std::is_same_v<typename TValue::allocator_type, std::pmr::polymorphic_allocator<typename TValue::value_type>>,
+		"TestSerializePmrType. Invalid container type, should be from `std::pmr` namespace");
+	typename TArchive::preferred_output_format outputArchive;
+
+	char buffer[512];
+	std::pmr::monotonic_buffer_resource pool{ std::data(buffer), std::size(buffer) };
+
+	TValue expected(&pool);
+	::BuildFixture(expected);
+	TValue actual(&pool);
+	::BuildFixture(actual);
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(expected, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	GTestExpectEq(expected, actual);
+}
+#endif
+
 /// <summary>
 /// Test template of serialization single values with loading to different type.
 /// </summary>

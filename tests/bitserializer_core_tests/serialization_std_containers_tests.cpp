@@ -389,7 +389,7 @@ TEST(STD_Containers, SerializeUnorderedMultimapAsClassMember) {
 // Tests of serialization for std::multimap
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeMultimapMapWithIntAsKey) {
-	using test_type = std::map<int, int>;
+	using test_type = std::multimap<int, int>;
 	TestSerializeType<ArchiveStub, test_type>();
 }
 

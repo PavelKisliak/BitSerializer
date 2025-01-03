@@ -103,15 +103,15 @@ void GTestExpectEq(const std::priority_queue<TValue>& expected, const std::prior
 	GTestExpectEq(BitSerializer::Detail::GetBaseContainer(expected), BitSerializer::Detail::GetBaseContainer(actual));
 }
 
-template<typename TKey, typename TValue>
-void GTestExpectEq(const std::multimap<TKey, TValue>& expected, const std::multimap<TKey, TValue>& actual)
+template<typename TKey, typename TValue, typename TComparer, typename TAllocator>
+void GTestExpectEq(const std::multimap<TKey, TValue, TComparer, TAllocator>& expected, const std::multimap<TKey, TValue, TComparer, TAllocator>& actual)
 {
 	ASSERT_EQ(expected.size(), actual.size());
 	// Order of values can be rearranged after loading
-	for (auto& elem : actual)
+	for (const auto& pair : actual)
 	{
-		auto expectedElementsRange = expected.equal_range(elem.first);
-		auto result = std::find(expectedElementsRange.first, expectedElementsRange.second, elem);
+		const auto expectedElementsRange = expected.equal_range(pair.first);
+		const auto result = std::find(expectedElementsRange.first, expectedElementsRange.second, pair);
 		ASSERT_TRUE(result != expectedElementsRange.second);
 	}
 }

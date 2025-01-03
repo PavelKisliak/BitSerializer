@@ -441,21 +441,21 @@ XML: <?xml version="1.0"?><Point x="100" y="200"/>
 BitSerializer has built-in serialization for all STD containers and most other commonly used types. For add support of required STD type just need to include related header file.
 | Types  | Header |
 | ------ | ------ |
-| std::basic_string<> | Part of the basic package |
+| std::basic_string<>, std::pmr::basic_string<> | Part of the basic package |
 | std::byte | Part of the basic package |
 | std::atomic | #include "bitserializer/types/std/atomic.h" |
 | std::array | #include "bitserializer/types/std/array.h" |
-| std::vector | #include "bitserializer/types/std/vector.h" |
-| std::deque | #include "bitserializer/types/std/deque.h" |
+| std::vector, std::pmr::vector | #include "bitserializer/types/std/vector.h" |
+| std::deque, std::pmr::deque | #include "bitserializer/types/std/deque.h" |
 | std::bitset | #include "bitserializer/types/std/bitset.h" |
-| std::list | #include "bitserializer/types/std/list.h" |
-| std::forward_list | #include "bitserializer/types/std/forward_list.h" |
+| std::list, std::pmr::list | #include "bitserializer/types/std/list.h" |
+| std::forward_list, std::pmr::forward_list | #include "bitserializer/types/std/forward_list.h" |
 | std::queue, std::priority_queue | #include "bitserializer/types/std/queue.h" |
 | std::stack | #include "bitserializer/types/std/stack.h" |
-| std::set, std::multiset | #include "bitserializer/types/std/set.h" |
-| std::unordered_set, std::unordered_multiset | #include "bitserializer/types/std/unordered_set.h" |
-| std::map, std::multimap | #include "bitserializer/types/std/map.h" |
-| std::unordered_map, std::unordered_multimap | #include "bitserializer/types/std/unordered_map.h" |
+| std::set, std::multiset, std::pmr::set, std::pmr::multiset | #include "bitserializer/types/std/set.h" |
+| std::unordered_set, std::unordered_multiset, std::pmr::unordered_set, std::pmr::unordered_multiset | #include "bitserializer/types/std/unordered_set.h" |
+| std::map, std::multimap, std::pmr::map, std::pmr::multimap | #include "bitserializer/types/std/map.h" |
+| std::unordered_map, std::unordered_multimap, std::pmr::unordered_map, std::pmr::unordered_multimap | #include "bitserializer/types/std/unordered_map.h" |
 | std::valarray | #include "bitserializer/types/std/valarray.h" |
 | std::pair | #include "bitserializer/types/std/pair.h" |
 | std::tuple | #include "bitserializer/types/std/tuple.h" |

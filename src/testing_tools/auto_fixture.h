@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -27,6 +27,10 @@
 #include <tuple>
 #include <filesystem>
 #include <atomic>
+#if defined(__cpp_lib_memory_resource)
+#include <memory_resource>
+#endif
+
 #include "string_utils.h"
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
@@ -101,6 +105,9 @@ static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand
 static void BuildFixture(double& value)				{ value = static_cast<double>(std::rand() % 100000 + 1) * 1.141592; }
 static void BuildFixture(std::nullptr_t& value)		{ value = nullptr; }
 static void BuildFixture(std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
+#if defined(__cpp_lib_memory_resource)
+static void BuildFixture(std::pmr::string& value)	{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
+#endif
 #if defined(__cpp_lib_char8_t)
 static void BuildFixture(std::u8string& value) { value = u8"U8-string Тест_"; }// +BitSerializer::Convert::To<std::u8string>(std::rand()); }
 #endif
@@ -312,8 +319,8 @@ static void BuildFixture(std::array<T, Size>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::vector<T>& cont)
+template <typename T, typename TAllocator>
+static void BuildFixture(std::vector<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -334,8 +341,8 @@ static void BuildFixture(std::vector<bool>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::deque<T>& cont)
+template <typename T, typename TAllocator>
+static void BuildFixture(std::deque<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -352,8 +359,8 @@ static void BuildFixture(std::bitset<Size>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::list<T>& cont)
+template <typename T, typename TAllocator>
+static void BuildFixture(std::list<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -362,8 +369,8 @@ static void BuildFixture(std::list<T>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::forward_list<T>& cont)
+template <typename T, typename TAllocator>
+static void BuildFixture(std::forward_list<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -399,8 +406,8 @@ static void BuildFixture(std::stack<T>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::set<T>& cont)
+template <typename T, typename TComparer, typename TAllocator>
+static void BuildFixture(std::set<T, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -412,21 +419,8 @@ static void BuildFixture(std::set<T>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::unordered_set<T>& cont)
-{
-	static constexpr int size = 7;
-
-	cont.clear();
-	for (size_t i = 0; i < size; i++) {
-		T element;
-		BuildFixture(element);
-		cont.emplace(std::move(element));
-	}
-}
-
-template <typename T>
-static void BuildFixture(std::unordered_multiset<T>& cont)
+template <typename T, typename TComparer, typename TAllocator>
+static void BuildFixture(std::multiset<T, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -441,8 +435,21 @@ static void BuildFixture(std::unordered_multiset<T>& cont)
 	}
 }
 
-template <typename T>
-static void BuildFixture(std::multiset<T>& cont)
+template <typename T, typename THasher, typename TKeyEq, typename TAllocator>
+static void BuildFixture(std::unordered_set<T, THasher, TKeyEq, TAllocator>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	for (size_t i = 0; i < size; i++) {
+		T element;
+		BuildFixture(element);
+		cont.emplace(std::move(element));
+	}
+}
+
+template <typename T, typename THasher, typename TKeyEq, typename TAllocator>
+static void BuildFixture(std::unordered_multiset<T, THasher, TKeyEq, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -457,8 +464,8 @@ static void BuildFixture(std::multiset<T>& cont)
 	}
 }
 
-template <typename TKey, typename TValue>
-static void BuildFixture(std::map<TKey, TValue>& cont)
+template <typename TKey, typename TValue, typename TComparer, typename TAllocator>
+static void BuildFixture(std::map<TKey, TValue, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -470,21 +477,8 @@ static void BuildFixture(std::map<TKey, TValue>& cont)
 	}
 }
 
-template <typename TKey, typename TValue>
-static void BuildFixture(std::unordered_map<TKey, TValue>& cont)
-{
-	static constexpr int size = 7;
-
-	cont.clear();
-	for (size_t i = 0; i < size; i++) {
-		TValue value;
-		BuildFixture(value);
-		cont.emplace(BuildFixture<TKey>(), std::move(value));
-	}
-}
-
-template <typename TKey, typename TValue>
-static void BuildFixture(std::unordered_multimap<TKey, TValue>& cont)
+template <typename TKey, typename TValue, typename TComparer, typename TAllocator>
+static void BuildFixture(std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -500,8 +494,21 @@ static void BuildFixture(std::unordered_multimap<TKey, TValue>& cont)
 	}
 }
 
-template <typename TKey, typename TValue>
-static void BuildFixture(std::multimap<TKey, TValue>& cont)
+template <typename TKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
+static void BuildFixture(std::unordered_map<TKey, TValue, THasher, TKeyEq, TAllocator>& cont)
+{
+	static constexpr int size = 7;
+
+	cont.clear();
+	for (size_t i = 0; i < size; i++) {
+		TValue value;
+		BuildFixture(value);
+		cont.emplace(BuildFixture<TKey>(), std::move(value));
+	}
+}
+
+template <typename TKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
+static void BuildFixture(std::unordered_multimap<TKey, TValue, THasher, TKeyEq, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 

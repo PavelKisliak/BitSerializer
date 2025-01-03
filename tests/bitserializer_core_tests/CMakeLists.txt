@@ -2,7 +2,7 @@ project(bitserializer_core_tests)
 
 find_package(GTest REQUIRED)
 
-add_executable(${PROJECT_NAME}
+set(TEST_CORE_SOURCE_FILES
     archive_base_tests.cpp
     serialization_archive_traits_tests.cpp
     serialization_base_types_tests.cpp
@@ -18,6 +18,12 @@ add_executable(${PROJECT_NAME}
     attribute_value_tests.cpp
     bin_timestamp_tests.cpp
 )
+
+if(NOT APPLE)
+    list(APPEND TEST_CORE_SOURCE_FILES serialization_std_pmr_containers_tests.cpp)
+endif()
+
+add_executable(${PROJECT_NAME} ${TEST_CORE_SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::core

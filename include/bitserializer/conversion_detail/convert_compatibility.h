@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -58,7 +58,7 @@ namespace BitSerializer::Convert::Detail
 		else
 		{
 			std::string utf8Str;
-			Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
+			Utf::Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 			char* endPos = nullptr;
 			result = _stdWrappers::_fromStr<T>(utf8Str.c_str(), &endPos);
 			isNaN = utf8Str.data() == endPos;
@@ -115,7 +115,7 @@ namespace BitSerializer::Convert::Detail
 				out.append(std::cbegin(buf), std::cbegin(buf) + result);
 			}
 			else {
-				Utf8::Decode(buf, buf + result, out);
+				Utf::Utf8::Decode(buf, buf + result, out);
 			}
 		}
 	}

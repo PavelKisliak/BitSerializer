@@ -199,19 +199,19 @@ TEST(RapidYamlArchive, ShouldReturnPathInArrayScopeWhenSaving)
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeClassToStream) {
-	TestSerializeClassToStream<YamlArchive, char>(BuildFixture<TestPointClass>());
+	TestSerializeClassToStream<YamlArchive>(BuildFixture<TestPointClass>());
 }
 
 TEST(RapidYamlArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
 	BuildFixture(testArray);
-	TestSerializeArrayToStream<YamlArchive, char>(testArray);
+	TestSerializeArrayToStream<YamlArchive>(testArray);
 }
 
 TEST(RapidYamlArchive, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-	TestSerializeClassToStream<YamlArchive, char>(TestValue);
+	TestSerializeClassToStream<YamlArchive>(TestValue);
 }
 
 TEST(RapidYamlArchive, LoadFromUtf8Stream) {

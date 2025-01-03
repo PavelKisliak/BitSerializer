@@ -280,19 +280,19 @@ TEST(RapidJsonArchive, SaveWithFormatting)
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeClassToStream) {
-	TestSerializeClassToStream<JsonArchive, char>(BuildFixture<TestPointClass>());
+	TestSerializeClassToStream<JsonArchive>(BuildFixture<TestPointClass>());
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
 	BuildFixture(testArray);
-	TestSerializeArrayToStream<JsonArchive, char>(testArray);
+	TestSerializeArrayToStream<JsonArchive>(testArray);
 }
 
 TEST(RapidJsonArchive, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-	TestSerializeClassToStream<JsonArchive, char>(TestValue);
+	TestSerializeClassToStream<JsonArchive>(TestValue);
 }
 
 TEST(RapidJsonArchive, LoadFromUtf8Stream) {

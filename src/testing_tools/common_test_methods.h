@@ -179,12 +179,11 @@ void TestSerializeTwoDimensionalArray()
 /// Test template of serialization for class with using streams.
 /// </summary>
 /// <param name="value">The value.</param>
-template <typename TArchive, typename TStreamElem, typename T>
+template <typename TArchive, typename T>
 void TestSerializeClassToStream(T&& value)
 {
 	// Arrange
-	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
-	string_stream_type outputStream;
+	std::stringstream outputStream;
 	std::decay_t<T> actual;
 	::BuildFixture(actual);
 
@@ -200,12 +199,11 @@ void TestSerializeClassToStream(T&& value)
 /// <summary>
 /// Test template of serialization for array with using streams.
 /// </summary>
-template <typename TArchive, typename TStreamElem, typename T, size_t ArraySize = 3>
+template <typename TArchive, typename T, size_t ArraySize = 3>
 void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 {
 	// Arrange
-	using string_stream_type = std::basic_stringstream<TStreamElem, std::char_traits<TStreamElem>, std::allocator<TStreamElem>>;
-	string_stream_type outputStream;
+	std::stringstream outputStream;
 	T actual[ArraySize];
 	::BuildFixture(actual);
 

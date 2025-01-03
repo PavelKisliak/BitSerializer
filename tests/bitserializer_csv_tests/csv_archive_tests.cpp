@@ -102,12 +102,12 @@ TEST_F(CsvArchiveTests, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<int, double, std::string> testArray[3];
 	BuildFixture(testArray);
-	TestSerializeArrayToStream<CsvArchive, char>(testArray);
+	TestSerializeArrayToStream<CsvArchive>(testArray);
 }
 
 TEST_F(CsvArchiveTests, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestArray[1] = { TestClassWithSubType<std::wstring>(L"Привет мир!") };
-	TestSerializeArrayToStream<CsvArchive, char>(TestArray);
+	TestSerializeArrayToStream<CsvArchive>(TestArray);
 }
 
 TEST_F(CsvArchiveTests, LoadFromUtf8Stream) {

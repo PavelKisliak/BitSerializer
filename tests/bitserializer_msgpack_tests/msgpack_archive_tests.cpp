@@ -399,14 +399,14 @@ TEST(MsgPackArchive, ShouldReturnPathInArrayScopeWhenLoading)
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassToStream) {
-	TestSerializeClassToStream<MsgPackArchive, char>(BuildFixture<TestPointClass>());
+	TestSerializeClassToStream<MsgPackArchive>(BuildFixture<TestPointClass>());
 }
 
 TEST(MsgPackArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
 	BuildFixture(testArray);
-	TestSerializeArrayToStream<MsgPackArchive, char>(testArray);
+	TestSerializeArrayToStream<MsgPackArchive>(testArray);
 }
 
 TEST(MsgPackArchive, SerializeToFile) {

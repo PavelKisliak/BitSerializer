@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -11,8 +11,8 @@ namespace BitSerializer
 	/// <summary>
 	/// Serializes std::set.
 	/// </summary>
-	template<typename TArchive, typename TValue, typename TAllocator>
-	void SerializeArray(TArchive& archive, std::set<TValue, TAllocator>& cont)
+	template<typename TArchive, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& archive, std::set<TValue, TComparer, TAllocator>& cont)
 	{
 		Detail::SerializeSetImpl(archive, cont);
 	}
@@ -20,8 +20,8 @@ namespace BitSerializer
 	/// <summary>
 	/// Serializes std::multiset.
 	/// </summary>
-	template<typename TArchive, typename TValue, typename TAllocator>
-	void SerializeArray(TArchive& archive, std::multiset<TValue, TAllocator>& cont)
+	template<typename TArchive, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& archive, std::multiset<TValue, TComparer, TAllocator>& cont)
 	{
 		Detail::SerializeSetImpl(archive, cont);
 	}

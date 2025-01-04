@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (C) 2020-2024 by Pavel Kisliak                                      #
+# Copyright (C) 2020-2025 by Pavel Kisliak                                      #
 # This file is part of BitSerializer library, licensed under the MIT license.   #
 #################################################################################
 cmake_minimum_required(VERSION 3.10)
@@ -12,7 +12,7 @@ endif()
 set(VCPKG_FEATURE_FLAGS "versions")
 
 project(bitserializer
-  VERSION 0.70.0
+  VERSION 0.75.0
   DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV, MsgPack)"
   LANGUAGES CXX)
 

@@ -18,7 +18,6 @@ ___
 #### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
-| [cpprestjson-archive](docs/bitserializer_cpprest_json.md) | JSON | UTF-8 | ✖ | [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) |
 | [rapidjson-archive](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
 | [pugixml-archive](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
 | [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
@@ -46,8 +45,6 @@ For check performance overhead, was developed a single thread test that serializ
 | ------ | ------ | ------ |  ------ | ------ | ------ |
 | RapidJson | JSON | Save object | 13636 fields/ms  | 13866 fields/ms | **(-1.7%)** |
 | RapidJson | JSON | Load object | 8639 fields/ms | 8967 fields/ms | **(-3.7%)** |
-| C++ REST SDK | JSON | Save object | 2766 fields/ms | 2787 fields/ms | **(-0.8%)** |
-| C++ REST SDK | JSON | Load object | 2727 fields/ms | 2743 fields/ms | **(-0.6%)** |
 | PugiXml | XML | Save object | 9910 fields/ms | 9851 fields/ms | **(+0.6%)** |
 | PugiXml | XML | Load object | 14602 fields/ms | 15942 fields/ms | **(-8.4%)** |
 | RapidYAML | YAML | Save object | 1689 fields/ms | 1737 fields/ms | **(-2.8%)** |
@@ -95,7 +92,7 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
     "dependencies": [
         {
             "name": "bitserializer",
-            "features": [ "cpprestjson-archive", "rapidjson-archive", "pugixml-archive", "rapidyaml-archive", "csv-archive", "msgpack-archive" ]
+            "features": [ "rapidjson-archive", "pugixml-archive", "rapidyaml-archive", "csv-archive", "msgpack-archive" ]
         }
     ]
 }
@@ -104,7 +101,7 @@ Enumerate features which you need, by default all are disabled.
 
 Alternatively, you can install the library via the command line:
 ```shell
-> vcpkg install bitserializer[cpprestjson-archive,rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
+> vcpkg install bitserializer[rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
 #### Conan
@@ -114,7 +111,6 @@ The recipe of BitSerializer is available on [Conan-center](https://github.com/co
 bitserializer/0.70
 
 [options]
-bitserializer:with_cpprestsdk=True
 bitserializer:with_rapidjson=True
 bitserializer:with_pugixml=True
 bitserializer:with_rapidyaml=True
@@ -123,13 +119,13 @@ bitserializer:with_msgpack=True
 ```
 Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
 ```shell
-> conan install bitserializer/0.70@ -o bitserializer:with_cpprestsdk=True -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
+> conan install bitserializer/0.70@ -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
 ```
 #### Installation via CMake on a Unix system
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git
 $ # Enable only archives which you need (by default all are disabled)
-$ cmake bitserializer -B bitserializer/build -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+$ cmake bitserializer -B bitserializer/build -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
@@ -140,7 +136,6 @@ You will also need to install dev-packages of base libraries, currently availabl
 find_package(bitserializer CONFIG REQUIRED)
 # Link only archives which you need
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    BitSerializer::cpprestjson-archive
     BitSerializer::rapidjson-archive
     BitSerializer::pugixml-archive
     BitSerializer::rapidyaml-archive
@@ -155,9 +150,9 @@ Let's get started with traditional and simple "Hello world!" example.
 #include <cassert>
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/cpprestjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
-using JsonArchive = BitSerializer::Json::CppRest::JsonArchive;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
 int main()
 {
@@ -984,7 +979,6 @@ inline void Serialize(TArchive& archive)
 
 ### What else to read
 Each of the supported archives has its own page with details (installation, features, samples, etc.):
-- [JSON archive "bitserializer-cpprestjson"](docs/bitserializer_cpprest_json.md)
 - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
 - [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)

@@ -575,9 +575,10 @@ private:
 /// For stay your code cross compiled you can use macros _XPLATSTR("MyKey") from CppRestSdk or
 /// use AutoKeyValue() but with possible small overhead for converting.
 /// </remarks>
-using JsonArchive = TArchiveBase<
+[[deprecated("Json archive based on CppRestSdk library is deprecated, please use `BitSerializer::Json::RapidJson::JsonArchive`")]]
+typedef TArchiveBase<
 	Detail::JsonArchiveTraits,
 	Detail::JsonRootScope<SerializeMode::Load>,
-	Detail::JsonRootScope<SerializeMode::Save>>;
+	Detail::JsonRootScope<SerializeMode::Save>> JsonArchive;
 
 }

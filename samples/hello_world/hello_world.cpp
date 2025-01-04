@@ -1,9 +1,9 @@
 #include <cassert>
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/cpprestjson_archive.h"
+#include "bitserializer/rapidjson_archive.h"
 
-using JsonArchive = BitSerializer::Json::CppRest::JsonArchive;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
 int main()
 {

@@ -1,5 +1,7 @@
 ### [BitSerializer](../README.md) / JSON (based on C++ REST SDK)
 
+**[ ! ] JSON archive based on CppRestSdk library is deprecated, please use - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)**
+
 Supported load/save JSON from:
 
 - std::string: UTF-8

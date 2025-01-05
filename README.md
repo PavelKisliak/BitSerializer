@@ -30,7 +30,7 @@ ___
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
 (\*) Minimal requirement for RapidYaml archive is VS2019.\
-(\*\*) The RapidYaml archive is unstable on ARM architecture.\
+(\*\*) The RapidYaml archive is unstable on ARM architecture.
 
 #### Limitations:
  - Work without exceptions is not supported.
@@ -82,7 +82,7 @@ ___
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
-#### VCPKG
+#### VCPKG (version 0.75 is not published yet)
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
 {
@@ -101,7 +101,7 @@ Alternatively, you can install the library via the command line:
 > vcpkg install bitserializer[rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
-#### Conan
+#### Conan (version 0.75 is not published yet)
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
@@ -445,9 +445,9 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::queue, std::priority_queue | #include "bitserializer/types/std/queue.h" |
 | std::stack | #include "bitserializer/types/std/stack.h" |
 | std::set, std::multiset, std::pmr::set, std::pmr::multiset | #include "bitserializer/types/std/set.h" |
-| std::unordered_set, std::unordered_multiset, std::pmr::unordered_set, std::pmr::unordered_multiset | #include "bitserializer/types/std/unordered_set.h" |
+| std::unordered_set, std::unordered_multiset,<br>std::pmr::unordered_set, std::pmr::unordered_multiset | #include "bitserializer/types/std/unordered_set.h" |
 | std::map, std::multimap, std::pmr::map, std::pmr::multimap | #include "bitserializer/types/std/map.h" |
-| std::unordered_map, std::unordered_multimap, std::pmr::unordered_map, std::pmr::unordered_multimap | #include "bitserializer/types/std/unordered_map.h" |
+| std::unordered_map, std::unordered_multimap,<br>std::pmr::unordered_map, std::pmr::unordered_multimap | #include "bitserializer/types/std/unordered_map.h" |
 | std::valarray | #include "bitserializer/types/std/valarray.h" |
 | std::pair | #include "bitserializer/types/std/pair.h" |
 | std::tuple | #include "bitserializer/types/std/tuple.h" |
@@ -992,4 +992,4 @@ Additionally, you may want to use the [string conversion submodule](docs/bitseri
 - Mateusz Pusz for code review and useful advices.
 
 ----
-MIT, Copyright (C) 2018-2024 by Pavel Kisliak, made in Belarus 🇧🇾
+MIT, Copyright (C) 2018-2025 by Pavel Kisliak, made in Belarus 🇧🇾

@@ -1,17 +1,18 @@
 # BitSerializer (History log)
 
 ##### What's new in version 0.75: (05 Jan 2025):
-[ ! ] Added support ARM architecture (including platforms with big-endian memory order).
-[ + ] Added new option `SerializationOptions::utfEncodingErrorPolicy` for configure handling of UTF encoding errors.
-[ + ] Added support for serialization types: `std::unordered_multiset`, `std::unordered_multimap`, `std::u8string` (C++20).
-[ + ] Added optional `overwrite` flag to `SaveObjectToFile()` function (`false` by default).
-[ + ] Added `PhoneNumber` validator.
-[ * ] Fixed saving of constant values (thanks @marton78).
-[ * ] Fixed serializing `std::set`, `std::multiset`, `std::unordered_map` and `std::unordered_multimap` with custom allocator.
-[ * ] [Convert] Improved UTF encoders, they will return more details about errors.
-[ * ] [Convert] Moved all UTF encoders and related code into sub-namespace `BitSerializer::Convert::Utf`.
-[ * ] [RapidJson] Fixed conflict with `GetObject` from Windows headers (thanks @psallandre).
-[ * ] [PugiXml] Slightly improved performance of saving to stream.
+- [ ! ] Added support ARM architecture (including platforms with big-endian byte order).
+- [ + ] Added new option `SerializationOptions::utfEncodingErrorPolicy` for configure handling of UTF encoding errors.
+- [ + ] Added support for serialization types: `std::unordered_multiset`, `std::unordered_multimap`, `std::u8string` (C++20).
+- [ + ] Added optional `overwrite` flag to `SaveObjectToFile()` function (`false` by default).
+- [ + ] Added `PhoneNumber` validator.
+- [ * ] Fixed saving of constant values (thanks @marton78).
+- [ * ] Fixed serializing `std::set`, `std::multiset`, `std::unordered_map` and `std::unordered_multimap` with custom allocator.
+- [ * ] [Convert] Improved UTF encoders, they will return more details about errors.
+- [ * ] [Convert] Moved all UTF encoders and related code into sub-namespace `BitSerializer::Convert::Utf`.
+- [ * ] [RapidJson] Fixed conflict with `GetObject` macro from Windows headers (thanks @psallandre).
+- [ * ] [PugiXml] Slightly improved performance of saving to stream.
+- [ - ] [CppRestJson] JSON archive based on CppRestSdk library is deprecated, please use - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md).
 
 ##### What's new in version 0.70 (31 May 2024):
 

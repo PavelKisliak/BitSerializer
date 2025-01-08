@@ -6,7 +6,7 @@ Type conversion submodule of **BitSerializer** library. Basically, it is just co
 - Supports conversion `chrono::time_point` and `chrono::duration` to/from ISO8601 strings
 - Supports UTF transcoding between all STD string types
 - Conversion any fundamental type to any STD string types and vice versa
-- Conversion any fundamental type to any other fundamental type with overflow checking (not available in v0.65)
+- Conversion any fundamental type to any other fundamental type with overflow checking
 - Conversion enum types via declaring names map
 - Allows to overload conversion functions for custom types
 - Simple API - only two main functions `Convert::To<>()` and `Convert::TryTo<>()`
@@ -228,16 +228,30 @@ As an examples, you also can see the conversion implementation for [filesystem::
 ### UTF encoding
 In addition to simple UTF conversion via `Convert::To()` function, there is also exists set of classes with more granular API for all kind of formats:
 
-- `Convert::Utf::Utf8`
-- `Convert::Utf::Utf16Le`
-- `Convert::Utf::Utf16Be`
-- `Convert::Utf::Utf32Le`
-- `Convert::Utf::Utf32Be`
+- `Convert::Utf::Utf8` - encodes/decodes strings in the current platform's byte order
+- `Convert::Utf::Utf16` - encodes/decodes strings in the current platform's byte order
+- `Convert::Utf::Utf16Le` - encodes/decodes strings from/to Utf16Le
+- `Convert::Utf::Utf16Be` - encodes/decodes strings from/to Utf16Be
+- `Convert::Utf::Utf32`  - encodes/decodes strings in the current platform's byte order
+- `Convert::Utf::Utf32Le` - encodes/decodes strings from/to Utf32Le
+- `Convert::Utf::Utf32Be` - encodes/decodes strings from/to Utf32Be
 
 They all have the same API:
 
-- `Decode(beginIt, endIt, outStr, encodePolicy, errorMark)`
-- `Encode(beginIt, endIt, outStr, encodePolicy, errorMark)`
+- `UtfEncodingResult Decode(beginIt, endIt, outStr, encodePolicy, errorMark)`
+- `UtfEncodingResult Encode(beginIt, endIt, outStr, encodePolicy, errorMark)`
+
+You might want to convert something from one string type to another with detailed error handling:
+
+```cpp
+template<typename TInIt, typename TOutChar, typename TAllocator>
+UtfEncodingResult<TInIt> Transcode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
+    UtfEncodingErrorPolicy errorPolicy, const TOutChar* errorMark);
+    
+template<typename TInChar, typename TOutChar, typename TAllocator>
+UtfEncodingResult<typename std::basic_string_view<TInChar>::iterator> Transcode(const std::basic_string_view<TInChar> sourceStr,
+    std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr, UtfEncodingErrorPolicy errorPolicy, const TOutChar* errorMark);
+```
 
 There are also exists two functions for detect the UTF encoding:
 

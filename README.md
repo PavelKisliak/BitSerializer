@@ -8,7 +8,7 @@ ___
 - Functional serialization style similar to the Boost library.
 - Customizable validation of deserialized values with producing an output list of errors.
 - Configurable set of policies to control overflow and type mismatch errors.
-- Support loading named fields in any order with conditions (for version control).
+- Support loading named fields in any order with conditions (for preserve compatibility when updating models).
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
 - Support for serializing enum types as integers or strings as you wish.
 - Support serialization to memory, streams and files.
@@ -82,7 +82,7 @@ ___
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
-#### VCPKG (version 0.75 is not published yet)
+#### VCPKG
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
 {
@@ -94,29 +94,25 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
     ]
 }
 ```
-Enumerate features which you need, by default all are disabled.
+Enumerate features which you need, by default all are disabled. Use like as usual in the [Cmake](#how-to-use-with-cmake).
 
 Alternatively, you can install the library via the command line:
 ```shell
 > vcpkg install bitserializer[rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
-#### Conan (version 0.75 is not published yet)
+#### Conan 2
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
-bitserializer/0.70
+bitserializer/0.75
 
 [options]
-bitserializer:with_rapidjson=True
-bitserializer:with_pugixml=True
-bitserializer:with_rapidyaml=True
-bitserializer:with_csv=True
-bitserializer:with_msgpack=True
-```
-Alternatively, you can install via below command (this is just example without specifying generator, arguments for target compiler, architecture, etc):
-```shell
-> conan install bitserializer/0.70@ -o bitserializer:with_rapidjson=True -o bitserializer:with_pugixml=True -o bitserializer:with_csv=True -o > bitserializer:with_rapidyaml=True --build missing
+bitserializer/*:with_rapidjson=True
+bitserializer/*:with_pugixml=True
+bitserializer/*:with_rapidyaml=True
+bitserializer/*:with_csv=True
+bitserializer/*:with_msgpack=True
 ```
 #### Installation via CMake on a Unix system
 ```sh
@@ -166,7 +162,7 @@ int main()
 }
 ```
 [See full sample](samples/hello_world/hello_world.cpp)\
-There is no mistake as JSON format supported any type (object, array, number or string) at root level.
+There is no mistake since JSON format supports any type (object, array, number or string) at root level.
 
 ### Unicode support
 Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to the output format. You also free to use any string type as keys, but remember that transcoding takes additional time and, of course, it is better to give preference to UTF-8 strings, since they are natively supported by all archives. In the example below, we show how BitSerializer allows to play with string types:
@@ -363,7 +359,7 @@ REGISTER_ENUM(HttpMethod, {
 ```
 
 ### Serializing to multiple formats
-One of the advantages of BitSerializer is the ability to serialize to multiple formats via a single interface. The following example shows how to store an object in JSON and XML:
+One of the advantages of BitSerializer is the ability to serialize into multiple formats through a single interface. The following example shows how to save an object to JSON and XML:
 ```cpp
 class CPoint
 {
@@ -399,7 +395,7 @@ The output result of this code:
 JSON: {"x":100,"y":200}
 XML: <?xml version="1.0"?><root><x>100</x><y>200</y></root>
 ```
-The code for serialization has difference only in template parameter - **JsonArchive** and **XmlArchive**.
+The serialization code differs only in the template parameter -  **JsonArchive** and **XmlArchive**.
 But here are some moments which need comments. As you can see in the XML was created node with name "root". This is auto generated name when it was not specified explicitly for root node. The library does this just to smooth out differences in the structure of formats. But you are free to set name of root node if needed:
 ```cpp
 const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", testObj));
@@ -822,7 +818,7 @@ First, let's list what are considered as errors and will throw exception:
  - Unsupported UTF encoding
 
 By default, any missed field in the input format (e.g. JSON) is not treated as an error, but you can add `Required()` validator if needed.
-You can handle `std::exception` just for log errors, but if you need to provide the user more details, you may need to handle below exceptions:
+You can handle `std::exception` just for log errors, but if you need to provide more detailed information to the user, you may need to handle the following exceptions:
 
  - `SerializationException` - base BitSerializer exception, contains `SerializationErrorCode`
  - `ParsingException` - contains information about line number or offset (depending on format type)

@@ -31,17 +31,17 @@ If you are using CMake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 ```
-#### Conan
+#### Conan 2
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_pugixml` option:
 ```
 [requires]
-bitserializer/0.70
+bitserializer/0.75
 
 [options]
-bitserializer:with_pugixml=True
+bitserializer/*:with_pugixml=True
 ```
 The dependent library **PugiXml** will be automatically installed.
-Usage the library will be related to selected Conan generator, if your choice is `cmake_find_package_multi`, than linking will be classic:
+Usage the library will be related to selected Conan generator, if your choice is `CMakeDeps`, than linking will be classic:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)

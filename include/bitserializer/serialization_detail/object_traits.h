@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -84,7 +84,7 @@ struct has_size
 {
 private:
 	template <typename U>
-	static decltype(std::declval<U>().size(), std::true_type()) test(int);
+	static decltype(std::is_integral_v<decltype(std::declval<U>().size())>, std::true_type()) test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -106,7 +106,7 @@ struct has_global_size
 {
 private:
 	template <typename U>
-	static std::enable_if_t<std::is_same_v<decltype(size(std::declval<const U&>())), size_t>, std::true_type> test(int);
+	static std::enable_if_t<std::is_integral_v<decltype(size(std::declval<const U&>()))>, std::true_type> test(int);
 
 	template <typename>
 	static std::false_type test(...);
@@ -201,8 +201,11 @@ constexpr auto is_binary_container = is_enumerable_of_v<TContainer, char> || is_
 template <typename TContainer>
 constexpr size_t GetContainerSize(const TContainer& cont)
 {
-	if constexpr (has_size_v<TContainer>) {
+	if constexpr (has_global_size_v<TContainer>) {
 		return size(cont);
+	}
+	else if constexpr (has_size_v<TContainer>) {
+		return cont.size();
 	}
 	else {
 		return std::distance(std::begin(cont), std::end(cont));

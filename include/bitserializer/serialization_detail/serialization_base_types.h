@@ -389,11 +389,11 @@ namespace BitSerializer
 				size_t arraySize = 0;
 				if constexpr (TArchive::IsSaving())
 				{
-					constexpr auto hasGlobalSize = has_global_size_v<TValue>;
+					constexpr auto hasSize = has_size_v<TValue> || has_global_size_v<TValue>;
 					constexpr auto isEnumerable = is_enumerable_v<TValue>;
-					static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
+					static_assert(!TArchive::is_binary || (hasSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
 
-					if constexpr (hasGlobalSize || isEnumerable) {
+					if constexpr (hasSize || isEnumerable) {
 						arraySize = GetContainerSize(value);
 					}
 				}
@@ -479,11 +479,11 @@ namespace BitSerializer
 				size_t arraySize = 0;
 				if constexpr (TArchive::IsSaving())
 				{
-					constexpr auto hasGlobalSize = has_global_size_v<TValue>;
+					constexpr auto hasSize = has_size_v<TValue> || has_global_size_v<TValue>;
 					constexpr auto isEnumerable = is_enumerable_v<TValue>;
-					static_assert(!TArchive::is_binary || (hasGlobalSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
+					static_assert(!TArchive::is_binary || (hasSize || isEnumerable), "BitSerializer. Saving to a binary archive requires a known container size.");
 
-					if constexpr (hasGlobalSize || isEnumerable) {
+					if constexpr (hasSize || isEnumerable) {
 						arraySize = GetContainerSize(value);
 					}
 				}

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -26,8 +26,17 @@ public:
 class TestExtSerializableClass { };
 template <class TArchive> void SerializeObject(TArchive& archive, TestExtSerializableClass& value) { }
 
-class TestExtSerializableArray { };
+class TestExtSerializableArray
+{
+public:
+	[[nodiscard]] int32_t GetSize() const { return 0; }
+};
 template <class TArchive> void SerializeArray(TArchive& archive, TestExtSerializableArray& value) { }
+
+// External size() for test array serialization
+auto size(const TestExtSerializableArray& value) {
+	return value.GetSize();
+}
 
 class TestNotSerializableClass { };
 
@@ -105,8 +114,10 @@ TEST(SerializationObjectTraits, ShouldCheckThatContainerHasSizeMethod) {
 TEST(SerializationObjectTraits, ShouldCheckThatContainerHasGlobalSizeFn) {
 	const bool testResult1 = has_global_size_v<std::vector<int>>;
 	EXPECT_TRUE(testResult1);
-	const bool testResult2 = has_global_size_v<TestNotSerializableClass>;
-	EXPECT_FALSE(testResult2);
+	const bool testResult2 = has_global_size_v<TestExtSerializableArray>;
+	EXPECT_TRUE(testResult2);
+	const bool testResult3 = has_global_size_v<TestNotSerializableClass>;
+	EXPECT_FALSE(testResult3);
 }
 
 TEST(SerializationObjectTraits, ShouldCheckThatContainerHasReserveMethod) {

@@ -61,6 +61,7 @@ ___
 - [Serializing class](#serializing-class)
 - [Serializing base class](#serializing-base-class)
 - [Serializing third party class](#serializing-third-party-class)
+- [Serializing class that represent an array](#serializing-class-that-represent-an-array)
 - [Serializing enum types](#serializing-enum-types)
 - [Serializing to multiple formats](#serializing-to-multiple-formats)
 - [Serialization STD types](#serialization-std-types)
@@ -270,33 +271,23 @@ One limitation is that the base class must have an internal `Serialize()` method
 As alternative for internal `Serialize()` method also exists approach with defining global functions, it will be useful in next cases:
 
  - Sources of serializing class cannot be modified (for example from third party library).
- - When class represents list of some values (such as `std::vector`).
+ - When class represents list of some values (such as `std::vector`), see [next chapter](#serializing-class-that-represent-an-array).
  - When you would like to override internal serialization, globally defined functions have higher priority.
  - When you strongly follow single responsibility principle and wouldn't like to include serialization code into class.
 
-You need to implement one of below functions in any namespace:
-
- - `SerializeObject()` - when you would like to represent your class as object in a target format (e.g. JSON object).
- - `SerializeArray()` - when you would like to represent your class as array in a target format (e.g. JSON array).
-
-The example below shows how to implement the most commonly used external function SerializeObject().
+You need to implement `SerializeObject()` in the same namespace as the serializing class, or in `BitSerializer`:
 ```cpp
-#include <iostream>
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
-
-using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
-
 class TestThirdPartyClass
 {
 public:
-    TestThirdPartyClass(int x, int y)
+    TestThirdPartyClass(int x, int y) noexcept
         : x(x), y(y)
     { }
 
+    // Example of public property
     int x;
 
+    // Example of property that is only accessible via a getter/setter
     int GetY() const noexcept { return y; }
     void SetY(int y) noexcept { this->y = y; }
 
@@ -304,6 +295,7 @@ private:
     int y;
 };
 
+// Serializes TestThirdPartyClass.
 template<typename TArchive>
 void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 {
@@ -311,27 +303,102 @@ void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass
     archive << KeyValue("x", testThirdPartyClass.x);
 
     // Serialize private property
-    if constexpr (TArchive::IsLoading()) {
+    if constexpr (TArchive::IsLoading())
+    {
         int y = 0;
         archive << KeyValue("y", y);
         testThirdPartyClass.SetY(y);
     }
-    else {
+    else
+    {
         const int y = testThirdPartyClass.GetY();
         archive << KeyValue("y", y);
     }
 }
-
-
-int main()
-{
-    auto testObj = TestThirdPartyClass(100, 200);
-    const auto result = BitSerializer::SaveObject<JsonArchive>(testObj);
-    std::cout << result << std::endl;
-    return 0;
-}
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
+
+### Serializing class that represent an array
+In this chapter described how to serialize your own class that represent a list of values (similar to `std::vector`).
+For this purpose, need to implement a global function `SerializeArray()` in the same namespace as the serializing class, or in `BitSerializer`.
+
+Additionally, BitSerializer wants to know the number of elements in the list.
+This is optional for a text archives like JSON, but mandatory for a binary archive like MsgPack since it stores the size prior the array elements.
+The size of list can be obtained via one of the following ways:
+
+ - Global function `size(const CMyArray&)` (highest priority).
+ - Standard class method `size()`.
+ - By enumerating array elements using iterators (like as for `std::forward_list`).
+
+So, in case if your class has a different signature for the size getter than `size()`, then you need to implement it as a global function.
+
+⚠ In the latest released version of BitSerializer (0.75) incorrectly detecting internal `size()` method (if it's not in the `std` namespace), you need to implement it externally.
+
+Please take a look at the following example:
+```cpp
+// Some custom array type
+template <typename T>
+class CMyArray
+{
+public:
+    CMyArray() = default;
+    CMyArray(std::initializer_list<T> initList)
+        : mArray(initList)
+    { }
+
+    [[nodiscard]] size_t GetSize() const noexcept { return mArray.size(); }
+    void Resize(size_t newSize) { mArray.resize(newSize); }
+
+    [[nodiscard]] const T& At(size_t index) const { return mArray.at(index); }
+    [[nodiscard]] T& At(size_t index) { return mArray.at(index); }
+
+    T& PushBack(T&& value) { return mArray.emplace_back(std::forward<T>(value)); }
+
+private:
+    std::vector<T> mArray;
+};
+
+// Returns the size of the CMyArray.
+template <class T>
+size_t size(const CMyArray<T>& cont) noexcept { return cont.GetSize(); }
+
+// Serializes CMyArray.
+template <class TArchive, class TValue>
+void SerializeArray(TArchive& arrayScope, CMyArray<TValue>& cont)
+{
+    if constexpr (TArchive::IsLoading())
+    {
+        // Resize container when approximate size is known
+        if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0 && cont.GetSize() < estimatedSize) {
+            cont.Resize(estimatedSize);
+        }
+
+        // Load
+        size_t loadedItems = 0;
+        for (; !arrayScope.IsEnd(); ++loadedItems)
+        {
+            TValue& value = (loadedItems < cont.GetSize()) ? cont.At(loadedItems) : cont.PushBack({});
+            Serialize(arrayScope, value);
+        }
+        // Resize container for case when loaded items less than there are or were estimated
+        cont.Resize(loadedItems);
+    }
+    else
+    {
+        for (size_t i = 0; i < cont.GetSize(); ++i)
+        {
+            Serialize(arrayScope, cont.At(i));
+        }
+    }
+}
+```
+[See full sample](samples/serialize_custom_array/serialize_custom_array.cpp)
+
+Additional recommendations:
+ - Don't clear arrays, prefer loading values into existing elements (for better performance).
+ - Resize array before loading if estimated size is not zero (but please keep in mind that the actual size may vary).
+ - For fixed size arrays, always check the size of the array and the elements actually loaded (throw an exception if they differ).
+ - Use [std containers serialization implementation](include/bitserializer/types/std) as examples.
 
 ### Serializing enum types
 Enum types can be serialized as integers or as strings, as you prefer.

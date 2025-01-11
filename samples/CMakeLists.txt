@@ -1,11 +1,9 @@
-if(BUILD_CPPRESTJSON_ARCHIVE)
-    add_subdirectory(hello_world)
-endif()
-
 if(BUILD_RAPIDJSON_ARCHIVE)
+    add_subdirectory(hello_world)
     add_subdirectory(validation)
     add_subdirectory(serialize_third_party_class)
     add_subdirectory(serialize_custom_string)
+    add_subdirectory(serialize_custom_array)
     add_subdirectory(serialize_to_stream)
 endif()
 

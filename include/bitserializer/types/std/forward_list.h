@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,7 +8,7 @@
 namespace BitSerializer
 {
 	/// <summary>
-	/// Serializes std::forward_list with key.
+	/// Serializes std::forward_list.
 	/// </summary>
 	template<typename TArchive, typename TValue, typename TAllocator>
 	void SerializeArray(TArchive& arrayScope, std::forward_list<TValue, TAllocator>& cont)
@@ -35,9 +35,8 @@ namespace BitSerializer
 			// Load all left items
 			for (; !arrayScope.IsEnd(); ++loadedItems)
 			{
-				TValue value;
-				Serialize(arrayScope, value);
-				LastIt = cont.emplace_after(LastIt, std::move(value));
+				LastIt = cont.emplace_after(LastIt);
+				Serialize(arrayScope, *LastIt);
 			}
 			// Resize container for case when loaded less items than estimated
 			cont.resize(loadedItems);

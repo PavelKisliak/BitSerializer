@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -29,12 +29,9 @@ namespace BitSerializer::Detail
 			// Load all left items
 			for (; !arrayScope.IsEnd(); ++loadedItems)
 			{
-				using ValueType = typename TContainer::value_type;
-				ValueType value;
-				Serialize(arrayScope, value);
-				cont.push_back(std::move(value));
+				Serialize(arrayScope, cont.emplace_back());
 			}
-			// Resize container for case when loaded less items than estimated
+			// Resize container for case when loaded items less than there are or were estimated
 			cont.resize(loadedItems);
 		}
 		else

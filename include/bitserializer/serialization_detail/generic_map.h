@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -85,7 +85,7 @@ namespace BitSerializer
 						switch (mapLoadMode)
 						{
 						case MapLoadMode::Clean:
-							hint = cont.emplace_hint(hint, std::move(key), typename TMap::mapped_type());
+							hint = cont.try_emplace(hint, std::move(key));
 							Serialize(scope, archiveKey, hint->second);
 							break;
 						case MapLoadMode::OnlyExistKeys:

@@ -67,7 +67,7 @@ endif()
 if(MSVC)
     add_compile_options(/permissive-)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
-    add_compile_options(-Wall -Wextra -pedantic
+    add_compile_options(-Wall -Wextra -pedantic -Wno-psabi
         -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-maybe-uninitialized)
 endif()
 

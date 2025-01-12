@@ -7,6 +7,8 @@
 
 using namespace BitSerializer;
 
+#pragma warning(push)
+#pragma warning(disable: 4566)
 //-----------------------------------------------------------------------------
 // Test conversions any UTF string to any other UTF format
 //-----------------------------------------------------------------------------
@@ -121,3 +123,5 @@ TEST(Utf, TransocodeUtf32ToUtf16)
 	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
+
+#pragma warning(pop)

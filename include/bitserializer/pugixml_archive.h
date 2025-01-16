@@ -109,11 +109,11 @@ namespace PugiXmlExtensions
 		return false;
 	}
 
-	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&, const SerializationOptions& serializationOptions) {
+	inline bool LoadValue(const pugi::xml_node& node, std::nullptr_t&, const SerializationOptions&) {
 		return node.empty();
 	}
 
-	inline bool LoadValue(const pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type& value, const SerializationOptions& serializationOptions)
+	inline bool LoadValue(const pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type& value, const SerializationOptions&)
 	{
 		// Empty node is treated as Null
 		if (const auto strValue = node.text().as_string(nullptr))
@@ -129,7 +129,7 @@ namespace PugiXmlExtensions
 		node.text().set(value);
 	}
 
-	inline void SaveValue(const pugi::xml_node& node, const std::nullptr_t& value) {}
+	inline void SaveValue(const pugi::xml_node&, const std::nullptr_t&) {}
 
 	inline void SaveValue(const pugi::xml_node& node, const pugi::char_t* value) {
 		node.text().set(value);
@@ -461,7 +461,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t arraySize)
+	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -540,7 +540,7 @@ public:
 		return PugiXmlExtensions::GetPath(mRootXml);
 	}
 
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{

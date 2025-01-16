@@ -32,7 +32,7 @@ public:
 
 	std::string GetResult()
 	{
-		return std::visit([this](auto&& arg)
+		return std::visit([](auto&& arg)
 		{
 			using T = std::decay_t<decltype(arg)>;
 			if constexpr (std::is_same_v<T, std::string>)

@@ -78,7 +78,7 @@ void TestSaveXmlToEncodedStream(const bool withBom)
 	// Simple UTF decoding (just for ANSI range)
 	string_type actualXml;
 	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-	actualXml.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+	actualXml.append(reinterpret_cast<const char_type*>(dataIt), targetCharCount);
 	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
 		BitSerializer::Memory::Reverse(actualXml.begin(), actualXml.end());
 	}

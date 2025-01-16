@@ -77,7 +77,7 @@ void TestSaveYamlToEncodedStream(const bool withBom)
 	// Simple UTF decoding (just for ANSI range)
 	string_type actualYaml;
 	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-	actualYaml.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+	actualYaml.append(reinterpret_cast<const char_type*>(dataIt), targetCharCount);
 	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
 		BitSerializer::Memory::Reverse(actualYaml.begin(), actualYaml.end());
 	}

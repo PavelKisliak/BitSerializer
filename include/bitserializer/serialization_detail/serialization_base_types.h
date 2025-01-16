@@ -46,7 +46,7 @@ namespace BitSerializer
 	bool Serialize(TArchive& archive, TKey&& key, std::byte& value)
 	{
 		constexpr auto hasValueWithKeySupport = can_serialize_value_with_key_v<TArchive, unsigned char, TKey>;
-		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
+		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize `std::byte` with key on this level.");
 
 		if constexpr (hasValueWithKeySupport)
 		{
@@ -72,7 +72,7 @@ namespace BitSerializer
 	bool Serialize(TArchive& archive, std::byte& value)
 	{
 		constexpr auto hasValueTypeSupport = can_serialize_value_v<TArchive, unsigned char>;
-		static_assert(hasValueTypeSupport, "BitSerializer. The archive doesn't support serialize fundamental type without key on this level.");
+		static_assert(hasValueTypeSupport, "BitSerializer. The archive doesn't support serialize `std::byte` without key on this level.");
 
 		if constexpr (hasValueTypeSupport)
 		{

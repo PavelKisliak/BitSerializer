@@ -341,7 +341,7 @@ public:
 		return "";
 	}
 
-	std::optional<CsvReadArrayScope> OpenArrayScope(size_t arraySize)
+	std::optional<CsvReadArrayScope> OpenArrayScope(size_t)
 	{
 		return std::make_optional<CsvReadArrayScope>(mCsvReader.get(), GetContext());
 	}

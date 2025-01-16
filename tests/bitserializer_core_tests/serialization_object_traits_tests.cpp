@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <vector>
-#include <array>
 #include <list>
 #include <map>
 #include <forward_list>
@@ -20,18 +19,18 @@ class TestSerializableClass
 {
 public:
 	template <class TArchive>
-	void Serialize(TArchive& archive) { }
+	void Serialize(TArchive&) { }
 };
 
 class TestExtSerializableClass { };
-template <class TArchive> void SerializeObject(TArchive& archive, TestExtSerializableClass& value) { }
+template <class TArchive> void SerializeObject(TArchive&, TestExtSerializableClass&) { }
 
 class TestExtSerializableArray
 {
 public:
 	[[nodiscard]] int32_t GetSize() const { return 0; }
 };
-template <class TArchive> void SerializeArray(TArchive& archive, TestExtSerializableArray& value) { }
+template <class TArchive> void SerializeArray(TArchive&, TestExtSerializableArray&) { }
 
 // External size() for test array serialization
 auto size(const TestExtSerializableArray& value) {
@@ -44,7 +43,7 @@ class TestValidatorClass
 {
 public:
 	template <class TValue>
-	std::optional<std::string> operator() (const TValue& value, const bool isLoaded) const noexcept {
+	std::optional<std::string> operator() (const TValue&, const bool) const noexcept {
 		return std::nullopt;
 	}
 };

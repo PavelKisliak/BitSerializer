@@ -81,7 +81,7 @@ protected:
 		// Simple UTF decoding (just for ANSI range)
 		string_type actualCsv;
 		const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-		actualCsv.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+		actualCsv.append(reinterpret_cast<const char_type*>(dataIt), targetCharCount);
 		if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
 			BitSerializer::Memory::Reverse(actualCsv.begin(), actualCsv.end());
 		}

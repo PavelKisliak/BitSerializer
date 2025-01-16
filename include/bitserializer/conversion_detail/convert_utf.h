@@ -802,7 +802,7 @@ namespace BitSerializer::Convert::Utf
 	/// <summary>
 	/// Detects an encoding of stream.
 	/// </summary>
-	static UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)
+	[[maybe_unused]] static UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)
 	{
 		// Read first characters to temporary buffer
 		static constexpr size_t tempBufferSize = 128;

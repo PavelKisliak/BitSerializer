@@ -65,10 +65,12 @@ if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.3")
 endif()
 
 if(MSVC)
-    add_compile_options(/permissive-)
+    add_compile_options(/permissive- /W3)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wall -Wextra -pedantic -Wno-psabi
-        -Wno-unknown-pragmas -Wno-unused-function -Wno-unused-parameter -Wno-unused-but-set-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-maybe-uninitialized)
+        -Wno-unknown-pragmas -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-maybe-uninitialized)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    add_compile_options(-Wall -Wextra -pedantic -Wno-unknown-pragmas -Wno-gnu-zero-variadic-macro-arguments)
 endif()
 
 # For debug libs, add "d" postfix

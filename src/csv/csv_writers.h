@@ -35,7 +35,7 @@ namespace BitSerializer::Csv::Detail
 		CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator = ',',
 			Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::Skip, const StreamOptions& streamOptions = {});
 
-		void SetEstimatedSize(size_t size) noexcept override { /* Not required for stream */ }
+		void SetEstimatedSize(size_t) noexcept override { /* Not required for stream */ }
 		void WriteValue(const std::string_view& key, std::string_view value) override;
 		void NextLine() override;
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }

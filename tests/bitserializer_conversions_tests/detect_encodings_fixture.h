@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -21,7 +21,7 @@ public:
 		// Encode string
 		using target_string_type = std::basic_string<target_char_type, std::char_traits<target_char_type>>;
 		target_string_type outputString;
-		auto it = TUtfType::Encode(testStr.cbegin(), testStr.cend(), outputString, encodingErrorPolicy);
+		TUtfType::Encode(testStr.cbegin(), testStr.cend(), outputString, encodingErrorPolicy, errorMark);
 
 		// Prepare byte streams
 		mEncodedBuffer.append(reinterpret_cast<const char*>(outputString.data()), outputString.size() * sizeof(target_char_type));

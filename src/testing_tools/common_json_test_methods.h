@@ -224,7 +224,7 @@ void TestSaveJsonToEncodedStream(const bool withBom)
 	// Simple UTF decoding (just for ANSI range)
 	string_type actualJson;
 	const typename string_type::size_type targetCharCount = dataSize / sizeof(char_type);
-	actualJson.append(reinterpret_cast<const char_type*>(dataIt), dataSize / sizeof(char_type));
+	actualJson.append(reinterpret_cast<const char_type*>(dataIt), targetCharCount);
 	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
 		BitSerializer::Memory::Reverse(actualJson.begin(), actualJson.end());
 	}

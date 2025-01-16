@@ -98,37 +98,37 @@ static void BuildFixture(T& value)
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 
-static void BuildFixture(int64_t& value)			{ value = (static_cast<int64_t>(std::rand()) << std::numeric_limits<unsigned>::digits) + std::rand(); }
-static void BuildFixture(uint64_t& value)			{ value = (static_cast<uint64_t>(std::rand()) << std::numeric_limits<unsigned>::digits) + std::rand(); }
-static void BuildFixture(bool& value)				{ value = static_cast<bool>(std::rand() % 2); }
-static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand() % 1000 + 1) * 1.141592f; }
-static void BuildFixture(double& value)				{ value = static_cast<double>(std::rand() % 100000 + 1) * 1.141592; }
-static void BuildFixture(std::nullptr_t& value)		{ value = nullptr; }
-static void BuildFixture(std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
+[[maybe_unused]] static void BuildFixture(int64_t& value)			{ value = (static_cast<int64_t>(std::rand()) << std::numeric_limits<unsigned>::digits) + std::rand(); }
+[[maybe_unused]] static void BuildFixture(uint64_t& value)			{ value = (static_cast<uint64_t>(std::rand()) << std::numeric_limits<unsigned>::digits) + std::rand(); }
+[[maybe_unused]] static void BuildFixture(bool& value)				{ value = static_cast<bool>(std::rand() % 2); }
+[[maybe_unused]] static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand() % 1000 + 1) * 1.141592f; }
+[[maybe_unused]] static void BuildFixture(double& value)			{ value = static_cast<double>(std::rand() % 100000 + 1) * 1.141592; }
+[[maybe_unused]] static void BuildFixture(std::nullptr_t& value)	{ value = nullptr; }
+[[maybe_unused]] static void BuildFixture(std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
 #if defined(__cpp_lib_memory_resource)
-static void BuildFixture(std::pmr::string& value)	{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
+[[maybe_unused]] static void BuildFixture(std::pmr::string& value)	{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
 #endif
 #if defined(__cpp_lib_char8_t)
-static void BuildFixture(std::u8string& value) { value = u8"U8-string Тест_"; }// +BitSerializer::Convert::To<std::u8string>(std::rand()); }
+[[maybe_unused]] static void BuildFixture(std::u8string& value)		{ value = u8"U8-string Тест_"; }// +BitSerializer::Convert::To<std::u8string>(std::rand()); }
 #endif
-static void BuildFixture(std::wstring& value)		{ value = L"WString Тест_" + std::to_wstring(std::rand()); }
-static void BuildFixture(std::u16string& value)		{ value = u"UTF-16 Тест_" + BitSerializer::Convert::To<std::u16string>(std::rand()); }
-static void BuildFixture(std::u32string& value)		{ value = U"UTF-32 Тест_" + BitSerializer::Convert::To<std::u32string>(std::rand()); }
+[[maybe_unused]] static void BuildFixture(std::wstring& value)		{ value = L"WString Тест_" + std::to_wstring(std::rand()); }
+[[maybe_unused]] static void BuildFixture(std::u16string& value)	{ value = u"UTF-16 Тест_" + BitSerializer::Convert::To<std::u16string>(std::rand()); }
+[[maybe_unused]] static void BuildFixture(std::u32string& value)	{ value = U"UTF-32 Тест_" + BitSerializer::Convert::To<std::u32string>(std::rand()); }
 
-static void BuildFixture(std::byte& value)
+[[maybe_unused]] static void BuildFixture(std::byte& value)
 {
 	value = static_cast<std::byte>(std::rand() % std::numeric_limits<unsigned char>::max());
 }
 
 template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-static void BuildFixture(T& value)
+[[maybe_unused]] static void BuildFixture(T& value)
 {
 	const auto randIndex = std::rand() % BitSerializer::Convert::Detail::EnumRegistry<T>::size();
 	value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->Value;
 }
 
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
-static void BuildFixture(std::atomic<T>& value)
+[[maybe_unused]] static void BuildFixture(std::atomic<T>& value)
 {
 	T temp;
 	::BuildFixture<T>(temp);
@@ -140,7 +140,7 @@ static void BuildFixture(std::atomic<T>& value)
 /// </summary>
 /// <param name="arr">The array.</param>
 template <typename TValue, size_t ArraySize>
-static void BuildFixture(TValue(&arr)[ArraySize])
+[[maybe_unused]] static void BuildFixture(TValue(&arr)[ArraySize])
 {
 	static_assert(ArraySize != 0);
 
@@ -169,7 +169,7 @@ static void BuildFixture(TValue(&arr)[ArraySize])
 /// </summary>
 /// <param name="pair">The pair.</param>
 template <typename TKey, typename TValue>
-static void BuildFixture(std::pair<TKey, TValue>& pair)
+[[maybe_unused]] static void BuildFixture(std::pair<TKey, TValue>& pair)
 {
 	BuildFixture(pair.first);
 	BuildFixture(pair.second);
@@ -180,7 +180,7 @@ static void BuildFixture(std::pair<TKey, TValue>& pair)
 /// </summary>
 /// <param name="value">The tuple.</param>
 template <typename ...TArgs>
-static void BuildFixture(std::tuple<TArgs...>& value)
+[[maybe_unused]] static void BuildFixture(std::tuple<TArgs...>& value)
 {
 	std::apply([](auto&&... args) {
 		((BuildFixture(args)), ...);
@@ -192,7 +192,7 @@ static void BuildFixture(std::tuple<TArgs...>& value)
 /// </summary>
 /// <param name="optionalValue">The optional value.</param>
 template <typename TValue>
-static void BuildFixture(std::optional<TValue>& optionalValue)
+[[maybe_unused]] static void BuildFixture(std::optional<TValue>& optionalValue)
 {
 	optionalValue = TValue();
 	BuildFixture(optionalValue.value());
@@ -203,7 +203,7 @@ static void BuildFixture(std::optional<TValue>& optionalValue)
 /// </summary>
 /// <param name="timePoint">The reference to time point.</param>
 template <typename TClock, typename TDuration>
-static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
+[[maybe_unused]] static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
 {
 	constexpr auto tpMaxSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::max())
 		.time_since_epoch().count();
@@ -227,7 +227,7 @@ static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
 /// </summary>
 /// <param name="duration">The reference to duration.</param>
 template <typename TRep, typename TPeriod>
-static void BuildFixture(std::chrono::duration<TRep, TPeriod>& duration)
+[[maybe_unused]] static void BuildFixture(std::chrono::duration<TRep, TPeriod>& duration)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -262,7 +262,7 @@ namespace std
 /// Builds the test fixture for CBinTimestamp
 /// </summary>
 /// <param name="timestamp">The reference to binary timestamp.</param>
-static void BuildFixture(BitSerializer::Detail::CBinTimestamp& timestamp)
+[[maybe_unused]] static void BuildFixture(BitSerializer::Detail::CBinTimestamp& timestamp)
 {
 	BuildFixture(timestamp.Seconds);
 	BuildFixture(timestamp.Nanoseconds);
@@ -273,7 +273,7 @@ static void BuildFixture(BitSerializer::Detail::CBinTimestamp& timestamp)
 /// </summary>
 /// <param name="uniquePtr">The reference to unique pointer.</param>
 template <typename TValue>
-static void BuildFixture(std::unique_ptr<TValue>& uniquePtr)
+[[maybe_unused]] static void BuildFixture(std::unique_ptr<TValue>& uniquePtr)
 {
 	uniquePtr = std::make_unique<TValue>();
 	BuildFixture(*uniquePtr);
@@ -284,7 +284,7 @@ static void BuildFixture(std::unique_ptr<TValue>& uniquePtr)
 /// </summary>
 /// <param name="sharedPtr">The reference to shared pointer.</param>
 template <typename TValue>
-static void BuildFixture(std::shared_ptr<TValue>& sharedPtr)
+[[maybe_unused]] static void BuildFixture(std::shared_ptr<TValue>& sharedPtr)
 {
 	sharedPtr = std::make_shared<TValue>();
 	BuildFixture(*sharedPtr);
@@ -295,7 +295,7 @@ static void BuildFixture(std::shared_ptr<TValue>& sharedPtr)
 /// </summary>
 /// <returns>The generated fixture</returns>
 template <typename T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
-static T BuildFixture()
+[[maybe_unused]] static T BuildFixture()
 {
 	T fixture;
 	BuildFixture(fixture);
@@ -306,13 +306,13 @@ static T BuildFixture()
 /// Builds the test fixture for std::filesystem::path value.
 /// </summary>
 /// <param name="path">The reference to path.</param>
-static void BuildFixture(std::filesystem::path& path)
+[[maybe_unused]] static void BuildFixture(std::filesystem::path& path)
 {
 	path = std::filesystem::temp_directory_path() / (BuildFixture<std::string>() + ".txt");
 }
 
 template <typename T, size_t Size>
-static void BuildFixture(std::array<T, Size>& cont)
+[[maybe_unused]] static void BuildFixture(std::array<T, Size>& cont)
 {
 	for (size_t i = 0; i < Size; i++) {
 		BuildFixture(cont[i]);
@@ -320,7 +320,7 @@ static void BuildFixture(std::array<T, Size>& cont)
 }
 
 template <typename T, typename TAllocator>
-static void BuildFixture(std::vector<T, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::vector<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -329,7 +329,7 @@ static void BuildFixture(std::vector<T, TAllocator>& cont)
 	}
 }
 
-static void BuildFixture(std::vector<bool>& cont)
+[[maybe_unused]] static void BuildFixture(std::vector<bool>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -342,7 +342,7 @@ static void BuildFixture(std::vector<bool>& cont)
 }
 
 template <typename T, typename TAllocator>
-static void BuildFixture(std::deque<T, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::deque<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -352,7 +352,7 @@ static void BuildFixture(std::deque<T, TAllocator>& cont)
 }
 
 template <size_t Size>
-static void BuildFixture(std::bitset<Size>& cont)
+[[maybe_unused]] static void BuildFixture(std::bitset<Size>& cont)
 {
 	for (size_t i = 0; i < Size; i++) {
 		cont.set(i, BuildFixture<bool>());
@@ -360,7 +360,7 @@ static void BuildFixture(std::bitset<Size>& cont)
 }
 
 template <typename T, typename TAllocator>
-static void BuildFixture(std::list<T, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::list<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -370,7 +370,7 @@ static void BuildFixture(std::list<T, TAllocator>& cont)
 }
 
 template <typename T, typename TAllocator>
-static void BuildFixture(std::forward_list<T, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::forward_list<T, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -380,7 +380,7 @@ static void BuildFixture(std::forward_list<T, TAllocator>& cont)
 }
 
 template <typename T>
-static void BuildFixture(std::queue<T>& cont)
+[[maybe_unused]] static void BuildFixture(std::queue<T>& cont)
 {
 	static constexpr int size = 7;
 	for (size_t i = 0; i < size; i++) {
@@ -389,7 +389,7 @@ static void BuildFixture(std::queue<T>& cont)
 }
 
 template <typename T>
-static void BuildFixture(std::priority_queue<T>& cont)
+[[maybe_unused]] static void BuildFixture(std::priority_queue<T>& cont)
 {
 	static constexpr int size = 7;
 	for (size_t i = 0; i < size; i++) {
@@ -398,7 +398,7 @@ static void BuildFixture(std::priority_queue<T>& cont)
 }
 
 template <typename T>
-static void BuildFixture(std::stack<T>& cont)
+[[maybe_unused]] static void BuildFixture(std::stack<T>& cont)
 {
 	static constexpr int size = 7;
 	for (size_t i = 0; i < size; i++) {
@@ -407,7 +407,7 @@ static void BuildFixture(std::stack<T>& cont)
 }
 
 template <typename T, typename TComparer, typename TAllocator>
-static void BuildFixture(std::set<T, TComparer, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::set<T, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -420,7 +420,7 @@ static void BuildFixture(std::set<T, TComparer, TAllocator>& cont)
 }
 
 template <typename T, typename TComparer, typename TAllocator>
-static void BuildFixture(std::multiset<T, TComparer, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::multiset<T, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -436,7 +436,7 @@ static void BuildFixture(std::multiset<T, TComparer, TAllocator>& cont)
 }
 
 template <typename T, typename THasher, typename TKeyEq, typename TAllocator>
-static void BuildFixture(std::unordered_set<T, THasher, TKeyEq, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::unordered_set<T, THasher, TKeyEq, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -449,7 +449,7 @@ static void BuildFixture(std::unordered_set<T, THasher, TKeyEq, TAllocator>& con
 }
 
 template <typename T, typename THasher, typename TKeyEq, typename TAllocator>
-static void BuildFixture(std::unordered_multiset<T, THasher, TKeyEq, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::unordered_multiset<T, THasher, TKeyEq, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -465,7 +465,7 @@ static void BuildFixture(std::unordered_multiset<T, THasher, TKeyEq, TAllocator>
 }
 
 template <typename TKey, typename TValue, typename TComparer, typename TAllocator>
-static void BuildFixture(std::map<TKey, TValue, TComparer, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::map<TKey, TValue, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -478,7 +478,7 @@ static void BuildFixture(std::map<TKey, TValue, TComparer, TAllocator>& cont)
 }
 
 template <typename TKey, typename TValue, typename TComparer, typename TAllocator>
-static void BuildFixture(std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::multimap<TKey, TValue, TComparer, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -495,7 +495,7 @@ static void BuildFixture(std::multimap<TKey, TValue, TComparer, TAllocator>& con
 }
 
 template <typename TKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
-static void BuildFixture(std::unordered_map<TKey, TValue, THasher, TKeyEq, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::unordered_map<TKey, TValue, THasher, TKeyEq, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -508,7 +508,7 @@ static void BuildFixture(std::unordered_map<TKey, TValue, THasher, TKeyEq, TAllo
 }
 
 template <typename TKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
-static void BuildFixture(std::unordered_multimap<TKey, TValue, THasher, TKeyEq, TAllocator>& cont)
+[[maybe_unused]] static void BuildFixture(std::unordered_multimap<TKey, TValue, THasher, TKeyEq, TAllocator>& cont)
 {
 	static constexpr int size = 7;
 
@@ -525,7 +525,7 @@ static void BuildFixture(std::unordered_multimap<TKey, TValue, THasher, TKeyEq, 
 }
 
 template <typename T>
-static void BuildFixture(std::valarray<T>& cont)
+[[maybe_unused]] static void BuildFixture(std::valarray<T>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);

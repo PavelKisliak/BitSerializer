@@ -326,7 +326,7 @@ Additionally, BitSerializer wants to know the number of elements in the list.
 This is optional for a text archives like JSON, but mandatory for a binary archive like MsgPack since it stores the size prior the array elements.
 The size of list can be obtained via one of the following ways:
 
- - Global function `size(const CMyArray&)` (highest priority).
+ - Global function `size(const CMyArray&)` in the same namespace as the serializing class (highest priority).
  - Standard class method `size()`.
  - By enumerating array elements using iterators (like as for `std::forward_list`).
 

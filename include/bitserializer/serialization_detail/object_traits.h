@@ -99,6 +99,16 @@ constexpr bool has_size_v = has_size<T>::value;
 
 
 /// <summary>
+/// Returns the number of elements in the `std::tuple`.
+/// </summary>
+template<typename ...TArgs>
+constexpr size_t size(const std::tuple<TArgs...>&) noexcept
+{
+	return std::tuple_size_v<std::tuple<TArgs...>>;
+}
+
+
+/// <summary>
 /// Checks that the global function `size(const T&)` is defined for the passed object type.
 /// </summary>
 template <typename T>
@@ -189,7 +199,7 @@ constexpr bool is_enumerable_of_v = is_enumerable_of<TContainer, TValue>::value;
 
 
 /// <summary>
-/// Checks that the passed type is an container of single-byte integers.
+/// Checks that the passed type is a container of single-byte integers.
 /// </summary>
 template <typename TContainer>
 constexpr auto is_binary_container = is_enumerable_of_v<TContainer, char> || is_enumerable_of_v<TContainer, signed char> || is_enumerable_of_v<TContainer, unsigned char>;

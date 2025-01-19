@@ -12,6 +12,7 @@ namespace BitSerializer
 	/// </summary>
 	/// <remarks>
 	///	Cannot be used with CSV archive, which does not support arrays.
+	///	Note: As an exceptional case for `std` type, the required overload of the size() function is defined in "object_traits.h".
 	/// </remarks>
 	template<typename TArchive, typename ...TArgs>
 	void SerializeArray(TArchive& arrayScope, std::tuple<TArgs...>& value)

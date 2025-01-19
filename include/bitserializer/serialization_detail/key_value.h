@@ -1,11 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <tuple>
 #include <utility>
-#include "bitserializer/serialization_detail/serialization_context.h"
 
 namespace BitSerializer {
 
@@ -52,63 +51,5 @@ KeyValue(TKey&&, TValue&, Validators&&...) -> KeyValue<TKey, TValue&, Validators
 
 template<class TKey, class TValue, class... Validators>
 KeyValue(TKey&&, TValue&&, Validators&&...) -> KeyValue<TKey, TValue, Validators...>;
-
-/// <summary>
-/// The helper function for making the wrapper for key, value and set of validators.
-/// </summary>
-/// <param name="key">The key.</param>
-/// <param name="value">The value.</param>
-/// <param name="validators">Validators</param>
-/// <returns>The KeyValue object</returns>
-template <class TKey, class TValue, class... Validators>
-[[deprecated("Use directly KeyValue() constructor (allowed via C++ 17 template argument deduction)")]]
-constexpr KeyValue<TKey, TValue, Validators...> MakeKeyValue(TKey&& key, TValue&& value, const Validators&... validators) {
-	return KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
-}
-
-//------------------------------------------------------------------------------
-
-/// <summary>
-/// The wrapper for key and value with automatically adaptation to char type which is supported by archive (of course with reducing performance).
-/// </summary>
-template<class TKey, class TValue, class... Validators>
-class AutoKeyValue : public KeyValue<TKey, TValue, Validators...>
-{
-public:
-	[[deprecated("Use regular KeyValue() for all cases")]]
-	explicit AutoKeyValue(TKey&& key, TValue&& value, Validators&&... validators)
-		: KeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), std::forward<Validators>(validators)...)
-	{}
-
-	/// <summary>
-	/// Adapts the key to target archive and move to base KeyValue type.
-	/// </summary>
-	template<class TArchiveKey>
-	KeyValue<TArchiveKey, TValue, Validators...> AdaptAndMoveToBaseKeyValue()
-	{
-		auto archiveCompatibleKey = Convert::To<TArchiveKey>(this->GetKey());
-		return BitSerializer::KeyValue<TArchiveKey, TValue, Validators...>(
-			std::move(archiveCompatibleKey), this->GetValue(), std::move(this->mValidators));
-	}
-};
-
-template<class TKey, class TValue, class... Validators>
-AutoKeyValue(TKey&&, TValue&, Validators&&...) -> AutoKeyValue<TKey, TValue&, Validators...>;
-
-template<class TKey, class TValue, class... Validators>
-AutoKeyValue(TKey&&, TValue&&, Validators&&...) -> AutoKeyValue<TKey, TValue, Validators...>;
-
-/// <summary>
-/// The helper function for making the auto keys wrapper.
-/// </summary>
-/// <param name="key">The key.</param>
-/// <param name="value">The value.</param>
-/// <param name="validators">Validators</param>
-/// <returns>The AutoKeyValue object</returns>
-template <class TKey, class TValue, class... Validators>
-[[deprecated("Use directly AutoKeyValue() constructor (allowed via C++ 17 template argument deduction)")]]
-constexpr AutoKeyValue<TKey, TValue, Validators...> MakeAutoKeyValue(TKey&& key, TValue&& value, const Validators&... validators) noexcept {
-	return AutoKeyValue<TKey, TValue, Validators...>(std::forward<TKey>(key), std::forward<TValue>(value), validators...);
-}
 
 }

@@ -1,10 +1,9 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <fstream>
-#include "bitserializer/config.h"
 #include "bitserializer/serialization_detail/serialization_base_types.h"
 #include "bitserializer/serialization_detail/key_value_proxy.h"
 #include "bitserializer/serialization_detail/validators.h"
@@ -12,20 +11,6 @@
 
 namespace BitSerializer
 {
-	// Deprecated and will be removed (for avoid conflicts when sharing namespace), use macros from "config.h"
-	struct Version
-	{
-		[[deprecated("Use macro BITSERIALIZER_VERSION_MAJOR")]]
-		static constexpr uint8_t Major = BITSERIALIZER_VERSION_MAJOR;
-		[[deprecated("Use macro BITSERIALIZER_VERSION_MINOR")]]
-		static constexpr uint8_t Minor = BITSERIALIZER_VERSION_MINOR;
-		[[deprecated("Use macro BITSERIALIZER_VERSION_PATCH")]]
-		static constexpr uint8_t Maintenance = BITSERIALIZER_VERSION_PATCH;
-
-		[[deprecated("Use macro BITSERIALIZER_VERSION")]]
-		static constexpr uint32_t Full = BITSERIALIZER_VERSION;
-	};
-
 	/// <summary>
 	/// Default serialization options, it would be a good idea to configure them at startup time.
 	/// </summary>

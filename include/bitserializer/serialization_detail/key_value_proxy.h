@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -51,16 +51,6 @@ namespace BitSerializer::KeyValueProxy
 		}
 	}
 
-	template <class TArchive, class TKey, class TValue, class... TValidators>
-	static void SplitAndSerialize(TArchive& archive, AutoKeyValue<TKey, TValue, TValidators...>&& keyValue)
-	{
-		// Checks key type and adapts it to archive if needed
-		if constexpr (std::is_convertible_v<TKey, typename TArchive::key_type>)
-			SplitAndSerialize(archive, std::forward<KeyValue<TKey, TValue, TValidators...>>(keyValue));
-		else
-			SplitAndSerialize(archive, keyValue.template AdaptAndMoveToBaseKeyValue<typename TArchive::key_type>());
-	}
-
 	template <class TArchive, class TAttrKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TValidators...>&& keyValue)
 	{
@@ -73,15 +63,5 @@ namespace BitSerializer::KeyValueProxy
 			if (attributesScope)
 				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TValidators...>>(keyValue));
 		}
-	}
-
-	template <class TArchive, class TAttrKey, class TValue, class... TValidators>
-	static void SplitAndSerialize(TArchive& archive, AutoAttributeValue<TAttrKey, TValue, TValidators...>&& keyValue)
-	{
-		// Checks key type and adapts it to archive if needed
-		if constexpr (std::is_convertible_v<TAttrKey, typename TArchive::key_type>)
-			SplitAndSerialize(archive, std::forward<AttributeValue<TAttrKey, TValue, TValidators...>>(keyValue));
-		else
-			SplitAndSerialize(archive, keyValue.template AdaptAndMoveToBaseAttributeValue<typename TArchive::key_type>());
 	}
 }

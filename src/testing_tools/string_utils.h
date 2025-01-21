@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -26,6 +26,13 @@ inline auto makeUtf8(const char8_t* s)
 #else
 #define UPATH(x) UTF8(x)
 #endif
+
+// Makes a string from passed sequence of numbers.
+template <typename TString = std::string, typename ...TArgs>
+constexpr TString MakeStringFromSequence(TArgs... initArgs) noexcept
+{
+	return { static_cast<typename TString::value_type>(initArgs)... };
+}
 
 // Converts native c-string to big-endian representation
 template<typename TSym, size_t ArraySize>

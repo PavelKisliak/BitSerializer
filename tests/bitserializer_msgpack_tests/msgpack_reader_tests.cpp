@@ -497,7 +497,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipDoubleWhenPolicyIsSkip)
 TYPED_TEST(MsgPackReaderTest, ShouldReadStringWithFixedSize)
 {
 	const auto expectedStr = this->GenTestString(31);
-	this->PrepareReader(std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr);
+	this->PrepareReader(MakeStringFromSequence(expectedStr.size() | 0b10100000) + expectedStr);
 
 	std::string_view actualStr;
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(actualStr));
@@ -506,7 +506,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadStringWithFixedSize)
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadStringWhenEmptySize)
 {
-	this->PrepareReader(std::string({ static_cast<char>(0b10100000) }));
+	this->PrepareReader(MakeStringFromSequence(0b10100000));
 
 	std::string_view actualStr = "123";
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(actualStr));
@@ -549,7 +549,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfString)
 {
 	std::string_view actualStr;
 
-	this->PrepareReader(std::string({ static_cast<char>(0b10100001) }));
+	this->PrepareReader(MakeStringFromSequence(0b10100001));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(actualStr), BitSerializer::ParsingException);
 
 	this->PrepareReader(std::string({ '\xD9', '\x02', '1' }));
@@ -586,7 +586,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenPolicyIsSkip)
 //-----------------------------------------------------------------------------
 TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWithFixedSize)
 {
-	this->PrepareReader({ static_cast<char>(0b10011111) });
+	this->PrepareReader(MakeStringFromSequence(0b10011111));
 	size_t size = 0;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadArraySize(size));
@@ -595,7 +595,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWithFixedSize)
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWithEmptySize)
 {
-	this->PrepareReader({ static_cast<char>(0b10010000) });
+	this->PrepareReader(MakeStringFromSequence(0b10010000));
 	size_t size = 100;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadArraySize(size));
@@ -642,14 +642,14 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeFitToUint32)
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedArrayToWrongType)
 {
-	this->PrepareReader({static_cast<char>(0b10010010), '\xC2', '\xC3' });
+	this->PrepareReader(MakeStringFromSequence(0b10010010, '\xC2', '\xC3'));
 	bool wrongType;
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedArrayWhenPolicyIsSkip)
 {
-	this->PrepareReader({ static_cast<char>(0b10010010), '\xC2', '\xC3' },
+	this->PrepareReader(MakeStringFromSequence(0b10010010, '\xC2', '\xC3'),
 		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
 	int wrongType = 0x70605040;
 	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
@@ -765,7 +765,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBinaryArrayWhenPolicyIsSkip)
 //-----------------------------------------------------------------------------
 TYPED_TEST(MsgPackReaderTest, ShouldReadMapWithFixedSize)
 {
-	this->PrepareReader({ static_cast<char>(0b10001111) });
+	this->PrepareReader(MakeStringFromSequence(0b10001111));
 	size_t size = 0;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadMapSize(size));
@@ -774,7 +774,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadMapWithFixedSize)
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadMapWithEmptySize)
 {
-	this->PrepareReader({ static_cast<char>(0b10000000) });
+	this->PrepareReader(MakeStringFromSequence(0b10000000));
 	size_t size = 100;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadMapSize(size));
@@ -821,16 +821,14 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadMapWhenSizeFitToUint32)
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedMapToWrongType)
 {
-	this->PrepareReader({
-		static_cast<char>(0b10000001), '\x01', '\x10'
-	});
+	this->PrepareReader(MakeStringFromSequence(0b10000001, '\x01', '\x10'));
 	bool wrongType;
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldSkipFixedMapWhenPolicyIsSkip)
 {
-	this->PrepareReader({static_cast<char>(0b10000010), '\x01', '\x10', '\x02', '\x20' },
+	this->PrepareReader(MakeStringFromSequence(0b10000010, '\x01', '\x10', '\x02', '\x20'),
 		BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
 	int wrongType = 0x70605040;
 	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
@@ -1073,7 +1071,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfFixedString)
 	constexpr auto expectedType = BitSerializer::MsgPack::Detail::ValueType::String;
 	for (uint8_t i = 0; i < 0b00011111; ++i)
 	{
-		this->PrepareReader({ static_cast<char>(i | 0b10100000) });
+		this->PrepareReader(MakeStringFromSequence(i | 0b10100000));
 		EXPECT_EQ(expectedType, this->mMsgPackReader->ReadValueType());
 	}
 }
@@ -1093,7 +1091,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfFixMap)
 	constexpr auto expectedType = BitSerializer::MsgPack::Detail::ValueType::Map;
 	for (uint8_t i = 0; i < 0b00001111; ++i)
 	{
-		this->PrepareReader({ static_cast<char>(i | 0b10000000) });
+		this->PrepareReader(MakeStringFromSequence(i | 0b10000000));
 		EXPECT_EQ(expectedType, this->mMsgPackReader->ReadValueType());
 	}
 }
@@ -1113,7 +1111,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfFixArray)
 	constexpr auto expectedType = BitSerializer::MsgPack::Detail::ValueType::Array;
 	for (uint8_t i = 0; i < 0b00001111; ++i)
 	{
-		this->PrepareReader({ static_cast<char>(i | 0b10010000) });
+		this->PrepareReader(MakeStringFromSequence(i | 0b10010000));
 		EXPECT_EQ(expectedType, this->mMsgPackReader->ReadValueType());
 	}
 }
@@ -1305,8 +1303,8 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWithFixedSize)
 	const std::string expectedStr = "Hello world!";
 	for (int i = 0; i < 31; ++i)
 	{
-		this->PrepareReader(static_cast<char>(i | 0b10100000) + this->GenTestString(i) +
-			std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+		this->PrepareReader(MakeStringFromSequence(i | 0b10100000) + this->GenTestString(i) +
+			MakeStringFromSequence(expectedStr.size() | 0b10100000) + expectedStr
 		);
 
 		std::string_view actualStr;
@@ -1320,8 +1318,8 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint8)
 {
 	const std::string expectedStr = "Hello world!";
 	this->PrepareReader(
-		std::string({ '\xD9', '\xFF' }) + this->GenTestString(std::numeric_limits<uint8_t>::max()) +
-		std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+		MakeStringFromSequence( '\xD9', '\xFF') + this->GenTestString(std::numeric_limits<uint8_t>::max()) +
+		MakeStringFromSequence(expectedStr.size() | 0b10100000) + expectedStr
 	);
 
 	std::string_view actualStr;
@@ -1334,8 +1332,8 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint16)
 {
 	const std::string expectedStr = "Hello world!";
 	this->PrepareReader(
-		std::string({ '\xDA', '\xFF', '\xFF' }) + this->GenTestString(std::numeric_limits<uint16_t>::max()) +
-		std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+		MakeStringFromSequence('\xDA', '\xFF', '\xFF') + this->GenTestString(std::numeric_limits<uint16_t>::max()) +
+		MakeStringFromSequence(expectedStr.size() | 0b10100000) + expectedStr
 	);
 
 	std::string_view actualStr;
@@ -1349,8 +1347,8 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipStringWhenSizeFitToUint32)
 {
 	const std::string expectedStr = "Hello world!";
 	this->PrepareReader(
-		std::string({ '\xDB', '\x00', '\x01', '\x00', '\x02' }) + this->GenTestString(std::numeric_limits<uint16_t>::max() + 3) +
-		std::string({ static_cast<char>(static_cast<uint8_t>(expectedStr.size()) | 0b10100000) }) + expectedStr
+		MakeStringFromSequence('\xDB', '\x00', '\x01', '\x00', '\x02') + this->GenTestString(std::numeric_limits<uint16_t>::max() + 3) +
+			MakeStringFromSequence(expectedStr.size() | 0b10100000) + expectedStr
 	);
 
 	std::string_view actualStr;

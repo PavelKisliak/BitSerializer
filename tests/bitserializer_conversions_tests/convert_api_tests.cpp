@@ -85,7 +85,7 @@ TEST(ConvertApi, ShouldConvertUtf32ToAnyStringType) {
 
 TEST(ConvertApi, ShouldThrowExceptionWhenWrongUtfSequence)
 {
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string wrongSequence(MakeStringFromSequence(0b11110111, 0b10111111, 0b10111111, 0b11111111));
 	const std::string source = "test" + wrongSequence + "test";
 
 	EXPECT_THROW(Convert::To<std::u16string>(source), std::invalid_argument);

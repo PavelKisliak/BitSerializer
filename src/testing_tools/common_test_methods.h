@@ -493,7 +493,7 @@ template <typename TArchive>
 void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy)
 {
 	// Arrange (save object with wrong sequence)
-	const std::string wrongUtf8({ char(0b11111110), char(0b11111111) });
+	const std::string wrongUtf8(MakeStringFromSequence(0b11111110, 0b11111111));
 	const std::string testUtf8Value = wrongUtf8 + "test_value" + wrongUtf8;
 
 	const std::u16string wrongUtf16({ BitSerializer::Convert::Utf::UnicodeTraits::LowSurrogatesEnd, BitSerializer::Convert::Utf::UnicodeTraits::LowSurrogatesStart });

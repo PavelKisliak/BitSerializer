@@ -93,7 +93,7 @@ TYPED_TEST(EncodedStreamWriterTest, ShouldWriteMixedStrings)
 TYPED_TEST(EncodedStreamWriterTest, ShouldSkipInvalidUtfWhenPolicyIsSkip)
 {
 	// Arrange
-	const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
+	const std::string wrongStartCodes(MakeStringFromSequence(0b11111110, 0b11111111));
 	const std::string source = wrongStartCodes + "test" + wrongStartCodes;
 	this->WithBom(Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
@@ -108,7 +108,7 @@ TYPED_TEST(EncodedStreamWriterTest, ShouldStopEncodingInvalidUtfWhenPolicyIsThro
 	if constexpr (!std::is_same_v<typename TestFixture::encoded_char_type, char>)
 	{
 		// Arrange
-		const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
+		const std::string wrongStartCodes(MakeStringFromSequence(0b11111110, 0b11111111));
 		const std::string source = wrongStartCodes + "test" + wrongStartCodes;
 		this->WithBom(Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
 

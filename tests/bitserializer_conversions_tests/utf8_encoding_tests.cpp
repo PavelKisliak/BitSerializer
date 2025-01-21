@@ -264,7 +264,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedFiveOctets)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string fiveOctets({ char(0b11111000), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001) });
+	const std::string fiveOctets(MakeStringFromSequence(0b11111000, 0b10000001, 0b10000001, 0b10000001, 0b10000001));
 	const std::string source = fiveOctets + "test" + fiveOctets;
 
 	// Act
@@ -281,7 +281,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedSixOctets)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string sixOctets({ char(0b11111100), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001), char(0b10000001) });
+	const std::string sixOctets(MakeStringFromSequence(0b11111100, 0b10000001, 0b10000001, 0b10000001, 0b10000001, 0b10000001));
 	const std::string source = sixOctets + "test" + sixOctets;
 
 	// Act
@@ -298,7 +298,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string wrongStartCodes({ char(0b11111110), char(0b11111111) });
+	const std::string wrongStartCodes(MakeStringFromSequence(0b11111110, 0b11111111));
 	const std::string source = wrongStartCodes + "test" + wrongStartCodes;
 
 	// Act
@@ -315,7 +315,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail2InSequence)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string wrongSequence({ char(0b11110111), char(0b11111111), char(0b10111111), char(0b10111111) });
+	const std::string wrongSequence(MakeStringFromSequence(0b11110111, 0b11111111, 0b10111111, 0b10111111));
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
@@ -332,7 +332,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail3InSequence)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b11111111), char(0b10111111) });
+	const std::string wrongSequence(MakeStringFromSequence(0b11110111, 0b10111111, 0b11111111, 0b10111111));
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
@@ -349,7 +349,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string wrongSequence(MakeStringFromSequence(0b11110111, 0b10111111, 0b10111111, 0b11111111));
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
@@ -366,7 +366,7 @@ TEST(Utf8DecodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string wrongSequence(MakeStringFromSequence(0b11110111, 0b10111111, 0b10111111, 0b11111111));
 	const std::string source = wrongSequence + "test" + wrongSequence;
 
 	// Act
@@ -383,7 +383,7 @@ TEST(Utf8DecodeTest, ShouldHandlePolicyThrowError)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string wrongSequence({ char(0b11110111), char(0b10111111), char(0b10111111), char(0b11111111) });
+	const std::string wrongSequence(MakeStringFromSequence(0b11110111, 0b10111111, 0b10111111, 0b11111111));
 	const std::string source = "test" + wrongSequence + "test";
 
 	// Act
@@ -400,7 +400,7 @@ TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedTwoOctetsAtEnd)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string croppedSequence({ char(0b11011111) });
+	const std::string croppedSequence(MakeStringFromSequence(0b11011111));
 	const std::string source = "test" + croppedSequence;
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
@@ -419,7 +419,7 @@ TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedThreeOctetsAtEnd)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string croppedSequence({ char(0b11101111), char(0b10000001) });
+	const std::string croppedSequence(MakeStringFromSequence(0b11101111, 0b10000001));
 	const std::string source = "test" + croppedSequence;
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
@@ -438,7 +438,7 @@ TEST(Utf8DecodeTest, ShouldHandleUnexpectedEndWhenMissedFourOctetsAtEnd)
 {
 	// Arrange
 	std::u32string outString;
-	const std::string croppedSequence({ char(0b11110111), char(0b10000001), char(0b10000001) });
+	const std::string croppedSequence(MakeStringFromSequence(0b11110111, 0b10000001, 0b10000001));
 	const std::string source = "test" + croppedSequence;
 	const size_t expectedPos = source.size() - croppedSequence.size();
 

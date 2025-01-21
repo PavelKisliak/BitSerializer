@@ -184,7 +184,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteDouble)
 TYPED_TEST(MsgPackWriterTest, ShouldWriteStringEmptySize)
 {
 	this->mMsgPackWriter->WriteValue("");
-	const std::string expectedStr = { static_cast<char>(0b10100000) };
+	const std::string expectedStr(MakeStringFromSequence(0b10100000));
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }
 
@@ -192,7 +192,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteStringWhenSizeLessThan32)
 {
 	const auto testStr = this->GenTestString(31);
 	this->mMsgPackWriter->WriteValue(testStr);
-	std::string expectedStr = { static_cast<char>(static_cast<uint8_t>(testStr.size()) | 0b10100000) };
+	std::string expectedStr(MakeStringFromSequence(testStr.size() | 0b10100000));
 	expectedStr += testStr;
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }
@@ -240,7 +240,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteStringWhenSizeFitToUint32)
 TYPED_TEST(MsgPackWriterTest, ShouldWriteArrayWhenEmptySize)
 {
 	constexpr size_t arrSize = 0;
-	std::string expectedStr = { static_cast<char>(static_cast<uint8_t>(arrSize) | 0b10010000) };
+	std::string expectedStr(MakeStringFromSequence(arrSize | 0b10010000));
 	this->mMsgPackWriter->BeginArray(arrSize);
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }
@@ -248,7 +248,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteArrayWhenEmptySize)
 TYPED_TEST(MsgPackWriterTest, ShouldWriteArrayWhenSizeLessThan16)
 {
 	constexpr size_t arrSize = 15;
-	std::string expectedStr = { static_cast<char>(static_cast<uint8_t>(arrSize) | 0b10010000) };
+	std::string expectedStr(MakeStringFromSequence(arrSize | 0b10010000));
 	this->mMsgPackWriter->BeginArray(arrSize);
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }
@@ -320,7 +320,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteBinaryArrayWhenSizeFitToUint32)
 TYPED_TEST(MsgPackWriterTest, ShouldWriteMapWhenEmptySize)
 {
 	constexpr size_t mapSize = 0;
-	std::string expectedStr = { static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000) };
+	std::string expectedStr(MakeStringFromSequence(mapSize | 0b10000000));
 	this->mMsgPackWriter->BeginMap(mapSize);
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }
@@ -328,7 +328,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteMapWhenEmptySize)
 TYPED_TEST(MsgPackWriterTest, ShouldWriteMapWhenSizeLessThan16)
 {
 	constexpr size_t mapSize = 15;
-	std::string expectedStr = { static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000) };
+	std::string expectedStr(MakeStringFromSequence(mapSize | 0b10000000));
 	this->mMsgPackWriter->BeginMap(mapSize);
 	EXPECT_EQ(expectedStr, this->TakeResult());
 }

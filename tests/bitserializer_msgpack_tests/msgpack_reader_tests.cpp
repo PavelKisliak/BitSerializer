@@ -41,7 +41,7 @@ namespace
 TYPED_TEST(MsgPackReaderTest, ShouldReadNil)
 {
 	this->PrepareReader("\xC0");
-	std::nullptr_t value;
+	std::nullptr_t value{};
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 }
 
@@ -414,7 +414,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipInt32WhenPolicyIsSkip)
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenOverflowInt16)
 {
 	this->PrepareReader({ '\xD2', '\x80', '\x00', '\x00', '\x00' });
-	int16_t shortInt;
+	int16_t shortInt{};
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(shortInt), BitSerializer::SerializationException);
 }
 
@@ -566,7 +566,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadStringToWrongType)
 {
 	const auto testStr = this->GenTestString(std::numeric_limits<uint8_t>::max());
 	this->PrepareReader(std::string({ '\xD9', '\xFF' }) + testStr);
-	bool wrongType;
+	bool wrongType{};
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
 }
 
@@ -643,7 +643,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeFitToUint32)
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedArrayToWrongType)
 {
 	this->PrepareReader(MakeStringFromSequence(0b10010010, '\xC2', '\xC3'));
-	bool wrongType;
+	bool wrongType{};
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
 }
 
@@ -746,7 +746,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenUnexpectedEnd)
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadBinaryArrayToWrongType)
 {
 	this->PrepareReader({ '\xC4', '\x03', '\x01', '\x02', '\x03' });
-	bool wrongType;
+	bool wrongType{};
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
 }
 
@@ -822,7 +822,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadMapWhenSizeFitToUint32)
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedMapToWrongType)
 {
 	this->PrepareReader(MakeStringFromSequence(0b10000001, '\x01', '\x10'));
-	bool wrongType;
+	bool wrongType{};
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(wrongType), BitSerializer::SerializationException);
 }
 
@@ -1155,7 +1155,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipFixInt)
 TYPED_TEST(MsgPackReaderTest, ShouldSkipNil)
 {
 	this->PrepareReader("\xC0\xC2");
-	bool value;
+	bool value{};
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 }
@@ -1364,7 +1364,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBinArrayWhenSizeFitToUint8)
 		'\xC4', '\x03', '\x01', '\x02', '\x03',
 		'\xC4', '\x01', '\x10' });
 	this->mMsgPackReader->SkipValue();
-	size_t arraySize;
+	size_t arraySize{};
 	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(arraySize));
 	EXPECT_EQ(1, arraySize);
 	EXPECT_EQ('\x10', this->mMsgPackReader->ReadBinary());
@@ -1376,7 +1376,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBinArrayWhenSizeFitToUint16)
 		'\xC5', '\x00', '\x03', '\x01', '\x02', '\x03',
 		'\xC5', '\x00', '\x01', '\x10' });
 	this->mMsgPackReader->SkipValue();
-	size_t arraySize;
+	size_t arraySize{};
 	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(arraySize));
 	EXPECT_EQ(1, arraySize);
 	EXPECT_EQ('\x10', this->mMsgPackReader->ReadBinary());
@@ -1388,7 +1388,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBinArrayWhenSizeFitToUint32)
 		'\xC6', '\x00', '\x00', '\x00', '\x03', '\x01', '\x02', '\x03',
 		'\xC6', '\x00', '\x00', '\x00', '\x01', '\x10' });
 	this->mMsgPackReader->SkipValue();
-	size_t arraySize;
+	size_t arraySize{};
 	EXPECT_TRUE(this->mMsgPackReader->ReadBinarySize(arraySize));
 	EXPECT_EQ(1, arraySize);
 	EXPECT_EQ('\x10', this->mMsgPackReader->ReadBinary());
@@ -1511,7 +1511,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWithFixedSize)
 		data += '\xC3';
 		this->PrepareReader(std::move(data));
 
-		bool value;
+		bool value{};
 		this->mMsgPackReader->SkipValue();
 		EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 		ASSERT_EQ(true, value);
@@ -1530,7 +1530,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWhenSizeFitToUint16)
 	data += '\xC3';
 	this->PrepareReader(std::move(data));
 
-	bool value;
+	bool value{};
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	ASSERT_EQ(true, value);
@@ -1548,7 +1548,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipArrayWhenSizeFitToUint32)
 	data += '\xC3';
 	this->PrepareReader(std::move(data));
 
-	bool value;
+	bool value{};
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	ASSERT_EQ(true, value);
@@ -1568,7 +1568,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipMapWithFixedSize)
 		data += '\xC3';
 		this->PrepareReader(std::move(data));
 
-		bool value;
+		bool value{};
 		this->mMsgPackReader->SkipValue();
 		EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 		ASSERT_EQ(true, value);
@@ -1588,7 +1588,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipMapWhenSizeFitToUint16)
 	data += '\xC3';
 	this->PrepareReader(std::move(data));
 
-	bool value;
+	bool value{};
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	ASSERT_EQ(true, value);
@@ -1607,7 +1607,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipMapWhenSizeFitToUint32)
 	data += '\xC3';
 	this->PrepareReader(std::move(data));
 
-	bool value;
+	bool value{};
 	this->mMsgPackReader->SkipValue();
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	ASSERT_EQ(true, value);

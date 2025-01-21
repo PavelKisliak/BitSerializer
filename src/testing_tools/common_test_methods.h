@@ -4,11 +4,12 @@
 *******************************************************************************/
 #pragma once
 #include <filesystem>
-#include <optional>
 #include <map>
+#include <optional>
+
 #include "common_test_entities.h"
-#include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/array.h"
+#include "bitserializer/types/std/vector.h"
 
 
 /// <summary>
@@ -27,7 +28,7 @@ template <typename TArchive, typename TValue>
 void TestSerializeType()
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 	TValue expected{};
 	::BuildFixture(expected);
 	TValue actual{};
@@ -49,8 +50,8 @@ template <typename TArchive, typename T>
 void TestSerializeType(T&& value)
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
-	std::remove_reference_t<T> actual;
+	typename TArchive::preferred_output_format outputArchive{};
+	std::remove_reference_t<T> actual{};
 	::BuildFixture(actual);
 
 	// Act
@@ -70,8 +71,8 @@ template <class TArchive, class TKey, class TValue>
 void TestSerializeType(TKey&& key, TValue&& value)
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
-	std::remove_reference_t<TValue> actual;
+	typename TArchive::preferred_output_format outputArchive{};
+	std::remove_reference_t<TValue> actual{};
 	::BuildFixture(actual);
 
 	// Act
@@ -92,9 +93,9 @@ void TestSerializePmrType()
 	// Arrange
 	static_assert(std::is_same_v<typename TValue::allocator_type, std::pmr::polymorphic_allocator<typename TValue::value_type>>,
 		"TestSerializePmrType. Invalid container type, should be from `std::pmr` namespace");
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 
-	char buffer[512];
+	char buffer[512]{};
 	std::pmr::monotonic_buffer_resource pool{ std::data(buffer), std::size(buffer) };
 
 	TValue expected(&pool);
@@ -120,7 +121,7 @@ template <typename TArchive, typename TSource, typename TExpected>
 void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 	TExpected actual{};
 	::BuildFixture(actual);
 
@@ -139,10 +140,10 @@ template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t 
 void TestSerializeArray()
 {
 	// Arrange
-	TValue testArray[SourceArraySize];
+	TValue testArray[SourceArraySize]{};
 	BuildFixture(testArray);
-	typename TArchive::preferred_output_format outputArchive;
-	TValue actual[TargetArraySize];
+	typename TArchive::preferred_output_format outputArchive{};
+	TValue actual[TargetArraySize]{};
 	::BuildFixture(actual);
 
 	// Act
@@ -163,10 +164,10 @@ template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t 
 void TestSerializeArrayWithKey()
 {
 	// Arrange
-	TValue testArray[SourceArraySize];
+	TValue testArray[SourceArraySize]{};
 	BuildFixture(testArray);
-	typename TArchive::preferred_output_format outputArchive;
-	TValue actual[TargetArraySize];
+	typename TArchive::preferred_output_format outputArchive{};
+	TValue actual[TargetArraySize]{};
 	::BuildFixture(actual);
 
 	// Act
@@ -186,10 +187,10 @@ template<typename TArchive, typename TValue, size_t ArraySize1 = 3, size_t Array
 void TestSerializeTwoDimensionalArray()
 {
 	// Arrange
-	TValue testArray[ArraySize1][ArraySize2];
+	TValue testArray[ArraySize1][ArraySize2]{};
 	BuildFixture(testArray);
-	typename TArchive::preferred_output_format outputArchive;
-	TValue actual[ArraySize1][ArraySize2];
+	typename TArchive::preferred_output_format outputArchive{};
+	TValue actual[ArraySize1][ArraySize2]{};
 	::BuildFixture(actual);
 
 	// Act
@@ -213,7 +214,7 @@ void TestSerializeClassToStream(T&& value)
 {
 	// Arrange
 	std::stringstream outputStream;
-	std::decay_t<T> actual;
+	std::decay_t<T> actual{};
 	::BuildFixture(actual);
 
 	// Act
@@ -233,7 +234,7 @@ void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 {
 	// Arrange
 	std::stringstream outputStream;
-	T actual[ArraySize];
+	T actual[ArraySize]{};
 	::BuildFixture(actual);
 
 	// Act
@@ -310,7 +311,7 @@ template <typename TArchive, typename TContainer>
 void TestLoadToNotEmptyContainer(size_t targetContainerSize)
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 	TContainer expected{};
 	::BuildFixture(expected);
 	TContainer actual(targetContainerSize);
@@ -331,9 +332,9 @@ template <typename TArchive, class T>
 void TestValidationForNamedValues()
 {
 	// Arrange
-	T testObj[1];
+	T testObj[1]{};
 	BuildFixture(testObj);
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 
 	// Act
 	bool result = false;
@@ -396,7 +397,7 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 
 	BitSerializer::SerializationOptions options;
 	options.overflowNumberPolicy = overflowNumberPolicy;
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
 
 	// Act / Assert
@@ -449,7 +450,7 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 
 	BitSerializer::SerializationOptions options;
 	options.mismatchedTypesPolicy = mismatchedTypesPolicy;
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 	BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive);
 
 	// Act / Assert
@@ -504,7 +505,7 @@ void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfE
 
 	BitSerializer::SerializationOptions options;
 	options.utfEncodingErrorPolicy = utfEncodingErrorPolicy;
-	typename TArchive::preferred_output_format outputArchive;
+	typename TArchive::preferred_output_format outputArchive{};
 
 	// Act / Assert
 	switch (utfEncodingErrorPolicy)
@@ -560,7 +561,7 @@ void TestVisitKeysInObjectScope(bool skipValues=false)
 	};
 
 	using OutputFormat = typename TArchive::preferred_output_format;
-	OutputFormat outputData;
+	OutputFormat outputData{};
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
 	const BitSerializer::SerializationOptions options;
 	BitSerializer::SerializationContext context(options);
@@ -584,7 +585,7 @@ void TestVisitKeysInObjectScope(bool skipValues=false)
 
 			if (!skipValues)
 			{
-				decltype(testObj->x) actualValue;
+				decltype(testObj->x) actualValue{};
 				objScope->SerializeValue(key, actualValue);
 				EXPECT_EQ(it->second, actualValue);
 			}

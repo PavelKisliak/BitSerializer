@@ -127,13 +127,15 @@ namespace BitSerializer::Convert::Utf
 		template <typename TChar>
 		constexpr const TChar* GetDefaultErrorMark() noexcept
 		{
+			static_assert(sizeof(TChar) <= sizeof(char32_t), "Unsupported character type");
+
 			if constexpr (sizeof(TChar) == sizeof(char)) {
 				return reinterpret_cast<const TChar*>(u8"☐");
 			}
 			if constexpr (sizeof(TChar) == sizeof(char16_t)) {
 				return reinterpret_cast<const TChar*>(u"☐");
 			}
-			else if constexpr (sizeof(TChar) == sizeof(char32_t))
+			if constexpr (sizeof(TChar) == sizeof(char32_t))
 			{
 				return reinterpret_cast<const TChar*>(U"☐");
 			}
@@ -218,7 +220,7 @@ namespace BitSerializer::Convert::Utf
 				else
 				{
 					// Decode as surrogate pair when character exceeds UTF-16 range
-					if (sizeof(TOutChar) == 2 && sym > 0xFFFF)
+					if (sym > 0xFFFF && sizeof(TOutChar) == 2)
 					{
 						sym -= 0x10000;
 						outStr.push_back(static_cast<TOutChar>(UnicodeTraits::HighSurrogatesStart | ((sym >> 10) & 0x3FF)));

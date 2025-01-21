@@ -102,7 +102,7 @@ namespace BitSerializer::Csv::Detail
 
 			mValueIndex = 0;
 			// Header is not counted as data row
-			const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
+			const bool firstDataRow = mLineNumber == (mWithHeader ? 2u : 1u);
 			if (!firstDataRow)
 			{
 				++mRowIndex;
@@ -312,7 +312,7 @@ namespace BitSerializer::Csv::Detail
 
 			mValueIndex = 0;
 			// Header is not counted as data row
-			const bool firstDataRow = mLineNumber == (mWithHeader ? 2 : 1);
+			const bool firstDataRow = mLineNumber == (mWithHeader ? 2u : 1u);
 			if (!firstDataRow)
 			{
 				++mRowIndex;

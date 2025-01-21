@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -25,19 +25,19 @@
 /// <summary>
 /// Declares I/O streams operators for enum (register the enum via REGISTER_ENUM macro).
 /// </summary>
-#define DECLARE_ENUM_STREAM_OPS(enum2Type) \
-template <typename TSym> \
-std::basic_ostream<TSym, std::char_traits<TSym>>& operator<<(std::basic_ostream<TSym, std::char_traits<TSym>>& stream, enum2Type value) \
+#define DECLARE_ENUM_STREAM_OPS(enumType) \
+template <typename TSym, class TTraits = std::char_traits<TSym>> \
+std::basic_ostream<TSym, TTraits>& operator<<(std::basic_ostream<TSym, TTraits>& stream, enumType value) \
 { \
-	std::basic_string<TSym, std::char_traits<TSym>> str; \
+	std::basic_string<TSym, TTraits> str; \
 	BitSerializer::Convert::Detail::To(value, str); \
 	return stream << str; \
 } \
 template <class TSym, class TTraits = std::char_traits<TSym>> \
-std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enum2Type& value) \
+std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enumType& value) \
 { \
 	TSym sym; std::basic_string<TSym, TTraits> str; \
-	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = stream.get()) { \
+	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = static_cast<TSym>(stream.get())) { \
 		str.push_back(sym); } \
 	BitSerializer::Convert::Detail::To(std::basic_string_view<TSym>(str), value); \
 	return stream; \

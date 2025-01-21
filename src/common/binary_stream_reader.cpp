@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "binary_stream_reader.h"
+#include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <algorithm>
 
 namespace BitSerializer::Detail
 {
@@ -32,7 +32,7 @@ namespace BitSerializer::Detail
 
 	bool CBinaryStreamReader::SetPosition(size_t pos)
 	{
-		const size_t cachedSize = mEndDataPtr - mBuffer;
+		const std::streamsize cachedSize = mEndDataPtr - mBuffer;
 		if (pos >= mStreamPos - cachedSize && pos < mStreamPos)
 		{
 			const auto chunkOffset = pos - (mStreamPos - cachedSize);
@@ -147,7 +147,7 @@ namespace BitSerializer::Detail
 
 		// Read next chunk
 		mStream.read(mEndDataPtr, mEndBufferPtr - mEndDataPtr);
-		const auto lastReadSize = mStream.gcount();
+		const auto lastReadSize = static_cast<size_t>(mStream.gcount());
 		mEndDataPtr += lastReadSize;
 		mStreamPos += lastReadSize;
 		assert(mStartDataPtr >= mBuffer && mStartDataPtr <= mEndDataPtr);

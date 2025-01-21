@@ -530,10 +530,10 @@ namespace BitSerializer::Convert::Detail
 			return;
 		}
 
-		using days = std::chrono::duration<TRep, std::ratio<86400>>;
-		using hours = std::chrono::duration<TRep, std::ratio<3600>>;
-		using minutes = std::chrono::duration<TRep, std::ratio<60>>;
-		using seconds = std::chrono::duration<TRep, std::ratio<1>>;
+		using days_t = std::chrono::duration<TRep, std::ratio<86400>>;
+		using hours_t = std::chrono::duration<TRep, std::ratio<3600>>;
+		using minutes_t = std::chrono::duration<TRep, std::ratio<60>>;
+		using seconds_t = std::chrono::duration<TRep, std::ratio<1>>;
 
 		char buf[UtcBufSize];
 		char* pos = buf;
@@ -543,13 +543,13 @@ namespace BitSerializer::Convert::Detail
 		}
 		*pos++ = 'P';
 		auto timeLeft = in;
-		pos = PrintDurationPart<days>(timeLeft, pos, end, 'D');
+		pos = PrintDurationPart<days_t>(timeLeft, pos, end, 'D');
 		if (timeLeft.count())
 		{
 			*pos++ = 'T';
-			pos = PrintDurationPart<hours>(timeLeft, pos, end, 'H');
-			pos = PrintDurationPart<minutes>(timeLeft, pos, end, 'M');
-			pos = PrintDurationPart<seconds>(timeLeft, pos, end, 'S');
+			pos = PrintDurationPart<hours_t>(timeLeft, pos, end, 'H');
+			pos = PrintDurationPart<minutes_t>(timeLeft, pos, end, 'M');
+			pos = PrintDurationPart<seconds_t>(timeLeft, pos, end, 'S');
 		}
 		out.append(buf, pos);
 	}

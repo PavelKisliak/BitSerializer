@@ -23,6 +23,7 @@ namespace BitSerializer
 			{
 				archive.SerializeValue(std::forward<TKey>(key), temp);
 				value.store(temp);
+				return true;
 			}
 			else
 			{
@@ -30,7 +31,6 @@ namespace BitSerializer
 				return archive.SerializeValue(std::forward<TKey>(key), temp);
 			}
 		}
-		return false;
 	}
 
 	template <typename TArchive, typename TValue>
@@ -46,6 +46,7 @@ namespace BitSerializer
 			{
 				archive.SerializeValue(temp);
 				value.store(temp);
+				return true;
 			}
 			else
 			{
@@ -53,6 +54,5 @@ namespace BitSerializer
 				return archive.SerializeValue(temp);
 			}
 		}
-		return false;
 	}
 }

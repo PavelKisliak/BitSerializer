@@ -77,7 +77,7 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 
 		// Save model via BitSerializer
 		auto startTime = Timer::now();
-		//const auto savedChars = performanceTest.SaveModelViaBitSerializer();
+		[[maybe_unused]] const auto savedChars = performanceTest.SaveModelViaBitSerializer();
 		const auto saveTime = Timer::now() - startTime;
 		if (metadata.BitSerializerSaveTest.Time == std::chrono::nanoseconds(0) || metadata.BitSerializerSaveTest.Time > saveTime)
 		{
@@ -87,7 +87,7 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 
 		// Load model via BitSerializer
 		startTime = Timer::now();
-		//const auto loadedChars = performanceTest.LoadModelViaBitSerializer();
+		[[maybe_unused]] const auto loadedChars = performanceTest.LoadModelViaBitSerializer();
 		const auto loadTime = Timer::now() - startTime;
 		if (metadata.BitSerializerLoadTest.Time == std::chrono::nanoseconds(0) || metadata.BitSerializerLoadTest.Time > loadTime)
 		{
@@ -100,7 +100,7 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 		{
 			// Save model via native code
 			startTime = Timer::now();
-			//const auto savedNativeLibChars = performanceTest.SaveModelViaNativeLib();
+			[[maybe_unused]] const auto savedNativeLibChars = performanceTest.SaveModelViaNativeLib();
 			const auto nativeSaveTime = Timer::now() - startTime;
 			if (metadata.BaseLibSaveTest.Time == std::chrono::nanoseconds(0) || metadata.BaseLibSaveTest.Time > nativeSaveTime)
 			{
@@ -110,7 +110,7 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 
 			// Load model via native code
 			startTime = Timer::now();
-			//const auto loadedNativeLibChars = performanceTest.LoadModelViaNativeLib();
+			[[maybe_unused]] const auto loadedNativeLibChars = performanceTest.LoadModelViaNativeLib();
 			const auto nativeLoadTime = Timer::now() - startTime;
 			if (metadata.BaseLibLoadTest.Time == std::chrono::nanoseconds(0) || metadata.BaseLibLoadTest.Time > nativeLoadTime)
 			{

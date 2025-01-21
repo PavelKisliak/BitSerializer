@@ -163,7 +163,7 @@ namespace BitSerializer
 		{ }
 
 		template <typename T, std::enable_if_t<Convert::Detail::is_convertible_to_string_view_v<T>, int> = 0>
-		std::optional<std::string> operator() (T&& value, bool isLoaded) const
+		std::optional<std::string> operator() (const T& value, bool isLoaded) const
 		{
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
@@ -274,7 +274,7 @@ namespace BitSerializer
 		{ }
 
 		template <typename T, std::enable_if_t<Convert::Detail::is_convertible_to_string_view_v<T>, int> = 0>
-		std::optional<std::string> operator() (T&& value, bool isLoaded) const
+		std::optional<std::string> operator() (const T& value, bool isLoaded) const
 		{
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {

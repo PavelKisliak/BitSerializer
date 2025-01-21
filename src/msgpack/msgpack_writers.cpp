@@ -187,7 +187,7 @@ namespace BitSerializer::MsgPack::Detail
 		mOutputString.append(value);
 	}
 
-	void CMsgPackStringWriter::WriteValue(const BitSerializer::Detail::CBinTimestamp& timestamp)
+	void CMsgPackStringWriter::WriteValue(const CBinTimestamp& timestamp)
 	{
 		if (timestamp.Seconds >> 34 == 0)
 		{

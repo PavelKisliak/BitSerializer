@@ -25,12 +25,11 @@ ___
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
 #### Requirements:
-  - C++ 17 (VS2017*, GCC-8, CLang-8, AppleCLang-12).
-  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be**).
+  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12).
+  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be\*).
   - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Minimal requirement for RapidYaml archive is VS2019.\
-(\*\*) The RapidYaml archive is unstable on ARM architecture.
+(\*) Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture (recently released BitSerializer v0.75 supports only RapidYaml v0.5.0, please use master branch).
 
 #### Limitations:
  - Work without exceptions is not supported.

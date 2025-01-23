@@ -1,19 +1,20 @@
 /*******************************************************************************
-* Copyright (C) 2020-2024 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2025 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <type_traits>
 #include <optional>
+#include <type_traits>
 #include <variant>
-#include "bitserializer/serialization_detail/errors_handling.h"
+
 #include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/errors_handling.h"
 
 // External dependency (Rapid YAML)
-#include <c4/format.hpp>
-#include <ryml/ryml_std.hpp>
-#include <ryml/ryml.hpp>
+#include "c4/format.hpp"
+#include "ryml/ryml.hpp"
+#include "ryml/ryml_std.hpp"
 
 namespace BitSerializer::Yaml::RapidYaml {
 	namespace Detail {
@@ -45,6 +46,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 		class RapidYamlObjectScope;
 
 		/// <summary>
+		/// Convert `std::string_view` to `c4::csubstr`
+		/// </summary>
+		inline c4::csubstr to_csubstr(std::string_view str)
+		{
+			return { str.data(), str.size() };
+		}
+
+		/// <summary>
 		/// Common base class for YAML scopes.
 		/// </summary>
 		/// <seealso cref="RapidYamlArchiveTraits" />
@@ -62,7 +71,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{ }
 
 			RapidYamlScopeBase(const RapidYamlScopeBase&) = delete;
+			RapidYamlScopeBase(RapidYamlScopeBase&&) = delete;
 			RapidYamlScopeBase& operator=(const RapidYamlScopeBase&) = delete;
+			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = delete;
 
 			/// <summary>
 			/// Get current path in YAML.
@@ -78,8 +89,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 		protected:
 			~RapidYamlScopeBase() = default;
-			RapidYamlScopeBase(RapidYamlScopeBase&&) = default;
-			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = default;
 
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			bool LoadValue(const RapidYamlNode& yamlValue, T& value, const SerializationOptions& serializationOptions)
@@ -210,7 +219,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					SaveValue(yamlValue, value);
 					mIndex++;
@@ -229,7 +237,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::csubstr(value.data(), value.size());
 					mIndex++;
@@ -258,7 +265,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::MAP;
 					mIndex++;
@@ -287,7 +293,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					assert(mIndex < GetEstimatedSize());
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::SEQ;
 					mIndex++;
@@ -338,13 +343,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// Enumerates all keys by calling a passed function.
 			/// </summary>
 			template <typename TCallback>
-			void VisitKeys(TCallback&& fn)
+			void VisitKeys(const TCallback& fn)
 			{
 				for (const auto& keyVal : this->mNode)
 				{
-					std::string key;
-					c4::from_chars(keyVal.key(), &key);
-					fn(std::move(key));
+					const auto key = keyVal.key();
+					fn(std::string_view(key.data(), key.size()));
 				}
 			}
 
@@ -354,16 +358,19 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="key">The key of child node.</param>
 			/// <param name="value">The value.</param>
 			template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
-			bool SerializeValue(TKey&& key, T& value)
+			bool SerializeValue(const TKey& key, T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
+					const auto yamlValue = mNode.find_child(to_csubstr(key));
+#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
+					return yamlValue.invalid() ? false : LoadValue(yamlValue, value, this->GetOptions());
+#else
 					return yamlValue.valid() ? LoadValue(yamlValue, value, this->GetOptions()) : false;
+#endif
 				}
 				else
 				{
-					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
 					yamlValue << ryml::key(key);
 					SaveValue(yamlValue, value);
@@ -372,16 +379,19 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			template <typename TKey>
-			bool SerializeValue(TKey&& key, string_view_type& value)
+			bool SerializeValue(const TKey& key, string_view_type& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
+					const auto yamlValue = mNode.find_child(to_csubstr(key));
+#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
+					return yamlValue.invalid() ? false : LoadValue(yamlValue, value);
+#else
 					return yamlValue.valid() ? LoadValue(yamlValue, value) : false;
+#endif
 				}
 				else
 				{
-					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
 					yamlValue << ryml::key(key);
 					yamlValue << c4::csubstr(value.data(), value.size());
@@ -394,12 +404,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// </summary>
 			/// <param name="key">The key of child node.</param>
 			template <typename TKey>
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
+			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(const TKey& key, size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
+					const auto yamlValue = mNode.find_child(to_csubstr(key));
+#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
+					if (!yamlValue.invalid())
+#else
 					if (yamlValue.valid())
+#endif
 					{
 						if (yamlValue.is_map())
 						{
@@ -411,7 +425,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::yml::key(key);
 					yamlValue |= ryml::MAP;
@@ -425,12 +438,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <param name="key">The key of child node.</param>
 			/// <param name="arraySize">The size of array (required only for save mode).</param>
 			template <typename TKey>
-			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t arraySize)
+			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(const TKey& key, size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(c4::to_csubstr(key));
+					const auto yamlValue = mNode.find_child(to_csubstr(key));
+#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
+					if (!yamlValue.invalid())
+#else
 					if (yamlValue.valid())
+#endif
 					{
 						if (yamlValue.is_seq())
 						{
@@ -442,11 +459,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					assert(!mNode.find_child(c4::to_csubstr(key)).valid());
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::yml::key(key);
 					yamlValue |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), arraySize, this, key);
+					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), 0, this, key);
 				}
 			}
 		};
@@ -545,7 +561,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					mNode |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext(), arraySize);
+					return std::make_optional<RapidYamlArrayScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext(), 0);
 				}
 			}
 
@@ -559,13 +575,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 					std::visit([this](auto&& arg)
 					{
 						using T = std::decay_t<decltype(arg)>;
-						auto& options = TArchiveScope<TMode>::GetOptions();
 						if constexpr (std::is_same_v<T, std::string*>)
 						{
 							*arg = ryml::emitrs_yaml<std::string>(mTree);
 						}
 						else if constexpr (std::is_same_v<T, std::ostream*>)
 						{
+							auto& options = TArchiveScope<TMode>::GetOptions();
 							if (options.streamOptions.writeBom) {
 								arg->write(Convert::Utf::Utf8::bom, sizeof Convert::Utf::Utf8::bom);
 							}
@@ -577,11 +593,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 		private:
-			template <typename T>
+			template <typename TParser>
 			void Parse(std::string_view inputStr)
 			{
-				T parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
+				c4::yml::EventHandlerTree EventHandlerTree(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
+				TParser parser(&EventHandlerTree);
+				mTree = parse_in_arena(&parser, c4::csubstr(inputStr.data(), inputStr.size()));
+#else
+				TParser parser(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
 				mTree = parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()));
+#endif
 				mNode = mTree.rootref();
 			}
 

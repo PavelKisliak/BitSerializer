@@ -14,7 +14,7 @@
     "ryml",
     "gtest"
   ],
-  "builtin-baseline": "f5eea2e52658b518e6cbf70fc419f2485a0e86ff",
+  "builtin-baseline": "01be99fec01f777c4113ceea192a45115c69cdb7",
   "vcpkg-configuration": {
     "overlay-triplets": [
       "./cmake/vcpkg/triplets"

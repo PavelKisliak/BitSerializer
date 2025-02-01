@@ -38,7 +38,8 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		if (++mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
+		++mValueIndex;
+		if (mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
 		{
 			// If next column doesn't match, try to find across all headers
 			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
@@ -248,7 +249,8 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		if (++mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
+		++mValueIndex;
+		if (mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
 		{
 			// If next column doesn't match, try to find across all headers
 			const auto it = std::find(mHeaders.cbegin(), mHeaders.cend(), key);
@@ -416,7 +418,7 @@ namespace BitSerializer::Csv::Detail
 		return !out_values.empty();
 	}
 
-	std::string_view CCsvStreamReader::UnescapeValue(char* beginIt, char* endIt)
+	std::string_view CCsvStreamReader::UnescapeValue(char* beginIt, const char* endIt)
 	{
 		// Validate first and end double quotes
 		if (*beginIt != '"')

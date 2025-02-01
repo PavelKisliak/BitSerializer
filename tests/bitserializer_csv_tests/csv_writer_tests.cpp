@@ -10,7 +10,7 @@ using testing::Types;
 typedef Types<BitSerializer::Csv::Detail::CCsvStringWriter, BitSerializer::Csv::Detail::CCsvStreamWriter> Implementations;
 
 // Tests for all implementations of ICsvWriter
-TYPED_TEST_SUITE(CsvWriterTest, Implementations);
+TYPED_TEST_SUITE(CsvWriterTest, Implementations, );
 
 //------------------------------------------------------------------------------
 

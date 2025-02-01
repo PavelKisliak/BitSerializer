@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_writers.h"
@@ -20,14 +20,14 @@ namespace
 	void PushValue(std::string& outputString, uint8_t code, T value)
 	{
 		outputString.push_back(static_cast<char>(code));
-		const auto networkVal = Memory::NativeToBigEndian(value);
+		const T networkVal = Memory::NativeToBigEndian(value);
 		outputString.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 
 	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void PushValue(std::string& outputString, T value)
 	{
-		const auto networkVal = Memory::NativeToBigEndian(value);
+		const T networkVal = Memory::NativeToBigEndian(value);
 		outputString.append(reinterpret_cast<const char*>(&networkVal), sizeof(T));
 	}
 
@@ -74,7 +74,7 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::WriteValue(uint8_t value)
 	{
-		if (value >= 128) {
+		if (value >= 128u) {
 			mOutputString.push_back('\xCC');
 		}
 		mOutputString.push_back(static_cast<char>(value));
@@ -86,7 +86,7 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputString, '\xCD', value);
 		}
 		else {
-			return WriteValue(static_cast<uint8_t>(value));
+			WriteValue(static_cast<uint8_t>(value));
 		}
 	}
 
@@ -96,7 +96,7 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputString, '\xCE', value);
 		}
 		else {
-			return WriteValue(static_cast<uint16_t>(value));
+			WriteValue(static_cast<uint16_t>(value));
 		}
 	}
 
@@ -106,7 +106,7 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputString, '\xCF', value);
 		}
 		else {
-			return WriteValue(static_cast<uint32_t>(value));
+			WriteValue(static_cast<uint32_t>(value));
 		}
 	}
 
@@ -126,7 +126,7 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputString, '\xD1', value);
 		}
 		else {
-			return WriteValue(static_cast<int8_t>(value));
+			WriteValue(static_cast<int8_t>(value));
 		}
 	}
 
@@ -136,7 +136,7 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputString, '\xD2', value);
 		}
 		else {
-			return WriteValue(static_cast<int16_t>(value));
+			WriteValue(static_cast<int16_t>(value));
 		}
 	}
 
@@ -146,7 +146,7 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputString, '\xD3', value);
 		}
 		else {
-			return WriteValue(static_cast<int32_t>(value));
+			WriteValue(static_cast<int32_t>(value));
 		}
 	}
 
@@ -166,8 +166,8 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::WriteValue(std::string_view value)
 	{
-		if (value.size() < 32) {
-			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000));
+		if (value.size() < 32u) {
+			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000u));
 		}
 		else
 		{
@@ -189,10 +189,10 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::WriteValue(const CBinTimestamp& timestamp)
 	{
-		if (timestamp.Seconds >> 34 == 0)
+		if (static_cast<uint64_t>(timestamp.Seconds) >> 34u == 0u)
 		{
-			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34) | timestamp.Seconds;
-			if ((data64 & 0xffffffff00000000L) == 0)
+			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34u) | static_cast<uint64_t>(timestamp.Seconds);
+			if ((data64 & 0xFFFFFFFF00000000ul) == 0u)
 			{
 				// timestamp 32
 				mOutputString.push_back('\xD6');
@@ -217,8 +217,8 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::BeginArray(size_t arraySize)
 	{
-		if (arraySize < 16) {
-			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000));
+		if (arraySize < 16u) {
+			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000u));
 		}
 		else
 		{
@@ -236,8 +236,8 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::BeginMap(size_t mapSize)
 	{
-		if (mapSize < 16) {
-			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000));
+		if (mapSize < 16u) {
+			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000u));
 		}
 		else
 		{
@@ -287,7 +287,7 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStreamWriter::WriteValue(uint8_t value)
 	{
-		if (value >= 128) {
+		if (value >= 128u) {
 			mOutputStream.put('\xCC');
 		}
 		mOutputStream.put(static_cast<char>(value));
@@ -379,8 +379,8 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStreamWriter::WriteValue(std::string_view value)
 	{
-		if (value.size() < 32) {
-			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000));
+		if (value.size() < 32u) {
+			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000u));
 		}
 		else
 		{
@@ -400,12 +400,12 @@ namespace BitSerializer::MsgPack::Detail
 		mOutputStream.write(value.data(), static_cast<std::streamsize>(value.size()));
 	}
 
-	void CMsgPackStreamWriter::WriteValue(const BitSerializer::Detail::CBinTimestamp& timestamp)
+	void CMsgPackStreamWriter::WriteValue(const CBinTimestamp& timestamp)
 	{
-		if (timestamp.Seconds >> 34 == 0)
+		if (static_cast<uint64_t>(timestamp.Seconds) >> 34u == 0u)
 		{
-			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34) | timestamp.Seconds;
-			if ((data64 & 0xffffffff00000000L) == 0)
+			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34u) | static_cast<uint64_t>(timestamp.Seconds);
+			if ((data64 & 0xFFFFFFFF00000000ul) == 0)
 			{
 				// timestamp 32
 				mOutputStream.put('\xD6');
@@ -430,8 +430,8 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStreamWriter::BeginArray(size_t arraySize)
 	{
-		if (arraySize < 16) {
-			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000));
+		if (arraySize < 16u) {
+			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000u));
 		}
 		else
 		{
@@ -449,8 +449,8 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStreamWriter::BeginMap(size_t mapSize)
 	{
-		if (mapSize < 16) {
-			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000));
+		if (mapSize < 16u) {
+			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000u));
 		}
 		else
 		{

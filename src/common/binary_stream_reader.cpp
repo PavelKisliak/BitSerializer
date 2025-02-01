@@ -85,9 +85,7 @@ namespace BitSerializer::Detail
 
 	std::string_view CBinaryStreamReader::ReadSolidBlock(size_t blockSize)
 	{
-		if (blockSize > chunk_size)
-		{
-			assert(blockSize > chunk_size);
+		if (blockSize > chunk_size) {
 			return {};
 		}
 

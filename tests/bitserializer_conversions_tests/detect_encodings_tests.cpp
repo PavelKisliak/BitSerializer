@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -11,7 +11,7 @@ using namespace BitSerializer;
 using testing::Types;
 typedef Types<Convert::Utf::Utf8, Convert::Utf::Utf16Le, Convert::Utf::Utf16Be, Convert::Utf::Utf32Le, Convert::Utf::Utf32Be> Implementations;
 
-TYPED_TEST_SUITE(DetectEncodingTest, Implementations);
+TYPED_TEST_SUITE(DetectEncodingTest, Implementations, );
 
 
 //-----------------------------------------------------------------------------

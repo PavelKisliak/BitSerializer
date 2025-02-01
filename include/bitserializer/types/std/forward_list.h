@@ -25,7 +25,7 @@ namespace BitSerializer
 			}
 
 			// Load existing items
-			size_t loadedItems = 0;
+			typename std::forward_list<TValue, TAllocator>::size_type loadedItems = 0;
 			auto LastIt = cont.begin();
 			for (auto it = LastIt; it != cont.end() && !arrayScope.IsEnd(); ++it, ++loadedItems)
 			{

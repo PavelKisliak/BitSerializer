@@ -436,9 +436,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// Returns child node as sub-array.
 			/// </summary>
 			/// <param name="key">The key of child node.</param>
-			/// <param name="arraySize">The size of array (required only for save mode).</param>
 			template <typename TKey>
-			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(const TKey& key, size_t arraySize)
+			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(const TKey& key, size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -546,8 +545,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/// <summary>
 			/// Returns root node as array type in YAML.
 			/// </summary>
-			/// <param name="arraySize">The size of array (required only for save mode).</param>
-			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{

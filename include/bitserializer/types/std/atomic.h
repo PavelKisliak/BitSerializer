@@ -1,9 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <atomic>
+#include "bitserializer/serialization_detail/archive_traits.h"
 
 namespace BitSerializer
 {

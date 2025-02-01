@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <utility>
+#include "bitserializer/convert.h"
 
 namespace BitSerializer
 {

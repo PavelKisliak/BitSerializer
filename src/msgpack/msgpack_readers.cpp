@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_readers.h"
@@ -55,13 +55,6 @@ namespace
 
 	struct ByteCodeMetaInfo
 	{
-		constexpr ByteCodeMetaInfo(ValueType InType, uint_fast8_t InFixedSeq = 0, uint_fast8_t InDataSize = 0, uint_fast8_t InExtSize = 0)
-			: Type(InType)
-			, FixedSeq(InFixedSeq)
-			, DataSize(InDataSize)
-			, ExtSize(InExtSize)
-		{ }
-
 		ValueType Type = ValueType::Unknown;
 		uint_fast8_t FixedSeq = 0;		// Size of fixed bytes sequence
 		uint_fast8_t DataSize = 0;		// Size of data (like int, float, etc)
@@ -622,8 +615,9 @@ namespace BitSerializer::MsgPack::Detail
 		{
 			size_t size;
 			const auto ch = mInputData[mPos];
-			if ((static_cast<uint8_t>(ch) & 0b11100000) == 0b10100000) {
-				size = ch & 0b00011111;
+			if ((static_cast<uint8_t>(ch) & 0b11100000u) == 0b10100000u)
+			{
+				size = static_cast<uint8_t>(ch) & 0b00011111u;
 				++mPos;
 			}
 			else if (ch == '\xD9')
@@ -682,8 +676,8 @@ namespace BitSerializer::MsgPack::Detail
 			{
 				uint64_t data64;
 				GetValue(mInputData, mPos, data64);
-				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003ffffffffL);
-				timestamp.Nanoseconds = static_cast<uint32_t>(data64 >> 34);
+				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003FFFFFFFFul);
+				timestamp.Nanoseconds = static_cast<int32_t>(data64 >> 34u);
 				return true;
 			}
 			if (extTypeInfo.Size == 12)
@@ -704,10 +698,10 @@ namespace BitSerializer::MsgPack::Detail
 		if (mPos < mInputData.size())
 		{
 			const auto ch = mInputData[mPos];
-			if ((static_cast<uint8_t>(ch) & 0b11110000) == 0b10010000)
+			if ((static_cast<uint8_t>(ch) & 0b11110000u) == 0b10010000u)
 			{
 				++mPos;
-				arraySize = ch & 0b00001111;
+				arraySize = static_cast<uint8_t>(ch) & 0b00001111u;
 				return true;
 			}
 			if (ch == '\xDC')
@@ -738,10 +732,10 @@ namespace BitSerializer::MsgPack::Detail
 		if (mPos < mInputData.size())
 		{
 			const auto ch = mInputData[mPos];
-			if ((static_cast<uint8_t>(ch) & 0b11110000) == 0b10000000)
+			if ((static_cast<uint8_t>(ch) & 0b11110000u) == 0b10000000u)
 			{
 				++mPos;
-				mapSize = ch & 0b00001111;
+				mapSize = static_cast<uint8_t>(ch) & 0b00001111u;
 				return true;
 			}
 			if (ch == '\xDE')
@@ -1217,9 +1211,9 @@ namespace BitSerializer::MsgPack::Detail
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
 			size_t remainingSize;
-			if ((static_cast<uint8_t>(*byteCode) & 0b11100000) == 0b10100000)
+			if ((static_cast<uint8_t>(*byteCode) & 0b11100000u) == 0b10100000u)
 			{
-				remainingSize = *byteCode & 0b00011111;
+				remainingSize = static_cast<uint8_t>(*byteCode) & 0b00011111u;
 				mBinaryStreamReader.GotoNextByte();
 			}
 			else if (*byteCode == '\xD9')
@@ -1287,8 +1281,8 @@ namespace BitSerializer::MsgPack::Detail
 			{
 				uint64_t data64;
 				GetValue(mBinaryStreamReader, data64);
-				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003ffffffffL);
-				timestamp.Nanoseconds = static_cast<uint32_t>(data64 >> 34);
+				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003FFFFFFFFul);
+				timestamp.Nanoseconds = static_cast<int32_t>(data64 >> 34u);
 				return true;
 			}
 			if (extTypeInfo.Size == 12)
@@ -1308,10 +1302,10 @@ namespace BitSerializer::MsgPack::Detail
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
-			if ((static_cast<uint8_t>(*byteCode) & 0b11110000) == 0b10010000)
+			if ((static_cast<uint8_t>(*byteCode) & 0b11110000u) == 0b10010000u)
 			{
 				mBinaryStreamReader.GotoNextByte();
-				arraySize = *byteCode & 0b00001111;
+				arraySize = static_cast<uint8_t>(*byteCode) & 0b00001111u;
 				return true;
 			}
 			if (*byteCode == '\xDC')
@@ -1341,10 +1335,10 @@ namespace BitSerializer::MsgPack::Detail
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
-			if ((static_cast<uint8_t>(*byteCode) & 0b11110000) == 0b10000000)
+			if ((static_cast<uint8_t>(*byteCode) & 0b11110000u) == 0b10000000u)
 			{
 				mBinaryStreamReader.GotoNextByte();
-				mapSize = *byteCode & 0b00001111;
+				mapSize = static_cast<uint8_t>(*byteCode) & 0b00001111u;
 				return true;
 			}
 			if (*byteCode == '\xDE')

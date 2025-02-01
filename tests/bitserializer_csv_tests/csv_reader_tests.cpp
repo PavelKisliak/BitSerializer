@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "bitserializer/csv_archive.h"
@@ -10,7 +10,7 @@ using testing::Types;
 typedef Types<BitSerializer::Csv::Detail::CCsvStringReader, BitSerializer::Csv::Detail::CCsvStreamReader> Implementations;
 
 // Tests for all implementations of ICsvReader
-TYPED_TEST_SUITE(CsvReaderTest, Implementations);
+TYPED_TEST_SUITE(CsvReaderTest, Implementations, );
 
 //------------------------------------------------------------------------------
 

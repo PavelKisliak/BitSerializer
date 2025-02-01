@@ -5,6 +5,7 @@
 #pragma once
 #include "bitserializer/convert.h"
 #include "bitserializer/types/std/pair.h"
+#include "bitserializer/serialization_detail/archive_traits.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 
 namespace BitSerializer

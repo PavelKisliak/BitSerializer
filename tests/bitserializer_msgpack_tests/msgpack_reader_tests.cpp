@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/auto_fixture.h"
@@ -11,7 +11,7 @@ using testing::Types;
 typedef Types<BitSerializer::MsgPack::Detail::CMsgPackStringReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader> Implementations;
 
 // Tests for all implementations of IMsgPackWriter
-TYPED_TEST_SUITE(MsgPackReaderTest, Implementations);
+TYPED_TEST_SUITE(MsgPackReaderTest, Implementations, );
 
 //------------------------------------------------------------------------------
 

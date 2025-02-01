@@ -107,7 +107,7 @@ TEST(ConvertApi, ShouldMoveStringValue)
 	const char* expectedPtr = sourceStr.data();
 
 	auto targetStr = Convert::To<std::string>(std::move(sourceStr));
-	EXPECT_EQ(expectedPtr, targetStr.data());
+	EXPECT_TRUE(expectedPtr == targetStr.data());
 }
 
 TEST(ConvertApi, ShouldThrowExceptionWhenBadArgument) {

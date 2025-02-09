@@ -1,0 +1,24 @@
+# Clang-Tidy Configuration File
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-macro-parentheses,
+  -bugprone-signed-char-misuse,
+  
+  clang-analyzer-*,
+  
+  modernize-*,
+  -modernize-avoid-c-arrays,
+  -modernize-loop-convert,
+  -modernize-macro-to-enum,
+  -modernize-use-auto,
+  -modernize-use-default-member-init,
+  -modernize-use-trailing-return-type,
+  -modernize-use-using,
+  
+  performance-*,
+  -performance-enum-size,
+  -performance-avoid-endl,
+
+WarningsAsErrors: 'clang-analyzer-*,'
+HeaderFilterRegex: '.*'

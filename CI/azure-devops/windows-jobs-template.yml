@@ -11,6 +11,8 @@ parameters:
   cmakeGenArgs: ''
 # [Optional] Enable build Debug version
   enableDebugBuild: false
+# [Optional] Enable run tests
+  enableRunTests: true
 
 jobs:
 - job: ${{ parameters.name }}
@@ -61,7 +63,7 @@ jobs:
       ctest -C Debug -T test --output-on-failure
     displayName: 'Run tests [Debug]'
     continueOnError: true
-    condition: eq('${{ parameters.enableDebugBuild }}', true)
+    condition: and(eq('${{ parameters.enableRunTests }}', true), eq('${{ parameters.enableDebugBuild }}', true))
 
   - task: PublishTestResults@2
     inputs:
@@ -72,7 +74,7 @@ jobs:
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: 'Debug'
     displayName: 'Publish Test results [Debug]'
-    condition: eq('${{ parameters.enableDebugBuild }}', true)
+    condition: and(eq('${{ parameters.enableRunTests }}', true), eq('${{ parameters.enableDebugBuild }}', true))
 
   - script: |
       cd build
@@ -84,6 +86,7 @@ jobs:
       ctest -C Release -T test --output-on-failure
     displayName: 'Run tests [Release]'
     continueOnError: true
+    condition: eq('${{ parameters.enableRunTests }}', true)
 
   - task: PublishTestResults@2
     inputs:
@@ -94,3 +97,4 @@ jobs:
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: 'Release'
     displayName: 'Publish Test results [Release]'
+    condition: eq('${{ parameters.enableRunTests }}', true)

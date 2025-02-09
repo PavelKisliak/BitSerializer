@@ -39,7 +39,7 @@ using RapidJsonEncoding = typename rapidjson::UTF8<TSym>;
 /// The traits of JSON archive based on RapidJson
 /// </summary>
 template <class TEncoding = RapidJsonEncoding<char>>
-struct RapidJsonArchiveTraits
+struct RapidJsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
@@ -92,8 +92,8 @@ public:
 
 protected:
 	~RapidJsonScopeBase() = default;
-	RapidJsonScopeBase(RapidJsonScopeBase&&) = default;
-	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) = default;
+	RapidJsonScopeBase(RapidJsonScopeBase&&) noexcept = default;
+	RapidJsonScopeBase& operator=(RapidJsonScopeBase&&) noexcept = default;
 
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool LoadValue(const RapidJsonNode& jsonValue, T& value, const SerializationOptions& serializationOptions)
@@ -434,22 +434,22 @@ public:
 	}
 
 protected:
-	typename RapidJsonNode::MemberIterator FindMember(const key_type& key) const {
+	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(const key_type& key) const {
 		return this->mNode->GetObject().FindMember(key.c_str());
 	}
 
-	typename RapidJsonNode::MemberIterator FindMember(key_raw_ptr key) const {
+	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(key_raw_ptr key) const {
 		return this->mNode->GetObject().FindMember(key);
 	}
 
-	RapidJsonNode* LoadJsonValue(const key_type& key) const
+	[[nodiscard]] RapidJsonNode* LoadJsonValue(const key_type& key) const
 	{
 		const auto jObject = this->mNode->GetObject();
 		auto it = jObject.FindMember(key.c_str());
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
-	RapidJsonNode* LoadJsonValue(key_raw_ptr key) const
+	[[nodiscard]] RapidJsonNode* LoadJsonValue(key_raw_ptr key) const
 	{
 		const auto jObject = this->mNode->GetObject();
 		const auto it = jObject.FindMember(key);
@@ -475,6 +475,7 @@ protected:
 		return true;
 	}
 
+private:
 	TAllocator& mAllocator;
 };
 
@@ -571,7 +572,7 @@ public:
 		else
 		{
 			mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
-			return true;
+			return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
 		}
 	}
 

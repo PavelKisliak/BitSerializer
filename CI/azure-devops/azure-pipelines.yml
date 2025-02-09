@@ -29,6 +29,14 @@ variables:
   readonly: true
 
 jobs:
+  - template: static-analysis-clang-tidy-jobs-template.yml
+    parameters:
+      name: 'StaticAnalysis_ClangTidy'
+      image: 'ubuntu-latest'
+      installToolsCmd: 'sudo apt-get install ninja-build'
+      vcpkgTriplet: "x64-linux"
+      cmakeGenArgs: '$(CmakeGenOptions)'
+
   - template: windows-jobs-template.yml
     parameters:
       name: 'Windows_VS2019_x64'

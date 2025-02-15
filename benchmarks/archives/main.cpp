@@ -135,7 +135,7 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 	{
 		const int64_t saveNativeLibSpeed = std::llround(
 			NanosecondsInMs / static_cast<double>(metadata.BaseLibSaveTest.Time.count()) * static_cast<double>(metadata.BaseLibSaveTest.ProcessedFields));
-		const auto diffSavePercent = std::round((saveFieldsSpeed / (saveNativeLibSpeed / 100.0) - 100) * 10) / 10;
+		const auto diffSavePercent = std::round((static_cast<double>(saveFieldsSpeed) / (static_cast<double>(saveNativeLibSpeed) / 100.0) - 100) * 10) / 10;
 		std::cout << saveNativeLibSpeed << " | difference: " << diffSavePercent << "%" << std::endl;
 	}
 	else
@@ -151,7 +151,7 @@ TestArchiveResult RunBenchmark(const std::chrono::seconds testTime = DefaultArch
 	{
 		const int64_t loadNativeLibSpeed = std::llround(
 			NanosecondsInMs / static_cast<double>(metadata.BaseLibLoadTest.Time.count()) * static_cast<double>(metadata.BaseLibLoadTest.ProcessedFields));
-		const auto diffLoadPercent = std::round((loadFieldsSpeed / (loadNativeLibSpeed / 100.0) - 100) * 10) / 10;
+		const auto diffLoadPercent = std::round((static_cast<double>(loadFieldsSpeed) / (static_cast<double>(loadNativeLibSpeed) / 100.0) - 100) * 10) / 10;
 		std::cout << loadNativeLibSpeed << " | difference: " << diffLoadPercent << "%" << std::endl;
 	}
 	else

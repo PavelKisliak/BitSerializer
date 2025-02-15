@@ -49,6 +49,9 @@ message(STATUS "[Option] BUILD_BENCHMARKS: ${BUILD_BENCHMARKS}")
 option(BUILD_SAMPLES "Build samples" OFF)
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 
+option(STATIC_ANALYSIS_CLANG_TIDY "Static analysis (Clang-tidy)" OFF)
+message(STATUS "[Option] STATIC_ANALYSIS_CLANG_TIDY: ${STATIC_ANALYSIS_CLANG_TIDY}")
+
 #################################################################################
 # Global compiler configuration
 #################################################################################
@@ -86,6 +89,32 @@ include_directories(
 if(NOT DEFINED BITSERIALIZER_HAS_FILESYSTEM)
   include(CheckCXXSymbolExists)
   check_cxx_symbol_exists(std::filesystem::path::preferred_separator filesystem BITSERIALIZER_HAS_FILESYSTEM)
+endif()
+
+#################################################################################
+# Static analysis
+#################################################################################
+if(STATIC_ANALYSIS_CLANG_TIDY)
+    if(MSVC)
+        find_program(CLANG_TIDY_PROGRAM NAMES "clang-tidy" PATHS "$ENV{ProgramFiles}/Microsoft Visual Studio/*/*/VC/Tools/Llvm/x64/bin/")
+    else()
+        find_program(CLANG_TIDY_PROGRAM NAMES "clang-tidy")
+    endif()
+
+    if (CLANG_TIDY_PROGRAM)
+        set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+        set(CLANG_TIDY_COMMAND "${CLANG_TIDY_PROGRAM}" "--config-file=${PROJECT_SOURCE_DIR}/.clang-tidy")
+
+        # Note: analysis of RapidYaml archive doesn't work due to incorrecly detected C4_MSVC (c4\compiler.hpp)
+        if(MSVC)
+            set(CLANG_TIDY_COMMAND "${CLANG_TIDY_PROGRAM};--extra-arg=/EHsc")
+        endif()
+
+        # Apply clang-tidy globally to all C++ targets
+        set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+    else()
+        message(WARNING "Could not find clang-tidy program, static analysis disabled")
+    endif()
 endif()
 
 #################################################################################
@@ -200,6 +229,7 @@ if(BUILD_MSGPACK_ARCHIVE)
        "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp"
     )
     add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
 
     target_include_directories(${MSGPACK_ARCHIVE_NAME} PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
@@ -208,8 +238,6 @@ if(BUILD_MSGPACK_ARCHIVE)
         INTERFACE
             ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
     )
-
-    list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
 endif()
 
 #################################################################################

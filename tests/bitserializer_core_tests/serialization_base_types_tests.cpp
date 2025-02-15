@@ -133,7 +133,7 @@ TEST(BaseTypes, SerializeUnknownEnumAsRootShouldThrowException)
 {
 	try
 	{
-		auto testValue = static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max());
+		auto testValue = static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max());  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
 		ArchiveStub::preferred_output_format outputArchive;
 		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive);
 	}
@@ -194,7 +194,7 @@ TEST(BaseTypes, SerializeUnknownEnumAsClassMemberShouldThrowException)
 {
 	try
 	{
-		TestClassWithSubType objWithInvalidEnum(static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max()));
+		TestClassWithSubType objWithInvalidEnum(static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max()));  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
 		ArchiveStub::preferred_output_format outputArchive;
 		BitSerializer::SaveObject<ArchiveStub>(objWithInvalidEnum, outputArchive);
 	}

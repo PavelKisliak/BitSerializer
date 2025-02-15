@@ -202,7 +202,6 @@ public:
 	ArchiveStubArrayScope(TestIoDataPtr node, SerializationContext& serializationContext, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 		: TArchiveScope<TMode>(serializationContext)
 		, ArchiveStubScopeBase(std::move(node), parent, parentKey)
-		, mIndex(0)
 	{
 		assert(std::holds_alternative<TestIoDataArrayPtr>(*mNode));
 	}
@@ -319,7 +318,7 @@ protected:
 	}
 
 private:
-	size_t mIndex;
+	size_t mIndex = 0;
 };
 
 
@@ -350,7 +349,7 @@ public:
 	/// Enumerates all keys by calling a passed function.
 	/// </summary>
 	template <typename TCallback>
-	void VisitKeys(TCallback&& fn)
+	void VisitKeys(const TCallback& fn)
 	{
 		for (auto& keyValue : *GetAsObject()) {
 			fn(keyValue.first);
@@ -423,19 +422,19 @@ public:
 	}
 
 protected:
-	constexpr TestIoDataObjectPtr& GetAsObject() const
+	[[nodiscard]] constexpr TestIoDataObjectPtr& GetAsObject() const
 	{
 		return std::get<TestIoDataObjectPtr>(*mNode);
 	}
 
-	TestIoDataPtr LoadArchiveValueByKey(const key_type& key)
+	[[nodiscard]] TestIoDataPtr LoadArchiveValueByKey(const key_type& key)
 	{
 		const auto& archiveObject = GetAsObject();
 		const auto it = archiveObject->find(key);
 		return it == archiveObject->end() ? nullptr : it->second;
 	}
 
-	TestIoDataPtr AddArchiveValue(const key_type& key) const
+	[[nodiscard]] TestIoDataPtr AddArchiveValue(const key_type& key) const
 	{
 		const auto archiveObject = GetAsObject();
 		decltype(auto) result = archiveObject->emplace(key, std::make_shared<TestIoData>());
@@ -443,12 +442,12 @@ protected:
 	}
 
 	template <class IoDataType, class SourceType>
-	TestIoDataPtr& SaveArchiveValue(const key_type& key, const SourceType& value)
+	[[nodiscard]] TestIoDataPtr& SaveArchiveValue(const key_type& key, const SourceType& value)
 	{
 		const auto& archiveObject = GetAsObject();
 		TestIoData ioData;
 		ioData.emplace<IoDataType>(value);
-		decltype(auto) result = archiveObject->emplace(key, std::move(ioData));
+		decltype(auto) result = archiveObject->emplace(key, std::make_shared<TestIoData>(std::move(ioData)));
 		return result.first->second;
 	}
 };

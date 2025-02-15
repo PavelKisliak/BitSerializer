@@ -292,7 +292,7 @@ TEST(PugiXmlArchive, SaveToUtf32BeStreamWithBom) {
 TEST(PugiXmlArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
 {
 	BitSerializer::SerializationOptions serializationOptions;
-	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::Utf::UtfType>(-1);
+	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::Utf::UtfType>(-1);  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
 	std::stringstream outputStream;
 	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
 	EXPECT_THROW(BitSerializer::SaveObject<XmlArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);

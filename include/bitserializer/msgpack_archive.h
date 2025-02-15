@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -20,7 +20,7 @@ using BitSerializer::Detail::CBinTimestamp;
 /// <summary>
 /// The traits of MsgPack archive (internal implementation - no dependencies)
 /// </summary>
-struct MsgPackArchiveTraits
+struct MsgPackArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::MsgPack;
 	using key_type = std::string;
@@ -469,6 +469,11 @@ public:
 		: mParentScope(parentScope)
 	{ }
 
+	CMsgPackScopeBase(const CMsgPackScopeBase&) = delete;
+	CMsgPackScopeBase(CMsgPackScopeBase&&) noexcept = delete;
+	CMsgPackScopeBase& operator=(const CMsgPackScopeBase&) = delete;
+	CMsgPackScopeBase& operator=(CMsgPackScopeBase&&) noexcept = default;
+
 	/// <summary>
 	/// Gets the current path in MsgPack.
 	/// </summary>
@@ -488,7 +493,8 @@ protected:
 		}
 	}
 
-	CMsgPackScopeBase* mParentScope = nullptr;
+private:
+	CMsgPackScopeBase* mParentScope;
 };
 
 
@@ -649,7 +655,7 @@ private:
 	}
 
 	TReader* mMsgPackReader;
-	const size_t mSize;
+	size_t mSize;
 	size_t mIndex = 0;
 };
 

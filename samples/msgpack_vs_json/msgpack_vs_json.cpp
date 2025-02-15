@@ -66,7 +66,7 @@ void TestSaveAs(std::string_view archiveName, TTestValue& testValue)
 	}
 }
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	constexpr size_t tableWidth = ArchiveColumnWidth + DataColumnWidth + SizeColumnWidth + 5;
 	std::string splitLine(tableWidth, '-');

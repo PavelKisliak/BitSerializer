@@ -17,7 +17,7 @@ namespace Detail {
 /// <summary>
 /// The traits of CSV archive (internal implementation - no dependencies)
 /// </summary>
-struct CsvArchiveTraits
+struct CsvArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Csv;
 	using key_type = std::string;
@@ -152,7 +152,7 @@ public:
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const noexcept
 	{
-		return "";
+		return {};
 	}
 
 	[[nodiscard]] std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize) const
@@ -338,7 +338,7 @@ public:
 	/// </summary>
 	[[nodiscard]] std::string GetPath() const noexcept
 	{
-		return "";
+		return {};
 	}
 
 	std::optional<CsvReadArrayScope> OpenArrayScope(size_t)

@@ -5,7 +5,7 @@
 
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	std::string expected = "Hello world!";
 	auto json = BitSerializer::SaveObject<JsonArchive>(expected);

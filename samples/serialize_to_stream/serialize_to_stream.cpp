@@ -24,7 +24,7 @@ public:
 	int x = 0, y = 0;
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	auto testObj = CPoint(100, 200);
 

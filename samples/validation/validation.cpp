@@ -36,7 +36,7 @@ private:
 	std::string mNickName;
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	UserModel user;
 	const char* json = R"({ "Id": 12420, "Age": 500, "FirstName": "John Smith-Cotatonovich", "NickName": "Smith 2000", "Email": "smith 2000@mail.com" })";

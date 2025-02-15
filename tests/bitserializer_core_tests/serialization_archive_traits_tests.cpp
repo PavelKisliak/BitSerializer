@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -32,7 +32,7 @@ public:
 	std::optional<TestArchive_LoadMode> OpenBinaryScope(size_t) { return std::nullopt; }
 	std::optional<TestArchive_LoadMode> OpenAttributeScope() { return std::nullopt; }
 
-	size_t GetEstimatedSize() const { return 0; }
+	[[nodiscard]] size_t GetEstimatedSize() const { return 0; }
 };
 
 /// <summary>

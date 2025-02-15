@@ -1,10 +1,12 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include "gtest/gtest.h"
 #include "common_test_entities.h"
+
+// NOLINTBEGIN(bugprone-unchecked-optional-access)
 
 /// <summary>
 /// Tests archive method which should return current path in object scope (when loading).
@@ -256,3 +258,5 @@ void TestSaveFormattedJson()
 		"}");
 	EXPECT_EQ(expected, outputStr);
 }
+
+// NOLINTEND(bugprone-unchecked-optional-access)

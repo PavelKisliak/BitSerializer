@@ -64,7 +64,7 @@ struct TestUser
 	}
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	// Save old version
 	std::vector<TestUserV1> oldUsers {

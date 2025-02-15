@@ -22,7 +22,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		/// <summary>
 		/// YAML archive traits class.
 		/// </summary>
-		class RapidYamlArchiveTraits
+		class RapidYamlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 		{
 		public:
 			static constexpr ArchiveType archive_type = ArchiveType::Yaml;

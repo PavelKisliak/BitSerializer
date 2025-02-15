@@ -11,6 +11,7 @@
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/vector.h"
 
+// NOLINTBEGIN(bugprone-unchecked-optional-access)
 
 /// <summary>
 /// Approximately compares two floating point numbers based on passed epsilon.
@@ -68,7 +69,7 @@ void TestSerializeType(T&& value)
 /// <param name="key">The key.</param>
 /// <param name="value">The value.</param>
 template <class TArchive, class TKey, class TValue>
-void TestSerializeType(TKey&& key, TValue&& value)
+void TestSerializeType(const TKey& key, TValue&& value)
 {
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive{};
@@ -239,7 +240,7 @@ void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(testArray, outputStream);
-	std::string str = outputStream.str();
+	outputStream.seekg(0, std::ios::beg);
 	BitSerializer::LoadObject<TArchive>(actual, outputStream);
 
 	// Assert
@@ -594,3 +595,5 @@ void TestVisitKeysInObjectScope(bool skipValues=false)
 	});
 	EXPECT_EQ(expectedValues.size(), index);
 }
+
+// NOLINTEND(bugprone-unchecked-optional-access)

@@ -18,7 +18,7 @@ namespace BitSerializer
 	class SerializationContext
 	{
 	public:
-		explicit SerializationContext(const SerializationOptions& serializationOptions) noexcept
+		explicit SerializationContext(const SerializationOptions& serializationOptions)
 			: mSerializationOptions(serializationOptions)
 		{ }
 

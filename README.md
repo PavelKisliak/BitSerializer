@@ -287,8 +287,8 @@ public:
     int x;
 
     // Example of property that is only accessible via a getter/setter
-    int GetY() const noexcept { return y; }
-    void SetY(int y) noexcept { this->y = y; }
+    [[nodiscard]] int GetY() const noexcept { return y; }
+    void SetY(const int inY) noexcept { this->y = inY; }
 
 private:
     int y;

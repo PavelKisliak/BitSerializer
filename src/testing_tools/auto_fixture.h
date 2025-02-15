@@ -248,12 +248,12 @@ namespace std
 	public:
 		static BitSerializer::Detail::CBinTimestamp min()
 		{
-			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint32_t>::min());
+			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::min(), std::numeric_limits<int32_t>::min());
 		}
 
 		static BitSerializer::Detail::CBinTimestamp max()
 		{
-			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::max(), std::numeric_limits<uint32_t>::max());
+			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::max(), std::numeric_limits<int32_t>::max());
 		}
 	};
 }
@@ -297,7 +297,7 @@ template <typename TValue>
 template <typename T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
 [[maybe_unused]] static T BuildFixture()
 {
-	T fixture;
+	T fixture{};
 	BuildFixture(fixture);
 	return fixture;
 }
@@ -335,7 +335,7 @@ template <typename T, typename TAllocator>
 	cont.resize(size);
 
 	for (size_t i = 0; i < size; i++) {
-		bool elem;
+		bool elem{};
 		BuildFixture(elem);
 		cont[i] = elem;
 	}

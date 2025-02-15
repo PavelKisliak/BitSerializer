@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include "bitserializer/serialization_detail/validators.h"
 
+// NOLINTBEGIN(bugprone-unchecked-optional-access)
+
 using namespace BitSerializer;
 
 //-----------------------------------------------------------------------------
@@ -427,3 +429,5 @@ TEST(ValidatorPhoneNumber, TestPhonesWithInvalidCharacters)
 	EXPECT_TRUE(validator("1 (555) 555-55-55$", true).has_value());
 	EXPECT_TRUE(validator("1 (555) 555-55=55", true).has_value());
 }
+
+// NOLINTEND(bugprone-unchecked-optional-access)

@@ -57,7 +57,7 @@ public:
 	int x = 0, y = 0, z = 0;
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	// Conversion fundamental types (this function may throw "std::out_of_range" exception)
 	const auto u32Str = Convert::To<std::u32string>(3.14159f);

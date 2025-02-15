@@ -4,9 +4,12 @@ Checks: >
   -bugprone-easily-swappable-parameters,
   -bugprone-macro-parentheses,
   -bugprone-signed-char-misuse,
-  
+
   clang-analyzer-*,
-  
+  -clang-analyzer-osx-*,
+  -clang-analyzer-unix-*,
+  -clang-analyzer-webkit-*,
+
   modernize-*,
   -modernize-avoid-c-arrays,
   -modernize-loop-convert,
@@ -15,10 +18,10 @@ Checks: >
   -modernize-use-default-member-init,
   -modernize-use-trailing-return-type,
   -modernize-use-using,
-  
+
   performance-*,
   -performance-enum-size,
   -performance-avoid-endl,
 
-WarningsAsErrors: 'clang-analyzer-*,'
+WarningsAsErrors: 'clang-analyzer-*,bugprone-*'
 HeaderFilterRegex: '.*'

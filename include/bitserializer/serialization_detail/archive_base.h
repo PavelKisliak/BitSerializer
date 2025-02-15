@@ -59,6 +59,7 @@ public:
 
 	TArchiveScope(const TArchiveScope&) = delete;
 	TArchiveScope& operator=(const TArchiveScope&) = delete;
+	TArchiveScope& operator=(TArchiveScope&&) noexcept = default;
 
 	static constexpr SerializeMode GetMode() noexcept	{ return TMode; }
 	static constexpr bool IsSaving() noexcept			{ return TMode == SerializeMode::Save; }
@@ -69,9 +70,9 @@ public:
 
 protected:
 	~TArchiveScope() = default;
-	TArchiveScope(TArchiveScope&&) = default;
-	TArchiveScope& operator=(TArchiveScope&&) = default;
+	TArchiveScope(TArchiveScope&&) noexcept = default;
 
+private:
 	SerializationContext& mSerializationContext;
 };
 

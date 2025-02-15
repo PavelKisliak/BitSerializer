@@ -30,7 +30,7 @@ public:
 	int mHeight = 0;
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	std::vector<CRectangle> Shapes = {
 		{ 5, 10 },

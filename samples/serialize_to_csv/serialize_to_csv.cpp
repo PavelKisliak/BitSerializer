@@ -26,7 +26,7 @@ public:
 	seconds Duration{};
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	constexpr auto tp2023_01_01 = time_point<system_clock, seconds>(seconds(1672531200));
 	std::vector<CUserScore> highScores = {

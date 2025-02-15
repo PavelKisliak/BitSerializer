@@ -124,7 +124,7 @@ TEST(ConvertApi, ShouldThrowExceptionWhenOverflow) {
 //-----------------------------------------------------------------------------
 TEST(ConvertApi, TryToShouldReturnConvertedValue) {
 	EXPECT_TRUE(Convert::TryTo<int>("0").has_value());
-	EXPECT_EQ(500, Convert::TryTo<int>("500").value());
+	EXPECT_EQ(500, Convert::TryTo<int>("500").value());// NOLINT(bugprone-unchecked-optional-access)
 }
 
 TEST(ConvertApi, TryToShouldReturnEmptyWhenOccurredError) {

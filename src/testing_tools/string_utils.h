@@ -29,7 +29,7 @@ inline auto makeUtf8(const char8_t* s)
 
 // Makes a string from passed sequence of numbers.
 template <typename TString = std::string, typename ...TArgs>
-constexpr TString MakeStringFromSequence(TArgs... initArgs) noexcept
+constexpr TString MakeStringFromSequence(TArgs... initArgs)
 {
 	return { static_cast<typename TString::value_type>(initArgs)... };
 }

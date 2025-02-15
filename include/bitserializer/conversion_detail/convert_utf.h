@@ -109,7 +109,7 @@ namespace BitSerializer::Convert::Utf
 	namespace Detail
 	{
 		template<typename TChar, typename TAllocator>
-		[[nodiscard]] bool HandleEncodingError(std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& outStr, UtfEncodingErrorPolicy encodingPolicy, const TChar* errorMark) noexcept
+		[[nodiscard]] bool HandleEncodingError(std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& outStr, UtfEncodingErrorPolicy encodingPolicy, const TChar* errorMark)
 		{
 			switch (encodingPolicy)
 			{
@@ -707,7 +707,7 @@ namespace BitSerializer::Convert::Utf
 	/// Checks that passed string type starts with BOM which is specified in TUtfTraits.
 	/// </summary>
 	template<class TUtfTraits, class T>
-	static bool StartsWithBom(T&& inputString)
+	static bool StartsWithBom(const T& inputString)
 	{
 		auto it = std::cbegin(inputString);
 		const auto endIt = std::cend(inputString);
@@ -1013,7 +1013,7 @@ namespace BitSerializer::Convert::Utf
 	class CEncodedStreamWriter
 	{
 	public:
-		CEncodedStreamWriter(std::ostream& outputStream, UtfType targetUtfType, bool addBom, UtfEncodingErrorPolicy encodingErrorPolicy = UtfEncodingErrorPolicy::Skip) noexcept
+		CEncodedStreamWriter(std::ostream& outputStream, UtfType targetUtfType, bool addBom, UtfEncodingErrorPolicy encodingErrorPolicy = UtfEncodingErrorPolicy::Skip)
 			: mOutputStream(outputStream)
 			, mEncodingErrorPolicy(encodingErrorPolicy)
 		{

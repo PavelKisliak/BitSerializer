@@ -20,7 +20,7 @@ public:
 	std::string mOwner;
 };
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	const char* srcStr = R"(
 Tablet:

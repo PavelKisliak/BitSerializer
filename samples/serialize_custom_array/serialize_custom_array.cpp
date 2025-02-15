@@ -65,7 +65,7 @@ namespace MyApp
 	}
 }
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	// Save custom array to JSON
 	MyApp::CMyArray<int> myArray = { 1, 2, 3, 4, 5 };

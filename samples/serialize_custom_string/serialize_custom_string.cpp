@@ -16,11 +16,11 @@ public:
 
 	bool operator<(const CMyString& rhs) const { return this->mString < rhs.mString; }
 
-	const char* data() const noexcept { return mString.data(); }
-	size_t size() const noexcept { return mString.size(); }
+	[[nodiscard]] const char* data() const noexcept { return mString.data(); }
+	[[nodiscard]] size_t size() const noexcept { return mString.size(); }
 
 	// Required methods for conversion from/to std::string (can be implemented as external functions)
-	std::string ToString() const { return mString; }
+	[[nodiscard]] std::string ToString() const { return mString; }
 	void FromString(std::string_view str) { mString = str; }
 
 private:
@@ -69,7 +69,7 @@ bool Serialize(TArchive& archive, CMyString& value)
 	return false;
 }
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
 	// Save list of custom strings to JSON
 	std::vector<CMyString> srcStrList = { "Red", "Green", "Blue" };

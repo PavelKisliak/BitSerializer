@@ -463,19 +463,19 @@ public:
 	}
 
 protected:
-	constexpr BinTestIoDataObjectPtr& GetAsObject() const
+	[[nodiscard]] constexpr BinTestIoDataObjectPtr& GetAsObject() const
 	{
 		return std::get<BinTestIoDataObjectPtr>(*mNode);
 	}
 
-	BinTestIoDataPtr LoadArchiveValueByKey(const key_type& key)
+	[[nodiscard]] BinTestIoDataPtr LoadArchiveValueByKey(const key_type& key)
 	{
 		const auto archiveObject = GetAsObject();
 		const auto it = archiveObject->find(key);
 		return it == archiveObject->end() ? nullptr : it->second;
 	}
 
-	BinTestIoDataPtr AddArchiveValue(const key_type& key) const
+	[[nodiscard]] BinTestIoDataPtr AddArchiveValue(const key_type& key) const
 	{
 		const auto archiveObject = GetAsObject();
 		decltype(auto) result = archiveObject->emplace(key, std::make_shared<BinTestIoData>());
@@ -483,12 +483,12 @@ protected:
 	}
 
 	template <class IoDataType, class SourceType>
-	BinTestIoDataPtr& SaveArchiveValue(const key_type& key, const SourceType& value)
+	[[nodiscard]] BinTestIoDataPtr& SaveArchiveValue(const key_type& key, const SourceType& value)
 	{
 		const auto& archiveObject = GetAsObject();
 		BinTestIoData ioData;
 		ioData.emplace<IoDataType>(value);
-		decltype(auto) result = archiveObject->emplace(key, std::move(ioData));
+		decltype(auto) result = archiveObject->emplace(key, std::make_shared<BinTestIoData>(std::move(ioData)));
 		return result.first->second;
 	}
 };

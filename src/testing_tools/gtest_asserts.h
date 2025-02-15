@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -74,7 +74,7 @@ void GTestExpectEq(const std::optional<TValue>& expected, const std::optional<TV
 	ASSERT_EQ(expected.has_value(), actual.has_value());
 	if (expected.has_value())
 	{
-		GTestExpectEq(expected.value(), actual.value());
+		GTestExpectEq(expected.value(), actual.value()); // NOLINT(bugprone-unchecked-optional-access)
 	}
 }
 

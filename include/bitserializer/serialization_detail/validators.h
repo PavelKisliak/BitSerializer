@@ -185,7 +185,7 @@ namespace BitSerializer
 			for (int i = 0; i < strSize && isValid; ++i)
 			{
 				++currentLabelSize;
-				if (const char_type ch = str[i]; ch == '.')
+				if (const char_type ch = static_cast<char_type>(str[i]); ch == '.')
 				{
 					// The dot cannot be first, last or appear consecutively
 					if (lastDotPos + 1 == i || strSize - 1 == i)
@@ -289,7 +289,7 @@ namespace BitSerializer
 			using char_type = std::make_unsigned_t<typename decltype(str)::value_type>;
 			for (size_t i = 0; i < strSize && error == nullptr; ++i)
 			{
-				if (const char_type ch = str[i]; digitCount == 0 && ch == '+') {
+				if (const char_type ch = static_cast<char_type>(str[i]); digitCount == 0 && ch == '+') {
 					hasPlus = true;
 				}
 				else if (ch >= '0' && ch <= '9')

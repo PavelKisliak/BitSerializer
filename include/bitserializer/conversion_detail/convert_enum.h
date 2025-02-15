@@ -135,8 +135,8 @@ namespace BitSerializer::Convert::Detail
 		}
 
 	private:
-		static inline EnumMetadata<TEnum>* mBeginIt = nullptr;
-		static inline EnumMetadata<TEnum>* mEndIt = nullptr;
+		static inline const EnumMetadata<TEnum>* mBeginIt = nullptr;
+		static inline const EnumMetadata<TEnum>* mEndIt = nullptr;
 	};
 
 	//------------------------------------------------------------------------------

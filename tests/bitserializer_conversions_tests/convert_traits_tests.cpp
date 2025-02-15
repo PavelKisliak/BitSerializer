@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -13,9 +13,9 @@ using namespace BitSerializer;
 class InternalConversionFixture
 {
 public:
-	std::string ToString() const { return std::string(); }
-	std::u16string ToU16String() const { return std::u16string(); }
-	std::u32string ToU32String() const { return std::u32string(); }
+	[[nodiscard]] std::string ToString() const { return {}; }
+	[[nodiscard]] std::u16string ToU16String() const { return {}; }
+	[[nodiscard]] std::u32string ToU32String() const { return {}; }
 
 	void FromString(std::string_view) { }
 	void FromString(std::wstring_view) { }

@@ -211,7 +211,7 @@ namespace BitSerializer::Convert::Detail
 	/// </summary>
 	/// <returns>Pointer to next character or nullptr when failed (in case when passed buffer is not enough)</returns>
 	template <class TRep, class TPeriod>
-	char* PrintSecondsFractions(char* pos, char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
+	char* PrintSecondsFractions(char* pos, const char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
 	{
 		static_assert(std::ratio_less_v<TPeriod, std::chrono::seconds::period>, "Source duration must be more precise than a second");
 		static_assert(std::ratio_greater_equal_v<TPeriod, std::chrono::nanoseconds::period>, "Maximum allowed precision is nanoseconds");

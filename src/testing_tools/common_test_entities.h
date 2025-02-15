@@ -174,20 +174,15 @@ public:
 	static constexpr char KeyName[] = "TestValue";
 
 	TestClassWithSubType()
+		: mAssertFunc([](const T& expected, const T& actual) { GTestExpectEq(expected, actual); })
 	{
 		::BuildFixture(mTestValue);
-		mAssertFunc = [](const T& expected, const T& actual) {
-			GTestExpectEq(expected, actual);
-		};
 	}
 
 	explicit TestClassWithSubType(T initValue)
 		: mTestValue(std::move(initValue))
-	{
-		mAssertFunc = [](const T& expected, const T& actual) {
-			GTestExpectEq(expected, actual);
-		};
-	}
+		, mAssertFunc([](const T& expected, const T& actual) { GTestExpectEq(expected, actual); })
+	{ }
 
 	TestClassWithSubType(std::function<void(const T&, const T&)> specialAssertFunc)
 		: mAssertFunc(std::move(specialAssertFunc))
@@ -195,16 +190,19 @@ public:
 		::BuildFixture(mTestValue);
 	}
 
-	static void BuildFixture(TestClassWithSubType& fixture) {
+	static void BuildFixture(TestClassWithSubType& fixture)
+	{
 		::BuildFixture(fixture.mTestValue);
 	}
 
-	void Assert(const TestClassWithSubType& actual) const {
+	void Assert(const TestClassWithSubType& actual) const
+	{
 		mAssertFunc(mTestValue, actual.mTestValue);
 	}
 
 	template <class TArchive>
-	void Serialize(TArchive& archive) {
+	void Serialize(TArchive& archive)
+	{
 		if constexpr (RequiredValidator == true) {
 			archive << BitSerializer::KeyValue(KeyName, mTestValue, BitSerializer::Required());
 		}

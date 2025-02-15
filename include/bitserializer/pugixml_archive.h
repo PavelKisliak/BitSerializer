@@ -20,7 +20,7 @@ namespace Detail {
 /// <summary>
 /// The traits of XML archive based on PugiXml
 /// </summary>
-struct PugiXmlArchiveTraits
+struct PugiXmlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Xml;
 	// Key type is related to PugiXml's definition PUGIXML_WCHAR_MODE

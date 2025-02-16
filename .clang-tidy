@@ -19,9 +19,16 @@ Checks: >
   -modernize-use-trailing-return-type,
   -modernize-use-using,
 
+  misc-*,
+  -misc-const-correctness,
+  -misc-definitions-in-headers,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
+  -misc-no-recursion,
+
   performance-*,
   -performance-enum-size,
   -performance-avoid-endl,
 
-WarningsAsErrors: 'clang-analyzer-*,bugprone-*'
+WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'

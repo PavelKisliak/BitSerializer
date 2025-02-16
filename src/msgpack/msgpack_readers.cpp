@@ -1247,7 +1247,7 @@ namespace BitSerializer::MsgPack::Detail
 			mBuffer.reserve(remainingSize);
 			while (remainingSize != 0)
 			{
-				if (std::string_view chunk = mBinaryStreamReader.ReadByChunks(remainingSize); !chunk.empty())
+				if (const std::string_view chunk = mBinaryStreamReader.ReadByChunks(remainingSize); !chunk.empty())
 				{
 					mBuffer += chunk;
 					remainingSize -= chunk.size();

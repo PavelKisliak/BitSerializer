@@ -1,11 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cassert>
 #include <optional>
-#include <sstream>
 #include <type_traits>
 #include <variant>
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -83,7 +82,7 @@ namespace PugiXmlExtensions
 		try
 		{
 			// Empty node is treated as Null
-			if (const auto strValue = node.text().as_string(nullptr))
+			if (const pugi::char_t* strValue = node.text().as_string(nullptr))
 			{
 				value = Convert::To<T>(strValue);
 				return true;
@@ -116,7 +115,7 @@ namespace PugiXmlExtensions
 	inline bool LoadValue(const pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type& value, const SerializationOptions&)
 	{
 		// Empty node is treated as Null
-		if (const auto strValue = node.text().as_string(nullptr))
+		if (const pugi::char_t* strValue = node.text().as_string(nullptr))
 		{
 			value = strValue;
 			return true;
@@ -319,29 +318,36 @@ public:
 			}
 			else if constexpr (std::is_integral_v<T>)
 			{
-				if constexpr (std::is_same_v<T, int64_t>)
+				if constexpr (std::is_same_v<T, int64_t>) {
 					value = attr.as_llong();
-				else if constexpr (std::is_same_v<T, uint64_t>)
+				}
+				else if constexpr (std::is_same_v<T, uint64_t>) {
 					value = attr.as_ullong();
-				else if constexpr (std::is_unsigned_v<T>)
+				}
+				else if constexpr (std::is_unsigned_v<T>) {
 					value = static_cast<T>(attr.as_uint());
-				else
+				}
+				else {
 					value = static_cast<T>(attr.as_int());
+				}
 			}
 			else if constexpr (std::is_floating_point_v<T>)
 			{
-				if constexpr (std::is_same_v<T, float>)
+				if constexpr (std::is_same_v<T, float>) {
 					value = attr.as_float();
-				else if constexpr (std::is_same_v<T, double>)
+				}
+				else if constexpr (std::is_same_v<T, double>) {
 					value = attr.as_double();
+				}
 			}
 			return true;
 		}
 		else
 		{
 			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
-			if (attr.empty())
+			if (attr.empty()) {
 				return false;
+			}
 			if constexpr (!std::is_null_pointer_v<T>) {
 				attr.set_value(value);
 			}
@@ -355,8 +361,9 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
-			if (attr.empty())
+			if (attr.empty()) {
 				return false;
+			}
 
 			value = attr.as_string();
 			return true;
@@ -364,8 +371,9 @@ public:
 		else
 		{
 			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
-			if (attr.empty())
+			if (attr.empty()) {
 				return false;
+			}
 
 			attr.set_value(value.data(), value.size());
 			return true;
@@ -424,15 +432,17 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
-			if (child.empty())
+			if (child.empty()) {
 				return false;
+			}
 			return PugiXmlExtensions::LoadValue(child, value, this->GetOptions());
 		}
 		else
 		{
 			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
-			if (child.empty())
+			if (child.empty()) {
 				return false;
+			}
 			PugiXmlExtensions::SaveValue(child, value);
 			return true;
 		}
@@ -505,8 +515,9 @@ public:
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load_buffer(inputStr.data(), inputStr.size(), pugi::parse_default, pugi::encoding_utf8);
-		if (!result)
+		if (!result) {
 			throw ParsingException(result.description(), 0, result.offset);
+		}
 	}
 
 	PugiXmlRootScope(std::string& outputStr, SerializationContext& serializationContext)
@@ -522,8 +533,9 @@ public:
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		const auto result = mRootXml.load(inputStream);
-		if (!result)
+		if (!result) {
 			throw ParsingException(result.description(), 0, result.offset);
+		}
 	}
 
 	PugiXmlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)

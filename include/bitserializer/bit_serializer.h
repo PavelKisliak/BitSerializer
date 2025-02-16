@@ -126,16 +126,18 @@ namespace BitSerializer
 	/// <param name="object">The serializing object.</param>
 	/// <param name="path">The file path.</param>
 	/// <param name="serializationOptions">The serialization options.</param>
-	template <typename TArchive, typename T, typename TString>
-	static void LoadObjectFromFile(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions)
+	template <typename TArchive, typename T, typename TPath>
+	static void LoadObjectFromFile(T&& object, TPath&& path, const SerializationOptions& serializationOptions = DefaultOptions)
 	{
 		using preferred_stream_char_type = typename TArchive::preferred_stream_char_type;
-		std::basic_ifstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
+		std::basic_ifstream<preferred_stream_char_type> stream;
 		stream.open(path, std::ifstream::in | std::ifstream::binary);
-		if (stream.is_open())
+		if (stream.is_open()) {
 			LoadObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
-		else
-			throw SerializationException(SerializationErrorCode::InputOutputError, "File not found: " + Convert::ToString(std::forward<TString>(path)));
+		}
+		else {
+			throw SerializationException(SerializationErrorCode::InputOutputError, "File not found: " + Convert::ToString(std::forward<TPath>(path)));
+		}
 	}
 
 	/// <summary>
@@ -145,25 +147,27 @@ namespace BitSerializer
 	/// <param name="path">The file path.</param>
 	/// <param name="serializationOptions">The serialization options.</param>
 	/// <param name="overwrite">Overwrite if already exists.</param>
-	template <typename TArchive, typename T, typename TString>
-	static void SaveObjectToFile(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions, bool overwrite = false)
+	template <typename TArchive, typename T, typename TPath>
+	static void SaveObjectToFile(T&& object, TPath&& path, const SerializationOptions& serializationOptions = DefaultOptions, bool overwrite = false)
 	{
 		// Check if file already exists
 		if (!overwrite)
 		{
 			if (std::ifstream stream(path); stream.good())
 			{
-				throw SerializationException(SerializationErrorCode::InputOutputError, "File already exists: " + Convert::ToString(std::forward<TString>(path)));
+				throw SerializationException(SerializationErrorCode::InputOutputError, "File already exists: " + Convert::ToString(std::forward<TPath>(path)));
 			}
 		}
 
 		using preferred_stream_char_type = typename TArchive::preferred_stream_char_type;
-		std::basic_ofstream<preferred_stream_char_type, std::char_traits<preferred_stream_char_type>> stream;
+		std::basic_ofstream<preferred_stream_char_type> stream;
 		stream.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
-		if (stream.is_open())
+		if (stream.is_open()) {
 			SaveObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
-		else
-			throw SerializationException(SerializationErrorCode::InputOutputError, "Could not open file: " + Convert::ToString(std::forward<TString>(path)));
+		}
+		else {
+			throw SerializationException(SerializationErrorCode::InputOutputError, "Could not open file: " + Convert::ToString(std::forward<TPath>(path)));
+		}
 	}
 
 } // namespace BitSerializer

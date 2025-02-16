@@ -421,7 +421,7 @@ namespace BitSerializer::Convert::Detail
 	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
 	///	Fractions of second will be rendered only when they present (non-zero).
 	/// </summary>
-	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<(TClock::is_steady == false), int> = 0>
+	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<!TClock::is_steady, int> = 0>
 	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		using TDays = std::chrono::duration<typename TDuration::rep, std::ratio<86400>>;
@@ -465,7 +465,7 @@ namespace BitSerializer::Convert::Detail
 	///	- 1872-01-01T00:00:00Z
 	///	- 2023-07-14T22:44:51.925Z
 	/// </summary>
-	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
+	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
 		const CDateTimeParts<> utc = ParseIsoUtc(in);

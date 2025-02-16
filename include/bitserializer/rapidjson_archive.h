@@ -208,10 +208,12 @@ public:
 	[[nodiscard]] std::string GetPath() const override
 	{
 		int64_t index;
-		if constexpr (TMode == SerializeMode::Load)
+		if constexpr (TMode == SerializeMode::Load) {
 			index = std::distance(this->mNode->Begin(), mValueIt);
-		else
+		}
+		else {
 			index = this->mNode->GetArray().Size();
+		}
 		return RapidJsonScopeBase<TEncoding>::GetPath() + RapidJsonArchiveTraits<TEncoding>::path_separator + Convert::ToString(index);
 	}
 
@@ -500,8 +502,9 @@ public:
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-		if (mRootJson.Parse(encodedInputStr.data(), encodedInputStr.length()).HasParseError())
+		if (mRootJson.Parse(encodedInputStr.data(), encodedInputStr.length()).HasParseError()) {
 			throw ParsingException(rapidjson::GetParseError_En(mRootJson.GetParseError()), 0, mRootJson.GetErrorOffset());
+		}
 	}
 
 	RapidJsonRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
@@ -520,8 +523,9 @@ public:
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 		rapidjson::IStreamWrapper isw(encodedInputStream);
 		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);
-		if (mRootJson.ParseStream(eis).HasParseError())
+		if (mRootJson.ParseStream(eis).HasParseError()) {
 			throw ParsingException(rapidjson::GetParseError_En(mRootJson.GetParseError()), 0, mRootJson.GetErrorOffset());
+		}
 	}
 
 	RapidJsonRootScope(std::ostream& outputStream, SerializationContext& serializationContext)

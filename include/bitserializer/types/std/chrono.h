@@ -13,7 +13,7 @@ namespace BitSerializer
 	/// <summary>
 	/// Serializes std::chrono::time_point (wall clock types) as ISO 8601 string in format: YYYY-MM-DDThh:mm:ss[.SSS]Z.
 	/// </summary>
-	template <typename TArchive, typename TKey, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
+	template <typename TArchive, typename TKey, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
 		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
@@ -53,7 +53,7 @@ namespace BitSerializer
 	/// <summary>
 	/// Serializes std::chrono::time_point (wall clock types) as ISO 8601 string in format: YYYY-MM-DDThh:mm:ss[.SSS]Z.
 	/// </summary>
-	template<typename TArchive, typename TClock, typename TDuration, std::enable_if_t<(TClock::is_steady == false), int> = 0>
+	template<typename TArchive, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	bool Serialize(TArchive& archive, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
 		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)

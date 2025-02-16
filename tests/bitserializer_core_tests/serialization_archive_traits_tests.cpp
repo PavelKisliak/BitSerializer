@@ -7,6 +7,8 @@
 
 using namespace BitSerializer;
 
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+
 /// <summary>
 /// Test archive, which implements loading mode and serialization types WITHOUT keys
 /// </summary>
@@ -238,3 +240,5 @@ TEST(SerializationArchiveTraits, ShouldCheckThatFloatingTypeConvertibleToOneFrom
 	bool testResult4 = is_convertible_to_one_from_tuple_v<double, std::tuple<uint64_t>>;
 	EXPECT_FALSE(testResult4);
 }
+
+// NOLINTEND(readability-convert-member-functions-to-static)

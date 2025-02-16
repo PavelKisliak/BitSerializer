@@ -60,8 +60,9 @@ namespace BitSerializer::KeyValueProxy
 		if constexpr (hasSupportAttributes)
 		{
 			auto attributesScope = archive.OpenAttributeScope();
-			if (attributesScope)
+			if (attributesScope) {
 				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TValidators...>>(keyValue));
+			}
 		}
 	}
 }

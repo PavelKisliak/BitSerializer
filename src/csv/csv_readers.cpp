@@ -166,7 +166,7 @@ namespace BitSerializer::Csv::Detail
 			}
 
 			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
-			out_values.emplace_back(startValuePos, endValuePos - startValuePos, doubleQuotesCount ? true : false);
+			out_values.emplace_back(startValuePos, endValuePos - startValuePos, doubleQuotesCount != 0);
 
 			// Handle end of file (RFC: The last record in the file may or may not have an ending line break)
 			if (mCurrentPos == mSourceString.size())
@@ -406,7 +406,7 @@ namespace BitSerializer::Csv::Detail
 			}
 
 			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
-			out_values.emplace_back(startValuePos, endValuePos - startValuePos, doubleQuotesCount ? true : false);
+			out_values.emplace_back(startValuePos, endValuePos - startValuePos, doubleQuotesCount != 0);
 		}
 
 		// When entire buffer has been parsed, need to read next chunk for detect end of file

@@ -107,8 +107,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			static bool LoadValue(const RapidYamlNode& yamlValue, string_view_type& value)
 			{
-				if (!yamlValue.is_val() && !yamlValue.is_keyval())
+				if (!yamlValue.is_val() && !yamlValue.is_keyval()) {
 					return false;
+				}
 
 				if (IsNullYamlValue(yamlValue.val())) {
 					return false;

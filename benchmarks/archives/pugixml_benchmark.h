@@ -50,8 +50,9 @@ public:
 	{
 		pugi::xml_document mDoc;
 		const auto result = mDoc.load_buffer(mNativeLibOutputData.data(), mNativeLibOutputData.size(), pugi::parse_default, pugi::encoding_utf8);
-		if (!result)
+		if (!result) {
 			throw std::runtime_error("PugiXml parse error");
+		}
 
 		const auto rootNode = mDoc.child(PUGIXML_TEXT("array"));
 

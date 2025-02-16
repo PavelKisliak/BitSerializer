@@ -203,7 +203,7 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		if constexpr (RequiredValidator == true) {
+		if constexpr (RequiredValidator) {
 			archive << BitSerializer::KeyValue(KeyName, mTestValue, BitSerializer::Required());
 		}
 		else {
@@ -232,8 +232,9 @@ public:
 	template<std::size_t I = 0>
 	static void BuildFixture(TestClassWithSubTypes& fixture)
 	{
-		if constexpr (I == sizeof...(Args))
+		if constexpr (I == sizeof...(Args)) {
 			return;
+		}
 		else
 		{
 			decltype(auto) member = std::get<I>(fixture);
@@ -247,8 +248,9 @@ public:
 	template<std::size_t I = 0>
 	void Assert(const TestClassWithSubTypes& rhs) const
 	{
-		if constexpr (I == sizeof...(Args))
+		if constexpr (I == sizeof...(Args)) {
 			return;
+		}
 		else
 		{
 			// Get class member
@@ -279,8 +281,9 @@ protected:
 	template <class TArchive, std::size_t Index = 0, bool Reverse=false>
 	void SerializeImpl(TArchive& archive)
 	{
-		if constexpr (Index >= sizeof...(Args))
+		if constexpr (Index >= sizeof...(Args)) {
 			return;
+		}
 		else
 		{
 			decltype(auto) member = std::get<Index>(*this);
@@ -525,8 +528,9 @@ public:
 	template<std::size_t I = 0>
 	static void BuildFixture(TestClassWithAttributes& fixture)
 	{
-		if constexpr (I == sizeof...(Args))
+		if constexpr (I == sizeof...(Args)) {
 			return;
+		}
 		else
 		{
 			decltype(auto) member = std::get<I>(fixture);
@@ -540,8 +544,9 @@ public:
 	template<std::size_t I = 0>
 	void Assert(const TestClassWithAttributes& rhs) const
 	{
-		if constexpr (I == sizeof...(Args))
+		if constexpr (I == sizeof...(Args)) {
 			return;
+		}
 		else
 		{
 			// Get class member
@@ -559,8 +564,9 @@ public:
 	template <class TArchive, std::size_t I = 0>
 	void Serialize(TArchive& archive)
 	{
-		if constexpr (I == sizeof...(Args))
+		if constexpr (I == sizeof...(Args)) {
 			return;
+		}
 		else
 		{
 			decltype(auto) member = std::get<I>(*this);

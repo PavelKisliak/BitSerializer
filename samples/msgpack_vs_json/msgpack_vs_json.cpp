@@ -43,7 +43,9 @@ std::string PrintAsHexString(const std::string& data)
 	std::string result;
 	for (const char ch : data)
 	{
-		if (!result.empty()) result.push_back(' ');
+		if (!result.empty()) {
+			result.push_back(' ');
+		}
 		result.append({ hexChars[(ch & 0xF0) >> 4], hexChars[(ch & 0x0F) >> 0]});
 	}
 	return result;
@@ -54,7 +56,9 @@ void TestSaveAs(std::string_view archiveName, TTestValue& testValue)
 {
 	auto result = BitSerializer::SaveObject<TArchive>(testValue);
 	const auto resultSize = std::to_string(result.size());
-	if constexpr (TArchive::is_binary) result = PrintAsHexString(result);
+	if constexpr (TArchive::is_binary) {
+		result = PrintAsHexString(result);
+	}
 
 	const size_t lines = (result.size() / DataColumnWidth) + (result.size() % DataColumnWidth ? 1 : 0);
 	for (size_t i = 0; i < lines; ++i)

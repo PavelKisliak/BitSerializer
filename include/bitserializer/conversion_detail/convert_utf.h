@@ -713,7 +713,9 @@ namespace BitSerializer::Convert::Utf
 		const auto endIt = std::cend(inputString);
 		for (const char ch : TUtfTraits::bom)
 		{
-			if (it == endIt || *it != ch) return false;
+			if (it == endIt || *it != ch) {
+				return false;
+			}
 			++it;
 		}
 		return true;
@@ -1062,7 +1064,7 @@ namespace BitSerializer::Convert::Utf
 							static_cast<std::streamsize>(utfToolset.second.size() * sizeof(decltype(utfToolset.second.front()))));
 						return UtfEncodingErrorCode::Success;
 					}
-					else {
+					else {	// NOLINT(readability-else-after-return)
 						return result.ErrorCode;
 					}
 				}

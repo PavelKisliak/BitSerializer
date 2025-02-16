@@ -79,7 +79,7 @@ namespace BitSerializer::Convert::Detail
 		const auto* end = it + in.size();
 
 		// ReSharper disable once CppPossiblyErroneousEmptyStatements
-		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it);	// Skip spaces
+		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it) {}	// Skip spaces
 
 		const auto validateResult = [](std::from_chars_result rc, std::string_view str)
 		{
@@ -124,7 +124,7 @@ namespace BitSerializer::Convert::Detail
 		const auto* endIt = startIt + in.size();
 
 		// ReSharper disable once CppPossiblyErroneousEmptyStatements
-		for (; (startIt != endIt) && (*startIt == 0x20 || *startIt == 0x09); ++startIt);	// Skip spaces
+		for (; (startIt != endIt) && (*startIt == 0x20 || *startIt == 0x09); ++startIt) {}	// Skip spaces
 
 		const auto size = endIt - startIt;
 		if (size >= 1)

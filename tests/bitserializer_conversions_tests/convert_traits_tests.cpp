@@ -7,6 +7,8 @@
 
 using namespace BitSerializer;
 
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+
 /// <summary>
 /// Test class with internal string conversions methods.
 /// </summary>
@@ -20,6 +22,8 @@ public:
 	void FromString(std::string_view) { }
 	void FromString(std::wstring_view) { }
 };
+
+// NOLINTEND(readability-convert-member-functions-to-static)
 
 /// <summary>
 /// Test class with external string conversions methods.

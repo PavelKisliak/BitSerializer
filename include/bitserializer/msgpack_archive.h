@@ -416,7 +416,7 @@ public:
 	/// <summary>
 	/// Gets the current path in MsgPack.
 	/// </summary>
-	[[nodiscard]] std::string GetPath() const noexcept
+	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
 	}
@@ -447,7 +447,7 @@ public:
 		return std::make_optional<CMsgPackWriteBinaryScope<IMsgPackWriter>>(binarySize, mMsgPackWriter.get(), GetContext());
 	}
 
-	void Finalize() const noexcept { /* Not required */ }
+	static constexpr void Finalize() noexcept { /* Not required */ }
 
 private:
 	std::unique_ptr<IMsgPackWriter> mMsgPackWriter;
@@ -882,7 +882,7 @@ public:
 	/// <summary>
 	/// Gets the current path in MsgPack.
 	/// </summary>
-	[[nodiscard]] std::string GetPath() const noexcept
+	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
 	}
@@ -918,7 +918,7 @@ public:
 		return std::nullopt;
 	}
 
-	void Finalize() const noexcept { /* Not required */ }
+	static constexpr void Finalize() noexcept { /* Not required */ }
 
 private:
 	std::unique_ptr<IMsgPackReader> mMsgPackReader;

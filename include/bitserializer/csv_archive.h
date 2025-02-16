@@ -150,7 +150,7 @@ public:
 	/// <summary>
 	/// Gets the current path in CSV.
 	/// </summary>
-	[[nodiscard]] std::string GetPath() const noexcept
+	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
 	}
@@ -201,7 +201,7 @@ public:
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
-		for (auto& key : mCsvReader->GetHeaders()) {
+		for (const auto& key : mCsvReader->GetHeaders()) {
 			fn(key);
 		}
 	}
@@ -297,7 +297,7 @@ public:
 	/// <summary>
 	/// Returns the estimated number of items to load (for reserving the size of containers).
 	/// </summary>
-	[[nodiscard]] size_t GetEstimatedSize() const noexcept
+	[[nodiscard]] static constexpr size_t GetEstimatedSize() noexcept
 	{
 		return 0;
 	}
@@ -336,7 +336,7 @@ public:
 	/// <summary>
 	/// Gets the current path in CSV.
 	/// </summary>
-	[[nodiscard]] std::string GetPath() const noexcept
+	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
 	}

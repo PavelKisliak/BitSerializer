@@ -429,8 +429,9 @@ template <typename T, typename TComparer, typename TAllocator>
 	for (size_t i = 0; i < size; i++)
 	{
 		// Duplicated element
-		if (i % 2 == 0)
+		if (i % 2 == 0) {
 			BuildFixture(element);
+		}
 		cont.insert(element);
 	}
 }
@@ -458,8 +459,9 @@ template <typename T, typename THasher, typename TKeyEq, typename TAllocator>
 	for (size_t i = 0; i < size; i++)
 	{
 		// Duplicated element
-		if (i % 2 == 0)
+		if (i % 2 == 0) {
 			BuildFixture(element);
+		}
 		cont.insert(element);
 	}
 }
@@ -486,8 +488,9 @@ template <typename TKey, typename TValue, typename TComparer, typename TAllocato
 	TKey key;
 	for (size_t i = 0; i < size; i++)
 	{
-		if (i % 2 == 0)
+		if (i % 2 == 0) {
 			BuildFixture(key);
+		}
 		TValue value;
 		BuildFixture(value);
 		cont.emplace(key, std::move(value));
@@ -516,8 +519,9 @@ template <typename TKey, typename TValue, typename THasher, typename TKeyEq, typ
 	TKey key;
 	for (size_t i = 0; i < size; i++)
 	{
-		if (i % 2 == 0)
+		if (i % 2 == 0) {
 			BuildFixture(key);
+		}
 		TValue value;
 		BuildFixture(value);
 		cont.emplace(key, std::move(value));

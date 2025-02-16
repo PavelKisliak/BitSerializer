@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -155,8 +155,9 @@ protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	void SaveFundamentalValue(TestIoData& ioData, T& value)
 	{
-		if constexpr (std::is_same_v<T, bool>)
+		if constexpr (std::is_same_v<T, bool>) {
 			ioData.emplace<bool>(value);
+		}
 		else if constexpr (std::is_integral_v<T>)
 		{
 			if constexpr (std::is_signed_v<T>) {
@@ -166,22 +167,25 @@ protected:
 				ioData.emplace<uint64_t>(value);
 			}
 		}
-		else if constexpr (std::is_floating_point_v<T>)
+		else if constexpr (std::is_floating_point_v<T>) {
 			ioData.emplace<double>(value);
-		else if constexpr (std::is_null_pointer_v<T>)
+		}
+		else if constexpr (std::is_null_pointer_v<T>) {
 			ioData.emplace<std::nullptr_t>(value);
+		}
 	}
 
-	bool LoadString(const TestIoData& ioData, string_view_type& value)
+	static bool LoadString(const TestIoData& ioData, string_view_type& value)
 	{
-		if (!std::holds_alternative<key_type>(ioData))
+		if (!std::holds_alternative<key_type>(ioData)) {
 			return false;
+		}
 
 		value = std::get<key_type>(ioData);
 		return true;
 	}
 
-	void SaveString(TestIoData& ioData, string_view_type& value)
+	static void SaveString(TestIoData& ioData, string_view_type& value)
 	{
 		ioData.emplace<key_type>(value);
 	}
@@ -236,9 +240,11 @@ public:
 	{
 		if (TestIoDataPtr ioData = LoadNextItem())
 		{
-			if constexpr (TMode == SerializeMode::Load)
+			if constexpr (TMode == SerializeMode::Load) {
 				return LoadString(*ioData, value);
-			else {
+			}
+			else
+			{
 				SaveString(*ioData, value);
 				return true;
 			}
@@ -251,9 +257,11 @@ public:
 	{
 		if (TestIoDataPtr ioData = LoadNextItem())
 		{
-			if constexpr (TMode == SerializeMode::Load)
+			if constexpr (TMode == SerializeMode::Load) {
 				return LoadFundamentalValue(*ioData, value, this->GetOptions());
-			else {
+			}
+			else
+			{
 				SaveFundamentalValue(*ioData, value);
 				return true;
 			}
@@ -409,8 +417,9 @@ public:
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto archiveValue = LoadArchiveValueByKey(key);
-			if (archiveValue != nullptr && std::holds_alternative<TestIoDataArrayPtr>(*archiveValue))
+			if (archiveValue != nullptr && std::holds_alternative<TestIoDataArrayPtr>(*archiveValue)) {
 				return std::make_optional<ArchiveStubArrayScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
+			}
 			return std::nullopt;
 		}
 		else
@@ -485,9 +494,11 @@ public:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool SerializeValue(T& value)
 	{
-		if constexpr (TMode == SerializeMode::Load)
+		if constexpr (TMode == SerializeMode::Load) {
 			return LoadFundamentalValue(*mInputData->Data, value, this->GetOptions());
-		else {
+		}
+		else
+		{
 			SaveFundamentalValue(*mOutputData->Data, value);
 			return true;
 		}
@@ -495,8 +506,9 @@ public:
 
 	bool SerializeValue(string_view_type& value)
 	{
-		if constexpr (TMode == SerializeMode::Load)
+		if constexpr (TMode == SerializeMode::Load) {
 			return LoadString(*mInputData->Data, value);
+		}
 		else {
 			SaveString(*mOutputData->Data, value);
 			return true;

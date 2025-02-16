@@ -65,8 +65,9 @@ namespace BitSerializer
 			}
 			else
 			{
-				if (mapLoadMode == MapLoadMode::Clean)
+				if (mapLoadMode == MapLoadMode::Clean) {
 					cont.clear();
+				}
 
 				if constexpr (has_reserve_v<TMap>)
 				{
@@ -91,8 +92,9 @@ namespace BitSerializer
 							break;
 						case MapLoadMode::OnlyExistKeys:
 							hint = cont.find(key);
-							if (hint != cont.end())
+							if (hint != cont.end()) {
 								Serialize(scope, archiveKey, hint->second);
+							}
 							break;
 						case MapLoadMode::UpdateKeys:
 							Serialize(scope, archiveKey, cont[key]);

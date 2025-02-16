@@ -30,5 +30,14 @@ Checks: >
   -performance-enum-size,
   -performance-avoid-endl,
 
+  readability-*,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -readability-implicit-bool-conversion,
+  -readability-function-cognitive-complexity,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-uppercase-literal-suffix,
+
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'

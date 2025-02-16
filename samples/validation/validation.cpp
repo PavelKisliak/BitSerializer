@@ -21,8 +21,9 @@ public:
 		archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string>
 		{
 			// Loaded string should has text without spaces or should be NULL
-			if (!isLoaded || value.find_first_of(' ') == std::string::npos)
+			if (!isLoaded || value.find_first_of(' ') == std::string::npos) {
 				return std::nullopt;
+			}
 			return "The field must not contain spaces";
 		});
 	}

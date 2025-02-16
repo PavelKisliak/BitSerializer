@@ -28,7 +28,7 @@ template <class TArchive> void SerializeObject(TArchive&, TestExtSerializableCla
 class TestExtSerializableArray
 {
 public:
-	[[nodiscard]] int32_t GetSize() const { return 0; }
+	[[nodiscard]] constexpr int32_t GetSize() const { return 0; }  // NOLINT(readability-convert-member-functions-to-static)
 };
 template <class TArchive> void SerializeArray(TArchive&, TestExtSerializableArray&) { }
 

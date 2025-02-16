@@ -203,7 +203,7 @@ TEST_F(CsvArchiveTests, ThrowParsingExceptionWithCorrectPosition)
 	TestPointClass testList[2];
 	try
 	{
-		const auto testCsv = "x,y\n10,20\n11,\"21\n";
+		constexpr char testCsv[] = "x,y\n10,20\n11,\"21\n";
 		BitSerializer::LoadObject<CsvArchive>(testList, testCsv);
 		EXPECT_FALSE(true);
 	}

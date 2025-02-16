@@ -251,7 +251,7 @@ TEST(RapidYamlArchive, ThrowParsingExceptionWithCorrectPosition)
 	TestPointClass testList[2];
 	try
 	{
-		const auto testYaml = "- 10\n- 20\n30";
+		constexpr char testYaml[] = "- 10\n- 20\n30";
 		BitSerializer::LoadObject<YamlArchive>(testList, testYaml);
 		EXPECT_FALSE(true);
 	}

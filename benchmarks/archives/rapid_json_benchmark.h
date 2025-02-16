@@ -64,13 +64,14 @@ public:
 	size_t LoadModelViaNativeLib() override
 	{
 		RapidJsonDocument jsonDoc;
-		if (jsonDoc.Parse(mNativeLibOutputData.data(), mNativeLibOutputData.size()).HasParseError())
+		if (jsonDoc.Parse(mNativeLibOutputData.data(), mNativeLibOutputData.size()).HasParseError()) {
 			throw std::runtime_error("RapidJson parse error");
+		}
 		const auto& jArray = jsonDoc.GetArray();
 
 		// Load array of objects
 		int i = 0;
-		for (auto jItem = jArray.Begin(); jItem != jArray.End(); ++jItem)
+		for (auto* jItem = jArray.Begin(); jItem != jArray.End(); ++jItem)
 		{
 			auto& obj = mNativeLibModel[i];
 			const auto& jObj = jItem->GetObject();

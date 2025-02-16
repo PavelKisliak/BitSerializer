@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_entities.h"
@@ -90,33 +90,30 @@ TEST(ConvertClasses, ConvertFromAnyStringViaInternalFromUtf32String) {
 //-----------------------------------------------------------------------------
 // Test conversion via global function
 //-----------------------------------------------------------------------------
-class Utf8ExternalConvertFixture
+class CExternalConvertFixture
 {
 public:
-	Utf8ExternalConvertFixture() = default;
-	explicit Utf8ExternalConvertFixture(std::string expectedValue) noexcept : value(std::move(expectedValue)) { }
+	CExternalConvertFixture() = default;
+	explicit CExternalConvertFixture(std::string expectedValue) noexcept : value(std::move(expectedValue)) { }
 
 	std::string value;
 };
 
-
-// ReSharper disable once CppDeclaratorNeverUsed
-static void To(const Utf8ExternalConvertFixture& in, std::string& out)
+void To(const CExternalConvertFixture& in, std::string& out)
 {
 	out = in.value;
 }
 
-// ReSharper disable once CppDeclaratorNeverUsed
-static void To(std::string_view in, Utf8ExternalConvertFixture& out)
+void To(std::string_view in, CExternalConvertFixture& out)
 {
 	out.value = in;
 }
 
 TEST(ConvertClasses, ConvertToStringViaExternalConvertFunc) {
-	const auto testFixture = Utf8ExternalConvertFixture("16384");
+	const auto testFixture = CExternalConvertFixture("16384");
 	EXPECT_EQ("16384", Convert::ToString(testFixture));
 }
 
 TEST(ConvertClasses, ConvertFromStringViaExternalConvertFunc) {
-	EXPECT_EQ("16384", Convert::To<Utf8ExternalConvertFixture>("16384").value);
+	EXPECT_EQ("16384", Convert::To<CExternalConvertFixture>("16384").value);
 }

@@ -415,7 +415,7 @@ bool Serialize(TArchive& archive, CMyString& value);
 These two functions are necessary for serialization any type with and without **key** into the output archive.
 For example, object in the JSON format, has named properties, but JSON-array can contain only values.
 
-Additionally, you will need to implement string conversion methods, please read more about ([convert sub-module](docs/bitserializer_convert.md)).
+Additionally, you will need to implement string conversion methods (internal or global), please read more about ([convert sub-module](docs/bitserializer_convert.md)).
 They will add support for using string types as keys, for example it will allow serialization of `std::map<CMyString, int>` where `CMyString` is used as a key.
 
 This all looks a bit more complicated than serializing an object, but the code is pretty simple, please have a look at the example below:

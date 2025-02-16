@@ -7,14 +7,12 @@ parameters:
   installToolsCmd: ''
 # [Required] URL to download the compiler
   compilerUrl: ''
-# [Optional] Directory with cached packages
-  vcpkgCacheDir: /home/vsts/.cache/vcpkg/archives/
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
-# [Optional] Enable build Debug version
-  enableDebugBuild: false
+# [Optional] Build configuration (Debug, Release)
+  buildConfiguration: 'Release'
 # [Optional] Enable run tests
   enableRunTests: true
 
@@ -47,68 +45,36 @@ jobs:
       ./bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 
+  - script: |
+      mkdir build
+      cmake --version
+    displayName: Make Build directory
+
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | v6 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v7 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v6 | ${{ parameters.name }}
-      path: ${{ parameters.vcpkgCacheDir }}
+        vcpkg | v7 | ${{ parameters.name }}
+      path: ./build/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
 
-  - script: |
-      mkdir build.debug
-      mkdir build.release
-      cmake --version
-    displayName: Make Build directories
-
   - task: CMake@1
     inputs:
-      workingDirectory: 'build.debug'
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
-    displayName: 'Cmake - generate debug'
-    condition: eq('${{ parameters.enableDebugBuild }}', true)
+      workingDirectory: 'build'
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
+    displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
 
   - script: |
-      cd build.debug
-      cmake --build .
-    displayName: 'Build [Debug]'
-    condition: eq('${{ parameters.enableDebugBuild }}', true)
-
-  - script: |
-      cd build.debug
-      ctest -C Debug -T test --output-on-failure
-    displayName: 'Run tests [Debug]'
-    continueOnError: true
-    condition: and(eq('${{ parameters.enableRunTests }}', true), eq('${{ parameters.enableDebugBuild }}', true))
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'cTest'
-      testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(System.DefaultWorkingDirectory)/build.debug'
-      testRunTitle: '${{ parameters.name }} [Debug]'
-      buildPlatform: 'x64'
-      buildConfiguration: 'Debug'
-    displayName: 'Publish Test results [Debug]'
-    condition: and(eq('${{ parameters.enableRunTests }}', true), eq('${{ parameters.enableDebugBuild }}', true))
-
-  - task: CMake@1
-    inputs:
-      workingDirectory: 'build.release'
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
-    displayName: 'Cmake - generate release'
-
-  - script: |
-      cd build.release
+      cd build
       ninja
-    displayName: 'Build [Release]'
+    displayName: 'Build [${{ parameters.buildConfiguration }}]'
 
   - script: |
-      cd build.release
-      ctest -C Release -T test --output-on-failure
-    displayName: 'Run tests [Release]'
+      cd build
+      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure
+    displayName: 'Run tests'
     continueOnError: true
     condition: eq('${{ parameters.enableRunTests }}', true)
 
@@ -116,9 +82,9 @@ jobs:
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(System.DefaultWorkingDirectory)/build.release'
-      testRunTitle: '${{ parameters.name }} [Release]'
+      searchFolder: '$(System.DefaultWorkingDirectory)/build'
+      testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: 'x64'
-      buildConfiguration: 'Release'
-    displayName: 'Publish Test results [Release]'
+      buildConfiguration: '${{ parameters.buildConfiguration }}'
+    displayName: 'Publish Test results'
     condition: eq('${{ parameters.enableRunTests }}', true)

@@ -44,7 +44,6 @@ jobs:
       platform: 'x64'
       vcpkgTriplet: "x64-windows"
       cmakeGenArgs: '$(CmakeGenOptions)'
-      enableDebugBuild: false
 
   - template: windows-jobs-template.yml
     parameters:
@@ -53,7 +52,6 @@ jobs:
       platform: 'Win32'
       vcpkgTriplet: "x86-windows"
       cmakeGenArgs: '$(CmakeGenOptions)'
-      enableDebugBuild: false
 
   - template: windows-jobs-template.yml
     parameters:
@@ -62,7 +60,6 @@ jobs:
       platform: 'x64'
       vcpkgTriplet: "x64-windows"
       cmakeGenArgs: '$(CmakeGenOptions)'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -71,7 +68,6 @@ jobs:
       installToolsCmd: 'sudo apt-get install gcc-8 g++-8 ninja-build'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -80,7 +76,6 @@ jobs:
       installToolsCmd: 'sudo apt-get install gcc-12 g++-12 ninja-build'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_CXX_STANDARD=20'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -89,7 +84,6 @@ jobs:
       installToolsCmd: 'sudo apt-get install clang-8 ninja-build --install-suggests'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -98,7 +92,6 @@ jobs:
       installToolsCmd: 'sudo apt-get install clang-15 ninja-build --install-suggests'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -106,9 +99,7 @@ jobs:
       image: 'macOS-13'
       installToolsCmd: 'brew install ninja'
       vcpkgTriplet: "x64-osx"
-      vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
       cmakeGenArgs: '$(CmakeGenOptions)'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -116,9 +107,7 @@ jobs:
       image: 'macOS-14'
       installToolsCmd: 'brew install ninja'
       vcpkgTriplet: "x64-osx"
-      vcpkgCacheDir: "/Users/runner/.cache/vcpkg/archives/"
       cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -128,7 +117,6 @@ jobs:
       compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
       vcpkgTriplet: "bitserializer-arm32-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -138,7 +126,6 @@ jobs:
       compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
       vcpkgTriplet: "bitserializer-arm64-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
-      enableDebugBuild: false
 
   - template: unix-jobs-template.yml
     parameters:
@@ -148,4 +135,3 @@ jobs:
       compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
       vcpkgTriplet: "bitserializer-arm64be-linux"
       cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
-      enableDebugBuild: false

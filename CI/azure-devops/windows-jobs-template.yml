@@ -9,8 +9,8 @@ parameters:
   vcpkgTriplet: 'x64-windows'
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
-# [Optional] Enable build Debug version
-  enableDebugBuild: false
+# [Optional] Build configuration (Debug, Release)
+  buildConfiguration: 'Release'
 # [Optional] Enable run tests
   enableRunTests: true
 
@@ -31,60 +31,36 @@ jobs:
       bootstrap-vcpkg
     displayName: 'Install VCPKG'
 
-  - task: Cache@2
-    inputs:
-      key: |
-        vcpkg | v8 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
-      restoreKeys: |
-        vcpkg | v8 | ${{ parameters.name }}
-      path: $(VCPKG_CACHE_DIR)
-      cacheHitVar: VCPKG_CACHE_RESTORED
-    displayName: Configure cache of VCPKG packages
-
   - script: |
       mkdir build
       cmake --version
     displayName: Make Build Directory
 
+  - task: Cache@2
+    inputs:
+      key: |
+        vcpkg | v9 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+      restoreKeys: |
+        vcpkg | v9 | ${{ parameters.name }}
+      path: ./build/vcpkg_installed/
+      cacheHitVar: VCPKG_CACHE_RESTORED
+    displayName: Configure cache of VCPKG packages
+
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
       cmakeArgs: '-A ${{ parameters.platform }} ${{ parameters.cmakeGenArgs }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
-    displayName: 'Cmake - generate'
+    displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
 
   - script: |
       cd build
-      cmake --build . --config Debug
-    displayName: 'Build [Debug]'
-    condition: eq('${{ parameters.enableDebugBuild }}', true)
+      cmake --build . --config ${{ parameters.buildConfiguration }}
+    displayName: 'Build [${{ parameters.buildConfiguration }}]'
 
   - script: |
       cd build
-      ctest -C Debug -T test --output-on-failure
-    displayName: 'Run tests [Debug]'
-    continueOnError: true
-    condition: and(eq('${{ parameters.enableRunTests }}', true), eq('${{ parameters.enableDebugBuild }}', true))
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'cTest'
-      testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(System.DefaultWorkingDirectory)/build'
-      testRunTitle: '${{ parameters.name }} [Debug]'
-      buildPlatform: '${{ parameters.platform }}'
-      buildConfiguration: 'Debug'
-    displayName: 'Publish Test results [Debug]'
-    condition: and(eq('${{ parameters.enableRunTests }}', true), eq('${{ parameters.enableDebugBuild }}', true))
-
-  - script: |
-      cd build
-      cmake --build . --config Release
-    displayName: 'Build [Release]'
-
-  - script: |
-      cd build
-      ctest -C Release -T test --output-on-failure
-    displayName: 'Run tests [Release]'
+      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure
+    displayName: 'Run tests'
     continueOnError: true
     condition: eq('${{ parameters.enableRunTests }}', true)
 
@@ -93,8 +69,8 @@ jobs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Testing/**/Test.xml'
       searchFolder: '$(System.DefaultWorkingDirectory)/build'
-      testRunTitle: '${{ parameters.name }} [Release]'
+      testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: '${{ parameters.platform }}'
-      buildConfiguration: 'Release'
-    displayName: 'Publish Test results [Release]'
+      buildConfiguration: '${{ parameters.buildConfiguration }}'
+    displayName: 'Publish Test results'
     condition: eq('${{ parameters.enableRunTests }}', true)

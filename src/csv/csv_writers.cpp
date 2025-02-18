@@ -31,7 +31,7 @@ namespace
 		{
 			// RFC: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes
 			outputString.push_back('"');
-			outputString.append(value.data(), it);
+			outputString.append(value.data(), it);	// NOLINT(bugprone-suspicious-stringview-data-usage)
 
 			for (; it != endIt; ++it)
 			{

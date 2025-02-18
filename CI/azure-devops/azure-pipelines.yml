@@ -33,9 +33,9 @@ jobs:
     parameters:
       name: 'StaticAnalysis_ClangTidy'
       image: 'ubuntu-latest'
-      installToolsCmd: 'sudo apt-get install ninja-build'
       vcpkgTriplet: "x64-linux"
       cmakeGenArgs: '$(CmakeGenOptions)'
+      fullAnalysis: ${{ eq(variables['Build.Reason'], 'Schedule') }}
 
   - template: windows-jobs-template.yml
     parameters:

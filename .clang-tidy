@@ -36,6 +36,7 @@ Checks: >
   -readability-implicit-bool-conversion,
   -readability-function-cognitive-complexity,
   -readability-magic-numbers,
+  -readability-math-missing-parentheses,
   -readability-named-parameter,
   -readability-uppercase-literal-suffix,
 

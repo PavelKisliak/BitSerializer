@@ -71,7 +71,7 @@ namespace BitSerializer::Memory
 	/// Reverses byte order in the passed sequence of integral values.
 	/// </summary>
 	template <typename TIterator, std::enable_if_t<std::is_integral_v<typename std::iterator_traits<TIterator>::value_type>, int> = 0>
-	constexpr void Reverse(TIterator in, const TIterator& end) noexcept
+	constexpr void Reverse(const TIterator& in, const TIterator& end) noexcept
 	{
 		if constexpr (sizeof (typename std::iterator_traits<TIterator>::value_type) > 1)
 		{

@@ -1058,7 +1058,7 @@ namespace BitSerializer::Convert::Utf
 				else
 				{
 					utfToolset.second.clear();
-					if (auto result = utfToolset.first.Encode(str.data(), str.data() + str.size(), utfToolset.second, mEncodingErrorPolicy))
+					if (auto result = utfToolset.first.Encode(str.data(), str.data() + str.size(), utfToolset.second, mEncodingErrorPolicy))	// NOLINT(bugprone-suspicious-stringview-data-usage)
 					{
 						mOutputStream.write(reinterpret_cast<const char*>(utfToolset.second.data()),
 							static_cast<std::streamsize>(utfToolset.second.size() * sizeof(decltype(utfToolset.second.front()))));

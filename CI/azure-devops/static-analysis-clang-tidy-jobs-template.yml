@@ -3,14 +3,14 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
-# [Optional] Install additional tools command line
-  installToolsCmd: ''
-# [Optional] Directory with cached packages
-  vcpkgCacheDir: /home/vsts/.cache/vcpkg/archives/
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
+# [Optional] Full analysis or just changes from last commit
+  fullAnalysis: true
+# [Optional] Build directory
+  buildDirectory: 'build'
 
 jobs:
 - job: ${{ parameters.name }}
@@ -18,13 +18,19 @@ jobs:
     vmImage: ${{ parameters.image }}
 
   steps:
-  - script: |
-      echo --- Install build tools ---
-      ${{ parameters.installToolsCmd }}
-    displayName: 'Install build tools'
-    condition: ne('${{ parameters.installToolsCmd }}', '')
+  - checkout: self
+    fetchDepth: 2
 
   - script: |
+      echo --- Install build tools ---
+      sudo apt-get install ninja-build
+    displayName: 'Install build tools'
+
+  - script: |
+      echo --- Tools version info ---
+      cmake --version
+      clang-tidy --version
+      echo
       echo --- Clone latest VCPKG ---
       cd ..
       git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
@@ -36,24 +42,49 @@ jobs:
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | v6 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v8 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v6 | ${{ parameters.name }}
-      path: ${{ parameters.vcpkgCacheDir }}
+        vcpkg | v8 | ${{ parameters.name }}
+      path: ${{ parameters.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
 
-  - script: |
-      mkdir build
-      cmake --version
-    displayName: Make Build directory
-
   - task: CMake@1
     inputs:
-      workingDirectory: 'build'
+      workingDirectory: ${{ parameters.buildDirectory }}
       cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
     displayName: 'Cmake - generate'
 
   - script: |
-      python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ./build/
-    displayName: 'Static analysis (clang-tidy)'
+      ninja -C ${{ parameters.buildDirectory }}
+      ninja -C ${{ parameters.buildDirectory }} -t deps > ${{ parameters.buildDirectory }}/deps.txt
+    displayName: 'Build'
+    condition: eq('${{ parameters.fullAnalysis }}', false)
+
+  - script: |
+      echo --- Identifying affected source files ---
+      git diff HEAD HEAD~ --name-only > ${{ parameters.buildDirectory }}/changed_files.txt
+      python tools/static_analysis/find_affected_files.py ${{ parameters.buildDirectory }}/deps.txt ${{ parameters.buildDirectory }}/changed_files.txt ${{ parameters.buildDirectory }}/affected_sources.txt
+      affected_sources=$(cat ${{ parameters.buildDirectory }}/affected_sources.txt)
+      if [ -n "$affected_sources" ]; then
+          echo
+          echo $affected_sources
+          echo
+          echo --- Сlang-tidy analysis ---
+          python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }} $affected_sources
+      else
+          echo "No affected source files found. Skipping clang-tidy analysis."
+      fi
+    displayName: 'Static analysis [latest changes]'
+    condition: eq('${{ parameters.fullAnalysis }}', false)
+
+  - script: |
+      python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }}
+      EXIT_CODE=$?
+      if [ $EXIT_CODE -ne 0 ]; then
+          echo "##vso[task.logissue type=warning]Warnings or errors were found during clang-tidy analysis."
+          echo "##vso[task.complete result=SucceededWithIssues;]Pipeline marked as partially succeeded due to clang-tidy warnings."
+      fi
+    continueOnError: true
+    displayName: 'Static analysis [full]'
+    condition: eq('${{ parameters.fullAnalysis }}', true)

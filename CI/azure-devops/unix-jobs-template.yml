@@ -13,6 +13,8 @@ parameters:
   cmakeGenArgs: ''
 # [Optional] Build configuration (Debug, Release)
   buildConfiguration: 'Release'
+# [Optional] Build directory
+  buildDirectory: 'build'
 # [Optional] Enable run tests
   enableRunTests: true
 
@@ -45,34 +47,28 @@ jobs:
       ./bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 
-  - script: |
-      mkdir build
-      cmake --version
-    displayName: Make Build directory
-
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | v7 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v8 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v7 | ${{ parameters.name }}
-      path: ./build/vcpkg_installed/
+        vcpkg | v8 | ${{ parameters.name }}
+      path: ${{ parameters.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
 
   - task: CMake@1
     inputs:
-      workingDirectory: 'build'
+      workingDirectory: ${{ parameters.buildDirectory }}
       cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
     displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
 
   - script: |
-      cd build
-      ninja
+      ninja -C ${{ parameters.buildDirectory }}
     displayName: 'Build [${{ parameters.buildConfiguration }}]'
 
   - script: |
-      cd build
+      cd ${{ parameters.buildDirectory }}
       ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure
     displayName: 'Run tests'
     continueOnError: true
@@ -82,7 +78,7 @@ jobs:
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(System.DefaultWorkingDirectory)/build'
+      searchFolder: '$(System.DefaultWorkingDirectory)/${{ parameters.buildDirectory }}'
       testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: 'x64'
       buildConfiguration: '${{ parameters.buildConfiguration }}'

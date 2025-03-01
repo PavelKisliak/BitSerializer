@@ -136,7 +136,7 @@ namespace BitSerializer
 			LoadObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
 		}
 		else {
-			throw SerializationException(SerializationErrorCode::InputOutputError, "File not found: " + Convert::ToString(std::forward<TPath>(path)));
+			throw SerializationException(SerializationErrorCode::InputOutputError, Convert::ToString(std::forward<TPath>(path), "File not found: "));
 		}
 	}
 
@@ -155,7 +155,7 @@ namespace BitSerializer
 		{
 			if (std::ifstream stream(path); stream.good())
 			{
-				throw SerializationException(SerializationErrorCode::InputOutputError, "File already exists: " + Convert::ToString(std::forward<TPath>(path)));
+				throw SerializationException(SerializationErrorCode::InputOutputError, Convert::ToString(std::forward<TPath>(path), "File already exists: "));
 			}
 		}
 
@@ -166,7 +166,7 @@ namespace BitSerializer
 			SaveObject<TArchive>(std::forward<T>(object), stream, serializationOptions);
 		}
 		else {
-			throw SerializationException(SerializationErrorCode::InputOutputError, "Could not open file: " + Convert::ToString(std::forward<TPath>(path)));
+			throw SerializationException(SerializationErrorCode::InputOutputError, Convert::ToString(std::forward<TPath>(path), "Could not open file: "));
 		}
 	}
 

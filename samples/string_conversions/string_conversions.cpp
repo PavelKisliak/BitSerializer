@@ -1,5 +1,13 @@
 ﻿#include <iostream>
 #include <charconv>
+#include <vector>
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
+#if defined(__cpp_lib_memory_resource)
+#include <memory_resource>
+#endif
+
 #include "bitserializer/convert.h"
 
 using namespace BitSerializer;
@@ -68,7 +76,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 	const auto u8Str = Convert::ToString(u"Привет мир!");
 	assert(reinterpret_cast<const char*>(u8"Привет мир!") == u8Str);
 
-	// Conversion with error handling (overflow, parse errors, etc)
+	// Convert with error handling (overflow, parse errors, etc)
 	if (auto result = Convert::TryTo<char>("500")) {
 		std::cout << "Result: " << result.value() << std::endl;
 	}
@@ -82,8 +90,26 @@ int main()	// NOLINT(bugprone-exception-escape)
 
 	// Convert custom class
 	const auto point = Convert::To<CPoint3D>("640 480 120");
-	const auto strPoint = Convert::To<std::string>(point);
-	std::cout << "Conversion CPoint3D to string result: " << strPoint << std::endl;
+	const auto pointStr = Convert::To<std::string>(point);
+	std::cout << "Conversion CPoint3D to string result: " << pointStr << std::endl;
+
+	// Convert using an additional argument to construct the target type
+	std::cout << Convert::To<std::string>(point, "Coordinates: ") << std::endl;
+
+	// Convert to existing string
+	std::string str = "FPS: ";
+	[[maybe_unused]] const char* data = str.data();
+	str = Convert::ToString(100, std::move(str));
+	std::cout << str << std::endl;
+	assert(data == str.data());
+
+	// Convert to target type using its allocator
+#if defined(__cpp_lib_memory_resource)
+	char buffer[512]{};
+	std::pmr::monotonic_buffer_resource pool{ std::data(buffer), std::size(buffer) };
+	std::pmr::vector<std::pmr::string> vec(&pool);
+	vec.emplace_back(Convert::To<std::pmr::string>(L"The quick brown fox jumps over the lazy dog.", vec.get_allocator()));
+#endif
 
 	return EXIT_SUCCESS;
 }

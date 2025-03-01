@@ -25,6 +25,7 @@ Checks: >
   -misc-include-cleaner,
   -misc-non-private-member-variables-in-classes,
   -misc-no-recursion,
+  -misc-use-internal-linkage,
 
   performance-*,
   -performance-enum-size,

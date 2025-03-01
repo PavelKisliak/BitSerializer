@@ -11,14 +11,31 @@ Type conversion submodule of **BitSerializer** library. Basically, it is just co
 - Allows to overload conversion functions for custom types
 - Simple API - only two main functions `Convert::To<>()` and `Convert::TryTo<>()`
 
+___
+### Table of contents
+- [Conversion fundamental types](#conversion-fundamental-types)
+- [Transcoding strings](#transcoding-strings)
+- [Conversion enum types](#conversion-enum-types)
+- [Date and time conversion](#date-and-time-conversion)
+- [Conversion filesystem path](#conversion-filesystem-path)
+- [Conversion custom classes](#conversion-custom-classes)
+- [Convert to string using custom allocator](#convert-to-string-using-custom-allocator)
+- [UTF encoding](#utf-encoding)
+
+___
+
+
 ### Conversion fundamental types
 The library provides several public functions for convert types:
 
-- `TOut To<TOut>(TIn&& value)` may throw exceptions
-- `std::optional<TOut> TryTo<TOut>(TIn&& value)` throws nothing
-- `std::string ToString(TIn&& value)` just "syntax sugar" for `To<std::string>()`
-- `std::wstring ToWString(TIn&& value)` just "syntax sugar" for `To<std::wstring>()`
+- `TOut To<TOut>(TIn&& value, TInitArgs... initArgs)` may throw exceptions
+- `std::optional<TOut> TryTo<TOut>(TIn&& value, TInitArgs... initArgs)` throws nothing
+- `std::string ToString(TIn&& value, TInitArgs... initArgs)` just "syntax sugar" for `To<std::string>()`
+- `std::wstring ToWString(TIn&& value, TInitArgs... initArgs)` just "syntax sugar" for `To<std::wstring>()`
 - `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported
+
+> [!NOTE]
+> Arguments for initializing the output type `TInitArgs... initArgs` are not available in the latest 0.70 version (please use the master branch).
 
 Under the hood, integer and floating types are converting via modern `std::from_chars()` and `std::to_chars()`, except for old versions of GCC and CLANG compilers, which do not support floating types. In this case, will be used older (and significantly slower) functions from C++11.
 ```cpp
@@ -146,7 +163,7 @@ time_t time = Convert::To<CRawTime>("1969-12-31T23:59:59Z");
 std::string utc = Convert::ToString(CRawTime(time));
 ```
 
-### Conversion std::filesystem::path
+### Conversion filesystem path
 
 The library allows to convert `std::filesystem::path` to `std::basic_string` family types and vice versa.
 Like the other parts, it knows how to transcode the path between different UTF encodings.
@@ -156,7 +173,7 @@ Support of `std::filesystem` can be disabled via definition`BITSERIALIZER_HAS_FI
 There are several ways to convert custom classes from/to strings:
 
 - Implementation pair of internal string conversion methods `ToString()` and `FromString()`.
-- Implementation external function(s) `To(in, out)` (in any namespace).
+- Implementation external function(s) `To(in, out)`.
 - Implementation external function in STD style `to_string()`, but there is no backward conversion.
 
 ```cpp
@@ -217,13 +234,43 @@ The important point is that you can implement just pair of methods for `std::str
 - `std::u32string ToU32String();`
 - `void FromString(std::u32string_view);`
 
-As an alternative to internal methods, you can achieve the same by implementing two global functions in any namespace:
+As an alternative to internal methods, you can achieve the same by implementing two global functions (in the same namespace as the type, or in the global):
 
 - `void To(const CPoint3D& in, std::string& out);`
 - `void To(std::string_view in, CPoint3D& out);`
 
+> [!IMPORTANT]
+> Please do not clear the output string.
+
 Optionally, they can be overridden for conversions any other string types (when you are worried about performance).
 As an examples, you also can see the conversion implementation for [filesystem::path](../include/bitserializer/conversion_detail/convert_std.h).
+
+### Convert to string using custom allocator
+The `Convert` API allows to pass any extra arguments that will be used to construct the output type:
+```cpp
+    std::cout << Convert::To<std::string>(100, "FPS: ") << std::endl;
+```
+
+So you can pass an allocator like in this example:
+```cpp
+    char buffer[512]{};
+    std::pmr::monotonic_buffer_resource pool{ std::data(buffer), std::size(buffer) };
+
+    std::pmr::vector<std::pmr::string> vec(&pool);
+    vec.emplace_back(Convert::To<std::pmr::string>(L"The quick brown fox jumps over the lazy dog.", vec.get_allocator()));
+```
+
+In the same way, you can convert a type to an existing string:
+```cpp
+    std::string str = "FPS: ";
+    const char* data = str.data();
+    str = Convert::ToString(100, std::move(str));
+    std::cout << str << std::endl;
+    assert(data == str.data());
+```
+
+> [!NOTE]
+> Extra arguments are not available in the latest 0.70 version (please use the master branch).
 
 ### UTF encoding
 In addition to simple UTF conversion via `Convert::To()` function, there is also exists set of classes with more granular API for all kind of formats:

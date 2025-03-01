@@ -59,6 +59,37 @@ TEST(ConvertApi, ShouldConvertStdString) {
 	EXPECT_EQ(100500, Convert::To<int32_t>(std::u32string(U"  100500  ")));
 }
 
+TEST(ConvertApi, InitArgsShouldBeUsedForConstructOutputType) {
+	EXPECT_EQ("Hello world!", Convert::To<std::string>(" world!", "Hello"));
+	EXPECT_EQ("Hello world!", Convert::To<std::string>(std::string(" world!"), "Hello"));
+	EXPECT_EQ("--- test ---", Convert::To<std::string>(" test ---", 3, '-'));
+}
+
+TEST(ConvertApi, ShouldConvertToExistingString)
+{
+	std::string str = "FPS: ";
+	const char* expectedPtr1 = str.data();
+	str = Convert::ToString(100, std::move(str));
+	EXPECT_TRUE(expectedPtr1 == str.data());
+
+	std::string longStr = "Long existing string: ";
+	const char* expectedPtr2 = longStr.data();
+	str = Convert::ToString(100500, std::move(str));
+	EXPECT_TRUE(expectedPtr2 == longStr.data());
+}
+
+TEST(ConvertApi, InitArgsShouldBeMovedWhenPassedAsRValue)
+{
+	const auto defaultStringCapacity = std::string().capacity();
+	std::string sourceStr = "Hello";
+	sourceStr.reserve(defaultStringCapacity + 1);
+	const char* expectedPtr = sourceStr.data();
+
+	auto targetStr = Convert::To<std::string>(" world!", std::move(sourceStr));
+	EXPECT_TRUE(expectedPtr == targetStr.data());
+	EXPECT_EQ("Hello world!", targetStr);
+}
+
 #pragma warning(push)
 #pragma warning(disable: 4566)
 TEST(ConvertApi, ShouldConvertUtf8ToAnyStringType) {
@@ -100,7 +131,7 @@ TEST(ConvertApi, ShouldReturnTheSameValueWhenConvertToSameType) {
 	EXPECT_EQ(500, Convert::To<int>(500));
 }
 
-TEST(ConvertApi, ShouldMoveStringValue)
+TEST(ConvertApi, ShouldMoveSourceStringValue)
 {
 	const auto stringCapacity = std::string().capacity();
 	std::string sourceStr(stringCapacity + 1, '*');
@@ -136,6 +167,12 @@ TEST(ConvertApi, TryToShouldNoThrowExceptions) {
 	EXPECT_NO_THROW(Convert::TryTo<char>("10000"));
 }
 
+TEST(ConvertApi, TryToShouldConvertWithInitArgs)
+{
+	EXPECT_EQ("FPS: 60", Convert::TryTo<std::string>(60, "FPS: "));
+}
+
+
 //-----------------------------------------------------------------------------
 // Test functions ToString/ToWString (syntax sugar functions)
 //-----------------------------------------------------------------------------
@@ -143,8 +180,16 @@ TEST(ConvertApi, ToString) {
 	EXPECT_EQ("500", Convert::ToString(500));
 }
 
+TEST(ConvertApi, ToStringWithInitArgs) {
+	EXPECT_EQ("FPS: 60", Convert::ToString(60, "FPS: "));
+}
+
 TEST(ConvertApi, ToWString) {
 	EXPECT_EQ(L"500", Convert::ToWString(500));
+}
+
+TEST(ConvertApi, ToWStringWithInitArgs) {
+	EXPECT_EQ(L"--- test ---", Convert::ToWString(" test ---", 3, '-'));
 }
 
 //-----------------------------------------------------------------------------

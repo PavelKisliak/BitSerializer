@@ -29,7 +29,7 @@ namespace BitSerializer
 		void AddValidationError(std::string path, std::string errorMsg)
 		{
 			if (const auto it = mErrorsMap.find(path); it == mErrorsMap.end()) {
-				mErrorsMap.emplace(std::move(path), ValidationErrors{ std::move(errorMsg) });
+				mErrorsMap.try_emplace(std::move(path), ValidationErrors{ std::move(errorMsg) });
 			}
 			else {
 				it->second.push_back(std::move(errorMsg));

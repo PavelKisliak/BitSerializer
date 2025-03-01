@@ -26,11 +26,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -88,11 +83,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -146,11 +136,6 @@
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -217,11 +202,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -275,11 +255,6 @@
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -341,11 +316,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -399,11 +369,6 @@
         },
         {
           "name": "BUILD_SAMPLES",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -469,11 +434,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -531,11 +491,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -601,11 +556,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -663,11 +613,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -733,11 +678,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -795,11 +735,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -865,11 +800,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -927,11 +857,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -997,11 +922,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -1059,11 +979,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -1129,11 +1044,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -1191,11 +1101,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },
@@ -1261,11 +1166,6 @@
           "type": "BOOL"
         },
         {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "BUILD_RAPIDJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
@@ -1323,11 +1223,6 @@
         },
         {
           "name": "BUILD_BENCHMARKS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "BUILD_CPPRESTJSON_ARCHIVE",
           "value": "True",
           "type": "BOOL"
         },

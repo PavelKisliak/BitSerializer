@@ -2,11 +2,6 @@ add_subdirectory(bitserializer_core_tests)
 add_subdirectory(bitserializer_common_tests)
 add_subdirectory(bitserializer_conversions_tests)
 
-# ToDo: remove deprecated JSON archive based on CppRestSdk
-#if(BUILD_CPPRESTJSON_ARCHIVE)
-#    add_subdirectory(bitserializer_cpprest_json_tests)
-#endif()
-
 if(BUILD_RAPIDJSON_ARCHIVE)
     add_subdirectory(bitserializer_rapidjson_tests)
 endif()

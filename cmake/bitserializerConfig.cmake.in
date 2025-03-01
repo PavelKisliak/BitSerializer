@@ -2,10 +2,6 @@
 
 include(CMakeFindDependencyMacro)
 
-if(@BUILD_CPPRESTJSON_ARCHIVE@)
-    find_dependency(cpprestsdk CONFIG REQUIRED)
-endif()
-
 if(@BUILD_RAPIDJSON_ARCHIVE@)
     find_dependency(RapidJSON CONFIG REQUIRED)
 endif()

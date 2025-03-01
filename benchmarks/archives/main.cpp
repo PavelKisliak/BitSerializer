@@ -16,10 +16,6 @@
 #ifdef RAPIDJSON_BENCHMARK
 #include "rapid_json_benchmark.h"
 #endif
-// ToDo: remove deprecated JSON archive based on CppRestSdk
-//#ifdef CPPRESTJSON_BENCHMARK
-//#include "cpprest_json_benchmark.h"
-//#endif
 #ifdef PUGIXML_BENCHMARK
 #include "pugixml_benchmark.h"
 #endif
@@ -178,10 +174,6 @@ int main()
 #ifdef RAPIDJSON_BENCHMARK
 		benchmarkResults.emplace_back(RunBenchmark<CRapidJsonBenchmark>());
 #endif
-// ToDo: remove deprecated JSON archive based on CppRestSdk
-//#ifdef CPPRESTJSON_BENCHMARK
-//		benchmarkResults.emplace_back(RunBenchmark<CCppRestJsonBenchmark>());
-//#endif
 #ifdef PUGIXML_BENCHMARK
 		benchmarkResults.emplace_back(RunBenchmark<CPugiXmlBenchmark>());
 #endif

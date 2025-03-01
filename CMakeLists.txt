@@ -22,9 +22,6 @@ include(CMakePackageConfigHelpers)
 #################################################################################
 # Options
 #################################################################################
-option(BUILD_CPPRESTJSON_ARCHIVE "Build CppRestJson archive" OFF)
-message(STATUS "[Option] BUILD_CPPRESTJSON_ARCHIVE: ${BUILD_CPPRESTJSON_ARCHIVE}")
-
 option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDJSON_ARCHIVE: ${BUILD_RAPIDJSON_ARCHIVE}")
 
@@ -145,20 +142,6 @@ if(BITSERIALIZER_HAS_FILESYSTEM)
         target_link_libraries(${BITSERIALIZER_CORE_NAME} INTERFACE stdc++fs)
       endif()
   endif()
-endif()
-
-# BitSerializer cpprestjson archive
-if(BUILD_CPPRESTJSON_ARCHIVE)
-    set(CPPRESTJSON_ARCHIVE_NAME "cpprestjson-archive")
-    add_library(${CPPRESTJSON_ARCHIVE_NAME} INTERFACE)
-    add_library(${BITSERIALIZER_NAMESPACE}::${CPPRESTJSON_ARCHIVE_NAME} ALIAS ${CPPRESTJSON_ARCHIVE_NAME})
-    list(APPEND BITSERIALIZER_TARGETS ${CPPRESTJSON_ARCHIVE_NAME})
-
-    find_package(cpprestsdk CONFIG REQUIRED)
-    target_link_libraries(${CPPRESTJSON_ARCHIVE_NAME} INTERFACE
-        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
-        cpprestsdk::cpprest
-    )
 endif()
 
 # BitSerializer rapidjson archive
@@ -300,11 +283,6 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE)
-
-if(BUILD_CPPRESTJSON_ARCHIVE)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/cpprestjson_archive.h
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
-endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidjson_archive.h

@@ -5,10 +5,6 @@
   "homepage": "https://github.com/PavelKisliak/BitSerializer",
   "description": "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV, MsgPack)",
   "dependencies": [
-    {
-      "name": "cpprestsdk",
-      "default-features": false
-    },
     "rapidjson",
     "pugixml",
     "ryml",

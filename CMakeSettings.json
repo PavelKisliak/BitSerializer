@@ -400,6 +400,120 @@
       ]
     },
     {
+      "name": "Win-MSVC-x64-CXX23-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_CXX_STANDARD=23",
+      "buildCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "Win-MSVC-x64-CXX23-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_CXX_STANDARD=23",
+      "buildCommandArgs": "",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "${env.VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "STRING"
+        },
+        {
+          "name": "BUILD_TESTS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_BENCHMARKS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SAMPLES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDJSON_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_PUGIXML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_RAPIDYAML_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_CSV_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MSGPACK_ARCHIVE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
       "name": "Linux-GCC8-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",

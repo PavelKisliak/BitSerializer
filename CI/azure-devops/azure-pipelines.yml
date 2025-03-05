@@ -79,11 +79,11 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_GCC_12_CXX20'
-          image: 'ubuntu-latest'
-          installToolsCmd: 'sudo apt-get install gcc-12 g++-12 ninja-build'
+          name: 'Ubuntu_GCC_14_CXX23'
+          image: 'ubuntu-24.04'
+          installToolsCmd: 'sudo apt-get install gcc-14 g++-14 ninja-build'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_CXX_STANDARD=20'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=23'
 
       - template: unix-jobs-template.yml
         parameters:

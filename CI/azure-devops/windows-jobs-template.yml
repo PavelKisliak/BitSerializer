@@ -56,7 +56,7 @@ jobs:
 
   - script: |
       cd ${{ parameters.buildDirectory }}
-      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure
+      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure -j2
     displayName: 'Run tests'
     continueOnError: true
     condition: eq('${{ parameters.enableRunTests }}', true)

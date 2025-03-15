@@ -69,7 +69,7 @@ jobs:
 
   - script: |
       cd ${{ parameters.buildDirectory }}
-      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure
+      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure -j$(nproc)
     displayName: 'Run tests'
     continueOnError: true
     condition: eq('${{ parameters.enableRunTests }}', true)

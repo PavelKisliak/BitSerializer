@@ -1,6 +1,6 @@
 #################################################################################
-# Copyright (C) 2020-2025 by Pavel Kisliak                                      #
-# This file is part of BitSerializer library, licensed under the MIT license.   #
+# Copyright (C) 2020-2025 by Pavel Kisliak
+# This file is part of BitSerializer library, licensed under the MIT license.
 #################################################################################
 cmake_minimum_required(VERSION 3.10)
 
@@ -234,7 +234,8 @@ if(BUILD_TESTS)
     include(GoogleTest)
     enable_testing()
     set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)
-    add_subdirectory(tests)
+    add_subdirectory(tests/unit_tests)
+    add_subdirectory(tests/integration_tests)
 endif()
 
 #################################################################################

@@ -54,7 +54,7 @@ def find_affected_sources(ninja_deps_file, headers):
                 best_candidate = src_file
                 break
             # File with corresponding tests is also suit well
-            if file_title + '_tests' in src_file or file_title + '_api_tests' in src_file:
+            if file_title + '_tests' in src_file:
                 best_candidate = src_file
             # Or at least contain header title
             if best_candidate == None and file_title in src_file:

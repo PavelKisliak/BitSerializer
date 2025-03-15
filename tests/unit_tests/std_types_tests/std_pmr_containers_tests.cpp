@@ -5,7 +5,8 @@
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/archive_stub.h"
 
-#if defined(__cpp_lib_memory_resource)
+// PMR containers on Apple is supported since C++ 20
+#if defined(__cpp_lib_memory_resource) && (!defined __apple_build_version__ || ((defined(_MSVC_LANG) && _MSVC_LANG >= 202002L) || __cplusplus >= 202002L))
 
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/deque.h"

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -12,7 +12,7 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 // Test conversions any UTF string to any other UTF format
 //-----------------------------------------------------------------------------
-TEST(Utf, TransocodeUt8ToUtf8)
+TEST(UtfTranscodeTest, TransocodeUt8ToUtf8)
 {
 	// Arrange
 	std::string outString = UTF8("Привет ");
@@ -28,7 +28,7 @@ TEST(Utf, TransocodeUt8ToUtf8)
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST(Utf, TransocodeUtf8ToUtf16)
+TEST(UtfTranscodeTest, TransocodeUtf8ToUtf16)
 {
 	// Arrange
 	std::u16string outString = u"Привет ";
@@ -44,7 +44,7 @@ TEST(Utf, TransocodeUtf8ToUtf16)
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST(Utf, TransocodeUtf8ToUtf32)
+TEST(UtfTranscodeTest, TransocodeUtf8ToUtf32)
 {
 	// Arrange
 	std::u32string outString = U"Привет ";
@@ -60,7 +60,7 @@ TEST(Utf, TransocodeUtf8ToUtf32)
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST(Utf, TransocodeUtf16ToUtf8)
+TEST(UtfTranscodeTest, TransocodeUtf16ToUtf8)
 {
 	// Arrange
 	std::string outString = UTF8("Привет ");
@@ -76,7 +76,7 @@ TEST(Utf, TransocodeUtf16ToUtf8)
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST(Utf, TransocodeUtf16ToUtf32)
+TEST(UtfTranscodeTest, TransocodeUtf16ToUtf32)
 {
 	// Arrange
 	std::u32string outString = U"Привет ";
@@ -92,7 +92,7 @@ TEST(Utf, TransocodeUtf16ToUtf32)
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST(Utf, TransocodeUtf32ToUtf8)
+TEST(UtfTranscodeTest, TransocodeUtf32ToUtf8)
 {
 	// Arrange
 	std::string outString = UTF8("Привет ");
@@ -108,7 +108,7 @@ TEST(Utf, TransocodeUtf32ToUtf8)
 	EXPECT_EQ(0, result.InvalidSequencesCount);
 }
 
-TEST(Utf, TransocodeUtf32ToUtf16)
+TEST(UtfTranscodeTest, TransocodeUtf32ToUtf16)
 {
 	// Arrange
 	std::u16string outString = u"Привет ";

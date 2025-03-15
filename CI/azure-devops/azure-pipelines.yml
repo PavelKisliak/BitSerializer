@@ -25,7 +25,7 @@ schedules:
 
 variables:
 - name: CmakeGenOptions
-  value: -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DBUILD_CPPRESTJSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+  value: -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
   readonly: true
 
 stages:
@@ -39,6 +39,13 @@ stages:
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions)'
           fullAnalysis: ${{ eq(variables['Build.Reason'], 'Schedule') }}
+
+      - template: memory-check-valgrind-jobs-template.yml
+        parameters:
+          name: 'MemoryCheck_Valgrind'
+          image: 'ubuntu-latest'
+          vcpkgTriplet: "x64-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF'
 
   - stage: BuildAndTest
     displayName: 'Build and test stage'

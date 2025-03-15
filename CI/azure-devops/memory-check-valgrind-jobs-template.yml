@@ -1,0 +1,87 @@
+parameters:
+# [Required] Job name
+  name: ''
+# [Required] Build agent name
+  image: ''
+# [Required] VCPKG triplet
+  vcpkgTriplet: ''
+# [Optional] Cmake additional arguments for CMake generate mode
+  cmakeGenArgs: ''
+# [Optional] Build directory
+  buildDirectory: 'build'
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+
+  steps:
+  - script: |
+      echo --- Install build tools ---
+      sudo apt-get install ninja-build valgrind
+    displayName: 'Install build tools'
+
+  - script: |
+      echo --- Tools version info ---
+      cmake --version
+      valgrind --version
+      echo
+      echo --- Clone latest VCPKG ---
+      cd ..
+      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
+      echo --- VCPKG: Bootstrap ---
+      cd vcpkg
+      ./bootstrap-vcpkg.sh
+    displayName: 'Install VCPKG'
+
+  - task: Cache@2
+    inputs:
+      key: |
+        vcpkg | v8 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+      restoreKeys: |
+        vcpkg | v8 | ${{ parameters.name }}
+      path: ${{ parameters.buildDirectory }}/vcpkg_installed/
+      cacheHitVar: VCPKG_CACHE_RESTORED
+    displayName: Configure cache of VCPKG packages
+
+  - task: CMake@1
+    inputs:
+      workingDirectory: ${{ parameters.buildDirectory }}
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
+    displayName: 'Cmake - generate'
+
+  - script: |
+      ninja -C ${{ parameters.buildDirectory }}
+    displayName: 'Build'
+
+  - script: |
+      cd ${{ parameters.buildDirectory }}
+      ctest -T memcheck -L integration_tests --output-on-failure -j$(nproc) --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=1"
+      exit_code=$?
+      echo "CTest exited with code: $exit_code"
+      echo
+
+      # Check for Valgrind errors in logs
+      cd Testing/Temporary
+      has_errors=0
+      for logfile in MemoryChecker*.log; do
+        if [ -s "$logfile" ] && ! grep -q "ERROR SUMMARY: 0" "$logfile"; then
+          echo "##vso[task.logissue type=error]Valgrind errors in $logfile"
+          echo " "
+          echo "❗ VALGRIND ERRORS IN: $logfile ❗"
+          echo "----------------------------------------"
+          cat "$logfile"
+          echo "----------------------------------------"
+          has_errors=1
+        fi
+      done
+
+      # Fail the pipeline if errors are found
+      if [ $has_errors -ne 0 ]; then
+        echo "##vso[task.logissue type=error]Valgrind detected memory errors."
+        exit 1  # Force pipeline failure
+      elif [ $exit_code -ne 0 ]; then
+        echo "##vso[task.logissue type=error]CTest failed with exit code $exit_code"
+        exit $exit_code  # Propagate CTest exit code
+      fi
+    displayName: 'Memory check'

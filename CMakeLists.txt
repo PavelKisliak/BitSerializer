@@ -232,6 +232,15 @@ endif()
 
 if(BUILD_TESTS)
     include(GoogleTest)
+    include(CTest)
+
+    # Configure memory check
+    if(CMAKE_MEMORYCHECK_COMMAND)
+        set(MEMORYCHECK_COMMAND "${CMAKE_MEMORYCHECK_COMMAND}")
+        set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
+    endif()
+
+    # Configure tests
     enable_testing()
     set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)
     add_subdirectory(tests/unit_tests)

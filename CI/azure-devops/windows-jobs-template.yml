@@ -6,7 +6,7 @@ parameters:
 # [Optional] Platform [x64, win32]
   platform: 'x64'
 # [Required] VCPKG triplet
-  vcpkgTriplet: 'x64-windows'
+  vcpkgTriplet: 'x64-windows-release'
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Build configuration (Debug, Release)

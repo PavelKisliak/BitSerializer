@@ -57,7 +57,7 @@ stages:
           name: 'Windows_VS2019_x64'
           image: 'windows-2019'
           platform: 'x64'
-          vcpkgTriplet: "x64-windows"
+          vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
 
       - template: windows-jobs-template.yml
@@ -73,7 +73,7 @@ stages:
           name: 'Windows_VS2022_x64'
           image: 'windows-2022'
           platform: 'x64'
-          vcpkgTriplet: "x64-windows"
+          vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
 
       - template: unix-jobs-template.yml
@@ -81,7 +81,7 @@ stages:
           name: 'Ubuntu_GCC_8'
           image: 'ubuntu-20.04'
           installToolsCmd: 'sudo apt-get install gcc-8 g++-8 ninja-build'
-          vcpkgTriplet: "x64-linux"
+          vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8'
 
       - template: unix-jobs-template.yml
@@ -89,7 +89,7 @@ stages:
           name: 'Ubuntu_GCC_14_CXX23'
           image: 'ubuntu-24.04'
           installToolsCmd: 'sudo apt-get install gcc-14 g++-14 ninja-build'
-          vcpkgTriplet: "x64-linux"
+          vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=23'
 
       - template: unix-jobs-template.yml
@@ -97,7 +97,7 @@ stages:
           name: 'Ubuntu_Clang_8'
           image: 'ubuntu-20.04'
           installToolsCmd: 'sudo apt-get install clang-8 ninja-build --install-suggests'
-          vcpkgTriplet: "x64-linux"
+          vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8'
 
       - template: unix-jobs-template.yml
@@ -105,7 +105,7 @@ stages:
           name: 'Ubuntu_Clang_15'
           image: 'ubuntu-latest'
           installToolsCmd: 'sudo apt-get install clang-15 ninja-build --install-suggests'
-          vcpkgTriplet: "x64-linux"
+          vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15'
 
       - template: unix-jobs-template.yml
@@ -113,7 +113,7 @@ stages:
           name: 'MacOS13_AppleClang_14'
           image: 'macOS-13'
           installToolsCmd: 'brew install ninja'
-          vcpkgTriplet: "x64-osx"
+          vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
 
       - template: unix-jobs-template.yml
@@ -121,7 +121,7 @@ stages:
           name: 'MacOS14_AppleClang_14_CXX20'
           image: 'macOS-14'
           installToolsCmd: 'brew install ninja'
-          vcpkgTriplet: "x64-osx"
+          vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
 
       - template: unix-jobs-template.yml

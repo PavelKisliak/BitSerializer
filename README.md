@@ -122,6 +122,7 @@ $ cmake bitserializer -B bitserializer/build -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUIL
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
+By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
 You will also need to install dev-packages of base libraries, currently available only `rapidjson-dev` and `libpugixml-dev`, the rest need to be built manually (CSV and MsgPack archives do not require any dependencies).
 
 #### How to use with CMake

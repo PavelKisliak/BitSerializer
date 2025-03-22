@@ -45,7 +45,7 @@ jobs:
 
   - task: CMake@1
     inputs:
-      workingDirectory: 'build'
+      workingDirectory: '${{ parameters.buildDirectory }}'
       cmakeArgs: '-A ${{ parameters.platform }} ${{ parameters.cmakeGenArgs }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
     displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
 

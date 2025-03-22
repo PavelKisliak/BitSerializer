@@ -42,10 +42,17 @@ stages:
 
       - template: memory-check-valgrind-jobs-template.yml
         parameters:
-          name: 'MemoryCheck_Valgrind'
+          name: 'MemoryCheck_Valgrind_static'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF'
+
+      - template: memory-check-valgrind-jobs-template.yml
+        parameters:
+          name: 'MemoryCheck_Valgrind_dynamic'
+          image: 'ubuntu-latest'
+          vcpkgTriplet: "x64-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON'
 
   - stage: BuildAndTest
     displayName: 'Build and test stage'
@@ -54,7 +61,7 @@ stages:
     jobs:
       - template: windows-jobs-template.yml
         parameters:
-          name: 'Windows_VS2019_x64'
+          name: 'Windows_VS2019_x64_static'
           image: 'windows-2019'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
@@ -62,15 +69,15 @@ stages:
 
       - template: windows-jobs-template.yml
         parameters:
-          name: 'Windows_VS2019_Win32'
+          name: 'Windows_VS2019_x86_dynamic'
           image: 'windows-2019'
           platform: 'Win32'
           vcpkgTriplet: "x86-windows"
-          cmakeGenArgs: '$(CmakeGenOptions)'
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
 
       - template: windows-jobs-template.yml
         parameters:
-          name: 'Windows_VS2022_x64'
+          name: 'Windows_VS2022_x64_static'
           image: 'windows-2022'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
@@ -78,7 +85,7 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_GCC_8'
+          name: 'Ubuntu_GCC_8_static'
           image: 'ubuntu-20.04'
           installToolsCmd: 'sudo apt-get install gcc-8 g++-8 ninja-build'
           vcpkgTriplet: "x64-linux-release"
@@ -86,15 +93,15 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_GCC_14_CXX23'
+          name: 'Ubuntu_GCC_14_CXX23_dynamic'
           image: 'ubuntu-24.04'
           installToolsCmd: 'sudo apt-get install gcc-14 g++-14 ninja-build'
           vcpkgTriplet: "x64-linux-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=23'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=23 -DBUILD_SHARED_LIBS=ON'
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_Clang_8'
+          name: 'Ubuntu_Clang_8_static'
           image: 'ubuntu-20.04'
           installToolsCmd: 'sudo apt-get install clang-8 ninja-build --install-suggests'
           vcpkgTriplet: "x64-linux-release"
@@ -102,31 +109,31 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_Clang_15'
+          name: 'Ubuntu_Clang_15_dynamic'
           image: 'ubuntu-latest'
           installToolsCmd: 'sudo apt-get install clang-15 ninja-build --install-suggests'
           vcpkgTriplet: "x64-linux-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15 -DBUILD_SHARED_LIBS=ON'
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'MacOS13_AppleClang_14'
-          image: 'macOS-13'
-          installToolsCmd: 'brew install ninja'
-          vcpkgTriplet: "x64-osx-release"
-          cmakeGenArgs: '$(CmakeGenOptions)'
-
-      - template: unix-jobs-template.yml
-        parameters:
-          name: 'MacOS14_AppleClang_14_CXX20'
-          image: 'macOS-14'
+          name: 'MacOS14_Clang14_static'
+          image: 'macOS-latest'
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Arm32_Linux_GCC13'
+          name: 'MacOS14_Clang14_CXX20_dynamic'
+          image: 'macOS-latest'
+          installToolsCmd: 'brew install ninja'
+          vcpkgTriplet: "x64-osx-release"
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20 -DBUILD_SHARED_LIBS=ON'
+
+      - template: unix-jobs-template.yml
+        parameters:
+          name: 'Ubuntu_GCC13_Arm32_static'
           image: 'ubuntu-latest'
           installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
@@ -135,16 +142,16 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Arm64_Linux_GCC13_CXX20'
+          name: 'Ubuntu_GCC13_Arm64_CXX20_dynamic'
           image: 'ubuntu-latest'
           installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
+          cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake -DCMAKE_CXX_STANDARD=20 -DBUILD_SHARED_LIBS=ON'
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Arm64be_Linux_GCC13'
+          name: 'Ubuntu_GCC13_Arm64be_static'
           image: 'ubuntu-latest'
           installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"

@@ -2,9 +2,10 @@
 * Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <algorithm>
+#include <memory>
 #include "csv_readers.h"
 #include "csv_writers.h"
-#include <algorithm>
 
 
 namespace
@@ -27,29 +28,43 @@ namespace BitSerializer::Csv::Detail
 {
 	CsvWriteRootScope::CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
-		, mCsvWriter(std::make_unique<CCsvStringWriter>(encodedOutputStr, true, serializationContext.GetOptions().valuesSeparator))
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
+		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
+		mCsvWriter = std::make_unique<CCsvStringWriter>(encodedOutputStr, true, serializationContext.GetOptions().valuesSeparator).release();
 	}
 
 	CsvWriteRootScope::CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
-		, mCsvWriter(std::make_unique<CCsvStreamWriter>(outputStream, true, serializationContext.GetOptions().valuesSeparator, serializationContext.GetOptions().utfEncodingErrorPolicy, serializationContext.GetOptions().streamOptions))
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
+		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
+		mCsvWriter = std::make_unique<CCsvStreamWriter>(outputStream, true, serializationContext.GetOptions().valuesSeparator, serializationContext.GetOptions().utfEncodingErrorPolicy, serializationContext.GetOptions().streamOptions).release();
+	}
+
+	CsvWriteRootScope::~CsvWriteRootScope()
+	{
+		delete mCsvWriter;
 	}
 
 	CsvReadRootScope::CsvReadRootScope(std::string_view encodedInputStr, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
-		, mCsvReader(std::make_unique<CCsvStringReader>(encodedInputStr, true, serializationContext.GetOptions().valuesSeparator))
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
+		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
+		mCsvReader = std::make_unique<CCsvStringReader>(encodedInputStr, true, serializationContext.GetOptions().valuesSeparator).release();
 	}
 
 	CsvReadRootScope::CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
 		: TArchiveScope<SerializeMode::Load>(serializationContext)
-		, mCsvReader(std::make_unique<CCsvStreamReader>(encodedInputStream, true, serializationContext.GetOptions().valuesSeparator))
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
+		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
+		mCsvReader = std::make_unique<CCsvStreamReader>(encodedInputStream, true, serializationContext.GetOptions().valuesSeparator).release();
+	}
+
+	CsvReadRootScope::~CsvReadRootScope()
+	{
+		delete mCsvReader;
 	}
 }

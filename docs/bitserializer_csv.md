@@ -6,8 +6,8 @@ Supported load/save **CSV** from:
 - std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (auto-detection encoding with/without BOM)
 
 ### How to install
-The CSV archive does not require any third party dependencies, but since this part is not "header only", it needs to be built. Currently library supports only static linkage. The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands.
-For avoid binary incompatibility issues, please build with the same compiler options that are used in your project (C++ standard, optimizations flags, runtime type, etc).
+The CSV archive does not require any third party dependencies, but since this part is not "header only", it needs to be built. The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands. For avoid binary incompatibility issues, please build with the same compiler options that are used in your project (C++ standard, optimizations flags, runtime type, etc).
+
 #### VCPKG
 Add BitSerializer to manifest file (`vcpkg.json`) with `csv-archive` feature:
 ```json
@@ -30,6 +30,7 @@ If you are using CMake, you need to link the library:
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::csv-archive)
 ```
+
 #### Conan 2
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_csv` option:
 ```
@@ -44,6 +45,7 @@ Usage the library will be related to selected Conan generator, if your choice is
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::csv-archive)
 ```
+
 #### CMake install to Unix system
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git
@@ -51,6 +53,8 @@ $ cmake bitserializer -B bitserializer/build -DBUILD_CSV_ARCHIVE=ON
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
+By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
+
 #### CMake install to your project directory
 You can install BitSerializer to your "ThirdParty" directory in your project.
 Set correct path in `%TargetInstallDir%` (for example 'D:/MyProject/libs/bitserializer') before run.
@@ -60,6 +64,8 @@ Set correct path in `%TargetInstallDir%` (for example 'D:/MyProject/libs/bitseri
 > sudo cmake --build bitserializer/build --config Debug --target install
 > sudo cmake --build bitserializer/build --config Release --target install
 ```
+By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
+
 You will need to explicitly specify the path where to find the library:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED

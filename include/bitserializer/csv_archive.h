@@ -1,12 +1,12 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <memory>
 #include <optional>
 #include <string>
 #include <type_traits>
+#include "bitserializer/export.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 
@@ -34,7 +34,7 @@ protected:
 	~CsvArchiveTraits() = default;
 };
 
-class ICsvWriter
+class BITSERIALIZER_API ICsvWriter
 {
 public:
 	virtual ~ICsvWriter() = default;
@@ -45,7 +45,7 @@ public:
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 };
 
-class ICsvReader
+class BITSERIALIZER_API ICsvReader
 {
 public:
 	virtual ~ICsvReader() = default;
@@ -141,11 +141,17 @@ private:
 /// <summary>
 /// CSV root scope (can write only array)
 /// </summary>
-class CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class BITSERIALIZER_API CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
 	CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext);
 	CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
+	~CsvWriteRootScope();
+
+	CsvWriteRootScope(CsvWriteRootScope&&) = delete;
+	CsvWriteRootScope& operator=(CsvWriteRootScope&&) = delete;
+	CsvWriteRootScope(const CsvWriteRootScope&) = delete;
+	CsvWriteRootScope& operator=(const CsvWriteRootScope&) = delete;
 
 	/// <summary>
 	/// Gets the current path in CSV.
@@ -158,13 +164,13 @@ public:
 	[[nodiscard]] std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize) const
 	{
 		mCsvWriter->SetEstimatedSize(arraySize);
-		return std::make_optional<CsvWriteArrayScope>(mCsvWriter.get(), GetContext());
+		return std::make_optional<CsvWriteArrayScope>(mCsvWriter, GetContext());
 	}
 
 	void Finalize() const noexcept { /* Not required */ }
 
 private:
-	std::unique_ptr<ICsvWriter> mCsvWriter;
+	ICsvWriter* mCsvWriter = nullptr;
 };
 
 
@@ -327,11 +333,17 @@ private:
 /// <summary>
 /// CSV root scope (can read only array)
 /// </summary>
-class CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
+class BITSERIALIZER_API CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
 	CsvReadRootScope(std::string_view encodedInputStr, SerializationContext& serializationContext);
 	CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext);
+	~CsvReadRootScope();
+
+	CsvReadRootScope(CsvReadRootScope&&) = delete;
+	CsvReadRootScope& operator=(CsvReadRootScope&&) = delete;
+	CsvReadRootScope(const CsvReadRootScope&) = delete;
+	CsvReadRootScope& operator=(const CsvReadRootScope&) = delete;
 
 	/// <summary>
 	/// Gets the current path in CSV.
@@ -343,13 +355,13 @@ public:
 
 	std::optional<CsvReadArrayScope> OpenArrayScope(size_t)
 	{
-		return std::make_optional<CsvReadArrayScope>(mCsvReader.get(), GetContext());
+		return std::make_optional<CsvReadArrayScope>(mCsvReader, GetContext());
 	}
 
 	void Finalize() const noexcept { /* Not required */ }
 
 private:
-	std::unique_ptr<ICsvReader> mCsvReader;
+	ICsvReader* mCsvReader = nullptr;
 };
 
 }

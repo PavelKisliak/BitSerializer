@@ -6,15 +6,14 @@ cmake_minimum_required(VERSION 3.10)
 
 # Set VCPKG toolchain if it does not provided (must be set before the project())
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-      CACHE STRING "")
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 endif()
 set(VCPKG_FEATURE_FLAGS "versions")
 
 project(bitserializer
-  VERSION 0.75.0
-  DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV, MsgPack)"
-  LANGUAGES CXX)
+    VERSION 0.75.0
+    DESCRIPTION "C++ 17 library for serialization to multiple output formats (JSON, XML, YAML, CSV, MsgPack)"
+    LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -22,6 +21,9 @@ include(CMakePackageConfigHelpers)
 #################################################################################
 # Options
 #################################################################################
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+message(STATUS "[Option] BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
+
 option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDJSON_ARCHIVE: ${BUILD_RAPIDJSON_ARCHIVE}")
 
@@ -75,17 +77,29 @@ endif()
 
 # For debug libs, add "d" postfix
 if(NOT DEFINED CMAKE_DEBUG_POSTFIX)
-  set(CMAKE_DEBUG_POSTFIX "d")
+    set(CMAKE_DEBUG_POSTFIX "d")
 endif()
 
 include_directories(
-  "${CMAKE_CURRENT_LIST_DIR}/include"
+    "${CMAKE_CURRENT_LIST_DIR}/include"
 )
+
+# Configuration the linkage type of the library (shared or static)
+if(BUILD_SHARED_LIBS)
+    set(BITSERIALIZER_LINK_TYPE "BITSERIALIZER_SHARED_LINK")
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+else()
+    set(BITSERIALIZER_LINK_TYPE "BITSERIALIZER_STATIC_LINK")
+endif()
+
+# Configuration the output directory for all binaries
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 # Automatic detection of std::filesystem availability
 if(NOT DEFINED BITSERIALIZER_HAS_FILESYSTEM)
-  include(CheckCXXSymbolExists)
-  check_cxx_symbol_exists(std::filesystem::path::preferred_separator filesystem BITSERIALIZER_HAS_FILESYSTEM)
+    include(CheckCXXSymbolExists)
+    check_cxx_symbol_exists(std::filesystem::path::preferred_separator filesystem BITSERIALIZER_HAS_FILESYSTEM)
 endif()
 
 #################################################################################
@@ -121,8 +135,11 @@ set(BITSERIALIZER_NAMESPACE "BitSerializer")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
 
-# Private common library
-add_subdirectory(src/common)
+# Private implementation of common code (object files)
+add_library(common_impl OBJECT
+    "src/common/binary_stream_reader.h"
+    "src/common/binary_stream_reader.cpp"
+)
 
 # BitSerializer core
 set(BITSERIALIZER_CORE_NAME "core")
@@ -137,11 +154,11 @@ target_include_directories(${BITSERIALIZER_CORE_NAME} INTERFACE
 target_compile_features(${BITSERIALIZER_CORE_NAME} INTERFACE cxx_std_17)
 
 if(BITSERIALIZER_HAS_FILESYSTEM)
-  if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
-      if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
-        target_link_libraries(${BITSERIALIZER_CORE_NAME} INTERFACE stdc++fs)
-      endif()
-  endif()
+    if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0")
+            target_link_libraries(${BITSERIALIZER_CORE_NAME} INTERFACE stdc++fs)
+        endif()
+    endif()
 endif()
 
 # BitSerializer rapidjson archive
@@ -150,6 +167,11 @@ if(BUILD_RAPIDJSON_ARCHIVE)
     add_library(${RAPIDJSON_ARCHIVE_NAME} INTERFACE)
     add_library(${BITSERIALIZER_NAMESPACE}::${RAPIDJSON_ARCHIVE_NAME} ALIAS ${RAPIDJSON_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${RAPIDJSON_ARCHIVE_NAME})
+
+    set_target_properties(${RAPIDJSON_ARCHIVE_NAME}
+        PROPERTIES
+            OUTPUT_NAME "bitserializer-rapidjson"
+    )
 
     find_package(RapidJSON CONFIG REQUIRED)
     target_link_libraries(${RAPIDJSON_ARCHIVE_NAME} INTERFACE
@@ -165,6 +187,11 @@ if(BUILD_PUGIXML_ARCHIVE)
     add_library(${BITSERIALIZER_NAMESPACE}::${PUGIXML_ARCHIVE_NAME} ALIAS ${PUGIXML_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${PUGIXML_ARCHIVE_NAME})
 
+    set_target_properties(${PUGIXML_ARCHIVE_NAME}
+        PROPERTIES
+            OUTPUT_NAME "bitserializer-pugixml"
+    )
+
     find_package(pugixml CONFIG REQUIRED)
     target_link_libraries(${PUGIXML_ARCHIVE_NAME} INTERFACE
         ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
@@ -179,6 +206,11 @@ if(BUILD_RAPIDYAML_ARCHIVE)
     add_library(${BITSERIALIZER_NAMESPACE}::${RAPIDYAML_ARCHIVE_NAME} ALIAS ${RAPIDYAML_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${RAPIDYAML_ARCHIVE_NAME})
 
+    set_target_properties(${RAPIDYAML_ARCHIVE_NAME}
+        PROPERTIES
+            OUTPUT_NAME "bitserializer-ryaml"
+    )
+
     find_package(ryml CONFIG REQUIRED)
     target_link_libraries(${RAPIDYAML_ARCHIVE_NAME} INTERFACE
         ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
@@ -188,13 +220,31 @@ endif()
 
 # BitSerializer CSV archive
 if(BUILD_CSV_ARCHIVE)
-    set(CSV_ARCHIVE_NAME "csv-archive")
-    add_library(${CSV_ARCHIVE_NAME} STATIC
+    # CSV archive object files
+    add_library(csv_impl OBJECT
         "src/csv/csv_archive.cpp"
         "src/csv/csv_readers.h" "src/csv/csv_readers.cpp"
-        "src/csv/csv_writers.h" "src/csv/csv_writers.cpp")
+        "src/csv/csv_writers.h" "src/csv/csv_writers.cpp"
+    )
+    target_include_directories(csv_impl PRIVATE "src/")
+    if(BUILD_SHARED_LIBS)
+        target_compile_definitions(csv_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
+    endif()
+
+    # CSV archive public library
+    set(CSV_ARCHIVE_NAME "csv-archive")
+    if(BUILD_SHARED_LIBS)
+        add_library(${CSV_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:csv_impl>)
+    else()
+        add_library(${CSV_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:csv_impl>)
+    endif()
     add_library(${BITSERIALIZER_NAMESPACE}::${CSV_ARCHIVE_NAME} ALIAS ${CSV_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${CSV_ARCHIVE_NAME})
+
+    set_target_properties(${CSV_ARCHIVE_NAME}
+        PROPERTIES
+            OUTPUT_NAME "bitserializer-csv"
+    )
 
     target_link_libraries(${CSV_ARCHIVE_NAME} INTERFACE
         ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
@@ -203,23 +253,34 @@ endif()
 
 # BitSerializer MsgPack archive
 if(BUILD_MSGPACK_ARCHIVE)
-    set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
-    add_library(${MSGPACK_ARCHIVE_NAME} STATIC
-       # Include source files directly from common-lib as it currently uses only by MsgPack archive
-       "src/common/binary_stream_reader.cpp"
-       "src/msgpack/msgpack_archive.cpp"
-       "src/msgpack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
-       "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp"
+    # MsgPack archive object files
+    add_library(msgpack_impl OBJECT
+        "src/msgpack/msgpack_archive.cpp"
+        "src/msgpack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
+        "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp"
     )
+    target_include_directories(msgpack_impl PRIVATE "src/")
+    if(BUILD_SHARED_LIBS)
+        target_compile_definitions(msgpack_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
+    endif()
+
+    # MsgPack archive public library
+    set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
+    if(BUILD_SHARED_LIBS)
+        add_library(${MSGPACK_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:msgpack_impl> $<TARGET_OBJECTS:common_impl>)
+    else()
+        add_library(${MSGPACK_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:msgpack_impl> $<TARGET_OBJECTS:common_impl>)
+    endif()
     add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
 
-    target_include_directories(${MSGPACK_ARCHIVE_NAME} PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
-
-    target_link_libraries(${MSGPACK_ARCHIVE_NAME}
-        INTERFACE
-            ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    set_target_properties(${MSGPACK_ARCHIVE_NAME}
+        PROPERTIES
+            OUTPUT_NAME "bitserializer-msgpack"
+    )
+    
+    target_link_libraries(${MSGPACK_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
     )
 endif()
 

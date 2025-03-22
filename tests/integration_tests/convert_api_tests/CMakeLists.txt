@@ -3,12 +3,11 @@ project(convert_api_tests)
 # Third party libraries
 find_package(GTest REQUIRED)
 
-# Project sources
+# Target configuration
 add_executable(${PROJECT_NAME}
     convert_tests.cpp
 )
 
-# Target configuration
 target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::core
     GTest::Main

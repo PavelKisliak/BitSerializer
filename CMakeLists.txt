@@ -22,6 +22,9 @@ include(CMakePackageConfigHelpers)
 #################################################################################
 # Options
 #################################################################################
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+message(STATUS "[Option] BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
+
 option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" OFF)
 message(STATUS "[Option] BUILD_RAPIDJSON_ARCHIVE: ${BUILD_RAPIDJSON_ARCHIVE}")
 
@@ -81,6 +84,18 @@ endif()
 include_directories(
   "${CMAKE_CURRENT_LIST_DIR}/include"
 )
+
+# Configure the build type
+if(BUILD_SHARED_LIBS)
+    set(BITSERIALIZER_BUILD_TYPE "BITSERIALIZER_BUILDING_DLL")
+    #add_compile_definitions(BITSERIALIZER_BUILDING_DLL)
+else()
+    set(BITSERIALIZER_BUILD_TYPE "BITSERIALIZER_STATIC")
+endif()
+
+# Generate all binaries at the root of the build tree:
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 # Automatic detection of std::filesystem availability
 if(NOT DEFINED BITSERIALIZER_HAS_FILESYSTEM)
@@ -189,10 +204,16 @@ endif()
 # BitSerializer CSV archive
 if(BUILD_CSV_ARCHIVE)
     set(CSV_ARCHIVE_NAME "csv-archive")
-    add_library(${CSV_ARCHIVE_NAME} STATIC
+    set(CSV_ARCHIVE_SRC
         "src/csv/csv_archive.cpp"
         "src/csv/csv_readers.h" "src/csv/csv_readers.cpp"
-        "src/csv/csv_writers.h" "src/csv/csv_writers.cpp")
+        "src/csv/csv_writers.h" "src/csv/csv_writers.cpp"
+    )
+    if(BUILD_SHARED_LIBS)
+      add_library(${CSV_ARCHIVE_NAME} SHARED ${CSV_ARCHIVE_SRC})
+    else()
+      add_library(${CSV_ARCHIVE_NAME} STATIC ${CSV_ARCHIVE_SRC})
+    endif()
     add_library(${BITSERIALIZER_NAMESPACE}::${CSV_ARCHIVE_NAME} ALIAS ${CSV_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${CSV_ARCHIVE_NAME})
 
@@ -204,22 +225,27 @@ endif()
 # BitSerializer MsgPack archive
 if(BUILD_MSGPACK_ARCHIVE)
     set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
-    add_library(${MSGPACK_ARCHIVE_NAME} STATIC
+    set(MSGPACK_ARCHIVE_SRC
        # Include source files directly from common-lib as it currently uses only by MsgPack archive
        "src/common/binary_stream_reader.cpp"
        "src/msgpack/msgpack_archive.cpp"
        "src/msgpack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
        "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp"
     )
+
+    if(BUILD_SHARED_LIBS)
+      add_library(${MSGPACK_ARCHIVE_NAME} SHARED ${MSGPACK_ARCHIVE_SRC})
+    else()
+      add_library(${MSGPACK_ARCHIVE_NAME} STATIC ${MSGPACK_ARCHIVE_SRC})
+    endif()
     add_library(${BITSERIALIZER_NAMESPACE}::${MSGPACK_ARCHIVE_NAME} ALIAS ${MSGPACK_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${MSGPACK_ARCHIVE_NAME})
 
     target_include_directories(${MSGPACK_ARCHIVE_NAME} PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
-    target_link_libraries(${MSGPACK_ARCHIVE_NAME}
-        INTERFACE
-            ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    target_link_libraries(${MSGPACK_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
     )
 endif()
 

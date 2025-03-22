@@ -158,7 +158,7 @@ private:
 using MsgPackVariableKey = CVariableKey<MsgPackArchiveTraits::supported_key_types>;
 using PathResolver = std::function<std::string()>;
 
-class IMsgPackWriter
+class BITSERIALIZER_API IMsgPackWriter
 {
 public:
 	virtual ~IMsgPackWriter() = default;
@@ -192,7 +192,7 @@ public:
 	virtual void WriteBinary(char byte) = 0;
 };
 
-class IMsgPackReader
+class BITSERIALIZER_API IMsgPackReader
 {
 public:
 	virtual ~IMsgPackReader() = default;
@@ -407,11 +407,12 @@ private:
 /// <summary>
 /// MsgPack root scope
 /// </summary>
-class MsgPackWriteRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class BITSERIALIZER_API MsgPackWriteRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
 	MsgPackWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
 	MsgPackWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
+	~MsgPackWriteRootScope();
 
 	/// <summary>
 	/// Gets the current path in MsgPack.
@@ -432,25 +433,25 @@ public:
 	[[nodiscard]] std::optional<CMsgPackWriteArrayScope<IMsgPackWriter>> OpenArrayScope(size_t arraySize) const
 	{
 		mMsgPackWriter->BeginArray(arraySize);
-		return std::make_optional<CMsgPackWriteArrayScope<IMsgPackWriter>>(arraySize, mMsgPackWriter.get(), GetContext());
+		return std::make_optional<CMsgPackWriteArrayScope<IMsgPackWriter>>(arraySize, mMsgPackWriter, GetContext());
 	}
 
 	[[nodiscard]] std::optional<CMsgPackWriteObjectScope<IMsgPackWriter>> OpenObjectScope(size_t mapSize) const
 	{
 		mMsgPackWriter->BeginMap(mapSize);
-		return std::make_optional<CMsgPackWriteObjectScope<IMsgPackWriter>>(mapSize, mMsgPackWriter.get(), GetContext());
+		return std::make_optional<CMsgPackWriteObjectScope<IMsgPackWriter>>(mapSize, mMsgPackWriter, GetContext());
 	}
 
 	[[nodiscard]] std::optional<CMsgPackWriteBinaryScope<IMsgPackWriter>> OpenBinaryScope(size_t binarySize) const
 	{
 		mMsgPackWriter->BeginBinary(binarySize);
-		return std::make_optional<CMsgPackWriteBinaryScope<IMsgPackWriter>>(binarySize, mMsgPackWriter.get(), GetContext());
+		return std::make_optional<CMsgPackWriteBinaryScope<IMsgPackWriter>>(binarySize, mMsgPackWriter, GetContext());
 	}
 
 	static constexpr void Finalize() noexcept { /* Not required */ }
 
 private:
-	std::unique_ptr<IMsgPackWriter> mMsgPackWriter;
+	IMsgPackWriter* mMsgPackWriter;
 };
 
 
@@ -873,11 +874,12 @@ private:
 /// <summary>
 /// MsgPack root scope
 /// </summary>
-class MsgPackReadRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Load>
+class BITSERIALIZER_API MsgPackReadRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
 	MsgPackReadRootScope(std::string_view inputData, SerializationContext& serializationContext);
 	MsgPackReadRootScope(std::istream& inputStream, SerializationContext& serializationContext);
+	~MsgPackReadRootScope();
 
 	/// <summary>
 	/// Gets the current path in MsgPack.
@@ -897,7 +899,7 @@ public:
 	[[nodiscard]] std::optional<CMsgPackReadArrayScope<IMsgPackReader>> OpenArrayScope(size_t) const
 	{
 		if (size_t sz = 0; mMsgPackReader->ReadArraySize(sz)) {
-			return std::make_optional<CMsgPackReadArrayScope<IMsgPackReader>>(sz, mMsgPackReader.get(), GetContext());
+			return std::make_optional<CMsgPackReadArrayScope<IMsgPackReader>>(sz, mMsgPackReader, GetContext());
 		}
 		return std::nullopt;
 	}
@@ -905,7 +907,7 @@ public:
 	[[nodiscard]] std::optional<CMsgPackReadObjectScope<IMsgPackReader>> OpenObjectScope(size_t) const
 	{
 		if (size_t sz = 0; mMsgPackReader->ReadMapSize(sz)) {
-			return std::make_optional<CMsgPackReadObjectScope<IMsgPackReader>>(sz, mMsgPackReader.get(), GetContext());
+			return std::make_optional<CMsgPackReadObjectScope<IMsgPackReader>>(sz, mMsgPackReader, GetContext());
 		}
 		return std::nullopt;
 	}
@@ -913,7 +915,7 @@ public:
 	[[nodiscard]] std::optional<CMsgPackReadBinaryScope<IMsgPackReader>> OpenBinaryScope(size_t) const
 	{
 		if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
-			return std::make_optional<CMsgPackReadBinaryScope<IMsgPackReader>>(sz, mMsgPackReader.get(), GetContext());
+			return std::make_optional<CMsgPackReadBinaryScope<IMsgPackReader>>(sz, mMsgPackReader, GetContext());
 		}
 		return std::nullopt;
 	}
@@ -921,7 +923,7 @@ public:
 	static constexpr void Finalize() noexcept { /* Not required */ }
 
 private:
-	std::unique_ptr<IMsgPackReader> mMsgPackReader;
+	IMsgPackReader* mMsgPackReader;
 };
 
 }

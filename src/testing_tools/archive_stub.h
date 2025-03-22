@@ -36,7 +36,9 @@ using TestIoDataArrayPtr = std::shared_ptr<TestIoDataArray>;
 
 class TestIoData
 	: public std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, std::wstring, TestIoDataObjectPtr, TestIoDataArrayPtr>
-{ };
+{
+	using std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, std::wstring, TestIoDataObjectPtr, TestIoDataArrayPtr>::variant;
+};
 
 class TestIoDataRoot
 {
@@ -445,7 +447,7 @@ protected:
 
 	[[nodiscard]] TestIoDataPtr AddArchiveValue(const key_type& key) const
 	{
-		const auto archiveObject = GetAsObject();
+		const auto& archiveObject = GetAsObject();
 		decltype(auto) result = archiveObject->emplace(key, std::make_shared<TestIoData>());
 		return result.first->second;
 	}

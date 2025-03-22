@@ -6,9 +6,11 @@
 #include <optional>
 #include <istream>
 
+#include "bitserializer/config.h"
+
 namespace BitSerializer::Detail
 {
-	class CBinaryStreamReader
+	class BITSERIALIZER_API CBinaryStreamReader
 	{
 	public:
 		static constexpr size_t chunk_size = 256;

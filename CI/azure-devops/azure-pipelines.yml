@@ -85,11 +85,11 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_GCC_8_static'
-          image: 'ubuntu-20.04'
-          installToolsCmd: 'sudo apt-get install gcc-8 g++-8 ninja-build'
+          name: 'Ubuntu_GCC_9_static'
+          image: 'ubuntu-22.04'
+          installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
           vcpkgTriplet: "x64-linux-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -101,11 +101,11 @@ stages:
 
       - template: unix-jobs-template.yml
         parameters:
-          name: 'Ubuntu_Clang_8_static'
-          image: 'ubuntu-20.04'
-          installToolsCmd: 'sudo apt-get install clang-8 ninja-build --install-suggests'
+          name: 'Ubuntu_Clang_11_static'
+          image: 'ubuntu-22.04'
+          installToolsCmd: 'sudo apt-get install clang-11 ninja-build --install-suggests'
           vcpkgTriplet: "x64-linux-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-11 -DCMAKE_CXX_COMPILER=clang++-11'
 
       - template: unix-jobs-template.yml
         parameters:

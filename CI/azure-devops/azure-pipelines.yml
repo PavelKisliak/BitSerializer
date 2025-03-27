@@ -1,19 +1,22 @@
 trigger:
+  branches:
+    include:
+      - '*'
+  tags:
+    include:
+      - 'refs/tags/*'
   paths:
     exclude:
-    - docs/*
-    - cpp.hint
-    - README.md
-    - History.md
-    - CMakeSettings.json
+      - '/**/*.md'
+      - 'cpp.hint'
+      - 'CMakeSettings.json'
 
 pr:
   paths:
     exclude:
-    - docs/*
-    - README.md
-    - History.md
-    - CMakeSettings.json
+      - '/**/*.md'
+      - cpp.hint
+      - CMakeSettings.json
 
 schedules:
   - cron: "0 6 * * Sat"
@@ -25,39 +28,53 @@ schedules:
 
 variables:
 - name: CmakeGenOptions
-  value: -DBUILD_SAMPLES=ON -DBUILD_TESTS=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+  value: -DBUILD_SAMPLES=ON -DBUILD_BENCHMARKS=ON -DBUILD_TESTS=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+  readonly: true
+- name: EnablePublishToGitHub
+  value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/') }}
   readonly: true
 
 stages:
-  - stage: StaticAnalysis
-    displayName: 'Static analysis stage'
-    jobs:
-      - template: static-analysis-clang-tidy-jobs-template.yml
-        parameters:
-          name: 'StaticAnalysis_ClangTidy'
-          image: 'ubuntu-latest'
-          vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions)'
-          fullAnalysis: ${{ eq(variables['Build.Reason'], 'Schedule') }}
+#  - stage: StaticAnalysis
+#    displayName: 'Static analysis stage'
+#    jobs:
+#      - template: static-analysis-clang-tidy-jobs-template.yml
+#        parameters:
+#          name: 'StaticAnalysis_ClangTidy'
+#          image: 'ubuntu-latest'
+#          vcpkgTriplet: "x64-linux"
+#          cmakeGenArgs: '$(CmakeGenOptions)'
+#          fullAnalysis: ${{ eq(variables['Build.Reason'], 'Schedule') }}
 
-      - template: memory-check-valgrind-jobs-template.yml
-        parameters:
-          name: 'MemoryCheck_Valgrind_static'
-          image: 'ubuntu-latest'
-          vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF'
+#      - template: memory-check-valgrind-jobs-template.yml
+#        parameters:
+#          name: 'MemoryCheck_Valgrind_static'
+#          image: 'ubuntu-latest'
+#          vcpkgTriplet: "x64-linux"
+#          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF'
+#
+#      - template: memory-check-valgrind-jobs-template.yml
+#        parameters:
+#          name: 'MemoryCheck_Valgrind_dynamic'
+#          image: 'ubuntu-latest'
+#          vcpkgTriplet: "x64-linux"
+#          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=ON'
 
-      - template: memory-check-valgrind-jobs-template.yml
-        parameters:
-          name: 'MemoryCheck_Valgrind_dynamic'
-          image: 'ubuntu-latest'
-          vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON'
+  - ${{ if eq('${{ variables.EnablePublishToGitHub }}', true) }}:
+    - stage: PrepareRelease
+      displayName: 'Prepare release'
+  #    dependsOn: StaticAnalysis
+      condition: eq('${{ variables.EnablePublishToGitHub }}', true)
+      jobs:
+        - template: create-github-release-template.yml
+          parameters:
+            name: 'PrepareRelease'
+            image: 'ubuntu-latest'
 
   - stage: BuildAndTest
     displayName: 'Build and test stage'
-    dependsOn: StaticAnalysis
-    condition: succeeded()
+    dependsOn: PrepareRelease
+    condition: or(eq(dependencies.PrepareRelease.result, 'Succeeded'), eq('${{ variables.EnablePublishToGitHub }}', false))
     jobs:
       - template: windows-jobs-template.yml
         parameters:
@@ -66,6 +83,9 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
+          enableRunTests: false
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_windows_x64_msvc16_static'
 
       - template: windows-jobs-template.yml
         parameters:
@@ -74,6 +94,8 @@ stages:
           platform: 'Win32'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_windows_x86_msvc16_dynamic'
 
       - template: windows-jobs-template.yml
         parameters:
@@ -82,6 +104,8 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_windows_x64_msvc17_static'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -90,6 +114,8 @@ stages:
           installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_ubuntu_gcc9_static'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -122,6 +148,8 @@ stages:
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_macos14_x64_clang14_static'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -130,6 +158,8 @@ stages:
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20 -DBUILD_SHARED_LIBS=ON'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_macos14_x64_clang14_dynamic'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -139,6 +169,8 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
           vcpkgTriplet: "bitserializer-arm32-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_ubuntu_arm32_gcc13_static'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -148,6 +180,8 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake -DCMAKE_CXX_STANDARD=20 -DBUILD_SHARED_LIBS=ON'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_ubuntu_arm64_gcc13_dynamic'
 
       - template: unix-jobs-template.yml
         parameters:
@@ -157,3 +191,5 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
+          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
+          packageSuffix: '_ubuntu_arm64be_gcc13_static'

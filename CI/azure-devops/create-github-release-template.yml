@@ -1,0 +1,23 @@
+parameters:
+# [Required] Job name
+  name: ''
+# [Optional] Build agent name
+  image: 'ubuntu-latest'
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+
+  steps:
+  - task: GitHubRelease@1
+    displayName: 'Create GitHub release'
+    inputs:
+      gitHubConnection: 'PavelKisliak'
+      repositoryName: '$(Build.Repository.Name)'
+      action: 'create'
+      isDraft: true
+      target: '$(Build.SourceVersion)'
+      tag: $(Build.SourceBranchName)
+      tagSource: 'userSpecifiedTag'
+      title: '$(Build.SourceBranchName)'

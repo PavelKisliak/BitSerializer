@@ -59,7 +59,7 @@ jobs:
       ninja -C ${{ parameters.buildDirectory }}
       ninja -C ${{ parameters.buildDirectory }} -t deps > ${{ parameters.buildDirectory }}/deps.txt
     displayName: 'Build'
-    condition: eq('${{ parameters.fullAnalysis }}', false)
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false))
 
   - script: |
       echo --- Identifying affected source files ---
@@ -76,7 +76,7 @@ jobs:
           echo "No affected source files found. Skipping clang-tidy analysis."
       fi
     displayName: 'Static analysis [latest changes]'
-    condition: eq('${{ parameters.fullAnalysis }}', false)
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false))
 
   - script: |
       python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }}
@@ -87,4 +87,4 @@ jobs:
       fi
     continueOnError: true
     displayName: 'Static analysis [full]'
-    condition: eq('${{ parameters.fullAnalysis }}', true)
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', true))

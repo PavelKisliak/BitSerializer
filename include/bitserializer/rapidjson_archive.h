@@ -339,8 +339,8 @@ public:
 		assert(this->mNode->IsObject());
 	}
 
-	[[nodiscard]] size_t GetEstimatedSize() const {
-		return this->mNode->Capacity();
+	[[nodiscard]] static size_t GetEstimatedSize() {
+		return 0;
 	}
 
 	/// <summary>

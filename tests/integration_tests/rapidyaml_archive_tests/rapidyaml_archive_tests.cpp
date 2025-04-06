@@ -7,6 +7,16 @@
 #include "testing_tools/common_yaml_test_methods.h"
 #include "bitserializer/rapidyaml_archive.h"
 
+// STD types
+#include "bitserializer/types/std/atomic.h"
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
+#include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/pair.h"
+#include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/filesystem.h"
+
 using YamlArchive = BitSerializer::Yaml::RapidYaml::YamlArchive;
 
 //-----------------------------------------------------------------------------
@@ -390,4 +400,23 @@ TEST(RapidYamlArchive, ThrowSerializationExceptionWhenEncodingError) {
 
 TEST(RapidYamlArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 	TestEncodingPolicy<YamlArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, SerializeStdTypes)
+{
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::atomic_int>>();
+	TestSerializeType<YamlArchive, std::pair<std::string, int>>();
+	TestSerializeType<YamlArchive, std::tuple<std::string, int, float, bool>>();
+
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>("test")));
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));
+
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::filesystem::path>>(TestClassWithSubType(std::filesystem::temp_directory_path()));
+
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::chrono::seconds>>();
 }

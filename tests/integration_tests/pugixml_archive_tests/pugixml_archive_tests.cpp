@@ -6,6 +6,16 @@
 #include "testing_tools/common_xml_test_methods.h"
 #include "bitserializer/pugixml_archive.h"
 
+// STD types
+#include "bitserializer/types/std/atomic.h"
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
+#include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/pair.h"
+#include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/filesystem.h"
+
 using BitSerializer::Xml::PugiXml::XmlArchive;
 
 //-----------------------------------------------------------------------------
@@ -467,4 +477,23 @@ TEST(PugiXmlArchive, ThrowSerializationExceptionWhenEncodingError) {
 
 TEST(PugiXmlArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 	TestEncodingPolicy<XmlArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SerializeStdTypes)
+{
+	TestSerializeArray<XmlArchive, std::atomic_int>();
+	TestSerializeType<XmlArchive, std::pair<std::string, int>>();
+	TestSerializeType<XmlArchive, std::tuple<std::string, int, float, bool>>();
+
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>("test")));
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));
+
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::filesystem::path>>(TestClassWithSubType(std::filesystem::temp_directory_path()));
+
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::chrono::seconds>>();
 }

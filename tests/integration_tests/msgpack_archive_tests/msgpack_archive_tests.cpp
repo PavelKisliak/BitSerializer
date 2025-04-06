@@ -5,9 +5,16 @@
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/common_json_test_methods.h"
 #include "bitserializer/msgpack_archive.h"
+
+// STD types
+#include "bitserializer/types/std/atomic.h"
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/ctime.h"
-#include "bitserializer/types/std/map.h"
+#include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/pair.h"
+#include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/filesystem.h"
 
 using namespace BitSerializer;
 using BitSerializer::MsgPack::MsgPackArchive;
@@ -340,55 +347,6 @@ TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 }
 
 //-----------------------------------------------------------------------------
-// Test serialization std::map
-//-----------------------------------------------------------------------------
-TEST(MsgPackArchive, SerializeMapWithIntAsKey)
-{
-	TestSerializeType<MsgPackArchive>(std::map<int8_t, int>{
-		{ std::numeric_limits<int8_t>::min(), 1 },
-		{ std::numeric_limits<int8_t>::max(), 2 }
-	});
-
-	TestSerializeType<MsgPackArchive>(std::map<int64_t, int>{
-		{ std::numeric_limits<int64_t>::min(), 1 },
-		{ std::numeric_limits<int64_t>::max(), 2 }
-	});
-}
-
-TEST(MsgPackArchive, SerializeMapWithUnsignedIntAsKey)
-{
-	TestSerializeType<MsgPackArchive>(std::map<uint8_t, std::string>{
-		{ std::numeric_limits<uint8_t>::min(), "1" },
-		{ std::numeric_limits<uint8_t>::max(), "2" }
-	});
-
-	TestSerializeType<MsgPackArchive>(std::map<uint64_t, std::string>{
-		{ std::numeric_limits<uint64_t>::min(), "1" },
-		{ std::numeric_limits<uint64_t>::max(), "2" }
-	});
-}
-
-TEST(MsgPackArchive, SerializeMapWithfloatAsKey) {
-	TestSerializeType<MsgPackArchive, std::map<float, int>>();
-	TestSerializeType<MsgPackArchive, std::map<double, std::string>>();
-}
-
-TEST(MsgPackArchive, SerializeMapWithChronoDurationAsKey) {
-	TestSerializeType<MsgPackArchive, std::map<std::chrono::nanoseconds, int>>();
-	TestSerializeType<MsgPackArchive, std::map<std::chrono::nanoseconds, std::u16string>>();
-}
-
-TEST(MsgPackArchive, SerializeMapWithChronoTimePointAsKey) {
-	TestSerializeType<MsgPackArchive, std::map<std::chrono::system_clock::time_point, int>>();
-	TestSerializeType<MsgPackArchive, std::map<std::chrono::system_clock::time_point, std::u32string>>();
-}
-
-TEST(MsgPackArchive, SerializeMapWithStringAsKey) {
-	TestSerializeType<MsgPackArchive, std::map<std::string, int>>();
-	TestSerializeType<MsgPackArchive, std::map<std::wstring, std::string>>();
-}
-
-//-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ShouldReturnPathInObjectScopeWhenLoading)
@@ -594,4 +552,23 @@ TEST(MsgPackArchive, ThrowSerializationExceptionWhenEncodingError) {
 
 TEST(MsgPackArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 	TestEncodingPolicy<MsgPackArchive>(Convert::Utf::UtfEncodingErrorPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
+//-----------------------------------------------------------------------------
+TEST(MsgPackReleaseTest, SerializeStdTypes)
+{
+	TestSerializeType<MsgPackArchive, std::atomic_int>();
+	TestSerializeType<MsgPackArchive, std::pair<std::string, int>>();
+	TestSerializeType<MsgPackArchive, std::tuple<std::string, int, float, bool>>();
+
+	TestSerializeType<MsgPackArchive>(std::optional<std::string>("test"));
+	TestSerializeType<MsgPackArchive>(std::make_unique<std::string>("test"));
+	TestSerializeType<MsgPackArchive>(std::make_shared<std::string>("test"));
+
+	TestSerializeType<MsgPackArchive>(std::filesystem::temp_directory_path());
+
+	TestSerializeType<MsgPackArchive, std::chrono::system_clock::time_point>();
+	TestSerializeType<MsgPackArchive, std::chrono::seconds>();
 }

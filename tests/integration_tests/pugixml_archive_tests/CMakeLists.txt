@@ -6,6 +6,7 @@ find_package(GTest REQUIRED)
 # Target configuration
 add_executable(${PROJECT_NAME}
     pugixml_archive_tests.cpp
+    pugixml_std_containers_tests.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

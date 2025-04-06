@@ -6,6 +6,16 @@
 #include "testing_tools/common_json_test_methods.h"
 #include "bitserializer/rapidjson_archive.h"
 
+// STD types
+#include "bitserializer/types/std/atomic.h"
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
+#include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/pair.h"
+#include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/filesystem.h"
+
 using BitSerializer::Json::RapidJson::JsonArchive;
 
 #pragma warning(push)
@@ -547,6 +557,25 @@ TEST(RapidJsonArchive, ThrowSerializationExceptionWhenEncodingError) {
 
 TEST(RapidJsonArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 	TestEncodingPolicy<JsonArchive>(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, SerializeStdTypes)
+{
+	TestSerializeType<JsonArchive, std::atomic_int>();
+	TestSerializeType<JsonArchive, std::pair<std::string, int>>();
+	TestSerializeType<JsonArchive, std::tuple<std::string, int, float, bool>>();
+
+	TestSerializeType<JsonArchive>(std::optional<std::string>("test"));
+	TestSerializeType<JsonArchive>(std::make_unique<std::string>("test"));
+	TestSerializeType<JsonArchive>(std::make_shared<std::string>("test"));
+
+	TestSerializeType<JsonArchive>(std::filesystem::temp_directory_path());
+
+	TestSerializeType<JsonArchive, std::chrono::system_clock::time_point>();
+	TestSerializeType<JsonArchive, std::chrono::seconds>();
 }
 
 #pragma warning(pop)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -50,7 +50,7 @@ namespace BitSerializer
 		}
 
 		template <class TString>
-		TString& GetStringValueBuffer()
+		constexpr TString& GetStringValueBuffer()
 		{
 			if (std::holds_alternative<TString>(mStringValueBuffer))
 			{

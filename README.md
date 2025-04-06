@@ -265,15 +265,18 @@ void Serialize(TArchive& archive)
     archive << KeyValue("TestInt", TestInt);
 };
 ```
-One limitation is that the base class must have an internal `Serialize()` method, unfortunately there is no way to use an external `SerialzeObject()`.
+> [!NOTE]
+> Version 0.75 and earlier support serialization of the base class only via the internal `Serialize()` method.
 
 ### Serializing third party class
 As alternative for internal `Serialize()` method also exists approach with defining global functions, it will be useful in next cases:
 
  - Sources of serializing class cannot be modified (for example from third party library).
  - When class represents list of some values (such as `std::vector`), see [next chapter](#serializing-class-that-represent-an-array).
- - When you would like to override internal serialization, globally defined functions have higher priority.
  - When you strongly follow single responsibility principle and wouldn't like to include serialization code into class.
+
+> [!NOTE]
+> Internal `Serialize()` method has higher priority than global one (in v0.75 was a priority for the global function).
 
 You need to implement `SerializeObject()` in the same namespace as the serializing class, or in `BitSerializer`:
 ```cpp
@@ -332,7 +335,8 @@ The size of list can be obtained via one of the following ways:
 
 So, in case if your class has a different signature for the size getter than `size()`, then you need to implement it as a global function.
 
-⚠ In the latest released version of BitSerializer (0.75) incorrectly detecting internal `size()` method (if it's not in the `std` namespace), you need to implement it externally.
+> [!WARNING]
+> In the latest released version of BitSerializer (0.75) incorrectly detecting internal `size()` method (if it's not in the `std` namespace), you need to implement it externally.
 
 Please take a look at the following example:
 ```cpp

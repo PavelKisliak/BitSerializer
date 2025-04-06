@@ -100,8 +100,13 @@ TEST(PugiXmlArchive, SerializeClassWithMemberString) {
 	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
+TEST(PugiXmlArchive, SerializeClassWithExternalSerializeFuntion) {
+	TestSerializeType<XmlArchive, TestClassWithExternalSerialization>();
+}
+
 TEST(PugiXmlArchive, SerializeClassHierarchy) {
-	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<XmlArchive, TestClassWithInheritance<TestPointClass>>();
+	TestSerializeType<XmlArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberClass) {

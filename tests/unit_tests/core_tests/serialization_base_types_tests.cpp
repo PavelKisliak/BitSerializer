@@ -342,8 +342,8 @@ TEST(BaseTypes, SerializeClassWithMemberString) {
 	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
 }
 
-TEST(BaseTypes, SerializeClassHierarchy) {
-	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithInheritance>());
+TEST(BaseTypes, SerializeClassWithExternalSerializeFuntion) {
+	TestSerializeType<ArchiveStub, TestClassWithExternalSerialization>();
 }
 
 TEST(BaseTypes, SerializeClassWithMemberClass) {
@@ -365,6 +365,17 @@ TEST(BaseTypes, SerializeClassWithSubTwoDimArray) {
 
 TEST(BaseTypes, ShouldVisitKeysInObjectScope) {
 	TestVisitKeysInObjectScope<ArchiveStub>();
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization classes with inheritance
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, SerializeClassHierarchyWithInternalSerialization) {
+	TestSerializeType<ArchiveStub, TestClassWithInheritance<TestPointClass>>();
+}
+
+TEST(BaseTypes, SerializeClassHierarchyWithExternalSerialization) {
+	TestSerializeType<ArchiveStub, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
 //-----------------------------------------------------------------------------

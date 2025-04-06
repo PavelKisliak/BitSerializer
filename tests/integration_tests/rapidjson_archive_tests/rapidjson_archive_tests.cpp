@@ -184,9 +184,15 @@ TEST(RapidJsonArchive, SerializeClassWithMemberString)
 	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
+TEST(RapidJsonArchive, SerializeClassWithExternalSerializeFuntion)
+{
+	TestSerializeType<JsonArchive, TestClassWithExternalSerialization>();
+}
+
 TEST(RapidJsonArchive, SerializeClassHierarchy)
 {
-	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<JsonArchive, TestClassWithInheritance<TestPointClass>>();
+	TestSerializeType<JsonArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
 TEST(RapidJsonArchive, SerializeClassWithMemberClass)

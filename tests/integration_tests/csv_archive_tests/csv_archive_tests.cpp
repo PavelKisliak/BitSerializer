@@ -83,6 +83,19 @@ TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScopeWhenSkipValues)
 	TestVisitKeysInObjectScope<CsvArchive>(true);
 }
 
+//-----------------------------------------------------------------------------
+// Tests of serialization array of classes
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, SerializeClassWithExternalSerializeFuntion) {
+	TestSerializeArray<CsvArchive, TestClassWithExternalSerialization>();
+}
+
+TEST_F(CsvArchiveTests, SerializeArrayOfClassesWithInheritance)
+{
+	TestSerializeArray<CsvArchive, TestClassWithInheritance<TestPointClass>>();
+	TestSerializeArray<CsvArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
+}
+
 TEST_F(CsvArchiveTests, SerializeClassInReverseOrder)
 {
 	TestSerializeArray<CsvArchive, TestClassWithReverseLoad<bool, int, std::string>>();

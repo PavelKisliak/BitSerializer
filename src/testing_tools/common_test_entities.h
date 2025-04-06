@@ -134,38 +134,6 @@ namespace std
 }
 
 //-----------------------------------------------------------------------------
-class TestClassWithInheritance : public TestPointClass
-{
-public:
-	static void BuildFixture(TestClassWithInheritance& fixture)
-	{
-		TestPointClass::BuildFixture(fixture);
-		::BuildFixture(fixture.mTestUInt32);
-		::BuildFixture(fixture.mTestUInt64);
-	}
-
-	void Assert(const TestClassWithInheritance& rhs) const
-	{
-		this->TestPointClass::Assert(rhs);
-		EXPECT_EQ(mTestUInt32, rhs.mTestUInt32);
-		EXPECT_EQ(mTestUInt64, rhs.mTestUInt64);
-	}
-
-	template <class TArchive>
-	void Serialize(TArchive& archive)
-	{
-		archive << BitSerializer::BaseObject<TestPointClass>(*this);
-
-		archive << BitSerializer::KeyValue(L"TestUInt32", mTestUInt32);
-		archive << BitSerializer::KeyValue(L"TestUInt64", mTestUInt64);
-	}
-
-private:
-	uint32_t mTestUInt32 = 0u;
-	uint64_t mTestUInt64 = 0u;
-};
-
-//-----------------------------------------------------------------------------
 template <typename T, bool RequiredValidator = false>
 class TestClassWithSubType
 {
@@ -311,6 +279,62 @@ protected:
 	}
 
 	bool mRequired = false;
+};
+
+//-----------------------------------------------------------------------------
+class TestClassWithExternalSerialization
+{
+public:
+	static void BuildFixture(TestClassWithExternalSerialization& fixture)
+	{
+		::BuildFixture(fixture.TestValue);
+	}
+
+	void Assert(const TestClassWithExternalSerialization& rhs) const
+	{
+		EXPECT_EQ(TestValue, rhs.TestValue);
+	}
+
+	int TestValue = 0;
+};
+
+template <class TArchive>
+void SerializeObject(TArchive& archive, TestClassWithExternalSerialization& obj)
+{
+	archive << BitSerializer::KeyValue("TestValue", obj.TestValue);
+}
+
+//-----------------------------------------------------------------------------
+template <typename TBase>
+class TestClassWithInheritance : public TBase
+{
+public:
+	static void BuildFixture(TestClassWithInheritance& fixture)
+	{
+		TBase::BuildFixture(fixture);
+		::BuildFixture(fixture.mTestUInt32);
+		::BuildFixture(fixture.mTestUInt64);
+	}
+
+	void Assert(const TestClassWithInheritance& rhs) const
+	{
+		this->TBase::Assert(rhs);
+		EXPECT_EQ(mTestUInt32, rhs.mTestUInt32);
+		EXPECT_EQ(mTestUInt64, rhs.mTestUInt64);
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::BaseObject<TBase>(*this);
+
+		archive << BitSerializer::KeyValue(L"TestUInt32", mTestUInt32);
+		archive << BitSerializer::KeyValue(L"TestUInt64", mTestUInt64);
+	}
+
+private:
+	uint32_t mTestUInt32 = 0u;
+	uint64_t mTestUInt64 = 0u;
 };
 
 //-----------------------------------------------------------------------------

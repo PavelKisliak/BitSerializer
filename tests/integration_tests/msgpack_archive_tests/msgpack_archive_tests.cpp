@@ -242,9 +242,15 @@ TEST(MsgPackArchive, SerializeClassWithMemberString)
 	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
+TEST(MsgPackArchive, SerializeClassWithExternalSerializeFuntion)
+{
+	TestSerializeType<MsgPackArchive, TestClassWithExternalSerialization>();
+}
+
 TEST(MsgPackArchive, SerializeClassHierarchy)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithInheritance>());
+	TestSerializeType<MsgPackArchive, TestClassWithInheritance<TestPointClass>>();
+	TestSerializeType<MsgPackArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberClass)

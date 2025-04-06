@@ -242,12 +242,12 @@ public:
 		constexpr auto hasGlobalSerializeObject = has_global_serialize_object_v<TValue>;
 		static_assert(hasSerializeMethod || hasGlobalSerializeObject, "BitSerializer. Cannot count number of object fields");
 
-		// Globally defined functions have higher priority over internal ones
-		if constexpr (hasGlobalSerializeObject) {
-			SerializeObject(*this, obj);
-		}
-		else if constexpr (hasSerializeMethod) {
+		// Internal Serialize() method has higher priority than global one
+		if constexpr (hasSerializeMethod) {
 			obj.Serialize(*this);
+		}
+		else if constexpr (hasGlobalSerializeObject) {
+			SerializeObject(*this, obj);
 		}
 		return Size;
 	}

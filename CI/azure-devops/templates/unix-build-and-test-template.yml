@@ -3,22 +3,18 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
-# [Optional] Install additional tools command line
-  installToolsCmd: ''
-# [Required] URL to download the compiler
-  compilerUrl: ''
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
+# [Optional] Install additional tools command line
+  installToolsCmd: ''
+# [Optional] URL to download the compiler
+  compilerUrl: ''
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Build configuration (Debug, Release)
   buildConfiguration: 'Release'
 # [Optional] Enable run tests
   enableRunTests: true
-# [Optional] Publish artifacts to a GitHub Release
-  enablePublishToGitHub: false
-# [Optional] Package suffix
-  packageSuffix: ''
 
 jobs:
 - job: ${{ parameters.name }}
@@ -26,8 +22,6 @@ jobs:
     vmImage: ${{ parameters.image }}
   variables:
     buildDirectory: 'build'
-    installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
-    archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.tar.gz'
 
   steps:
   - script: |
@@ -66,7 +60,7 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: ${{ variables.buildDirectory }}
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} .. -G Ninja'
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
     displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
 
   - script: |
@@ -90,35 +84,3 @@ jobs:
       testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: 'x64'
       buildConfiguration: '${{ parameters.buildConfiguration }}'
-
-  - script: |
-      cd ${{ variables.buildDirectory }}
-      cmake --build . --config ${{ parameters.buildConfiguration }} --target install
-    condition: and(succeeded(), eq('${{ parameters.enablePublishToGitHub }}', true))
-    displayName: 'Cmake - install [${{ parameters.buildConfiguration }}]'
-
-  - task: ArchiveFiles@2
-    displayName: Zip package
-    condition: and(succeeded(), eq('${{ parameters.enablePublishToGitHub }}', true))
-    inputs:
-      rootFolderOrFile: '${{ variables.installDir }}'
-      archiveType: 'tar'
-      tarCompression: 'gz'
-      archiveFile: '${{ variables.archiveFilePath }}'
-      replaceExistingArchive: true
-
-  - task: GitHubRelease@1
-    displayName: 'Publish package to GitHub'
-    condition: and(succeeded(), eq('${{ parameters.enablePublishToGitHub }}', true))
-    inputs:
-      gitHubConnection: 'PavelKisliak'
-      repositoryName: '$(Build.Repository.Name)'
-      action: 'edit'
-      isDraft: true
-      target: '$(Build.SourceVersion)'
-      tag: $(Build.SourceBranchName)
-      tagSource: 'userSpecifiedTag'
-      title: '$(Build.SourceBranchName)'
-      addChangeLog: false
-      assets: '${{ variables.archiveFilePath }}'
-      assetUploadMode: 'replace'

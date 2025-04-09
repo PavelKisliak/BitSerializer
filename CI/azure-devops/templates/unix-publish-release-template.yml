@@ -1,0 +1,93 @@
+parameters:
+# [Required] Job name
+  name: ''
+# [Required] Build agent name
+  image: ''
+# [Required] VCPKG triplet
+  vcpkgTriplet: ''
+# [Optional] Install additional tools command line
+  installToolsCmd: ''
+# [Optional] URL to download the compiler
+  compilerUrl: ''
+# [Optional] Cmake additional arguments for CMake generate mode
+  cmakeGenArgs: ''
+# [Optional] Package suffix
+  packageSuffix: ''
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+  variables:
+    buildDirectory: 'build'
+    installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
+    archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.tar.gz'
+    acceptanceTestsDir: '$(Build.SourcesDirectory)/tests/acceptance_tests'
+
+  steps:
+  - script: |
+      echo --- Install build tools ---
+      ${{ parameters.installToolsCmd }}
+    displayName: 'Install build tools'
+    condition: ne('${{ parameters.installToolsCmd }}', '')
+
+  - script: |
+      echo --- Download compiler ---
+      wget -nv ${{ parameters.compilerUrl }} -O compiler.tar.xz
+      echo --- Extract compiler ---
+      sudo tar -xf compiler.tar.xz -C /usr/
+    displayName: 'Install compiler'
+    condition: ne('${{ parameters.compilerUrl }}', '')
+
+  - script: |
+      echo --- Clone latest VCPKG ---
+      cd ..
+      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
+      echo --- VCPKG: Bootstrap ---
+      cd vcpkg
+      ./bootstrap-vcpkg.sh
+    displayName: 'Install VCPKG'
+
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '-GNinja -B debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
+    displayName: 'Cmake - generate debug'
+
+  - task: CMake@1
+    inputs:
+      cmakeArgs: '-GNinja -B release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
+    displayName: 'Cmake - generate release'
+
+  - script: |
+      echo "Build and install debug"
+      echo "----------------------------------------"
+      ninja install -C ${{ variables.buildDirectory }}/debug
+      echo "----------------------------------------"
+      echo "Build and install release"
+      echo "----------------------------------------"
+      ninja install -C ${{ variables.buildDirectory }}/release
+    displayName: 'Build'
+
+  - task: ArchiveFiles@2
+    displayName: Zip package
+    inputs:
+      rootFolderOrFile: '${{ variables.installDir }}'
+      archiveType: 'tar'
+      tarCompression: 'gz'
+      archiveFile: '${{ variables.archiveFilePath }}'
+      replaceExistingArchive: true
+
+  - task: GitHubRelease@1
+    displayName: 'Publish package to GitHub'
+    inputs:
+      gitHubConnection: 'PavelKisliak'
+      repositoryName: '$(Build.Repository.Name)'
+      action: 'edit'
+      isDraft: true
+      target: '$(Build.SourceVersion)'
+      tag: $(Build.SourceBranchName)
+      tagSource: 'userSpecifiedTag'
+      title: '$(Build.SourceBranchName)'
+      addChangeLog: false
+      assets: '${{ variables.archiveFilePath }}'
+      assetUploadMode: 'replace'

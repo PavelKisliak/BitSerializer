@@ -13,10 +13,6 @@ parameters:
   buildConfiguration: 'Release'
 # [Optional] Enable run tests
   enableRunTests: true
-# [Optional] Publish artifacts to a GitHub Release
-  enablePublishToGitHub: false
-# [Optional] Package suffix
-  packageSuffix: ''
 
 jobs:
 - job: ${{ parameters.name }}
@@ -24,8 +20,6 @@ jobs:
     vmImage: ${{ parameters.image }}
   variables:
     buildDirectory: 'build'
-    installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
-    archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.zip'
 
   steps:
   - script: |
@@ -51,13 +45,13 @@ jobs:
     displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
     inputs:
       workingDirectory: '${{ variables.buildDirectory }}'
-      cmakeArgs: '-A ${{ parameters.platform }} ${{ parameters.cmakeGenArgs }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ..'
+      cmakeArgs: '-A ${{ parameters.platform }} ${{ parameters.cmakeGenArgs }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
 
   - script: |
       cd ${{ variables.buildDirectory }}
       cmake --build . --config ${{ parameters.buildConfiguration }} --parallel
     displayName: 'Build [${{ parameters.buildConfiguration }}]'
-    
+
   - script: |
       cd ${{ variables.buildDirectory }}
       ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure -j2
@@ -75,34 +69,3 @@ jobs:
       testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: '${{ parameters.buildConfiguration }}'
-
-  - script: |
-      cd ${{ variables.buildDirectory }}
-      cmake --build . --config ${{ parameters.buildConfiguration }} --target install
-    condition: and(succeeded(), eq('${{ parameters.enablePublishToGitHub }}', true))
-    displayName: 'Cmake - install [${{ parameters.buildConfiguration }}]'
-
-  - task: ArchiveFiles@2
-    displayName: Zip package
-    condition: and(succeeded(), eq('${{ parameters.enablePublishToGitHub }}', true))
-    inputs:
-      rootFolderOrFile: '${{ variables.installDir }}'
-      archiveType: 'zip'
-      archiveFile: '${{ variables.archiveFilePath }}'
-      replaceExistingArchive: true
-
-  - task: GitHubRelease@1
-    displayName: 'Publish package to GitHub'
-    condition: and(succeeded(), eq('${{ parameters.enablePublishToGitHub }}', true))
-    inputs:
-      gitHubConnection: 'PavelKisliak'
-      repositoryName: '$(Build.Repository.Name)'
-      action: 'edit'
-      isDraft: true
-      target: '$(Build.SourceVersion)'
-      tag: $(Build.SourceBranchName)
-      tagSource: 'userSpecifiedTag'
-      title: '$(Build.SourceBranchName)'
-      addChangeLog: false
-      assets: '${{ variables.archiveFilePath }}'
-      assetUploadMode: 'replace'

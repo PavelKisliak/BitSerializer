@@ -38,7 +38,7 @@ stages:
   - stage: StaticAnalysis
     displayName: 'Static analysis stage'
     jobs:
-      - template: static-analysis-clang-tidy-jobs-template.yml
+      - template: templates/static-analysis-clang-tidy-template.yml
         parameters:
           name: 'StaticAnalysis_ClangTidy'
           image: 'ubuntu-latest'
@@ -46,14 +46,14 @@ stages:
           cmakeGenArgs: '$(CmakeGenOptions)'
           fullAnalysis: ${{ eq(variables['Build.Reason'], 'Schedule') }}
 
-      - template: memory-check-valgrind-jobs-template.yml
+      - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_static'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF'
 
-      - template: memory-check-valgrind-jobs-template.yml
+      - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_dynamic'
           image: 'ubuntu-latest'
@@ -65,7 +65,7 @@ stages:
     dependsOn: StaticAnalysis
     condition: and(succeeded(), eq('${{ variables.EnablePublishToGitHub }}', true))
     jobs:
-      - template: create-github-release-template.yml
+      - template: templates/create-github-release-template.yml
         parameters:
           name: 'PrepareRelease'
 
@@ -74,7 +74,7 @@ stages:
     dependsOn: PrepareRelease
     condition: eq(dependencies.StaticAnalysis.result, 'Succeeded')
     jobs:
-      - template: windows-jobs-template.yml
+      - template: templates/windows-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x86_static'
           image: 'windows-2019'
@@ -84,7 +84,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_windows_x86_msvc16_static'
 
-      - template: windows-jobs-template.yml
+      - template: templates/windows-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x86_dynamic'
           image: 'windows-2019'
@@ -94,7 +94,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_windows_x86_msvc16_dynamic'
 
-      - template: windows-jobs-template.yml
+      - template: templates/windows-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x64_static'
           image: 'windows-2019'
@@ -105,7 +105,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_windows_x64_msvc16_static'
 
-      - template: windows-jobs-template.yml
+      - template: templates/windows-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x64_dynamic'
           image: 'windows-2019'
@@ -116,7 +116,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_windows_x64_msvc16_dynamic'
 
-      - template: windows-jobs-template.yml
+      - template: templates/windows-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2022_x64_static'
           image: 'windows-2022'
@@ -126,7 +126,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_windows_x64_msvc17_static'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC_9_static'
           image: 'ubuntu-22.04'
@@ -136,7 +136,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_ubuntu_gcc9_static'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC_14_CXX23_dynamic'
           image: 'ubuntu-24.04'
@@ -144,7 +144,7 @@ stages:
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=23 -DBUILD_SHARED_LIBS=ON'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_Clang_11_static'
           image: 'ubuntu-22.04'
@@ -152,7 +152,7 @@ stages:
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-11 -DCMAKE_CXX_COMPILER=clang++-11'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_Clang_15_dynamic'
           image: 'ubuntu-latest'
@@ -160,7 +160,7 @@ stages:
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15 -DBUILD_SHARED_LIBS=ON'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'MacOS14_Clang14_static'
           image: 'macOS-latest'
@@ -170,7 +170,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_macos14_x64_clang14_static'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'MacOS14_Clang14_CXX20_dynamic'
           image: 'macOS-latest'
@@ -178,7 +178,7 @@ stages:
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20 -DBUILD_SHARED_LIBS=ON'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC13_Arm32_static'
           image: 'ubuntu-latest'
@@ -189,7 +189,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_ubuntu_arm32_gcc13_static'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC13_Arm64_static'
           image: 'ubuntu-latest'
@@ -200,7 +200,7 @@ stages:
           enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
           packageSuffix: '_ubuntu_arm64_gcc13_static'
 
-      - template: unix-jobs-template.yml
+      - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC13_Arm64be_static'
           image: 'ubuntu-latest'

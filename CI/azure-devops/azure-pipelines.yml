@@ -30,9 +30,6 @@ variables:
 - name: CmakeGenOptions
   value: -DBUILD_SAMPLES=ON -DBUILD_BENCHMARKS=ON -DBUILD_TESTS=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
   readonly: true
-- name: EnablePublishToGitHub
-  value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/') }}
-  readonly: true
 
 stages:
   - stage: StaticAnalysis
@@ -60,71 +57,50 @@ stages:
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=ON'
 
-  - stage: PrepareRelease
-    displayName: 'Prepare release'
-    dependsOn: StaticAnalysis
-    condition: and(succeeded(), eq('${{ variables.EnablePublishToGitHub }}', true))
-    jobs:
-      - template: templates/create-github-release-template.yml
-        parameters:
-          name: 'PrepareRelease'
-
   - stage: BuildAndTest
     displayName: 'Build and test stage'
-    dependsOn: PrepareRelease
+    dependsOn: StaticAnalysis
     condition: eq(dependencies.StaticAnalysis.result, 'Succeeded')
     jobs:
-      - template: templates/windows-build-and-test-template.yml
+      - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x86_static'
           image: 'windows-2019'
           platform: 'Win32'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_windows_x86_msvc16_static'
 
-      - template: templates/windows-build-and-test-template.yml
+      - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x86_dynamic'
           image: 'windows-2019'
           platform: 'Win32'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_windows_x86_msvc16_dynamic'
 
-      - template: templates/windows-build-and-test-template.yml
+      - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x64_static'
           image: 'windows-2019'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          enableRunTests: false
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_windows_x64_msvc16_static'
 
-      - template: templates/windows-build-and-test-template.yml
+      - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2019_x64_dynamic'
           image: 'windows-2019'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
-          enableRunTests: false
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_windows_x64_msvc16_dynamic'
 
-      - template: templates/windows-build-and-test-template.yml
+      - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
           name: 'Windows_VS2022_x64_static'
           image: 'windows-2022'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_windows_x64_msvc17_static'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -133,8 +109,6 @@ stages:
           installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_ubuntu_gcc9_static'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -167,8 +141,6 @@ stages:
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_macos14_x64_clang14_static'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -186,8 +158,6 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
           vcpkgTriplet: "bitserializer-arm32-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_ubuntu_arm32_gcc13_static'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -197,8 +167,6 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_ubuntu_arm64_gcc13_static'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -208,5 +176,3 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
-          enablePublishToGitHub: ${{ variables.EnablePublishToGitHub }}
-          packageSuffix: '_ubuntu_arm64be_gcc13_static'

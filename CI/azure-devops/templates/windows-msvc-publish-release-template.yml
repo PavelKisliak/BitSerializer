@@ -1,0 +1,107 @@
+parameters:
+# [Required] Job name
+  name: ''
+# [Required] Build agent name
+  image: ''
+# [Optional] Platform [x64, x86]
+  platform: 'x64'
+# [Required] VCPKG triplet
+  vcpkgTriplet: ''
+# [Optional] Cmake additional arguments for CMake generate mode
+  cmakeGenArgs: ''
+# [Optional] Package suffix
+  packageSuffix: ''
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+  variables:
+    buildDirectory: 'build'
+    installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
+    archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.tar.gz'
+    acceptanceTestsDir: '$(Build.SourcesDirectory)/tests/acceptance_tests'
+
+  steps:
+  - script: |
+      echo --- Clone latest VCPKG ---
+      cd ..
+      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
+      echo --- VCPKG: Bootstrap ---
+      cd vcpkg
+      bootstrap-vcpkg
+    displayName: 'Install VCPKG'
+
+  - script: |
+      echo --- Locating Visual Studio installation ---
+      vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > vs_path.txt
+      set /p VSINSTALLDIR=<vs_path.txt
+      if not "%VSINSTALLDIR:~-1%"=="\" set "VSINSTALLDIR=%VSINSTALLDIR%\"
+      if not exist "%VSINSTALLDIR%" (
+        echo Visual Studio installation not found!
+        exit 1
+      )
+      echo Found Visual Studio at: %VSINSTALLDIR%
+      echo "Setting up ${{ parameters.platform }} build environment..."
+      call "%VSINSTALLDIR%VC\Auxiliary\Build\vcvarsall.bat" ${{ parameters.platform }}
+      if %ERRORLEVEL% neq 0 (
+        echo "Failed to configure MSVC environment. Exiting..."
+        exit 1
+      )
+      echo MSVC environment configured successfully.
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo --- Cmake: generate debug ---
+      cmake -GNinja -B ${{ variables.buildDirectory }}/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      if %ERRORLEVEL% neq 0 (
+        echo CMake configuration failed. Exiting...
+        exit 1
+      )
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo --- Cmake: generate release ---
+      cmake -GNinja -B ${{ variables.buildDirectory }}/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      if %ERRORLEVEL% neq 0 (
+        echo CMake configuration failed. Exiting...
+        exit 1
+      )
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo --- Build and install debug ---
+      ninja install -C ${{ variables.buildDirectory }}/debug
+      if %ERRORLEVEL% neq 0 (
+        echo Install failed. Exiting...
+        exit 1
+      )
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo --- Build and install release ---
+      ninja install -C ${{ variables.buildDirectory }}/release
+      if %ERRORLEVEL% neq 0 (
+        echo Install failed. Exiting...
+        exit 1
+      )
+    displayName: 'Build and install [${{ parameters.platform }}]'
+
+  - task: ArchiveFiles@2
+    displayName: Zip package
+    inputs:
+      rootFolderOrFile: '${{ variables.installDir }}'
+      archiveType: 'zip'
+      archiveFile: '${{ variables.archiveFilePath }}'
+      replaceExistingArchive: true
+
+  - task: GitHubRelease@1
+    displayName: 'Publish package to GitHub'
+    inputs:
+      gitHubConnection: 'PavelKisliak'
+      repositoryName: '$(Build.Repository.Name)'
+      action: 'edit'
+      isDraft: true
+      target: '$(Build.SourceVersion)'
+      tag: $(Build.SourceBranchName)
+      tagSource: 'userSpecifiedTag'
+      title: '$(Build.SourceBranchName)'
+      addChangeLog: false
+      assets: '${{ variables.archiveFilePath }}'
+      assetUploadMode: 'replace'

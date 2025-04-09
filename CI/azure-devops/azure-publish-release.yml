@@ -1,0 +1,107 @@
+trigger:
+  branches:
+    include:
+      - 'pavel/test_release'
+  tags:
+    include:
+      - 'refs/tags/*'
+  paths:
+    exclude:
+      - '/**/*.md'
+      - 'cpp.hint'
+      - 'CMakeSettings.json'
+
+variables:
+- name: CmakeGenOptions
+  value: -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+  readonly: true
+
+stages:
+  - stage: PrepareRelease
+    displayName: 'Prepare release'
+    jobs:
+    - job: PrepareRelease
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+      - task: GitHubRelease@1
+        displayName: 'Create GitHub release'
+        inputs:
+          gitHubConnection: 'PavelKisliak'
+          repositoryName: '$(Build.Repository.Name)'
+          action: 'create'
+          isDraft: true
+          target: '$(Build.SourceVersion)'
+          tag: $(Build.SourceBranchName)
+          tagSource: 'userSpecifiedTag'
+          title: '$(Build.SourceBranchName)'
+
+  - stage: BuildAndPublish
+    displayName: 'Build and publish release'
+    dependsOn: PrepareRelease
+    jobs:
+      - template: templates/windows-msvc-publish-release-template.yml
+        parameters:
+          name: 'Windows_VS2019_x86_dynamic'
+          image: 'windows-2019'
+          platform: 'x86'
+          vcpkgTriplet: "x86-windows"
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
+          packageSuffix: '_windows_msvc16_x86_dynamic'
+
+      - template: templates/windows-msvc-publish-release-template.yml
+        parameters:
+          name: 'Windows_VS2019_x64_dynamic'
+          image: 'windows-2019'
+          platform: 'x64'
+          vcpkgTriplet: "x64-windows"
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
+          packageSuffix: '_windows_msvc16_x64_dynamic'
+
+      - template: templates/unix-publish-release-template.yml
+        parameters:
+          name: 'Ubuntu_GCC9_static'
+          image: 'ubuntu-22.04'
+          installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
+          vcpkgTriplet: "x64-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
+          packageSuffix: '_ubuntu_x64_gcc9_static'
+
+      - template: templates/unix-publish-release-template.yml
+        parameters:
+          name: 'MacOS14_Clang14_static'
+          image: 'macOS-latest'
+          installToolsCmd: 'brew install ninja'
+          vcpkgTriplet: "x64-osx-release"
+          cmakeGenArgs: '$(CmakeGenOptions)'
+          packageSuffix: '_macos14_x64_clang14_static'
+
+      - template: templates/unix-publish-release-template.yml
+        parameters:
+          name: 'Ubuntu_GCC13_Arm32_static'
+          image: 'ubuntu-latest'
+          installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
+          compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
+          vcpkgTriplet: "bitserializer-arm32-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake'
+          packageSuffix: '_ubuntu_arm32_gcc13_static'
+
+      - template: templates/unix-publish-release-template.yml
+        parameters:
+          name: 'Ubuntu_GCC13_Arm64_static'
+          image: 'ubuntu-latest'
+          installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
+          compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
+          vcpkgTriplet: "bitserializer-arm64-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
+          packageSuffix: '_ubuntu_arm64_gcc13_static'
+
+      - template: templates/unix-publish-release-template.yml
+        parameters:
+          name: 'Ubuntu_GCC13_Arm64be_static'
+          image: 'ubuntu-latest'
+          installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
+          compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
+          vcpkgTriplet: "bitserializer-arm64be-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
+          packageSuffix: '_ubuntu_arm64be_gcc13_static'

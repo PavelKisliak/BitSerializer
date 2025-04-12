@@ -2,6 +2,8 @@ trigger:
   branches:
     include:
       - '*'
+    exclude:
+      - 'pavel/test_release'
   tags:
     include:
       - 'refs/tags/*'

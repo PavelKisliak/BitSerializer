@@ -9,6 +9,8 @@ parameters:
   vcpkgTriplet: ''
 # [Optional] Cmake additional arguments for CMake generate mode
   cmakeGenArgs: ''
+# [Optional] Enable run tests
+  enableRunTests: true
 # [Optional] Package suffix
   packageSuffix: ''
 
@@ -17,7 +19,7 @@ jobs:
   pool:
     vmImage: ${{ parameters.image }}
   variables:
-    buildDirectory: 'build'
+    vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
     installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
     archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.tar.gz'
     acceptanceTestsDir: '$(Build.SourcesDirectory)/tests/acceptance_tests'
@@ -51,37 +53,62 @@ jobs:
       echo MSVC environment configured successfully.
       echo.
       echo ------------------------------------------------------------------------------
-      echo --- Cmake: generate debug ---
-      cmake -GNinja -B ${{ variables.buildDirectory }}/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      echo -- Cmake: generate [Debug]
+      echo ------------------------------------------------------------------------------
+      cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (
         echo CMake configuration failed. Exiting...
         exit 1
       )
       echo.
       echo ------------------------------------------------------------------------------
-      echo --- Cmake: generate release ---
-      cmake -GNinja -B ${{ variables.buildDirectory }}/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      echo -- Cmake: generate [Release]
+      echo ------------------------------------------------------------------------------
+      cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (
         echo CMake configuration failed. Exiting...
         exit 1
       )
       echo.
       echo ------------------------------------------------------------------------------
-      echo --- Build and install debug ---
-      ninja install -C ${{ variables.buildDirectory }}/debug
+      echo -- Build and install [Debug]
+      echo ------------------------------------------------------------------------------
+      ninja install -C build-debug
       if %ERRORLEVEL% neq 0 (
         echo Install failed. Exiting...
         exit 1
       )
       echo.
       echo ------------------------------------------------------------------------------
-      echo --- Build and install release ---
-      ninja install -C ${{ variables.buildDirectory }}/release
+      echo -- Build and install [Release]
+      echo ------------------------------------------------------------------------------
+      ninja install -C build-release
       if %ERRORLEVEL% neq 0 (
         echo Install failed. Exiting...
         exit 1
       )
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo -- Build acceptance tests [Debug]
+      echo ------------------------------------------------------------------------------
+      cd ${{ variables.acceptanceTestsDir }}
+      cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      ninja -C build-debug
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo -- Build acceptance tests [Release]
+      echo ------------------------------------------------------------------------------
+      cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      ninja -C build-release
     displayName: 'Build and install [${{ parameters.platform }}]'
+
+  - script: |
+      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-debug
+    displayName: 'Run acceptance tests [Debug]'
+
+  - script: |
+      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-release
+    displayName: 'Run acceptance tests [Release]'
 
   - task: ArchiveFiles@2
     displayName: Zip package

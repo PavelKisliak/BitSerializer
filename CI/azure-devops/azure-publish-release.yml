@@ -42,12 +42,30 @@ stages:
     jobs:
       - template: templates/windows-msvc-publish-release-template.yml
         parameters:
+          name: 'Windows_VS2019_x86_static'
+          image: 'windows-2019'
+          platform: 'x86'
+          vcpkgTriplet: "x86-windows"
+          cmakeGenArgs: '$(CmakeGenOptions)'
+          packageSuffix: '_x86_windows_msvc16_static'
+
+      - template: templates/windows-msvc-publish-release-template.yml
+        parameters:
+          name: 'Windows_VS2019_x64_static'
+          image: 'windows-2019'
+          platform: 'x64'
+          vcpkgTriplet: "x64-windows"
+          cmakeGenArgs: '$(CmakeGenOptions)'
+          packageSuffix: '_x64_windows_msvc16_static'
+
+      - template: templates/windows-msvc-publish-release-template.yml
+        parameters:
           name: 'Windows_VS2019_x86_dynamic'
           image: 'windows-2019'
           platform: 'x86'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
-          packageSuffix: '_windows_msvc16_x86_dynamic'
+          packageSuffix: '_x86_windows_msvc16_dynamic'
 
       - template: templates/windows-msvc-publish-release-template.yml
         parameters:
@@ -56,7 +74,7 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
-          packageSuffix: '_windows_msvc16_x64_dynamic'
+          packageSuffix: '_x64_windows_msvc16_dynamic'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
@@ -65,7 +83,7 @@ stages:
           installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
-          packageSuffix: '_ubuntu_x64_gcc9_static'
+          packageSuffix: '_x64_ubuntu_gcc9_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
@@ -74,7 +92,7 @@ stages:
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          packageSuffix: '_macos14_x64_clang14_static'
+          packageSuffix: '_x64_macos_clang14_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
@@ -84,7 +102,7 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
           vcpkgTriplet: "bitserializer-arm32-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake'
-          packageSuffix: '_ubuntu_arm32_gcc13_static'
+          packageSuffix: '_arm32_linux_gcc13_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
@@ -94,7 +112,7 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
-          packageSuffix: '_ubuntu_arm64_gcc13_static'
+          packageSuffix: '_arm64_linux_gcc13_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
@@ -104,4 +122,4 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
-          packageSuffix: '_ubuntu_arm64be_gcc13_static'
+          packageSuffix: '_arm64be_linux_gcc13_static'

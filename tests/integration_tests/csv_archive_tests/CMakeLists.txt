@@ -16,6 +16,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     testing_tools
 )
 
+# Copy shared libraries (used by acceptance tests)
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:BitSerializer::csv-archive>
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMENT "Copying BitSerializer::csv-archive runtime dependency to build directory"
+)
+
 # Tests configuration
 gtest_discover_tests(${PROJECT_NAME} TEST_LIST CsvArchiveTests
     PROPERTIES LABELS "integration_tests"

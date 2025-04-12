@@ -19,7 +19,7 @@
 template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
 static bool ApproximatelyEqual(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
 {
-	return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+	return std::fabs(a - b) <= ((std::fabs(a) < std::fabs(b) ? std::fabs(b) : std::fabs(a)) * epsilon);
 }
 
 /// <summary>

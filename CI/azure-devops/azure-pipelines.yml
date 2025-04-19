@@ -75,7 +75,7 @@ stages:
         parameters:
           name: 'Windows_VS2019_x86_static'
           image: 'windows-2019'
-          platform: 'Win32'
+          platform: 'x86'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions)'
 
@@ -83,7 +83,7 @@ stages:
         parameters:
           name: 'Windows_VS2019_x86_dynamic'
           image: 'windows-2019'
-          platform: 'Win32'
+          platform: 'x86'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
 

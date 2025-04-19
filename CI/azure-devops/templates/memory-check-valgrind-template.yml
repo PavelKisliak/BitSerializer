@@ -14,6 +14,8 @@ jobs:
 - job: ${{ parameters.name }}
   pool:
     vmImage: ${{ parameters.image }}
+  variables:
+    vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
 
   steps:
   - script: |
@@ -22,16 +24,24 @@ jobs:
     displayName: 'Install build tools'
 
   - script: |
-      echo --- Tools version info ---
+      echo ------------------------------------------------------------------------------
+      echo -- Tools version info
+      echo ------------------------------------------------------------------------------
       cmake --version
+      ninja --version
       valgrind --version
+    displayName: 'Tools version info'
+
+  - script: |
+      echo ------------------------------------------------------------------------------
+      echo -- Clone latest VCPKG
+      echo ------------------------------------------------------------------------------
+      git clone -v "https://github.com/Microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
       echo
-      echo --- Clone latest VCPKG ---
-      cd ..
-      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
-      echo --- VCPKG: Bootstrap ---
-      cd vcpkg
-      ./bootstrap-vcpkg.sh
+      echo ------------------------------------------------------------------------------
+      echo -- Bootstrap VCPKG
+      echo ------------------------------------------------------------------------------
+      ${{ variables.vcpkgDir }}/bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 
   - task: Cache@2
@@ -67,11 +77,12 @@ jobs:
       for logfile in MemoryChecker*.log; do
         if [ -s "$logfile" ] && ! grep -q "ERROR SUMMARY: 0" "$logfile"; then
           echo "##vso[task.logissue type=error]Valgrind errors in $logfile"
-          echo " "
+          echo
+          echo ------------------------------------------------------------------------------
           echo "❗ VALGRIND ERRORS IN: $logfile ❗"
-          echo "----------------------------------------"
+          echo ------------------------------------------------------------------------------
           cat "$logfile"
-          echo "----------------------------------------"
+          echo ------------------------------------------------------------------------------
           has_errors=1
         fi
       done

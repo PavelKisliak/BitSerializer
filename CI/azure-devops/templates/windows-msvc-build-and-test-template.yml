@@ -3,7 +3,7 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
-# [Optional] Platform [x64, win32]
+# [Optional] Platform [x64, x86]
   platform: 'x64'
 # [Required] VCPKG triplet
   vcpkgTriplet: 'x64-windows-release'
@@ -19,18 +19,22 @@ jobs:
   pool:
     vmImage: ${{ parameters.image }}
   variables:
+    vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
     buildDirectory: 'build'
 
   steps:
   - script: |
-      echo --- Clone latest VCPKG ---
-      cd ..
-      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
-      echo --- VCPKG: Bootstrap ---
-      cd vcpkg
-      bootstrap-vcpkg
+      echo ------------------------------------------------------------------------------
+      echo -- Clone latest VCPKG
+      echo ------------------------------------------------------------------------------
+      git clone -v "https://github.com/microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo -- Bootstrap VCPKG
+      echo ------------------------------------------------------------------------------
+      ${{ variables.vcpkgDir }}/bootstrap-vcpkg
     displayName: 'Install VCPKG'
-    
+
   - task: Cache@2
     displayName: Configure cache of VCPKG packages
     inputs:
@@ -41,20 +45,50 @@ jobs:
       path: ${{ variables.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
 
-  - task: CMake@1
-    displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
-    inputs:
-      workingDirectory: '${{ variables.buildDirectory }}'
-      cmakeArgs: '-A ${{ parameters.platform }} ${{ parameters.cmakeGenArgs }} -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake ..'
+  - script: |
+      echo ------------------------------------------------------------------------------
+      echo -- Locating Visual Studio installation
+      echo ------------------------------------------------------------------------------
+      vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > vs_path.txt
+      set /p VSINSTALLDIR=<vs_path.txt
+      if not "%VSINSTALLDIR:~-1%"=="\" set "VSINSTALLDIR=%VSINSTALLDIR%\"
+      if not exist "%VSINSTALLDIR%" (
+        echo Visual Studio installation not found!
+        exit 1
+      )
+      echo Found Visual Studio at: %VSINSTALLDIR%
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo -- Setting up ${{ parameters.platform }} build environment...
+      echo ------------------------------------------------------------------------------
+      call "%VSINSTALLDIR%VC\Auxiliary\Build\vcvarsall.bat" ${{ parameters.platform }}
+      if %ERRORLEVEL% neq 0 (
+        echo "Failed to configure MSVC environment. Exiting..."
+        exit 1
+      )
+      echo MSVC environment configured successfully.
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo -- Cmake: generate [${{ parameters.buildConfiguration }}]
+      echo ------------------------------------------------------------------------------
+      cmake -GNinja -B ${{ variables.buildDirectory }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} ${{ parameters.cmakeGenArgs }}
+      if %ERRORLEVEL% neq 0 (
+        echo CMake configuration failed. Exiting...
+        exit 1
+      )
+      echo.
+      echo ------------------------------------------------------------------------------
+      echo -- Build [${{ parameters.buildConfiguration }}]
+      echo ------------------------------------------------------------------------------
+      ninja -C ${{ variables.buildDirectory }}
+      if %ERRORLEVEL% neq 0 (
+        echo Build failed. Exiting...
+        exit 1
+      )
+    displayName: 'Build [${{ parameters.platform }}]'
 
   - script: |
-      cd ${{ variables.buildDirectory }}
-      cmake --build . --config ${{ parameters.buildConfiguration }} --parallel
-    displayName: 'Build [${{ parameters.buildConfiguration }}]'
-
-  - script: |
-      cd ${{ variables.buildDirectory }}
-      ctest -C ${{ parameters.buildConfiguration }} -T test --output-on-failure -j2
+      ctest --test-dir ${{ variables.buildDirectory }} -T test --output-on-failure -j2
     displayName: 'Run tests'
     continueOnError: true
     condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
@@ -65,7 +99,7 @@ jobs:
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(System.DefaultWorkingDirectory)/${{ parameters.buildDirectory }}'
+      searchFolder: '$(Build.SourcesDirectory)/${{ parameters.buildDirectory }}'
       testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: '${{ parameters.buildConfiguration }}'

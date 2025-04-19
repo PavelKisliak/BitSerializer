@@ -52,11 +52,11 @@ jobs:
       echo ------------------------------------------------------------------------------
       echo -- Clone latest VCPKG
       echo ------------------------------------------------------------------------------
-      git clone --progress -v "https://github.com/microsoft/vcpkg.git" $(Pipeline.Workspace)/vcpkg
+      git clone -v "https://github.com/microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
       echo
       echo ------------------------------------------------------------------------------
-      echo -- VCPKG: Bootstrap
-      echo -----------------------------------------------------------------------------
+      echo -- Bootstrap VCPKG
+      echo ------------------------------------------------------------------------------
       ${{ variables.vcpkgDir }}/bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 

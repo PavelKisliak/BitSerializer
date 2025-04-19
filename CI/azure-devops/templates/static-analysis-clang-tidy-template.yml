@@ -16,6 +16,8 @@ jobs:
 - job: ${{ parameters.name }}
   pool:
     vmImage: ${{ parameters.image }}
+  variables:
+    vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
 
   steps:
   - checkout: self
@@ -27,16 +29,24 @@ jobs:
     displayName: 'Install build tools'
 
   - script: |
-      echo --- Tools version info ---
+      echo ------------------------------------------------------------------------------
+      echo -- Tools version info
+      echo ------------------------------------------------------------------------------
       cmake --version
+      ninja --version
       clang-tidy --version
+    displayName: 'Tools version info'
+
+  - script: |
+      echo ------------------------------------------------------------------------------
+      echo -- Clone latest VCPKG
+      echo ------------------------------------------------------------------------------
+      git clone -v "https://github.com/Microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
       echo
-      echo --- Clone latest VCPKG ---
-      cd ..
-      git clone --progress -v "https://github.com/Microsoft/vcpkg.git"
-      echo --- VCPKG: Bootstrap ---
-      cd vcpkg
-      ./bootstrap-vcpkg.sh
+      echo ------------------------------------------------------------------------------
+      echo -- Bootstrap VCPKG
+      echo ------------------------------------------------------------------------------
+      ${{ variables.vcpkgDir }}/bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 
   - task: Cache@2
@@ -62,7 +72,9 @@ jobs:
     condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false))
 
   - script: |
-      echo --- Identifying affected source files ---
+      echo ------------------------------------------------------------------------------
+      echo -- Identifying affected source files
+      echo ------------------------------------------------------------------------------
       git diff HEAD HEAD~ --name-only > ${{ parameters.buildDirectory }}/changed_files.txt
       python tools/static_analysis/find_affected_files.py ${{ parameters.buildDirectory }}/deps.txt ${{ parameters.buildDirectory }}/changed_files.txt ${{ parameters.buildDirectory }}/affected_sources.txt
       affected_sources=$(cat ${{ parameters.buildDirectory }}/affected_sources.txt)
@@ -70,7 +82,9 @@ jobs:
           echo
           echo $affected_sources
           echo
-          echo --- Сlang-tidy analysis ---
+          echo ------------------------------------------------------------------------------
+          echo -- Сlang-tidy analysis
+          echo ------------------------------------------------------------------------------
           python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }} $affected_sources
       else
           echo "No affected source files found. Skipping clang-tidy analysis."

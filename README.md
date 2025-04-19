@@ -478,13 +478,13 @@ bool Serialize(TArchive& archive, CMyString& value)
             value.FromString(stringView);
             return true;
         }
+        return false;
     }
     else
     {
         std::string_view stringView(value.data(), value.size());
         return Detail::SerializeString(archive, stringView);
     }
-    return false;
 }
 
 int main()

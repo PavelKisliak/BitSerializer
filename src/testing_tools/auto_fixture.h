@@ -101,8 +101,8 @@ static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 [[maybe_unused]] static void BuildFixture(int64_t& value)			{ value = (static_cast<int64_t>(std::rand()) << std::numeric_limits<unsigned>::digits) + std::rand(); }
 [[maybe_unused]] static void BuildFixture(uint64_t& value)			{ value = (static_cast<uint64_t>(std::rand()) << std::numeric_limits<unsigned>::digits) + std::rand(); }
 [[maybe_unused]] static void BuildFixture(bool& value)				{ value = static_cast<bool>(std::rand() % 2); }
-[[maybe_unused]] static void BuildFixture(float& value)				{ value = static_cast<float>(std::rand() % 1000 + 1) * 1.141592f; }
-[[maybe_unused]] static void BuildFixture(double& value)			{ value = static_cast<double>(std::rand() % 100000 + 1) * 1.141592; }
+[[maybe_unused]] static void BuildFixture(float& value)				{ value = static_cast<float>((std::rand() % 1000) + 1) * 1.141592f; }
+[[maybe_unused]] static void BuildFixture(double& value)			{ value = static_cast<double>((std::rand() % 100000) + 1) * 1.141592; }
 [[maybe_unused]] static void BuildFixture(std::nullptr_t& value)	{ value = nullptr; }
 [[maybe_unused]] static void BuildFixture(std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(std::rand()); }
 #if defined(__cpp_lib_memory_resource)

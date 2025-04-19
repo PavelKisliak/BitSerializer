@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -102,7 +102,6 @@ namespace BitSerializer
 				}
 				return "The minimum size of this field should be " + Convert::ToString(mMinSize);
 			}
-			return std::nullopt;
 		}
 
 	private:
@@ -143,7 +142,6 @@ namespace BitSerializer
 				}
 				return "The maximum size of this field should be not greater than " + Convert::ToString(mMaxSize);
 			}
-			return std::nullopt;
 		}
 
 	private:

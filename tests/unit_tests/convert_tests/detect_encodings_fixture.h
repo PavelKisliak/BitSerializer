@@ -54,7 +54,7 @@ public:
 		// Validate stream position
 		if (skipBom)
 		{
-			EXPECT_EQ(mBomSize, encodedStream.tellg());
+			EXPECT_EQ(static_cast<std::stringstream::pos_type>(mBomSize), encodedStream.tellg());
 		}
 		else
 		{

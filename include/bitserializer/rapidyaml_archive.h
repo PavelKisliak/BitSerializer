@@ -217,6 +217,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					if (mIndex < GetEstimatedSize()) {
 						return LoadValue(LoadNextItem(), value, this->GetOptions());
 					}
+					return false;
 				}
 				else
 				{
@@ -225,7 +226,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 					mIndex++;
 					return true;
 				}
-				return false;
 			}
 
 			bool SerializeValue(string_view_type& value)
@@ -235,6 +235,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 					if (mIndex < GetEstimatedSize()) {
 						return LoadValue(LoadNextItem(), value);
 					}
+					return false;
 				}
 				else
 				{
@@ -243,7 +244,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 					mIndex++;
 					return true;
 				}
-				return false;
 			}
 
 			/// <summary>

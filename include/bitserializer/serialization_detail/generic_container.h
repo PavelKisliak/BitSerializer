@@ -16,7 +16,7 @@ namespace BitSerializer::Detail
 		if constexpr (TArchive::IsLoading())
 		{
 			// Resize container when is known approximate size
-			if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0)
+			if (auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0)
 			{
 				cont.resize(estimatedSize);
 			}

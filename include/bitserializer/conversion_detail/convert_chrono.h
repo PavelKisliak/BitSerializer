@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * Copyright (C) 2017 Howard Hinnant (datetime algorithms from 'date' library)  *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -65,62 +65,65 @@ namespace BitSerializer::Convert::Detail
 	template <class TTarget, class TRep, class TPeriod>
 	TTarget SafeDurationCast(const std::chrono::duration<TRep, TPeriod>& duration)
 	{
-		if constexpr (std::is_same_v<TTarget, std::chrono::duration<TRep, TPeriod>>) {
-			return duration;
-		}
-
-		using TDivRatio = std::ratio_divide<TPeriod, typename TTarget::period>;
-		using TTargetRep = typename TTarget::rep;
-		using TOpRep = std::common_type_t<TTargetRep, TRep, intmax_t>;
-
-		if constexpr (TDivRatio::den == 1)
+		if constexpr (std::is_same_v<TTarget, std::chrono::duration<TRep, TPeriod>>)
 		{
-			if constexpr (TDivRatio::num == 1)
-			{
-				const auto v = static_cast<TTargetRep>(duration.count());
-				if (duration.count() != static_cast<TRep>(v) || (duration.count() > 0 && v < 0) || (duration.count() < 0 && v > 0)) {
-					throw std::out_of_range("Target duration is not enough");
-				}
-				return TTarget(v);
-			}
-			else
-			{
-				if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
-					static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num) 
-				{
-					throw std::out_of_range("Target duration is not enough");
-				}
-				const auto v = static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num);
-				const auto t = static_cast<TTargetRep>(v);
-				if (v != static_cast<TOpRep>(t) || (v > 0 && t < 0) || (v < 0 && t > 0)) {
-					throw std::out_of_range("Target duration is not enough");
-				}
-				return TTarget(t);
-			}
+			return duration;
 		}
 		else
 		{
-			if constexpr (TDivRatio::num == 1)
+			using TDivRatio = std::ratio_divide<TPeriod, typename TTarget::period>;
+			using TTargetRep = typename TTarget::rep;
+			using TOpRep = std::common_type_t<TTargetRep, TRep, intmax_t>;
+
+			if constexpr (TDivRatio::den == 1)
 			{
-				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) / static_cast<TOpRep>(TDivRatio::den));
-				if (static_cast<TRep>(v * TDivRatio::den) != duration.count()) {
-					throw std::out_of_range("Precision of target duration is not enough");
+				if constexpr (TDivRatio::num == 1)
+				{
+					const auto v = static_cast<TTargetRep>(duration.count());
+					if (duration.count() != static_cast<TRep>(v) || (duration.count() > 0 && v < 0) || (duration.count() < 0 && v > 0)) {
+						throw std::out_of_range("Target duration is not enough");
+					}
+					return TTarget(v);
 				}
-				return TTarget(v);
+				else
+				{
+					if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
+						static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
+					{
+						throw std::out_of_range("Target duration is not enough");
+					}
+					const auto v = static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num);
+					const auto t = static_cast<TTargetRep>(v);
+					if (v != static_cast<TOpRep>(t) || (v > 0 && t < 0) || (v < 0 && t > 0)) {
+						throw std::out_of_range("Target duration is not enough");
+					}
+					return TTarget(t);
+				}
 			}
 			else
 			{
-				if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
-					static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
+				if constexpr (TDivRatio::num == 1)
 				{
-					throw std::out_of_range("Target duration is not enough");
+					const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) / static_cast<TOpRep>(TDivRatio::den));
+					if (static_cast<TRep>(v * TDivRatio::den) != duration.count()) {
+						throw std::out_of_range("Precision of target duration is not enough");
+					}
+					return TTarget(v);
 				}
+				else
+				{
+					if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
+						static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
+					{
+						throw std::out_of_range("Target duration is not enough");
+					}
 
-				const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num) / static_cast<TOpRep>(TDivRatio::den));
-				if (v && static_cast<TRep>(v * TDivRatio::den / TDivRatio::num) != duration.count()) {
-					throw std::out_of_range("Precision of target duration is not enough");
+					const auto v = static_cast<TTargetRep>(static_cast<TOpRep>(duration.count()) * static_cast<TOpRep>(TDivRatio::num) / static_cast<TOpRep>(TDivRatio::den));
+					if (v && static_cast<TRep>(v * TDivRatio::den / TDivRatio::num) != duration.count()) {
+						throw std::out_of_range("Precision of target duration is not enough");
+					}
+					return TTarget(v);
 				}
-				return TTarget(v);
 			}
 		}
 	}

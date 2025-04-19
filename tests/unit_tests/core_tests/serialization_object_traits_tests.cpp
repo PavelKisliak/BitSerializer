@@ -222,13 +222,13 @@ struct ArchiveTest
 TEST(SerializationObjectTraits, ShouldCountObjectFieldsWithInternalFn) {
 	constexpr ArchiveTest archive;
 	TestPointClass val(10, 20);
-	EXPECT_EQ(2, FieldsCountVisitor(archive).Count(val));
+	EXPECT_EQ(2U, FieldsCountVisitor(archive).Count(val));
 }
 
 TEST(SerializationObjectTraits, ShouldCountObjectFieldsWithGlobalFn) {
 	constexpr ArchiveTest archive;
 	ExtFieldsCounterFixture val;
-	EXPECT_EQ(3, FieldsCountVisitor(archive).Count(val));
+	EXPECT_EQ(3U, FieldsCountVisitor(archive).Count(val));
 }
 
 TEST(SerializationObjectTraits, ShouldCountFieldsOfMap) {
@@ -236,12 +236,12 @@ TEST(SerializationObjectTraits, ShouldCountFieldsOfMap) {
 	constexpr ArchiveTest<true> binArchive;
 	std::map<int, int> val { {1, 1}, { 2,2 }, { 3, 3 }, { 4, 4 } };
 
-	EXPECT_EQ(0, CountMapObjectFields(textArchive, val));
-	EXPECT_EQ(4, CountMapObjectFields(binArchive, val));
+	EXPECT_EQ(0U, CountMapObjectFields(textArchive, val));
+	EXPECT_EQ(4U, CountMapObjectFields(binArchive, val));
 }
 
 TEST(SerializationObjectTraits, ShouldCountObjectWithBaseSerializableClass) {
 	constexpr ArchiveTest archive;
 	FieldsCounterFixtureWithInheritance val;
-	EXPECT_EQ(3, FieldsCountVisitor(archive).Count(val));
+	EXPECT_EQ(3U, FieldsCountVisitor(archive).Count(val));
 }

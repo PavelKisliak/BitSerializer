@@ -71,7 +71,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGetPositionAtStart)
 	const auto actual = mBinaryStreamReader->GetPosition();
 
 	// Assert
-	ASSERT_EQ(0, actual);
+	ASSERT_EQ(0U, actual);
 }
 
 TEST_F(BinaryStreamReaderTest, ShouldGetPositionAtMiddle)
@@ -85,7 +85,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGetPositionAtMiddle)
 
 	// Assert
 	ASSERT_FALSE(solidBlock.empty());
-	ASSERT_EQ(2, actual);
+	ASSERT_EQ(2U, actual);
 }
 
 
@@ -100,7 +100,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGetPositionAtEnd)
 
 	// Assert
 	ASSERT_FALSE(solidBlock.empty());
-	ASSERT_EQ(4, actual);
+	ASSERT_EQ(4U, actual);
 }
 
 //-----------------------------------------------------------------------------
@@ -188,7 +188,7 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionFailWhenItAfterTheEnd)
 
 	// Assert
 	ASSERT_FALSE(result);
-	EXPECT_EQ(0, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(0U, mBinaryStreamReader->GetPosition());
 }
 
 //-----------------------------------------------------------------------------
@@ -206,7 +206,7 @@ TEST_F(BinaryStreamReaderTest, ShouldPeekByte)
 	ASSERT_TRUE(actual1stPeek.has_value());
 	ASSERT_TRUE(actual2stPeek.has_value());
 	EXPECT_EQ(*actual1stPeek, *actual1stPeek);	// NOLINT(bugprone-unchecked-optional-access)
-	EXPECT_EQ(0, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(0U, mBinaryStreamReader->GetPosition());
 	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
 }
 
@@ -220,7 +220,7 @@ TEST_F(BinaryStreamReaderTest, ShouldPeekByteEmptyWhenNoMoreData)
 
 	// Assert
 	ASSERT_FALSE(actual.has_value());
-	EXPECT_EQ(0, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(0U, mBinaryStreamReader->GetPosition());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }
 
@@ -239,7 +239,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGotoNextByte)
 	ASSERT_TRUE(actual1stPeek.has_value());
 	ASSERT_TRUE(actual2stPeek.has_value());
 	EXPECT_EQ(*actual1stPeek, *actual1stPeek);	// NOLINT(bugprone-unchecked-optional-access)
-	EXPECT_EQ(1, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(1U, mBinaryStreamReader->GetPosition());
 	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
 }
 
@@ -254,7 +254,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGotoNextByteWhenNoMoreData)
 
 	// Assert
 	ASSERT_TRUE(actual.has_value());
-	EXPECT_EQ(1, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(1U, mBinaryStreamReader->GetPosition());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }
 
@@ -273,7 +273,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadByte)
 	ASSERT_TRUE(actual1stRead.has_value());
 	ASSERT_TRUE(actual2stRead.has_value());
 	EXPECT_NE(*actual1stRead, *actual2stRead);	// NOLINT(bugprone-unchecked-optional-access)
-	EXPECT_EQ(2, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(2U, mBinaryStreamReader->GetPosition());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }
 
@@ -287,7 +287,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadByteEmptyWhenEmptyStream)
 
 	// Assert
 	ASSERT_FALSE(actual.has_value());
-	EXPECT_EQ(0, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(0U, mBinaryStreamReader->GetPosition());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }
 
@@ -303,7 +303,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadByteEmptyWhenReachedEnd)
 	// Assert
 	ASSERT_TRUE(actual1stRead.has_value());
 	ASSERT_FALSE(actual2stRead.has_value());
-	EXPECT_EQ(1, mBinaryStreamReader->GetPosition());
+	EXPECT_EQ(1U, mBinaryStreamReader->GetPosition());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }
 
@@ -349,7 +349,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadMultipleSolidBlocksExceedChunkSize)
 
 	// Assert
 	ASSERT_EQ(reader_type::chunk_size, actual1.size());
-	ASSERT_EQ(4, actual2.size());
+	ASSERT_EQ(4U, actual2.size());
 	EXPECT_EQ(mInputString.substr(0, reader_type::chunk_size), actual1);
 	EXPECT_EQ(mInputString.substr(reader_type::chunk_size), actual2);
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
@@ -483,7 +483,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadByChunkEmptyWhenInputDataSizeIsLess)
 	const std::string actual = ReadByChunks(2);
 
 	// Assert
-	ASSERT_EQ(1, actual.size());
+	ASSERT_EQ(1U, actual.size());
 	EXPECT_EQ(mInputString, actual);
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }

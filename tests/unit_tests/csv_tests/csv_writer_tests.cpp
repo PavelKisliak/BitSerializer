@@ -143,7 +143,7 @@ TYPED_TEST(CsvWriterTest, ShouldReturnZeroCurrentIndexAtTheBeginning)
 	this->PrepareCsvReader(true);
 
 	// Act / Assert
-	EXPECT_EQ(0, this->mCsvWriter->GetCurrentIndex());
+	EXPECT_EQ(0U, this->mCsvWriter->GetCurrentIndex());
 }
 
 TYPED_TEST(CsvWriterTest, ShouldReturnCurrentIndexWhenUsedHeader)
@@ -154,10 +154,10 @@ TYPED_TEST(CsvWriterTest, ShouldReturnCurrentIndexWhenUsedHeader)
 	// Act / Assert
 	this->mCsvWriter->WriteValue("Name1", "Value1");
 	this->mCsvWriter->NextLine();
-	EXPECT_EQ(1, this->mCsvWriter->GetCurrentIndex());
+	EXPECT_EQ(1U, this->mCsvWriter->GetCurrentIndex());
 	this->mCsvWriter->WriteValue("Name1", "Value1");
 	this->mCsvWriter->NextLine();
-	EXPECT_EQ(2, this->mCsvWriter->GetCurrentIndex());
+	EXPECT_EQ(2U, this->mCsvWriter->GetCurrentIndex());
 }
 
 TYPED_TEST(CsvWriterTest, ShouldReturnCurrentIndexWhenHeaderisNotUsed)
@@ -168,10 +168,10 @@ TYPED_TEST(CsvWriterTest, ShouldReturnCurrentIndexWhenHeaderisNotUsed)
 	// Act / Assert
 	this->mCsvWriter->WriteValue("Name1", "Value1");
 	this->mCsvWriter->NextLine();
-	EXPECT_EQ(1, this->mCsvWriter->GetCurrentIndex());
+	EXPECT_EQ(1U, this->mCsvWriter->GetCurrentIndex());
 	this->mCsvWriter->WriteValue("Name1", "Value1");
 	this->mCsvWriter->NextLine();
-	EXPECT_EQ(2, this->mCsvWriter->GetCurrentIndex());
+	EXPECT_EQ(2U, this->mCsvWriter->GetCurrentIndex());
 }
 
 TYPED_TEST(CsvWriterTest, ShouldThrowExceptionWhenMismatchNumberOfValuesInRows)

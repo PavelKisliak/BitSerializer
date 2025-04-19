@@ -47,8 +47,8 @@ TEST(ConvertFundamentals, IntMaxToUnsigned)
 {
 	EXPECT_EQ(127, Convert::To<uint8_t>(std::numeric_limits<int8_t>::max()));
 	EXPECT_EQ(32767, Convert::To<uint16_t>(std::numeric_limits<int16_t>::max()));
-	EXPECT_EQ(2147483647, Convert::To<uint32_t>(std::numeric_limits<int32_t>::max()));
-	EXPECT_EQ(9223372036854775807, Convert::To<uint64_t>(std::numeric_limits<int64_t>::max()));
+	EXPECT_EQ(2147483647U, Convert::To<uint32_t>(std::numeric_limits<int32_t>::max()));
+	EXPECT_EQ(9223372036854775807U, Convert::To<uint64_t>(std::numeric_limits<int64_t>::max()));
 }
 
 TEST(ConvertFundamentals, IntToIntWithLessSize)
@@ -257,10 +257,10 @@ TEST(ConvertFundamentals, Int32ToString) {
 }
 
 TEST(ConvertFundamentals, UInt32FromString) {
-	EXPECT_EQ(0, Convert::To<uint32_t>("  0  "));
-	EXPECT_EQ(4294967295l, Convert::To<uint32_t>(u"  4294967295  "));
-	EXPECT_EQ(4294967295l, Convert::To<uint32_t>(L"  4294967295  "));
-	EXPECT_EQ(4294967295l, Convert::To<uint32_t>(U"  4294967295  "));
+	EXPECT_EQ(0U, Convert::To<uint32_t>("  0  "));
+	EXPECT_EQ(4294967295lU, Convert::To<uint32_t>(u"  4294967295  "));
+	EXPECT_EQ(4294967295lU, Convert::To<uint32_t>(L"  4294967295  "));
+	EXPECT_EQ(4294967295lU, Convert::To<uint32_t>(U"  4294967295  "));
 }
 
 TEST(ConvertFundamentals, UInt32FromStringWithBigNumberShouldThrowException) {

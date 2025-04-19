@@ -139,7 +139,6 @@ namespace BitSerializer::Convert::Utf
 			{
 				return reinterpret_cast<const TChar*>(U"☐");
 			}
-			return nullptr;
 		}
 	}
 
@@ -454,8 +453,13 @@ namespace BitSerializer::Convert::Utf
 						outStr.push_back(static_cast<TOutChar>(UnicodeTraits::LowSurrogatesStart | (sym & 0x3FF)));
 					}
 				}
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
 			}
-			return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+			else
+			{
+				// Just for suppress warnings, should never be reached
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+			}
 		}
 	};
 
@@ -557,6 +561,7 @@ namespace BitSerializer::Convert::Utf
 				for (; in != end; ++in) {
 					outStr.push_back(static_cast<TOutChar>(*in));
 				}
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
 			}
 			else if constexpr (sizeof(TOutChar) == sizeof(Utf16Le::char_type))
 			{
@@ -566,7 +571,11 @@ namespace BitSerializer::Convert::Utf
 			{
 				return Utf8::Encode(in, end, outStr, errorPolicy, errorMark);
 			}
-			return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+			else
+			{
+				// Just for suppress warnings, should never be reached
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+			}
 		}
 
 		/// <summary>
@@ -584,6 +593,7 @@ namespace BitSerializer::Convert::Utf
 				for (; in != end; ++in) {
 					outStr.push_back(static_cast<TOutChar>(*in));
 				}
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
 			}
 			else if constexpr (sizeof(TInCharType) == sizeof(Utf16Le::char_type))
 			{
@@ -593,7 +603,11 @@ namespace BitSerializer::Convert::Utf
 			{
 				return Utf8::Decode(in, end, outStr, errorPolicy, errorMark);
 			}
-			return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+			else
+			{
+				// Just for suppress warnings, should never be reached
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+			}
 		}
 	};
 

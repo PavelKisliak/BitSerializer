@@ -43,7 +43,7 @@ TEST(ValidatorRequired, ShouldAddValidationErrorsToException)
 	}
 
 	// Assert
-	EXPECT_EQ(2, errorsMap.size());
+	EXPECT_EQ(2U, errorsMap.size());
 	ASSERT_TRUE(errorsMap.find("path1") != errorsMap.cend());
 	ASSERT_TRUE(errorsMap.find("path2") != errorsMap.cend());
 	EXPECT_EQ("error1", errorsMap["path1"].front());
@@ -70,9 +70,9 @@ TEST(ValidatorRequired, ShouldAllowToAddSeveralErrorsForOnePath)
 	}
 
 	// Assert
-	EXPECT_EQ(1, errorsMap.size());
+	EXPECT_EQ(1U, errorsMap.size());
 	ASSERT_TRUE(errorsMap.find("path1") != errorsMap.cend());
-	ASSERT_EQ(2, errorsMap["path1"].size());
+	ASSERT_EQ(2U, errorsMap["path1"].size());
 	EXPECT_EQ("error1", errorsMap["path1"][0]);
 	EXPECT_EQ("error2", errorsMap["path1"][1]);
 }

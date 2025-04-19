@@ -24,7 +24,9 @@ namespace BitSerializer
 		if constexpr (hasValueWithKeySupport) {
  			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
-		return false;
+		else {
+			return false;
+		}
 	}
 
 	template <typename TArchive, typename TValue, std::enable_if_t<std::is_fundamental_v<TValue>, int> = 0>
@@ -36,7 +38,9 @@ namespace BitSerializer
 		if constexpr (hasValueTypeSupport) {
 			return archive.SerializeValue(value);
 		}
-		return false;
+		else {
+			return false;
+		}
 	}
 
 	//-----------------------------------------------------------------------------
@@ -58,6 +62,7 @@ namespace BitSerializer
 					value = static_cast<std::byte>(temp);
 					return true;
 				}
+				return false;
 			}
 			else
 			{
@@ -65,7 +70,6 @@ namespace BitSerializer
 				return archive.SerializeValue(std::forward<TKey>(key), temp);
 			}
 		}
-		return false;
 	}
 
 	template <typename TArchive>
@@ -84,6 +88,7 @@ namespace BitSerializer
 					value = static_cast<std::byte>(temp);
 					return true;
 				}
+				return false;
 			}
 			else
 			{
@@ -91,7 +96,6 @@ namespace BitSerializer
 				return archive.SerializeValue(temp);
 			}
 		}
-		return false;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -106,7 +110,9 @@ namespace BitSerializer
 		if constexpr (hasValueWithKeySupport) {
 			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
-		return false;
+		else {
+			return false;
+		}
 	}
 
 	template <typename TArchive>
@@ -118,7 +124,9 @@ namespace BitSerializer
 		if constexpr (hasValueTypeSupport) {
 			return archive.SerializeValue(value);
 		}
-		return false;
+		else {
+			return false;
+		}
 	}
 
 	//------------------------------------------------------------------------------
@@ -169,6 +177,7 @@ namespace BitSerializer
 						TranscodeStringByPolicy(archiveStringView, value, archive.GetContext());
 						return true;
 					}
+					return false;
 				}
 				else
 				{
@@ -176,7 +185,6 @@ namespace BitSerializer
 					return archive.SerializeValue(std::forward<TKey>(key), archiveStringView);
 				}
 			}
-			return false;
 		}
 
 		/// <summary>
@@ -206,6 +214,7 @@ namespace BitSerializer
 						TranscodeStringByPolicy(archiveStringView, value, archive.GetContext());
 						return true;
 					}
+					return false;
 				}
 				else
 				{
@@ -213,7 +222,6 @@ namespace BitSerializer
 					return archive.SerializeValue(archiveStringView);
 				}
 			}
-			return false;
 		}
 	}
 
@@ -228,13 +236,13 @@ namespace BitSerializer
 				value.assign(stringView);
 				return true;
 			}
+			return false;
 		}
 		else
 		{
 			std::basic_string_view<TSym> stringView(value);
 			return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
 		}
-		return false;
 	}
 
 	template <class TArchive, typename TSym, typename TAllocator>
@@ -248,13 +256,13 @@ namespace BitSerializer
 				value.assign(stringView);
 				return true;
 			}
+			return false;
 		}
 		else
 		{
 			std::basic_string_view<TSym> stringView(value);
 			return Detail::SerializeString(archive, stringView);
 		}
-		return false;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -432,9 +440,7 @@ namespace BitSerializer
 					return arrayScope.has_value();
 				}
 			}
-
 		}
-		return false;
 	}
 
 	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
@@ -524,7 +530,6 @@ namespace BitSerializer
 				}
 			}
 		}
-		return false;
 	}
 
 	/// <summary>
@@ -558,7 +563,6 @@ namespace BitSerializer
 				return true;
 			}
 		}
-		return false;
 	}
 
 	//-----------------------------------------------------------------------------

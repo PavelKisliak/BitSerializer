@@ -395,7 +395,7 @@ TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEnd)
 	}
 	catch (const ParsingException& ex)
 	{
-		EXPECT_EQ(1, ex.Offset);
+		EXPECT_EQ(1U, ex.Offset);
 	}
 	catch (const std::exception&)
 	{

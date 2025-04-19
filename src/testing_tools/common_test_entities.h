@@ -198,7 +198,7 @@ public:
 	}
 
 	template<std::size_t I = 0>
-	static void BuildFixture(TestClassWithSubTypes& fixture)
+	static void BuildFixture([[maybe_unused]]TestClassWithSubTypes& fixture)
 	{
 		if constexpr (I == sizeof...(Args)) {
 			return;
@@ -214,7 +214,7 @@ public:
 	}
 
 	template<std::size_t I = 0>
-	void Assert(const TestClassWithSubTypes& rhs) const
+	void Assert([[maybe_unused]]const TestClassWithSubTypes& rhs) const
 	{
 		if constexpr (I == sizeof...(Args)) {
 			return;
@@ -247,7 +247,7 @@ public:
 
 protected:
 	template <class TArchive, std::size_t Index = 0, bool Reverse=false>
-	void SerializeImpl(TArchive& archive)
+	void SerializeImpl([[maybe_unused]]TArchive& archive)
 	{
 		if constexpr (Index >= sizeof...(Args)) {
 			return;
@@ -550,7 +550,7 @@ public:
 	}
 
 	template<std::size_t I = 0>
-	static void BuildFixture(TestClassWithAttributes& fixture)
+	static void BuildFixture([[maybe_unused]]TestClassWithAttributes& fixture)
 	{
 		if constexpr (I == sizeof...(Args)) {
 			return;
@@ -566,7 +566,7 @@ public:
 	}
 
 	template<std::size_t I = 0>
-	void Assert(const TestClassWithAttributes& rhs) const
+	void Assert([[maybe_unused]]const TestClassWithAttributes& rhs) const
 	{
 		if constexpr (I == sizeof...(Args)) {
 			return;
@@ -586,7 +586,7 @@ public:
 	}
 
 	template <class TArchive, std::size_t I = 0>
-	void Serialize(TArchive& archive)
+	void Serialize([[maybe_unused]]TArchive& archive)
 	{
 		if constexpr (I == sizeof...(Args)) {
 			return;

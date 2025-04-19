@@ -273,7 +273,7 @@ TEST(RapidYamlArchive, ThrowParsingExceptionWithCorrectPosition)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_EQ(3, ex.Line);
+		EXPECT_EQ(3U, ex.Line);
 	}
 	catch (const std::exception&)
 	{

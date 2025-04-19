@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -26,41 +26,43 @@ namespace BitSerializer::Convert::Detail
 		}
 		else
 		{
-			bool result;
 			if constexpr (std::is_floating_point_v<TSource>)
 			{
 				if constexpr (std::is_floating_point_v<TTarget>)
 				{
-					if (result = sizeof(TTarget) > sizeof(TSource)
-						|| (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()); result)
-					{
+					if constexpr (sizeof(TTarget) > sizeof(TSource)) {
+						targetValue = sourceValue;
+					}
+					else if (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()) {
 						targetValue = static_cast<TTarget>(sourceValue);
 					}
+					else {
+						throw std::out_of_range("Target type size is insufficient");
+					}
 				}
-				else
-				{
+				else {
 					throw std::invalid_argument("Floating point number cannot be converted to integer without losing precision");
 				}
 			}
 			else if constexpr (std::is_same_v<bool, TSource> || std::is_same_v<bool, TTarget>)
 			{
 				auto value = static_cast<TTarget>(sourceValue);
-				if (result = static_cast<TSource>(value) == sourceValue; result) {
+				if (static_cast<TSource>(value) == sourceValue) {
 					targetValue = value;
+				}
+				else {
+					throw std::out_of_range("Target type size is insufficient");
 				}
 			}
 			else
 			{
 				auto value = static_cast<TTarget>(sourceValue);
-				result = (static_cast<TSource>(value) == sourceValue) && !((value > 0 && sourceValue < 0) || (value < 0 && sourceValue > 0));
-				if (result) {
+				if (static_cast<TSource>(value) == sourceValue && !((value > 0 && sourceValue < 0) || (value < 0 && sourceValue > 0))) {
 					targetValue = value;
 				}
-			}
-
-			if (!result)
-			{
-				throw std::out_of_range("Target type size is insufficient");
+				else {
+					throw std::out_of_range("Target type size is insufficient");
+				}
 			}
 		}
 	}
@@ -81,7 +83,7 @@ namespace BitSerializer::Convert::Detail
 		// ReSharper disable once CppPossiblyErroneousEmptyStatements
 		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it) {}	// Skip spaces
 
-		const auto validateResult = [](std::from_chars_result rc, std::string_view str)
+		const auto validateResult = [](std::from_chars_result rc, [[maybe_unused]]std::string_view str)
 		{
 			if (rc.ec != std::errc())
 			{

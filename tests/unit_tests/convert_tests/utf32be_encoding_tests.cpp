@@ -25,8 +25,8 @@ TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromAnsi)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"Hello world!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf8)
@@ -41,8 +41,8 @@ TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf8)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"Привет мир!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf16)
@@ -57,8 +57,8 @@ TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf16)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"Привет мир!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf16Surrogates)
@@ -73,8 +73,8 @@ TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf16Surrogates)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"😀😎🙋"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf32)
@@ -89,8 +89,8 @@ TEST(Utf32BeEncodeTest, ShouldEncodeUtf32LeFromUtf32)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"世界，您好！"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
@@ -106,8 +106,8 @@ TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"☐test☐"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(2, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
@@ -123,8 +123,8 @@ TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"☐test"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(1, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
@@ -140,8 +140,8 @@ TEST(Utf32BeEncodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"test123"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(1, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeEncodeTest, ShouldHandlePolicyThrowError)
@@ -158,7 +158,7 @@ TEST(Utf32BeEncodeTest, ShouldHandlePolicyThrowError)
 	EXPECT_FALSE(result);
 	EXPECT_EQ(NativeStringToBigEndian(U"test"), outString);
 	EXPECT_EQ(4, std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(1, result.InvalidSequencesCount);
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
 }
 
 //-----------------------------------------------------------------------------
@@ -176,8 +176,8 @@ TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToAnsi)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ("Hello world!", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf8)
@@ -192,8 +192,8 @@ TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf8)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(UTF8("Привет мир!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf16)
@@ -208,8 +208,8 @@ TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf16)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(u"世界，您好！", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeDecodeTest, ShouldDecodeUtf32ToUtf16WithSurrogates)
@@ -224,8 +224,8 @@ TEST(Utf32BeDecodeTest, ShouldDecodeUtf32ToUtf16WithSurrogates)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(u"😀😎🙋", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf32Le)
@@ -240,8 +240,8 @@ TEST(Utf32BeDecodeTest, ShouldDecodeUtf32BeToUtf32Le)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(U"世界，您好！", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 #pragma warning(pop)

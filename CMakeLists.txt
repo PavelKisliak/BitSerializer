@@ -67,7 +67,12 @@ if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.3")
 endif()
 
 if(MSVC)
-    add_compile_options(/permissive- /W3)
+      if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+        string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+      else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+      endif()
+    add_compile_options(/permissive-)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wall -Wextra -pedantic -Wno-psabi
         -Wno-unknown-pragmas -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-maybe-uninitialized)

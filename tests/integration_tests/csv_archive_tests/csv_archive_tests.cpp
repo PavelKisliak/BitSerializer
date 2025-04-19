@@ -222,7 +222,7 @@ TEST_F(CsvArchiveTests, ThrowParsingExceptionWithCorrectPosition)
 	}
 	catch (const ParsingException& ex)
 	{
-		EXPECT_EQ(3, ex.Line);
+		EXPECT_EQ(3U, ex.Line);
 	}
 	catch (const std::exception&)
 	{

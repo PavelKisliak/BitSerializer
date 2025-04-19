@@ -217,8 +217,8 @@ public:
 				PugiXmlExtensions::SaveValue(child, value);
 				return true;
 			}
+			return false;
 		}
-		return false;
 	}
 
 	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t)

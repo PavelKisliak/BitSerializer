@@ -349,7 +349,7 @@ void TestValidationForNamedValues()
 	{
 		// Assert
 		EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
-		EXPECT_EQ(1, ex.GetValidationErrors().size());
+		EXPECT_EQ(1U, ex.GetValidationErrors().size());
 	}
 
 	EXPECT_FALSE(result);
@@ -425,7 +425,7 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 		catch (const BitSerializer::ValidationException& ex)
 		{
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
-			EXPECT_EQ(1, ex.GetValidationErrors().size());
+			EXPECT_EQ(1U, ex.GetValidationErrors().size());
 		}
 		// Second value should be loaded
 		GTestExpectEq(std::get<1>(sourceObj[0]), std::get<1>(targetObj[0]));
@@ -470,7 +470,7 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 		else
 		{
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
-			EXPECT_EQ(1, ex.GetValidationErrors().size());
+			EXPECT_EQ(1U, ex.GetValidationErrors().size());
 		}
 		// Second value should be loaded
 		GTestExpectEq(std::get<1>(sourceObj[0]), std::get<1>(targetObj[0]));

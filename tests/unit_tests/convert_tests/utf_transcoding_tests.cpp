@@ -24,8 +24,8 @@ TEST(UtfTranscodeTest, TransocodeUt8ToUtf8)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(UTF8("Привет мир!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(UtfTranscodeTest, TransocodeUtf8ToUtf16)
@@ -40,8 +40,8 @@ TEST(UtfTranscodeTest, TransocodeUtf8ToUtf16)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(u"Привет мир!", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(UtfTranscodeTest, TransocodeUtf8ToUtf32)
@@ -56,8 +56,8 @@ TEST(UtfTranscodeTest, TransocodeUtf8ToUtf32)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(U"Привет мир!", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(UtfTranscodeTest, TransocodeUtf16ToUtf8)
@@ -72,8 +72,8 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToUtf8)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(UTF8("Привет мир!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(UtfTranscodeTest, TransocodeUtf16ToUtf32)
@@ -88,8 +88,8 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToUtf32)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(U"Привет мир!", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(UtfTranscodeTest, TransocodeUtf32ToUtf8)
@@ -104,8 +104,8 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToUtf8)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(UTF8("Привет мир!"), outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 TEST(UtfTranscodeTest, TransocodeUtf32ToUtf16)
@@ -120,8 +120,8 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToUtf16)
 	// Assert
 	EXPECT_TRUE(result);
 	EXPECT_EQ(u"Привет мир!", outString);
-	EXPECT_EQ(source.size(), std::distance(std::begin(source), result.Iterator));
-	EXPECT_EQ(0, result.InvalidSequencesCount);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
 #pragma warning(pop)

@@ -22,7 +22,7 @@ TYPED_TEST(CsvReaderTest, ShouldReturnZeroCurrentIndexAtTheBeginning)
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
-	EXPECT_EQ(0, this->mCsvReader->GetCurrentIndex());
+	EXPECT_EQ(0U, this->mCsvReader->GetCurrentIndex());
 }
 
 TYPED_TEST(CsvReaderTest, ShouldNoParseWhenInputStringIsEmpty)
@@ -42,7 +42,7 @@ TYPED_TEST(CsvReaderTest, ShouldReturnHeadersList)
 	this->PrepareCsvReader(csv, true);
 
 	// Act / Assert
-	ASSERT_EQ(3, this->mCsvReader->GetHeaders().size());
+	ASSERT_EQ(3U, this->mCsvReader->GetHeaders().size());
 	EXPECT_EQ("Column1", this->mCsvReader->GetHeaders()[0]);
 	EXPECT_EQ("Column2", this->mCsvReader->GetHeaders()[1]);
 	EXPECT_EQ("Column3", this->mCsvReader->GetHeaders()[2]);
@@ -59,9 +59,9 @@ Value1,Value2,Value3
 
 	// Act / Assert
 	EXPECT_TRUE(this->mCsvReader->ParseNextRow());
-	EXPECT_EQ(0, this->mCsvReader->GetCurrentIndex());
+	EXPECT_EQ(0U, this->mCsvReader->GetCurrentIndex());
 	EXPECT_TRUE(this->mCsvReader->ParseNextRow());
-	EXPECT_EQ(1, this->mCsvReader->GetCurrentIndex());
+	EXPECT_EQ(1U, this->mCsvReader->GetCurrentIndex());
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReturnCurrentIndexWhenHeaderisNotUsed)
@@ -74,9 +74,9 @@ Value1,Value2
 
 	// Act / Assert
 	EXPECT_TRUE(this->mCsvReader->ParseNextRow());
-	EXPECT_EQ(0, this->mCsvReader->GetCurrentIndex());
+	EXPECT_EQ(0U, this->mCsvReader->GetCurrentIndex());
 	EXPECT_TRUE(this->mCsvReader->ParseNextRow());
-	EXPECT_EQ(1, this->mCsvReader->GetCurrentIndex());
+	EXPECT_EQ(1U, this->mCsvReader->GetCurrentIndex());
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReturnFalseWhenNotAllLinesParsed)

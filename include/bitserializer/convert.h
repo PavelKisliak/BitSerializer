@@ -14,6 +14,10 @@
 #include "bitserializer/conversion_detail/convert_chrono.h"
 #include "bitserializer/conversion_detail/convert_traits.h"
 
+// Suppress C4702 - unreachable code
+#pragma warning(push)
+#pragma warning(disable: 4702)
+
 namespace BitSerializer::Convert
 {
 	/// <summary>
@@ -114,3 +118,5 @@ namespace BitSerializer::Convert
 		}
 	}
 }
+
+#pragma warning(pop)

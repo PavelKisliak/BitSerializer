@@ -122,8 +122,8 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItInTheCachedChunk)
 		ASSERT_TRUE(result);
 		ASSERT_FALSE(solidBlock.empty());
 		EXPECT_EQ(testPos, mBinaryStreamReader->GetPosition());
-		ASSERT_TRUE(actualByte);
-		EXPECT_EQ(mInputString[testPos], *actualByte);
+		ASSERT_TRUE(actualByte.has_value());
+		EXPECT_EQ(mInputString[testPos], actualByte.value());	// NOLINT(bugprone-unchecked-optional-access)
 	}
 }
 
@@ -140,8 +140,8 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItAfterCachedChunk)
 	// Assert
 	ASSERT_TRUE(result);
 	EXPECT_EQ(testPos, mBinaryStreamReader->GetPosition());
-	ASSERT_TRUE(actualByte);
-	EXPECT_EQ(mInputString[testPos], *actualByte);
+	ASSERT_TRUE(actualByte.has_value());
+	EXPECT_EQ(mInputString[testPos], actualByte.value());	// NOLINT(bugprone-unchecked-optional-access)
 }
 
 TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItAlreadyInTheEndOfData)
@@ -173,8 +173,8 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItBeforeCachedChunk)
 	ASSERT_TRUE(result);
 	ASSERT_TRUE(solidBlock.empty());
 	EXPECT_EQ(testPos, mBinaryStreamReader->GetPosition());
-	ASSERT_TRUE(actualByte);
-	EXPECT_EQ(mInputString[testPos], *actualByte);
+	ASSERT_TRUE(actualByte.has_value());
+	EXPECT_EQ(mInputString[testPos], actualByte.value());	// NOLINT(bugprone-unchecked-optional-access)
 }
 
 TEST_F(BinaryStreamReaderTest, ShouldSetPositionFailWhenItAfterTheEnd)
@@ -205,7 +205,7 @@ TEST_F(BinaryStreamReaderTest, ShouldPeekByte)
 	// Assert
 	ASSERT_TRUE(actual1stPeek.has_value());
 	ASSERT_TRUE(actual2stPeek.has_value());
-	EXPECT_EQ(*actual1stPeek, *actual1stPeek);
+	EXPECT_EQ(*actual1stPeek, *actual1stPeek);	// NOLINT(bugprone-unchecked-optional-access)
 	EXPECT_EQ(0, mBinaryStreamReader->GetPosition());
 	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
 }
@@ -238,7 +238,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGotoNextByte)
 	// Assert
 	ASSERT_TRUE(actual1stPeek.has_value());
 	ASSERT_TRUE(actual2stPeek.has_value());
-	EXPECT_EQ(*actual1stPeek, *actual1stPeek);
+	EXPECT_EQ(*actual1stPeek, *actual1stPeek);	// NOLINT(bugprone-unchecked-optional-access)
 	EXPECT_EQ(1, mBinaryStreamReader->GetPosition());
 	EXPECT_FALSE(mBinaryStreamReader->IsEnd());
 }
@@ -272,7 +272,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadByte)
 	// Assert
 	ASSERT_TRUE(actual1stRead.has_value());
 	ASSERT_TRUE(actual2stRead.has_value());
-	EXPECT_NE(*actual1stRead, *actual2stRead);
+	EXPECT_NE(*actual1stRead, *actual2stRead);	// NOLINT(bugprone-unchecked-optional-access)
 	EXPECT_EQ(2, mBinaryStreamReader->GetPosition());
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }

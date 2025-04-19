@@ -165,7 +165,7 @@ namespace BitSerializer::Convert::Utf
 			while (in != end)
 			{
 				TInIt startTailPos = in;
-				uint32_t sym = static_cast<unsigned char>(*in);
+				uint32_t sym = static_cast<unsigned char>(*in);		// NOLINT(clang-analyzer-core.uninitialized.Assign)
 				++in;
 				if ((sym & 0b10000000) == 0)
 				{

@@ -1,3 +1,9 @@
+parameters:
+- name: fullStaticAnalysis
+  displayName: 'Full static analysis'
+  type: boolean
+  default: false
+
 trigger:
   branches:
     include:
@@ -43,7 +49,8 @@ stages:
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          fullAnalysis: ${{ eq(variables['Build.Reason'], 'Schedule') }}
+          # Perform a full analysis on the scheduled build or if explicitly selected by the user
+          fullAnalysis: ${{ or(eq(variables['Build.Reason'], 'Schedule'), eq(parameters.fullStaticAnalysis, true)) }}
 
       - template: templates/memory-check-valgrind-template.yml
         parameters:
@@ -62,7 +69,7 @@ stages:
   - stage: BuildAndTest
     displayName: 'Build and test stage'
     dependsOn: StaticAnalysis
-    condition: eq(dependencies.StaticAnalysis.result, 'Succeeded')
+    condition: in(dependencies.StaticAnalysis.result, 'Succeeded', 'SucceededWithIssues')
     jobs:
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:

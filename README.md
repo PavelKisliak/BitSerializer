@@ -516,7 +516,7 @@ int main()
 Enum types can be serialized as integers or as strings, as you prefer.
 By default, they serializing as strings, to serialize as integers, use the `EnumAsBin` wrapper:
 ```cpp
-archive << MakeKeyValue("EnumValue", EnumAsBin(enumValue));
+archive << KeyValue("EnumValue", EnumAsBin(enumValue));
 ```
 To be able to serialize `enum` types as string, you need to register a map with string equivalents in the your HEADER file.
 ```cpp

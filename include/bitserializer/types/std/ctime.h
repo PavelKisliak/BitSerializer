@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -11,7 +11,7 @@ namespace BitSerializer
 {
 	/// <summary>
 	/// Wrapper that holds reference to `time_t` type, used to distinguish between time_t and integer types.
-	///	Usage example: archive << MakeKeyValue("Time", CTimeRef(timeValue));
+	///	Usage example: archive << KeyValue("Time", CTimeRef(timeValue));
 	/// </summary>
 	struct CTimeRef
 	{
@@ -46,7 +46,7 @@ namespace BitSerializer
 
 	/// <summary>
 	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
-	///	Usage example: archive << MakeKeyValue("Time", CTimeRef(timeValue));
+	///	Usage example: archive << KeyValue("Time", CTimeRef(timeValue));
 	/// </summary>
 	template <typename TArchive, typename TKey>
 	bool Serialize(TArchive& archive, TKey&& key, CTimeRef timeRef)
@@ -92,7 +92,7 @@ namespace BitSerializer
 
 	/// <summary>
 	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
-	///	Usage example: archive << MakeKeyValue("Time", CTimeRef(timeValue));
+	///	Usage example: archive << KeyValue("Time", CTimeRef(timeValue));
 	/// </summary>
 	template<typename TArchive>
 	bool Serialize(TArchive& archive, CTimeRef timeRef)

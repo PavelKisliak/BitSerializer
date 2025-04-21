@@ -16,6 +16,7 @@ trigger:
   paths:
     exclude:
       - '/**/*.md'
+      - '/**/*.png'
       - 'cpp.hint'
       - 'CMakeSettings.json'
 

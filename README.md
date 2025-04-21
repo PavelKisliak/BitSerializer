@@ -25,35 +25,18 @@ ___
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
 #### Requirements:
-  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12).
-  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm, arm64, arm64be\*).
-  - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
+ - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12).
+ - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be\*).
+ - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
 (\*) Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture (recently released BitSerializer v0.75 supports only RapidYaml v0.5.0, please use master branch).
 
 #### Limitations:
  - Work without exceptions is not supported.
 
-### Performance
-For check performance overhead, was developed a single thread test that serializes a model via the BitSerializer and via the API provided by base libraries. The model for tests includes a various types that are supported by all formats.
-
-| Base library name | Format | Operation | BitSerializer | Native API | Difference |
-| ------ | ------ | ------ |  ------ | ------ | ------ |
-| RapidJson | JSON | Save object | 13636 fields/ms  | 13866 fields/ms | **(-1.7%)** |
-| RapidJson | JSON | Load object | 8639 fields/ms | 8967 fields/ms | **(-3.7%)** |
-| PugiXml | XML | Save object | 9910 fields/ms | 9851 fields/ms | **(+0.6%)** |
-| PugiXml | XML | Load object | 14602 fields/ms | 15942 fields/ms | **(-8.4%)** |
-| RapidYAML | YAML | Save object | 1689 fields/ms | 1737 fields/ms | **(-2.8%)** |
-| RapidYAML | YAML | Load object | 3226 fields/ms | 3481 fields/ms | **(-7.3%)** |
-| Built-in | CSV | Save object | 33000 fields/ms | N/A | N/A |
-| Built-in | CSV | Load object | 15278 fields/ms | N/A | N/A |
-| Built-in | MsgPack | Save object | 75000 fields/ms | N/A | N/A |
-| Built-in | MsgPack | Load object | 48529 fields/ms | N/A | N/A |
-
-Measured in **fields/ms** - how many fields are written per millisecond, more is better. Results are depend to system hardware and compiler options, but you can evaluate the BitSerializer overhead and formats efficiency. The source code of the test also available [here](benchmarks/archives).
-
 ___
 ## Table of contents
+- [Performance overview](#performance-overview)
 - [How to install](#how-to-install)
 - [Hello world](#hello-world)
 - [Unicode support](#unicode-support)
@@ -77,6 +60,26 @@ ___
 
 ___
 
+### Performance overview
+
+BitSerializer prioritizes reliability and usability, but we understand that performance remains a critical factor for serialization libraries.
+This chapter provides an overview of the performance characteristics of BitSerializer across various serialization formats, as well as comparative tests with the used third-party libraries.
+
+#### Key performance insights
+
+- Formats implemented natively in BitSerializer (MsgPack and CSV) demonstrate excellent performance due to their DOM-free architecture. This approach eliminates intermediate object tree construction, enabling direct serialization/deserialization to/from streams.
+- Formats relying on external libraries (RapidJSON, PugiXML, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
+- All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
+
+#### Performance test methodology
+
+- ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
+- **Test model:** The test model consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
+
+#### Performance test results
+![image info](docs/bitserializer_benchmark.png)
+
+For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
 
 ### How to install
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
@@ -123,7 +126,7 @@ $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
 By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
-You will also need to install dev-packages of base libraries, currently available only `rapidjson-dev` and `libpugixml-dev`, the rest need to be built manually (CSV and MsgPack archives do not require any dependencies).
+You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `rapidjson-dev` and `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
 
 #### How to use with CMake
 ```cmake
@@ -818,6 +821,9 @@ int main()
 }
 ```
 [See full sample](samples/versioning/versioning.cpp)
+
+> [!NOTE]
+> Note that the stream implementation must support the `seekg()` operation to load fields non-linearly.
 
 ### Serialization to streams and files
 All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.

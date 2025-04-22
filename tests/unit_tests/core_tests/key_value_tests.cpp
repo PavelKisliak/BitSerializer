@@ -77,14 +77,14 @@ TEST(KeyValue, ShouldStoreValidators)
 	int value = 10;
 
 	// Act
-	KeyValue keyValue("key", value, Required(), Range(0, 20));
+	KeyValue keyValue("key", value, Validate::Required(), Validate::Range(0, 20));
 
 	// Assert
 	int knownArgs = 0, unknownArgs = 0;
 	keyValue.VisitArgs([&knownArgs, &unknownArgs](auto& handler)
 	{
 		using Type = std::decay_t<decltype(handler)>;
-		if constexpr (std::is_same_v<Type, Required> || std::is_same_v<Type, Range<int>>) {
+		if constexpr (std::is_same_v<Type, Validate::Required> || std::is_same_v<Type, Validate::Range<int>>) {
 			++knownArgs;
 		}
 		else {

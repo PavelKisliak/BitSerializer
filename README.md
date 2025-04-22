@@ -929,14 +929,14 @@ catch (const std::exception& ex)
 ### Validation of deserialized values
 BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
 ```cpp
-archive << KeyValue("testFloat", testFloat, Required(), Range(-1.0f, 1.0f));
+archive << KeyValue("testFloat", testFloat, Required(), Validate::Range(-1.0f, 1.0f));
 ```
 For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization (when all errors have been collected).
 By default, the number of errors is unlimited, but it can be set using `maxValidationErrors` in `SerializationOptions`.
 The map of validation errors can be get by calling method `GetValidationErrors()` from the exception object, it contains paths to fields with errors lists.
 The default error message can be overridden (you can also pass string ID for further localization):
 ```cpp
-archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
+archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age should be in the range 0...150"));
 ```
 
 The list of validators "out of the box" is not so rich, but it will expand in the future.
@@ -950,8 +950,13 @@ The list of validators "out of the box" is not so rich, but it will expand in th
 | `Email(errorMessage = nullptr)`           | The email validator, generally complies with the RFC standard with the exception of: quoted parts, comments, SMTPUTF8 and IP address as domain part |
 | `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | The phone number validator, examples:<br>+555 (55) 555-55-55, (55) 555 55 55, 555 5 55 55 |
 
+All validators are declared in the `BitSerializer::Validate` namespace, except `Required` which also has alias in the `BitSerializer`.
+> [!NOTE]
+> In the previously released v0.75, all validators were declared in the BitSerializer namespace.
+
 Usage example:
 ```cpp
+using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
 class UserModel
@@ -960,13 +965,11 @@ public:
     template <class TArchive>
     void Serialize(TArchive& archive)
     {
-        using namespace BitSerializer;
-
         archive << KeyValue("Id", mId, Required());
-        archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
-        archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
-        archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
-        archive << KeyValue("Email", mEmail, Required(), Email());
+        archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age should be in the range 0...150"));
+        archive << KeyValue("FirstName", mFirstName, Required(), Validate::MaxSize(16));
+        archive << KeyValue("LastName", mLastName, Required(), Validate::MaxSize(16));
+        archive << KeyValue("Email", mEmail, Required(), Validate::Email());
         // Custom validation with lambda
         archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string>
         {

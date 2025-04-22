@@ -16,6 +16,8 @@ namespace BitSerializer
 	/// </summary>
 	static SerializationOptions DefaultOptions;
 
+	using Validate::Required;
+
 	/// <summary>
 	/// Loads the object from one of archive supported data type (strings, binary data).
 	/// </summary>
@@ -169,8 +171,7 @@ namespace BitSerializer
 			throw SerializationException(SerializationErrorCode::InputOutputError, Convert::ToString(std::forward<TPath>(path), "Could not open file: "));
 		}
 	}
-
-} // namespace BitSerializer
+}
 
 
 /// <summary>

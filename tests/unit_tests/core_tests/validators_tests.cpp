@@ -15,7 +15,7 @@ using namespace BitSerializer;
 TEST(ValidatorRequired, ShouldNotReturnErrorIfValueIsLoaded)
 {
 	// Arrange
-	const auto validator = Required();
+	const auto validator = Validate::Required();
 
 	// Act
 	const auto result = validator(10, true);
@@ -27,7 +27,7 @@ TEST(ValidatorRequired, ShouldNotReturnErrorIfValueIsLoaded)
 TEST(ValidatorRequired, ShouldReturnErrorIfValueIsNotLoaded)
 {
 	// Arrange
-	const auto validator = Required();
+	const auto validator = Validate::Required();
 
 	// Act
 	const auto result = validator(10, false);
@@ -40,7 +40,7 @@ TEST(ValidatorRequired, ShouldReturnErrorIfValueIsNotLoaded)
 TEST(ValidatorRequired, ShouldReturnCustomErrorMessage)
 {
 	// Arrange
-	const auto validator = Required("Custom error message");
+	const auto validator = Validate::Required("Custom error message");
 
 	// Act
 	const auto result = validator(10, false);
@@ -56,7 +56,7 @@ TEST(ValidatorRequired, ShouldReturnCustomErrorMessage)
 TEST(ValidatorRange, ShouldAlwaysPassIfValueIsNotLoaded)
 {
 	// Arrange
-	const auto validator = Range(10, 20);
+	const auto validator = Validate::Range(10, 20);
 
 	// Act
 	const auto result = validator(0, false);
@@ -68,7 +68,7 @@ TEST(ValidatorRange, ShouldAlwaysPassIfValueIsNotLoaded)
 TEST(ValidatorRange, ShouldNotReturnErrorIfValueIsInRangeLoaded)
 {
 	// Arrange
-	const auto validator = Range(1, 1);
+	const auto validator = Validate::Range(1, 1);
 
 	// Act
 	const auto result = validator(1, true);
@@ -80,7 +80,7 @@ TEST(ValidatorRange, ShouldNotReturnErrorIfValueIsInRangeLoaded)
 TEST(ValidatorRange, ShouldReturnErrorIfValueIsLessThanMin)
 {
 	// Arrange
-	const auto validator = Range(10, 20);
+	const auto validator = Validate::Range(10, 20);
 
 	// Act
 	const auto result = validator(9, true);
@@ -93,7 +93,7 @@ TEST(ValidatorRange, ShouldReturnErrorIfValueIsLessThanMin)
 TEST(ValidatorRange, ShouldReturnErrorIfValueIsGreaterThanMax)
 {
 	// Arrange
-	const auto validator = Range(10, 20);
+	const auto validator = Validate::Range(10, 20);
 
 	// Act
 	const auto result = validator(21, true);
@@ -106,7 +106,7 @@ TEST(ValidatorRange, ShouldReturnErrorIfValueIsGreaterThanMax)
 TEST(ValidatorRange, ShouldReturnCustomErrorMessage)
 {
 	// Arrange
-	const auto validator = Range(1, 2, "Custom error message");
+	const auto validator = Validate::Range(1, 2, "Custom error message");
 
 	// Act
 	const auto result = validator(3, true);
@@ -122,7 +122,7 @@ TEST(ValidatorRange, ShouldReturnCustomErrorMessage)
 TEST(ValidatorMinSize, ShouldAlwaysPassIfValueIsNotLoaded)
 {
 	// Arrange
-	const auto validator = MinSize(10);
+	const auto validator = Validate::MinSize(10);
 	const std::string testValue(9, '#');
 
 	// Act
@@ -135,7 +135,7 @@ TEST(ValidatorMinSize, ShouldAlwaysPassIfValueIsNotLoaded)
 TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsEqual)
 {
 	// Arrange
-	const auto validator = MinSize(10);
+	const auto validator = Validate::MinSize(10);
 	const std::string testValue(10, '#');
 
 	// Act
@@ -148,7 +148,7 @@ TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsEqual)
 TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsGreater)
 {
 	// Arrange
-	const auto validator = MinSize(10);
+	const auto validator = Validate::MinSize(10);
 	const std::string testValue(11, '#');
 
 	// Act
@@ -161,7 +161,7 @@ TEST(ValidatorMinSize, ShouldNotReturnErrorIfSizeIsGreater)
 TEST(ValidatorMinSize, ShouldReturnErrorIfSizeIsLess)
 {
 	// Arrange
-	const auto validator = MinSize(10);
+	const auto validator = Validate::MinSize(10);
 	const std::string testValue(9, '#');
 
 	// Act
@@ -174,7 +174,7 @@ TEST(ValidatorMinSize, ShouldReturnErrorIfSizeIsLess)
 TEST(ValidatorMinSize, ShouldReturnCustomErrorMessage)
 {
 	// Arrange
-	const auto validator = MinSize(10, "Custom error message");
+	const auto validator = Validate::MinSize(10, "Custom error message");
 	const std::string testValue(9, '#');
 
 	// Act
@@ -191,7 +191,7 @@ TEST(ValidatorMinSize, ShouldReturnCustomErrorMessage)
 TEST(ValidatorMaxSize, ShouldAlwaysPassIfValueIsNotLoaded)
 {
 	// Arrange
-	const auto validator = MaxSize(10);
+	const auto validator = Validate::MaxSize(10);
 	const std::string testValue(11, '#');
 
 	// Act
@@ -204,7 +204,7 @@ TEST(ValidatorMaxSize, ShouldAlwaysPassIfValueIsNotLoaded)
 TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsEqual)
 {
 	// Arrange
-	const auto validator = MaxSize(10);
+	const auto validator = Validate::MaxSize(10);
 	const std::string testValue(10, '#');
 
 	// Act
@@ -217,7 +217,7 @@ TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsEqual)
 TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsLess)
 {
 	// Arrange
-	const auto validator = MaxSize(10);
+	const auto validator = Validate::MaxSize(10);
 	const std::string testValue(9, '#');
 
 	// Act
@@ -230,7 +230,7 @@ TEST(ValidatorMaxSize, ShouldNotReturnErrorIfSizeIsLess)
 TEST(ValidatorMaxSize, ShouldReturnErrorIfSizeIsGreater)
 {
 	// Arrange
-	const auto validator = MaxSize(10);
+	const auto validator = Validate::MaxSize(10);
 	const std::string testValue(11, '#');
 
 	// Act
@@ -243,7 +243,7 @@ TEST(ValidatorMaxSize, ShouldReturnErrorIfSizeIsGreater)
 TEST(ValidatorMaxSize, ShouldReturnCustomErrorMessage)
 {
 	// Arrange
-	const auto validator = MaxSize(10, "Custom error message");
+	const auto validator = Validate::MaxSize(10, "Custom error message");
 	const std::string testValue(11, '#');
 
 	// Act
@@ -260,7 +260,7 @@ TEST(ValidatorMaxSize, ShouldReturnCustomErrorMessage)
 TEST(ValidatorEmail, TestDifferentStringTypes)
 {
 	// Arrange
-	const auto validator = Email();
+	const auto validator = Validate::Email();
 
 	// Act / Assert
 	EXPECT_FALSE(validator("simple@example.com", true).has_value());
@@ -273,7 +273,7 @@ TEST(ValidatorEmail, TestDifferentStringTypes)
 TEST(ValidatorEmail, TestValidEmails)
 {
 	// Arrange
-	const auto validator = Email();
+	const auto validator = Validate::Email();
 
 	// Test local part
 	EXPECT_FALSE(validator("simple@example.com", true).has_value());
@@ -298,7 +298,7 @@ TEST(ValidatorEmail, TestValidEmails)
 TEST(ValidatorEmail, TestInvalidEmails)
 {
 	// Arrange
-	const auto validator = Email();
+	const auto validator = Validate::Email();
 
 	// Test local part
 	EXPECT_TRUE(validator("", true).has_value()) << "Empty string";
@@ -342,7 +342,7 @@ TEST(ValidatorEmail, TestInvalidEmails)
 TEST(ValidatorEmail, ShouldReturnCustomErrorMessage)
 {
 	// Arrange
-	const auto validator = Email("Custom error message");
+	const auto validator = Validate::Email("Custom error message");
 
 	// Act
 	const auto result = validator("abc.example.com", true);
@@ -358,7 +358,7 @@ TEST(ValidatorEmail, ShouldReturnCustomErrorMessage)
 TEST(ValidatorPhoneNumber, TestDifferentStringTypes)
 {
 	// Arrange
-	const auto validator = PhoneNumber();
+	const auto validator = Validate::PhoneNumber();
 
 	// Act / Assert
 	EXPECT_FALSE(validator("+123 (555) 555-55-55", true).has_value());
@@ -370,7 +370,7 @@ TEST(ValidatorPhoneNumber, TestDifferentStringTypes)
 
 TEST(ValidatorPhoneNumber, TestValidPhones)
 {
-	const auto validator = PhoneNumber();
+	const auto validator = Validate::PhoneNumber();
 
 	EXPECT_FALSE(validator("+1 (555) 555-55-55", true).has_value());
 
@@ -381,7 +381,7 @@ TEST(ValidatorPhoneNumber, TestValidPhones)
 
 TEST(ValidatorPhoneNumber, TestValidPhonesWithoutPlus)
 {
-	const auto validator = PhoneNumber(7, 15, false);
+	const auto validator = Validate::PhoneNumber(7, 15, false);
 
 	EXPECT_FALSE(validator("(555) 555-55-55", true).has_value());
 	EXPECT_FALSE(validator("44 20 7123 1234", true).has_value());
@@ -390,7 +390,7 @@ TEST(ValidatorPhoneNumber, TestValidPhonesWithoutPlus)
 
 TEST(ValidatorPhoneNumber, TestPhonesWithInvalidNumberOfDigits)
 {
-	const auto validator = PhoneNumber(6, 12);
+	const auto validator = Validate::PhoneNumber(6, 12);
 
 	EXPECT_TRUE(validator("+12345", true).has_value()) << "Should contain at least 6 digits";
 	EXPECT_TRUE(validator("+1234567890123", true).has_value()) << "Should contain maximum 12 digits";
@@ -398,7 +398,7 @@ TEST(ValidatorPhoneNumber, TestPhonesWithInvalidNumberOfDigits)
 
 TEST(ValidatorPhoneNumber, TestPhonesWithInvalidParenthesis)
 {
-	const auto validator = PhoneNumber(6, 12);
+	const auto validator = Validate::PhoneNumber(6, 12);
 
 	EXPECT_TRUE(validator("+1 ((555)) 555-55-55", true).has_value()) << "Nested parenthesis are not allowed";
 	EXPECT_TRUE(validator("+1 (555 555-55-55", true).has_value()) << "Missing closing parenthesis";
@@ -410,7 +410,7 @@ TEST(ValidatorPhoneNumber, TestPhonesWithInvalidParenthesis)
 
 TEST(ValidatorPhoneNumber, TestPhonesWithInvalidDashes)
 {
-	const auto validator = PhoneNumber(6, 12);
+	const auto validator = Validate::PhoneNumber(6, 12);
 
 	EXPECT_TRUE(validator("-1 (555) 555-5555", true).has_value()) << "The leading dash is not allowed";
 	EXPECT_TRUE(validator("-(555) 555-5555", true).has_value()) << "The leading dash is not allowed";
@@ -423,7 +423,7 @@ TEST(ValidatorPhoneNumber, TestPhonesWithInvalidDashes)
 
 TEST(ValidatorPhoneNumber, TestPhonesWithInvalidCharacters)
 {
-	const auto validator = PhoneNumber(6, 12);
+	const auto validator = Validate::PhoneNumber(6, 12);
 
 	EXPECT_TRUE(validator("*1 (555) 555-55-55", true).has_value());
 	EXPECT_TRUE(validator("1 (555) 555-55-55$", true).has_value());

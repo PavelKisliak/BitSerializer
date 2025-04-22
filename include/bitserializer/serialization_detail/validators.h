@@ -6,7 +6,7 @@
 #include "object_traits.h"
 #include "bitserializer/convert.h"
 
-namespace BitSerializer
+namespace BitSerializer::Validate
 {
 	/// <summary>
 	/// Validates that field is deserialized.
@@ -355,4 +355,31 @@ namespace BitSerializer
 		bool mIsPlusRequired;
 		const char* mErrorMessage;
 	};
+}
+
+
+// ToDo: remove in the future versions
+namespace BitSerializer
+{
+	template <class TValue>
+	class Range : public Validate::Range<TValue>
+	{
+	public:
+		[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
+		Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
+			: Validate::Range<TValue>(min, max, errorMessage)
+		{ }
+	};
+
+	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
+	typedef Validate::MinSize MinSize;
+
+	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
+	typedef Validate::MinSize MaxSize;
+
+	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
+	typedef Validate::Email Email;
+
+	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
+	typedef Validate::PhoneNumber PhoneNumber;
 }

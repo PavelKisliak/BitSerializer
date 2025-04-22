@@ -2,6 +2,7 @@
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/rapidjson_archive.h"
 
+using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
 
 class UserModel
@@ -10,13 +11,11 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		using namespace BitSerializer;
-
 		archive << KeyValue("Id", mId, Required());
-		archive << KeyValue("Age", mAge, Required("Age is required"), Range(0, 150, "Age should be in the range 0...150"));
-		archive << KeyValue("FirstName", mFirstName, Required(), MaxSize(16));
-		archive << KeyValue("LastName", mLastName, Required(), MaxSize(16));
-		archive << KeyValue("Email", mEmail, Required(), Email());
+		archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age should be in the range 0...150"));
+		archive << KeyValue("FirstName", mFirstName, Required(), Validate::MaxSize(16));
+		archive << KeyValue("LastName", mLastName, Required(), Validate::MaxSize(16));
+		archive << KeyValue("Email", mEmail, Required(), Validate::Email());
 		// Custom validation with lambda
 		archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string>
 		{

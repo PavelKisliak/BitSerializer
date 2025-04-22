@@ -133,6 +133,11 @@ protected:
 
 	bool LoadValue(const RapidJsonNode& jsonValue, string_view_type& value, const SerializationOptions& serializationOptions)
 	{
+		// Null value from JSON is excluded from MismatchedTypesPolicy processing
+		if (jsonValue.IsNull()) {
+			return false;
+		}
+
 		if (!jsonValue.IsString())
 		{
 			HandleMismatchedTypesPolicy(serializationOptions.mismatchedTypesPolicy);

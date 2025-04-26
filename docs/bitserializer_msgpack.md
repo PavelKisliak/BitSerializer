@@ -3,12 +3,12 @@
 ### Features
 
  - The most efficient and fastest format supported by BitSerializer
- - Fully compliant with the MsgPack specification, including `Timestamp` extension type(\*)
+ - Fully compliant with the MsgPack specification, including `Timestamp` extension type¹
  - Serialization from/to memory and `std::stream`
  - Supports loading object fields in any order with conditions (for version control)
  - No third party dependencies
 
-(\*) Except using non-trivial types as keys for map (like `object`, `array`, `raw`, `nil`, etc), but the `Timestamp` extension is allowed.
+ ¹ Except using non-trivial types as map keys (like `object`, `array`, `raw`, `nil`, etc), but the `Timestamp` extension is allowed.
 
 ### MsgPack vs JSON
 MsgPack archive is fully JSON compatible, you can easily switch between them or support both in your application.

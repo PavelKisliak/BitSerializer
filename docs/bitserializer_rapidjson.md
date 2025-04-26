@@ -48,8 +48,23 @@ target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 ```
 
 ### Implementation detail
-The JSON specification allows to store on root not just objects and arrays, but also more primitive types such as string, number and boolean.
-The BitSerializer also supports this abilities, have a look to [Hello world example](../samples/hello_world/hello_world.cpp).
+The JSON specification allows storing not only objects and arrays in the root, but also more primitive types such as string, number, and boolean.
+This is also not a problem for BitSerializer:
+```cpp
+int main()
+{
+    std::string expected = "Hello world!";
+    auto json = BitSerializer::SaveObject<JsonArchive>(expected);
+
+    std::string result;
+    BitSerializer::LoadObject<JsonArchive>(result, json);
+
+    assert(result == expected);
+    std::cout << result << std::endl;
+
+    return EXIT_SUCCESS;
+}
+```
 
 ### Pretty format
 As base library (RapidJson) has the functionality for output to human readable format, the BitSerializer also allows to do this:

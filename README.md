@@ -26,19 +26,19 @@ ___
 
 #### Requirements:
  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12).
- - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be\*).
+ - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be¹).
  - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
-(\*) Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture (recently released BitSerializer v0.75 supports only RapidYaml v0.5.0, please use master branch).
+ ¹ Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture (recently released BitSerializer v0.75 supports only RapidYaml v0.5.0, please use master branch).
 
 #### Limitations:
  - Work without exceptions is not supported.
 
 ___
 ## Table of contents
+- [Hello world](#hello-world)
 - [Performance overview](#performance-overview)
 - [How to install](#how-to-install)
-- [Hello world](#hello-world)
 - [Unicode support](#unicode-support)
 - [Serializing class](#serializing-class)
 - [Serializing base class](#serializing-base-class)
@@ -60,19 +60,84 @@ ___
 
 ___
 
-### Performance overview
+### Hello world
+Let's get started with a traditional "Hello world!" example that demonstrates BitSerializer's serialization features, such as validation (e.g., email and phone number formats), handling optional fields, and converting between different data formats (JSON to CSV). The example highlights the flexibility of the library in handling different data types, including `std::chrono` and Unicode strings, and ensures data integrity through required and optional field constraints.
+```cpp
+#include <iostream>
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/csv_archive.h"
+#include "bitserializer/types/std/vector.h"
+#include "bitserializer/types/std/chrono.h"
 
+using namespace BitSerializer;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using CsvArchive = BitSerializer::Csv::CsvArchive;
+
+struct CUser
+{
+    // Mandatory fields
+    uint64_t Id = 0;
+    std::u16string Name;
+    std::chrono::system_clock::time_point Birthday;
+    std::string Email;
+    // Optional fields (maybe absent or `null` in the source JSON)
+    std::string PhoneNumber;
+    std::u32string NickName;
+
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("Id", Id, Required());
+        // Using the `Required()` validator with a custom error message (can be ID of localization string)
+        archive << KeyValue("Birthday", Birthday, Required("Birthday is required"));
+        archive << KeyValue("Name", Name, Required(), Validate::MaxSize(32));
+        archive << KeyValue("Email", Email, Required(), Validate::Email());
+        // Optional field (should be empty or contain a valid phone number)
+        archive << KeyValue("PhoneNumber", PhoneNumber, Validate::PhoneNumber());
+        archive << KeyValue("NickName", NickName);
+    }
+};
+
+int main()  // NOLINT(bugprone-exception-escape)
+{
+    const char* sourceJson = R"([
+{ "Id": 1, "Birthday": "1998-05-15T00:00:00Z", "Name": "John Doe", "Email": "john.doe@example.com", "PhoneNumber": "+(123) 4567890", "NickName": "JD" },
+{ "Id": 2, "Birthday": "1993-08-20T00:00:00Z", "Name": "Alice Smith", "Email": "alice.smith@example.com", "PhoneNumber": "+(098) 765-43-21", "NickName": "Ali" },
+{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Bob Johnson", "Email": "bob.johnson@example.com", "PhoneNumber": null }
+])";
+
+    // Load list of users from JSON
+    std::vector<CUser> users;
+    BitSerializer::LoadObject<JsonArchive>(users, sourceJson);
+
+    // Save to CSV
+    std::string csv;
+    BitSerializer::SaveObject<CsvArchive>(users, csv);
+
+    std::cout << csv << std::endl;
+    return EXIT_SUCCESS;
+}
+```
+Example output:
+```
+Id,Birthday,Name,Email,PhoneNumber,NickName
+1,1998-05-15T00:00:00.0000000Z,John Doe,john.doe@example.com,+(123) 4567890,JD
+2,1993-08-20T00:00:00.0000000Z,Alice Smith,alice.smith@example.com,+(098) 765-43-21,Ali
+3,2001-03-10T00:00:00.0000000Z,Bob Johnson,bob.johnson@example.com,,
+```
+BitSerializer treats missing fields as optional by default, but you can enforce mandatory fields using the `Required()` validator. This approach eliminates the need for workarounds like `std::optional`, simplifying your business logic by avoiding repetitive checks for value existence. The library's robust validation system collects all invalid fields during deserialization, enabling comprehensive error reporting (with localization support if needed). Additionally, BitSerializer ensures type safety by throwing exceptions for type mismatches or overflow errors, such as when deserializing values that exceed the capacity of the target type.
+
+### Performance overview
 BitSerializer prioritizes reliability and usability, but we understand that performance remains a critical factor for serialization libraries.
 This chapter provides an overview of the performance characteristics of BitSerializer across various serialization formats, as well as comparative tests with the used third-party libraries.
 
 #### Key performance insights
-
 - Formats implemented natively in BitSerializer (MsgPack and CSV) demonstrate excellent performance due to their DOM-free architecture. This approach eliminates intermediate object tree construction, enabling direct serialization/deserialization to/from streams.
 - Formats relying on external libraries (RapidJSON, PugiXML, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
 
 #### Performance test methodology
-
 - ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
 - **Test model:** The test model consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
 
@@ -85,6 +150,7 @@ For most applications, BitSerializer provides the optimal combination of reliabi
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
+
 #### VCPKG
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
@@ -104,6 +170,7 @@ Alternatively, you can install the library via the command line:
 > vcpkg install bitserializer[rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
+
 #### Conan 2
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
@@ -117,6 +184,7 @@ bitserializer/*:with_rapidyaml=True
 bitserializer/*:with_csv=True
 bitserializer/*:with_msgpack=True
 ```
+
 #### Installation via CMake on a Unix system
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git
@@ -141,35 +209,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 ```
 
-### Hello world
-Let's get started with traditional and simple "Hello world!" example.
-```cpp
-#include <cassert>
-#include <iostream>
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
-
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
-
-int main()
-{
-    std::string expected = "Hello world!";
-    auto json = BitSerializer::SaveObject<JsonArchive>(expected);
-
-    std::string result;
-    BitSerializer::LoadObject<JsonArchive>(result, json);
-
-    assert(result == expected);
-    std::cout << result << std::endl;
-
-    return EXIT_SUCCESS;
-}
-```
-[See full sample](samples/hello_world/hello_world.cpp)\
-There is no mistake since JSON format supports any type (object, array, number or string) at root level.
-
 ### Unicode support
-Besides multiple input and output UTF-formats that BitSerializer supports, it also allows to serialize any of `std::basic_string` types, under the hood, they are transcoding to the output format. You also free to use any string type as keys, but remember that transcoding takes additional time and, of course, it is better to give preference to UTF-8 strings, since they are natively supported by all archives. In the example below, we show how BitSerializer allows to play with string types:
+BitSerializer provides comprehensive Unicode support by enabling serialization of any std::basic_string type (e.g., std::string, std::u16string, std::u32string) while automatically handling transcoding to the target output format. You can also use any string type as keys, but keep in mind that transcoding incurs additional processing overhead. For optimal performance, prefer UTF-8 strings, as they are natively supported by all archives and minimize transcoding costs. 
+
+The example below demonstrates how BitSerializer seamlessly handles different string types and encodings: 
 ```cpp
 class TestUnicodeClass
 {
@@ -177,22 +220,24 @@ public:
     template <class TArchive>
     void Serialize(TArchive& archive)
     {
-        // Serialize UTF-8 string with key in UTF-16
+        // Serialize a UTF-8 string with key in UTF-16
         archive << KeyValue(u"Utf16Key", mUtf8StringValue);
 
-        // Serialize UTF-16 string with key in UTF-32
+        // Serialize a UTF-16 string with key in UTF-32
         archive << KeyValue(U"Utf32Key", mUtf16StringValue);
 
-        // Serialize UTF-32 string with key in UTF-8
+        // Serialize a UTF-32 string with key in UTF-8
         archive << KeyValue(u8"Utf8Key", mUtf32StringValue);
     };
 
 private:
-    std::string mUtf8StringValue;
-    std::u16string mUtf16StringValue;
-    std::u32string mUtf32StringValue;
+    std::string mUtf8StringValue;       // UTF-8 encoded string
+    std::u16string mUtf16StringValue;   // UTF-16 encoded string
+    std::u32string mUtf32StringValue;   // UTF-32 encoded string
 };
 ```
+This flexibility allows you to work with various Unicode encodings without worrying about manual transcoding.
+However, for best results, use UTF-8 consistently unless your application specifically requires other encodings.
 
 ### Serializing class
 There are two ways to serialize a class:

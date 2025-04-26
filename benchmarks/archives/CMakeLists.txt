@@ -7,13 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME}
     main.cpp
+    test_model.h
     benchmark_base.h
-    rapid_json_benchmark.h
-    pugixml_benchmark.h
-    rapid_yaml_benchmark.h
-    csv_benchmark.h
-    msgpack_benchmark.h
+    bitserializer_benchmark.h
+    competitors/rapid_json_benchmark.h
+    competitors/pugixml_benchmark.h
+    competitors/rapid_yaml_benchmark.h
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_RAPIDJSON_ARCHIVE}>:"RAPIDJSON_BENCHMARK">

@@ -126,7 +126,7 @@ Id,Birthday,Name,Email,PhoneNumber,NickName
 2,1993-08-20T00:00:00.0000000Z,Alice Smith,alice.smith@example.com,+(098) 765-43-21,Ali
 3,2001-03-10T00:00:00.0000000Z,Bob Johnson,bob.johnson@example.com,,
 ```
-BitSerializer treats missing fields as optional by default, but you can enforce mandatory fields using the `Required()` validator. This approach eliminates the need for workarounds like `std::optional`, simplifying your business logic by avoiding repetitive checks for value existence. The library's robust validation system collects all invalid fields during deserialization, enabling comprehensive error reporting (with localization support if needed). Additionally, BitSerializer ensures type safety by throwing exceptions for type mismatches or overflow errors, such as when deserializing values that exceed the capacity of the target type.
+BitSerializer treats missing fields as optional by default, but you can enforce mandatory fields using the `Required()` validator. This approach eliminates the need for workarounds like using `std::optional`, simplifying your business logic by avoiding repetitive checks for value existence. The library's robust validation system collects all invalid fields during deserialization, enabling comprehensive error reporting (with localization support if needed). Additionally, BitSerializer ensures type safety by throwing exceptions for type mismatches or overflow errors, such as when deserializing values that exceed the capacity of the target type.
 
 ### Performance overview
 BitSerializer prioritizes reliability and usability, but we understand that performance remains a critical factor for serialization libraries.
@@ -137,9 +137,21 @@ This chapter provides an overview of the performance characteristics of BitSeria
 - Formats relying on external libraries (RapidJSON, PugiXML, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
 
+#### Comparing "Parsers" and "Serializers" library classes
+It is important to note that comparing "Serialization" classes (like BitSerializer) with "Parser" classes (such as RapidJSON, NlohmannJson, PugiXML, or RapidYAML) may not always be entirely fair. These two categories of libraries differ fundamentally in their design and purpose:
+- **Parsers:** Typically operate on a DOM-based model, where the entire document is loaded into memory before processing. This approach is well-suited for tasks requiring extensive manipulation of the data structure but can introduce overhead during serialization and deserialization.
+- **Serializers:** Focus on streaming serialization, where data is processed incrementally without the need to build an intermediate DOM. This approach is generally faster and more memory-efficient but may lack some of the advanced manipulation features offered by parsers.
+
+In this performance analysis, we have benchmarked BitSerializer against the base libraries it relies on (e.g., RapidJSON, PugiXML, and RapidYAML).
+These libraries are primarily "Parser" classes, and the performance differences observed reflect the inherent trade-offs between DOM-based parsing and streaming serialization. 
+
+We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization).
+However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
+In the future, we plan to include benchmarks against other libraries from the "Serializers" class to offer a more direct comparison. 
+
 #### Performance test methodology
 - ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
-- **Test model:** The test model consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
+- **Test model:** The [test model](benchmarks/archives/test_model.h) consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
 
 #### Performance test results
 ![image info](docs/bitserializer_benchmark.png)
@@ -210,7 +222,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 ```
 
 ### Unicode support
-BitSerializer provides comprehensive Unicode support by enabling serialization of any std::basic_string type (e.g., std::string, std::u16string, std::u32string) while automatically handling transcoding to the target output format. You can also use any string type as keys, but keep in mind that transcoding incurs additional processing overhead. For optimal performance, prefer UTF-8 strings, as they are natively supported by all archives and minimize transcoding costs. 
+BitSerializer provides comprehensive Unicode support by enabling serialization of any `std::basic_string` type (e.g., `std::u8string`, `std::u16string`, `std::u32string`) while automatically handling transcoding to the target output format. You can also use any string type as keys, but keep in mind that transcoding incurs additional processing overhead. For optimal performance, prefer UTF-8 strings, as they are natively supported by all archives and minimize transcoding costs. 
 
 The example below demonstrates how BitSerializer seamlessly handles different string types and encodings: 
 ```cpp

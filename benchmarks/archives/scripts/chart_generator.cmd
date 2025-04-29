@@ -1,0 +1,1 @@
+python chart_generator.py bitserializer_benchmark_results.json ../../../docs/bitserializer_benchmark.png

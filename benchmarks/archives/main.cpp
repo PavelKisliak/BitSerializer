@@ -5,9 +5,10 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
-#include <vector>
 
 #include "bitserializer_benchmark.h"
+#include "bitserializer/types/std/map.h"
+
 #include "competitors/rapid_json_benchmark.h"
 #include "competitors/pugixml_benchmark.h"
 #include "competitors/rapid_yaml_benchmark.h"
@@ -21,38 +22,24 @@ constexpr auto DefaultStageTestTime = std::chrono::seconds(30);
 #endif
 
 using Timer = std::chrono::high_resolution_clock;
+using CLibraryTestResult = std::map<std::string, uint64_t>;
 
-struct TestArchiveResult
-{
-	struct PerfTestData
-	{
-		std::chrono::nanoseconds Time{};
-		size_t ProcessedFields = 0;
-	};
-
-	TestArchiveResult() = default;
-	explicit TestArchiveResult(std::string libName)
-		: LibraryName(std::move(libName))
-	{ }
-
-	std::string LibraryName;
-	std::map<std::string, PerfTestData> StagesResult;
-};
-
+/// <summary>
+/// Executes benchmark.
+/// </summary>
 template <class TModel>
-TestArchiveResult RunBenchmark(CBenchmarkBase<TModel>&& benchmark, const std::chrono::seconds testTime = DefaultStageTestTime)
+CLibraryTestResult RunBenchmark(CBenchmarkBase<TModel>& benchmark, const std::chrono::seconds testTime = DefaultStageTestTime)
 {
 	constexpr auto NanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
-	TestArchiveResult metadata(benchmark.GetLibraryName());
 	int progressPercent = -1;
+	CLibraryTestResult libTestResult;
 
 	do
 	{
-		TestArchiveResult::PerfTestData& perfTestData = metadata.StagesResult[benchmark.GetCurrentStageName()];
-
 		const auto beginTime = Timer::now();
 		const auto endTime = beginTime + std::chrono::seconds(testTime);
 		const auto testTimeMSec = std::chrono::duration_cast<std::chrono::milliseconds>(testTime).count();
+		std::chrono::nanoseconds minTime{};
 
 		for (auto time = beginTime; time < endTime; time = Timer::now())
 		{
@@ -61,61 +48,91 @@ TestArchiveResult RunBenchmark(CBenchmarkBase<TModel>&& benchmark, const std::ch
 			if (progressPercent != newPercent)
 			{
 				progressPercent = newPercent;
-				std::cout << "\r" << metadata.LibraryName << " | " << benchmark.GetCurrentStageName() << ": " << progressPercent << "%";
+				std::cout << "\r" << benchmark.GetLibraryName() << " | " << benchmark.GetCurrentStageName() << ": " << progressPercent << "%";
 			}
 
 			auto startTime = Timer::now();
 			benchmark.PerformTest();
 			const auto testDuration = Timer::now() - startTime;
-			if (perfTestData.Time == std::chrono::nanoseconds(0) || perfTestData.Time > testDuration)
+			if (minTime == std::chrono::nanoseconds(0) || minTime > testDuration)
 			{
-				perfTestData.Time = testDuration;
-				perfTestData.ProcessedFields = benchmark.GetTotalFieldsCount();
+				minTime = testDuration;
 			}
 		}
 
 		std::cout << "\r";
 
+		// Calculate speed - fields/ms
+		const int64_t fieldsSpeed = std::llround(
+			NanosecondsInMs / static_cast<double>(minTime.count()) * static_cast<double>(benchmark.GetTotalFieldsCount()));
+		libTestResult.emplace(benchmark.GetCurrentStageName(), fieldsSpeed);
+
 		// Display result
-		const int64_t saveFieldsSpeed = std::llround(
-			NanosecondsInMs / static_cast<double>(perfTestData.Time.count()) * static_cast<double>(perfTestData.ProcessedFields));
-		std::cout << metadata.LibraryName << " | " << benchmark.GetCurrentStageName() << ": " << saveFieldsSpeed << " (fields/ms)" << std::endl;
+		std::cout << benchmark.GetLibraryName() << " | " << benchmark.GetCurrentStageName() << ": " << fieldsSpeed << " (fields/ms)" << std::endl;
 	}
 	while (benchmark.NextStage());
 
-	return metadata;
+	return libTestResult;
 }
 
 int main()
 {
+	std::map<std::string, CLibraryTestResult> benchmarkResults;
+	std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
+
 	try
 	{
-		std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
-		std::vector<TestArchiveResult> benchmarkResults;
-
 #ifdef CSV_BENCHMARK
-		benchmarkResults.emplace_back(RunBenchmark(CBitSerializerBenchmark<BitSerializer::Csv::CsvArchive>()));
+		CBitSerializerBenchmark<BitSerializer::Csv::CsvArchive> csvBenchmark;
+		benchmarkResults.emplace(csvBenchmark.GetLibraryName(), RunBenchmark(csvBenchmark));
 #endif
 #ifdef MSGPACK_BENCHMARK
-		benchmarkResults.emplace_back(RunBenchmark(CBitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive>()));
+		CBitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive> msgPackBenchmark;
+		benchmarkResults.emplace(msgPackBenchmark.GetLibraryName(), RunBenchmark(msgPackBenchmark));
 #endif
 #ifdef RAPIDJSON_BENCHMARK
-		benchmarkResults.emplace_back(RunBenchmark(CBitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive>()));
-		benchmarkResults.emplace_back(RunBenchmark(CRapidJsonBenchmark()));
+		CBitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive> bitSerializerRapidJsonBenchmark;
+		benchmarkResults.emplace(bitSerializerRapidJsonBenchmark.GetLibraryName(), RunBenchmark(bitSerializerRapidJsonBenchmark));
+
+		CRapidJsonBenchmark rapidJsonBenchmark;
+		benchmarkResults.emplace(rapidJsonBenchmark.GetLibraryName(), RunBenchmark(rapidJsonBenchmark));
 #endif
 #ifdef PUGIXML_BENCHMARK
-		benchmarkResults.emplace_back(RunBenchmark(CBitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive>()));
-		benchmarkResults.emplace_back(RunBenchmark(CPugiXmlBenchmark()));
+		CBitSerializerBenchmark<BitSerializer::Csv::CsvArchive> bitSerializerPugiXmlBenchmark;
+		benchmarkResults.emplace(bitSerializerPugiXmlBenchmark.GetLibraryName(), RunBenchmark(bitSerializerPugiXmlBenchmark));
+
+		CPugiXmlBenchmark pugiXmlBenchmark;
+		benchmarkResults.emplace(pugiXmlBenchmark.GetLibraryName(), RunBenchmark(pugiXmlBenchmark));
 #endif
-#ifdef RAPIDYAMLN_BENCHMARK
-		benchmarkResults.emplace_back(RunBenchmark(CBitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive>()));
-		benchmarkResults.emplace_back(RunBenchmark(CRapidYamlBenchmark()));
+#ifdef RAPIDYAML_BENCHMARK
+		CBitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive> bitSerializerRapidYamlBenchmark;
+		benchmarkResults.emplace(bitSerializerRapidYamlBenchmark.GetLibraryName(), RunBenchmark(bitSerializerRapidYamlBenchmark));
+
+		CRapidYamlBenchmark rapidYamlBenchmark;
+		benchmarkResults.emplace(rapidYamlBenchmark.GetLibraryName(), RunBenchmark(rapidYamlBenchmark));
 #endif
 	}
 	catch (const std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
 		return 1;
 	}
+
+#ifdef RAPIDJSON_BENCHMARK
+	// Serializes the results of the libraries test
+	auto outputFile = std::filesystem::current_path() / "bitserializer_benchmark_results.json";
+	BitSerializer::SerializationOptions options;
+	options.streamOptions.writeBom = false;
+	options.formatOptions.enableFormat = true;
+	try
+	{
+		BitSerializer::SaveObjectToFile<BitSerializer::Json::RapidJson::JsonArchive>(benchmarkResults, outputFile, options, true);
+		std::cout << "Benchmark results has been saved to file: " << outputFile << std::endl;
+	}
+	catch (const std::exception& ex) {
+		std::cerr << "Unable to save benchmark results: " << ex.what() << std::endl;
+		return 1;
+	}
+#endif
 
 	return 0;
 }

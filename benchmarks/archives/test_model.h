@@ -6,8 +6,6 @@
 #include <string>
 #include <cstdint>
 #include "testing_tools/common_test_methods.h"
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer/types/std/array.h"
 
 /// <summary>
 /// Test model with set of simple types.
@@ -83,21 +81,3 @@ public:
 
 // Common test model for all archives (represents an array of objects)
 using CommonTestModel = std::array<CBasicTestModel, 30>;
-
-/// <summary>
-/// Serializes `CBasicTestModel` using BitSerializer.
-/// </summary>
-template<typename TArchive>
-void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
-{
-	archive << BitSerializer::KeyValue("BooleanValue", testModel.BooleanValue);
-	archive << BitSerializer::KeyValue("SignedIntValue", testModel.SignedIntValue);
-	archive << BitSerializer::KeyValue("UnsignedIntValue", testModel.UnsignedIntValue);
-	archive << BitSerializer::KeyValue("FloatValue", testModel.FloatValue);
-	archive << BitSerializer::KeyValue("DoubleValue", testModel.DoubleValue);
-	archive << BitSerializer::KeyValue("ShortString", testModel.ShortString);
-	archive << BitSerializer::KeyValue("StringWithLongKeyAndValue", testModel.StringWithLongKeyAndValue);
-	archive << BitSerializer::KeyValue("UnicodeString", testModel.UnicodeString);
-	archive << BitSerializer::KeyValue("StringWithEscapedChars", testModel.StringWithEscapedChars);
-	archive << BitSerializer::KeyValue("MultiLineString", testModel.MultiLineString);
-}

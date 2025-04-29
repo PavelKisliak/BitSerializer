@@ -91,12 +91,12 @@ TEST(MsgPackArchive, SerializeStdContainers)
 	TestSerializeType<MsgPackArchive, std::multiset<std::string>>();
 	TestSerializeType<MsgPackArchive, std::map<int, int>>();
 
-	TestSerializeType<MsgPackArchive, std::map<std::string, int>>(std::map<std::string, int>{
+	TestSerializeType<MsgPackArchive, std::map<std::string, long>>(std::map<std::string, long>{
 		{UTF8("нода_0"), 0}, { "node_1", 1 }, { "node_2", 2 }, { "node_3", 3 }
 	});
 
 	TestSerializeType<MsgPackArchive, std::multimap<int, int>>();
-	TestSerializeType<MsgPackArchive, std::unordered_map<int, int>>();
+	TestSerializeType<MsgPackArchive, std::unordered_map<size_t, size_t>>();
 	TestSerializeType<MsgPackArchive, std::unordered_multimap<int, int>>();
 	TestSerializeType<MsgPackArchive, std::valarray<int>>();
 }

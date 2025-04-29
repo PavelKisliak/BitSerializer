@@ -37,6 +37,10 @@ TEST(RapidYamlArchive, SerializeArrayOfIntegers)
 {
 	TestSerializeArray<YamlArchive, uint16_t>();
 	TestSerializeArray<YamlArchive, int64_t>();
+
+	// Test serialize platform dependent types
+	TestSerializeArray<YamlArchive, long>();
+	TestSerializeArray<YamlArchive, size_t>();
 }
 
 TEST(RapidYamlArchive, SerializeArrayOfFloats)
@@ -83,7 +87,7 @@ TEST(RapidYamlArchive, SerializeClassWithMemberBoolean)
 
 TEST(RapidYamlArchive, SerializeClassWithMemberInteger)
 {
-	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t, size_t>>());
 	TestSerializeType<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
@@ -220,7 +224,7 @@ TEST(RapidYamlArchive, SerializeClassToStream) {
 
 TEST(RapidYamlArchive, SerializeArrayOfClassesToStream)
 {
-	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
 	BuildFixture(testArray);
 	TestSerializeArrayToStream<YamlArchive>(testArray);
 }

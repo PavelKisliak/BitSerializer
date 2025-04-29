@@ -10,6 +10,7 @@
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
+#include "bitserializer/serialization_detail/object_traits.h"
 
 
 namespace BitSerializer::MsgPack {
@@ -163,6 +164,14 @@ class BITSERIALIZER_API IMsgPackWriter
 public:
 	virtual ~IMsgPackWriter() = default;
 
+	template <typename T>
+	void WriteValue(T value)
+	{
+		// Some integer types don't have fixed-size convertible types
+		static_assert(!std::is_same_v<compatible_fixed_t<T>, void>);
+		WriteValue(static_cast<compatible_fixed_t<T>>(value));
+	}
+
 	virtual void WriteValue(std::nullptr_t) = 0;
 
 	virtual void WriteValue(bool value) = 0;
@@ -182,6 +191,9 @@ public:
 
 	virtual void WriteValue(const char* value) = 0;	// For avoid conflict with overload for boolean
 	virtual void WriteValue(std::string_view value) = 0;
+	void WriteValue(const MsgPackArchiveTraits::key_type& value) {
+		WriteValue(std::string_view(value.data(), value.size()));
+	}
 
 	virtual void WriteValue(const CBinTimestamp& timestamp) = 0;
 
@@ -201,6 +213,20 @@ public:
 	virtual void SetPosition(size_t pos) = 0;
 	[[nodiscard]] virtual ValueType ReadValueType() = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
+
+	template <typename T>
+	bool ReadValue(T& value)
+	{
+		// Some integer types don't have fixed-size convertible types
+		static_assert(!std::is_same_v<compatible_fixed_t<T>, void>);
+		compatible_fixed_t<T> temp;
+		if (ReadValue(temp))
+		{
+			value = static_cast<T>(temp);
+			return true;
+		}
+		return false;
+	}
 
 	virtual bool ReadValue(std::nullptr_t&) = 0;
 	virtual bool ReadValue(bool& value) = 0;

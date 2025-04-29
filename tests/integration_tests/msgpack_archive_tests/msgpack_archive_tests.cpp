@@ -28,26 +28,34 @@ TEST(MsgPackArchive, SerializeBoolean)
 	TestSerializeType<MsgPackArchive, bool>(true);
 }
 
-TEST(MsgPackArchive, SerializeUInt8)
+TEST(MsgPackArchive, SerializeFixedIntegers)
 {
 	TestSerializeType<MsgPackArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
 	TestSerializeType<MsgPackArchive, uint8_t>(0);
 	TestSerializeType<MsgPackArchive, uint8_t>(127);
 	TestSerializeType<MsgPackArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
-}
 
-TEST(MsgPackArchive, SerializeInt8)
-{
 	TestSerializeType<MsgPackArchive, int8_t>(std::numeric_limits<int8_t>::min());
 	TestSerializeType<MsgPackArchive, int8_t>(-32);
 	TestSerializeType<MsgPackArchive, int8_t>(32);
 	TestSerializeType<MsgPackArchive, int8_t>(std::numeric_limits<int8_t>::max());
-}
 
-TEST(MsgPackArchive, SerializeInt64)
-{
 	TestSerializeType<MsgPackArchive, int64_t>(std::numeric_limits<int64_t>::min());
 	TestSerializeType<MsgPackArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
+}
+
+TEST(MsgPackArchive, SerializePlatformDependentIntegers)
+{
+	TestSerializeType<MsgPackArchive, char>(std::numeric_limits<char>::max());
+
+	TestSerializeType<MsgPackArchive, short>(std::numeric_limits<short>::min());
+	TestSerializeType<MsgPackArchive, unsigned short>(std::numeric_limits<unsigned short>::max());
+
+	TestSerializeType<MsgPackArchive, long>(std::numeric_limits<long>::min());
+	TestSerializeType<MsgPackArchive, unsigned long>(std::numeric_limits<unsigned long>::max());
+
+	TestSerializeType<MsgPackArchive, long long>(std::numeric_limits<long long>::min());
+	TestSerializeType<MsgPackArchive, unsigned long long>(std::numeric_limits<unsigned long long>::max());
 }
 
 TEST(MsgPackArchive, SerializeFloat)
@@ -175,6 +183,10 @@ TEST(MsgPackArchive, SerializeArrayOfIntegers)
 {
 	TestSerializeArray<MsgPackArchive, uint16_t>();
 	TestSerializeArray<MsgPackArchive, int64_t>();
+
+	// Test serialize platform dependent types
+	TestSerializeArray<MsgPackArchive, long>();
+	TestSerializeArray<MsgPackArchive, size_t>();
 }
 
 TEST(MsgPackArchive, SerializeArrayOfFloats)
@@ -225,7 +237,7 @@ TEST(MsgPackArchive, SerializeClassWithMemberBoolean)
 
 TEST(MsgPackArchive, SerializeClassWithMemberInteger)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t, size_t>>());
 	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
@@ -368,7 +380,7 @@ TEST(MsgPackArchive, SerializeClassToStream) {
 
 TEST(MsgPackArchive, SerializeArrayOfClassesToStream)
 {
-	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
 	BuildFixture(testArray);
 	TestSerializeArrayToStream<MsgPackArchive>(testArray);
 }

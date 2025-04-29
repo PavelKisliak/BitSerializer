@@ -29,16 +29,18 @@ TEST(PugiXmlArchive, SerializeArrayOfBooleans) {
 	TestSerializeArray<XmlArchive, bool>();
 }
 
-TEST(PugiXmlArchive, SerializeArrayOfChars)
-{
+TEST(PugiXmlArchive, SerializeArrayOfChars) {
 	TestSerializeArray<XmlArchive, char>();
 	TestSerializeArray<XmlArchive, unsigned char>();
 }
 
-TEST(PugiXmlArchive, SerializeArrayOfIntegers)
-{
+TEST(PugiXmlArchive, SerializeArrayOfIntegers) {
 	TestSerializeArray<XmlArchive, uint16_t>();
 	TestSerializeArray<XmlArchive, int64_t>();
+
+	// Test serialize platform dependent types
+	TestSerializeArray<XmlArchive, long>();
+	TestSerializeArray<XmlArchive, size_t>();
 }
 
 TEST(PugiXmlArchive, SerializeArrayOfFloats) {
@@ -90,7 +92,7 @@ TEST(PugiXmlArchive, SerializeClassWithMemberBoolean) {
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberInteger) {
-	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t, size_t>>());
 	TestSerializeType<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
@@ -224,7 +226,7 @@ TEST(PugiXmlArchive, SerializeClassToStream) {
 
 TEST(PugiXmlArchive, SerializeArrayOfClassesToStream)
 {
-	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
 	BuildFixture(testArray);
 	TestSerializeArrayToStream<XmlArchive>(testArray);
 }

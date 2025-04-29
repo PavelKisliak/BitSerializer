@@ -194,7 +194,7 @@ namespace BitSerializer::Convert::Utf
 
 					if (!isWrongSeq)
 					{
-						const auto nextTail = static_cast<uint8_t>(*in);
+						const auto nextTail = static_cast<uint8_t>(*in);	// NOLINT(clang-analyzer-core.uninitialized.Assign)
 						if ((nextTail & 0b11000000) == 0b10000000)
 						{
 							sym <<= 6;

@@ -43,14 +43,14 @@ TEST(PugiXmlArchive, SerializeStdContainers)
 	TestSerializeType<XmlArchive, std::map<std::string, std::string>>(std::map<std::string, std::string>{
 		{ "node_1", UTF8("значение_1") }, { "node_2", UTF8("значение_2") }
 	});
-	TestSerializeType<XmlArchive, std::multimap<std::string, std::string>>(std::multimap<std::string, std::string>{
-		{"node", UTF8("value")}, { "node", UTF8("значение") }, { "node", UTF8("value") }
+	TestSerializeType<XmlArchive, std::multimap<std::string, size_t>>(std::multimap<std::string, size_t>{
+		{"node", 1u}, { "node", 2u }, { "node", 3u }
 	});
 	TestSerializeType<XmlArchive, std::unordered_map<std::string, std::string>>(std::unordered_map<std::string, std::string>{
 		{"node_1", UTF8("value_1")}, { "node_2", UTF8("value_2") }, { "node_3", UTF8("value_3") }
 	});
-	TestSerializeType<XmlArchive, std::unordered_multimap<std::string, std::string>>(std::unordered_multimap<std::string, std::string>{
-		{"node", UTF8("value")}, { "node", UTF8("значение") }, { "node", UTF8("value") }
+	TestSerializeType<XmlArchive, std::unordered_multimap<std::string, long>>(std::unordered_multimap<std::string, long>{
+		{"node", 1 }, { "node", 2 }, { "node", 3 }
 	});
 	TestSerializeType<XmlArchive, std::valarray<int>>();
 }

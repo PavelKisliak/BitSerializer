@@ -40,8 +40,8 @@ TEST(RapidYamlArchive, SerializeStdContainers)
 	TestSerializeType<YamlArchive, std::unordered_multiset<std::string>>();
 	TestSerializeType<YamlArchive, std::multiset<std::string>>();
 	TestSerializeType<YamlArchive, std::map<int, int>>();
-	TestSerializeType<YamlArchive, std::multimap<int, int>>();
+	TestSerializeType<YamlArchive, std::multimap<long, long>>();
 	TestSerializeType<YamlArchive, std::unordered_map<int, int>>();
-	TestSerializeType<YamlArchive, std::unordered_multimap<int, int>>();
+	TestSerializeType<YamlArchive, std::unordered_multimap<size_t, size_t>>();
 	TestSerializeType<YamlArchive, std::valarray<int>>();
 }

@@ -35,6 +35,10 @@ TEST(BaseTypes, SerializeInteger) {
 	TestSerializeType<ArchiveStub, uint8_t>(std::numeric_limits<uint8_t>::max());
 	TestSerializeType<ArchiveStub, int64_t>(std::numeric_limits<int64_t>::min());
 	TestSerializeType<ArchiveStub, uint64_t>(std::numeric_limits<uint64_t>::max());
+
+	// Test serialize platform dependent types
+	TestSerializeType<ArchiveStub, long>(std::numeric_limits<long>::min());
+	TestSerializeType<ArchiveStub, size_t>(std::numeric_limits<size_t>::max());
 }
 
 TEST(BaseTypes, SerializeFloat) {
@@ -263,6 +267,10 @@ TEST(BaseTypes, SerializeArrayOfBooleans) {
 TEST(BaseTypes, SerializeArrayOfIntegers) {
 	TestSerializeArray<ArchiveStub, int8_t>();
 	TestSerializeArray<ArchiveStub, int64_t>();
+
+	// Test serialize platform dependent types
+	TestSerializeArray<ArchiveStub, long>();
+	TestSerializeArray<ArchiveStub, size_t>();
 }
 
 TEST(BaseTypes, SerializeArrayOfFloats) {

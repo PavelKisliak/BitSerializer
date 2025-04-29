@@ -148,12 +148,6 @@ protected:
 		return true;
 	}
 
-	template <typename TRapidAllocator>
-	RapidJsonNode MakeRapidJsonNodeFromString(string_view_type value, TRapidAllocator& allocator)
-	{
-		return RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
-	}
-
 	static void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)
 	{
 		if (mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
@@ -244,7 +238,7 @@ public:
 		}
 		else 
 		{
-			SaveJsonValue(RapidJsonScopeBase<TEncoding>::MakeRapidJsonNodeFromString(value, mAllocator));
+			SaveJsonValue(RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
 			return true;
 		}
 	}
@@ -308,7 +302,15 @@ protected:
 	void SaveJsonValue(T&& value) const
 	{
 		assert(this->mNode->Size() < this->mNode->Capacity());
-		this->mNode->PushBack(std::forward<T>(value), mAllocator);
+		if constexpr (std::is_constructible_v<RapidJsonNode, T>) {
+			this->mNode->PushBack(std::forward<T>(value), mAllocator);
+		}
+		else
+		{
+			// Some integer types don't have fixed-size convertible types
+			const auto compatibleValue = static_cast<compatible_fixed_t<T>>(value);
+			this->mNode->PushBack(compatibleValue, mAllocator);
+		}
 	}
 
 	void SaveJsonValue(std::nullptr_t&) const
@@ -367,9 +369,16 @@ public:
 			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
-		else {
+		else
+		{
 			if constexpr (std::is_arithmetic_v<T>) {
-				return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
+				if constexpr (std::is_constructible_v<RapidJsonNode, T>) {
+					return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
+				}
+				else {
+					// Some integer types don't have fixed-size convertible types
+					return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(static_cast<compatible_fixed_t<T>>(value)));
+				}
 			}
 			else {
 				return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode());
@@ -386,7 +395,7 @@ public:
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else {
-			return SaveJsonValue(std::forward<TKey>(key), RapidJsonScopeBase<TEncoding>::MakeRapidJsonNodeFromString(value, mAllocator));
+			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
 		}
 	}
 
@@ -554,14 +563,23 @@ public:
 			}
 			else if constexpr (std::is_integral_v<T>)
 			{
-				if constexpr (std::is_same_v<T, int64_t>) {
-					mRootJson.SetInt64(value);
+				if constexpr (std::is_signed_v<T>)
+				{
+					if constexpr (sizeof(T) == sizeof(int64_t)) {
+						mRootJson.SetInt64(value);
+					}
+					else {
+						mRootJson.SetInt(value);
+					}
 				}
-				else if constexpr (std::is_same_v<T, uint64_t>) {
-					mRootJson.SetUint64(value);
-				}
-				else {
-					mRootJson.SetInt(value);
+				else
+				{
+					if constexpr (sizeof(T) == sizeof(uint64_t)) {
+						mRootJson.SetUint64(value);
+					}
+					else {
+						mRootJson.SetUint(value);
+					}
 				}
 			}
 			else if constexpr (std::is_floating_point_v<T>) {

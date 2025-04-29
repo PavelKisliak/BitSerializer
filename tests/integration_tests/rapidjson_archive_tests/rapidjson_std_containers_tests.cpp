@@ -40,8 +40,8 @@ TEST(RapidJsonArchive, SerializeStdContainers)
 	TestSerializeType<JsonArchive, std::unordered_multiset<std::string>>();
 	TestSerializeType<JsonArchive, std::multiset<std::string>>();
 	TestSerializeType<JsonArchive, std::map<int, int>>();
-	TestSerializeType<JsonArchive, std::multimap<int, int>>();
+	TestSerializeType<JsonArchive, std::multimap<long, long>>();
 	TestSerializeType<JsonArchive, std::unordered_map<int, int>>();
-	TestSerializeType<JsonArchive, std::unordered_multimap<int, int>>();
+	TestSerializeType<JsonArchive, std::unordered_multimap<size_t, size_t>>();
 	TestSerializeType<JsonArchive, std::valarray<int>>();
 }

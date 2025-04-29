@@ -15,7 +15,7 @@ using BitSerializer::Csv::CsvArchive;
 TEST_F(CsvArchiveTests, SerializeArrayOfClasses)
 {
 	TestSerializeArray<CsvArchive, TestPointClass>();
-	TestSerializeArray<CsvArchive, TestClassWithSubTypes<bool, int, std::string>>();
+	TestSerializeArray<CsvArchive, TestClassWithSubTypes<bool, short, int, size_t, std::string>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -113,7 +113,7 @@ TEST_F(CsvArchiveTests, SerializeClassWithSkippingFields)
 //-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, SerializeArrayOfClassesToStream)
 {
-	TestClassWithSubTypes<int, double, std::string> testArray[3];
+	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
 	BuildFixture(testArray);
 	TestSerializeArrayToStream<CsvArchive>(testArray);
 }

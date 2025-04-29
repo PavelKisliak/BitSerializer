@@ -380,4 +380,42 @@ public:
 template <typename T, typename TValue>
 constexpr bool is_validator_v = is_validator<T, TValue>::value;
 
+
+/// <summary>
+/// Maps arithmetic type to the appropriate fixed-width type (int8_t, uint8_t, int16_t, uint16_t, etc.)
+/// </summary>
+template <typename T, typename = void>
+struct compatible_fixed;
+
+// Specialization for integral types (excluding bool)
+template <typename T>
+struct compatible_fixed<T, std::enable_if_t<std::is_integral_v<std::decay_t<T>> && !std::is_same_v<std::decay_t<T>, bool>>> {
+	using source_type = std::decay_t<T>;
+	using type = std::conditional_t<
+		std::is_signed_v<source_type>,
+		// Signed types
+		std::conditional_t<sizeof(source_type) == 1, int8_t,
+			std::conditional_t<sizeof(source_type) == 2, int16_t,
+				std::conditional_t<sizeof(source_type) == 4, int32_t,
+					std::conditional_t<sizeof(source_type) == 8, int64_t,
+						void // Unsupported size
+					>
+				>
+			>
+		>,
+		// Unsigned types
+		std::conditional_t<sizeof(source_type) == 1, uint8_t,
+			std::conditional_t<sizeof(source_type) == 2, uint16_t,
+				std::conditional_t<sizeof(source_type) == 4, uint32_t,
+					std::conditional_t<sizeof(source_type) == 8, uint64_t,
+						void // Unsupported size
+					>
+				>
+			>
+		>
+	>;
+};
+
+template <typename T>
+using compatible_fixed_t = typename compatible_fixed<T>::type;
 }

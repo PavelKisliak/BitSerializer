@@ -245,3 +245,78 @@ TEST(SerializationObjectTraits, ShouldCountObjectWithBaseSerializableClass) {
 	FieldsCounterFixtureWithInheritance val;
 	EXPECT_EQ(3U, FieldsCountVisitor(archive).Count(val));
 }
+
+//-----------------------------------------------------------------------------
+// Tests of compatible_fixed_t
+//-----------------------------------------------------------------------------
+TEST(SerializationObjectTraits, ShouldMapCompatibleSignedTypes)
+{
+	using type1 = compatible_fixed_t<short>;
+	constexpr bool result1 = std::is_convertible_v<type1&, int16_t&>;
+	EXPECT_TRUE(result1);
+
+	using type2 = compatible_fixed_t<int>;
+	constexpr bool result2 = std::is_convertible_v<type2&, int32_t&>;
+	EXPECT_TRUE(result2);
+
+	if constexpr (sizeof(long) == sizeof(int32_t))
+	{
+		using type3 = compatible_fixed_t<long>;
+		constexpr bool result3 = std::is_convertible_v<type3&, int32_t&>;
+		EXPECT_TRUE(result3);
+	}
+	else if constexpr (sizeof(long) == sizeof(int64_t))
+	{
+		using type3 = compatible_fixed_t<long>;
+		constexpr bool result3 = std::is_convertible_v<type3&, int64_t&>;
+		EXPECT_TRUE(result3);
+	}
+
+	using type4 = compatible_fixed_t<long long>;
+	constexpr bool result4 = std::is_convertible_v<type4&, int64_t&>;
+	EXPECT_TRUE(result4);
+}
+
+TEST(SerializationObjectTraits, ShouldMapCompatibleUnsignedTypes)
+{
+	using type1 = compatible_fixed_t<unsigned short>;
+	constexpr bool result1 = std::is_convertible_v<type1&, uint16_t&>;
+	EXPECT_TRUE(result1);
+
+	using type2 = compatible_fixed_t<unsigned int>;
+	constexpr bool result2 = std::is_convertible_v<type2&, uint32_t&>;
+	EXPECT_TRUE(result2);
+
+	if constexpr (sizeof(unsigned long) == sizeof(uint32_t))
+	{
+		using type3 = compatible_fixed_t<unsigned long>;
+		constexpr bool result3 = std::is_convertible_v<type3&, uint32_t&>;
+		EXPECT_TRUE(result3);
+	}
+	else if constexpr (sizeof(unsigned long) == sizeof(uint64_t))
+	{
+		using type3 = compatible_fixed_t<unsigned long>;
+		constexpr bool result3 = std::is_convertible_v<type3&, uint64_t&>;
+		EXPECT_TRUE(result3);
+	}
+
+	using type4 = compatible_fixed_t<unsigned long long>;
+	constexpr bool result4 = std::is_convertible_v<type4&, uint64_t&>;
+	EXPECT_TRUE(result4);
+}
+
+TEST(SerializationObjectTraits, ShouldMapCompatibleCharTypes)
+{
+	if constexpr (std::is_signed_v<char>)
+	{
+		using type1 = compatible_fixed_t<char>;
+		constexpr bool result1 = std::is_convertible_v<type1&, int8_t&>;
+		EXPECT_TRUE(result1);
+	}
+	else
+	{
+		using type1 = compatible_fixed_t<char>;
+		constexpr bool result1 = std::is_convertible_v<type1&, uint8_t&>;
+		EXPECT_TRUE(result1);
+	}
+}

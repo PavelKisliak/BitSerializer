@@ -38,12 +38,27 @@ TEST(RapidJsonArchive, SerializeBoolean)
 	TestSerializeType<JsonArchive, bool>(true);
 }
 
-TEST(RapidJsonArchive, SerializeInteger)
+TEST(RapidJsonArchive, SerializeFixedIntegers)
 {
 	TestSerializeType<JsonArchive, uint8_t>(std::numeric_limits<uint8_t>::min());
 	TestSerializeType<JsonArchive, uint8_t>(std::numeric_limits<uint8_t>::max());
+
 	TestSerializeType<JsonArchive, int64_t>(std::numeric_limits<int64_t>::min());
 	TestSerializeType<JsonArchive, uint64_t>(std::numeric_limits<uint64_t>::max());
+}
+
+TEST(RapidJsonArchive, SerializePlatformDependentIntegers)
+{
+	TestSerializeType<JsonArchive, char>(std::numeric_limits<char>::max());
+
+	TestSerializeType<JsonArchive, short>(std::numeric_limits<short>::min());
+	TestSerializeType<JsonArchive, unsigned short>(std::numeric_limits<unsigned short>::max());
+
+	TestSerializeType<JsonArchive, long>(std::numeric_limits<long>::min());
+	TestSerializeType<JsonArchive, unsigned long>(std::numeric_limits<unsigned long>::max());
+
+	TestSerializeType<JsonArchive, long long>(std::numeric_limits<long long>::min());
+	TestSerializeType<JsonArchive, unsigned long long>(std::numeric_limits<unsigned long long>::max());
 }
 
 TEST(RapidJsonArchive, SerializeFloat)
@@ -118,6 +133,10 @@ TEST(RapidJsonArchive, SerializeArrayOfIntegers)
 {
 	TestSerializeArray<JsonArchive, uint16_t>();
 	TestSerializeArray<JsonArchive, int64_t>();
+
+	// Test serialize platform dependent types
+	TestSerializeArray<JsonArchive, long>();
+	TestSerializeArray<JsonArchive, size_t>();
 }
 
 TEST(RapidJsonArchive, SerializeArrayOfFloats)
@@ -169,7 +188,7 @@ TEST(RapidJsonArchive, SerializeClassWithMemberBoolean)
 
 TEST(RapidJsonArchive, SerializeClassWithMemberInteger)
 {
-	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t>>());
+	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<int8_t, uint8_t, int64_t, uint64_t, size_t>>());
 	TestSerializeType<JsonArchive>(TestClassWithSubTypes(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max()));
 }
 
@@ -301,7 +320,7 @@ TEST(RapidJsonArchive, SerializeClassToStream) {
 
 TEST(RapidJsonArchive, SerializeArrayOfClassesToStream)
 {
-	TestClassWithSubTypes<int, float, std::string, TestPointClass> testArray[3];
+	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
 	BuildFixture(testArray);
 	TestSerializeArrayToStream<JsonArchive>(testArray);
 }

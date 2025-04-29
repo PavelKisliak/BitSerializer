@@ -341,6 +341,14 @@ TEST(ConvertFundamentals, UInt64ToString) {
 	EXPECT_EQ(U"18446744073709551615", Convert::To<std::u32string>(std::numeric_limits<uint64_t>::max()));
 }
 
+TEST(ConvertFundamentals, SizeTypeToString) {
+	EXPECT_EQ(U"65535", Convert::To<std::u32string>(65535));
+}
+
+TEST(ConvertFundamentals, SizeTypeFromString) {
+	EXPECT_EQ(65535u, Convert::To<size_t>(u"65535"));
+}
+
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(0.f, Convert::To<float>("  0  "));

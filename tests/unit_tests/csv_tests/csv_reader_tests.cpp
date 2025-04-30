@@ -367,16 +367,16 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWithOnlyLfCode)
 TYPED_TEST(CsvReaderTest, ShouldReadQuotedValues)
 {
 	// Arrange
-	const std::string csv = R"("Quoted:1,2,3,4,5",Value2)";
+	const std::string csv = R"(Value1,"Quoted:1,2,3,4,5")";
 	this->PrepareCsvReader(csv, false);
 
 	// Act / Assert
 	std::string_view value1, value2;
 	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
 	this->mCsvReader->ReadValue(value1);
-	EXPECT_EQ("Quoted:1,2,3,4,5", value1);
+	EXPECT_EQ("Value1", value1);
 	this->mCsvReader->ReadValue(value2);
-	EXPECT_EQ("Value2", value2);
+	EXPECT_EQ("Quoted:1,2,3,4,5", value2);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReadEmptyQuotedValues)
@@ -439,6 +439,22 @@ TYPED_TEST(CsvReaderTest, ShouldReadEscapedQuotesInValue)
 	EXPECT_EQ(R"(Quoted:"1,2,3,4,5")", value1);
 	this->mCsvReader->ReadValue(value2);
 	EXPECT_EQ("Value2", value2);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldReadQuotedValuesWithHeader)
+{
+	// Arrange
+	const std::string csv = R"(Column1,Column2
+Value1,"Quoted:1,2,3,4,5")";
+	this->PrepareCsvReader(csv, true);
+
+	// Act / Assert
+	std::string_view value1, value2;
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+	this->mCsvReader->ReadValue("Column2", value2);
+	EXPECT_EQ("Quoted:1,2,3,4,5", value2);
+	this->mCsvReader->ReadValue("Column1", value1);
+	EXPECT_EQ("Value1", value1);
 }
 
 TYPED_TEST(CsvReaderTest, ShouldReadLargeValues)

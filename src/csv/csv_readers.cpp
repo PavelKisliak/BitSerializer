@@ -265,7 +265,7 @@ namespace BitSerializer::Csv::Detail
 		const auto& valueMeta = mRowValuesMeta.at(mValueIndex);
 		if (valueMeta.HasEscapedChars)
 		{
-			out_value = UnescapeValue(mDecodedBuffer.data() + valueMeta.Offset, mDecodedBuffer.data() + valueMeta.Size);
+			out_value = UnescapeValue(mDecodedBuffer.data() + valueMeta.Offset, mDecodedBuffer.data() + valueMeta.Offset + valueMeta.Size);
 		}
 		else
 		{

@@ -1,14 +1,18 @@
 /*******************************************************************************
-* Copyright (C) 2020-2025 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2018-2025 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "bitserializer/rapidyaml_archive.h"
+// Benchmark headers
 #include "benchmark_base.h"
+
+// RapidYaml library
+#include "c4/format.hpp"
+#include "ryml/ryml.hpp"
 
 
 template <class TModel = CommonTestModel>
-class CRapidYamlBenchmark : public CBenchmarkBase<TModel>
+class CRapidYamlBenchmark final : public CBenchmarkBase<TModel>
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -50,7 +54,7 @@ protected:
 		outputData = ryml::emitrs_yaml<std::string>(tree);
 	}
 
-	void BenchmarkLoadFromMemory(const std::string& sourceData, TModel& targetTestModel) override
+	void BenchmarkLoadFromMemory(TModel& targetTestModel, const std::string& sourceData) override
 	{
 		ryml::Tree tree = ryml::parse_in_arena(c4::to_csubstr(sourceData));
 		auto root = tree.rootref();

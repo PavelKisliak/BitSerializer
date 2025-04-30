@@ -13,6 +13,16 @@
 class CBasicTestModel
 {
 public:
+	CBasicTestModel()
+	{
+		// Reserve buffers to minimize the impact of memory allocation on test results
+		ShortString.reserve(32);
+		StringWithLongKeyAndValue.reserve(128);
+		UnicodeString.reserve(128);
+		StringWithEscapedChars.reserve(32);
+		MultiLineString.reserve(32);
+	}
+
 	bool BooleanValue = false;
 	int8_t SignedIntValue = 0;
 	uint64_t UnsignedIntValue = 0;
@@ -34,7 +44,7 @@ public:
 		fixture.ShortString = "Short string";
 		fixture.StringWithLongKeyAndValue = "A string whose purpose is to test the performance of working with a long key and value";
 		fixture.UnicodeString = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
-		fixture.StringWithEscapedChars = "Test \"<quoted>\" string";
+		fixture.StringWithEscapedChars = "Test \"escaped\" chars";
 		fixture.MultiLineString = "Test\nmulti\nline\nstring";
 	}
 

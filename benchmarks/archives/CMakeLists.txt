@@ -9,10 +9,10 @@ add_executable(${PROJECT_NAME}
     main.cpp
     test_model.h
     benchmark_base.h
-    bitserializer_benchmark.h
-    competitors/rapid_json_benchmark.h
+    competitors/bitserializer_benchmark.h
+    competitors/rapidjson_benchmark.h
     competitors/pugixml_benchmark.h
-    competitors/rapid_yaml_benchmark.h
+    competitors/rapidyaml_benchmark.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})

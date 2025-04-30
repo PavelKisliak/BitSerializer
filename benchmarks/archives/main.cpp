@@ -5,13 +5,12 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include "bitserializer/types/std/unordered_map.h"
 
-#include "bitserializer_benchmark.h"
-#include "bitserializer/types/std/map.h"
-
-#include "competitors/rapid_json_benchmark.h"
+#include "competitors/bitserializer_benchmark.h"
+#include "competitors/rapidjson_benchmark.h"
 #include "competitors/pugixml_benchmark.h"
-#include "competitors/rapid_yaml_benchmark.h"
+#include "competitors/rapidyaml_benchmark.h"
 
 #if defined(_DEBUG) || (!defined(NDEBUG) && !defined(RELEASE))
 // In the debug configuration using minimal testing time
@@ -22,7 +21,7 @@ constexpr auto DefaultStageTestTime = std::chrono::seconds(30);
 #endif
 
 using Timer = std::chrono::high_resolution_clock;
-using CLibraryTestResult = std::map<std::string, uint64_t>;
+using CLibraryTestResult = std::unordered_map<std::string, size_t>;
 
 /// <summary>
 /// Executes benchmark.
@@ -41,6 +40,7 @@ CLibraryTestResult RunBenchmark(CBenchmarkBase<TModel>& benchmark, const std::ch
 		const auto testTimeMSec = std::chrono::duration_cast<std::chrono::milliseconds>(testTime).count();
 		std::chrono::nanoseconds minTime{};
 
+		benchmark.PrepareStage();
 		for (auto time = beginTime; time < endTime; time = Timer::now())
 		{
 			// Print progress
@@ -51,9 +51,13 @@ CLibraryTestResult RunBenchmark(CBenchmarkBase<TModel>& benchmark, const std::ch
 				std::cout << "\r" << benchmark.GetLibraryName() << " | " << benchmark.GetCurrentStageName() << ": " << progressPercent << "%";
 			}
 
+			benchmark.PrepareTest();
+
+			// Run benchmark
 			auto startTime = Timer::now();
-			benchmark.PerformTest();
+			benchmark.Run();
 			const auto testDuration = Timer::now() - startTime;
+
 			if (minTime == std::chrono::nanoseconds(0) || minTime > testDuration)
 			{
 				minTime = testDuration;
@@ -75,9 +79,9 @@ CLibraryTestResult RunBenchmark(CBenchmarkBase<TModel>& benchmark, const std::ch
 	return libTestResult;
 }
 
-int main()
+int main()	// NOLINT(bugprone-exception-escape)
 {
-	std::map<std::string, CLibraryTestResult> benchmarkResults;
+	std::unordered_map<std::string, CLibraryTestResult> benchmarkResults;
 	std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
 
 	try
@@ -98,7 +102,7 @@ int main()
 		benchmarkResults.emplace(rapidJsonBenchmark.GetLibraryName(), RunBenchmark(rapidJsonBenchmark));
 #endif
 #ifdef PUGIXML_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::Csv::CsvArchive> bitSerializerPugiXmlBenchmark;
+		CBitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive> bitSerializerPugiXmlBenchmark;
 		benchmarkResults.emplace(bitSerializerPugiXmlBenchmark.GetLibraryName(), RunBenchmark(bitSerializerPugiXmlBenchmark));
 
 		CPugiXmlBenchmark pugiXmlBenchmark;
@@ -119,18 +123,26 @@ int main()
 
 #ifdef RAPIDJSON_BENCHMARK
 	// Serializes the results of the libraries test
-	auto outputFile = std::filesystem::current_path() / "bitserializer_benchmark_results.json";
-	BitSerializer::SerializationOptions options;
-	options.streamOptions.writeBom = false;
-	options.formatOptions.enableFormat = true;
-	try
+	auto outputDir = std::filesystem::current_path() / "benchmark_results";
+	if (create_directories(outputDir))
 	{
-		BitSerializer::SaveObjectToFile<BitSerializer::Json::RapidJson::JsonArchive>(benchmarkResults, outputFile, options, true);
-		std::cout << "Benchmark results has been saved to file: " << outputFile << std::endl;
+		auto outputFile = outputDir / "bitserializer_benchmark_results.json";
+		BitSerializer::SerializationOptions options;
+		options.streamOptions.writeBom = false;
+		options.formatOptions.enableFormat = true;
+		try
+		{
+			BitSerializer::SaveObjectToFile<BitSerializer::Json::RapidJson::JsonArchive>(benchmarkResults, outputFile, options, true);
+			std::cout << std::endl << "Benchmark results has been saved to file:" << std::endl << outputFile << std::endl;
+		}
+		catch (const std::exception& ex) {
+			std::cerr << "Unable to save benchmark results: " << ex.what() << std::endl;
+			return 1;
+		}
 	}
-	catch (const std::exception& ex) {
-		std::cerr << "Unable to save benchmark results: " << ex.what() << std::endl;
-		return 1;
+	else
+	{
+		std::cerr << "Unable to create output directory: " << outputDir << std::endl;
 	}
 #endif
 

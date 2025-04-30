@@ -3,13 +3,15 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <stdexcept>
-#include "bitserializer/pugixml_archive.h"
+// Benchmark headers
 #include "benchmark_base.h"
+
+// PugiXml library
+#include "pugixml.hpp"
 
 
 template <class TModel = CommonTestModel>
-class CPugiXmlBenchmark : public CBenchmarkBase<TModel>
+class CPugiXmlBenchmark final : public CBenchmarkBase<TModel>
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -17,11 +19,15 @@ public:
 		return "PugiXml";
 	}
 
-protected:
-	void BenchmarkSaveToMemory(const TModel& sourceTestModel, std::string& outputData) override
+	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
 	{
-		pugi::xml_document mDoc;
-		auto rootNode = mDoc.append_child(PUGIXML_TEXT("array"));
+		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
+	}
+
+protected:
+	void SaveToXmlDocument(const TModel& sourceTestModel, pugi::xml_document& xmlDoc)
+	{
+		auto rootNode = xmlDoc.append_child(PUGIXML_TEXT("array"));
 
 		// Save array of objects
 		for (const auto& item : sourceTestModel)
@@ -38,22 +44,11 @@ protected:
 			objectNode.append_child(PUGIXML_TEXT("StringWithEscapedChars")).text().set(item.StringWithEscapedChars.c_str());
 			objectNode.append_child(PUGIXML_TEXT("MultiLineString")).text().set(item.MultiLineString.c_str());
 		}
-
-		// Build
-		outputData.clear();
-		CXmlStringWriter xmlStringWriter(outputData);
-		mDoc.save(xmlStringWriter, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
 	}
 
-	void BenchmarkLoadFromMemory(const std::string& sourceData, TModel& targetTestModel) override
+	void LoadFromXmlDocument(TModel& targetTestModel, const pugi::xml_document& xmlDoc)
 	{
-		pugi::xml_document mDoc;
-		const auto result = mDoc.load_buffer(sourceData.data(), sourceData.size(), pugi::parse_default, pugi::encoding_utf8);
-		if (!result) {
-			throw std::runtime_error("PugiXml parse error");
-		}
-
-		const auto rootNode = mDoc.child(PUGIXML_TEXT("array"));
+		const auto rootNode = xmlDoc.child(PUGIXML_TEXT("array"));
 
 		// Load array of objects
 		int i = 0;
@@ -72,6 +67,50 @@ protected:
 			obj.MultiLineString = it->child(PUGIXML_TEXT("MultiLineString")).text().as_string();
 			++i;
 		}
+	}
+
+	void BenchmarkSaveToMemory(const TModel& sourceTestModel, std::string& outputData) override
+	{
+		pugi::xml_document xmlDoc;
+		SaveToXmlDocument(sourceTestModel, xmlDoc);
+
+		// Build XML
+		CXmlStringWriter xmlStringWriter(outputData);
+		xmlDoc.save(xmlStringWriter, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
+	}
+
+	void BenchmarkLoadFromMemory(TModel& targetTestModel, const std::string& sourceData) override
+	{
+		pugi::xml_document xmlDoc;
+		const auto result = xmlDoc.load_buffer(sourceData.data(), sourceData.size(), pugi::parse_default, pugi::encoding_utf8);
+		if (!result) {
+			throw std::runtime_error("PugiXml parse error");
+		}
+
+		LoadFromXmlDocument(targetTestModel, xmlDoc);
+	}
+
+	void BenchmarkSaveToStream(const TModel& sourceTestModel, std::ostream& outputStream) override
+	{
+		pugi::xml_document xmlDoc;
+		SaveToXmlDocument(sourceTestModel, xmlDoc);
+
+		// Build XML
+		constexpr unsigned int flags = pugi::format_write_bom;
+		xmlDoc.save(outputStream, PUGIXML_TEXT("\t"), flags, pugi::xml_encoding::encoding_utf8);
+	}
+
+	void BenchmarkLoadFromStream(TModel& targetTestModel, std::istream& inputStream) override
+	{
+		rapidjson::IStreamWrapper isw(inputStream);
+		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);
+
+		pugi::xml_document xmlDoc;
+		const auto result = xmlDoc.load(inputStream);
+		if (!result) {
+			throw std::runtime_error("PugiXml parse error");
+		}
+		LoadFromXmlDocument(targetTestModel, xmlDoc);
 	}
 
 private:

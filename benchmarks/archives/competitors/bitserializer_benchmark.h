@@ -3,30 +3,28 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+// Benchmark headers
 #include "benchmark_base.h"
-#include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidyaml_archive.h"
-#include "bitserializer/types/std/array.h"
 
+// BitSerializer library
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/types/std/array.h"
 #ifdef CSV_BENCHMARK
 #include "bitserializer/csv_archive.h"
 #endif
-
 #ifdef MSGPACK_BENCHMARK
 #include "bitserializer/msgpack_archive.h"
 #endif
-
 #ifdef RAPIDJSON_BENCHMARK
 #include "bitserializer/rapidjson_archive.h"
 #endif
-
 #ifdef PUGIXML_BENCHMARK
 #include "bitserializer/pugixml_archive.h"
 #endif
-
-#ifdef RAPIDYAMLN_BENCHMARK
+#ifdef RAPIDYAML_BENCHMARK
 #include "bitserializer/rapidyaml_archive.h"
 #endif
+
 
 // Suppress C4702 - unreachable code
 #pragma warning(push)
@@ -54,7 +52,7 @@ void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
 /// BitSerializer benchmark.
 /// </summary>
 template <class TArchive, class TModel = CommonTestModel>
-class CBitSerializerBenchmark : public CBenchmarkBase<TModel>
+class CBitSerializerBenchmark final : public CBenchmarkBase<TModel>
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -77,15 +75,30 @@ public:
 		return "BitSerializer-" + BitSerializer::Convert::ToString(TArchive::archive_type);
 	}
 
+	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
+	{
+		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
+	}
+
 protected:
 	void BenchmarkSaveToMemory(const TModel& sourceTestModel, std::string& outputData) override
 	{
-		outputData = BitSerializer::SaveObject<TArchive>(sourceTestModel);
+		BitSerializer::SaveObject<TArchive>(sourceTestModel, outputData);
 	}
 
-	void BenchmarkLoadFromMemory(const std::string& sourceData, TModel& targetTestModel) override
+	void BenchmarkLoadFromMemory(TModel& targetTestModel, const std::string& sourceData) override
 	{
 		BitSerializer::LoadObject<TArchive>(targetTestModel, sourceData);
+	}
+
+	void BenchmarkSaveToStream(const TModel& sourceTestModel, std::ostream& outputStream) override
+	{
+		BitSerializer::SaveObject<TArchive>(sourceTestModel, outputStream);
+	}
+
+	void BenchmarkLoadFromStream(TModel& targetTestModel, std::istream& inputStream) override
+	{
+		BitSerializer::LoadObject<TArchive>(targetTestModel, inputStream);
 	}
 };
 

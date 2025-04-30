@@ -14,7 +14,7 @@ namespace BitSerializer::Validate
 	class Required
 	{
 	public:
-		Required(const char* errorMessage = "This field is required")
+		constexpr Required(const char* errorMessage = "This field is required")
 			: mErrorMessage(errorMessage)
 		{ }
 
@@ -39,7 +39,7 @@ namespace BitSerializer::Validate
 	class Range
 	{
 	public:
-		Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
+		constexpr Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
 			: mMin(min)
 			, mMax(max)
 			, mErrorMessage(errorMessage)
@@ -75,7 +75,7 @@ namespace BitSerializer::Validate
 	class MinSize
 	{
 	public:
-		MinSize(const size_t minSize, const char* errorMessage = nullptr) noexcept
+		constexpr MinSize(const size_t minSize, const char* errorMessage = nullptr) noexcept
 			: mMinSize(minSize)
 			, mErrorMessage(errorMessage)
 		{ }
@@ -115,7 +115,7 @@ namespace BitSerializer::Validate
 	class MaxSize
 	{
 	public:
-		MaxSize(const size_t maxSize, const char* errorMessage = nullptr) noexcept
+		constexpr MaxSize(const size_t maxSize, const char* errorMessage = nullptr) noexcept
 			: mMaxSize(maxSize)
 			, mErrorMessage(errorMessage)
 		{ }
@@ -156,7 +156,7 @@ namespace BitSerializer::Validate
 	class Email
 	{
 	public:
-		Email(const char* errorMessage = "Invalid email address") noexcept
+		constexpr Email(const char* errorMessage = "Invalid email address") noexcept
 			: mErrorMessage(errorMessage)
 		{ }
 
@@ -264,7 +264,7 @@ namespace BitSerializer::Validate
 	class PhoneNumber
 	{
 	public:
-		PhoneNumber(size_t minNumbers = 7, size_t maxNumbers = 15, bool isPlusRequired = true, const char* errorMessage = nullptr) noexcept
+		constexpr PhoneNumber(size_t minNumbers = 7, size_t maxNumbers = 15, bool isPlusRequired = true, const char* errorMessage = nullptr) noexcept
 			: mMinNumbers(minNumbers)
 			, mMaxNumbers(maxNumbers)
 			, mIsPlusRequired(isPlusRequired)
@@ -366,7 +366,7 @@ namespace BitSerializer
 	{
 	public:
 		[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
-		Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
+		constexpr Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
 			: Validate::Range<TValue>(min, max, errorMessage)
 		{ }
 	};

@@ -23,16 +23,16 @@ public:
 	using value_type = TValue;
 	using key_type = TKey;
 
-	KeyValue(TKey&& key, TValue&& value, Validators&&... validators)
+	constexpr KeyValue(TKey&& key, TValue&& value, Validators&&... validators)
 		: mKey(std::forward<TKey>(key)), mValue(std::forward<TValue>(value)), mValidators(std::forward<Validators>(validators)...)
 	{}
 
-	KeyValue(TKey&& key, TValue&& value, std::tuple<Validators...>&& validators)
+	constexpr KeyValue(TKey&& key, TValue&& value, std::tuple<Validators...>&& validators)
 		: mKey(std::forward<TKey>(key)), mValue(std::forward<TValue>(value)), mValidators(std::move(validators))
 	{}
 
-	[[nodiscard]] const TKey& GetKey() const noexcept	{ return mKey; }
-	[[nodiscard]] TValue GetValue() const noexcept(std::is_reference_v<TValue> || std::is_nothrow_copy_constructible_v<TValue>)
+	[[nodiscard]] constexpr const TKey& GetKey() const noexcept	{ return mKey; }
+	[[nodiscard]] constexpr TValue GetValue() const noexcept(std::is_reference_v<TValue> || std::is_nothrow_copy_constructible_v<TValue>)
 	{
 		return mValue;
 	}

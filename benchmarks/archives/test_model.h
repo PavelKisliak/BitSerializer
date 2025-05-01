@@ -90,4 +90,4 @@ public:
 };
 
 // Common test model for all archives (represents an array of objects)
-using CommonTestModel = std::array<CBasicTestModel, 30>;
+using CCommonTestModel = std::array<CBasicTestModel, 30>;

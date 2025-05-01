@@ -149,12 +149,21 @@ We understand that comparing "Serialization" classes with "Parser" classes might
 However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
 In the future, we plan to include benchmarks against other libraries from the "Serializers" class to offer a more direct comparison. 
 
+#### Comparison of serialized data size
+In addition to performance metrics, the size of the serialized output is another important factor to consider when choosing a serialization format.
+Below is a comparison of the serialized output sizes (in bytes) for the same test model using different formats and libraries:
+
+![image info](benchmarks/archives/benchmark_results/serialization_output_size_chart.png)
+
+Binary formats like MsgPack produce significantly smaller outputs compared to text-based formats like JSON, XML, or YAML.
+The CSV format is the most compact among all tested formats, making it an excellent choice for storage and transmission of tabular data.
+
 #### Performance test methodology
 - ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
 - **Test model:** The [test model](benchmarks/archives/test_model.h) consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
 
 #### Performance test results
-![image info](docs/bitserializer_benchmark.png)
+![image info](benchmarks/archives/benchmark_results/serialization_speed_chart.png)
 
 For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
 

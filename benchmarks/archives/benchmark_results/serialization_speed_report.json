@@ -1,0 +1,48 @@
+{
+	"BitSerializer-RapidJson": {
+		"Save to memory": 12548,
+		"Load from memory": 11340,
+		"Save to std::ostream": 1083,
+		"Load from std::istream": 3030
+	},
+	"BitSerializer-MsgPack": {
+		"Save to memory": 97059,
+		"Load from memory": 47143,
+		"Save to std::ostream": 11744,
+		"Load from std::istream": 15942
+	},
+	"BitSerializer-Csv": {
+		"Save to memory": 31731,
+		"Load from memory": 14348,
+		"Save to std::ostream": 26400,
+		"Load from std::istream": 10714
+	},
+	"RapidJson": {
+		"Save to memory": 14103,
+		"Load from memory": 11744,
+		"Save to std::ostream": 1069,
+		"Load from std::istream": 3039
+	},
+	"BitSerializer-PugiXml": {
+		"Save to memory": 10543,
+		"Load from memory": 14667,
+		"Save to std::ostream": 10123,
+		"Load from std::istream": 14474
+	},
+	"PugiXml": {
+		"Save to memory": 10185,
+		"Load from memory": 15421,
+		"Save to std::ostream": 9763,
+		"Load from std::istream": 12692
+	},
+	"BitSerializer-RapidYaml": {
+		"Save to memory": 2437,
+		"Load from memory": 5263,
+		"Save to std::ostream": 2407,
+		"Load from std::istream": 2347
+	},
+	"RapidYaml": {
+		"Save to memory": 2334,
+		"Load from memory": 5093
+	}
+}

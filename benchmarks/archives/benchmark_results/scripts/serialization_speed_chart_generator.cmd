@@ -1,0 +1,1 @@
+python serialization_speed_chart_generator.py ../serialization_speed_report.json ../serialization_speed_chart.png

@@ -51,8 +51,8 @@ void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
 /// <summary>
 /// BitSerializer benchmark.
 /// </summary>
-template <class TArchive, class TModel = CommonTestModel>
-class CBitSerializerBenchmark final : public CBenchmarkBase<TModel>
+template <class TArchive>
+class CBitSerializerBenchmark final : public CBenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -75,28 +75,23 @@ public:
 		return "BitSerializer-" + BitSerializer::Convert::ToString(TArchive::archive_type);
 	}
 
-	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
-	{
-		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
-	}
-
 protected:
-	void BenchmarkSaveToMemory(const TModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		BitSerializer::SaveObject<TArchive>(sourceTestModel, outputData);
 	}
 
-	void BenchmarkLoadFromMemory(TModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		BitSerializer::LoadObject<TArchive>(targetTestModel, sourceData);
 	}
 
-	void BenchmarkSaveToStream(const TModel& sourceTestModel, std::ostream& outputStream) override
+	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
 		BitSerializer::SaveObject<TArchive>(sourceTestModel, outputStream);
 	}
 
-	void BenchmarkLoadFromStream(TModel& targetTestModel, std::istream& inputStream) override
+	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
 		BitSerializer::LoadObject<TArchive>(targetTestModel, inputStream);
 	}

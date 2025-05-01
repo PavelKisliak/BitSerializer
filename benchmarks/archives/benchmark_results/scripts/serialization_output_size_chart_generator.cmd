@@ -1,0 +1,1 @@
+python serialization_output_size_chart_generator.py ../serialization_output_size_report.json ../serialization_output_size_chart.png

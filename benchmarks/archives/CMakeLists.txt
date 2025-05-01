@@ -9,6 +9,7 @@ add_executable(${PROJECT_NAME}
     main.cpp
     test_model.h
     benchmark_base.h
+    benchmark_base.cpp
     competitors/bitserializer_benchmark.h
     competitors/rapidjson_benchmark.h
     competitors/pugixml_benchmark.h

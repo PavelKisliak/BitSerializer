@@ -23,8 +23,7 @@
 #undef GetObject
 #endif
 
-template <class TModel = CommonTestModel>
-class CRapidJsonBenchmark final : public CBenchmarkBase<TModel>
+class CRapidJsonBenchmark final : public CBenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -32,17 +31,12 @@ public:
 		return "RapidJson";
 	}
 
-	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
-	{
-		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
-	}
-
 protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF8<>>;
 	using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
 
-	void LoadFromJsonDocument(TModel& targetTestModel, RapidJsonDocument& jsonDoc)
+	void LoadFromJsonDocument(CCommonTestModel& targetTestModel, RapidJsonDocument& jsonDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		const auto& jArray = jsonDoc.GetArray();
 
@@ -66,7 +60,7 @@ protected:
 		}
 	}
 
-	void SaveToJsonDocument(const TModel& sourceTestModel, RapidJsonDocument& jsonDoc)
+	void SaveToJsonDocument(const CCommonTestModel& sourceTestModel, RapidJsonDocument& jsonDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		auto& allocator = jsonDoc.GetAllocator();
 		jsonDoc.SetArray();
@@ -96,7 +90,7 @@ protected:
 		}
 	}
 
-	void BenchmarkSaveToMemory(const TModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		RapidJsonDocument jsonDoc;
 		SaveToJsonDocument(sourceTestModel, jsonDoc);
@@ -108,7 +102,7 @@ protected:
 		outputData.assign(buffer.GetString(), buffer.GetSize());
 	}
 
-	void BenchmarkLoadFromMemory(TModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		RapidJsonDocument jsonDoc;
 		if (jsonDoc.Parse(sourceData.data(), sourceData.size()).HasParseError()) {
@@ -117,7 +111,7 @@ protected:
 		LoadFromJsonDocument(targetTestModel, jsonDoc);
 	}
 
-	void BenchmarkSaveToStream(const TModel& sourceTestModel, std::ostream& outputStream) override
+	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
 		RapidJsonDocument jsonDoc;
 		SaveToJsonDocument(sourceTestModel, jsonDoc);
@@ -130,7 +124,7 @@ protected:
 		jsonDoc.Accept(writer);
 	}
 
-	void BenchmarkLoadFromStream(TModel& targetTestModel, std::istream& inputStream) override
+	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
 		rapidjson::IStreamWrapper isw(inputStream);
 		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);

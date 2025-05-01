@@ -10,8 +10,7 @@
 #include "pugixml.hpp"
 
 
-template <class TModel = CommonTestModel>
-class CPugiXmlBenchmark final : public CBenchmarkBase<TModel>
+class CPugiXmlBenchmark final : public CBenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -19,13 +18,8 @@ public:
 		return "PugiXml";
 	}
 
-	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
-	{
-		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
-	}
-
 protected:
-	void SaveToXmlDocument(const TModel& sourceTestModel, pugi::xml_document& xmlDoc)
+	void SaveToXmlDocument(const CCommonTestModel& sourceTestModel, pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		auto rootNode = xmlDoc.append_child(PUGIXML_TEXT("array"));
 
@@ -46,7 +40,7 @@ protected:
 		}
 	}
 
-	void LoadFromXmlDocument(TModel& targetTestModel, const pugi::xml_document& xmlDoc)
+	void LoadFromXmlDocument(CCommonTestModel& targetTestModel, const pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		const auto rootNode = xmlDoc.child(PUGIXML_TEXT("array"));
 
@@ -69,7 +63,7 @@ protected:
 		}
 	}
 
-	void BenchmarkSaveToMemory(const TModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		pugi::xml_document xmlDoc;
 		SaveToXmlDocument(sourceTestModel, xmlDoc);
@@ -79,7 +73,7 @@ protected:
 		xmlDoc.save(xmlStringWriter, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
 	}
 
-	void BenchmarkLoadFromMemory(TModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		pugi::xml_document xmlDoc;
 		const auto result = xmlDoc.load_buffer(sourceData.data(), sourceData.size(), pugi::parse_default, pugi::encoding_utf8);
@@ -90,7 +84,7 @@ protected:
 		LoadFromXmlDocument(targetTestModel, xmlDoc);
 	}
 
-	void BenchmarkSaveToStream(const TModel& sourceTestModel, std::ostream& outputStream) override
+	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
 		pugi::xml_document xmlDoc;
 		SaveToXmlDocument(sourceTestModel, xmlDoc);
@@ -100,7 +94,7 @@ protected:
 		xmlDoc.save(outputStream, PUGIXML_TEXT("\t"), flags, pugi::xml_encoding::encoding_utf8);
 	}
 
-	void BenchmarkLoadFromStream(TModel& targetTestModel, std::istream& inputStream) override
+	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
 		rapidjson::IStreamWrapper isw(inputStream);
 		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);

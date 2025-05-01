@@ -27,19 +27,35 @@ REGISTER_ENUM(TestStage, {
 })
 
 /// <summary>
+/// Test stages.
+/// </summary>
+struct CLibraryTestResults
+{
+	std::string LibraryName;
+
+	// Common metrics for all stages
+	size_t TestModelFieldsCount = 0;
+	size_t SerializedDataSize = 0;
+
+	/// Stage test metrics.
+	struct CTestMetrics
+	{
+		int64_t SerializationSpeed = 0;	// Fields/ms
+	};
+
+	std::unordered_map<TestStage, CTestMetrics> StagesTestResults;
+};
+
+
+/// <summary>
 /// Base class of serialization library benchmark (consist multiple stages, e.g. save/load).
 /// </summary>
-template <class TModel = CommonTestModel>
 class CBenchmarkBase
 {
 public:
-	CBenchmarkBase()
-	{
-		BuildFixture(mSourceTestModel);
-		// Reserve buffers to minimize the impact of memory allocation on test results
-		mSerializedData.reserve(16384);
-	}
+	using Timer = std::chrono::high_resolution_clock;
 
+	CBenchmarkBase();
 	virtual ~CBenchmarkBase() = default;
 
 	/// <summary>
@@ -50,62 +66,45 @@ public:
 	/// <summary>
 	/// Get a list of supported stages, can be overridden to exclude unsupported.
 	/// </summary>
-	[[nodiscard]] virtual std::vector<TestStage> GetStagesList() const
-	{
-		return { TestStage::SaveToMemory, TestStage::LoadFromMemory };
+	[[nodiscard]] virtual std::vector<TestStage> GetStagesList() const {
+		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
 	}
 
 	/// <summary>
-	/// Prepare stage.
+	/// Running library benchmarks.
 	/// </summary>
-	void PrepareStage()
-	{
-		if (!mInProgress)
-		{
-			// Initialize first stage
-			std::vector<TestStage> stagesList = GetStagesList();
-			assert(!stagesList.empty());
-			mTestStage = stagesList.front();
-			mInProgress = true;
-		}
+	CLibraryTestResults RunBenchmark(std::chrono::seconds testTime);
 
-		OnBeginStage(mTestStage);
+protected:
+	// Benchmark calls, serialization must be implemented using the library being tested
+	virtual void BenchmarkSaveToMemory(const CCommonTestModel& /*sourceTestModel*/, std::string& /*outputData*/) {
+		throw std::runtime_error("Not implemented!");
+	}
+	virtual void BenchmarkLoadFromMemory(CCommonTestModel& /*targetTestModel*/, const std::string& /*sourceData*/) {
+		throw std::runtime_error("Not implemented!");
+	}
+	virtual void BenchmarkSaveToStream(const CCommonTestModel& /*targetTestModel*/, std::ostream& /*outputStream*/) {
+		throw std::runtime_error("Not implemented!");
+	}
+	virtual void BenchmarkLoadFromStream(CCommonTestModel& /*targetTestModel*/, std::istream& /*inputStream*/) {
+		throw std::runtime_error("Not implemented!");
 	}
 
-	/// <summary>
-	/// Get current stage name.
-	/// </summary>
-	[[nodiscard]] std::string GetCurrentStageName() const
-	{
-		return BitSerializer::Convert::ToString(mTestStage);
-	}
+	// Maintenance calls (optional, not counted)
+	virtual void OnBeginStage(TestStage /*testStage*/) {}
+	virtual void OnPrepareTest(TestStage /*testStage*/) {}
+	virtual void OnNextStage(TestStage /*testStage*/) {}
+	virtual void OnFinishedStage(TestStage /*testStage*/) {}
 
-	/// <summary>
-	/// Returns the number of fields in the model.
-	/// </summary>
-	size_t GetTotalFieldsCount() noexcept
-	{
-		if constexpr (BitSerializer::has_size_v<TModel>)
-		{
-			assert(!mSourceTestModel.empty());
-			// Total size of all fields (each element of array also counting as field)
-			return mSourceTestModel.size() * TModel::value_type::GetTotalFieldsCount() + mSourceTestModel.size();
-		}
-		else {
-			return TModel::GetTotalFieldsCount();
-		}
-	}
+private:
+	size_t GetTotalFieldsCount() const noexcept;
+	void PrepareStage();
+	std::string GetCurrentStageName() const;
 
-	/// <summary>
-	/// Prepare test (clean-up model, etc.).
-	/// </summary>
+	// Prepares a test, called before each test run (keep as inline for better performance)
 	void PrepareTest()
 	{
 		assert(mInProgress);
-		if (!mInProgress) {
-			return;
-		}
-
 		switch (mTestStage)
 		{
 		case TestStage::SaveToMemory:
@@ -134,16 +133,10 @@ public:
 		OnPrepareTest(mTestStage);
 	}
 
-	/// <summary>
-	/// Runs benchmark.
-	/// </summary>
-	void Run()
+	// Run one time test (keep as inline for better performance)
+	void RunOneTimeTest()
 	{
 		assert(mInProgress);
-		if (!mInProgress) {
-			return;
-		}
-
 		switch (mTestStage)
 		{
 		case TestStage::SaveToMemory:
@@ -161,87 +154,13 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// Go to next stage.
-	/// </summary>
-	bool NextStage()
-	{
-		assert(mInProgress);
-		if (!mInProgress) {
-			return false;
-		}
-
-		// Validate target model after each load stage
-		if (mTestStage == TestStage::LoadFromMemory || mTestStage == TestStage::LoadFromStream)
-		{
-			ValidateTargetModel();
-		}
-
-		OnFinishedStage(mTestStage);
-
-		// Find next tage
-		std::vector<TestStage> stagesList = GetStagesList();
-		auto currentStageIt = std::find(stagesList.cbegin(), stagesList.cend(), mTestStage);
-		assert(currentStageIt != stagesList.cend());
-
-		if (++currentStageIt != stagesList.cend())
-		{
-			mTestStage = *currentStageIt;
-			OnNextStage(mTestStage);
-			return true;
-		}
-
-		// When all stages completed
-		mInProgress = false;
-		return false;
-	}
-
-protected:
-	// Benchmark calls, serialization must be implemented using the library being tested
-	virtual void BenchmarkSaveToMemory(const TModel& /*sourceTestModel*/, std::string& /*outputData*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-	virtual void BenchmarkLoadFromMemory(TModel& /*targetTestModel*/, const std::string& /*sourceData*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-	virtual void BenchmarkSaveToStream(const TModel& /*targetTestModel*/, std::ostream& /*outputStream*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-	virtual void BenchmarkLoadFromStream(TModel& /*targetTestModel*/, std::istream& /*inputStream*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-
-	// Maintenance calls (not counted)
-	virtual void OnBeginStage(TestStage /*testStage*/) {}
-	virtual void OnPrepareTest(TestStage /*testStage*/) {}
-	virtual void OnNextStage(TestStage /*testStage*/) {}
-	virtual void OnFinishedStage(TestStage /*testStage*/) {}
-
-private:
-	void ValidateTargetModel()
-	{
-		// Compare loaded model with original
-		if constexpr (BitSerializer::is_enumerable_v<TModel>)
-		{
-			// Sizes can't be different since used std::array
-			assert(mSourceTestModel.size() == mTargetModel.size());
-			auto targetIt = mTargetModel.cbegin();
-			for (const auto& sourceTestModel : mSourceTestModel)
-			{
-				sourceTestModel.Assert(*targetIt);
-				++targetIt;
-			}
-		}
-		else if constexpr (has_assert_method_v<TModel>)
-		{
-			mSourceTestModel.Assert(mTargetModel);
-		}
-	}
+	bool NextStage();
+	void ValidateTargetModel() const;
 
 	TestStage mTestStage = TestStage::SaveToMemory;
 	bool mInProgress = false;
-	TModel mSourceTestModel;
-	TModel mTargetModel;
+	CCommonTestModel mSourceTestModel;
+	CCommonTestModel mTargetModel;
 	std::string mSerializedData;
 	std::stringstream mStringStream;
 };

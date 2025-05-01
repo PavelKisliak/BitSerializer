@@ -5,6 +5,8 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+
+#include "testing_tools/perf_utils.h"
 #include "bitserializer/types/std/unordered_map.h"
 
 #include "competitors/bitserializer_benchmark.h"
@@ -81,6 +83,10 @@ CLibraryTestResult RunBenchmark(CBenchmarkBase<TModel>& benchmark, const std::ch
 
 int main()	// NOLINT(bugprone-exception-escape)
 {
+	// Set the highest priority for the process to minimize fluctuations in results.
+	// Setting physical core affinity leads to worse results (possibly due to throttling).
+	PerfUtils::SetMaxPriority();
+
 	std::unordered_map<std::string, CLibraryTestResult> benchmarkResults;
 	std::cout << "Testing, please do not touch mouse and keyboard (test may take few minutes)." << std::endl;
 

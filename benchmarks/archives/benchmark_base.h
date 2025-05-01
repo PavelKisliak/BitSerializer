@@ -36,6 +36,8 @@ public:
 	CBenchmarkBase()
 	{
 		BuildFixture(mSourceTestModel);
+		// Reserve buffers to minimize the impact of memory allocation on test results
+		mSerializedData.reserve(16384);
 	}
 
 	virtual ~CBenchmarkBase() = default;

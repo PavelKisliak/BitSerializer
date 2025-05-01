@@ -152,7 +152,7 @@ void TestSerializeArray()
 	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
 
 	// Assert
-	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++)
+	for (size_t i = 0; i < (std::min)(SourceArraySize, TargetArraySize); i++)
 	{
 		GTestExpectEq(testArray[i], actual[i]);
 	}
@@ -176,7 +176,7 @@ void TestSerializeArrayWithKey()
 	BitSerializer::LoadObject<TArchive>(BitSerializer::KeyValue(L"Root", actual), outputArchive);
 
 	// Assert
-	for (size_t i = 0; i < std::min(SourceArraySize, TargetArraySize); i++) {
+	for (size_t i = 0; i < (std::min)(SourceArraySize, TargetArraySize); i++) {
 		GTestExpectEq(testArray[i], actual[i]);
 	}
 }
@@ -369,10 +369,10 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 	if constexpr (std::is_floating_point_v<TTargetType>)
 	{
 		if constexpr (std::is_floating_point_v<TTargetType>) {
-			testValue = TSourceType(std::numeric_limits<TTargetType>::max()) * 1.00001;
+			testValue = TSourceType((std::numeric_limits<TTargetType>::max)()) * 1.00001;
 		}
 		else {
-			testValue = std::numeric_limits<TSourceType>::min();
+			testValue = (std::numeric_limits<TSourceType>::min)();
 		}
 	}
 	else
@@ -385,10 +385,10 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 		else
 		{
 			if constexpr (std::is_signed_v<TTargetType>) {
-				testValue = TSourceType(std::numeric_limits<TTargetType>::min()) - 1;
+				testValue = TSourceType((std::numeric_limits<TTargetType>::min)()) - 1;
 			}
 			else {
-				testValue = TSourceType(std::numeric_limits<TTargetType>::max()) + 1;
+				testValue = TSourceType((std::numeric_limits<TTargetType>::max)()) + 1;
 			}
 		}
 	}

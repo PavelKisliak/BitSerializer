@@ -87,8 +87,8 @@ namespace BitSerializer::Convert::Detail
 				}
 				else
 				{
-					if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
-						static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
+					if (static_cast<TOpRep>(duration.count()) > (std::numeric_limits<TOpRep>::max)() / TDivRatio::num ||
+						static_cast<TOpRep>(duration.count()) < (std::numeric_limits<TOpRep>::min)() / TDivRatio::num)
 					{
 						throw std::out_of_range("Target duration is not enough");
 					}
@@ -112,8 +112,8 @@ namespace BitSerializer::Convert::Detail
 				}
 				else
 				{
-					if (static_cast<TOpRep>(duration.count()) > std::numeric_limits<TOpRep>::max() / TDivRatio::num ||
-						static_cast<TOpRep>(duration.count()) < std::numeric_limits<TOpRep>::min() / TDivRatio::num)
+					if (static_cast<TOpRep>(duration.count()) > (std::numeric_limits<TOpRep>::max)() / TDivRatio::num ||
+						static_cast<TOpRep>(duration.count()) < (std::numeric_limits<TOpRep>::min)() / TDivRatio::num)
 					{
 						throw std::out_of_range("Target duration is not enough");
 					}
@@ -148,8 +148,8 @@ namespace BitSerializer::Convert::Detail
 			throw std::out_of_range("Target timepoint range is not enough");
 		}
 
-		if ((adaptedDuration.count() > 0 && tp > std::chrono::time_point<TTargetClock, TTargetDuration>::max() - adaptedDuration) ||
-			(adaptedDuration.count() < 0 && tp < std::chrono::time_point<TTargetClock, TTargetDuration>::min() - adaptedDuration)) {
+		if ((adaptedDuration.count() > 0 && tp > (std::chrono::time_point<TTargetClock, TTargetDuration>::max)() - adaptedDuration) ||
+			(adaptedDuration.count() < 0 && tp < (std::chrono::time_point<TTargetClock, TTargetDuration>::min)() - adaptedDuration)) {
 			throw std::out_of_range("Target timepoint range is not enough");
 		}
 
@@ -170,8 +170,8 @@ namespace BitSerializer::Convert::Detail
 
 		using TTargetDuration = std::chrono::duration<TTargetRep, TTargetPeriod>;
 		auto adaptedDuration = SafeDurationCast<TTargetDuration>(src);
-		if ((adaptedDuration.count() > 0 && target > TTargetDuration::max() - adaptedDuration) ||
-			(adaptedDuration.count() < 0 && target < TTargetDuration::min() - adaptedDuration)) {
+		if ((adaptedDuration.count() > 0 && target > (TTargetDuration::max)() - adaptedDuration) ||
+			(adaptedDuration.count() < 0 && target < (TTargetDuration::min)() - adaptedDuration)) {
 			throw std::out_of_range("Target duration is not enough");
 		}
 		target += adaptedDuration;
@@ -408,7 +408,7 @@ namespace BitSerializer::Convert::Detail
 	void To(std::basic_string_view<TSym> in, tm& out)
 	{
 		const CDateTimeParts<> utc = ParseIsoUtc(in);
-		if (utc.Year > std::numeric_limits<int>::max() || utc.Year < std::numeric_limits<int>::min()) {
+		if (utc.Year > (std::numeric_limits<int>::max)() || utc.Year < (std::numeric_limits<int>::min)()) {
 			throw std::out_of_range("The target range of years in the `tm` structure is not sufficient");
 		}
 		out.tm_year = static_cast<int>(utc.Year);
@@ -483,8 +483,8 @@ namespace BitSerializer::Convert::Detail
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
 		auto const doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;				// [0, 146096]
 
-		if (static_cast<int64_t>(era) > std::numeric_limits<int64_t>::max() / 146097ll ||
-			static_cast<int64_t>(era) < std::numeric_limits<int64_t>::min() / 146097ll)
+		if (static_cast<int64_t>(era) > (std::numeric_limits<int64_t>::max)() / 146097ll ||
+			static_cast<int64_t>(era) < (std::numeric_limits<int64_t>::min)() / 146097ll)
 		{
 			throw std::out_of_range("Target duration is not enough");
 		}

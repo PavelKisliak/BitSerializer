@@ -89,7 +89,7 @@ public:
 					return refSigned == value;
 				}
 				else {
-					return value <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) && refSigned == static_cast<int64_t>(value);
+					return value <= static_cast<uint64_t>((std::numeric_limits<int64_t>::max)()) && refSigned == static_cast<int64_t>(value);
 				}
 			}
 			return false;

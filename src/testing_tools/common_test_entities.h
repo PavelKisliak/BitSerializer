@@ -389,8 +389,8 @@ public:
 		archive << BitSerializer::KeyValue(maxValue.first, maxValue.second);
 	}
 
-	std::pair<T, int> minValue = { std::numeric_limits<T>::min(), {} };
-	std::pair<T, int> maxValue = { std::numeric_limits<T>::max(), {} };
+	std::pair<T, int> minValue = { (std::numeric_limits<T>::min)(), {} };
+	std::pair<T, int> maxValue = { (std::numeric_limits<T>::max)(), {} };
 };
 
 //-----------------------------------------------------------------------------

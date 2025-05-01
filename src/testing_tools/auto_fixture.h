@@ -117,7 +117,7 @@ static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 
 [[maybe_unused]] static void BuildFixture(std::byte& value)
 {
-	value = static_cast<std::byte>(std::rand() % std::numeric_limits<unsigned char>::max());
+	value = static_cast<std::byte>(std::rand() % (std::numeric_limits<unsigned char>::max)());
 }
 
 template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
@@ -153,7 +153,7 @@ template <typename TValue, size_t ArraySize>
 			for (size_t i = 1; i < (ArraySize - 1); i++) {
 				BuildFixture(arr[i]);
 			}
-			arr[ArraySize - 1] = std::numeric_limits<TValue>::max();
+			arr[ArraySize - 1] = (std::numeric_limits<TValue>::max)();
 		}
 	}
 	else
@@ -205,9 +205,9 @@ template <typename TValue>
 template <typename TClock, typename TDuration>
 [[maybe_unused]] static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
 {
-	constexpr auto tpMaxSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::max())
+	constexpr auto tpMaxSec = std::chrono::time_point_cast<std::chrono::seconds>((std::chrono::time_point<TClock, TDuration>::max)())
 		.time_since_epoch().count();
-	constexpr auto tpMinSec = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::time_point<TClock, TDuration>::min())
+	constexpr auto tpMinSec = std::chrono::time_point_cast<std::chrono::seconds>((std::chrono::time_point<TClock, TDuration>::min)())
 		.time_since_epoch().count();
 
 	constexpr int64_t time_0000_01_01T00_00_00 = -62167219200;
@@ -216,8 +216,8 @@ template <typename TClock, typename TDuration>
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int64_t> distr(
-		std::max(tpMinSec, time_0000_01_01T00_00_00),
-		std::min(tpMaxSec, time_9999_12_31T23_59_59));
+		(std::max)(tpMinSec, time_0000_01_01T00_00_00),
+		(std::min)(tpMaxSec, time_9999_12_31T23_59_59));
 
 	timePoint = std::chrono::time_point<TClock, TDuration>(std::chrono::duration_cast<TDuration>(std::chrono::seconds(distr(gen))));
 }
@@ -232,7 +232,7 @@ template <typename TRep, typename TPeriod>
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	using TCommon = std::common_type_t<TRep, intmax_t>;
-	std::uniform_int_distribution<TCommon> distr(std::numeric_limits<TRep>::min(), std::numeric_limits<TRep>::max());
+	std::uniform_int_distribution<TCommon> distr((std::numeric_limits<TRep>::min)(), (std::numeric_limits<TRep>::max)());
 
 	duration = std::chrono::duration<TRep, TPeriod>(distr(gen));
 }
@@ -246,14 +246,14 @@ namespace std
 	class numeric_limits<BitSerializer::Detail::CBinTimestamp>
 	{
 	public:
-		static BitSerializer::Detail::CBinTimestamp min()
+		static BitSerializer::Detail::CBinTimestamp (min)()
 		{
-			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::min(), std::numeric_limits<int32_t>::min());
+			return BitSerializer::Detail::CBinTimestamp((std::numeric_limits<int64_t>::min)(), (std::numeric_limits<int32_t>::min)());
 		}
 
-		static BitSerializer::Detail::CBinTimestamp max()
+		static BitSerializer::Detail::CBinTimestamp (max)()
 		{
-			return BitSerializer::Detail::CBinTimestamp(std::numeric_limits<int64_t>::max(), std::numeric_limits<int32_t>::max());
+			return BitSerializer::Detail::CBinTimestamp((std::numeric_limits<int64_t>::max)(), (std::numeric_limits<int32_t>::max)());
 		}
 	};
 }

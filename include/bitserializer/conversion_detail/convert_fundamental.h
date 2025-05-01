@@ -33,7 +33,7 @@ namespace BitSerializer::Convert::Detail
 					if constexpr (sizeof(TTarget) > sizeof(TSource)) {
 						targetValue = sourceValue;
 					}
-					else if (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= std::numeric_limits<TTarget>::max()) {
+					else if (sourceValue >= std::numeric_limits<TTarget>::lowest() && sourceValue <= (std::numeric_limits<TTarget>::max)()) {
 						targetValue = static_cast<TTarget>(sourceValue);
 					}
 					else {

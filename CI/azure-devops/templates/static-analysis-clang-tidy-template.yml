@@ -5,7 +5,7 @@ parameters:
   image: ''
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
-# [Optional] Cmake additional arguments for CMake generate mode
+# [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Full analysis or just changes from last commit
   fullAnalysis: true
@@ -63,7 +63,7 @@ jobs:
     inputs:
       workingDirectory: ${{ parameters.buildDirectory }}
       cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
-    displayName: 'Cmake - generate'
+    displayName: 'CMake - generate'
 
   - script: |
       ninja -C ${{ parameters.buildDirectory }}

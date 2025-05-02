@@ -7,7 +7,7 @@ parameters:
   platform: 'x64'
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
-# [Optional] Cmake additional arguments for CMake generate mode
+# [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Enable run tests
   enableRunTests: true
@@ -61,7 +61,7 @@ jobs:
       echo MSVC environment configured successfully.
       echo.
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: generate [Debug]
+      echo -- CMake: generate [Debug]
       echo ------------------------------------------------------------------------------
       cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (
@@ -70,7 +70,7 @@ jobs:
       )
       echo.
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: generate [Release]
+      echo -- CMake: generate [Release]
       echo ------------------------------------------------------------------------------
       cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (

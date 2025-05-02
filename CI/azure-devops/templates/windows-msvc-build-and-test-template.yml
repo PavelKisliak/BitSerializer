@@ -7,7 +7,7 @@ parameters:
   platform: 'x64'
 # [Required] VCPKG triplet
   vcpkgTriplet: 'x64-windows-release'
-# [Optional] Cmake additional arguments for CMake generate mode
+# [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Build configuration (Debug, Release)
   buildConfiguration: 'Release'
@@ -69,7 +69,7 @@ jobs:
       echo MSVC environment configured successfully.
       echo.
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: generate [${{ parameters.buildConfiguration }}]
+      echo -- CMake: generate [${{ parameters.buildConfiguration }}]
       echo ------------------------------------------------------------------------------
       cmake -GNinja -B ${{ variables.buildDirectory }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (

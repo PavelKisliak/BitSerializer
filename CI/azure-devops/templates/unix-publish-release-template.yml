@@ -9,7 +9,7 @@ parameters:
   installToolsCmd: ''
 # [Optional] URL to download the compiler
   compilerUrl: ''
-# [Optional] Cmake additional arguments for CMake generate mode
+# [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Enable run tests
   enableRunTests: true
@@ -64,13 +64,13 @@ jobs:
     inputs:
       workingDirectory: 'build-debug'
       cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
-    displayName: 'Cmake - generate debug'
+    displayName: 'CMake - generate debug'
 
   - task: CMake@1
     inputs:
       workingDirectory: 'build-release'
       cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
-    displayName: 'Cmake - generate release'
+    displayName: 'CMake - generate release'
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -87,13 +87,13 @@ jobs:
   - script: |
       set -e
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: generate acceptance tests [debug]
+      echo -- CMake: generate acceptance tests [debug]
       echo ------------------------------------------------------------------------------
       cd ${{ variables.acceptanceTestsDir }}
       cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       echo
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: build acceptance tests [debug]
+      echo -- CMake: build acceptance tests [debug]
       echo ------------------------------------------------------------------------------
       ninja -C build-debug
     displayName: 'Build acceptance tests [Debug]'
@@ -107,13 +107,13 @@ jobs:
   - script: |
       set -e
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: generate acceptance tests [release]
+      echo -- CMake: generate acceptance tests [release]
       echo ------------------------------------------------------------------------------
       cd ${{ variables.acceptanceTestsDir }}
       cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       echo
       echo ------------------------------------------------------------------------------
-      echo -- Cmake: build acceptance tests [release]
+      echo -- CMake: build acceptance tests [release]
       echo ------------------------------------------------------------------------------
       ninja -C build-release
     displayName: 'Build acceptance tests [Release]'

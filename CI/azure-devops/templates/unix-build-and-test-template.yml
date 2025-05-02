@@ -9,7 +9,7 @@ parameters:
   installToolsCmd: ''
 # [Optional] URL to download the compiler
   compilerUrl: ''
-# [Optional] Cmake additional arguments for CMake generate mode
+# [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
 # [Optional] Build configuration (Debug, Release)
   buildConfiguration: 'Release'
@@ -68,8 +68,8 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: ${{ variables.buildDirectory }}
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
-    displayName: 'Cmake - generate [${{ parameters.buildConfiguration }}]'
+      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} ${{ parameters.cmakeGenArgs }} ..'
+    displayName: 'CMake - generate [${{ parameters.buildConfiguration }}]'
 
   - script: |
       ninja -C ${{ variables.buildDirectory }}

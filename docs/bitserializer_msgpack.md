@@ -88,7 +88,7 @@ $ cmake bitserializer -B bitserializer/build -DBUILD_MSGPACK_ARCHIVE=ON
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
-By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
+By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
 
 #### CMake install to your project directory
 You can install BitSerializer to your "ThirdParty" directory in your project.
@@ -99,7 +99,7 @@ Set correct path in `%TargetInstallDir%` (for example 'D:/MyProject/libs/bitseri
 > sudo cmake --build bitserializer/build --config Debug --target install
 > sudo cmake --build bitserializer/build --config Release --target install
 ```
-By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
+By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
 
 You will need to explicitly specify the path where to find the library:
 ```cmake

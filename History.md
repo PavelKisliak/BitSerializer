@@ -1,5 +1,28 @@
 # BitSerializer (History log)
 
+##### What's new in version 0.80: (3 May 2025):
+- [ ! ] Improved code quality and sanity check of commits with helping ClangTidy and Valgrind.
+- [ ! ] Changed the priority of serialization methods, the internal `Serialize()` method will have a higher priority than the global one.
+- [ ! ] Validators were moved to namespace `BitSerializer::Validate` for avoid conflicts when `using namespace BitSerializer`.
+- [ + ] Added support building a shared (dynamic) library type.
+- [ + ] Added visualization of benchmarks and testing serialization to STD streams.
+- [ + ] Added support for serialization of class hierarchy when the base class uses global `SerializeObject()` function.
+- [ + ] Added extra arguments into `Convert` functions (can be used to pass an allocator or an existing string).
+- [ * ] Fixed issue with serialization custom arrays, related to detection `size()` function (thanks @marton78).
+- [ + ] Added new sample `serialize_custom_array` and new related chapter in the "README.md".
+- [ * ] Optimized loading into `std` containers.
+- [ + ] Added publishing of binaries to GitHub releases.
+- [ * ] Rewritten `Hello world!` example to better demonstrate the library's capabilities.
+- [ * ] [CSV] Fixed reading escaped values from `std::istream`.
+- [ * ] [MsgPack] Fixed serialization `std::tuple` (thanks @marton78).
+- [ * ] [MsgPack, RapidJson] Fixed serialization of `long`, `unsigned long` types (not compiled on all platforms).
+- [ * ] [RapidJson] Fixed serialization of `std::unordered_map` and `std::unordered_multimap`.
+- [ * ] [RapidJson] Fixed loading `null` to string type, now it will not lead to `MismatchedTypes` error (similar to numbers).
+- [ * ] [RapidYaml] Added support for the latest released library v0.8.0 (+70% to performance and now works on ARM).
+- [ - ] Removed deprecated CppRestJson archive, please use RapidJson instead.
+- [ - ] Removed deprecated classes and functions - `Version`, `MakeKeyValue`, `AutoKeyValue`, `MakeAutoKeyValue`.
+- [ - ] Removed deprecated classes and functions - `MakeAttributeValue`, `AutoAttributeValue`, `MakeAutoAttributeValue`.
+
 ##### What's new in version 0.75: (05 Jan 2025):
 - [ ! ] Added support ARM architecture (including platforms with big-endian byte order).
 - [ + ] Added new option `SerializationOptions::utfEncodingErrorPolicy` for configure handling of UTF encoding errors.

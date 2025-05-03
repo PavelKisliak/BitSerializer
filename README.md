@@ -1,19 +1,20 @@
-# BitSerializer ![Generic badge](https://img.shields.io/badge/Release-v0.75-blue) [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer) [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status%2FGitHub-BitSerializer?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=5&branchName=master)
+# BitSerializer ![Generic badge](https://img.shields.io/badge/Release-v0.80-blue) [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer) [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](license.txt) [![Build Status](https://dev.azure.com/real0793/BitSerializer/_apis/build/status%2FGitHub-BitSerializer?branchName=master)](https://dev.azure.com/real0793/BitSerializer/_build/latest?definitionId=5&branchName=master)
 
 ___
 
 ### Main features:
-- One common interface for all formats - easily switch between human-readable JSON and fast MsgPack.
-- Modular architecture, no need to install all archives.
+- One common interface allows easy switching between formats JSON, XML, YAML, and MsgPack.
+- Modular architecture lets you include only the serialization archives you need.
 - Functional serialization style similar to the Boost library.
-- Customizable validation of deserialized values with producing an output list of errors.
+- Support loading named fields in any order with conditional logic to preserve model compatibility.
+- Customizable validation produces a detailed list of errors for deserialized values.
+- Seamless handling of optional and required fields, bypassing the need to use `std::optional`.
 - Configurable set of policies to control overflow and type mismatch errors.
-- Support loading named fields in any order with conditions (for preserve compatibility when updating models).
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
-- Support for serializing enum types as integers or strings as you wish.
+- Enums can be serialized as integers or strings, giving you full control over representation.
 - Support serialization to memory, streams and files.
 - Full Unicode support with automatic detection and transcoding (except YAML).
-- Useful [string conversion submodule](docs/bitserializer_convert.md) (supports enums, classes, chrono, UTF encoding).
+- A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
 
 #### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
@@ -29,7 +30,7 @@ ___
  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be¹).
  - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
- ¹ Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture (recently released BitSerializer v0.75 supports only RapidYaml v0.5.0, please use master branch).
+ ¹ Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture.
 
 #### Limitations:
  - Work without exceptions is not supported.
@@ -43,7 +44,7 @@ ___
 - [Serializing class](#serializing-class)
 - [Serializing base class](#serializing-base-class)
 - [Serializing third party class](#serializing-third-party-class)
-- [Serializing class that represent an array](#serializing-class-that-represent-an-array)
+- [Serializing a class that represents an array](#serializing-a-class-that-represents-an-array)
 - [Serializing custom class representing a string](#serializing-custom-class-representing-a-string)
 - [Serializing enum types](#serializing-enum-types)
 - [Serializing to multiple formats](#serializing-to-multiple-formats)
@@ -214,7 +215,7 @@ $ cmake bitserializer -B bitserializer/build -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUIL
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
-By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared (previous v0.75 does not support build shared library).
+By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
 You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `rapidjson-dev` and `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
 
 #### How to use with CMake
@@ -322,7 +323,7 @@ Returns result
     ]
 }
 ```
-For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. Usually the type of key is UTF-8 string, but you are free to use any other convertible type (`std::u16string`, `std::u32string` or any numeric types). For example, MsgPack archive has native support for numbers as keys, they will be converted to string when use with another archive. For get maximum performance, better to avoid any conversions.
+For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. Usually the type of key is UTF-8 string, but you are free to use any other convertible type (`std::u16string`, `std::u32string` or any numeric types). For example, MsgPack archive has native support for numbers as keys, they will be converted to string when use with another archives. For get maximum performance, better to avoid any conversions.
 
 ### Serializing base class
 To serialize the base class, use the helper method `BaseObject()`, like as in the next example.
@@ -390,7 +391,7 @@ void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
-### Serializing class that represent an array
+### Serializing a class that represents an array
 In this chapter described how to serialize your own class that represent a list of values (similar to `std::vector`).
 For this purpose, need to implement a global function `SerializeArray()` in the same namespace as the serializing class, or in `BitSerializer`.
 
@@ -405,7 +406,7 @@ The size of list can be obtained via one of the following ways:
 So, in case if your class has a different signature for the size getter than `size()`, then you need to implement it as a global function.
 
 > [!WARNING]
-> In the latest released version of BitSerializer (0.75) incorrectly detecting internal `size()` method (if it's not in the `std` namespace), you need to implement it externally.
+> In the previous version of BitSerializer v0.75, was incorrect detecting internal `size()` method (if it's not in the `std` namespace).
 
 Please take a look at the following example:
 ```cpp

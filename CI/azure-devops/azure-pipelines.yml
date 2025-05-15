@@ -15,8 +15,9 @@ trigger:
       - 'refs/tags/*'
   paths:
     exclude:
-      - '/**/*.md'
-      - '/**/*.png'
+      - '*.md'
+      - '**/*.md'
+      - '**/*.png'
       - 'cpp.hint'
       - 'CMakeSettings.json'
 

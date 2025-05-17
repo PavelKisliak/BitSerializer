@@ -21,6 +21,8 @@ Add BitSerializer to manifest file (`vcpkg.json`) with `rapidjson-archive` featu
     ]
 }
 ```
+The latest available version: [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer)
+
 If your project is based on VS solution you can just include next header files for start use:
 ```cpp
 #include "bitserializer/bit_serializer.h"
@@ -35,11 +37,13 @@ target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_rapidjson` option:
 ```
 [requires]
-bitserializer/0.75
+bitserializer/x.xx
 
 [options]
 bitserializer/*:with_rapidjson=True
 ```
+Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
+
 The dependent library **RapidJson** will be automatically installed.
 Usage the library will be related to selected Conan generator, if your choice is `CMakeDeps`, than linking will be classic:
 ```cmake

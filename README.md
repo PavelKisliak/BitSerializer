@@ -185,6 +185,8 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
     ]
 }
 ```
+The latest available version: [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer)
+
 Enumerate features which you need, by default all are disabled. Use like as usual in the [Cmake](#how-to-use-with-cmake).
 
 Alternatively, you can install the library via the command line:
@@ -197,7 +199,7 @@ In the square brackets enumerated all available formats, install only which you 
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
-bitserializer/0.75
+bitserializer/x.xx
 
 [options]
 bitserializer/*:with_rapidjson=True
@@ -206,6 +208,7 @@ bitserializer/*:with_rapidyaml=True
 bitserializer/*:with_csv=True
 bitserializer/*:with_msgpack=True
 ```
+Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
 
 #### Installation via CMake on a Unix system
 ```sh
@@ -751,7 +754,6 @@ class YourCustomKey
 ```
 
 ### Serialization date and time
-*(Feature is not available in the previously released version 0.50)*<br>
 The  ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:
 ```cpp
 #include "bitserializer/types/std/chrono.h"

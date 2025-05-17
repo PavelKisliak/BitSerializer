@@ -34,9 +34,6 @@ The library provides several public functions for convert types:
 - `std::wstring ToWString(TIn&& value, TInitArgs... initArgs)` just "syntax sugar" for `To<std::wstring>()`
 - `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported
 
-> [!NOTE]
-> Arguments for initializing the output type `TInitArgs... initArgs` are not available in the latest 0.70 version (please use the master branch).
-
 Under the hood, integer and floating types are converting via modern `std::from_chars()` and `std::to_chars()`, except for old versions of GCC and CLANG compilers, which do not support floating types. In this case, will be used older (and significantly slower) functions from C++11.
 ```cpp
 #include "bitserializer/convert.h"
@@ -130,7 +127,6 @@ DECLARE_ENUM_STREAM_OPS(EnumType)
 In comparison with macro `REGISTER_ENUM_MAP` you have to take care of including the header file in which you declared this.
 
 ### Date and time conversion
-*(Feature is not available in the previously released version 0.50)*<br>
 Date, time and duration can be converted to string representation of ISO 8601 and vice versa. The following table contains all supported types with string examples:
 
 | Type | Format | Examples | References |
@@ -270,7 +266,7 @@ In the same way, you can convert a type to an existing string:
 ```
 
 > [!NOTE]
-> Extra arguments are not available in the latest 0.70 version (please use the master branch).
+> Arguments for initializing the output type `TInitArgs... initArgs` were introduced in the latest v0.80.
 
 ### UTF encoding
 In addition to simple UTF conversion via `Convert::To()` function, there is also exists set of classes with more granular API for all kind of formats:

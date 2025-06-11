@@ -21,7 +21,7 @@ jobs:
   variables:
     vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
     installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
-    archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.tar.gz'
+    archiveFilePath: '$(Build.ArtifactStagingDirectory)/install/bitserializer_$(Build.SourceBranchName)${{ parameters.packageSuffix }}.zip'
     acceptanceTestsDir: '$(Build.SourcesDirectory)/tests/acceptance_tests'
 
   steps:

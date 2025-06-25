@@ -268,7 +268,7 @@ However, for best results, use UTF-8 consistently unless your application specif
 There are two ways to serialize a class:
 
   * Internal public method `Serialize()` - good way for your own classes.
-  * External static function `SerializeObject()` - used for third party class (no access to sources).
+  * External global function `SerializeObject()` - used for third party class (no access to sources).
 
 Below example demonstrates how to implement internal serialization method:
 ```cpp
@@ -801,9 +801,10 @@ The functional style of serialization used in BitSerializer has one advantage ov
 To check the current serialization mode, use two static methods - `IsLoading()` and `IsSaving()`. As they are «constexpr», you will not have any overhead.
 ```cpp
 class Foo
+{
 public:
     template <class TArchive>
-    inline void Serialize(TArchive& archive)
+    void Serialize(TArchive& archive)
     {
         if constexpr (TArchive::IsLoading()) {
             // Code which executes in loading mode
@@ -891,9 +892,6 @@ int main()
 ```
 [See full sample](samples/versioning/versioning.cpp)
 
-> [!NOTE]
-> Note that the stream implementation must support the `seekg()` operation to load fields non-linearly.
-
 ### Serialization to streams and files
 All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.
 BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but last is only supported by RapidJson, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
@@ -948,6 +946,9 @@ BitSerializer::SaveObjectToFile<TArchive>(T&& object, TString&& path, const Seri
 template <typename TArchive, typename T, typename TString>
 BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions);
 ```
+
+> [!NOTE]
+> Note that the stream implementation must support the `seekg()` operation to load fields non-linearly.
 
 ### Error handling
 First, let's list what are considered as errors and will throw exception:

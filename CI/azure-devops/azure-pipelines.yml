@@ -75,34 +75,18 @@ stages:
     jobs:
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
-          name: 'Windows_VS2019_x86_static'
-          image: 'windows-2019'
+          name: 'Windows_VS2022_x86_static'
+          image: 'windows-2022'
           platform: 'x86'
           vcpkgTriplet: "x86-windows"
           cmakeGenArgs: '$(CmakeGenOptions)'
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
-          name: 'Windows_VS2019_x86_dynamic'
-          image: 'windows-2019'
+          name: 'Windows_VS2022_x86_dynamic'
+          image: 'windows-2022'
           platform: 'x86'
           vcpkgTriplet: "x86-windows"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
-
-      - template: templates/windows-msvc-build-and-test-template.yml
-        parameters:
-          name: 'Windows_VS2019_x64_static'
-          image: 'windows-2019'
-          platform: 'x64'
-          vcpkgTriplet: "x64-windows-release"
-          cmakeGenArgs: '$(CmakeGenOptions)'
-
-      - template: templates/windows-msvc-build-and-test-template.yml
-        parameters:
-          name: 'Windows_VS2019_x64_dynamic'
-          image: 'windows-2019'
-          platform: 'x64'
-          vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/windows-msvc-build-and-test-template.yml
@@ -112,6 +96,14 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
+
+      - template: templates/windows-msvc-build-and-test-template.yml
+        parameters:
+          name: 'Windows_VS2022_x64_dynamic'
+          image: 'windows-2022'
+          platform: 'x64'
+          vcpkgTriplet: "x64-windows-release"
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:

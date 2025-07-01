@@ -43,6 +43,46 @@ TEST(STD_Containers, SerializeArrayAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ThrowExceptionWhenLoadTooBigArray)
+{
+	std::array<int, 7> sourceObj({1, 2, 3, 4, 5, 6, 7});
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
+
+	try
+	{
+		// Load to array with less size
+		std::array<int, 6> targetObj;
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::OutOfRange, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
+TEST(STD_Containers, ThrowExceptionWhenLoadTooSmallArray)
+{
+	std::array<int, 7> sourceObj({ 1, 2, 3, 4, 5, 6, 7 });
+	ArchiveStub::preferred_output_format outputArchive;
+	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
+
+	try
+	{
+		// Load to array with less size
+		std::array<int, 8> targetObj;
+		BitSerializer::LoadObject<ArchiveStub>(targetObj, outputArchive);
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::OutOfRange, ex.GetErrorCode());
+		return;
+	}
+	EXPECT_FALSE(true);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::vector
 //-----------------------------------------------------------------------------
@@ -78,6 +118,12 @@ TEST(STD_Containers, SerializeVectorOfBooleansAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetVectorWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::vector<int32_t>>();
+	TestLoadingEmptyContainer<ArchiveStub, std::vector<std::string>>();
+	TestLoadingEmptyContainer<ArchiveStub, std::vector<TestPointClass>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::deque
 //-----------------------------------------------------------------------------
@@ -97,6 +143,10 @@ TEST(STD_Containers, SerializeDequeOfDeques) {
 TEST(STD_Containers, SerializeDequeAsClassMember) {
 	using test_type = std::deque<std::string>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetDequeWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::deque<int32_t>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -127,6 +177,10 @@ TEST(STD_Containers, SerializeListAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetListWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::list<int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::forward_list
 //-----------------------------------------------------------------------------
@@ -148,6 +202,10 @@ TEST(STD_Containers, SerializeForwardListAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetForwardListWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::forward_list<int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::queue
 //-----------------------------------------------------------------------------
@@ -160,12 +218,20 @@ TEST(STD_Containers, SerializeQueueAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetQueueWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::queue<int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::priority_queue
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializePriorityQueueOfFloats) {
 	using test_type = std::priority_queue<float>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetPriorityQueueWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::priority_queue<int32_t>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -178,6 +244,10 @@ TEST(STD_Containers, SerializeStackOfFloats) {
 TEST(STD_Containers, SerializeStackAsClassMember) {
 	using test_type = std::stack<std::string>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetPriorityStackWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::stack<int32_t>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -196,6 +266,10 @@ TEST(STD_Containers, SerializeSetAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetPrioritySetWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::set<int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unordered_set
 //-----------------------------------------------------------------------------
@@ -208,6 +282,10 @@ TEST(STD_Containers, SerializeUnorderedSetAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetUnorderedSetWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::unordered_set<int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unordered_multiset
 //-----------------------------------------------------------------------------
@@ -218,6 +296,10 @@ TEST(STD_Containers, SerializeUnorderedMultisetOfStrings) {
 TEST(STD_Containers, SerializeUnorderedMultisetAsClassMember) {
 	using test_type = std::unordered_multiset<std::string>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetUnorderedMultisetWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::unordered_multiset<int32_t>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -234,6 +316,10 @@ TEST(STD_Containers, SerializeMultiSetOfMultiSets) {
 TEST(STD_Containers, SerializeMultiSetAsClassMember) {
 	using test_type = std::multiset<std::string>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetMultisetWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::multiset<int32_t>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -319,6 +405,10 @@ TEST(STD_Containers, SerializeMapThrowOverflowTypeExceptionWhenLoadTooBigKey)
 	EXPECT_FALSE(true);
 }
 
+TEST(STD_Containers, ShouldClearTargetMapWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::map<std::string, int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unordered_map
 //-----------------------------------------------------------------------------
@@ -350,6 +440,10 @@ TEST(STD_Containers, SerializeUnorderedMapOfUnorderedMaps) {
 TEST(STD_Containers, SerializeUnorderedMapAsClassMember) {
 	using test_type = std::unordered_map<std::wstring, int>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetUnorderedMapWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::unordered_map<std::string, int32_t>>();
 }
 
 //-----------------------------------------------------------------------------
@@ -385,6 +479,10 @@ TEST(STD_Containers, SerializeUnorderedMultimapAsClassMember) {
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
 }
 
+TEST(STD_Containers, ShouldClearTargetUnorderedMultimapWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::unordered_multimap<std::string, int32_t>>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::multimap
 //-----------------------------------------------------------------------------
@@ -396,6 +494,10 @@ TEST(STD_Containers, SerializeMultimapMapWithIntAsKey) {
 TEST(STD_Containers, SerializeMultimapMapAsClassMember) {
 	using test_type = std::multimap<int, int>;
 	TestSerializeType<ArchiveStub, TestClassWithSubType<test_type>>();
+}
+
+TEST(STD_Containers, ShouldClearTargetMultimapMapWhenLoadFromEmpty) {
+	TestLoadingEmptyContainer<ArchiveStub, std::multimap<std::string, int32_t>>();
 }
 
 //-----------------------------------------------------------------------------

@@ -207,6 +207,26 @@ void TestSerializeTwoDimensionalArray()
 }
 
 /// <summary>
+/// Test template of serialization empty container (existing values ​​should be cleared when loading).
+/// </summary>
+template<typename TArchive, typename TContainer>
+void TestLoadingEmptyContainer()
+{
+	// Arrange
+	TContainer emptyContainer;
+	typename TArchive::preferred_output_format outputArchive{};
+	TContainer actual;
+	BuildFixture(actual);
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(emptyContainer, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	ASSERT_TRUE(actual.empty());
+}
+
+/// <summary>
 /// Test template of serialization for class with using streams.
 /// </summary>
 /// <param name="value">The value.</param>

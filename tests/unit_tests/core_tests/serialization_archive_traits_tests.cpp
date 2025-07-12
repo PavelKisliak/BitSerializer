@@ -9,9 +9,9 @@ using namespace BitSerializer;
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
-/// <summary>
-/// Test archive, which implements loading mode and serialization types WITHOUT keys
-/// </summary>
+/**
+ * @brief Test stub of archive that implements loading mode and serialization types WITHOUT keys.
+ */
 class TestArchive_LoadMode : TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -37,9 +37,9 @@ public:
 	[[nodiscard]] size_t GetEstimatedSize() const { return 0; }
 };
 
-/// <summary>
-/// Test archive, which implements save mode and serialization types WITH keys
-/// </summary>
+/**
+ * @brief Test stub of archive that implements save mode and serialization types WITH keys.
+ */
 class TestArchive_SaveMode : TArchiveScope<SerializeMode::Save>
 {
 public:

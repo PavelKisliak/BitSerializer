@@ -8,18 +8,18 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::unordered_map.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::unordered_map`.
+	 */
 	template<typename TArchive, typename TMapKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
 	void SerializeObject(TArchive& archive, std::unordered_map<TMapKey, TValue, THasher, TKeyEq, TAllocator>& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 	{
 		Detail::SerializeMapImpl(archive, cont, mapLoadMode);
 	}
 
-	/// <summary>
-	/// Serializes std::unordered_multimap.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::unordered_multimap`.
+	 */
 	template<typename TArchive, typename TMapKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
 	void SerializeArray(TArchive& arrayScope, std::unordered_multimap<TMapKey, TValue, THasher, TKeyEq, TAllocator>& cont)
 	{

@@ -8,18 +8,21 @@
 
 namespace BitSerializer::Validate
 {
-	/// <summary>
-	/// Validates that field is deserialized.
-	/// </summary>
+	/**
+	 * @brief Validates that field is deserialized.
+	 */
 	class Required
 	{
 	public:
-		constexpr Required(const char* errorMessage = "This field is required")
+		/**
+		 * @param errorMessage Custom message to show if validation fails.
+		 */
+		constexpr explicit Required(const char* errorMessage = "This field is required")
 			: mErrorMessage(errorMessage)
 		{ }
 
 		template <class TValue>
-		std::optional<std::string> operator() (const TValue&, bool isLoaded) const noexcept
+		std::optional<std::string> operator()(const TValue&, bool isLoaded) const noexcept
 		{
 			if (isLoaded) {
 				return std::nullopt;
@@ -32,20 +35,27 @@ namespace BitSerializer::Validate
 		const char* mErrorMessage;
 	};
 
-	/// <summary>
-	/// Validates that field is in required range.
-	/// </summary>
+	/**
+	 * @brief Validates that a numeric value is within the specified range.
+	 *
+	 * Can be applied for any type that has operators '<' and '>' (e.g. `std::chrono` types).
+	 */
 	template <class TValue>
 	class Range
 	{
 	public:
+		/**
+		 * @param min Minimum allowed value (inclusive).
+		 * @param max Maximum allowed value (inclusive).
+		 * @param errorMessage Optional custom error message.
+		 */
 		constexpr Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
 			: mMin(min)
 			, mMax(max)
 			, mErrorMessage(errorMessage)
 		{ }
 
-		std::optional<std::string> operator() (const TValue& value, bool isLoaded) const
+		std::optional<std::string> operator()(const TValue& value, bool isLoaded) const
 		{
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
@@ -69,22 +79,28 @@ namespace BitSerializer::Validate
 		const char* mErrorMessage;
 	};
 
-	/// <summary>
-	/// Validates that size of field (string, container) is greater or equal than specified value.
-	/// </summary>
+	/**
+	 * @brief Validates that the container or string size is not less than the specified minimum.
+	 *
+	 * The target type must have a `size()` method.
+	 */
 	class MinSize
 	{
 	public:
+		/**
+		 * @param minSize Minimum required size.
+		 * @param errorMessage Optional custom error message.
+		 */
 		constexpr MinSize(const size_t minSize, const char* errorMessage = nullptr) noexcept
 			: mMinSize(minSize)
 			, mErrorMessage(errorMessage)
 		{ }
 
 		template <class TValue>
-		std::optional<std::string> operator() (const TValue& value, bool isLoaded) const
+		std::optional<std::string> operator()(const TValue& value, bool isLoaded) const
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
-			static_assert(hasSizeMethod, "BitSerializer. The 'MinSize' validator can be applied only for types which has size() method.");
+			static_assert(hasSizeMethod, "BitSerializer. 'MinSize' validator can only be used for types with a size() method.");
 
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
@@ -109,22 +125,28 @@ namespace BitSerializer::Validate
 		const char* mErrorMessage;
 	};
 
-	/// <summary>
-	/// Validates that size of field (string, container) is not greater than specified value.
-	/// </summary>
+	/**
+	 * @brief Validates that the size of a container or string does not exceed the specified maximum.
+	 *
+	 * The target type must have a `size()` method.
+	 */
 	class MaxSize
 	{
 	public:
+		/**
+		 * @param maxSize Maximum allowed size.
+		 * @param errorMessage Optional custom error message.
+		 */
 		constexpr MaxSize(const size_t maxSize, const char* errorMessage = nullptr) noexcept
 			: mMaxSize(maxSize)
 			, mErrorMessage(errorMessage)
 		{ }
 
 		template <class TValue>
-		std::optional<std::string> operator() (const TValue& value, bool isLoaded) const
+		std::optional<std::string> operator()(const TValue& value, bool isLoaded) const
 		{
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
-			static_assert(hasSizeMethod, "BitSerializer. The 'MaxSize' validator can be applied only for types which has size() method.");
+			static_assert(hasSizeMethod, "BitSerializer. 'MaxSize' validator can only be used for types with a size() method.");
 
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
@@ -140,7 +162,7 @@ namespace BitSerializer::Validate
 				if (mErrorMessage) {
 					return mErrorMessage;
 				}
-				return "The maximum size of this field should be not greater than " + Convert::ToString(mMaxSize);
+				return "The maximum size of this field should not exceed " + Convert::ToString(mMaxSize);
 			}
 		}
 
@@ -149,14 +171,19 @@ namespace BitSerializer::Validate
 		const char* mErrorMessage;
 	};
 
-	/// <summary>
-	/// Validates that string contains an email.
-	/// Generally complies with the RFC standard, except: quoted parts, comments, SMTPUTF8 and IP address as domain part.
-	/// </summary>
+	/**
+	 * @brief Validates that a string contains a valid email address.
+	 *
+	 * Supports most common formats defined by RFC 5322, excluding quoted strings,
+	 * comments, SMTPUTF8 extensions, and IP addresses in the domain part.
+	 */
 	class Email
 	{
 	public:
-		constexpr Email(const char* errorMessage = "Invalid email address") noexcept
+		/**
+		 * @param errorMessage Optional custom error message.
+		 */
+		constexpr explicit Email(const char* errorMessage = "Invalid email address") noexcept
 			: mErrorMessage(errorMessage)
 		{ }
 
@@ -257,35 +284,47 @@ namespace BitSerializer::Validate
 		const char* mErrorMessage;
 	};
 
-	/// <summary>
-	/// Validates that string contains a phone number.
-	///	Allows to validate phones with various numbers of digits, optional plus, parentheses and dashes, e.g.: +555 (55) 555-55-55
-	/// </summary>
+	/**
+	 * @brief Validates that a string matches a phone number pattern.
+	 *
+	 * Allows optional '+' prefix, parentheses, spaces, and dashes.
+	 * Examples: "+1 (800) 123-45-67", "800 123 4567", "(800)123-4567".
+	 */
 	class PhoneNumber
 	{
 	public:
-		constexpr PhoneNumber(size_t minNumbers = 7, size_t maxNumbers = 15, bool isPlusRequired = true, const char* errorMessage = nullptr) noexcept
-			: mMinNumbers(minNumbers)
-			, mMaxNumbers(maxNumbers)
-			, mIsPlusRequired(isPlusRequired)
+		/**
+		 * @param minDigits Minimum number of digits required.
+		 * @param maxDigits Maximum number of digits allowed.
+		 * @param plusRequired Whether a leading '+' is mandatory.
+		 * @param errorMessage Optional custom error message.
+		 */
+		constexpr PhoneNumber(size_t minDigits = 7, size_t maxDigits = 15, bool plusRequired = true, const char* errorMessage = nullptr) noexcept
+			: mMinDigits(minDigits)
+			, mMaxDigits(maxDigits)
+			, mPlusRequired(plusRequired)
 			, mErrorMessage(errorMessage)
 		{ }
 
 		template <typename T, std::enable_if_t<Convert::Detail::is_convertible_to_string_view_v<T>, int> = 0>
-		std::optional<std::string> operator() (const T& value, bool isLoaded) const
+		std::optional<std::string> operator()(const T& value, bool isLoaded) const
 		{
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
 				return std::nullopt;
 			}
 
-			bool hasPlus = false, isInParenthesis = false, isLastDigit = false;
+			bool hasPlus = false;
+			bool inParenthesis = false;
+			bool lastWasDigit = false;
 			size_t digitCount = 0;
+			const char* error = nullptr;
+
 			const auto str = Convert::Detail::ToStringView(value);
 			const size_t strSize = str.size();
-			const char* error = nullptr;
+
 			using char_type = std::make_unsigned_t<typename decltype(str)::value_type>;
-			for (size_t i = 0; i < strSize && error == nullptr; ++i)
+			for (size_t i = 0; i < strSize && !error; ++i)
 			{
 				if (const char_type ch = static_cast<char_type>(str[i]); digitCount == 0 && ch == '+') {
 					hasPlus = true;
@@ -293,27 +332,27 @@ namespace BitSerializer::Validate
 				else if (ch >= '0' && ch <= '9')
 				{
 					++digitCount;
-					isLastDigit = true;
+					lastWasDigit = true;
 				}
 				else if (ch != ' ')
 				{
 					if (ch == '-')
 					{
-						if (!isLastDigit || i + 1 == strSize) {
+						if (!lastWasDigit || i + 1 == strSize) {
 							error = "Invalid phone number (dashes should be used to separate numbers)";
 						}
 					}
 					else if (ch == '(')
 					{
-						if (isInParenthesis) {
+						if (inParenthesis) {
 							error = "Invalid phone number (contains nested parentheses)";
 						}
-						isInParenthesis = true;
+						inParenthesis = true;
 					}
 					else if (ch == ')')
 					{
-						if (isInParenthesis && isLastDigit) {
-							isInParenthesis = false;
+						if (inParenthesis && lastWasDigit) {
+							inParenthesis = false;
 						}
 						else {
 							error = "Invalid phone number (invalid closing parenthesis)";
@@ -322,15 +361,15 @@ namespace BitSerializer::Validate
 					else {
 						error = "Invalid phone number (contains invalid characters)";
 					}
-					isLastDigit = false;
+					lastWasDigit = false;
 				}
 			}
 
-			if (!hasPlus && mIsPlusRequired) {
+			if (mPlusRequired && !hasPlus) {
 				error = "Invalid phone number (missing initial `+`)";
 			}
 
-			if (isInParenthesis) {
+			if (inParenthesis) {
 				error = "Invalid phone number (missing closing parenthesis)";
 			}
 
@@ -338,21 +377,21 @@ namespace BitSerializer::Validate
 				return std::make_optional<std::string>(mErrorMessage ? mErrorMessage : error);
 			}
 
-			if (digitCount < mMinNumbers || digitCount > mMaxNumbers)
+			if (digitCount < mMinDigits || digitCount > mMaxDigits)
 			{
-				if (mMinNumbers == mMaxNumbers) {
-					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (must contain " + Convert::ToString(mMinNumbers) + " digits)");
+				if (mMinDigits == mMaxDigits) {
+					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (must contain " + Convert::ToString(mMinDigits) + " digits)");
 				}
 				return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (the number of digits must be from "
-					+ Convert::ToString(mMinNumbers) + " to " + Convert::ToString(mMaxNumbers) + ")");
+					+ Convert::ToString(mMinDigits) + " to " + Convert::ToString(mMaxDigits) + ")");
 			}
 			return std::nullopt;
 		}
 
 	private:
-		size_t mMinNumbers;
-		size_t mMaxNumbers;
-		bool mIsPlusRequired;
+		size_t mMinDigits;
+		size_t mMaxDigits;
+		bool mPlusRequired;
 		const char* mErrorMessage;
 	};
 }

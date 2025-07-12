@@ -18,9 +18,9 @@ namespace Detail {
 
 using BitSerializer::Detail::CBinTimestamp;
 
-/// <summary>
-/// The traits of MsgPack archive (internal implementation - no dependencies)
-/// </summary>
+/**
+ * @brief MsgPack archive traits.
+ */
 struct MsgPackArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::MsgPack;
@@ -55,9 +55,9 @@ enum class ValueType
 	Timestamp
 };
 
-/// <summary>
-/// Stores the current key in the archive, support all variant of keys from specified tuple.
-/// </summary>
+/**
+ * @brief Stores the current key in the archive, supports all variant of keys from specified tuple.
+ */
 template <typename TTuple>
 class CVariableKey
 {
@@ -266,9 +266,9 @@ public:
 template <class TWriter>
 class CMsgPackWriteObjectScope;
 
-/// <summary>
-/// MsgPack scope for serializing binary arrays.
-/// </summary>
+/**
+ * @brief MsgPack scope for writing binary arrays.
+ */
 template <class TWriter>
 class CMsgPackWriteBinaryScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
@@ -299,9 +299,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack scope for serializing arrays (list of values without keys).
-/// </summary>
+/**
+ * @brief MsgPack scope for writing arrays (sequential values).
+ */
 template <class TWriter>
 class CMsgPackWriteArrayScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
@@ -361,9 +361,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack scope for writing objects (list of values with keys).
-/// </summary>
+/**
+ * @brief MsgPack scope for writing objects (key-value pairs).
+ */
 template <class TWriter>
 class CMsgPackWriteObjectScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
@@ -430,9 +430,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack root scope
-/// </summary>
+/**
+ * @brief MsgPack root scope for writing data (can write array or object).
+ */
 class BITSERIALIZER_API MsgPackWriteRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
@@ -445,9 +445,9 @@ public:
 	MsgPackWriteRootScope(const MsgPackWriteRootScope&) = delete;
 	MsgPackWriteRootScope& operator=(const MsgPackWriteRootScope&) = delete;
 
-	/// <summary>
-	/// Gets the current path in MsgPack.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in MsgPack.
+	 */
 	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
@@ -506,9 +506,9 @@ public:
 	CMsgPackScopeBase& operator=(const CMsgPackScopeBase&) = delete;
 	CMsgPackScopeBase& operator=(CMsgPackScopeBase&&) noexcept = default;
 
-	/// <summary>
-	/// Gets the current path in MsgPack.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in MsgPack.
+	 */
 	[[nodiscard]] virtual std::string GetPath() const
 	{
 		std::string path = mParentScope ? mParentScope->GetPath() : std::string();
@@ -530,9 +530,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack scope for serializing binary arrays.
-/// </summary>
+/**
+ * @brief MsgPack scope for reading binary arrays.
+ */
 template <class TReader>
 class CMsgPackReadBinaryScope final : public CMsgPackScopeBase, public TArchiveScope<SerializeMode::Load>
 {
@@ -544,9 +544,9 @@ public:
 		, mSize(arraySize)
 	{ }
 
-	/// <summary>
-	/// Gets the current path in MsgPack.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in MsgPack.
+	 */
 	[[nodiscard]] std::string GetPath() const override
 	{
 		std::string path = CMsgPackScopeBase::GetPath();
@@ -564,17 +564,17 @@ public:
 		return true;
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const noexcept
 	{
 		return mSize;
 	}
 
-	/// <summary>
-	/// Returns `true` when all no more values to load.
-	/// </summary>
+	/**
+	 * @brief Returns `true` when there are no more values to load.
+	 */
 	[[nodiscard]] bool IsEnd() const noexcept
 	{
 		return mIndex == mSize;
@@ -594,9 +594,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack scope for serializing arrays (list of values with keys).
-/// </summary>
+/**
+ * @brief MsgPack scope for reading arrays (sequential values).
+ */
 template <class TReader>
 class CMsgPackReadArrayScope final : public CMsgPackScopeBase, public TArchiveScope<SerializeMode::Load>
 {
@@ -608,9 +608,9 @@ public:
 		, mSize(arraySize)
 	{ }
 
-	/// <summary>
-	/// Gets the current path in MsgPack.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in MsgPack.
+	 */
 	[[nodiscard]] std::string GetPath() const override
 	{
 		std::string path = CMsgPackScopeBase::GetPath();
@@ -632,17 +632,17 @@ public:
 		return false;
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const noexcept
 	{
 		return mSize;
 	}
 
-	/// <summary>
-	/// Returns `true` when all no more values to load.
-	/// </summary>
+	/**
+	 * @brief Returns `true` when there are no more values to load.
+	 */
 	[[nodiscard]] bool IsEnd() const noexcept
 	{
 		return mIndex == mSize;
@@ -692,9 +692,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack scope for reading objects (list of values with keys).
-/// </summary>
+/**
+ * @brief MsgPack scope for reading objects (key-value pairs).
+ */
 template <class TReader>
 class CMsgPackReadObjectScope final : public CMsgPackScopeBase, public TArchiveScope<SerializeMode::Load>
 {
@@ -719,9 +719,9 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// Gets the current path in MsgPack.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in MsgPack.
+	 */
 	[[nodiscard]] std::string GetPath() const override
 	{
 		std::string path = CMsgPackScopeBase::GetPath();
@@ -733,17 +733,20 @@ public:
 		return path;
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const noexcept
 	{
 		return mSize;
 	}
 
-	/// <summary>
-	/// Enumerates all keys by calling a passed function.
-	/// </summary>
+	/**
+	 * @brief Enumerates all keys in the current object.
+	 *
+	 * @tparam TCallback Callback function type.
+	 * @param fn Callback to invoke for each key.
+	 */
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
@@ -902,9 +905,9 @@ private:
 };
 
 
-/// <summary>
-/// MsgPack root scope
-/// </summary>
+/**
+ * @brief MsgPack root scope for reading data (can read array or object).
+ */
 class BITSERIALIZER_API MsgPackReadRootScope final : public MsgPackArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -912,9 +915,9 @@ public:
 	MsgPackReadRootScope(std::istream& inputStream, SerializationContext& serializationContext);
 	~MsgPackReadRootScope();
 
-	/// <summary>
-	/// Gets the current path in MsgPack.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in MsgPack.
+	 */
 	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
@@ -960,15 +963,16 @@ private:
 }
 
 
-/// <summary>
-/// MsgPack archive.
-/// Supports load/save from:
-/// - <c>std::string</c>
-/// - <c>std::istream</c> and <c>std::ostream</c>
-/// </summary>
+/**
+ * @brief MsgPack archive.
+ *
+ * Supports load/save from:
+ * - `std::string`
+ * - `std::istream` and `std::ostream`
+ */
 using MsgPackArchive = TArchiveBase<
 	Detail::MsgPackArchiveTraits,
 	Detail::MsgPackReadRootScope,
 	Detail::MsgPackWriteRootScope>;
 
-}
+} // namespace BitSerializer::MsgPack

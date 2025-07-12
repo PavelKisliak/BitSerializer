@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,18 +8,18 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::queue.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::queue`.
+	 */
 	template<typename TArchive, typename TValue, typename TContainer>
 	void SerializeArray(TArchive& archive, std::queue<TValue, TContainer>& cont)
 	{
 		Detail::SerializeContainer(archive, Detail::GetBaseContainer(cont));
 	}
 
-	/// <summary>
-	/// Serializes std::priority_queue.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::priority_queue`.
+	 */
 	template<typename TArchive, typename TValue, typename TContainer, typename TComparer>
 	void SerializeArray(TArchive& archive, std::priority_queue<TValue, TContainer, TComparer>& cont)
 	{

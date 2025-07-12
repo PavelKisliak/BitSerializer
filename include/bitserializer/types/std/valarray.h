@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -9,9 +9,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::valarray.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::valarray`.
+	 */
 	template<typename TArchive, typename TValue>
 	void SerializeArray(TArchive& archive, std::valarray<TValue>& cont)
 	{

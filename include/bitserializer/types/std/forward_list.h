@@ -7,9 +7,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::forward_list.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::forward_list`.
+	 */
 	template<typename TArchive, typename TValue, typename TAllocator>
 	void SerializeArray(TArchive& arrayScope, std::forward_list<TValue, TAllocator>& cont)
 	{

@@ -16,9 +16,10 @@
 namespace BitSerializer::Xml::PugiXml {
 namespace Detail {
 
-/// <summary>
-/// The traits of XML archive based on PugiXml
-/// </summary>
+
+/**
+ * @brief XML archive traits (based on PugiXml).
+ */
 struct PugiXmlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Xml;
@@ -163,10 +164,9 @@ namespace PugiXmlExtensions
 template <SerializeMode TMode>
 class PugiXmlObjectScope;
 
-/// <summary>
-/// XML scope for serializing arrays (list of values without keys).
-/// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
+/**
+ * @brief XML scope for serializing arrays (sequential values).
+ */
 template <SerializeMode TMode>
 class PugiXmlArrayScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
@@ -177,23 +177,23 @@ public:
 		, mValueIt(mNode.begin())
 	{ }
 
-	/// <summary>
-	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in XML.
+	 */
 	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mNode);
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const {
 		return std::distance(mNode.begin(), mNode.end());
 	}
 
-	/// <summary>
-	/// Returns `true` when all no more values to load.
-	/// </summary>
+	/**
+	 * @brief Returns `true` when there are no more values to load.
+	 */
 	[[nodiscard]]
 	bool IsEnd() const
 	{
@@ -281,10 +281,9 @@ protected:
 };
 
 
-/// <summary>
-/// XML scope for serializing attributes (key=value pairs in the XML node)
-/// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
+/**
+ * @brief XML scope for serializing attributes (key-value pairs represented as XML attributes in the XML node)
+ */
 template <SerializeMode TMode>
 class PugiXmlAttributeScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
@@ -296,9 +295,9 @@ public:
 		assert(mNode.type() == pugi::node_element);
 	}
 
-	/// <summary>
-	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in XML.
+	 */
 	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mNode);
 	}
@@ -385,10 +384,9 @@ protected:
 };
 
 
-/// <summary>
-/// XML scope for serializing objects (list of values with keys).
-/// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
+/**
+ * @brief XML scope for serializing objects (key-value pairs represented as nodes in the XML).
+ */
 template <SerializeMode TMode>
 class PugiXmlObjectScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
@@ -400,16 +398,19 @@ public:
 		assert(mNode.type() == pugi::node_element);
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const {
 		return std::distance(mNode.begin(), mNode.end());
 	}
 
-	/// <summary>
-	/// Enumerates all keys by calling a passed function.
-	/// </summary>
+	/**
+	 * @brief Enumerates all keys in the current object.
+	 *
+	 * @tparam TCallback Callback function type.
+	 * @param fn Callback to invoke for each key.
+	 */
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
@@ -418,9 +419,9 @@ public:
 		}
 	}
 
-	/// <summary>
-	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in XML.
+	 */
 	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mNode);
 	}
@@ -502,9 +503,9 @@ protected:
 };
 
 
-/// <summary>
-/// XML root scope (can serialize one value, array or object without key)
-/// </summary>
+/**
+ * @brief XML root scope for serializing data (can serialize array or object with/without key).
+ */
 template <SerializeMode TMode>
 class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
@@ -545,9 +546,9 @@ public:
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
-	/// <summary>
-	/// Gets the current path in XML. Unicode symbols encode to UTF-8.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in XML.
+	 */
 	[[nodiscard]] std::string GetPath() const {
 		return PugiXmlExtensions::GetPath(mRootXml);
 	}
@@ -713,20 +714,16 @@ private:
 }
 
 
-/// <summary>
-/// XML archive based on the PugiXml library.
-/// Supports load/save from:
-/// - <c>std::string</c>: UTF-8
-/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
-/// </summary>
-/// <remarks>
-/// The XML-key type is depends from global definition in the PugiXml 'PUGIXML_WCHAR_MODE' in the PugiXml, by default uses std::string.
-/// For stay your code cross compiled you can use macros PUGIXML_TEXT("MyKey") from PugiXml or
-/// use BitSerializer::AutoKeyValue() but with possible small overhead for converting.
-/// </remarks>
+/**
+ * @brief XML archive based on PugiXml library.
+ *
+ * Supports load/save from:
+ * - `std::string`: UTF-8
+ * - `std::istream`, `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+ */
 using XmlArchive = TArchiveBase<
 	Detail::PugiXmlArchiveTraits,
 	Detail::PugiXmlRootScope<SerializeMode::Load>,
 	Detail::PugiXmlRootScope<SerializeMode::Save>>;
 
-}
+} // namespace BitSerializer::Xml::PugiXml

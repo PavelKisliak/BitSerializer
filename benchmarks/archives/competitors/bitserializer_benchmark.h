@@ -30,9 +30,13 @@
 #pragma warning(push)
 #pragma warning(disable: 4702)
 
-/// <summary>
-/// Serializes `CBasicTestModel` using BitSerializer.
-/// </summary>
+/**
+ * @brief Serializes the `CBasicTestModel` using BitSerializer.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @param archive Reference to the archive object.
+ * @param testModel Reference to the model to serialize.
+ */
 template<typename TArchive>
 void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
 {
@@ -48,9 +52,11 @@ void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
 	archive << BitSerializer::KeyValue("MultiLineString", testModel.MultiLineString);
 }
 
-/// <summary>
-/// BitSerializer benchmark.
-/// </summary>
+/**
+ * @brief Benchmark implementation for the BitSerializer library.
+ *
+ * @tparam TArchive The specific archive type to benchmark.
+ */
 template <class TArchive>
 class CBitSerializerBenchmark final : public CBenchmarkBase
 {

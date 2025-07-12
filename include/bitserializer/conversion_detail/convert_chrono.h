@@ -16,12 +16,15 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Wrapper for `time_t` type, used to distinguish between time_t and integer types.
-	///	Usage example:
-	///	   time_t time = Convert::To<CRawTime>("2044-01-01T00:00:00Z");
-	///	   auto isoDate = Convert::To<std::string>(CRawTime(time));
-	/// </summary>
+	/**
+	 * @brief Wrapper for `time_t` type to distinguish between `time_t` and integer types.
+	 *
+	 * Usage example:
+	 * @code
+	 *   time_t time = Convert::To<CRawTime>("2044-01-01T00:00:00Z");
+	 *   auto isoDate = Convert::To<std::string>(CRawTime(time));
+	 * @endcode
+	 */
 	struct CRawTime
 	{
 		CRawTime() = default;
@@ -41,7 +44,7 @@ namespace BitSerializer::Convert::Detail
 
 	template <class TFractions = std::chrono::nanoseconds,
 		std::enable_if_t<TFractions::period::num == 1 && std::chrono::seconds::period::den < TFractions::period::den, int> = 0>
-	struct CDateTimeParts
+		struct CDateTimeParts
 	{
 		CDateTimeParts() = default;
 		CDateTimeParts(const tm& tm, std::optional<TFractions> secFractions = std::nullopt)
@@ -58,10 +61,13 @@ namespace BitSerializer::Convert::Detail
 		std::optional<TFractions> SecFractions;
 	};
 
-	/// <summary>
-	/// Converts WITHOUT truncation a `std::chrono::duration` to another type of duration.
-	/// </summary>
-	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	/**
+	 * @brief Safely converts a duration to another duration type without truncation.
+	 *
+	 * @param duration The duration to convert.
+	 * @return Converted duration.
+	 * @throws std::out_of_range if overflow occurs during conversion.
+	 */
 	template <class TTarget, class TRep, class TPeriod>
 	TTarget SafeDurationCast(const std::chrono::duration<TRep, TPeriod>& duration)
 	{
@@ -128,10 +134,13 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Adds `std::chrono::duration` to `std::chrono::timepoint` WITHOUT truncation.
-	/// </summary>
-	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	/**
+	 * @brief Adds a duration to a time point safely without truncation.
+	 *
+	 * @param tp Reference to the time point being modified.
+	 * @param duration Duration to add.
+	 * @throws std::out_of_range If the operation causes an overflow.
+	 */
 	template <class TTargetClock, class TTargetDuration, class TSrcRep, class TSrcPeriod>
 	void SafeAddDuration(std::chrono::time_point<TTargetClock, TTargetDuration>& tp, const std::chrono::duration<TSrcRep, TSrcPeriod>& duration)
 	{
@@ -157,10 +166,13 @@ namespace BitSerializer::Convert::Detail
 		tp = std::chrono::time_point<TTargetClock, TTargetDuration>(newTp);
 	}
 
-	/// <summary>
-	/// Adds two `std::chrono::duration` WITHOUT truncation.
-	/// </summary>
-	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
+	/**
+	 * @brief Adds two durations safely without truncation.
+	 *
+	 * @param target Reference to the duration being modified.
+	 * @param src Source duration to add.
+	 * @throws std::out_of_range If the operation causes an overflow.
+	 */
 	template <class TTargetRep, class TTargetPeriod, class TSrcRep, class TSrcPeriod>
 	void SafeAddDuration(std::chrono::duration<TTargetRep, TTargetPeriod>& target, const std::chrono::duration<TSrcRep, TSrcPeriod>& src)
 	{
@@ -177,11 +189,16 @@ namespace BitSerializer::Convert::Detail
 		target += adaptedDuration;
 	}
 
-	/// <summary>
-	/// Parses fractions of second.
-	/// Supported up to 9 digits, which is enough for values represented in nanoseconds.
-	/// </summary>
-	/// <returns>Pointer to next character or nullptr when failed</returns>
+	/**
+	 * @brief Parses fractional seconds from a character sequence.
+	 *
+	 * Supports up to 9 digits, which corresponds to nanosecond precision.
+	 *
+	 * @param pos Pointer to the current position in the input buffer.
+	 * @param endPos End of the input buffer.
+	 * @param outTime Parsed fractional seconds stored here.
+	 * @return Pointer to the next character after parsing, or `nullptr` on failure.
+	 */
 	template <class TTargetRep, class TTargetPeriod>
 	const char* ParseSecondFractions(const char* pos, const char* endPos, std::chrono::duration<TTargetRep, TTargetPeriod>& outTime) noexcept
 	{
@@ -208,11 +225,17 @@ namespace BitSerializer::Convert::Detail
 		return nullptr;
 	}
 
-	/// <summary>
-	/// Prints fractions of second to target buffer.
-	/// Supported up to 9 digits, which is enough for values with nanosecond precision.
-	/// </summary>
-	/// <returns>Pointer to next character or nullptr when failed (in case when passed buffer is not enough)</returns>
+	/**
+	 * @brief Prints fractional seconds to a target buffer.
+	 *
+	 * Supports up to 9 digits (nanosecond precision).
+	 *
+	 * @param pos Pointer to the start of the buffer.
+	 * @param end End of the buffer.
+	 * @param time Fractional seconds to print.
+	 * @param fixedWidth Whether to use fixed-width format.
+	 * @return Pointer to the next character after writing, or `nullptr` on failure.
+	 */
 	template <class TRep, class TPeriod>
 	char* PrintSecondsFractions(char* pos, const char* end, std::chrono::duration<TRep, TPeriod> time, bool fixedWidth = true) noexcept
 	{
@@ -246,10 +269,16 @@ namespace BitSerializer::Convert::Detail
 		return pos;
 	}
 
-	/// <summary>
-	/// Subtracts and prints time part from passed duration.
-	/// </summary>
-	/// <returns>Pointer to the next character or throws exception when passed buffer is not enough</returns>
+	/**
+	 * @brief Subtracts and prints time part from passed duration.
+	 *
+	 * @param timeLeft Remaining time to print.
+	 * @param pos Current write position.
+	 * @param endPos End of buffer.
+	 * @param suffix Suffix character (e.g., 'H', 'M').
+	 * @return Pointer to the next character after writing.
+	 * @throw std::runtime_error If the passed buffer is not enough.
+	 */
 	template <class TPrintDur, class TRep, class TPeriod>
 	char* PrintDurationPart(std::chrono::duration<TRep, TPeriod>& timeLeft, char* pos, char* endPos, char suffix)
 	{
@@ -288,9 +317,12 @@ namespace BitSerializer::Convert::Detail
 		return pos;
 	}
 
-	/// <summary>
-	/// Parses ISO 8601/UTC datetime in the format: YYYY-MM-DDThh:mm:ss[.SSS]Z
-	/// </summary>
+	/**
+	 * @brief Parses ISO 8601/UTC datetime in the format: YYYY-MM-DDThh:mm:ss[.SSS]Z
+	 *
+	 * @param in Input string view.
+	 * @return DateTime parts parsed from the string.
+	 */
 	template <typename TSym>
 	static CDateTimeParts<> ParseIsoUtc(std::basic_string_view<TSym> in)
 	{
@@ -360,10 +392,15 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Prints calendar date and time in the ISO 8601/UTC to target buffer.
-	/// </summary>
-	/// <returns>Pointer to next character or throws exception when passed buffer is not enough</returns>
+	/**
+	 * @brief Prints calendar date and time in the ISO 8601/UTC to target buffer.
+	 *
+	 * @param utc DateTime parts to print.
+	 * @param pos Start of the output buffer.
+	 * @param endPos End of the output buffer.
+	 * @return Pointer to the next character after writing.
+	 * @throw std::runtime_error If the passed buffer is not enough.
+	 */
 	template <class TFractions>
 	char* PrintIsoUtc(const CDateTimeParts<TFractions>& utc, char* pos, char* endPos)
 	{
@@ -389,9 +426,12 @@ namespace BitSerializer::Convert::Detail
 		throw std::runtime_error("Internal error: insufficient buffer size");
 	}
 
-	/// <summary>
-	/// Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
-	/// </summary>
+	/**
+	 * @brief Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
+	 *
+	 * @param[in] in Input `tm` structure.
+	 * @param[out] out Output string.
+	 */
 	template <typename TSym, typename TAllocator>
 	void To(const tm& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
@@ -401,9 +441,12 @@ namespace BitSerializer::Convert::Detail
 		out.append(buf, pos);
 	}
 
-	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to `tm` structure.
-	/// </summary>
+	/**
+	 * @brief Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to `tm` structure.
+	 *
+	 * @param[in] in Input string.
+	 * @param[out] out Output `tm` structure.
+	 */
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, tm& out)
 	{
@@ -420,10 +463,14 @@ namespace BitSerializer::Convert::Detail
 		out.tm_yday = out.tm_isdst = 0;
 	}
 
-	/// <summary>
-	/// Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
-	///	Fractions of second will be rendered only when they present (non-zero).
-	/// </summary>
+	/**
+	 * @brief Converts from `std::chrono::time_point` to `std::string` (ISO 8601/UTC).
+	 *
+	 * Fractions of a second will be rendered only if present (non-zero).
+	 *
+	 * @param[in] in Input time point.
+	 * @param[out] out Output string.
+	 */
 	template <typename TClock, typename TDuration, typename TSym, typename TAllocator, std::enable_if_t<!TClock::is_steady, int> = 0>
 	static void To(const std::chrono::time_point<TClock, TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
@@ -461,13 +508,18 @@ namespace BitSerializer::Convert::Detail
 		out.append(buf, pos);
 	}
 
-	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z) to `std::chrono::time_point`.
-	///	Fractions of second are optional, supported up to 9 digits.
-	///	Examples of allowed dates:
-	///	- 1872-01-01T00:00:00Z
-	///	- 2023-07-14T22:44:51.925Z
-	/// </summary>
+	/**
+	 * @brief Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ss[.SSS]Z) to `std::chrono::time_point`.
+	 *
+	 * Fractions of a second are optional and support up to 9 digits.
+	 *
+	 * Examples:
+	 * - 1872-01-01T00:00:00Z
+	 * - 2023-07-14T22:44:51.925Z
+	 *
+	 * @param[in] in Input string.
+	 * @param[out] out Output time point.
+	 */
 	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
@@ -501,9 +553,12 @@ namespace BitSerializer::Convert::Detail
 		out = tp;
 	}
 
-	/// <summary>
-	/// Converts Unix time in the `CRawTime` to `std::string` (ISO 8601/UTC).
-	/// </summary>
+	/**
+	 * @brief Converts Unix time in the `CRawTime` to `std::string` (ISO 8601/UTC).
+	 *
+	 * @param[in] in Input `CRawTime` wrapper around `time_t`.
+	 * @param[out] out Output string.
+	 */
 	template <typename TSym, typename TAllocator>
 	void To(const CRawTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
@@ -511,9 +566,12 @@ namespace BitSerializer::Convert::Detail
 		To(tp, out);
 	}
 
-	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `CRawTime`.
-	/// </summary>
+	/**
+	 * @brief Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `CRawTime`.
+	 *
+	 * @param[in] in Input string.
+	 * @param[out] out Output `CRawTime` object.
+	 */
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, CRawTime& out)
 	{
@@ -522,9 +580,12 @@ namespace BitSerializer::Convert::Detail
 		out.Time = tp.time_since_epoch().count();
 	}
 
-	/// <summary>
-	/// Converts from `std::chrono::duration` to `std::string` (ISO 8601/Duration: PnDTnHnMnS).
-	/// </summary>
+	/**
+	 * @brief Converts from `std::chrono::duration` to `std::string` (ISO 8601/Duration: PnDTnHnMnS).
+	 *
+	 * @param[in] in Input duration.
+	 * @param[out] out Output string.
+	 */
 	template <typename TRep, typename TPeriod, typename TSym, typename TAllocator>
 	static void To(const std::chrono::duration<TRep, TPeriod>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
@@ -557,12 +618,22 @@ namespace BitSerializer::Convert::Detail
 		out.append(buf, pos);
 	}
 
-	/// <summary>
-	/// Converts from `std::string_view` (ISO 8601/Duration format: PnWnDTnHnMnS) to `std::chrono::duration`.
-	///	Examples of allowed durations: P25DT55M41S, P1W, PT10H20.346S, -P10DT25M (supported signed durations, but they are no officially defined).
-	/// Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
-	///	The decimal fraction supported only for seconds part, maximum 9 digits.
-	/// </summary>
+	/**
+	 * @brief Converts from `std::string_view` (ISO 8601/Duration format: PnWnDTnHnMnS) to `std::chrono::duration`.
+	 *
+	 * Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
+	 * The decimal fraction supported only for seconds part, maximum 9 digits.
+	 * Negative durations are supported (but they are not defined officially).
+	 *
+	 * Examples:
+	 * - P25DT55M41S
+	 * - P1W
+	 * - PT10H20.346S
+	 * - -P10DT25M
+	 *
+	 * @param[in] in Input string.
+	 * @param[out] out Output duration.
+	 */
 	template <typename TSym, typename TRep, typename TPeriod>
 	static void To(std::basic_string_view<TSym> in, std::chrono::duration<TRep, TPeriod>& out)
 	{

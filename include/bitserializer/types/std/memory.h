@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,9 +8,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::unique_ptr.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::unique_ptr`.
+	 */
 	template <class TArchive, typename TKey, class TValue>
 	bool Serialize(TArchive& archive, TKey&& key, std::unique_ptr<TValue>& ptr)
 	{
@@ -61,9 +61,9 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes std::shared_ptr.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::shared_ptr`.
+	 */
 	template <class TArchive, typename TKey, class TValue>
 	bool Serialize(TArchive& archive, TKey&& key, std::shared_ptr<TValue>& ptr)
 	{

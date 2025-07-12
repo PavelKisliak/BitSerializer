@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,9 +7,11 @@
 
 namespace BitSerializer::Convert::Detail
 {
-	/// <summary>
-	/// Checks whether the type can be converted to std::basic_string_view.
-	/// </summary>
+	/**
+	 * @brief Determines whether a type can be converted to `std::basic_string_view`.
+	 *
+	 * Checks if the type `T` supports conversion via the `ToStringView(...)` function.
+	 */
 	template <typename T>
 	struct is_convertible_to_string_view
 	{
@@ -28,9 +30,9 @@ namespace BitSerializer::Convert::Detail
 	template <typename T>
 	constexpr bool is_convertible_to_string_view_v = is_convertible_to_string_view<T>::value;
 
-	/// <summary>
-	/// Checks if the conversion is supported.
-	/// </summary>
+	/**
+	 * @brief Determines whether a conversion from `TSource` to `TTarget` is supported.
+	 */
 	template <typename TSource, typename TTarget>
 	struct is_convert_supported
 	{

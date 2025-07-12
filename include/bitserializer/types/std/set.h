@@ -8,18 +8,18 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::set.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::set`.
+	 */
 	template<typename TArchive, typename TValue, typename TComparer, typename TAllocator>
 	void SerializeArray(TArchive& archive, std::set<TValue, TComparer, TAllocator>& cont)
 	{
 		Detail::SerializeSetImpl(archive, cont);
 	}
 
-	/// <summary>
-	/// Serializes std::multiset.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::multiset`.
+	 */
 	template<typename TArchive, typename TValue, typename TComparer, typename TAllocator>
 	void SerializeArray(TArchive& archive, std::multiset<TValue, TComparer, TAllocator>& cont)
 	{

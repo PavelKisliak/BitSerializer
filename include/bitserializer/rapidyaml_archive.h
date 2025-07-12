@@ -19,9 +19,9 @@
 namespace BitSerializer::Yaml::RapidYaml {
 	namespace Detail {
 
-		/// <summary>
-		/// YAML archive traits class.
-		/// </summary>
+		/**
+		 * @brief YAML archive traits (based on RapidYaml).
+		 */
 		class RapidYamlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 		{
 		public:
@@ -45,18 +45,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 		template <SerializeMode TMode>
 		class RapidYamlObjectScope;
 
-		/// <summary>
-		/// Convert `std::string_view` to `c4::csubstr`
-		/// </summary>
+		/**
+		 * @brief Converts `std::string_view` to `c4::csubstr`
+		 */
 		inline c4::csubstr to_csubstr(std::string_view str)
 		{
 			return { str.data(), str.size() };
 		}
 
-		/// <summary>
-		/// Common base class for YAML scopes.
-		/// </summary>
-		/// <seealso cref="RapidYamlArchiveTraits" />
+		/**
+		 * @brief Base class of YAML scope.
+		 */
 		class RapidYamlScopeBase : public RapidYamlArchiveTraits
 		{
 		public:
@@ -75,9 +74,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlScopeBase& operator=(const RapidYamlScopeBase&) = delete;
 			RapidYamlScopeBase& operator=(RapidYamlScopeBase&&) = delete;
 
-			/// <summary>
-			/// Get current path in YAML.
-			/// </summary>
+			/**
+			 * @brief Gets the current path in YAML.
+			 */
 			[[nodiscard]]
 			virtual std::string GetPath() const
 			{
@@ -161,10 +160,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			key_type_view mParentKey;
 		};
 
-		/// <summary>
-		/// YAML scope for serializing arrays.
-		/// </summary>
-		///	<seealso cref="RapidYamlScopeBase" />
+		/**
+		 * @brief YAML scope for serializing arrays (sequential values).
+		 */
 		template <SerializeMode TMode>
 		class RapidYamlArrayScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
@@ -178,17 +176,17 @@ namespace BitSerializer::Yaml::RapidYaml {
 				assert(mNode.is_seq());
 			}
 
-			/// <summary>
-			/// Returns the estimated number of items to load (for reserving the size of containers).
-			/// </summary>
+			/**
+			 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+			 */
 			[[nodiscard]]
 			size_t GetEstimatedSize() const {
 				return mSize;
 			}
 
-			/// <summary>
-			/// Returns `true` when all no more values to load.
-			/// </summary>
+			/**
+			 * @brief Returns `true` when there are no more values to load.
+			 */
 			[[nodiscard]]
 			bool IsEnd() const
 			{
@@ -196,19 +194,15 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return mIndex == mSize;
 			}
 
-			/// <summary>
-			/// Get current path in YAML.
-			/// </summary>
+			/**
+			 * @brief Gets the current path in YAML.
+			 */
 			[[nodiscard]]
 			std::string GetPath() const override
 			{
 				return RapidYamlScopeBase::GetPath() + path_separator + Convert::ToString(mIndex);
 			}
 
-			/// <summary>
-			/// Serialize value.
-			/// </summary>
-			/// <param name="value">The value.</param>
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			bool SerializeValue(T& value)
 			{
@@ -246,9 +240,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Returns element of array as sub-object.
-			/// </summary>
+			/**
+			 * @brief Opens a nested object scope.
+			 */
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
 			{				
 				if constexpr (TMode == SerializeMode::Load)
@@ -273,10 +267,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Returns element of array as sub-array.
-			/// </summary>
-			/// <param name="arraySize">The size of array (required only for save mode).</param>
+			/**
+			 * @brief Opens a nested array scope.
+			 */
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -317,10 +310,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 		};
 
 
-		/// <summary>
-		/// YAML scope for serializing objects.
-		/// </summary>
-		/// <seealso cref="RapidYamlScopeBase" />
+		/**
+		 * @brief YAML scope for serializing objects (key-value pairs).
+		 */
 		template <SerializeMode TMode>
 		class RapidYamlObjectScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
@@ -332,17 +324,20 @@ namespace BitSerializer::Yaml::RapidYaml {
 				assert(mNode.is_map());
 			}
 
-			/// <summary>
-			/// Returns the estimated number of items to load (for reserving the size of containers).
-			/// </summary>
+			/**
+			 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+			 */
 			[[nodiscard]]
 			size_t GetEstimatedSize() const {
 				return mNode.num_children();
 			}
 
-			/// <summary>
-			/// Enumerates all keys by calling a passed function.
-			/// </summary>
+			/**
+			 * @brief Enumerates all keys in the current object.
+			 *
+			 * @tparam TCallback Callback function type.
+			 * @param fn Callback to invoke for each key.
+			 */
 			template <typename TCallback>
 			void VisitKeys(const TCallback& fn)
 			{
@@ -353,11 +348,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Serialize value.
-			/// </summary>
-			/// <param name="key">The key of child node.</param>
-			/// <param name="value">The value.</param>
 			template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 			bool SerializeValue(const TKey& key, T& value)
 			{
@@ -400,10 +390,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Returns child node as sub-object.
-			/// </summary>
-			/// <param name="key">The key of child node.</param>
+			/**
+			 * @brief Opens a nested object scope for the specified key.
+			 */
 			template <typename TKey>
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(const TKey& key, size_t)
 			{
@@ -433,10 +422,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Returns child node as sub-array.
-			/// </summary>
-			/// <param name="key">The key of child node.</param>
+			/**
+			 * @brief Opens a nested array scope for the specified key.
+			 */
 			template <typename TKey>
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(const TKey& key, size_t)
 			{
@@ -467,10 +455,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 		};
 
-		/// <summary>
-		/// YAML root scope.
-		/// </summary>
-		/// <seealso cref="RapidYamlScopeBase" />
+		/**
+		 * @brief YAML root scope for serializing data (can serialize array or object).
+		 */
 		template <SerializeMode TMode>
 		class RapidYamlRootScope final: public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
@@ -522,9 +509,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			~RapidYamlRootScope() = default;
 
-			/// <summary>
-			/// Returns root node as object type in YAML.
-			/// </summary>
+			/**
+			 * @brief Opens a nested object scope.
+			 */
 			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -543,9 +530,9 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Returns root node as array type in YAML.
-			/// </summary>
+			/**
+			 * @brief Opens a nested array scope.
+			 */
 			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -564,9 +551,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			/// <summary>
-			/// Serialize node tree to YAML.
-			/// </summary>
 			void Finalize()
 			{
 				if constexpr (TMode == SerializeMode::Save)
@@ -616,14 +600,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 		};
 	}
 
-	/// <summary>
-	/// YAML archive based on Rapid YAML library.
-	/// Supports load/save from:
-	/// - <c>std::string</c>: UTF-8
-	/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8
-	/// </summary>
+	/**
+	 * @brief RapidYaml archive (based on RapidYaml library).
+	 *
+	 * Supports load/save from:
+	 * - `std::string`: UTF-8
+	 * - `std::istream` and `std::ostream`: UTF-8
+	 */
 	using YamlArchive = TArchiveBase<
 		Detail::RapidYamlArchiveTraits,
 		Detail::RapidYamlRootScope<SerializeMode::Load>,
 		Detail::RapidYamlRootScope<SerializeMode::Save>>;
-}
+
+} // BitSerializer::Yaml::RapidYaml

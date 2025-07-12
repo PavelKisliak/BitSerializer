@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2022 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,18 +8,18 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::vector.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::vector<T>`.
+	 */
 	template<typename TArchive, typename TValue, typename TAllocator>
 	void SerializeArray(TArchive& archive, std::vector<TValue, TAllocator>& cont)
 	{
 		Detail::SerializeContainer(archive, cont);
 	}
 
-	/// <summary>
-	/// Serializes std::vector of boolean types.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::vector<bool>`.
+	 */
 	template<typename TArchive, typename TAllocator>
 	void SerializeArray(TArchive& archive, std::vector<bool, TAllocator>& cont)
 	{

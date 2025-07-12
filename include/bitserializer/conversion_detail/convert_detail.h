@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,9 +8,15 @@
 
 namespace BitSerializer::Convert::Detail
 {
-	/// <summary>
-	/// Converts any UTF string to any other UTF format.
-	/// </summary>
+	/**
+	 * @brief Converts any UTF string to another UTF encoding format.
+	 *
+	 * Supports conversion between UTF-8, UTF-16, and UTF-32 encoded strings.
+	 *
+	 * @param in Input string view.
+	 * @param out Output string object.
+	 * @throws std::invalid_argument If the source string contains invalid UTF sequences.
+	 */
 	template <typename TInSym, typename TOutSym, typename TAllocator>
 	void To(std::basic_string_view<TInSym> in, std::basic_string<TOutSym, std::char_traits<TOutSym>, TAllocator>& out)
 	{
@@ -21,18 +27,17 @@ namespace BitSerializer::Convert::Detail
 
 	//-----------------------------------------------------------------------------
 
-	/// <summary>
-	/// Converts classes and unions to any UTF string.
-	/// Classes can have external overloads of this function or internal convert method(s) like below:
-	/// <c>
-	///     std::string ToString() const;
-	///     std::u16string ToU16String() const;
-	///     std::u32string ToU32String() const;
-	/// </c>
-	/// Instead of these return types also can be used std::basic_string<> with custom allocator.
-	/// Not all of these methods are required, but for avoid performance issues (for transcoding),
-	/// it is recommended to implement conversion methods for most commonly used types.
-	/// </summary>
+	/**
+	 * @brief Converts classes and unions to any UTF string.
+	 *
+	 * Classes can have external overloads of this function or internal convert method(s) like below:
+	 * - Member functions: `ToString()`, `ToU16String()`, `ToU32String()`
+	 * - Global function: `to_string(const T&)`
+	 *
+	 * Instead of these return types also can be used `std::basic_string<>` with custom allocator.
+	 * Not all of these methods are required, but to avoid performance losses (for transcoding),
+	 * it is recommended to implement conversion methods for most commonly used types.
+	 */
 	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(has_any_internal_ToString_v<T> || has_global_to_string_v<T, std::basic_string<char, std::char_traits<char>>>), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
@@ -45,7 +50,7 @@ namespace BitSerializer::Convert::Detail
 
 		if constexpr (sizeof(TSym) == sizeof(char))
 		{
-			// At first try to use conversion methods with the same char type
+			// The best path - use conversion methods with the same char type
 			if constexpr (hasInternalToString) {
 				out.append(in.ToString());
 			} else if constexpr (hasGlobalToString) {
@@ -61,7 +66,7 @@ namespace BitSerializer::Convert::Detail
 		}
 		else if constexpr (sizeof(TSym) == sizeof(char16_t))
 		{
-			// At first try to use conversion methods with the same char type
+			// The best path - use conversion methods with the same char type
 			if constexpr (hasInternalToUtf16String) {
 				out.append(in.ToU16String());
 			// Otherwise use conversion methods for other encodings with transcoding to UTF-16
@@ -78,7 +83,7 @@ namespace BitSerializer::Convert::Detail
 		}
 		else if constexpr (sizeof(TSym) == sizeof(char32_t))
 		{
-			// At first try to use conversion methods with the same char type
+			// The best path - use conversion methods with the same char type
 			if constexpr (hasInternalToUtf32String) {
 				out.append(in.ToU32String());
 			}
@@ -96,30 +101,30 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Converts any UTF strings to classes and unions.
-	/// Classes can have external overloads of this function or internal convert method(s) like below:
-	/// <c>
-	///     void FromString(std::string_view str);
-	///     void FromString(std::u16string_view str);
-	///     void FromString(std::u32string_view str);
-	/// </c>
-	/// Not all of these methods are required, but for avoid performance issues (for transcoding),
-	/// it is recommended to implement conversion methods for most commonly used types.
-	/// You also could implement templated FromString method which converts any string types.
-	/// </summary>
-	template <class T, typename TSym, std::enable_if_t<(has_any_internal_FromString_v<T>), int> = 0>
+	/**
+	 * @brief Converts any UTF strings to classes and unions.
+	 *
+	 * Classes can have external overloads of this function or internal convert method(s) like below:
+	 * - `void FromString(std::string_view)`
+	 * - `void FromString(std::u16string_view)`
+	 * - `void FromString(std::u32string_view)`
+	 *
+	 * Not all of these methods are required, but to avoid performance losses (for transcoding),
+	 * it is recommended to implement conversion methods for most commonly used types.
+	 * You also could implement templated FromString method which converts any string types.
+	 */
+	template <class T, typename TSym, std::enable_if_t<has_any_internal_FromString_v<T>, int> = 0>
 	void To(const std::basic_string_view<TSym, std::char_traits<TSym>>& in, T& out)
 	{
-		constexpr auto hasInternalFromString_Utf8 = has_internal_FromString_v<T, std::basic_string_view<char, std::char_traits<char>>>;
-		constexpr auto hasInternalFromString_Utf16 = has_internal_FromString_v<T, std::basic_string_view<char16_t, std::char_traits<char16_t>>>;
-		constexpr auto hasInternalFromString_Utf32 = has_internal_FromString_v<T, std::basic_string_view<char32_t, std::char_traits<char32_t>>>;
+		constexpr auto hasInternalFromString_Utf8 = has_internal_FromString_v<T, std::basic_string_view<char>>;
+		constexpr auto hasInternalFromString_Utf16 = has_internal_FromString_v<T, std::basic_string_view<char16_t>>;
+		constexpr auto hasInternalFromString_Utf32 = has_internal_FromString_v<T, std::basic_string_view<char32_t>>;
 
 		static_assert(hasInternalFromString_Utf8 || hasInternalFromString_Utf16 || hasInternalFromString_Utf32);
 
 		if constexpr (sizeof(TSym) == sizeof(char))
 		{
-			// At first try to use conversion methods with the same char type
+			// The best path - use conversion methods with the same char type
 			if constexpr (hasInternalFromString_Utf8) {
 				out.FromString(std::string_view(static_cast<const char*>(in.data()), in.size()));
 			}
@@ -139,7 +144,7 @@ namespace BitSerializer::Convert::Detail
 		}
 		else if constexpr (sizeof(TSym) == sizeof(char16_t))
 		{
-			// At first try to use conversion methods with the same char type
+			// The best path - use conversion methods with the same char type
 			if constexpr (hasInternalFromString_Utf16) {
 				out.FromString(std::u16string_view(reinterpret_cast<std::u16string_view::const_pointer>(in.data()), in.size()));
 			}
@@ -158,7 +163,7 @@ namespace BitSerializer::Convert::Detail
 		}
 		else if constexpr (sizeof(TSym) == sizeof(char32_t))
 		{
-			// At first try to use conversion methods with the same char type
+			// The best path - use conversion methods with the same char type
 			if constexpr (hasInternalFromString_Utf32) {
 				out.FromString(std::u32string_view(static_cast<const char32_t*>(in.data()), in.size()));
 			}
@@ -178,17 +183,23 @@ namespace BitSerializer::Convert::Detail
 
 	//------------------------------------------------------------------------------
 
-	/// <summary>
-	/// Converts any UTF string to suitable string_view.
-	/// </summary>
+	/**
+	 * @brief Converts a `basic_string` to its corresponding `string_view` type.
+	 *
+	 * @param in Input string.
+	 * @return String view pointing to the contents of the input string.
+	 */
 	template <typename TSym, typename TAllocator>
 	constexpr std::basic_string_view<TSym> ToStringView(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& in) noexcept {
 		return in;
 	}
 
-	/// <summary>
-	/// Converts any c-string to suitable string_view.
-	/// </summary>
+	/**
+	 * @brief Converts a C-string to a `string_view`.
+	 *
+	 * @param in Null-terminated input string.
+	 * @return String view pointing to the input string.
+	 */
 	template <typename TSym>
 	constexpr std::basic_string_view<TSym> ToStringView(const TSym* in) noexcept {
 		return in;

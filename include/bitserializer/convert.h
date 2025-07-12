@@ -20,30 +20,39 @@
 
 namespace BitSerializer::Convert
 {
-	/// <summary>
-	/// Checks whether conversion from `TIn` to `TOut` is supported.
-	/// </summary>
+	/**
+	 * @brief Determines if conversion from `TIn` to `TOut` is supported.
+	 *
+	 * @tparam TIn Source type.
+	 * @tparam TOut Target type.
+	 * @return True if conversion is supported; false otherwise.
+	 */
 	template <typename TIn, typename TOut>
 	constexpr bool IsConvertible()
 	{
 		return Detail::is_convert_supported_v<TIn, TOut>;
 	}
 
-	/// <summary>
-	/// Generic function for converting a value.
-	/// </summary>
-	/// <param name="value">The source value.</param>
-	/// <param name="initArgs">Arguments that are used to construct the output type (useful for passing an allocator or an existing string).</param>
-	/// <returns>The converted value</returns>
-	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
-	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
+	/**
+	 * @brief Generic function for converting a value to any supported target type.
+	 *
+	 * @tparam TOut Target type.
+	 * @tparam TIn Source type.
+	 * @tparam TInitArgs Optional variadic arguments for constructing TOut.
+	 * @param[in] value Source value to convert.
+	 * @param[in] initArgs Optional arguments for constructing the output type (e.g., allocator or existing string).
+	 * @return Converted value of type TOut.
+	 * @throw std::out_of_range If conversion overflows target type.
+	 * @throw std::invalid_argument If input format is invalid.
+	 * @note This function handles both direct and indirect conversions (e.g., string_view to string, numeric types, etc.).
+	 */
 	template <typename TOut, typename TIn, typename... TInitArgs, std::enable_if_t<std::is_constructible_v<TOut, TInitArgs...>, int> = 0>
 	TOut To(TIn&& value, TInitArgs... initArgs)
 	{
 		constexpr bool isSame = std::is_same_v<TOut, std::decay_t<TIn>>;
 		constexpr bool isConvertible = IsConvertible<TIn, TOut>();
 
-		// You may need to implement internal or external conversion functions for your types (see: "docs/bitserializer_convert.md").
+		// You may need to implement internal or external conversion functions for your types
 		static_assert(isSame || isConvertible, "BitSerializer::Convert. Converting these types is not supported.");
 
 		// Convert to the same type
@@ -71,52 +80,61 @@ namespace BitSerializer::Convert
 		}
 	}
 
-	/// <summary>
-	/// Converts value to std::string, just syntax sugar of To<std::string>() function.
-	/// </summary>
-	/// <param name="value">The input value.</param>
-	/// <param name="initArgs">Arguments that are used to construct the output type (useful for passing an allocator or an existing string).</param>
-	/// <returns>UTF-8 string</returns>
-	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
-	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
+	/**
+	 * @brief Converts a value to `std::string` (syntax sugar for `To<std::string>()`).
+	 *
+	 * @tparam TIn Source type.
+	 * @param[in] value Input value to convert.
+	 * @param[in] initArgs Arguments used to construct the output type (e.g., allocator or existing string).
+	 * @return UTF-8 encoded string.
+	 * @throw std::out_of_range If conversion overflows target type.
+	 * @throw std::invalid_argument If input format is invalid.
+	 */
 	template <typename TIn, typename... TInitArgs, std::enable_if_t<std::is_constructible_v<std::string, TInitArgs...>, int> = 0>
 	std::string ToString(TIn&& value, TInitArgs... initArgs)
 	{
 		return To<std::string>(std::forward<TIn>(value), std::forward<TInitArgs>(initArgs)...);
 	}
 
-	/// <summary>
-	/// Converts value to the wide string, just syntax sugar of To<std::wstring>() function.
-	/// </summary>
-	/// <param name="value">The input value.</param>
-	/// <param name="initArgs">Arguments that are used to construct the output type (useful for passing an allocator or an existing string).</param>
-	/// <returns>Wide string</returns>
-	/// <exception cref="std::out_of_range">Thrown when overflow target value.</exception>
-	/// <exception cref="std::invalid_argument">Thrown when input value has wrong format.</exception>
+	/**
+	 * @brief Converts a value to `std::wstring` (syntax sugar for To<std::wstring>()).
+	 *
+	 * @tparam TIn Source type.
+	 * @param[in] value Input value to convert.
+	 * @param[in] initArgs Optional arguments for constructing the output type (e.g., allocator or existing string).
+	 * @return Wide string.
+	 * @throw std::out_of_range If conversion overflows target type.
+	 * @throw std::invalid_argument If input format is invalid.
+	 */
 	template <typename TIn, typename... TInitArgs, std::enable_if_t<std::is_constructible_v<std::wstring, TInitArgs...>, int> = 0>
 	std::wstring ToWString(TIn&& value, TInitArgs... initArgs)
 	{
 		return To<std::wstring>(std::forward<TIn>(value), std::forward<TInitArgs>(initArgs)...);
 	}
 
-	/// <summary>
-	/// Generic function for converting a value (does not throw exceptions).
-	/// </summary>
-	/// <param name="value">The input value.</param>
-	/// <param name="initArgs">Arguments that are used to construct the output type (useful for passing an allocator or an existing string).</param>
-	/// <returns>The converted value or empty when occurred an error</returns>
+	/**
+	 * @brief Generic function for converting a value to any supported target type without throwing exceptions.
+	 *
+	 * @tparam TOut Target type.
+	 * @tparam TIn Source type.
+	 * @tparam TInitArgs Variadic arguments for constructing TOut.
+	 * @param[in] value Source value to convert.
+	 * @param[in] initArgs Optional arguments for constructing the output type (e.g., allocator or existing string).
+	 * @return `optional<TOut>` containing the result, or empty if an error occurs.
+	 */
 	template <typename TOut, typename TIn, typename... TInitArgs, std::enable_if_t<std::is_constructible_v<TOut, TInitArgs...>, int> = 0>
 	std::optional<TOut> TryTo(TIn&& value, TInitArgs... initArgs) noexcept
 	{
 		try
 		{
-			return std::optional<TOut>(To<TOut>(std::forward<TIn>(value), std::forward<TInitArgs>(initArgs)...));
+			return To<TOut>(std::forward<TIn>(value), std::forward<TInitArgs>(initArgs)...);
 		}
-		catch (const std::exception&)
+		catch (...)
 		{
-			return {};
+			return std::nullopt;
 		}
 	}
-}
+
+} // namespace BitSerializer::Convert
 
 #pragma warning(pop)

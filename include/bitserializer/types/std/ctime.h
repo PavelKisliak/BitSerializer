@@ -9,19 +9,37 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Wrapper that holds reference to `time_t` type, used to distinguish between time_t and integer types.
-	///	Usage example: archive << KeyValue("Time", CTimeRef(timeValue));
-	/// </summary>
+	/**
+	 * @brief A wrapper that holds a reference to a `time_t` value.
+	 *
+	 * Use this when need to serialize Unix timestamps as ISO datetime.
+	 *
+	 * @par Example:
+	 * @code
+	 * time_t now = std::time(nullptr);
+	 * archive << KeyValue("Time", CTimeRef(now));
+	 * @endcode
+	 */
 	struct CTimeRef
 	{
 		explicit CTimeRef(time_t& timeRef) noexcept : Time(timeRef) {}
 
-		time_t& Time;
+		time_t& Time; ///< Reference to the underlying time value.
 	};
 
 	namespace Detail
 	{
+		/**
+		 * @brief Safely converts an ISO date string to a `time_t` value.
+		 *
+		 * Handles invalid input gracefully based on the provided policy.
+		 *
+		 * @param[in] isoDate ISO 8601 formatted date-time string.
+		 * @param[out] time Output reference to store the converted time.
+		 * @param[in] options Serialization options controlling behavior on mismatched types.
+		 * @return true if conversion succeeded, false otherwise.
+		 * @throws SerializationException If MismatchedTypesPolicy::ThrowError is set and parsing fails.
+		 */
 		inline bool SafeConvertIsoDate(const std::string& isoDate, CTimeRef time, const SerializationOptions& options)
 		{
 			try
@@ -44,10 +62,9 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
-	///	Usage example: archive << KeyValue("Time", CTimeRef(timeValue));
-	/// </summary>
+	/**
+	 * @brief Serializes a Unix timestamp (`time_t`) as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
+	 */
 	template <typename TArchive, typename TKey>
 	bool Serialize(TArchive& archive, TKey&& key, CTimeRef timeRef)
 	{
@@ -73,7 +90,7 @@ namespace BitSerializer
 		}
 		else
 		{
-			// Serialize as ISO 8601
+			// Serialize as ISO 8601 string
 			if constexpr (TArchive::IsLoading())
 			{
 				std::string isoDate;
@@ -90,10 +107,9 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes Unix time in the `time_t` as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
-	///	Usage example: archive << KeyValue("Time", CTimeRef(timeValue));
-	/// </summary>
+	/**
+	 * @brief Serializes a Unix timestamp (`time_t`) as ISO 8601/UTC string (YYYY-MM-DDThh:mm:ssZ) or binary (if supported by archive).
+	 */
 	template<typename TArchive>
 	bool Serialize(TArchive& archive, CTimeRef timeRef)
 	{
@@ -119,7 +135,7 @@ namespace BitSerializer
 		}
 		else
 		{
-			// Serialize as ISO 8601
+			// Serialize as ISO 8601 string
 			if constexpr (TArchive::IsLoading())
 			{
 				std::string isoDate;

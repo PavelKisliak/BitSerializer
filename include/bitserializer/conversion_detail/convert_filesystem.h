@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,9 +7,12 @@
 
 namespace BitSerializer::Convert::Detail
 {
-	/// <summary>
-	/// Converts from filesystem::path to std::string
-	/// </summary>
+	/**
+	 * @brief Converts a `std::filesystem::path` to `std::string`.
+	 *
+	 * @param[in] in Input filesystem path to convert.
+	 * @param[out] out Output string where the result will be stored.
+	 */
 	template <typename TSym, typename TAllocator>
 	void To(const std::filesystem::path& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
@@ -22,9 +25,12 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Converts from std::string_view to filesystem::path
-	/// </summary>
+	/**
+	 * @brief Converts a `std::basic_string_view` to `std::filesystem::path`.
+	 *
+	 * @param[in] in Input string view to convert.
+	 * @param[out] out Resulting filesystem path object.
+	 */
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, std::filesystem::path& out)
 	{

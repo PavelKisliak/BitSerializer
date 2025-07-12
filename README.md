@@ -1013,10 +1013,10 @@ The list of validators "out of the box" is not so rich, but it will expand in th
 
 | Signature           | Description   |
 | ------------------- | --------------------- |
-| `Required(errorMessage = nullptr)`        | Makes a field as required |
+| `Required(errorMessage = nullptr)`        | Validates that field is deserialized |
 | `Range(min, max, errorMessage = nullptr)`   | Validates range of value, can be applied for any type that has operators '<' and '>' (e.g. `std::chrono` types) |
-| `MinSize(minSize, errorMessage = nullptr)`  | Checks the minimum size of strings, containers and any other types that has `size()` method |
-| `MaxSize(maxSize, errorMessage = nullptr)`  | Checks the maximum size of strings, containers and any other types that has `size()` method |
+| `MinSize(minSize, errorMessage = nullptr)`  | Validates that the container or string size is not less than the specified minimum |
+| `MaxSize(maxSize, errorMessage = nullptr)`  | Validates that the size of a container or string does not exceed the specified maximum |
 | `Email(errorMessage = nullptr)`           | The email validator, generally complies with the RFC standard with the exception of: quoted parts, comments, SMTPUTF8 and IP address as domain part |
 | `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | The phone number validator, examples:<br>+555 (55) 555-55-55, (55) 555 55 55, 555 5 55 55 |
 

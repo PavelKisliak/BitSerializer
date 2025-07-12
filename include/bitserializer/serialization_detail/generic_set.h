@@ -7,9 +7,24 @@
 
 namespace BitSerializer::Detail
 {
-	/// <summary>
-	/// Generic function for serialization sets.
-	/// </summary>
+	/**
+	 * @brief Generic function for serializing set-like containers.
+	 *
+	 * Supports both loading and saving operations depending on the archive mode.
+	 *
+	 * When loading:
+	 * - Clears the container.
+	 * - Reads values from the archive and inserts them into the set.
+	 * - Uses insertion hinting for performance optimization.
+	 *
+	 * When saving:
+	 * - Iterates through all elements and serializes them.
+	 *
+	 * @tparam TArchive The archive type used for serialization.
+	 * @tparam TSet     Type of the set container (e.g., `std::set`, `std::unordered_set`).
+	 * @param scope     Archive scope object used for serializing set content.
+	 * @param cont      Reference to the set being serialized.
+	 */
 	template<typename TArchive, typename TSet>
 	static void SerializeSetImpl(TArchive& scope, TSet& cont)
 	{
@@ -34,4 +49,4 @@ namespace BitSerializer::Detail
 			}
 		}
 	}
-}
+} // namespace BitSerializer::Detail

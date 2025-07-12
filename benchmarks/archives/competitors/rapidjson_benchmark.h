@@ -23,6 +23,9 @@
 #undef GetObject
 #endif
 
+/**
+ * @brief Benchmark implementation for the RapidJson library.
+ */
 class CRapidJsonBenchmark final : public CBenchmarkBase
 {
 public:

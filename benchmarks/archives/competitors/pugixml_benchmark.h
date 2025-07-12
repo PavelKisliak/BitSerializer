@@ -10,6 +10,9 @@
 #include "pugixml.hpp"
 
 
+/**
+ * @brief Benchmark implementation for the PugiXml library.
+ */
 class CPugiXmlBenchmark final : public CBenchmarkBase
 {
 public:

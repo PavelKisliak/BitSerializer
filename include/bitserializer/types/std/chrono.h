@@ -10,9 +10,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::chrono::time_point (wall clock types) as ISO 8601 string in format: YYYY-MM-DDThh:mm:ss[.SSS]Z.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::chrono::time_point` (wall clock types) as ISO 8601 string in format: YYYY-MM-DDThh:mm:ss[.SSS]Z.
+	 */
 	template <typename TArchive, typename TKey, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
@@ -50,9 +50,9 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes std::chrono::time_point (wall clock types) as ISO 8601 string in format: YYYY-MM-DDThh:mm:ss[.SSS]Z.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::chrono::time_point` (wall clock types) as ISO 8601 string in format: YYYY-MM-DDThh:mm:ss[.SSS]Z.
+	 */
 	template<typename TArchive, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	bool Serialize(TArchive& archive, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
@@ -90,9 +90,9 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes std::chrono::duration as ISO 8601 string in format: PnWnDTnHnMnS.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::chrono::duration` as ISO 8601 string in format: PnWnDTnHnMnS.
+	 */
 	template <typename TArchive, typename TKey, typename TRep, typename TPeriod>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::duration<TRep, TPeriod>& value)
 	{
@@ -130,9 +130,9 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes std::chrono::duration as ISO 8601 string in format: PnWnDTnHnMnS.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::chrono::duration` as ISO 8601 string in format: PnWnDTnHnMnS.
+	 */
 	template<typename TArchive, typename TRep, typename TPeriod>
 	bool Serialize(TArchive& archive, std::chrono::duration<TRep, TPeriod>& value)
 	{

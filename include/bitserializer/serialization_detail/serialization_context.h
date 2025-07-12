@@ -12,9 +12,11 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serialization context - stores all necessary information about current serialization session (options, validation errors).
-	/// </summary>
+	/**
+	 * @brief Context object that holds shared state during a serialization or deserialization session.
+	 *
+	 * Contains options, validation errors, and temporary buffers used across the serialization process.
+	 */
 	class SerializationContext
 	{
 	public:
@@ -26,13 +28,22 @@ namespace BitSerializer
 			return mSerializationOptions;
 		}
 
-		void AddValidationError(std::string path, std::string errorMsg)
+		/**
+		 * @brief Records a validation error associated with a specific field path.
+		 *
+		 * If the number of validation errors exceeds the limit specified in the options,
+		 * a `ValidationException` will be thrown immediately.
+		 *
+		 * @param path Path to the field where the error occurred.
+		 * @param errorMessage Description of the validation issue.
+		 */
+		void AddValidationError(std::string path, std::string errorMessage)
 		{
 			if (const auto it = mErrorsMap.find(path); it == mErrorsMap.end()) {
-				mErrorsMap.try_emplace(std::move(path), ValidationErrors{ std::move(errorMsg) });
+				mErrorsMap.try_emplace(std::move(path), ValidationErrors{ std::move(errorMessage) });
 			}
 			else {
-				it->second.push_back(std::move(errorMsg));
+				it->second.push_back(std::move(errorMessage));
 			}
 
 			// Immediately throw `ValidationException` when `MaxValidationErrors` is exceeded
@@ -42,6 +53,11 @@ namespace BitSerializer
 			}
 		}
 
+		/**
+		 * @brief Finalizes the serialization session and throws an exception if any validation errors were recorded.
+		 *
+		 * @throws ValidationException if there are any accumulated validation errors.
+		 */
 		void OnFinishSerialization()
 		{
 			if (!mErrorsMap.empty()) {
@@ -49,6 +65,14 @@ namespace BitSerializer
 			}
 		}
 
+		/**
+		 * @brief Retrieves a string buffer suitable for reading or writing string values.
+		 *
+		 * The buffer is reused within the same serialization session to reduce allocations.
+		 *
+		 * @tparam TString Type of string to retrieve or initialize.
+		 * @return Reference to the initialized string buffer.
+		 */
 		template <class TString>
 		constexpr TString& GetStringValueBuffer()
 		{
@@ -61,6 +85,7 @@ namespace BitSerializer
 		}
 
 	private:
+		/// @brief Variant type supporting multiple string encodings.
 		using StringsVariant = std::variant<std::string,
 #if defined(__cpp_lib_char8_t)
 			std::u8string,

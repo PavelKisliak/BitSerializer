@@ -8,9 +8,9 @@
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
 
-/// <summary>
-/// Tests archive method which should return current path in object scope (when loading).
-/// </summary>
+/**
+ * @brief Tests that the archive correctly returns the current path within an object scope during loading.
+ */
 template <typename TArchive>
 void TestGetPathInJsonObjectScopeWhenLoading()
 {
@@ -38,9 +38,9 @@ void TestGetPathInJsonObjectScopeWhenLoading()
 	ASSERT_EQ(subScope->GetPath(), expectedObjectPath);
 }
 
-/// <summary>
-/// Tests archive method which should return current path in object scope (when saving).
-/// </summary>
+/**
+ * @brief Tests that the archive correctly returns the current path within an object scope during saving.
+ */
 template <typename TArchive>
 void TestGetPathInJsonObjectScopeWhenSaving()
 {
@@ -64,9 +64,9 @@ void TestGetPathInJsonObjectScopeWhenSaving()
 	ASSERT_EQ(subScope->GetPath(), TArchive::path_separator + BitSerializer::Convert::ToString(objectKey));
 }
 
-/// <summary>
-/// Tests archive method which should return current path in array scope (when loading).
-/// </summary>
+/**
+ * @brief Tests that the archive correctly returns the current path within an array scope during loading.
+ */
 template <typename TArchive>
 void TestGetPathInJsonArrayScopeWhenLoading()
 {
@@ -104,7 +104,7 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 		for (size_t i = 0; i < TestType::Array2stLevelSize; i++)
 		{
 			auto expectedPath = expectedObjectPath
-				+ TArchive::path_separator + BitSerializer::Convert::ToString(k+1)
+				+ TArchive::path_separator + BitSerializer::Convert::ToString(k + 1)
 				+ TArchive::path_separator + BitSerializer::Convert::ToString(i);
 			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
 			ASSERT_TRUE(subArrayScope->SerializeValue(loadValue));
@@ -112,9 +112,9 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 	}
 }
 
-/// <summary>
-/// Tests archive method which should return current path in array scope (when saving).
-/// </summary>
+/**
+ * @brief Tests that the archive correctly returns the current path within an array scope during saving.
+ */
 template <typename TArchive>
 void TestGetPathInJsonArrayScopeWhenSaving()
 {
@@ -155,9 +155,9 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 	}
 }
 
-/// <summary>
-/// Tests loading JSON from encoded stream with/without writing BOM.
-/// </summary>
+/**
+ * @brief Tests loading JSON from an encoded stream, with or without a byte order mark (BOM).
+ */
 template <typename TArchive, typename TUtfTraits>
 void TestLoadJsonFromEncodedStream(const bool withBom)
 {
@@ -170,8 +170,10 @@ void TestLoadJsonFromEncodedStream(const bool withBom)
 		sourceStr.append(std::cbegin(TUtfTraits::bom), std::cend(TUtfTraits::bom));
 	}
 
-	// Simple UTF encoding (just for ANSI range)
-	std::basic_string<char_type> temp(BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiJson)), BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiJson)));
+	std::basic_string<char_type> temp(
+		BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(begin(testAnsiJson)),
+		BitSerializer::Memory::MakeIteratorAdapter<BitSerializer::Memory::Endian::native>(cend(testAnsiJson)));
+
 	if constexpr (TUtfTraits::endianness != BitSerializer::Memory::Endian::native) {
 		BitSerializer::Memory::Reverse(begin(temp), end(temp));
 	}
@@ -186,9 +188,9 @@ void TestLoadJsonFromEncodedStream(const bool withBom)
 	EXPECT_EQ("Hello world!", actual.GetValue());
 }
 
-/// <summary>
-/// Tests saving JSON to encoded stream with/without writing BOM.
-/// </summary>
+/**
+ * @brief Tests saving JSON to an encoded stream, with or without a byte order mark (BOM).
+ */
 template <typename TArchive, typename TUtfTraits>
 void TestSaveJsonToEncodedStream(const bool withBom)
 {
@@ -234,9 +236,9 @@ void TestSaveJsonToEncodedStream(const bool withBom)
 	EXPECT_EQ(expectedJson, actualJson);
 }
 
-/// <summary>
-/// Tests save JSON with formatting.
-/// </summary>
+/**
+ * @brief Tests saving JSON with pretty-printing enabled.
+ */
 template <typename TArchive>
 void TestSaveFormattedJson()
 {

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -10,9 +10,9 @@
 class CsvArchiveTests : public ::testing::Test
 {
 protected:
-	/// <summary>
-	/// Tests loading CSV from encoded stream with/without writing BOM.
-	/// </summary>
+	/**
+	 * @brief Tests loading CSV from encoded stream with/without writing BOM.
+	 */
 	template <typename TUtfTraits>
 	void TestLoadCsvFromEncodedStream(const bool withBom)
 	{
@@ -41,9 +41,9 @@ protected:
 		EXPECT_EQ("Hello world!", actual[0].GetValue());
 	}
 
-	/// <summary>
-	/// Tests saving CSV to encoded stream with/without writing BOM.
-	/// </summary>
+	/**
+	 * @brief Tests saving CSV to encoded stream with/without writing BOM.
+	 */
 	template <typename TUtfTraits>
 	void TestSaveCsvToEncodedStream(const bool withBom)
 	{

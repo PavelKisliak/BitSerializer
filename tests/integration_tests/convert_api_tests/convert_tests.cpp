@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -7,9 +7,9 @@
 
 using namespace BitSerializer;
 
-/// <summary>
-/// Test class without any conversions methods (internal or external).
-/// </summary>
+/**
+ * @brief Test class without any conversions methods (internal or external).
+ */
 class NotConvertibleFixture { };
 
 //-----------------------------------------------------------------------------

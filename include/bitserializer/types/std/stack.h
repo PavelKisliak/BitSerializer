@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,9 +8,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::stack.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::stack`.
+	 */
 	template<typename TArchive, typename TValue, typename TContainer>
 	void SerializeArray(TArchive& archive, std::stack<TValue, TContainer>& cont)
 	{

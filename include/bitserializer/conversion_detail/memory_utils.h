@@ -16,11 +16,12 @@
 namespace BitSerializer::Memory
 {
 #if defined(__cpp_lib_endian)
+	/// @brief Standard-compliant enum class representing endianness.
 	using Endian = std::endian;
 #else
-	/// <summary>
-	/// Indicates the endianness of all scalar types.
-	/// </summary>
+	/**
+	 * @brief Indicates the byte order (endianness) of scalar types.
+	 */
 	enum class Endian
 	{
 #if defined(__GNUC__)
@@ -35,13 +36,15 @@ namespace BitSerializer::Memory
 	};
 #endif
 
-	/// <summary>
-	/// Returns integral values in reversed byte order (implementation for uint8_t returns as is).
-	/// </summary>
+	/**
+	 * @brief Reverses the byte order of an integral value.
+	 *
+	 * Specialized for various sizes (1, 2, 4, and 8 bytes).
+	 */
 	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
 	constexpr T Reverse(T val) noexcept
 	{
-		return val;
+		return val; // No-op for single-byte types
 	}
 
 	template <typename T, std::enable_if_t<sizeof(T) == 2 && std::is_integral_v<T>, int> = 0>
@@ -67,79 +70,110 @@ namespace BitSerializer::Memory
 		return val;
 	}
 
-	/// <summary>
-	/// Reverses byte order in the passed sequence of integral values.
-	/// </summary>
+	/**
+	 * @brief Reverses byte order in a sequence of integral values.
+	 *
+	 * @tparam TIterator Type of iterator that points to integral values.
+	 * @param in Start of the range.
+	 * @param end End of the range.
+	 */
 	template <typename TIterator, std::enable_if_t<std::is_integral_v<typename std::iterator_traits<TIterator>::value_type>, int> = 0>
 	constexpr void Reverse(const TIterator& in, const TIterator& end) noexcept
 	{
-		if constexpr (sizeof (typename std::iterator_traits<TIterator>::value_type) > 1)
+		if constexpr (sizeof(typename std::iterator_traits<TIterator>::value_type) > 1)
 		{
-			for (auto it = in; it != end; ++it) {
+			for (auto it = in; it != end; ++it)
+			{
 				*it = Reverse(*it);
 			}
 		}
 	}
 
-	/// <summary>
-	/// Converts native representation of integer value to big endian.
-	/// </summary>
+	/**
+	 * @brief Converts a native-endian integer to big-endian format.
+	 *
+	 * @tparam T Integral type of the value.
+	 * @param val Value in native endianness.
+	 * @return Value in big-endian format.
+	 */
 	template <typename T>
 	constexpr T NativeToBigEndian(T val) noexcept
 	{
-		if constexpr (Endian::native == Endian::big) {
+		if constexpr (Endian::native == Endian::big)
+		{
 			return val;
 		}
-		else {
+		else
+		{
 			return Reverse(val);
 		}
 	}
 
-	/// <summary>
-	/// Converts big endian representation of integer value to native.
-	/// </summary>
+	/**
+	 * @brief Converts a big-endian integer to native endianness.
+	 *
+	 * @tparam T Integral type of the value.
+	 * param val Value in big-endian format.
+	 * @return Value in native endianness.
+	 */
 	template <typename T>
 	constexpr T BigEndianToNative(T val) noexcept
 	{
-		if constexpr (Endian::native == Endian::big) {
+		if constexpr (Endian::native == Endian::big)
+		{
 			return val;
 		}
-		else {
+		else
+		{
 			return Reverse(val);
 		}
 	}
 
-	/// <summary>
-	/// Converts native representation of integer value to little endian.
-	/// </summary>
+	/**
+	 * @brief Converts a native-endian integer to little-endian format.
+	 *
+	 * @tparam T Integral type of the value.
+	 * @param val Value in native endianness.
+	 * @return Value in little-endian format.
+	 */
 	template <typename T>
 	constexpr T NativeToLittleEndian(T val) noexcept
 	{
-		if constexpr (Endian::native == Endian::little)	{
+		if constexpr (Endian::native == Endian::little)
+		{
 			return val;
 		}
-		else {
+		else
+		{
 			return Reverse(val);
 		}
 	}
 
-	/// <summary>
-	/// Converts little endian representation of integer value to native.
-	/// </summary>
+	/**
+	 * @brief Converts a little-endian integer to native endianness.
+	 *
+	 * @tparam T Integral type of the value.
+	 * @param val Value in little-endian format.
+	 * @return Value in native endianness.
+	 */
 	template <typename T>
 	constexpr T LittleEndianToNative(T val) noexcept
 	{
-		if constexpr (Endian::native == Endian::little) {
+		if constexpr (Endian::native == Endian::little)
+		{
 			return val;
 		}
-		else {
+		else
+		{
 			return Reverse(val);
 		}
 	}
 
-	/// <summary>
-	/// Wraps an iterator that refers to integer type, returns values in reverse byte order.
-	/// </summary>
+	/**
+	 * Iterator adapter that returns integer values in reversed byte order.
+	 *
+	 * Useful when reading from or writing to memory with mismatched endianness.
+	 */
 	template <typename TBaseIt>
 	class ReverseEndianIterator
 	{
@@ -153,7 +187,7 @@ namespace BitSerializer::Memory
 		explicit ReverseEndianIterator(TBaseIt it)
 			: mBaseIt(std::move(it))
 		{
-			static_assert(std::is_integral_v<value_type>, "Reverse endian iterator supports only integral types");
+			static_assert(std::is_integral_v<value_type>, "ReverseEndianIterator only supports integral types");
 		}
 
 		value_type operator*() const noexcept {
@@ -175,7 +209,12 @@ namespace BitSerializer::Memory
 		}
 		bool operator==(const ReverseEndianIterator<TBaseIt>& rhs) const noexcept { return mBaseIt == rhs.mBaseIt; }
 		bool operator!=(const ReverseEndianIterator<TBaseIt>& rhs) const noexcept { return mBaseIt != rhs.mBaseIt; }
-		TBaseIt& operator++() noexcept { return ++mBaseIt; }
+
+		ReverseEndianIterator& operator++() noexcept
+		{
+			++mBaseIt;
+			return *this;
+		}
 
 		operator const TBaseIt& () const { return mBaseIt; }
 
@@ -183,9 +222,16 @@ namespace BitSerializer::Memory
 		TBaseIt mBaseIt;
 	};
 
-	/// <summary>
-	/// Makes an adapter for an iterator that converts integers to native endianness.
-	/// </summary>
+	/**
+	 * @brief Makes an iterator adapter that converts integers to native endianness.
+	 *
+	 * If the source endianness matches native or the value size is 1 byte, no conversion occurs.
+	 *
+	 * @tparam SourceEndianness Endianness of the input data.
+	 * @tparam TBaseIt Type of base iterator.
+	 * @param it Base iterator.
+	 * @return Either the original iterator or a wrapped `ReverseEndianIterator`.
+	 */
 	template <Endian SourceEndianness, typename TBaseIt>
 	constexpr auto MakeIteratorAdapter(TBaseIt it)
 	{

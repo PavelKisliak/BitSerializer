@@ -10,12 +10,34 @@
 
 namespace BitSerializer::KeyValueProxy
 {
+	/**
+	 * @brief Serializes a plain value directly using the provided archive.
+	 *
+	 * This overload handles basic values that do not require key-value splitting.
+	 *
+	 * @tparam TArchive Type of the serialization archive.
+	 * @tparam TValue   Type of the value being serialized.
+	 * @param archive   Archive used for serialization.
+	 * @param value     Value to serialize.
+	 */
 	template <class TArchive, class TValue>
 	void SplitAndSerialize(TArchive& archive, TValue&& value)
 	{
 		Serialize(archive, value);
 	}
 
+	/**
+	 * @brief Serializes a `KeyValue` wrapper by splitting its key and value components.
+	 *
+	 * Handles both saving and loading, including validator invocation on load.
+	 *
+	 * @tparam TArchive    Type of the serialization archive.
+	 * @tparam TKey        Type of the key.
+	 * @tparam TValue      Type of the value being serialized.
+	 * @tparam TValidators Types of optional validator objects.
+	 * @param archive      Archive used for serialization.
+	 * @param keyValue     KeyValue wrapper containing key, value, and validators.
+	 */
 	template <class TArchive, class TKey, class TValue, class... TValidators>
 	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TValidators...>&& keyValue)
 	{
@@ -30,13 +52,13 @@ namespace BitSerializer::KeyValueProxy
 			result = Serialize(archive, key, keyValue.GetValue());
 		}
 
-		// Validation when loading
+		// Handle validation only during loading
 		if constexpr (TArchive::IsLoading())
 		{
 			keyValue.VisitArgs([result, &keyValue, &archive](auto& handler)
 			{
-				using Type = std::decay_t<decltype(handler)>;
-				constexpr auto isValidator = is_validator_v<Type, TValue>;
+				using HandlerType = std::decay_t<decltype(handler)>;
+				constexpr auto isValidator = is_validator_v<HandlerType, TValue>;
 				static_assert(isValidator, "Unknown signature of passed KeyValue argument");
 
 				if constexpr (isValidator)
@@ -51,8 +73,20 @@ namespace BitSerializer::KeyValueProxy
 		}
 	}
 
+	/**
+	 * @brief Serializes an `AttributeValue` wrapper by opening an attribute scope.
+	 *
+	 * Requires the archive to support attribute scopes.
+	 *
+	 * @tparam TArchive     Type of the serialization archive.
+	 * @tparam TAttrKey     Type of the attribute key.
+	 * @tparam TValue       Type of the attribute value.
+	 * @tparam TValidators  Types of optional validator objects.
+	 * @param archive       Archive used for serialization.
+	 * @param attrValuePair AttributeValue wrapper containing key, value, and validators.
+	 */
 	template <class TArchive, class TAttrKey, class TValue, class... TValidators>
-	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TValidators...>&& keyValue)
+	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TValidators...>&& attrValuePair)
 	{
 		constexpr auto hasSupportAttributes = BitSerializer::can_serialize_attribute_v<TArchive>;
 		static_assert(hasSupportAttributes, "BitSerializer. The archive doesn't support serialization attribute (on current level or for format at all)");
@@ -60,9 +94,11 @@ namespace BitSerializer::KeyValueProxy
 		if constexpr (hasSupportAttributes)
 		{
 			auto attributesScope = archive.OpenAttributeScope();
-			if (attributesScope) {
-				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TValidators...>>(keyValue));
+			if (attributesScope)
+			{
+				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TValidators...>>(attrValuePair));
 			}
 		}
 	}
-}
+
+} // namespace BitSerializer::KeyValueProxy

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,9 +7,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::filesystem::path.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::filesystem::path` as string value.
+	 */
 	template <class TArchive, typename TKey>
 	bool Serialize(TArchive& archive, TKey&& key, std::filesystem::path& value)
 	{

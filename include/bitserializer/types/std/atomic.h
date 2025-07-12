@@ -8,9 +8,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::atomic.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::atomic`.
+	 */
 	template<typename TArchive, typename TKey, typename TValue>
 	bool Serialize(TArchive& archive, TKey&& key, std::atomic<TValue>& value)
 	{

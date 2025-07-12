@@ -9,9 +9,9 @@ using namespace BitSerializer;
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
-/// <summary>
-/// Test class with internal string conversions methods.
-/// </summary>
+/**
+ * @brief Test class with internal string conversions methods.
+ */
 class InternalConversionFixture
 {
 public:
@@ -25,17 +25,17 @@ public:
 
 // NOLINTEND(readability-convert-member-functions-to-static)
 
-/// <summary>
-/// Test class with external string conversions methods.
-/// </summary>
+/**
+ * @brief Test class with external string conversions methods.
+ */
 class ExternalConversionFixture {};
 
 std::string to_string(const ExternalConversionFixture&) { return {}; }
 std::wstring to_wstring(const ExternalConversionFixture&) { return {}; }
 
-/// <summary>
-/// Test class without any conversions methods (internal or external).
-/// </summary>
+/**
+ * @brief Test class without any conversions methods (internal or external).
+ */
 class NotConvertibleFixture { };
 
 //-----------------------------------------------------------------------------

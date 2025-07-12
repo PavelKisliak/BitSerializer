@@ -22,7 +22,7 @@ namespace BitSerializer
 		static_assert(hasValueWithKeySupport, "BitSerializer. The archive doesn't support serialize fundamental type with key on this level.");
 
 		if constexpr (hasValueWithKeySupport) {
- 			return archive.SerializeValue(std::forward<TKey>(key), value);
+			return archive.SerializeValue(std::forward<TKey>(key), value);
 		}
 		else {
 			return false;
@@ -132,17 +132,24 @@ namespace BitSerializer
 	//------------------------------------------------------------------------------
 	// Serialize string types
 	//------------------------------------------------------------------------------
+
 	namespace Detail
 	{
-		/// <summary>
-		/// Transcodes string according to policy.
-		/// </summary>
+		/**
+		 * @brief Transcodes string according to the specified encoding policy.
+		 *
+		 * @param[in] sourceString Input string view.
+		 * @param[out] targetString Output string view (transcoded).
+		 * @param context Serialization context for error handling and buffers.
+		 *
+		 * @important The output string will be valid until the next call.
+		 */
 		template <typename TInChar, typename TOutChar>
-		void TranscodeStringByPolicy(const std::basic_string_view<TInChar>& sourceString, std::basic_string_view<TOutChar>& targetString, SerializationContext& serializationContext)
+		void TranscodeStringByPolicy(const std::basic_string_view<TInChar>& sourceString, std::basic_string_view<TOutChar>& targetString, SerializationContext& context)
 		{
-			auto& valueBuffer = serializationContext.GetStringValueBuffer<std::basic_string<TOutChar>>();
+			auto& valueBuffer = context.GetStringValueBuffer<std::basic_string<TOutChar>>();
 			valueBuffer.clear();
-			if (Convert::Utf::Transcode(sourceString, valueBuffer, serializationContext.GetOptions().utfEncodingErrorPolicy)) {
+			if (Convert::Utf::Transcode(sourceString, valueBuffer, context.GetOptions().utfEncodingErrorPolicy)) {
 				targetString = std::basic_string_view<TOutChar>(valueBuffer);
 			}
 			else {
@@ -150,9 +157,18 @@ namespace BitSerializer
 			}
 		}
 
-		/// <summary>
-		/// Generic function for serialization string_view with key (the value will be valid until the next call).
-		/// </summary>
+		/**
+		 * @brief Serializes a `std::basic_string_view` with a key.
+		 *
+		 * Handles transcoding between different string types if necessary.
+		 *
+		 * @param archive   Archive used for serialization.
+		 * @param key       The key associated with the value.
+		 * @param value     Reference to the string_view being serialized.
+		 * @return true if serialization succeeded, false otherwise.
+		 *
+		 * @important The deserialized value will be valid until the next call.
+		 */
 		template <class TArchive, typename TKey, typename TSym>
 		bool SerializeString(TArchive& archive, TKey&& key, std::basic_string_view<TSym>& value)
 		{
@@ -187,9 +203,17 @@ namespace BitSerializer
 			}
 		}
 
-		/// <summary>
-		/// Generic function for serialization string_view (the value will be valid until the next call).
-		/// </summary>
+		/**
+		 * @brief Serializes a `std::basic_string_view` without a key.
+		 *
+		 * Handles transcoding between different string types if necessary.
+		 *
+		 * @param archive   Archive used for serialization.
+		 * @param value     Reference to the string_view being serialized.
+		 * @return true if serialization succeeded, false otherwise.
+		 *
+		 * @important The deserialized value will be valid until the next call.
+		 */
 		template <class TArchive, typename TSym>
 		bool SerializeString(TArchive& archive, std::basic_string_view<TSym>& value)
 		{
@@ -324,10 +348,11 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Allows to serialize enum types as integers.
-	///	Usage example: archive << KeyValue("EnumValue", EnumAsBin(enumValue));
-	/// </summary>
+	/**
+	 * @brief Allows serialization of enum types as integers.
+	 *
+	 * Usage example: `archive << KeyValue("EnumValue", EnumAsBin(enumValue));`
+	 */
 	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	struct EnumAsBin
 	{
@@ -532,9 +557,13 @@ namespace BitSerializer
 		}
 	}
 
-	/// <summary>
-	/// Serializes the base class.
-	/// </summary>
+	/**
+	 * @brief Serializes the base class part of a derived object.
+	 *
+	 * @param archive   Archive used for serialization.
+	 * @param value     Reference to the `BaseObject` wrapper containing the base class instance.
+	 * @return true if serialization succeeded, false otherwise.
+	 */
 	template <typename TArchive, class TBase>
 	bool Serialize(TArchive& archive, BaseObject<TBase>& value)
 	{
@@ -567,12 +596,18 @@ namespace BitSerializer
 
 	//-----------------------------------------------------------------------------
 	// Serialize C-arrays
-	//-----------------------------------------------------------------------------
+	//------------------------------------------------------------------------------
+
 	namespace Detail
 	{
-		/// <summary>
-		/// Generic function for serialization arrays with fixed size (like native C-arrays and std::array).
-		/// </summary>
+		/**
+		 * @brief Generic function for serialization arrays with fixed size (like native C-arrays and `std::array`).
+		 *
+		 * @param arrayScope Archive scope used for array serialization.
+		 * @param startIt    Start iterator.
+		 * @param endIt      End iterator.
+		 * @return true if serialization succeeded, false otherwise.
+		 */
 		template<typename TArchive, typename TIterator>
 		bool SerializeFixedSizeArray(TArchive& arrayScope, TIterator startIt, TIterator endIt)
 		{
@@ -645,7 +680,7 @@ namespace BitSerializer
 		}
 		if constexpr (hasArraySupport)
 		{
-			if (auto arrayScope = archive.OpenArrayScope(ArraySize)) 
+			if (auto arrayScope = archive.OpenArrayScope(ArraySize))
 			{
 				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
 			}

@@ -6,17 +6,19 @@
 #include <vector>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
+#include <chrono>
 #include "test_model.h"
 
-/// <summary>
-/// Test stages.
-/// </summary>
+/**
+ * @brief Represents different stages of a serialization benchmark.
+ */
 enum class TestStage
 {
-	SaveToMemory,
-	LoadFromMemory,
-	SaveToStream,
-	LoadFromStream
+	SaveToMemory,	///< Serialize object model to memory.
+	LoadFromMemory,	///< Deserialize object model from memory.
+	SaveToStream,	///< Serialize object model to an output stream.
+	LoadFromStream	///< Deserialize object model from an input stream.
 };
 
 REGISTER_ENUM(TestStage, {
@@ -26,30 +28,44 @@ REGISTER_ENUM(TestStage, {
 	{ TestStage::LoadFromStream, "Load from std::istream" }
 })
 
-/// <summary>
-/// Test stages.
-/// </summary>
+/**
+ * @brief Stores test results for a serialization library.
+ */
 struct CLibraryTestResults
 {
+	/// Name of the tested serialization library.
 	std::string LibraryName;
 
-	// Common metrics for all stages
+	/// Total number of fields in the test model.
 	size_t TestModelFieldsCount = 0;
+
+	/// Size of serialized data in bytes.
 	size_t SerializedDataSize = 0;
 
-	/// Stage test metrics.
+	/**
+	 * @brief Metrics collected per test stage.
+	 */
 	struct CTestMetrics
 	{
-		int64_t SerializationSpeed = 0;	// Fields/ms
+		int64_t SerializationSpeed = 0; ///< Number of fields processed per millisecond.
 	};
 
+	/// Mapping of test stages to their respective metrics.
 	std::unordered_map<TestStage, CTestMetrics> StagesTestResults;
 };
 
 
-/// <summary>
-/// Base class of serialization library benchmark (consist multiple stages, e.g. save/load).
-/// </summary>
+/**
+ * @brief Base class for benchmarking serialization libraries.
+ *
+ * Provides a framework for measuring performance across multiple stages including:
+ * - Save to memory
+ * - Load from memory
+ * - Save to stream
+ * - Load from stream
+ *
+ * Derived classes must implement the actual serialization logic using the target library.
+ */
 class CBenchmarkBase
 {
 public:
@@ -58,42 +74,95 @@ public:
 	CBenchmarkBase();
 	virtual ~CBenchmarkBase() = default;
 
-	/// <summary>
-	/// Returns name of testing library.
-	/// </summary>
+	/**
+	 * @brief Gets the name of the serialization library being tested.
+	 *
+	 * @return The library name as a string.
+	 */
 	[[nodiscard]] virtual std::string GetLibraryName() const = 0;
 
-	/// <summary>
-	/// Get a list of supported stages, can be overridden to exclude unsupported.
-	/// </summary>
+	/**
+	 * @brief Gets the list of supported test stages.
+	 *
+	 * Override this method to exclude unsupported stages.
+	 *
+	 * @return A vector containing the supported test stages.
+	 */
 	[[nodiscard]] virtual std::vector<TestStage> GetStagesList() const {
-		return { TestStage::SaveToMemory, TestStage::LoadFromMemory, TestStage::SaveToStream, TestStage::LoadFromStream };
+		return { TestStage::SaveToMemory, TestStage::LoadFromMemory,
+				 TestStage::SaveToStream, TestStage::LoadFromStream };
 	}
 
-	/// <summary>
-	/// Running library benchmarks.
-	/// </summary>
+	/**
+	 * @brief Runs the benchmark for the supported stages.
+	 *
+	 * @param testTime Duration of each stage in seconds.
+	 * @return A structure containing the collected test results.
+	 */
 	CLibraryTestResults RunBenchmark(std::chrono::seconds testTime);
 
 protected:
-	// Benchmark calls, serialization must be implemented using the library being tested
+	// Benchmark implementation methods — derived classes should override these
+
+	/**
+	 * @brief Serializes the test model into a memory buffer.
+	 * @param sourceTestModel Reference to the source model.
+	 * @param outputData Output buffer for serialized data.
+	 */
 	virtual void BenchmarkSaveToMemory(const CCommonTestModel& /*sourceTestModel*/, std::string& /*outputData*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-	virtual void BenchmarkLoadFromMemory(CCommonTestModel& /*targetTestModel*/, const std::string& /*sourceData*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-	virtual void BenchmarkSaveToStream(const CCommonTestModel& /*targetTestModel*/, std::ostream& /*outputStream*/) {
-		throw std::runtime_error("Not implemented!");
-	}
-	virtual void BenchmarkLoadFromStream(CCommonTestModel& /*targetTestModel*/, std::istream& /*inputStream*/) {
-		throw std::runtime_error("Not implemented!");
+		throw std::runtime_error("Benchmark SaveToMemory is not implemented!");
 	}
 
-	// Maintenance calls (optional, not counted)
+	/**
+	 * @brief Deserializes the test model from a memory buffer.
+	 * @param targetTestModel Reference to the target model.
+	 * @param sourceData Input buffer with serialized data.
+	 */
+	virtual void BenchmarkLoadFromMemory(CCommonTestModel& /*targetTestModel*/, const std::string& /*sourceData*/) {
+		throw std::runtime_error("Benchmark LoadFromMemory is not implemented!");
+	}
+
+	/**
+	 * @brief Serializes the test model into an output stream.
+	 * @param targetTestModel Reference to the source model.
+	 * @param outputStream Output stream to write to.
+	 */
+	virtual void BenchmarkSaveToStream(const CCommonTestModel& /*targetTestModel*/, std::ostream& /*outputStream*/) {
+		throw std::runtime_error("Benchmark SaveToStream is not implemented!");
+	}
+
+	/**
+	 * @brief Deserializes the test model from an input stream.
+	 * @param targetTestModel Reference to the target model.
+	 * @param inputStream Input stream with serialized data.
+	 */
+	virtual void BenchmarkLoadFromStream(CCommonTestModel& /*targetTestModel*/, std::istream& /*inputStream*/) {
+		throw std::runtime_error("Benchmark LoadFromStream is not implemented!");
+	}
+
+	// Optional lifecycle hooks (not measured)
+
+	/**
+	 * @brief Called before starting a new test stage.
+	 * @param testStage Completed test stage.
+	 */
 	virtual void OnBeginStage(TestStage /*testStage*/) {}
+
+	/**
+	 * @brief Called before executing a single test run.
+	 */
 	virtual void OnPrepareTest(TestStage /*testStage*/) {}
+
+	/**
+	 * @brief Called after completing a test stage.
+	 * @param testStage Completed test stage.
+	 */
 	virtual void OnNextStage(TestStage /*testStage*/) {}
+
+	/**
+	 * @brief Called after finishing all test stages.
+	 * @param testStage Final test stage.
+	 */
 	virtual void OnFinishedStage(TestStage /*testStage*/) {}
 
 private:
@@ -101,7 +170,9 @@ private:
 	void PrepareStage();
 	std::string GetCurrentStageName() const;
 
-	// Prepares a test, called before each test run (keep as inline for better performance)
+	/**
+	 * @brief Prepares the environment for the current test stage.
+	 */
 	void PrepareTest()
 	{
 		assert(mInProgress);
@@ -112,7 +183,7 @@ private:
 			break;
 		case TestStage::LoadFromMemory:
 			if (mSerializedData.empty()) {
-				throw std::runtime_error("There are no serialized data (you need to do `SaveToMemory` test first)");
+				throw std::runtime_error("No serialized data available. Perform 'SaveToMemory' test first.");
 			}
 			mTargetModel = {};
 			break;
@@ -125,7 +196,7 @@ private:
 			mStringStream.clear();
 			mStringStream.seekg(0, std::ios::beg);
 			if (mStringStream.eof()) {
-				throw std::runtime_error("There are no serialized data (you need to do `SaveToStream` test first)");
+				throw std::runtime_error("No serialized data available. Perform 'SaveToStream' test first.");
 			}
 			break;
 		}
@@ -133,7 +204,9 @@ private:
 		OnPrepareTest(mTestStage);
 	}
 
-	// Run one time test (keep as inline for better performance)
+	/**
+	 * @brief Executes a single iteration of the current test stage.
+	 */
 	void RunOneTimeTest()
 	{
 		assert(mInProgress);

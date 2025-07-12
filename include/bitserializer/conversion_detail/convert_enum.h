@@ -9,22 +9,45 @@
 #include <stdexcept>
 
 
-/// <summary>
-/// Registers a map of strings equivalents for enum type.
-/// </summary>
-/// <example><code>
-/// REGISTER_ENUM(YOUR_ENUM_TYPE, {
-///		{ YOUR_ENUM_TYPE::Apple, "Apple" },
-///		{ YOUR_ENUM_TYPE::Orange, "Orange" }
-/// })
-/// </code></example>
-#define REGISTER_ENUM(enumType, ...) namespace { \
-	static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::Register(__VA_ARGS__); \
-}
+/**
+ * @brief Registers a mapping between an enumeration type and its string representations.
+ *
+ * @param enumType The enumeration type to register.
+ * @param map A list of {enum_value, "string"} pairs enclosed in braces.
+ *
+ * @par Example:
+ * @code
+ * enum class Fruit { Apple, Orange };
+ * REGISTER_ENUM(Fruit, {
+ *     { Fruit::Apple, "Apple" },
+ *     { Fruit::Orange, "Orange" }
+ * })
+ * @endcode
+ */
+#define REGISTER_ENUM(enumType, ...) \
+    namespace { \
+        static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::Register(__VA_ARGS__); \
+    }
 
-/// <summary>
-/// Declares I/O streams operators for enum (register the enum via REGISTER_ENUM macro).
-/// </summary>
+ /**
+  * @brief Declares stream operators (`<<` and `>>`) for an enum type.
+  *
+  * This macro allows use of standard I/O streams with enums after registering them using `REGISTER_ENUM`.
+  *
+  * @param enumType The enumeration type for which stream operators will be declared.
+  *
+  * @note Must be placed in the same namespace as the enum.
+  *
+  * @par Example:
+  * @code
+  * DECLARE_ENUM_STREAM_OPS(Fruit)
+  *
+  * std::stringstream ss;
+  * Fruit fruit = Fruit::Apple;
+  * ss << fruit; // Outputs: "Apple"
+  * ss >> fruit; // Parses: "Orange" -> Fruit::Orange
+  * @endcode
+  */
 #define DECLARE_ENUM_STREAM_OPS(enumType) \
 template <typename TSym, class TTraits = std::char_traits<TSym>> \
 std::basic_ostream<TSym, TTraits>& operator<<(std::basic_ostream<TSym, TTraits>& stream, enumType value) \
@@ -46,6 +69,9 @@ std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>&
 
 namespace BitSerializer::Convert::Detail
 {
+	/**
+	 * @brief Holds metadata for a single enum value: its name and associated value.
+	 */
 	template <typename TEnum>
 	class EnumMetadata
 	{
@@ -56,14 +82,25 @@ namespace BitSerializer::Convert::Detail
 		EnumMetadata() = default;
 		EnumMetadata(TEnum value, const char* name) noexcept
 			: Value(value), Name(name)
-		{ }
+		{
+		}
 	};
 
-
+	/**
+	 * @brief Registry for mapping enum values to their string representations.
+	 *
+	 * Ensures only one mapping per enum type exists and provides lookup functionality.
+	 */
 	template <typename TEnum>
 	class EnumRegistry
 	{
 	public:
+		/**
+		 * @brief Registers a static array of enum descriptors.
+		 *
+		 * @param[in] descriptors Array of enum metadata.
+		 * @return True if registration succeeded, false if already registered.
+		 */
 		template <size_t Size>
 		static bool Register(const EnumMetadata<TEnum>(&descriptors)[Size])
 		{
@@ -79,11 +116,20 @@ namespace BitSerializer::Convert::Detail
 			return true;
 		}
 
+		/**
+		 * @brief Checks whether the enum has been registered.
+		 */
 		static bool IsRegistered() noexcept
 		{
 			return mBeginIt != mEndIt;
 		}
 
+		/**
+		 * @brief Gets the metadata for a given enum value.
+		 *
+		 * @param val The enum value to look up.
+		 * @return Pointer to metadata or null if not found.
+		 */
 		static const EnumMetadata<TEnum>* GetEnumMetadata(TEnum val) noexcept
 		{
 			for (auto it = mBeginIt; it != mEndIt; ++it)
@@ -96,6 +142,12 @@ namespace BitSerializer::Convert::Detail
 			return nullptr;
 		}
 
+		/**
+		 * @brief Gets the metadata for a given enum name (case-insensitive match).
+		 *
+		 * @param name String representation of the enum.
+		 * @return Pointer to metadata or null if not found.
+		 */
 		template <typename TSym>
 		static const EnumMetadata<TEnum>* GetEnumMetadata(std::basic_string_view<TSym> name)
 		{
@@ -122,14 +174,23 @@ namespace BitSerializer::Convert::Detail
 			return nullptr;
 		}
 
+		/**
+		 * @brief Returns the number of registered enum values.
+		 */
 		[[nodiscard]] static size_t size() noexcept {
 			return mEndIt - mBeginIt;
 		}
 
+		/**
+		 * @brief Returns a pointer to the beginning of the registry.
+		 */
 		[[nodiscard]] static const EnumMetadata<TEnum>* cbegin() noexcept {
 			return mBeginIt;
 		}
 
+		/**
+		 * @brief Returns a pointer to the end of the registry.
+		 */
 		[[nodiscard]] static const EnumMetadata<TEnum>* cend() noexcept {
 			return mEndIt;
 		}
@@ -141,9 +202,13 @@ namespace BitSerializer::Convert::Detail
 
 	//------------------------------------------------------------------------------
 
-	/// <summary>
-	/// Converts any UTF string to enum types.
-	/// </summary>
+	/**
+	 * @brief Converts a UTF string to an enum value.
+	 *
+	 * @param[in] in Input string to convert.
+	 * @param[out] out Output enum value.
+	 * @throws std::invalid_argument If no matching enum value was found.
+	 */
 	template <typename T, typename TSym, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out)
 	{
@@ -155,9 +220,13 @@ namespace BitSerializer::Convert::Detail
 		throw std::invalid_argument("Enum with passed name is not registered");
 	}
 
-	/// <summary>
-	/// Converts enum types to any UTF string
-	/// </summary>
+	/**
+	 * @brief Converts an enum value to a UTF string.
+	 *
+	 * @param[in] val Enum value to convert.
+	 * @param[out] ret_Str Output string containing the enum name.
+	 * @throws std::invalid_argument If the enum value is not registered.
+	 */
 	template <typename T, typename TSym, typename TAllocator, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	void To(T val, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& ret_Str)
 	{

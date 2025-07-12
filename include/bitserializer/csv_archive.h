@@ -14,9 +14,9 @@
 namespace BitSerializer::Csv {
 namespace Detail {
 
-/// <summary>
-/// The traits of CSV archive (internal implementation - no dependencies)
-/// </summary>
+/**
+ * @brief CSV archive traits.
+ */
 struct CsvArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Csv;
@@ -58,10 +58,9 @@ public:
 	[[nodiscard]] virtual const std::vector<std::string>& GetHeaders() const noexcept = 0;
 };
 
-
-/// <summary>
-/// CSV scope for writing objects (list of values with keys).
-/// </summary>
+/**
+ * @brief CSV scope for writing objects (key-value pairs).
+ */
 class CCsvWriteObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
@@ -75,9 +74,9 @@ public:
 		mCsvWriter->NextLine();
 	}
 
-	/// <summary>
-	/// Gets the current path in CSV.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in CSV.
+	 */
 	[[nodiscard]] std::string GetPath() const
 	{
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
@@ -109,9 +108,10 @@ private:
 	ICsvWriter* mCsvWriter;
 };
 
-/// <summary>
-/// CSV scope for serializing arrays (list of values without keys).
-/// </summary>
+
+/**
+ * @brief CSV scope for writing arrays (sequential objects).
+ */
 class CsvWriteArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
@@ -120,9 +120,10 @@ public:
 		, mCsvWriter(csvWriter)
 	{ }
 
-	/// <summary>
-	/// Gets the current path in CSV.
-	/// </summary>
+
+	/**
+	 * @brief Gets the current path in CSV.
+	 */
 	[[nodiscard]] std::string GetPath() const
 	{
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
@@ -138,9 +139,9 @@ private:
 };
 
 
-/// <summary>
-/// CSV root scope (can write only array)
-/// </summary>
+/**
+ * @brief CSV root scope for writing data.
+ */
 class BITSERIALIZER_API CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
@@ -153,9 +154,9 @@ public:
 	CsvWriteRootScope(const CsvWriteRootScope&) = delete;
 	CsvWriteRootScope& operator=(const CsvWriteRootScope&) = delete;
 
-	/// <summary>
-	/// Gets the current path in CSV.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in CSV.
+	 */
 	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
@@ -174,9 +175,9 @@ private:
 };
 
 
-/// <summary>
-/// CSV scope for reading objects (list of values with keys).
-/// </summary>
+/**
+ * @brief CSV scope for reading objects (key-value pairs).
+ */
 class CCsvReadObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -185,25 +186,28 @@ public:
 		, mCsvReader(csvReader)
 	{ }
 
-	/// <summary>
-	/// Gets the current path in CSV.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in CSV.
+	 */
 	[[nodiscard]] std::string GetPath() const
 	{
 		return path_separator + Convert::ToString(mCsvReader->GetCurrentIndex());
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const noexcept
 	{
 		return mCsvReader->GetHeaders().size();
 	}
 
-	/// <summary>
-	/// Enumerates all keys by calling a passed function.
-	/// </summary>
+	/**
+	 * @brief Enumerates all keys in the current CSV row.
+	 *
+	 * @tparam TCallback Callback function type.
+	 * @param fn Callback to invoke for each key.
+	 */
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
@@ -233,8 +237,8 @@ public:
 				if (GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::Overflow,
-						std::string("The size of target field '") + key + "' is not sufficient to deserialize number: " + std::string(strValue) +
-						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+						std::string("The size of target field '") + key + "' is insufficient to deserialize number: " +
+						std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}
 			catch (...)
@@ -242,8 +246,8 @@ public:
 				if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::MismatchedTypes,
-						std::string("The type of target field '") + key + "' does not match the value being loaded: " + std::string(strValue) +
-						", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+						std::string("Failed to deserialize field '") + key + "' - type mismatch. Value: " +
+						std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 				}
 			}
 		}
@@ -268,8 +272,8 @@ public:
 			if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 			{
 				throw SerializationException(SerializationErrorCode::MismatchedTypes,
-					std::string("The type of target field '") + key + "' does not match the value being loaded: " + std::string(strValue) +
-					", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+					"Failed to deserialize field '" + key + "' - type mismatch. Value: " +
+					std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
 			}
 			return false;
 		}
@@ -281,9 +285,9 @@ private:
 };
 
 
-/// <summary>
-/// CSV scope for serializing arrays (list of values with keys).
-/// </summary>
+/**
+ * @brief CSV scope for reading arrays (sequential objects).
+ */
 class CsvReadArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -292,25 +296,25 @@ public:
 		, mCsvReader(csvReader)
 	{ }
 
-	/// <summary>
-	/// Gets the current path in CSV.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in CSV.
+	 */
 	[[nodiscard]] std::string GetPath() const
 	{
 		return path_separator + Convert::ToString(mCsvReader->GetCurrentIndex());
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] static constexpr size_t GetEstimatedSize() noexcept
 	{
 		return 0;
 	}
 
-	/// <summary>
-	/// Returns `true` when all no more values to load.
-	/// </summary>
+	/**
+	 * @brief Returns `true` when there are no more values to load.
+	 */
 	[[nodiscard]] bool IsEnd() const
 	{
 		return mCsvReader->IsEnd();
@@ -330,9 +334,9 @@ private:
 };
 
 
-/// <summary>
-/// CSV root scope (can read only array)
-/// </summary>
+/**
+ * @brief CSV root scope for reading data.
+ */
 class BITSERIALIZER_API CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
 {
 public:
@@ -345,9 +349,9 @@ public:
 	CsvReadRootScope(const CsvReadRootScope&) = delete;
 	CsvReadRootScope& operator=(const CsvReadRootScope&) = delete;
 
-	/// <summary>
-	/// Gets the current path in CSV.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in CSV.
+	 */
 	[[nodiscard]] static constexpr std::string_view GetPath() noexcept
 	{
 		return {};
@@ -366,13 +370,13 @@ private:
 
 }
 
-
-/// <summary>
-/// CSV archive.
-/// Supports load/save from:
-/// - <c>std::string</c>: UTF-8
-/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
-/// </summary>
+/**
+ * @brief CSV archive.
+ *
+ * Supports load/save from:
+ *  `std::string`: UTF-8
+ *  `std::istream` and `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+ */
 using CsvArchive = TArchiveBase<
 	Detail::CsvArchiveTraits,
 	Detail::CsvReadRootScope,

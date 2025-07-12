@@ -13,18 +13,27 @@
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
 
-/// <summary>
-/// Approximately compares two floating point numbers based on passed epsilon.
-/// </summary>
+/**
+ * @brief Compares two floating-point values approximately using a given epsilon.
+ *
+ * @tparam T The floating-point type.
+ * @param a First value to compare.
+ * @param b Second value to compare.
+ * @param epsilon The tolerance for comparison.
+ * @return True if values are considered equal within the provided epsilon.
+ */
 template <typename T, std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
 static bool ApproximatelyEqual(T a, T b, T epsilon = std::numeric_limits<T>::epsilon())
 {
 	return std::fabs(a - b) <= ((std::fabs(a) < std::fabs(b) ? std::fabs(b) : std::fabs(a)) * epsilon);
 }
 
-/// <summary>
-/// Test template for value serialization to root scope of archive.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of a value directly at the root scope of an archive.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TValue The type of the value being tested.
+ */
 template <typename TArchive, typename TValue>
 void TestSerializeType()
 {
@@ -43,10 +52,13 @@ void TestSerializeType()
 	GTestExpectEq(expected, actual);
 }
 
-/// <summary>
-/// Test template for value serialization to root scope of archive.
-/// </summary>
-/// <param name="value">The value.</param>
+/**
+ * @brief Tests serialization and deserialization of a specific value instance (root scope of archive).
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam T The type of the value being tested.
+ * @param value The test value to serialize and deserialize.
+ */
 template <typename TArchive, typename T>
 void TestSerializeType(T&& value)
 {
@@ -63,11 +75,15 @@ void TestSerializeType(T&& value)
 	GTestExpectEq(std::forward<T>(value), actual);
 }
 
-/// <summary>
-/// Test template for key and value pair serialization to root scope of archive.
-/// </summary>
-/// <param name="key">The key.</param>
-/// <param name="value">The value.</param>
+/**
+ * @brief Tests serialization and deserialization of a key-value pair at the root scope.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TKey The type of the key.
+ * @tparam TValue The type of the value.
+ * @param key The key associated with the value.
+ * @param value The value to be serialized/deserialized.
+ */
 template <class TArchive, class TKey, class TValue>
 void TestSerializeType(const TKey& key, TValue&& value)
 {
@@ -85,20 +101,22 @@ void TestSerializeType(const TKey& key, TValue&& value)
 }
 
 #if defined(__cpp_lib_memory_resource)
-/// <summary>
-/// Test template for PMR containers serialization.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of containers using polymorphic allocators.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TValue The container type with polymorphic allocator.
+ */
 template <typename TArchive, typename TValue>
 void TestSerializePmrType()
 {
-	// Arrange
 	static_assert(std::is_same_v<typename TValue::allocator_type, std::pmr::polymorphic_allocator<typename TValue::value_type>>,
-		"TestSerializePmrType. Invalid container type, should be from `std::pmr` namespace");
-	typename TArchive::preferred_output_format outputArchive{};
+		"TestSerializePmrType: Invalid container type. Expected a `std::pmr` container.");
 
+	// Arrange
+	typename TArchive::preferred_output_format outputArchive{};
 	char buffer[512]{};
 	std::pmr::monotonic_buffer_resource pool{ std::data(buffer), std::size(buffer) };
-
 	TValue expected(&pool);
 	::BuildFixture(expected);
 	TValue actual(&pool);
@@ -113,11 +131,15 @@ void TestSerializePmrType()
 }
 #endif
 
-/// <summary>
-/// Test template of serialization single values with loading to different type.
-/// </summary>
-/// <param name="value">Source test value.</param>
-/// <param name="expected">Expected value</param>
+/**
+ * @brief Tests loading data into a different target type than the source type.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TSource The source value type.
+ * @tparam TExpected The expected target value type.
+ * @param value Source value to serialize.
+ * @param expected Expected value after deserialization.
+ */
 template <typename TArchive, typename TSource, typename TExpected>
 void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
 {
@@ -134,9 +156,14 @@ void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
 	GTestExpectEq(expected, actual);
 }
 
-/// <summary>
-/// Test template of serialization for c-array.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of a C-style array.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TValue Type of elements in the array.
+ * @tparam SourceArraySize Size of the source array.
+ * @tparam TargetArraySize Size of the target array.
+ */
 template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
 void TestSerializeArray()
 {
@@ -158,9 +185,14 @@ void TestSerializeArray()
 	}
 }
 
-/// <summary>
-/// Test template of serialization for c-array.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of a named C-style array.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TValue Type of elements in the array.
+ * @tparam SourceArraySize Size of the source array.
+ * @tparam TargetArraySize Size of the target array.
+ */
 template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
 void TestSerializeArrayWithKey()
 {
@@ -181,9 +213,14 @@ void TestSerializeArrayWithKey()
 	}
 }
 
-/// <summary>
-/// Test template of serialization for two-dimensional c-array.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of a two-dimensional C-style array.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TValue Type of elements in the array.
+ * @tparam ArraySize1 Number of rows.
+ * @tparam ArraySize2 Number of columns.
+ */
 template<typename TArchive, typename TValue, size_t ArraySize1 = 3, size_t ArraySize2 = 5>
 void TestSerializeTwoDimensionalArray()
 {
@@ -206,30 +243,13 @@ void TestSerializeTwoDimensionalArray()
 	}
 }
 
-/// <summary>
-/// Test template of serialization empty container (existing values ​​should be cleared when loading).
-/// </summary>
-template<typename TArchive, typename TContainer>
-void TestLoadingEmptyContainer()
-{
-	// Arrange
-	TContainer emptyContainer;
-	typename TArchive::preferred_output_format outputArchive{};
-	TContainer actual;
-	BuildFixture(actual);
-
-	// Act
-	BitSerializer::SaveObject<TArchive>(emptyContainer, outputArchive);
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
-
-	// Assert
-	ASSERT_TRUE(actual.empty());
-}
-
-/// <summary>
-/// Test template of serialization for class with using streams.
-/// </summary>
-/// <param name="value">The value.</param>
+/**
+ * @brief Tests serialization and deserialization of a class through stream I/O.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam T The class type to test.
+ * @param value Instance of the class to serialize/deserialize.
+ */
 template <typename TArchive, typename T>
 void TestSerializeClassToStream(T&& value)
 {
@@ -247,9 +267,14 @@ void TestSerializeClassToStream(T&& value)
 	value.Assert(actual);
 }
 
-/// <summary>
-/// Test template of serialization for array with using streams.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of an array through stream I/O.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam T The element type of the array.
+ * @tparam ArraySize Number of elements in the array.
+ * @param testArray The array to serialize/deserialize.
+ */
 template <typename TArchive, typename T, size_t ArraySize = 3>
 void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 {
@@ -270,9 +295,13 @@ void TestSerializeArrayToStream(T(&testArray)[ArraySize])
 	}
 }
 
-/// <summary>
-/// Test template of serialization to file.
-/// </summary>
+/**
+ * @brief Tests serialization and deserialization of an array to/from a file.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam ArraySize Number of elements in the array.
+ * @param testOverwrite Whether to overwrite existing files.
+ */
 template <typename TArchive, size_t ArraySize = 3>
 void TestSerializeArrayToFile(bool testOverwrite = false)
 {
@@ -297,9 +326,11 @@ void TestSerializeArrayToFile(bool testOverwrite = false)
 	}
 }
 
-/// <summary>
-/// Template for test throwing exception when file already exists.
-/// </summary>
+/**
+ * @brief Tests that an exception is thrown when trying to save to an existing file.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ */
 template <typename TArchive>
 void TestThrowExceptionWhenFileAlreadyExists()
 {
@@ -325,9 +356,13 @@ void TestThrowExceptionWhenFileAlreadyExists()
 	}
 }
 
-/// <summary>
-/// Template for test loading to not empty container.
-/// </summary>
+/**
+ * @brief Tests that deserializing into a non-empty container replaces its contents correctly.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TContainer The container type.
+ * @param targetContainerSize Initial size of the target container before deserialization.
+ */
 template <typename TArchive, typename TContainer>
 void TestLoadToNotEmptyContainer(size_t targetContainerSize)
 {
@@ -346,9 +381,35 @@ void TestLoadToNotEmptyContainer(size_t targetContainerSize)
 	EXPECT_EQ(expected, actual);
 }
 
-/// <summary>
-/// Test template of validation for named values (boolean result, which returns by archive's method SerializeValue()).
-/// </summary>
+/**
+ * @brief Tests that a non-empty container is properly cleared when deserializing an empty array.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TContainer The container type.
+ */
+template<typename TArchive, typename TContainer>
+void TestLoadingEmptyContainer()
+{
+	// Arrange
+	TContainer emptyContainer;
+	typename TArchive::preferred_output_format outputArchive{};
+	TContainer actual;
+	BuildFixture(actual);
+
+	// Act
+	BitSerializer::SaveObject<TArchive>(emptyContainer, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert
+	ASSERT_TRUE(actual.empty());
+}
+
+/**
+ * @brief Test that verifies that appropriate exception is thrown when validation fails.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam T The object type containing named fields.
+ */
 template <typename TArchive, class T>
 void TestValidationForNamedValues()
 {
@@ -375,9 +436,14 @@ void TestValidationForNamedValues()
 	EXPECT_FALSE(result);
 }
 
-/// <summary>
-/// Template for test overflow target value when deserialization.
-/// </summary>
+/**
+ * @brief Tests overflow handling policy during deserialzation.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TSourceType The original numeric type.
+ * @tparam TTargetType The target numeric type.
+ * @param overflowNumberPolicy Policy for handling overflows.
+ */
 template <typename TArchive, class TSourceType, class TTargetType>
 void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumberPolicy)
 {
@@ -453,16 +519,21 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 	}
 }
 
-/// <summary>
-/// Template for test loading mismatched types (e.g. number from string).
-/// </summary>
+/**
+ * @brief Tests mismatched types policy behavior during deserialization.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TSourceType Original data type.
+ * @tparam TTargetType Expected data type.
+ * @param mismatchedTypesPolicy Policy for handling type mismatches.
+ */
 template <typename TArchive, class TSourceType, class TTargetType>
 void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
 {
 	// Arrange
 	static_assert(!std::is_same_v<TSourceType, TTargetType>);
 
-	// Use array with one object for be compatible with CSV
+	// Use array with one object for compatibility with formats like CSV
 	TestClassWithSubTypes<TSourceType, TTargetType> sourceObj[1];
 	BuildFixture(sourceObj);
 	TestClassWithSubTypes<TTargetType, TTargetType> targetObj[1];
@@ -482,7 +553,7 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	}
 	catch (const BitSerializer::ValidationException& ex)
 	{
-		// Loading from Null values should be excluded from MismatchedTypesPolicy processing
+		// Null values are handled separately and not affected by MismatchedTypesPolicy
 		if (mismatchedTypesPolicy == BitSerializer::MismatchedTypesPolicy::ThrowError && !std::is_same_v<TSourceType, std::nullptr_t>)
 		{
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
@@ -492,12 +563,12 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::FailedValidation, ex.GetErrorCode());
 			EXPECT_EQ(1U, ex.GetValidationErrors().size());
 		}
-		// Second value should be loaded
+		// Second value should still be loaded correctly
 		GTestExpectEq(std::get<1>(sourceObj[0]), std::get<1>(targetObj[0]));
 	}
 	catch (const BitSerializer::SerializationException& ex)
 	{
-		// Loading from Null values should be excluded from MismatchedTypesPolicy processing
+		// Null values are handled separately and not affected by MismatchedTypesPolicy
 		if (mismatchedTypesPolicy == BitSerializer::MismatchedTypesPolicy::ThrowError && !std::is_same_v<TSourceType, std::nullptr_t>) {
 			EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
 		}
@@ -508,13 +579,16 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 	}
 }
 
-/// <summary>
-/// Template for test encoding errors.
-/// </summary>
+/**
+ * @brief Tests UTF encoding error handling policy during serialization/deserialization.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @param utfEncodingErrorPolicy Policy for handling UTF encoding errors.
+ */
 template <typename TArchive>
 void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy)
 {
-	// Arrange (save object with wrong sequence)
+	// Arrange: Create strings with invalid UTF sequences
 	const std::string wrongUtf8(MakeStringFromSequence(0b11111110, 0b11111111));
 	const std::string testUtf8Value = wrongUtf8 + "test_value" + wrongUtf8;
 
@@ -553,6 +627,7 @@ void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfE
 		{
 			BitSerializer::SaveObject<TArchive>(sourceObj, outputArchive, options);
 			BitSerializer::LoadObject<TArchive>(targetObj, outputArchive, options);
+
 #pragma warning(push)
 #pragma warning(disable: 4566)
 			EXPECT_EQ(u"☐☐test_value☐☐", std::get<0>(targetObj[0]));
@@ -567,11 +642,14 @@ void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfE
 	}
 }
 
-/// <summary>
-/// Template for test visiting keys in the object scope.
-/// </summary>
+/**
+ * @brief Tests visiting keys in an object scope during deserialization.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @param skipValues If true, skips value validation after visiting keys.
+ */
 template <typename TArchive>
-void TestVisitKeysInObjectScope(bool skipValues=false)
+void TestVisitKeysInObjectScope(bool skipValues = false)
 {
 	// Arrange
 	TestPointClass testObj[1];

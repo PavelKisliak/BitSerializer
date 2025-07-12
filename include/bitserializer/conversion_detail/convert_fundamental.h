@@ -14,10 +14,18 @@
 
 namespace BitSerializer::Convert::Detail
 {
-	/// <summary>
-	/// Converts any of fundamental types to any other fundamental type.
-	/// </summary>
-	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource> && std::is_arithmetic_v<TTarget>, int> = 0>
+	/**
+	 * @brief Converts between fundamental arithmetic types (integers, floating points, bool).
+	 *
+	 * This function safely converts one arithmetic type to another, checking for overflow or precision loss.
+	 * Boolean conversions are also supported with strict range checks.
+	 *
+	 * @param[in] sourceValue The value to convert from.
+	 * @param[out] targetValue The converted value will be stored here.
+	 * @throws std::out_of_range If the conversion resulted in data loss.
+	 * @throws std::invalid_argument If float-to-integer conversion is attempted.
+	 */
+	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource>&& std::is_arithmetic_v<TTarget>, int> = 0>
 	void To(const TSource& sourceValue, TTarget& targetValue)
 	{
 		if constexpr (std::is_same_v<TSource, TTarget>)
@@ -67,21 +75,26 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Converts any UTF string to integer or floating types (except compatibility mode).
-	/// </summary>
+	/**
+	 * @brief Converts a UTF string to an integral or floating-point numeric value.
+	 *
+	 * @param[in] in Input string to parse.
+	 * @param[out] out Parsed numeric value.
+	 * @throws std::invalid_argument On invalid numeric format.
+	 * @throws std::out_of_range If parsed value exceeds the range of T.
+	 */
 	template <typename T, typename TSym, std::enable_if_t<(std::is_integral_v<T>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
-	|| std::is_floating_point_v<T>
+			|| std::is_floating_point_v<T>
 #endif
-		), int> = 0>
+			), int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out)
 	{
 		const auto* it = in.data();
 		const auto* end = it + in.size();
 
-		// ReSharper disable once CppPossiblyErroneousEmptyStatements
-		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it) {}	// Skip spaces
+		// Skip leading spaces
+		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it) {}
 
 		const auto validateResult = [](std::from_chars_result rc, [[maybe_unused]]std::string_view str)
 		{
@@ -116,17 +129,28 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Converts any UTF string to boolean. Supports conversion from "0|1" and "true|false" strings.
-	/// </summary>
+	/**
+	 * @brief Converts a UTF string to a boolean value.
+	 *
+	 * Accepts:
+	 * - "true", "True", "TRUE", etc.
+	 * - "false", "False", "FALSE", etc.
+	 * - "1" or "0"
+	 *
+	 * Leading whitespace is ignored. Any additional characters after the recognized value cause failure.
+	 *
+	 * @param[in] in Input string to parse.
+	 * @param[out] ret_Val Resulting boolean value.
+	 * @throws std::invalid_argument If input is not a valid boolean representation.
+	 */
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, bool& ret_Val)
 	{
 		const auto* startIt = in.data();
 		const auto* endIt = startIt + in.size();
 
-		// ReSharper disable once CppPossiblyErroneousEmptyStatements
-		for (; (startIt != endIt) && (*startIt == 0x20 || *startIt == 0x09); ++startIt) {}	// Skip spaces
+		// Skip leading spaces
+		for (; (startIt != endIt) && (*startIt == 0x20 || *startIt == 0x09); ++startIt) {}
 
 		const auto size = endIt - startIt;
 		if (size >= 1)
@@ -173,16 +197,19 @@ namespace BitSerializer::Convert::Detail
 		throw std::invalid_argument("Input string is not a boolean");
 	}
 
-	//------------------------------------------------------------------------------
-
-	/// <summary>
-	/// Converts any integer and floating types (except compatibility mode) to any UTF string.
-	/// </summary>
+	/**
+	 * @brief Converts a numeric value (integral or floating-point) to a UTF string.
+	 *
+	 * The output is formatted as a decimal string without scientific notation.
+	 *
+	 * @param[in] in Value to convert.
+	 * @param[out] out Output string containing the UTF-encoded representation.
+	 */
 	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_integral_v<T>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
-	|| std::is_floating_point_v<T>
+			|| std::is_floating_point_v<T>
 #endif
-		), int> = 0>
+			), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		char buf[42];
@@ -201,10 +228,14 @@ namespace BitSerializer::Convert::Detail
 		}
 	}
 
-	/// <summary>
-	/// Converts boolean type to any UTF string.
-	/// The output representation is "true|false", please cast your boolean type to <int> if you would like to represent it as "1|0".
-	/// </summary>
+	/**
+	 * @brief Converts a boolean type to any UTF string.
+	 *
+	 * The output representation is "true|false", please cast your boolean type to `int` if you would like to represent it as "1|0".
+	 *
+	 * @param[in] in Boolean value to convert.
+	 * @param[out] out Output string with "true" or "false".
+	 */
 	template <typename TSym, typename TAllocator>
 	void To(const bool& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{

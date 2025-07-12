@@ -8,120 +8,139 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Contains a set of options which give a control over formatting output text (for text based archives).
-	/// Some options cannot be applicable to all types of archive, in that case it will be ignored.
-	/// </summary>
+	/**
+	 * @brief Configuration options for text formatting in output archives.
+	 *
+	 * These settings control how structured data is formatted when serializing into human-readable formats,
+	 * such as JSON or XML. Some options may be ignored depending on the archive format being used.
+	 */
 	struct FormatOptions
 	{
-		/// <summary>
-		/// Determines that output text archive should be formatted.
-		/// </summary>
+		/**
+		 * @brief Enables pretty-printing (indentation and line breaks) for the output archive.
+		 */
 		bool enableFormat = false;
 
-		/// <summary>
-		/// Character for padding, must be whitespace ' ' or '\t'.
-		/// </summary>
+		/**
+		 * @brief Character used for padding levels of indentation; must be whitespace (' ' or '\t').
+		 */
 		char paddingChar = '\t';
 
-		/// <summary>
-		/// The number of characters for padding each level.
-		/// </summary>
+		/**
+		 * @brief Number of padding characters used per indentation level.
+		 */
 		uint16_t paddingCharNum = 1;
 	};
 
-	/// <summary>
-	/// Contains a set of options for output stream.
-	/// Some options cannot be applicable to all types of archive, in that case it will be ignored.
-	/// </summary>
+	/**
+	 * @brief Configuration options for output stream behavior.
+	 *
+	 * Controls byte-level characteristics of the output stream, mostly relevant for text-based formats.
+	 */
 	struct StreamOptions
 	{
-		/// <summary>
-		/// Determines that BOM (Byte Order Mark) should be written to output stream (applicable for text based formats).
-		/// </summary>
+		/**
+		 * @brief Whether to write a Byte Order Mark (BOM) at the beginning of the output stream.
+		 * Applicable only for UTF encodings that support BOM (UTF-8, UTF-16, etc.).
+		 */
 		bool writeBom = true;
 
-		/// <summary>
-		/// The encoding for output stream (applicable for formats which based on UTF encoded text).
-		/// </summary>
+		/**
+		 * @brief Specifies the UTF encoding used for the output stream (only applies to text-based formats).
+		 */
 		Convert::Utf::UtfType encoding = Convert::Utf::UtfType::Utf8;
 	};
 
-	/// <summary>
-	/// Policy for case when size of target type is not enough for loading value.
-	/// </summary>
+	/**
+	 * @brief Defines the policy for handling numeric overflow during deserialization.
+	 *
+	 * Used when the value read from the archive exceeds the capacity of the target type.
+	 */
 	enum class OverflowNumberPolicy
 	{
-		/// <summary>
-		/// Value will be skipped, but can be handled by Required() validator.
-		/// </summary>
+		/**
+		 * @brief Skips the out-of-range value silently (can be handled later by `Required()` validator).
+		 */
 		Skip,
-		/// <summary>
-		/// Will be thrown SerializationException with error code `SerializationErrorCode::Overflow` when size of target type is not enough for loading value.
-		/// </summary>
+
+		/**
+		 * @brief Throws a `SerializationException` with error code `SerializationErrorCode::Overflow`
+		 * if the target type cannot hold the loaded value.
+		 */
 		ThrowError
 	};
 
-	/// <summary>
-	/// Policy for case when a type from the archive (source format, like JSON) does not match to the target value.
-	/// </summary>
+	/**
+	 * @brief Defines the policy for handling type mismatches during deserialization.
+	 *
+	 * Triggered when the type of value in the archive does not match the expected type in the target object.
+	 */
 	enum class MismatchedTypesPolicy
 	{
-		/// <summary>
-		/// Value will be skipped, but can be handled by Required() validator.
-		/// </summary>
+		/**
+		 * @brief Silently skips the mismatched value (can be handled later by `Required()` validator).
+		 */
 		Skip,
-		/// <summary>
-		/// Will be thrown SerializationException with error code `SerializationErrorCode::MismatchedTypes`.
-		/// </summary>
+
+		/**
+		 * @brief Throws a `SerializationException` with error code `SerializationErrorCode::MismatchedTypes`
+		 * when the archive contains a value of an unexpected type.
+		 */
 		ThrowError
 	};
 
-	/// <summary>
-	/// Contains a set of serialization options.
-	/// Some options cannot be applicable to all types of archive, in that case it will be ignored.
-	/// </summary>
+	/**
+	 * @brief Serialization options.
+	 */
 	struct SerializationOptions
 	{
-		/// <summary>
-		/// Contains a set of options which give a control over formatting output text (for text based archives).
-		/// </summary>
+		/**
+		 * @brief Options controlling text formatting (applies to text-based archives).
+		 */
 		FormatOptions formatOptions;
 
-		/// <summary>
-		/// Contains a set of options for output stream.
-		/// </summary>
+		/**
+		 * @brief Options affecting output stream properties like encoding and BOM.
+		 */
 		StreamOptions streamOptions;
 
-		/// <summary>
-		/// Policy for case when size of target type is not enough for loading number.
-		/// For example, when loading number is 500 but target type is char.
-		/// </summary>
-		/// <seealso cref="OverflowNumberPolicy" />
+		/**
+		 * @brief Policy for handling numeric overflows during deserialization.
+		 *
+		 * For example: attempting to load the number 500 into a `char`.
+		 *
+		 * @see OverflowNumberPolicy
+		 */
 		OverflowNumberPolicy overflowNumberPolicy = OverflowNumberPolicy::ThrowError;
 
-		/// <summary>
-		/// Policy for case when type of target field does not match the value being loaded.
-		/// For example, when loading string, but target type is number.
-		/// </summary>
-		/// <seealso cref="MismatchedTypesPolicy" />
+		/**
+		 * @brief Policy for handling type mismatches during deserialization.
+		 *
+		 * For example: expecting a number but reading a string from the archive.
+		 *
+		 * @see MismatchedTypesPolicy
+		 */
 		MismatchedTypesPolicy mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
 
-		/// <summary>
-		/// Policy for handle UTF encoding/decoding errors (for example, when UTF sequence is invalid).
-		/// </summary>
-		/// <seealso cref="Convert::Utf::UtfEncodingErrorPolicy" />
+		/**
+		 * @brief Policy for handling UTF encoding/decoding errors.
+		 *
+		 * Applied when invalid UTF sequences are encountered during parsing or writing.
+		 *
+		 * @see Convert::Utf::UtfEncodingErrorPolicy
+		 */
 		Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::ThrowError;
 
-		/// <summary>
-		/// The maximum number of validation errors that will be collected before an exception is thrown ().
-		///	The default value is "0", which means unlimited quantity. Number of errors for each particular field is unlimited in any case.
-		/// </summary>
+		/**
+		 * @brief Maximum number of validation errors to collect before throwing an exception (0 means no limit).
+		 */
 		uint32_t maxValidationErrors = 0;
 
-		/// <summary>
-		/// Values separator, currently used only for CSV format (allowed: ',', ';', '\t', ' ', '|').
-		/// </summary>
+		/**
+		 * @brief Separator character used between values in flat-file formats like CSV.
+		 *
+		 * Supported separators: ',', ';', '\t', ' ', '|'
+		 */
 		char valuesSeparator = ',';
 	};
 }

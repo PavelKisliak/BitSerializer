@@ -11,6 +11,9 @@
 #include "ryml/ryml.hpp"
 
 
+/**
+ * @brief Benchmark implementation for the RapidYaml library.
+ */
 class CRapidYamlBenchmark final : public CBenchmarkBase
 {
 public:

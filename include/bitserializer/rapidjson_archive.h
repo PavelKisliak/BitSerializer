@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -35,9 +35,9 @@ namespace Detail {
 template <typename TSym>
 using RapidJsonEncoding = typename rapidjson::UTF8<TSym>;
 
-/// <summary>
-/// The traits of JSON archive based on RapidJson
-/// </summary>
+/**
+ * @brief JSON archive traits (based on RapidJson).
+ */
 template <class TEncoding = RapidJsonEncoding<char>>
 struct RapidJsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -58,10 +58,10 @@ protected:
 template <SerializeMode TMode, class TEncoding, class TAllocator>
 class RapidJsonObjectScope;
 
-/// <summary>
-/// Base class of JSON scope
-/// </summary>
-/// <seealso cref="TArchiveBase" />
+
+/**
+ * @brief Base class of JSON scope.
+ */
 template <class TEncoding>
 class RapidJsonScopeBase : public RapidJsonArchiveTraits<TEncoding>
 {
@@ -79,9 +79,9 @@ public:
 	RapidJsonScopeBase(const RapidJsonScopeBase&) = delete;
 	RapidJsonScopeBase& operator=(const RapidJsonScopeBase&) = delete;
 
-	/// <summary>
-	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in JSON (RFC 6901 - JSON Pointer).
+	 */
 	[[nodiscard]] virtual std::string GetPath() const
 	{
 		const std::string localPath = mParentKey.empty()
@@ -163,10 +163,9 @@ protected:
 };
 
 
-/// <summary>
-/// JSON scope for serializing arrays (list of values without keys).
-/// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
+/**
+ * @brief JSON scope for serializing arrays (sequential values).
+ */
 template <SerializeMode TMode, class TEncoding, class TAllocator>
 class RapidJsonArrayScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
@@ -185,25 +184,25 @@ public:
 		assert(this->mNode->IsArray());
 	}
 
-	/// <summary>
-	/// Returns the estimated number of items to load (for reserving the size of containers).
-	/// </summary>
+	/**
+	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
+	 */
 	[[nodiscard]] size_t GetEstimatedSize() const {
 		return this->mNode->Capacity();
 	}
 
-	/// <summary>
-	/// Returns `true` when all no more values to load.
-	/// </summary>
+	/**
+	 * @brief Returns `true` when there are no more values to load.
+	 */
 	bool IsEnd()
 	{
 		static_assert(TMode == SerializeMode::Load);
 		return mValueIt == this->mNode->GetArray().End();
 	}
 
-	/// <summary>
-	/// Gets the current path in JSON (RFC 6901 - JSON Pointer). Unicode symbols encode to UTF-8.
-	/// </summary>
+	/**
+	 * @brief Gets the current path in JSON (RFC 6901 - JSON Pointer).
+	 */
 	[[nodiscard]] std::string GetPath() const override
 	{
 		int64_t index;
@@ -324,10 +323,9 @@ protected:
 };
 
 
-/// <summary>
-/// JSON scope for serializing objects (list of values with keys).
-/// </summary>
-/// <seealso cref="RapidJsonScopeBase" />
+/**
+ * @brief JSON scope for serializing objects (key-value pairs).
+ */
 template <SerializeMode TMode, class TEncoding, class TAllocator>
 class RapidJsonObjectScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
@@ -350,9 +348,12 @@ public:
 		return 0;
 	}
 
-	/// <summary>
-	/// Enumerates all keys by calling a passed function.
-	/// </summary>
+	/**
+	 * @brief Enumerates all keys in the current object.
+	 *
+	 * @tparam TCallback Callback function type.
+	 * @param fn Callback to invoke for each key.
+	 */
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
@@ -496,9 +497,9 @@ private:
 };
 
 
-/// <summary>
-/// JSON root scope (can serialize one value, array or object without key)
-/// </summary>
+/**
+ * @brief JSON root scope for serializing data (can serialize one value, array or object without key).
+ */
 template <SerializeMode TMode, class TEncoding = RapidJsonEncoding<char>>
 class RapidJsonRootScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
@@ -720,18 +721,19 @@ private:
 }
 
 
-/// <summary>
-/// JSON archive based on RapidJson library.
-/// Supports load/save from:
-/// - <c>std::string</c>: UTF-8
-/// - <c>std::istream</c> and <c>std::ostream</c>: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
-/// </summary>
+/**
+ * @brief JSON archive based on RapidJson library.
+ *
+ * Supports load/save from:
+ * - `std::string`: UTF-8
+ * - `std::istream`, `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+ */
 using JsonArchive = TArchiveBase<
 	Detail::RapidJsonArchiveTraits<>,
 	Detail::RapidJsonRootScope<SerializeMode::Load>,
 	Detail::RapidJsonRootScope<SerializeMode::Save>>;
 
-}
+} // namespace BitSerializer::Json::RapidJson
 
 #ifdef RAPIDJSON_WINDOWS_GETOBJECT_WORKAROUND_APPLIED
 #pragma pop_macro("GetObject")

@@ -15,9 +15,9 @@
 
 namespace BitSerializer::Convert::Utf
 {
-	/// <summary>
-	/// UTF encoding type.
-	/// </summary>
+	/**
+	 * @brief UTF encoding types supported by the library.
+	 */
 	enum class UtfType
 	{
 		Utf8,
@@ -33,27 +33,21 @@ namespace BitSerializer::Convert::Utf
 		{ UtfType::Utf16be, "UTF-16BE" },
 		{ UtfType::Utf32le, "UTF-32LE" },
 		{ UtfType::Utf32be, "UTF-32BE" }
-	})
-	DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::Utf::UtfType)
+		})
+		DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::Utf::UtfType)
 
-	/// <summary>
-	/// UTF encoding error policy.
-	/// </summary>
+	/**
+	 * @brief Error handling policy for UTF encoding operations.
+	 */
 	enum class UtfEncodingErrorPolicy
 	{
-		/// <summary>
-		/// Skip invalid UTF sequence (by default it is replacing with an error mark, that can be customized).
-		/// </summary>
-		Skip,
-		/// <summary>
-		///  Will be thrown SerializationException with error code `SerializationErrorCode::MismatchedTypes`.
-		/// </summary>
-		ThrowError
+		Skip,		///< Skip invalid UTF sequences (replace with an error mark).
+		ThrowError	///< Throw a `std::invalid_argument` on invalid sequence.
 	};
 
-	/// <summary>
-	/// UTF encoding error code.
-	/// </summary>
+	/**
+	 * @brief Error codes returned during UTF encoding or decoding.
+	 */
 	enum class UtfEncodingErrorCode
 	{
 		Success = 0,
@@ -61,36 +55,36 @@ namespace BitSerializer::Convert::Utf
 		UnexpectedEnd
 	};
 
-	/// <summary>
-	/// UTF encoding result.
-	/// </summary>
+	/**
+	 * @brief Result type returned by UTF encoding/decoding functions.
+	 *
+	 * Contains:
+	 * - An error code.
+	 * - The iterator pointing to the next unprocessed character.
+	 * - A count of invalid sequences handled.
+	 */
 	template <typename TIterator>
 	class UtfEncodingResult
 	{
 	public:
 		UtfEncodingResult(UtfEncodingErrorCode errorCode, TIterator it, size_t invalidSequencesCount) noexcept
-			: ErrorCode(errorCode)
-			, Iterator(std::move(it))
-			, InvalidSequencesCount(invalidSequencesCount)
-		{ }
+			: ErrorCode(errorCode), Iterator(std::move(it)), InvalidSequencesCount(invalidSequencesCount)
+		{
+		}
 
 		template <typename TOtherIt, std::enable_if_t<std::is_convertible_v<TOtherIt, TIterator>, int> = 0>
 		UtfEncodingResult(const UtfEncodingResult<TOtherIt>& otherResult) noexcept(std::is_nothrow_constructible_v<TIterator, TOtherIt>)
-			: ErrorCode(otherResult.ErrorCode)
-			, Iterator(otherResult.Iterator)
-			, InvalidSequencesCount(otherResult.InvalidSequencesCount)
-		{ }
+			: ErrorCode(otherResult.ErrorCode), Iterator(otherResult.Iterator), InvalidSequencesCount(otherResult.InvalidSequencesCount)
+		{
+		}
 
 		[[nodiscard]] operator bool() const noexcept {
 			return ErrorCode == UtfEncodingErrorCode::Success;
 		}
 
-		/// Encoding error code.
-		UtfEncodingErrorCode ErrorCode;
-		/// Iterator pointing to the first character after the last one processed. If there were no errors, it should be equal to the end iterator.
-		TIterator Iterator;
-		/// The number of replaced or skipped invalid sequences (based on the EncodeErrorPolicy).
-		size_t InvalidSequencesCount;
+		UtfEncodingErrorCode ErrorCode;	///< Result status.
+		TIterator Iterator;				///< Points to the first unprocessed character.
+		size_t InvalidSequencesCount;	///< Count of replaced or skipped invalid sequences.
 	};
 
 	namespace UnicodeTraits
@@ -108,6 +102,14 @@ namespace BitSerializer::Convert::Utf
 
 	namespace Detail
 	{
+		/**
+		 * @brief Handles invalid UTF sequences based on the selected error policy.
+		 *
+		 * @param outStr Output string where replacement may be written.
+		 * @param encodingPolicy Error handling policy.
+		 * @param errorMark Optional custom replacement character.
+		 * @return true if operation should continue, false if it should fail.
+		 */
 		template<typename TChar, typename TAllocator>
 		[[nodiscard]] bool HandleEncodingError(std::basic_string<TChar, std::char_traits<TChar>, TAllocator>& outStr, UtfEncodingErrorPolicy encodingPolicy, const TChar* errorMark)
 		{
@@ -124,6 +126,9 @@ namespace BitSerializer::Convert::Utf
 			return true;
 		}
 
+		/**
+		 * @brief Returns a default Unicode replacement character for the given character type.
+		 */
 		template <typename TChar>
 		constexpr const TChar* GetDefaultErrorMark() noexcept
 		{
@@ -140,7 +145,11 @@ namespace BitSerializer::Convert::Utf
 				return reinterpret_cast<const TChar*>(U"☐");
 			}
 		}
-	}
+	} // namespace Detail
+
+	//-----------------------------------------------------------------------------
+	// UTF-8 Implementation
+	//-----------------------------------------------------------------------------
 
 	class Utf8
 	{
@@ -148,11 +157,11 @@ namespace BitSerializer::Convert::Utf
 		using char_type = char;
 		static constexpr UtfType utfType = UtfType::Utf8;
 		static constexpr char bom[] = { '\xEF', '\xBB', '\xBF' };
-		static constexpr Memory::Endian endianness = Memory::Endian::native == Memory::Endian::little ? Memory::Endian::little : Memory::Endian::big;
+		static constexpr Memory::Endian endianness = Memory::Endian::native;
 
-		/// <summary>
-		/// Decodes UTF-8 to UTF-16 or UTF-32.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-8 into UTF-16 or UTF-32.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, TInIt end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -233,9 +242,9 @@ namespace BitSerializer::Convert::Utf
 			return UtfEncodingResult(UtfEncodingErrorCode::Success, in, invalidSequencesCount);
 		}
 
-		/// <summary>
-		/// Encodes to UTF-8 from UTF-16 or UTF-32.
-		/// </summary>
+		/**
+		 * @brief Encodes UTF-16 or UTF-32 into UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -323,6 +332,9 @@ namespace BitSerializer::Convert::Utf
 		}
 	};
 
+	//-----------------------------------------------------------------------------
+	// UTF-16 / UTF-16LE / UTF-16BE Implementations
+	//-----------------------------------------------------------------------------
 
 	class Utf16
 	{
@@ -330,11 +342,11 @@ namespace BitSerializer::Convert::Utf
 		using char_type = char16_t;
 		static constexpr UtfType utfType = Memory::Endian::native == Memory::Endian::little ? UtfType::Utf16le : UtfType::Utf16be;
 		static constexpr char bom[] = { '\xFF', '\xFE' };
-		static constexpr Memory::Endian endianness = Memory::Endian::native == Memory::Endian::little ? Memory::Endian::little : Memory::Endian::big;
+		static constexpr Memory::Endian endianness = Memory::Endian::native;
 
-		/// <summary>
-		/// Decodes UTF-16 to UTF-32, UTF-16 (copies 'as is') or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-16 to UTF-32, UTF-16 (copies 'as is') or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -406,9 +418,9 @@ namespace BitSerializer::Convert::Utf
 			}
 		}
 
-		/// <summary>
-		/// Encodes to UTF-16 from UTF-32, UTF-16 (copies 'as is') or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Encodes to UTF-16 from UTF-32, UTF-16 (copies 'as is') or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -472,9 +484,9 @@ namespace BitSerializer::Convert::Utf
 		static constexpr char bom[] = { '\xFF', '\xFE' };
 		static constexpr Memory::Endian endianness = Memory::Endian::little;
 
-		/// <summary>
-		/// Decodes UTF-16LE to UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-16LE to UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -482,9 +494,9 @@ namespace BitSerializer::Convert::Utf
 			return Utf16::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
 
-		/// <summary>
-		/// Encodes to UTF-16LE from UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Encodes to UTF-16LE from UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -509,9 +521,9 @@ namespace BitSerializer::Convert::Utf
 		static constexpr char bom[] = { '\xFE', '\xFF' };
 		static constexpr Memory::Endian endianness = Memory::Endian::big;
 
-		/// <summary>
-		/// Decodes UTF-16BE to UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-16BE to UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -519,9 +531,9 @@ namespace BitSerializer::Convert::Utf
 			return Utf16::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
 
-		/// <summary>
-		/// Encodes UTF-16BE from UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Encodes UTF-16BE from UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -537,6 +549,9 @@ namespace BitSerializer::Convert::Utf
 		}
 	};
 
+	//-----------------------------------------------------------------------------
+	// UTF-32 / UTF-32LE / UTF-32BE Implementations
+	//-----------------------------------------------------------------------------
 
 	class Utf32
 	{
@@ -544,11 +559,11 @@ namespace BitSerializer::Convert::Utf
 		using char_type = char32_t;
 		static constexpr UtfType utfType = UtfType::Utf32le;
 		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
-		static constexpr Memory::Endian endianness = Memory::Endian::native == Memory::Endian::little ? Memory::Endian::little : Memory::Endian::big;
+		static constexpr Memory::Endian endianness = Memory::Endian::native;
 
-		/// <summary>
-		/// Decodes UTF-32 to UTF-32 (copies 'as is'), UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-32 to UTF-32 (copies 'as is'), UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -578,9 +593,9 @@ namespace BitSerializer::Convert::Utf
 			}
 		}
 
-		/// <summary>
-		/// Encodes UTF-32 from UTF-32 (copies 'as is'), UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Encodes UTF-32 from UTF-32 (copies 'as is'), UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -620,9 +635,9 @@ namespace BitSerializer::Convert::Utf
 		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
 		static constexpr Memory::Endian endianness = Memory::Endian::little;
 
-		/// <summary>
-		/// Decodes UTF-32LE to UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-32LE to UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -630,9 +645,9 @@ namespace BitSerializer::Convert::Utf
 			return Utf32::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
 
-		/// <summary>
-		/// Encodes UTF-32LE from UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Encodes UTF-32LE from UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -655,9 +670,9 @@ namespace BitSerializer::Convert::Utf
 		static constexpr char bom[] = { '\x00', '\x00', '\xFE', '\xFF' };
 		static constexpr Memory::Endian endianness = Memory::Endian::big;
 
-		/// <summary>
-		/// Decodes UTF-32BE to UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Decodes UTF-32BE to UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Decode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -665,9 +680,9 @@ namespace BitSerializer::Convert::Utf
 			return Utf32::Decode(Memory::MakeIteratorAdapter<endianness>(in), Memory::MakeIteratorAdapter<endianness>(end), outStr, errorPolicy, errorMark);
 		}
 
-		/// <summary>
-		/// Encodes UTF-32BE from UTF-32, UTF-16 or UTF-8.
-		/// </summary>
+		/**
+		 * @brief Encodes UTF-32BE from UTF-32, UTF-16 or UTF-8.
+		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 			UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -681,11 +696,13 @@ namespace BitSerializer::Convert::Utf
 		}
 	};
 
-	//------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------
+	// Utility Functions
+	//-----------------------------------------------------------------------------
 
-	/// <summary>
-	/// Transcodes any UTF sequence to any other UTF string (in byte order of the current platform).
-	/// </summary>
+	/**
+	 * @brief Transcodes input UTF string to another UTF format (in byte order of the current platform).
+	 */
 	template<typename TInIt, typename TOutChar, typename TAllocator>
 	UtfEncodingResult<TInIt> Transcode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 		UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -707,9 +724,24 @@ namespace BitSerializer::Convert::Utf
 		}
 	}
 
-	/// <summary>
-	/// Transcodes any UTF string_view to any other UTF string.
-	/// </summary>
+	/**
+	 * @brief Transcodes a UTF string view to another UTF encoding.
+	 *
+	 * This function transcodes the entire content of a `std::basic_string_view` from one UTF encoding to another.
+	 * It is a convenience wrapper around the iterator-based version of `Transcode`.
+	 *
+	 * @tparam TInChar Character type of the input string view (UTF-8, UTF-16, or UTF-32).
+	 * @tparam TOutChar Character type of the output string (UTF-8, UTF-16, or UTF-32).
+	 * @tparam TAllocator Allocator type used by the output string.
+	 * @param[in] sourceStr Input string view to transcode.
+	 * @param[out] outStr Output string where transcoded data will be appended.
+	 * @param[in] errorPolicy Policy for handling invalid UTF sequences.
+	 * @param[in] errorMark Optional replacement character for invalid sequences.
+	 * @return A result object containing:
+	 *   - Encoding status (`UtfEncodingErrorCode`)
+	 *   - Iterator pointing to the first unprocessed character in the input
+	 *   - Count of invalid sequences handled
+	 */
 	template<typename TInChar, typename TOutChar, typename TAllocator>
 	UtfEncodingResult<typename std::basic_string_view<TInChar>::iterator> Transcode(const std::basic_string_view<TInChar> sourceStr, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
 		UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
@@ -717,9 +749,17 @@ namespace BitSerializer::Convert::Utf
 		return Transcode(sourceStr.cbegin(), sourceStr.cend(), outStr, errorPolicy, errorMark);
 	}
 
-	/// <summary>
-	/// Checks that passed string type starts with BOM which is specified in TUtfTraits.
-	/// </summary>
+	/**
+	 * @brief Checks whether the given string starts with the Byte Order Mark (BOM) defined by the specified UTF traits class.
+	 *
+	 * This function compares the beginning of the input sequence with the BOM bytes defined in `TUtfTraits::bom`.
+	 * It supports any container or string-like type that provides `std::cbegin()` and `std::cend()`.
+	 *
+	 * @tparam TUtfTraits Traits class defining the expected BOM sequence (e.g., `Utf8`, `Utf16Le`, etc.)
+	 * @tparam T Container or string-like type supporting `std::cbegin()` and `std::cend()`.
+	 * @param[in] inputString The input string or container to check.
+	 * @return true if the input starts with the BOM; false otherwise.
+	 */
 	template<class TUtfTraits, class T>
 	static bool StartsWithBom(const T& inputString)
 	{
@@ -735,9 +775,9 @@ namespace BitSerializer::Convert::Utf
 		return true;
 	}
 
-	/// <summary>
-	/// Detects encoding of string.
-	/// </summary>
+	/**
+	 * @brief Detects the UTF encoding of a byte stream.
+	 */
 	static UtfType DetectEncoding(std::string_view inputString, size_t& out_dataOffset)
 	{
 		if (inputString.empty())
@@ -817,9 +857,9 @@ namespace BitSerializer::Convert::Utf
 		return utfType;
 	}
 
-	/// <summary>
-	/// Detects an encoding of stream.
-	/// </summary>
+	/**
+	 * @brief Detects UTF encoding from an input stream.
+	 */
 	[[maybe_unused]] static UtfType DetectEncoding(std::istream& inputStream, bool skipBomWhenFound = true)
 	{
 		// Read first characters to temporary buffer
@@ -853,9 +893,9 @@ namespace BitSerializer::Convert::Utf
 		return detectedUtf;
 	}
 
-	/// <summary>
-	/// Writes BOM (Byte order mark) to output stream.
-	/// </summary>
+	/**
+	 * @brief Writes a BOM (Byte Order Mark) to an output stream.
+	 */
 	static void WriteBom(std::ostream& outputStream, UtfType encoding)
 	{
 		switch (encoding)
@@ -878,19 +918,23 @@ namespace BitSerializer::Convert::Utf
 		}
 	}
 
-	/// <summary>
-	/// The result of reading next encoded chunk.
-	/// </summary>
+	//-----------------------------------------------------------------------------
+	// Stream Reader / Writer Classes
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @brief Result of reading a chunk from an encoded stream.
+	 */
 	enum class EncodedStreamReadResult
 	{
 		Success = 0,
-		DecodeError,	// May only occur when `UtfEncodingErrorPolicy::ThrowError`
+		DecodeError,
 		EndFile
 	};
 
-	/// <summary>
-	/// Allows to read streams in various UTF encodings with automatic detection.
-	/// </summary>
+	/**
+	 * @brief Reads UTF-encoded data from a stream with automatic encoding detection.
+	 */
 	template <typename TTargetCharType, size_t ChunkSize = 256>
 	class CEncodedStreamReader
 	{
@@ -1023,9 +1067,9 @@ namespace BitSerializer::Convert::Utf
 		char* mEndDataPtr = mEncodedBuffer;
 	};
 
-	/// <summary>
-	/// Allows to write any string types to streams in various UTF encodings.
-	/// </summary>
+	/**
+	 * @brief Writes UTF-encoded data to a stream with optional BOM.
+	 */
 	class CEncodedStreamWriter
 	{
 	public:

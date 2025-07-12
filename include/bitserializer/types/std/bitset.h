@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2021 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,9 +8,9 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// Serializes std::bitset.
-	/// </summary>
+	/**
+	 * @brief Serializes `std::bitset`.
+	 */
 	template<typename TArchive, size_t Size>
 	void SerializeArray(TArchive& archive, std::bitset<Size>& cont)
 	{

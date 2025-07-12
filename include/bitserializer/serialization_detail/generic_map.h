@@ -10,32 +10,37 @@
 
 namespace BitSerializer
 {
-	/// <summary>
-	/// The enumeration of available modes for loading maps.
-	/// </summary>
+	/**
+	 * @brief Specifies how a map should be loaded during deserialization.
+	 */
 	enum class MapLoadMode
 	{
-		/// <summary>
-		/// Clean before load (default).
-		/// </summary>
-		Clean,
-
-		/// <summary>
-		/// Load only objects which already exist in the map.
-		/// </summary>
-		OnlyExistKeys,
-
-		/// <summary>
-		/// Load to existing or new objects.
-		/// </summary>
-		UpdateKeys
+		Clean,			///< Clear the map before loading (default behavior).
+		OnlyExistKeys,	///< Only update existing keys; ignore new ones.
+		UpdateKeys,		///< Update existing keys or insert new ones as needed.
 	};
 
 	namespace Detail
 	{
-		/// <summary>
-		/// Generic function for serialization maps.
-		/// </summary>
+		/**
+		 * @brief Generic function for serializing associative containers like `std::map` or `std::unordered_map`.
+		 *
+		 * Supports both saving and loading operations, with customizable map load behavior.
+		 *
+		 * When saving:
+		 * - Serializes each key-value pair directly if the archive supports the key type.
+		 * - Converts keys to strings if the target archive does not support the specified type.
+		 *
+		 * When loading:
+		 * - Clears, updates, or merges based on the specified `MapLoadMode`.
+		 * - Uses hinting and reserve strategies for performance optimization.
+		 *
+		 * @tparam TArchive   The archive type used for serialization.
+		 * @tparam TMap       Type of the associative container.
+		 * @param scope       Archive scope object used for serializing map content.
+		 * @param cont        Reference to the map being serialized.
+		 * @param mapLoadMode Load behavior mode (default: Clean).
+		 */
 		template<typename TArchive, typename TMap>
 		static void SerializeMapImpl(TArchive& scope, TMap& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 		{
@@ -46,10 +51,11 @@ namespace BitSerializer
 				for (auto& elem : cont)
 				{
 					// If the archive supports the exact key type
-					if constexpr (hasSupportKeyType) {
+					if constexpr (hasSupportKeyType)
+					{
 						Serialize(scope, elem.first, elem.second);
 					}
-					// If the archive supports serialization CBinTimestamp and key is convertible to it
+					// If the key can be converted to CBinTimestamp and the archive supports it
 					else if constexpr (hasSupportBinTimestamp && Convert::IsConvertible<typename TMap::key_type, CBinTimestamp>())
 					{
 						const auto timestamp = Convert::To<CBinTimestamp>(elem.first);
@@ -57,7 +63,7 @@ namespace BitSerializer
 					}
 					else
 					{
-						// Save key as string
+						// Save key as string fallback
 						const auto strKey = Convert::To<typename TArchive::key_type>(elem.first);
 						Serialize(scope, strKey, elem.second);
 					}
@@ -65,14 +71,16 @@ namespace BitSerializer
 			}
 			else
 			{
-				if (mapLoadMode == MapLoadMode::Clean) {
+				if (mapLoadMode == MapLoadMode::Clean)
+				{
 					cont.clear();
 				}
 
 				if constexpr (has_reserve_v<TMap>)
 				{
-					// Reserve map capacity (like for std::unordered_map) when the approximate size is known
-					if (const auto estimatedSize = scope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::OnlyExistKeys) {
+					// Reserve capacity when approximate size is known
+					if (const auto estimatedSize = scope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::OnlyExistKeys)
+					{
 						cont.reserve(estimatedSize);
 					}
 				}
@@ -80,7 +88,7 @@ namespace BitSerializer
 				auto hint = cont.begin();
 				scope.VisitKeys([mapLoadMode, &scope, &cont, &hint](auto&& archiveKey)
 				{
-					// Converting an archive key to key type of target map
+					// Convert archive key to target map's key type
 					typename TMap::key_type key;
 					if (ConvertByPolicy(archiveKey, key, scope.GetOptions().mismatchedTypesPolicy, scope.GetOptions().overflowNumberPolicy))
 					{
@@ -92,7 +100,8 @@ namespace BitSerializer
 							break;
 						case MapLoadMode::OnlyExistKeys:
 							hint = cont.find(key);
-							if (hint != cont.end()) {
+							if (hint != cont.end())
+							{
 								Serialize(scope, archiveKey, hint->second);
 							}
 							break;
@@ -105,9 +114,17 @@ namespace BitSerializer
 			}
 		}
 
-		/// <summary>
-		/// Generic function for serialization multi maps. Serialized as an array of pairs because some archives may not support duplicate keys.
-		/// </summary>
+		/**
+		 * @brief Generic function for serializing multimap-like containers.
+		 *
+		 * Multimaps may contain duplicate keys, so they are serialized as an array of pairs
+		 * to ensure compatibility with archives that do not support duplicate keys.
+		 *
+		 * @tparam TArchive   The archive type used for serialization.
+		 * @tparam TMultiMap  Type of the multimap container.
+		 * @param arrayScope  Archive scope object used for serializing array content.
+		 * @param cont        Reference to the multimap being serialized.
+		 */
 		template<typename TArchive, typename TMultiMap>
 		void SerializeMultiMapImpl(TArchive& arrayScope, TMultiMap& cont)
 		{
@@ -118,17 +135,19 @@ namespace BitSerializer
 				while (!arrayScope.IsEnd())
 				{
 					typename TMultiMap::value_type pair;
-					if (Serialize(arrayScope, pair)) {
+					if (Serialize(arrayScope, pair))
+					{
 						hint = cont.emplace_hint(hint, std::move(pair));
 					}
 				}
 			}
 			else
 			{
-				for (auto& elem : cont) {
+				for (auto& elem : cont)
+				{
 					Serialize(arrayScope, elem);
 				}
 			}
 		}
-	}
-}
+	} // namespace Detail
+} // namespace BitSerializer

@@ -35,9 +35,9 @@
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 
-/// <summary>
-/// Checks that the class has static BuildFixture() method.
-/// </summary>
+/**
+ * @brief Checks whether a type has a static `BuildFixture()` method.
+ */
 template <typename T>
 struct has_build_fixture_method
 {
@@ -56,9 +56,9 @@ public:
 template <typename T>
 constexpr bool has_build_fixture_method_v = has_build_fixture_method<T>::value;
 
-/// <summary>
-/// Checks that the class has Assert() method.
-/// </summary>
+/**
+ * @brief Checks whether a type has an `Assert()` method.
+ */
 template <typename T>
 struct has_assert_method
 {
@@ -77,10 +77,15 @@ public:
 template <typename T>
 constexpr bool has_assert_method_v = has_assert_method<T>::value;
 
-/// <summary>
-/// Builds the test fixture for classes (they must have static method BuildFixture()).
-/// As an alternative you can implement method BuildFixture() as global.
-/// </summary>
+/**
+ * @brief Builds a test fixture for class or union types using the static `BuildFixture()` method.
+ *
+ * If no such method exists, this will cause a static assertion failure.
+ * Alternatively, a global `BuildFixture()` overload may be provided.
+ *
+ * @tparam T The class or union type.
+ * @param value Reference to the object to initialize.
+ */
 template <typename T, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
 static void BuildFixture(T& value)
 {
@@ -92,9 +97,12 @@ static void BuildFixture(T& value)
 	}
 }
 
-/// <summary>
-/// Builds the test fixture for enum types (they must be registered in conversion system).
-/// </summary>
+/**
+ * @brief Builds a test fixture for integral types.
+ *
+ * @tparam T Integral type.
+ * @param value Reference to the value to populate.
+ */
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 
@@ -120,6 +128,12 @@ static void BuildFixture(T& value)					{ value = static_cast<T>(std::rand()); }
 	value = static_cast<std::byte>(std::rand() % (std::numeric_limits<unsigned char>::max)());
 }
 
+/**
+ * @brief Builds a test fixture for enum types using registered values.
+ *
+ * @tparam T Enum type.
+ * @param value Reference to the enum value to populate.
+ */
 template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 [[maybe_unused]] static void BuildFixture(T& value)
 {
@@ -127,6 +141,12 @@ template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->Value;
 }
 
+/**
+ * @brief Builds a test fixture for atomic types.
+ *
+ * @tparam T Atomic type.
+ * @param value Reference to the atomic variable to populate.
+ */
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 [[maybe_unused]] static void BuildFixture(std::atomic<T>& value)
 {
@@ -135,10 +155,13 @@ template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 	value = temp;
 }
 
-/// <summary>
-/// Builds the test fixture for array of types.
-/// </summary>
-/// <param name="arr">The array.</param>
+/**
+ * @brief Builds a test fixture for C-style arrays.
+ *
+ * @tparam TValue Element type.
+ * @tparam ArraySize Number of elements in the array.
+ * @param arr Reference to the array.
+ */
 template <typename TValue, size_t ArraySize>
 [[maybe_unused]] static void BuildFixture(TValue(&arr)[ArraySize])
 {
@@ -164,10 +187,11 @@ template <typename TValue, size_t ArraySize>
 	}
 }
 
-/// <summary>
-/// Builds the test fixture for std::pair value.
-/// </summary>
-/// <param name="pair">The pair.</param>
+/**
+ * @brief Builds a test fixture for `std::pair` value.
+ *
+ * @param pair Reference to the `std::pair`.
+ */
 template <typename TKey, typename TValue>
 [[maybe_unused]] static void BuildFixture(std::pair<TKey, TValue>& pair)
 {
@@ -175,10 +199,11 @@ template <typename TKey, typename TValue>
 	BuildFixture(pair.second);
 }
 
-/// <summary>
-/// Builds the test fixture for std::tuple value.
-/// </summary>
-/// <param name="value">The tuple.</param>
+/**
+ * @brief Builds a test fixture for `std::tuple` value.
+ *
+ * @param value Reference to the `std::tuple`.
+ */
 template <typename ...TArgs>
 [[maybe_unused]] static void BuildFixture(std::tuple<TArgs...>& value)
 {
@@ -187,10 +212,11 @@ template <typename ...TArgs>
 	}, value);
 }
 
-/// <summary>
-/// Builds the test fixture for std::optional value.
-/// </summary>
-/// <param name="optionalValue">The optional value.</param>
+/**
+ * @brief Builds a test fixture for `std::optional<TValue>` value.
+ *
+ * @param optionalValue Reference to the `std::optional<TValue>`.
+ */
 template <typename TValue>
 [[maybe_unused]] static void BuildFixture(std::optional<TValue>& optionalValue)
 {
@@ -198,10 +224,11 @@ template <typename TValue>
 	BuildFixture(optionalValue.value());
 }
 
-/// <summary>
-/// Builds the test fixture for std::chrono::time_point
-/// </summary>
-/// <param name="timePoint">The reference to time point.</param>
+/**
+ * @brief Builds a test fixture for `std::chrono::time_point`.
+ *
+ * @param timePoint Reference to the `std::chrono::time_point`.
+ */
 template <typename TClock, typename TDuration>
 [[maybe_unused]] static void BuildFixture(std::chrono::time_point<TClock, TDuration>& timePoint)
 {
@@ -222,10 +249,11 @@ template <typename TClock, typename TDuration>
 	timePoint = std::chrono::time_point<TClock, TDuration>(std::chrono::duration_cast<TDuration>(std::chrono::seconds(distr(gen))));
 }
 
-/// <summary>
-/// Builds the test fixture for std::chrono::duration
-/// </summary>
-/// <param name="duration">The reference to duration.</param>
+/**
+ * @brief Builds a test fixture for `std::chrono::duration`.
+ *
+ * @param duration Reference to the `std::chrono::duration`.
+ */
 template <typename TRep, typename TPeriod>
 [[maybe_unused]] static void BuildFixture(std::chrono::duration<TRep, TPeriod>& duration)
 {
@@ -239,9 +267,9 @@ template <typename TRep, typename TPeriod>
 
 namespace std
 {
-	/// <summary>
-	/// Specialization of `std::numeric_limits<T>` for `CBinTimestamp`.
-	/// </summary>
+	/**
+	 * @brief Specialization of `std::numeric_limits<T>` for `CBinTimestamp`.
+	 */
 	template<>
 	class numeric_limits<BitSerializer::Detail::CBinTimestamp>
 	{
@@ -258,20 +286,22 @@ namespace std
 	};
 }
 
-/// <summary>
-/// Builds the test fixture for CBinTimestamp
-/// </summary>
-/// <param name="timestamp">The reference to binary timestamp.</param>
+/**
+ * @brief Builds a test fixture for `CBinTimestamp`.
+ *
+ * @param timestamp Reference to the `CBinTimestamp`.
+ */
 [[maybe_unused]] static void BuildFixture(BitSerializer::Detail::CBinTimestamp& timestamp)
 {
 	BuildFixture(timestamp.Seconds);
 	BuildFixture(timestamp.Nanoseconds);
 }
 
-/// <summary>
-/// Builds the test fixture for std::unique_ptr value.
-/// </summary>
-/// <param name="uniquePtr">The reference to unique pointer.</param>
+/**
+ * @brief Builds a test fixture for `std::unique_ptr<TValue>`.
+ *
+ * @param uniquePtr Reference to the `std::unique_ptr<TValue>`.
+ */
 template <typename TValue>
 [[maybe_unused]] static void BuildFixture(std::unique_ptr<TValue>& uniquePtr)
 {
@@ -279,10 +309,11 @@ template <typename TValue>
 	BuildFixture(*uniquePtr);
 }
 
-/// <summary>
-/// Builds the test fixture for std::shared_ptr value.
-/// </summary>
-/// <param name="sharedPtr">The reference to shared pointer.</param>
+/**
+ * @brief Builds a test fixture for `std::shared_ptr<TValue>`.
+ *
+ * @param sharedPtr Reference to the `std::shared_ptr<TValue>`.
+ */
 template <typename TValue>
 [[maybe_unused]] static void BuildFixture(std::shared_ptr<TValue>& sharedPtr)
 {
@@ -290,10 +321,11 @@ template <typename TValue>
 	BuildFixture(*sharedPtr);
 }
 
-/// <summary>
-/// Build the test fixture - overloaded variant with return value (can't be applied to c-array types).
-/// </summary>
-/// <returns>The generated fixture</returns>
+/**
+ * @brief Builds a test fixture - overloaded variant with return value (can't be applied to c-array types).
+ *
+ * @return The generated fixture
+ */
 template <typename T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
 [[maybe_unused]] static T BuildFixture()
 {
@@ -302,15 +334,21 @@ template <typename T, std::enable_if_t<!std::is_array_v<T>, int> = 0>
 	return fixture;
 }
 
-/// <summary>
-/// Builds the test fixture for std::filesystem::path value.
-/// </summary>
-/// <param name="path">The reference to path.</param>
+/**
+ * @brief Builds a test fixture for `std::filesystem::path`.
+ *
+ * @param path Reference to the `std::filesystem::path`.
+ */
 [[maybe_unused]] static void BuildFixture(std::filesystem::path& path)
 {
 	path = std::filesystem::temp_directory_path() / (BuildFixture<std::string>() + ".txt");
 }
 
+/**
+ * @brief Builds a test fixture for `std::array`.
+ *
+ * @param cont Reference to the `std::array`.
+ */
 template <typename T, size_t Size>
 [[maybe_unused]] static void BuildFixture(std::array<T, Size>& cont)
 {

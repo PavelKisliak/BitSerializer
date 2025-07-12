@@ -26,9 +26,14 @@ namespace BitSerializer::Convert::Detail
 		template <>	inline long double _fromStr<long double>(const wchar_t* str, wchar_t** out_strEnd) { return std::wcstold(str, out_strEnd); }
 	}
 
-	/// <summary>
-	/// Converts any UTF string to floating types (version keep compatibility with old GCC and Clang compilers).
-	/// </summary>
+	/**
+	 * @brief Converts a UTF string to a floating-point number.
+	 *
+	 * @param in Input string view containing the numeric value.
+	 * @param out Output variable to store the parsed value.
+	 * @throws std::invalid_argument If parsing fails or input is not a valid number.
+	 * @throws std::out_of_range If result exceeds representable range.
+	 */
 	template <typename T, typename TSym, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out)
 	{
@@ -88,9 +93,13 @@ namespace BitSerializer::Convert::Detail
 		template <>	constexpr const wchar_t* _getW<long double>() { return L"%.15Lg"; }
 	}
 
-	/// <summary>
-	/// Converts any floating point types to any UTF string.
-	/// </summary>
+	/**
+	 * @brief Converts a floating-point number to a UTF string representation.
+	 *
+	 * @param in Value to convert.
+	 * @param out Output string object.
+	 * @throws std::overflow_error If internal buffer is insufficient.
+	 */
 	template <class T, typename TSym, typename TAllocator, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{

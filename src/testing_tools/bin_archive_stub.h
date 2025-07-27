@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak									   *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -590,8 +590,8 @@ namespace BitSerializer {
 				if constexpr (TMode == SerializeMode::Load) {
 					return LoadFundamentalValue(*mInputData->Data, value, this->GetOptions());
 				}
-			else
-			{
+				else
+				{
 					SaveFundamentalValue(*mOutputData->Data, value);
 					return true;
 				}
@@ -606,7 +606,8 @@ namespace BitSerializer {
 				if constexpr (TMode == SerializeMode::Load) {
 					return LoadString(*mInputData->Data, value);
 				}
-				else {
+				else
+				{
 					SaveString(*mOutputData->Data, value);
 					return true;
 				}

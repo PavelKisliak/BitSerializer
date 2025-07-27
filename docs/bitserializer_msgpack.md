@@ -39,8 +39,11 @@ MsgPack stores numbers in the binary format, that making serialization is up to 
 [See source code](../samples/msgpack_vs_json/msgpack_vs_json.cpp)
 
 ### How to install
-The MsgPack archive does not require any third party dependencies, but since this part is not "header only", it needs to be built. Currently library supports only static linkage. The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands.
-For avoid binary incompatibility issues, please build with the same compiler options that are used in your project (C++ standard, optimizations flags, runtime type, etc).
+The MsgPack archive does not require any third party dependencies, but since this part is not "header only", it needs to be built.
+The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands.
+
+> [!IMPORTANT]
+> Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 
 #### VCPKG
 Add BitSerializer to manifest file (`vcpkg.json`) with `msgpack-archive` feature:
@@ -116,4 +119,5 @@ target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
 The following two examples are designed specially to demonstrate MsgPack:
 - [MsgPack vs JSON](../samples/msgpack_vs_json/msgpack_vs_json.cpp) - demonstrates the features of MsgPack
 - [Versioning](../samples/versioning/versioning.cpp) - demonstrates how to implement versioning.
+
 All other examples may also be useful, as serialization to MsgPack is similar to other archives, please learn them with using main [README.md](../README.md).

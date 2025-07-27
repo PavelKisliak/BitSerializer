@@ -6,7 +6,10 @@ Supported load/save **CSV** from:
 - std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (auto-detection encoding with/without BOM)
 
 ### How to install
-The CSV archive does not require any third party dependencies, but since this part is not "header only", it needs to be built. The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands. For avoid binary incompatibility issues, please build with the same compiler options that are used in your project (C++ standard, optimizations flags, runtime type, etc).
+The CSV archive does not require any third party dependencies, but since this part is not "header only", it needs to be built. The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands.
+
+> [!IMPORTANT]
+> Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 
 #### VCPKG
 Add BitSerializer to manifest file (`vcpkg.json`) with `csv-archive` feature:

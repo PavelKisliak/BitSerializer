@@ -219,7 +219,11 @@ $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
 By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
+Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `rapidjson-dev` and `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
+
+> [!IMPORTANT]
+> Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 
 #### How to use with CMake
 ```cmake
@@ -1099,7 +1103,7 @@ Path: /Age
 Path: /Email
         Invalid email address
 Path: /FirstName
-        The maximum size of this field should be not greater than 16
+        The maximum size of this field should not exceed 16
 Path: /LastName
         This field is required
 Path: /NickName

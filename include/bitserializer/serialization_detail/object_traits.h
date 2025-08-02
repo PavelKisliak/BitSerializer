@@ -346,15 +346,15 @@ namespace BitSerializer {
 	constexpr bool is_output_stream_v = is_output_stream<T>::value;
 
 	/**
-	 * @brief Checks whether a type implements a validator function.
+	 * @brief Checks whether a type implements a validator for the specified value type.
 	 */
 	template <typename TValidator, typename TValue>
 	struct is_validator
 	{
 	private:
-		template <typename TObject>
+		template <typename T>
 		static std::enable_if_t<std::is_same_v<std::optional<std::string>,
-			decltype(std::declval<TObject>()(std::declval<const TValue&>(), std::declval<const bool>()))>, std::true_type> test(int);
+			decltype(std::declval<const T>()(std::declval<const TValue&>(), std::declval<bool>()))>, std::true_type> test(int);
 
 		template <typename>
 		static std::false_type test(...);
@@ -366,6 +366,27 @@ namespace BitSerializer {
 
 	template <typename TValidator, typename TValue>
 	constexpr bool is_validator_v = is_validator<TValidator, TValue>::value;
+
+	/**
+	 * @brief Checks whether a type implements a refiner for the specified value type.
+	 */
+	template <typename TRefiner, typename TValue>
+	struct is_refiner
+	{
+	private:
+		template <typename T>
+		static std::enable_if_t<std::is_same_v<void, decltype(std::declval<const T>()(std::declval<TValue&>(), std::declval<bool>()))>, std::true_type> test(int);
+
+		template <typename>
+		static std::false_type test(...);
+
+	public:
+		using type = decltype(test<TRefiner>(0));
+		enum { value = type::value };
+	};
+
+	template <typename TRefiner, typename TValue>
+	constexpr bool is_refiner_v = is_refiner<TRefiner, TValue>::value;
 
 	/**
 	 * @brief Maps an arithmetic type to its fixed-size counterpart (e.g., int -> int32_t).

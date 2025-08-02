@@ -12,10 +12,10 @@ namespace BitSerializer
 	 *
 	 * @tparam TAttrKey     Type of the attribute key.
 	 * @tparam TValue       Type of the attribute value.
-	 * @tparam TValidators  Optional validator types.
+	 * @tparam TArgs        Types of extra parameters.
 	 */
-	template<class TAttrKey, class TValue, class... TValidators>
-	class AttributeValue : public KeyValue<TAttrKey, TValue, TValidators...>
+	template<class TAttrKey, class TValue, class... TArgs>
+	class AttributeValue : public KeyValue<TAttrKey, TValue, TArgs...>
 	{
 	public:
 		/**
@@ -23,20 +23,20 @@ namespace BitSerializer
 		 *
 		 * @param attributeKey The key identifying the attribute.
 		 * @param value        The value to be serialized as an attribute.
-		 * @param validators   Optional validation rules to apply to the value.
+		 * @param args         Optional extra parameters to apply to the value.
 		 */
-		AttributeValue(TAttrKey&& attributeKey, TValue&& value, TValidators&&... validators)
-			: KeyValue<TAttrKey, TValue, TValidators...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), std::forward<TValidators>(validators)...)
+		AttributeValue(TAttrKey&& attributeKey, TValue&& value, TArgs&&... args)
+			: KeyValue<TAttrKey, TValue, TArgs...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), std::forward<TArgs>(args)...)
 		{
 		}
 	};
 
 	// Deduction guide for constructing `KeyValue` class when value passed as lvalue
-	template<class TAttrKey, class TValue, class... Validators>
-	AttributeValue(TAttrKey&&, TValue&, Validators&&...) -> AttributeValue<TAttrKey, TValue&, Validators...>;
+	template<class TAttrKey, class TValue, class... TArgs>
+	AttributeValue(TAttrKey&&, TValue&, TArgs&&...) -> AttributeValue<TAttrKey, TValue&, TArgs...>;
 
 	// Deduction guide for constructing `KeyValue` class when value passed as rvalue
-	template<class TAttrKey, class TValue, class... Validators>
-	AttributeValue(TAttrKey&&, TValue&&, Validators&&...) -> AttributeValue<TAttrKey, TValue, Validators...>;
+	template<class TAttrKey, class TValue, class... TArgs>
+	AttributeValue(TAttrKey&&, TValue&&, TArgs&&...) -> AttributeValue<TAttrKey, TValue, TArgs...>;
 
 } // namespace BitSerializer

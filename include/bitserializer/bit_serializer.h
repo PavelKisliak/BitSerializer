@@ -8,6 +8,7 @@
 #include "bitserializer/serialization_detail/key_value_proxy.h"
 #include "bitserializer/serialization_detail/validators.h"
 #include "bitserializer/serialization_detail/serialization_context.h"
+#include "bitserializer/refine.h"
 
 namespace BitSerializer
 {

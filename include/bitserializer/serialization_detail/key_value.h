@@ -9,37 +9,37 @@
 namespace BitSerializer
 {
 	/**
-	 * @brief A generic wrapper for a key-value pair with optional validators.
+	 * @brief A generic wrapper for a key-value pair with optional extra parameters.
 	 *
-	 * This class is used to associate a key with a value and a set of validation rules.
+	 * This class is used to associate a key with a value and a set of extra parameters.
 	 *
-	 * @tparam TKey       Type of the key.
-	 * @tparam TValue     Type of the value being stored.
-	 * @tparam Validators Optional validator types.
+	 * @tparam TKey      Type of the key.
+	 * @tparam TValue    Type of the value being stored.
+	 * @tparam TArgs     Optional extra types.
 	 */
-	template<class TKey, class TValue, class... Validators>
+	template<class TKey, class TValue, class... TArgs>
 	class KeyValue
 	{
 	protected:
 		TKey mKey;
 		TValue mValue;
-		std::tuple<Validators...> mValidators;
+		std::tuple<TArgs...> mTArgs;
 
 	public:
 		using value_type = TValue;
 		using key_type = TKey;
 
 		/**
-		 * @brief Constructs a KeyValue instance from a key, value, and optional validators.
+		 * @brief Constructs a KeyValue instance from a key, value, and optional extra parameters.
 		 *
-		 * @param key        The key associated with the value.
-		 * @param value      The value to store.
-		 * @param validators Optional validation rules to apply to the value.
+		 * @param key    The key associated with the value.
+		 * @param value  The value to store.
+		 * @param args   Optional extra parameters to apply to the value.
 		 */
-		constexpr KeyValue(TKey&& key, TValue&& value, Validators&&... validators)
+		constexpr KeyValue(TKey&& key, TValue&& value, TArgs&&... args)
 			: mKey(std::forward<TKey>(key))
 			, mValue(std::forward<TValue>(value))
-			, mValidators(std::forward<Validators>(validators)...)
+			, mTArgs(std::forward<TArgs>(args)...)
 		{
 		}
 
@@ -64,26 +64,26 @@ namespace BitSerializer
 		}
 
 		/**
-		 * @brief Applies a visitor function to each validator in the argument pack.
+		 * @brief Applies a visitor function to each extra parameter.
 		 *
 		 * @tparam TVisitor Type of the visitor callable.
-		 * @param visitor   Callable object to apply to each validator.
+		 * @param visitor   Callable object to apply to each extra parameter.
 		 */
 		template <typename TVisitor>
 		void VisitArgs(TVisitor visitor)
 		{
 			std::apply([&visitor](auto&& ...args) {
 				(visitor(args), ...);
-			}, mValidators);
+			}, mTArgs);
 		}
 	};
 
 	// Deduction guide for constructing `KeyValue` class when value passed as lvalue
-	template<class TKey, class TValue, class... Validators>
-	KeyValue(TKey&&, TValue&, Validators&&...) -> KeyValue<TKey, TValue&, Validators...>;
+	template<class TKey, class TValue, class... TArgs>
+	KeyValue(TKey&&, TValue&, TArgs&&...) -> KeyValue<TKey, TValue&, TArgs...>;
 
 	// Deduction guide for constructing `KeyValue` class when value passed as rvalue
-	template<class TKey, class TValue, class... Validators>
-	KeyValue(TKey&&, TValue&&, Validators&&...) -> KeyValue<TKey, TValue, Validators...>;
+	template<class TKey, class TValue, class... TArgs>
+	KeyValue(TKey&&, TValue&&, TArgs&&...) -> KeyValue<TKey, TValue, TArgs...>;
 
 } // namespace BitSerializer

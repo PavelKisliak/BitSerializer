@@ -71,7 +71,7 @@ TEST(KeyValue, ShouldStoreValueWhenPassedAsRValue)
 	EXPECT_EQ("value", keyValue.GetValue());
 }
 
-TEST(KeyValue, ShouldStoreValidators)
+TEST(KeyValue, ShouldVisitExtraParameters)
 {
 	// Arrange
 	int value = 10;

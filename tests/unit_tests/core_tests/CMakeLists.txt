@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     serialization_context_tests.cpp
     serialization_object_traits_tests.cpp
     validators_tests.cpp
+    refine_tests.cpp
 )
 
 # Target configuration

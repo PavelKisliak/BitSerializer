@@ -34,12 +34,12 @@ namespace BitSerializer::KeyValueProxy
 	 * @tparam TArchive    Type of the serialization archive.
 	 * @tparam TKey        Type of the key.
 	 * @tparam TValue      Type of the value being serialized.
-	 * @tparam TValidators Types of optional validator objects.
+	 * @tparam TArgs       Types of extra parameters.
 	 * @param archive      Archive used for serialization.
 	 * @param keyValue     KeyValue wrapper containing key, value, and validators.
 	 */
-	template <class TArchive, class TKey, class TValue, class... TValidators>
-	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TValidators...>&& keyValue)
+	template <class TArchive, class TKey, class TValue, class... TArgs>
+	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TArgs...>&& keyValue)
 	{
 		bool result;
 		if constexpr (BitSerializer::is_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>)
@@ -59,7 +59,8 @@ namespace BitSerializer::KeyValueProxy
 			{
 				using HandlerType = std::decay_t<decltype(handler)>;
 				constexpr auto isValidator = is_validator_v<HandlerType, TValue>;
-				static_assert(isValidator, "Unknown signature of passed KeyValue argument");
+				constexpr auto isRefiner = is_refiner_v<HandlerType, TValue>;
+				static_assert(isValidator || isRefiner, "BitSerializer. Unknown signature of argument passed to KeyValue");
 
 				if constexpr (isValidator)
 				{
@@ -68,6 +69,10 @@ namespace BitSerializer::KeyValueProxy
 						auto path = archive.GetPath() + TArchive::path_separator + Convert::ToString(keyValue.GetKey());
 						archive.GetContext().AddValidationError(std::move(path), std::move(*validationError));
 					}
+				}
+				else if constexpr (isRefiner)
+				{
+					handler(keyValue.GetValue(), result);
 				}
 			});
 		}
@@ -81,12 +86,12 @@ namespace BitSerializer::KeyValueProxy
 	 * @tparam TArchive     Type of the serialization archive.
 	 * @tparam TAttrKey     Type of the attribute key.
 	 * @tparam TValue       Type of the attribute value.
-	 * @tparam TValidators  Types of optional validator objects.
+	 * @tparam TArgs        Types of extra parameters.
 	 * @param archive       Archive used for serialization.
 	 * @param attrValuePair AttributeValue wrapper containing key, value, and validators.
 	 */
-	template <class TArchive, class TAttrKey, class TValue, class... TValidators>
-	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TValidators...>&& attrValuePair)
+	template <class TArchive, class TAttrKey, class TValue, class... TArgs>
+	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TArgs...>&& attrValuePair)
 	{
 		constexpr auto hasSupportAttributes = BitSerializer::can_serialize_attribute_v<TArchive>;
 		static_assert(hasSupportAttributes, "BitSerializer. The archive doesn't support serialization attribute (on current level or for format at all)");
@@ -96,7 +101,7 @@ namespace BitSerializer::KeyValueProxy
 			auto attributesScope = archive.OpenAttributeScope();
 			if (attributesScope)
 			{
-				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TValidators...>>(attrValuePair));
+				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValuePair));
 			}
 		}
 	}

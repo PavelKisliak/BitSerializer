@@ -48,6 +48,13 @@ public:
 	}
 };
 
+class TestRefinerClass
+{
+public:
+	template <class TValue>
+	void operator() (const TValue&, const bool) const noexcept {}
+};
+
 //-----------------------------------------------------------------------------
 
 TEST(SerializationObjectTraits, ShouldCheckThatClassHasSerializeMethod) {
@@ -163,8 +170,19 @@ TEST(SerializationObjectTraits, ShouldCheckThatIsOutputStream) {
 TEST(SerializationObjectTraits, ShouldCheckThatIsValidator) {
 	const bool testResult1 = is_validator_v<TestValidatorClass, int>;
 	EXPECT_TRUE(testResult1);
-	const bool testResult2 = is_validator_v<TestNotSerializableClass, int>;
+	const bool testResult2 = is_validator_v<TestRefinerClass, int>;
 	EXPECT_FALSE(testResult2);
+	const bool testResult3 = is_validator_v<TestNotSerializableClass, int>;
+	EXPECT_FALSE(testResult3);
+}
+
+TEST(SerializationObjectTraits, ShouldCheckThatIsRefiner) {
+	const bool testResult1 = is_refiner_v<TestRefinerClass, int>;
+	EXPECT_TRUE(testResult1);
+	const bool testResult2 = is_refiner_v<TestValidatorClass, int>;
+	EXPECT_FALSE(testResult2);
+	const bool testResult3 = is_refiner_v<TestNotSerializableClass, int>;
+	EXPECT_FALSE(testResult3);
 }
 
 //-----------------------------------------------------------------------------

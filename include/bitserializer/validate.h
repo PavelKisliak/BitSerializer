@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "object_traits.h"
+#include "bitserializer/serialization_detail/object_traits.h"
 #include "bitserializer/convert.h"
 
 namespace BitSerializer::Validate
@@ -17,12 +17,12 @@ namespace BitSerializer::Validate
 		/**
 		 * @param errorMessage Custom message to show if validation fails.
 		 */
-		constexpr explicit Required(const char* errorMessage = "This field is required")
+		constexpr explicit Required(const char* errorMessage = "This field is required") noexcept
 			: mErrorMessage(errorMessage)
 		{ }
 
 		template <class TValue>
-		std::optional<std::string> operator()(const TValue&, bool isLoaded) const noexcept
+		std::optional<std::string> operator()(const TValue&, bool isLoaded) const
 		{
 			if (isLoaded) {
 				return std::nullopt;
@@ -49,7 +49,7 @@ namespace BitSerializer::Validate
 		 * @param max Maximum allowed value (inclusive).
 		 * @param errorMessage Optional custom error message.
 		 */
-		constexpr Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr)
+		constexpr Range(const TValue& min, const TValue& max, const char* errorMessage = nullptr) noexcept(std::is_nothrow_copy_constructible_v<TValue>)
 			: mMin(min)
 			, mMax(max)
 			, mErrorMessage(errorMessage)

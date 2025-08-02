@@ -6,8 +6,8 @@
 #include <fstream>
 #include "bitserializer/serialization_detail/serialization_base_types.h"
 #include "bitserializer/serialization_detail/key_value_proxy.h"
-#include "bitserializer/serialization_detail/validators.h"
 #include "bitserializer/serialization_detail/serialization_context.h"
+#include "bitserializer/validate.h"
 #include "bitserializer/refine.h"
 
 namespace BitSerializer
@@ -19,11 +19,6 @@ namespace BitSerializer
 	 * It's recommended to configure these at startup time for application-specific needs.
 	 */
 	static SerializationOptions DefaultOptions;
-
-	/**
-	 * @brief Validation rule - makes the field as required.
-	 */
-	using Validate::Required;
 
 	/**
 	 * @brief Loads an object from a supported data type (UTF-8 string or binary array depending on archive type).
@@ -206,6 +201,16 @@ namespace BitSerializer
 			throw SerializationException(SerializationErrorCode::InputOutputError, Convert::ToString(std::forward<TPath>(path), "Could not open file: "));
 		}
 	}
+
+	/**
+	 * @brief Validates that field is deserialized (see more \validate.h)
+	 */
+	using Validate::Required;
+
+	/**
+	 * @brief Provides a fallback value for missing deserialization data (see more \refine.h).
+	 */
+	using Refine::Fallback;
 
 } // namespace BitSerializer
 

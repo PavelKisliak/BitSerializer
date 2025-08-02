@@ -4,7 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/serialization_detail/attr_key_value.h"
-#include "bitserializer/serialization_detail/validators.h"
+#include "bitserializer/validate.h"
 
 
 using namespace BitSerializer;

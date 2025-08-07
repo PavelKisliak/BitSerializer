@@ -4,7 +4,8 @@
 *******************************************************************************/
 #pragma once
 #include <utility>
-#include <type_traits>
+#include "bitserializer/common/text.h"
+#include "bitserializer/serialization_detail/object_traits.h"
 
 namespace BitSerializer::Refine
 {
@@ -41,5 +42,22 @@ namespace BitSerializer::Refine
 	// Deduction guide for constructing `Fallback` class
 	template<class T>
 	Fallback(T&&) -> Fallback<T>;
+
+	/**
+	 * @brief Trims leading and trailing whitespace from string-like types.
+	 */
+	class TrimWhitespace
+	{
+	public:
+		template <typename TString>
+		void operator()(TString& str, bool isLoaded) const
+		{
+			static_assert(is_enumerable_v<TString>, "BitSerializer. Target string must support iterators.");
+
+			if (isLoaded) {
+				Text::TrimWhitespace(str);
+			}
+		}
+	};
 
 } // namespace BitSerializer::Refine

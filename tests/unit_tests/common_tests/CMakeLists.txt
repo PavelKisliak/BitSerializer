@@ -7,6 +7,7 @@ find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}
     binary_stream_reader_tests.cpp
     binary_stream_reader_fixture.h
+    text_tests.cpp
 )
 
 # Target configuration

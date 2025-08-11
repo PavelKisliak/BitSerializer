@@ -9,6 +9,7 @@
 #include "bitserializer/serialization_detail/archive_traits.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/convert.h"
+#include "bitserializer/common/text.h"
 
 namespace BitSerializer
 {
@@ -197,6 +198,9 @@ namespace BitSerializer
 				}
 				else
 				{
+					if (archive.GetContext().GetOptions().trimStringFields) {
+						Text::TrimWhitespace(archiveStringView);
+					}
 					TranscodeStringByPolicy(value, archiveStringView, archive.GetContext());
 					return archive.SerializeValue(std::forward<TKey>(key), archiveStringView);
 				}
@@ -235,6 +239,9 @@ namespace BitSerializer
 				{
 					if (archive.SerializeValue(archiveStringView))
 					{
+						if (archive.GetContext().GetOptions().trimStringFields) {
+							Text::TrimWhitespace(archiveStringView);
+						}
 						TranscodeStringByPolicy(archiveStringView, value, archive.GetContext());
 						return true;
 					}

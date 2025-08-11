@@ -133,29 +133,21 @@ namespace std
 	};
 }
 
-//-----------------------------------------------------------------------------
-template <typename T, bool RequiredValidator = false>
+template <typename T, class... TKeyValueArgs>
 class TestClassWithSubType
 {
 public:
-	using value_type = T;
 	static constexpr char KeyName[] = "TestValue";
 
 	TestClassWithSubType()
-		: mAssertFunc([](const T& expected, const T& actual) { GTestExpectEq(expected, actual); })
 	{
 		::BuildFixture(mTestValue);
 	}
 
-	explicit TestClassWithSubType(T initValue)
-		: mTestValue(std::move(initValue))
-		, mAssertFunc([](const T& expected, const T& actual) { GTestExpectEq(expected, actual); })
-	{ }
-
-	TestClassWithSubType(std::function<void(const T&, const T&)> specialAssertFunc)
-		: mAssertFunc(std::move(specialAssertFunc))
+	explicit TestClassWithSubType(T&& initValue, TKeyValueArgs&&... args)
+		: mTestValue(std::forward<T>(initValue))
+		, mKeyValueExtraArgs(std::forward<TKeyValueArgs>(args)...)
 	{
-		::BuildFixture(mTestValue);
 	}
 
 	static void BuildFixture(TestClassWithSubType& fixture)
@@ -165,26 +157,27 @@ public:
 
 	void Assert(const TestClassWithSubType& actual) const
 	{
-		mAssertFunc(mTestValue, actual.mTestValue);
+		GTestExpectEq(mTestValue, actual.GetValue());
 	}
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		if constexpr (RequiredValidator) {
-			archive << BitSerializer::KeyValue(KeyName, mTestValue, BitSerializer::Required());
-		}
-		else {
-			archive << BitSerializer::KeyValue(KeyName, mTestValue);
-		}
+		std::apply([this, &archive](auto&&... args) {
+			archive << BitSerializer::KeyValue(KeyName, mTestValue, std::forward<decltype(args)>(args)...);
+		}, mKeyValueExtraArgs);
 	}
 
 	[[nodiscard]] const T& GetValue() const { return mTestValue; }
 
 private:
 	T mTestValue;
-	std::function<void(const T&, const T&)> mAssertFunc;
+	std::tuple<TKeyValueArgs...> mKeyValueExtraArgs;
 };
+
+// Deduction guide for constructing `TestClassWithSubType` class
+template<class TValue, class... TKeyValueArgs>
+TestClassWithSubType(TValue, TKeyValueArgs...) -> TestClassWithSubType<TValue, TKeyValueArgs...>;
 
 //-----------------------------------------------------------------------------
 template <class ...Args>

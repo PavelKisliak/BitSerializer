@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #if defined __has_include && __has_include(<version>)
@@ -290,6 +290,22 @@ TEST(BaseTypes, SerializeArrayOfWStrings) {
 	TestSerializeArray<ArchiveStub, std::wstring>();
 }
 
+TEST(BaseTypes, ShouldTrimStringFieldsInArray)
+{
+	// Arrange
+	SerializationOptions options;
+	options.trimStringFields = true;
+	ArchiveStub::preferred_output_format outputArchive{};
+	std::vector<std::string> actual = { " value1 ", " value2\n", "\t value3 \t" };
+
+	// Act
+	BitSerializer::SaveObject<ArchiveStub>(actual, outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	// Assert
+	GTestExpectEq({ "value1", "value2", "value3" }, actual);
+}
+
 TEST(BaseTypes, SerializeArrayOfClasses) {
 	TestSerializeArray<ArchiveStub, TestPointClass>();
 }
@@ -348,6 +364,22 @@ TEST(BaseTypes, SerializeClassWithMemberStdByte) {
 
 TEST(BaseTypes, SerializeClassWithMemberString) {
 	TestSerializeType<ArchiveStub>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring>>());
+}
+
+TEST(BaseTypes, ShouldTrimStringFieldsInClassMembers)
+{
+	// Arrange
+	SerializationOptions options;
+	options.trimStringFields = true;
+	ArchiveStub::preferred_output_format outputArchive{};
+	TestClassWithSubType actual(std::string(" value "), Refine::TrimWhitespace());
+
+	// Act
+	BitSerializer::SaveObject<ArchiveStub>(actual, outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	// Assert
+	EXPECT_EQ("value", actual.GetValue());
 }
 
 TEST(BaseTypes, SerializeClassWithExternalSerializeFuntion) {

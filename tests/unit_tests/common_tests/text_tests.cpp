@@ -78,3 +78,48 @@ TEST(TrimWhitespaceTest, ShouldIgnoreEmptyString)
 	Text::TrimWhitespace(testValue);
 	EXPECT_EQ("", testValue);
 }
+
+//-----------------------------------------------------------------------------
+// Test TrimWhitespace() for std::basic_string_view
+//-----------------------------------------------------------------------------
+TEST(TrimWhitespaceTest, ShouldTrimUtf8StringView)
+{
+	std::string_view testValue = "\t test \t\n";
+	Text::TrimWhitespace(testValue);
+	EXPECT_EQ("test", testValue);
+}
+
+TEST(TrimWhitespaceTest, ShouldTrimUtf16StringView)
+{
+	std::u16string_view testValue = u"Hello world!\t\n";
+	Text::TrimWhitespace(testValue);
+	EXPECT_EQ(u"Hello world!", testValue);
+}
+
+TEST(TrimWhitespaceTest, ShouldTrimUtf32StringView)
+{
+	std::u32string_view testValue = U"\t t \t\n";
+	Text::TrimWhitespace(testValue);
+	EXPECT_EQ(U"t", testValue);
+}
+
+TEST(TrimWhitespaceTest, ShouldHandleSingleCharacterStringView)
+{
+	std::string_view testValue = "A";
+	Text::TrimWhitespace(testValue);
+	EXPECT_EQ("A", testValue);
+}
+
+TEST(TrimWhitespaceTest, ShouldHandleAllWhitespaceStringView)
+{
+	std::string_view testValue = " \t\n\v\f\r ";
+	Text::TrimWhitespace(testValue);
+	EXPECT_EQ("", testValue);
+}
+
+TEST(TrimWhitespaceTest, ShouldIgnoreEmptyStringView)
+{
+	std::string_view testValue;
+	Text::TrimWhitespace(testValue);
+	EXPECT_EQ("", testValue);
+}

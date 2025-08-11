@@ -76,28 +76,27 @@ void TestSerializeType(T&& value)
 }
 
 /**
- * @brief Tests serialization and deserialization of a key-value pair at the root scope.
+ * @brief Tests serialization and deserialization of a key-value pair at the root scope (used only for testing XML archive).
  *
  * @tparam TArchive The archive type used for serialization.
  * @tparam TKey The type of the key.
  * @tparam TValue The type of the value.
- * @param key The key associated with the value.
- * @param value The value to be serialized/deserialized.
+ * @param keyValue The key-value pair to be serialized/deserialized.
  */
-template <class TArchive, class TKey, class TValue>
-void TestSerializeType(const TKey& key, TValue&& value)
+template<class TArchive, class TKey, class TValue, class... TArgs>
+void TestSerializeType(BitSerializer::KeyValue<TKey, TValue, TArgs...>&& keyValue)
 {
 	// Arrange
 	typename TArchive::preferred_output_format outputArchive{};
-	std::remove_reference_t<TValue> actual{};
-	::BuildFixture(actual);
+	std::remove_reference_t<TValue> expected{ keyValue.GetValue() };
 
 	// Act
-	BitSerializer::SaveObject<TArchive>(BitSerializer::KeyValue(key, value), outputArchive);
-	BitSerializer::LoadObject<TArchive>(BitSerializer::KeyValue(key, actual), outputArchive);
+	BitSerializer::SaveObject<TArchive>(std::forward<BitSerializer::KeyValue<TKey, TValue, TArgs...>>(keyValue), outputArchive);
+	::BuildFixture(keyValue.GetValue());
+	BitSerializer::LoadObject<TArchive>(std::forward<BitSerializer::KeyValue<TKey, TValue, TArgs...>>(keyValue), outputArchive);
 
 	// Assert
-	GTestExpectEq(value, actual);
+	GTestExpectEq(expected, keyValue.GetValue());
 }
 
 #if defined(__cpp_lib_memory_resource)

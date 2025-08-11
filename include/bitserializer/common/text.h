@@ -62,4 +62,33 @@ namespace BitSerializer::Text
 		str.resize(newLength);
 	}
 
+	/**
+	 * @brief Trims leading/trailing whitespace from string views.
+	 *
+	 * @tparam TChar Character type
+	 * @tparam TTraits String traits
+	 * @param str String view to trim
+	 */
+	template <typename TChar, typename TTraits = std::char_traits<TChar>>
+	void TrimWhitespace(std::basic_string_view<TChar, TTraits>& str)
+	{
+		size_t start = 0;
+		while (start < str.size() && IsWhitespace(str[start])) {
+			++start;
+		}
+
+		if (start == str.size())
+		{
+			str = std::basic_string_view<TChar, TTraits>();
+		}
+		else
+		{
+			size_t end = str.size() - 1;
+			while (end > start && IsWhitespace(str[end])) {
+				--end;
+			}
+			str = str.substr(start, (end - start) + 1);
+		}
+	}
+
 } // namespace BitSerializer::Text

@@ -137,6 +137,11 @@ namespace BitSerializer
 		uint32_t maxValidationErrors = 0;
 
 		/**
+		 * @brief Automatically trims whitespace from ALL string fields during deserialization.
+		 */
+		bool trimStringFields = false;
+
+		/**
 		 * @brief Separator character used between values in flat-file formats like CSV.
 		 *
 		 * Supported separators: ',', ';', '\t', ' ', '|'

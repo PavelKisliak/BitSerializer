@@ -3,11 +3,12 @@
 ___
 
 ### Main features:
-- One common interface allows easy switching between formats JSON, XML, YAML, and MsgPack.
+- One common interface allows easy switching between formats JSON, XML, YAML, CSV and MsgPack.
 - Modular architecture lets you include only the serialization archives you need.
 - Functional serialization style similar to the Boost library.
 - Support loading named fields in any order with conditional logic to preserve model compatibility.
 - Customizable validation produces a detailed list of errors for deserialized values.
+- Post-load refiners transform deserialized data, for example, trimming strings or setting default values.¹
 - Seamless handling of optional and required fields, bypassing the need to use `std::optional`.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
@@ -15,6 +16,8 @@ ___
 - Support serialization to memory, streams and files.
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
+
+ ¹ New feature (not supported in the latest released version of BitSerializer v0.80, please use the master branch).
 
 #### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
@@ -219,7 +222,6 @@ $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
 By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
-Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `rapidjson-dev` and `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
 
 > [!IMPORTANT]
@@ -1010,7 +1012,7 @@ By default, the number of errors is unlimited, but it can be set using `maxValid
 The map of validation errors can be get by calling method `GetValidationErrors()` from the exception object, it contains paths to fields with errors lists.
 The default error message can be overridden (you can also pass string ID for further localization):
 ```cpp
-archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age should be in the range 0...150"));
+archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age must be between 0 and 150 (inclusive)"));
 ```
 
 The list of validators "out of the box" is not so rich, but it will expand in the future.
@@ -1040,7 +1042,7 @@ public:
     void Serialize(TArchive& archive)
     {
         archive << KeyValue("Id", mId, Required());
-        archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age should be in the range 0...150"));
+        archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age must be between 0 and 150 (inclusive)"));
         archive << KeyValue("FirstName", mFirstName, Required(), Validate::MaxSize(16));
         archive << KeyValue("LastName", mLastName, Required(), Validate::MaxSize(16));
         archive << KeyValue("Email", mEmail, Required(), Validate::Email());
@@ -1051,7 +1053,7 @@ public:
             if (!isLoaded || value.find_first_of(' ') == std::string::npos) {
                 return std::nullopt;
             }
-            return "The field must not contain spaces";
+            return "Nickname must not contain spaces";
         });
     }
 
@@ -1099,15 +1101,15 @@ The result of execution this code:
 ```text
 Validation errors:
 Path: /Age
-        Age should be in the range 0...150
+        Age must be between 0 and 150 (inclusive)
 Path: /Email
-        Invalid email address
+        Invalid email format
 Path: /FirstName
-        The maximum size of this field should not exceed 16
+        Size must not exceed 16
 Path: /LastName
-        This field is required
+        Value is required
 Path: /NickName
-        The field must not contain spaces
+        Nickname must not contain spaces
 ```
 Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
 

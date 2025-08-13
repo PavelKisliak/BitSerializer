@@ -17,7 +17,7 @@ namespace BitSerializer::Validate
 		/**
 		 * @param errorMessage Custom message to show if validation fails.
 		 */
-		constexpr explicit Required(const char* errorMessage = "This field is required") noexcept
+		constexpr explicit Required(const char* errorMessage = "Value is required") noexcept
 			: mErrorMessage(errorMessage)
 		{ }
 
@@ -67,7 +67,7 @@ namespace BitSerializer::Validate
 				if (mErrorMessage) {
 					return mErrorMessage;
 				}
-				return "Value must be between " + Convert::ToString(mMin) + " and " + Convert::ToString(mMax);
+				return "Must be between " + Convert::ToString(mMin) + " and " + Convert::ToString(mMax) + " (inclusive)";
 			}
 
 			return std::nullopt;
@@ -116,7 +116,7 @@ namespace BitSerializer::Validate
 				if (mErrorMessage) {
 					return mErrorMessage;
 				}
-				return "The minimum size of this field should be " + Convert::ToString(mMinSize);
+				return "Size must be less than " + Convert::ToString(mMinSize);
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace BitSerializer::Validate
 				if (mErrorMessage) {
 					return mErrorMessage;
 				}
-				return "The maximum size of this field should not exceed " + Convert::ToString(mMaxSize);
+				return "Size must not exceed " + Convert::ToString(mMaxSize);
 			}
 		}
 
@@ -183,7 +183,7 @@ namespace BitSerializer::Validate
 		/**
 		 * @param errorMessage Optional custom error message.
 		 */
-		constexpr explicit Email(const char* errorMessage = "Invalid email address") noexcept
+		constexpr explicit Email(const char* errorMessage = "Invalid email format") noexcept
 			: mErrorMessage(errorMessage)
 		{ }
 
@@ -271,7 +271,7 @@ namespace BitSerializer::Validate
 				}
 			}
 
-			// Does not contain @ sign, the domain part is missing or it is too long
+			// Does not contain @ sign, the domain part is missing, or it is too long
 			if (isLocalPart || startDomainPos == strSize || strSize - startDomainPos > domainPartMaxSize)
 			{
 				isValid = false;
@@ -339,13 +339,13 @@ namespace BitSerializer::Validate
 					if (ch == '-')
 					{
 						if (!lastWasDigit || i + 1 == strSize) {
-							error = "Invalid phone number (dashes should be used to separate numbers)";
+							error = "Dashes must be used to separate number groups";
 						}
 					}
 					else if (ch == '(')
 					{
 						if (inParenthesis) {
-							error = "Invalid phone number (contains nested parentheses)";
+							error = "Phone must not contain nested parentheses";
 						}
 						inParenthesis = true;
 					}
@@ -355,22 +355,22 @@ namespace BitSerializer::Validate
 							inParenthesis = false;
 						}
 						else {
-							error = "Invalid phone number (invalid closing parenthesis)";
+							error = "Closing parenthesis ')' is in wrong position";
 						}
 					}
 					else {
-						error = "Invalid phone number (contains invalid characters)";
+						error = "Phone contains invalid characters";
 					}
 					lastWasDigit = false;
 				}
 			}
 
 			if (mPlusRequired && !hasPlus) {
-				error = "Invalid phone number (missing initial `+`)";
+				error = "Phone number must start with '+'";
 			}
 
 			if (inParenthesis) {
-				error = "Invalid phone number (missing closing parenthesis)";
+				error = "Missing closing parenthesis ')'";
 			}
 
 			if (error) {
@@ -380,10 +380,10 @@ namespace BitSerializer::Validate
 			if (digitCount < mMinDigits || digitCount > mMaxDigits)
 			{
 				if (mMinDigits == mMaxDigits) {
-					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (must contain " + Convert::ToString(mMinDigits) + " digits)");
+					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Phone must contain at least " + Convert::ToString(mMinDigits) + " digits");
 				}
-				return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Invalid phone number (the number of digits must be from "
-					+ Convert::ToString(mMinDigits) + " to " + Convert::ToString(mMaxDigits) + ")");
+				return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Phone must contain "
+					+ Convert::ToString(mMinDigits) + " to " + Convert::ToString(mMaxDigits) + " digits");
 			}
 			return std::nullopt;
 		}

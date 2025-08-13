@@ -12,7 +12,7 @@ public:
 	void Serialize(TArchive& archive)
 	{
 		archive << KeyValue("Id", mId, Required());
-		archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age should be in the range 0...150"));
+		archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age must be between 0 and 150 (inclusive)"));
 		archive << KeyValue("FirstName", mFirstName, Required(), Validate::MaxSize(16));
 		archive << KeyValue("LastName", mLastName, Required(), Validate::MaxSize(16));
 		archive << KeyValue("Email", mEmail, Required(), Validate::Email());
@@ -23,7 +23,7 @@ public:
 			if (!isLoaded || value.find_first_of(' ') == std::string::npos) {
 				return std::nullopt;
 			}
-			return "The field must not contain spaces";
+			return "Nickname must not contain spaces";
 		});
 	}
 

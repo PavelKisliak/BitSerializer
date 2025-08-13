@@ -10,7 +10,7 @@
 #include <string>
 #include <cstring>
 #include <variant>
-#include "bitserializer/conversion_detail/memory_utils.h"
+#include "bitserializer/common/memory.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 
 namespace BitSerializer::Convert::Utf

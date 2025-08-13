@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "msgpack_readers.h"
-#include "bitserializer/conversion_detail/memory_utils.h"
+#include "bitserializer/common/memory.h"
 
 /*
 -----------------------------------------------------------

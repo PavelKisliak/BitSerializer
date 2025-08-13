@@ -4,7 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <algorithm>
-#include "bitserializer/conversion_detail/memory_utils.h"
+#include "bitserializer/common/memory.h"
 
 // Helper for handling UTF-8 strings across compilers with different support for char8_t
 #if defined(__cpp_lib_char8_t)

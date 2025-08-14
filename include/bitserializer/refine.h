@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <utility>
+#include <cctype>
 #include "bitserializer/common/text.h"
 #include "bitserializer/serialization_detail/object_traits.h"
 
@@ -56,6 +57,48 @@ namespace BitSerializer::Refine
 
 			if (isLoaded) {
 				Text::TrimWhitespace(str);
+			}
+		}
+	};
+
+	/**
+	 * @brief Converts string to lowercase (ASCII only, leaves other characters unchanged).
+	 */
+	class ToLowerCase
+	{
+	public:
+		template <typename TString>
+		void operator()(TString& str, bool isLoaded) const noexcept
+		{
+			if (isLoaded)
+			{
+				for (auto& c : str)
+				{
+					if (c < 128) {
+						c = static_cast<typename TString::value_type>(std::tolower(static_cast<int>(c)));
+					}
+				}
+			}
+		}
+	};
+
+	/**
+	 * @brief Converts string to uppercase (ASCII only, leaves other characters unchanged).
+	 */
+	class ToUpperCase
+	{
+	public:
+		template <typename TString>
+		void operator()(TString& str, bool isLoaded) const noexcept
+		{
+			if (isLoaded)
+			{
+				for (auto& c : str)
+				{
+					if (c < 128) {
+						c = static_cast<typename TString::value_type>(std::toupper(static_cast<int>(c)));
+					}
+				}
 			}
 		}
 	};

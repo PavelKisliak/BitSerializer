@@ -65,7 +65,8 @@ ___
 ___
 
 ### Hello world
-Let's get started with a traditional "Hello world!" example that demonstrates BitSerializer's serialization features, such as validation (e.g., email and phone number formats), handling optional fields, and converting between different data formats (JSON to CSV). The example highlights the flexibility of the library in handling different data types, including `std::chrono` and Unicode strings, and ensures data integrity through required and optional field constraints.
+Let's get started with a traditional "Hello world!" example that demonstrates BitSerializer's serialization features, such as validation (e.g., email and phone number formats), post-load value refinement (trimming whitespace, case conversion, fallbacks), handling optional fields, and converting between formats (JSON to CSV).
+The example highlights the flexibility of the library in handling different data types, including `std::chrono`, Unicode strings, and data integrity through required/optional constraints.
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -88,6 +89,7 @@ struct CUser
     // Optional fields (maybe absent or `null` in the source JSON)
     std::string PhoneNumber;
     std::u32string NickName;
+    std::string Language;
 
     template <class TArchive>
     void Serialize(TArchive& archive)
@@ -96,10 +98,12 @@ struct CUser
         // Using the `Required()` validator with a custom error message (can be ID of localization string)
         archive << KeyValue("Birthday", Birthday, Required("Birthday is required"));
         archive << KeyValue("Name", Name, Required(), Validate::MaxSize(32));
-        archive << KeyValue("Email", Email, Required(), Validate::Email());
+        archive << KeyValue("Email", Email, Required(), Refine::TrimWhitespace(), Validate::Email());
         // Optional field (should be empty or contain a valid phone number)
-        archive << KeyValue("PhoneNumber", PhoneNumber, Validate::PhoneNumber());
+        archive << KeyValue("PhoneNumber", PhoneNumber, Refine::TrimWhitespace(), Validate::PhoneNumber());
         archive << KeyValue("NickName", NickName);
+        // Use fallback value "en" if deserialization fails
+        archive << KeyValue("Language", Language, Refine::TrimWhitespace(), Refine::ToLowerCase(), Fallback("en"));
     }
 };
 
@@ -108,7 +112,7 @@ int main()  // NOLINT(bugprone-exception-escape)
     const char* sourceJson = R"([
 { "Id": 1, "Birthday": "1998-05-15T00:00:00Z", "Name": "John Doe", "Email": "john.doe@example.com", "PhoneNumber": "+(123) 4567890", "NickName": "JD" },
 { "Id": 2, "Birthday": "1993-08-20T00:00:00Z", "Name": "Alice Smith", "Email": "alice.smith@example.com", "PhoneNumber": "+(098) 765-43-21", "NickName": "Ali" },
-{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Bob Johnson", "Email": "bob.johnson@example.com", "PhoneNumber": null }
+{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Ivan Petrov", "Email": "ivan.petrov@example.com", "PhoneNumber": null, "Language": " RU " }
 ])";
 
     // Load list of users from JSON
@@ -125,10 +129,10 @@ int main()  // NOLINT(bugprone-exception-escape)
 ```
 Example output:
 ```
-Id,Birthday,Name,Email,PhoneNumber,NickName
-1,1998-05-15T00:00:00.0000000Z,John Doe,john.doe@example.com,+(123) 4567890,JD
-2,1993-08-20T00:00:00.0000000Z,Alice Smith,alice.smith@example.com,+(098) 765-43-21,Ali
-3,2001-03-10T00:00:00.0000000Z,Bob Johnson,bob.johnson@example.com,,
+Id,Birthday,Name,Email,PhoneNumber,NickName,Language
+1,1998-05-15T00:00:00.0000000Z,John Doe,john.doe@example.com,+(123) 4567890,JD,en
+2,1993-08-20T00:00:00.0000000Z,Alice Smith,alice.smith@example.com,+(098) 765-43-21,Ali,en
+3,2001-03-10T00:00:00.0000000Z,Ivan Petrov,ivan.petrov@example.com,,,ru
 ```
 BitSerializer treats missing fields as optional by default, but you can enforce mandatory fields using the `Required()` validator. This approach eliminates the need for workarounds like using `std::optional`, simplifying your business logic by avoiding repetitive checks for value existence. The library's robust validation system collects all invalid fields during deserialization, enabling comprehensive error reporting (with localization support if needed). Additionally, BitSerializer ensures type safety by throwing exceptions for type mismatches or overflow errors, such as when deserializing values that exceed the capacity of the target type.
 

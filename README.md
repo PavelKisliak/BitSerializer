@@ -58,7 +58,8 @@ ___
 - [Serialization to streams and files](#serialization-to-streams-and-files)
 - [Error handling](#error-handling)
 - [Validation of deserialized values](#validation-of-deserialized-values)
-- [Compile time checking](#compile-time-checking)
+- [Post-load data refinement](#post-load-data-refinement)
+- [Compile-time format validation](#compile-time-format-validation)
 - [What else to read](#what-else-to-read)
 - [Thanks](#thanks)
 
@@ -1007,28 +1008,39 @@ catch (const std::exception& ex)
 ```
 
 ### Validation of deserialized values
-BitSerializer allows to add an arbitrary number of validation rules to the named values, the syntax is quite simple:
+BitSerializer provides a flexible validation system that allows you to apply an arbitrary number of validation rules to named values.
+The syntax is straightforward:
 ```cpp
 archive << KeyValue("testFloat", testFloat, Required(), Validate::Range(-1.0f, 1.0f));
 ```
-For handle validation errors, need to catch special exception `ValidationException`, it is thrown at the end of deserialization (when all errors have been collected).
-By default, the number of errors is unlimited, but it can be set using `maxValidationErrors` in `SerializationOptions`.
-The map of validation errors can be get by calling method `GetValidationErrors()` from the exception object, it contains paths to fields with errors lists.
+Validation errors are collected during deserialization and thrown as a `ValidationException` at the end of the deserialization. To handle validation errors:
+```cpp
+try {
+    BitSerializer::LoadObject<JsonArchive>(user, json);
+}
+catch (BitSerializer::ValidationException& ex) {
+    const auto& validationErrors = ex.GetValidationErrors();
+    // Process errors...
+}
+```
+By default, the number of errors is unlimited, but you can configure this using `maxValidationErrors` in `SerializationOptions`.
+The validation error map can be obtained by calling the `GetValidationErrors()` method from the exception object, it contains paths to fields with errors lists.
+
 The default error message can be overridden (you can also pass string ID for further localization):
 ```cpp
 archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age must be between 0 and 150 (inclusive)"));
 ```
 
-The list of validators "out of the box" is not so rich, but it will expand in the future.
+The following validators are available out-of-the-box:
 
 | Signature           | Description   |
 | ------------------- | --------------------- |
-| `Required(errorMessage = nullptr)`        | Validates that field is deserialized |
-| `Range(min, max, errorMessage = nullptr)`   | Validates range of value, can be applied for any type that has operators '<' and '>' (e.g. `std::chrono` types) |
-| `MinSize(minSize, errorMessage = nullptr)`  | Validates that the container or string size is not less than the specified minimum |
-| `MaxSize(maxSize, errorMessage = nullptr)`  | Validates that the size of a container or string does not exceed the specified maximum |
-| `Email(errorMessage = nullptr)`           | The email validator, generally complies with the RFC standard with the exception of: quoted parts, comments, SMTPUTF8 and IP address as domain part |
-| `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | The phone number validator, examples:<br>+555 (55) 555-55-55, (55) 555 55 55, 555 5 55 55 |
+| `Required(errorMessage = nullptr)`         | Ensures the field is present in the source data |
+| `Range(min, max, errorMessage = nullptr)`  | Validates value range for types that have `<` and `>` operators (for example, these could be types from `std::chrono`) |
+| `MinSize(minSize, errorMessage = nullptr)` | Ensures containers or strings meet minimum size requirements |
+| `MaxSize(maxSize, errorMessage = nullptr)` | Ensures containers or strings do not exceed maximum size |
+| `Email(errorMessage = nullptr)`            | Validates email format according to RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains) |
+| `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | Validates phone numbers with configurable digit ranges and format requirements |
 
 All validators are declared in the `BitSerializer::Validate` namespace, except `Required` which also has alias in the `BitSerializer`.
 > [!NOTE]
@@ -1101,7 +1113,7 @@ int main()
 ```
 [See full sample](samples/validation/validation.cpp)
 
-The result of execution this code:
+Execution output:
 ```text
 Validation errors:
 Path: /Age
@@ -1115,20 +1127,64 @@ Path: /LastName
 Path: /NickName
         Nickname must not contain spaces
 ```
-Returned paths for invalid values is dependent to archive type, in this sample it's JSON Pointer (RFC 6901).
+Returned paths for invalid values is dependent to archive type, usually it's JSON Pointer (RFC 6901).
 
-### Compile time checking
-The new C++ 17 ability «if constexpr» helps to generate clear error messages.
-If you try to serialize an object that is not supported at the current level of the archive, you will receive a simple error message.
+### Post-load data refinement
+> [!NOTE]
+> New feature (not supported in the latest released version of BitSerializer v0.80, please use the master branch).
+
+In addition to validators, BitSerializer also has the ability to transform deserialized values using specialized processors called "Refiners".
+This feature is designed to ensure data quality and consistency by cleaning, normalizing, and providing default values for missing data.
+Refiners are applied to fields alongside validators using the familiar `KeyValue` syntax:
 ```cpp
-template <class TArchive>
-inline void Serialize(TArchive& archive)
-{
-    // Error    C2338   BitSerializer. The archive doesn't support serialize fundamental type without key on this level.
-    archive << testBool;
-    // Proper use
-    archive << KeyValue("testString", testString);
-};
+archive << KeyValue("Username", mUsername,
+    Required(),
+    Refine::TrimWhitespace(),
+    Refine::ToLowerCase(),
+    Validate::MaxSize(32));
+```
+
+The order of validators and refiners is crucial - they are processed from left to right.
+Refiners should typically be placed before validators that depend on the refined data:
+```cpp
+// ✅ Correct: Trim first, then validate
+archive << KeyValue("Email", mEmail,
+    Required(),
+    Refine::TrimWhitespace(),
+    Validate::Email());
+
+// ❌ Incorrect: Validate before trimming
+archive << KeyValue("ApiEndpoint", mApiEndpoint,
+    Required(),
+    Validate::Email(),
+    Refine::TrimWhitespace());  // Validation may fail due to trailing whitespace
+```
+
+Available refiners:
+
+| Refiner                  | Description   |
+| ------------------------ | ------------------------ |
+| `Fallback(defaultValue)` | Provides a default value when the field is missing or null |
+| `TrimWhitespace()`       | Removes leading and trailing whitespace from strings |
+| `ToLowerCase()`          | Converts ASCII letters to lowercase |
+| `ToUpperCase()`          | Converts ASCII letters to uppercase |
+
+All refiners are declared in the `BitSerializer::Refine` namespace, except `Fallback` which also has alias in the `BitSerializer`.
+It's quite easy to write your own refiner or use a lambda function (similar to validators).
+
+### Compile-time format validation
+BitSerializer performs format-specific validation during compilation, catching serialization errors before runtime by verifying your code against the actual constraints of the target output format. This will help you get immediate feedback, ensuring that your serialized data always conforms to the target format specification.
+```cpp
+int testNumber = 12345;
+std::string outputData;
+
+// ✅ Correct: Json supports serialization number as root element
+BitSerializer::SaveObject<JsonArchive>(testNumber, outputData);
+
+// ❌ Invalid: CSV only supports array of objects, attempting to serialize a number will not compile:
+//   static_assert failed:
+//      'BitSerializer. The archive doesn't support serialize fundamental type without key on this level.'
+BitSerializer::SaveObject<CsvArchive>(testNumber, outputData);
 ```
 
 ### What else to read

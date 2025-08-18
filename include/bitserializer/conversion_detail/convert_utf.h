@@ -33,8 +33,8 @@ namespace BitSerializer::Convert::Utf
 		{ UtfType::Utf16be, "UTF-16BE" },
 		{ UtfType::Utf32le, "UTF-32LE" },
 		{ UtfType::Utf32be, "UTF-32BE" }
-		})
-		DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::Utf::UtfType)
+	})
+	DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::Utf::UtfType)
 
 	/**
 	 * @brief Error handling policy for UTF encoding operations.

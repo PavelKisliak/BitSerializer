@@ -100,15 +100,13 @@ enum class Number {
 };
 
 // Registration names map
-REGISTER_ENUM_MAP(Number)
-{
-    { Number::One, "One" },
-    { Number::Two, "Two" },
-    { Number::Three, "Three" },
-    { Number::Four, "Four" },
-    { Number::Five, "Five" }
-} END_ENUM_MAP()
-
+REGISTER_ENUM(Number, {
+	{ Number::One, "One" },
+	{ Number::Two, "Two" },
+	{ Number::Three, "Three" },
+	{ Number::Four, "Four" },
+	{ Number::Five, "Five" }
+})
 
 int main()
 {
@@ -124,7 +122,7 @@ Additionally, you can declare functions for support input/output streams using `
 ```cpp
 DECLARE_ENUM_STREAM_OPS(EnumType)
 ```
-In comparison with macro `REGISTER_ENUM_MAP` you have to take care of including the header file in which you declared this.
+In comparison with macro `REGISTER_ENUM` you have to take care of including the header file in which you declared this.
 
 ### Date and time conversion
 Date, time and duration can be converted to string representation of ISO 8601 and vice versa. The following table contains all supported types with string examples:

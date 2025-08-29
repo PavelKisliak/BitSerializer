@@ -414,7 +414,7 @@ namespace BitSerializer
 	typedef Validate::MinSize MinSize;
 
 	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
-	typedef Validate::MinSize MaxSize;
+	typedef Validate::MaxSize MaxSize;
 
 	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
 	typedef Validate::Email Email;

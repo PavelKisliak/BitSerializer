@@ -483,6 +483,33 @@ TEST(PugiXmlArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of `std::optional` (additional coverage of MismatchedTypesPolicy handling)
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SerializeStdOptionalAsObjectMember)
+{
+	// Simple types as members of object
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<bool>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<bool>>>(TestClassWithSubType(std::optional<bool>(std::nullopt)));
+
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<int>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<int>>>(TestClassWithSubType(std::optional<int>(std::nullopt)));
+
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<float>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<float>>>(TestClassWithSubType(std::optional<float>(std::nullopt)));
+
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::string>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>(std::nullopt)));
+
+	// Object as member of object
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<TestPointClass>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<TestPointClass>>>(TestClassWithSubType(std::optional<TestPointClass>(std::nullopt)));
+
+	// Array as member of object
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
+}
+
+//-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SerializeStdTypes)
@@ -491,7 +518,6 @@ TEST(PugiXmlArchive, SerializeStdTypes)
 	TestSerializeType<XmlArchive, std::pair<std::string, int>>();
 	TestSerializeType<XmlArchive, std::tuple<std::string, int, float, bool>>();
 
-	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>("test")));
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));
 

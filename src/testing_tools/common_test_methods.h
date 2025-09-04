@@ -163,7 +163,7 @@ void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
  * @tparam SourceArraySize Size of the source array.
  * @tparam TargetArraySize Size of the target array.
  */
-template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
+template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = SourceArraySize>
 void TestSerializeArray()
 {
 	// Arrange
@@ -192,7 +192,7 @@ void TestSerializeArray()
  * @tparam SourceArraySize Size of the source array.
  * @tparam TargetArraySize Size of the target array.
  */
-template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = 7>
+template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = SourceArraySize>
 void TestSerializeArrayWithKey()
 {
 	// Arrange

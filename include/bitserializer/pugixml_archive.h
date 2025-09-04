@@ -231,7 +231,11 @@ public:
 				{
 					return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
 				}
-				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
+				if (xmlNode.first_child().type() != pugi::node_null)
+				{
+					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -252,7 +256,11 @@ public:
 				{
 					return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
 				}
-				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
+				if (xmlNode.first_child().type() != pugi::node_null)
+				{
+					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -460,7 +468,11 @@ public:
 				{
 					return std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
 				}
-				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
+				if (child.first_child().type() != pugi::node_null)
+				{
+					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -482,7 +494,11 @@ public:
 				{
 					return std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 				}
-				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
+				if (node.first_child().type() != pugi::node_null)
+				{
+					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -606,7 +622,11 @@ public:
 				{
 					return std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
 				}
-				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
+				if (node.type() != pugi::node_null)
+				{
+					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -628,7 +648,11 @@ public:
 				{
 					return std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
 				}
-				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
+				if (child.type() != pugi::node_null)
+				{
+					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 			

@@ -567,15 +567,65 @@ TEST(MsgPackArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of `std::optional` (additional coverage of MismatchedTypesPolicy handling)
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeStdOptionalAsRootElement)
+{
+	// Simple types as root element
+	TestSerializeType<MsgPackArchive>(std::optional<bool>());
+	TestSerializeType<MsgPackArchive>(std::optional<bool>(std::nullopt));
+
+	TestSerializeType<MsgPackArchive>(std::optional<int>());
+	TestSerializeType<MsgPackArchive>(std::optional<int>(std::nullopt));
+
+	TestSerializeType<MsgPackArchive>(std::optional<float>());
+	TestSerializeType<MsgPackArchive>(std::optional<float>(std::nullopt));
+
+	TestSerializeType<MsgPackArchive>(std::optional<std::string>());
+	TestSerializeType<MsgPackArchive>(std::optional<std::string>(std::nullopt));
+
+	// Object as root element
+	TestSerializeType<MsgPackArchive>(std::optional<TestPointClass>());
+	TestSerializeType<MsgPackArchive>(std::optional<TestPointClass>(std::nullopt));
+
+	// Array as root element
+	TestSerializeType<MsgPackArchive>(std::optional<std::vector<int>>());
+	TestSerializeType<MsgPackArchive>(std::optional<std::vector<int>>(std::nullopt));
+}
+
+TEST(MsgPackArchive, SerializeStdOptionalAsObjectMember)
+{
+	// Simple types as members of object
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<bool>>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<bool>>>(TestClassWithSubType(std::optional<bool>(std::nullopt)));
+
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<int>>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<int>>>(TestClassWithSubType(std::optional<int>(std::nullopt)));
+
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<float>>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<float>>>(TestClassWithSubType(std::optional<float>(std::nullopt)));
+
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::string>>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>(std::nullopt)));
+
+	// Object as member of object
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<TestPointClass>>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<TestPointClass>>>(TestClassWithSubType(std::optional<TestPointClass>(std::nullopt)));
+
+	// Array as member of object
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::vector<int>>>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
+}
+
+//-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
-TEST(MsgPackReleaseTest, SerializeStdTypes)
+TEST(MsgPackArchive, SerializeStdTypes)
 {
 	TestSerializeType<MsgPackArchive, std::atomic_int>();
 	TestSerializeType<MsgPackArchive, std::pair<std::string, int>>();
 	TestSerializeType<MsgPackArchive, std::tuple<std::string, int, float, bool>>();
 
-	TestSerializeType<MsgPackArchive>(std::optional<std::string>("test"));
 	TestSerializeType<MsgPackArchive>(std::make_unique<std::string>("test"));
 	TestSerializeType<MsgPackArchive>(std::make_shared<std::string>("test"));
 

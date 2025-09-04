@@ -579,6 +579,57 @@ TEST(RapidJsonArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of `std::optional` (additional coverage of MismatchedTypesPolicy handling)
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, SerializeStdOptionalAsRootElement)
+{
+	// Simple types as root element
+	TestSerializeType<JsonArchive>(std::optional<bool>());
+	TestSerializeType<JsonArchive>(std::optional<bool>(std::nullopt));
+
+	TestSerializeType<JsonArchive>(std::optional<int>());
+	TestSerializeType<JsonArchive>(std::optional<int>(std::nullopt));
+
+	TestSerializeType<JsonArchive>(std::optional<float>());
+	TestSerializeType<JsonArchive>(std::optional<float>(std::nullopt));
+
+	TestSerializeType<JsonArchive>(std::optional<std::string>());
+	TestSerializeType<JsonArchive>(std::optional<std::string>(std::nullopt));
+
+	// Object as root element
+	TestSerializeType<JsonArchive>(std::optional<TestPointClass>());
+	TestSerializeType<JsonArchive>(std::optional<TestPointClass>(std::nullopt));
+
+	// Array as root element
+	TestSerializeType<JsonArchive>(std::optional<std::vector<int>>());
+	TestSerializeType<JsonArchive>(std::optional<std::vector<int>>(std::nullopt));
+}
+
+TEST(RapidJsonArchive, SerializeStdOptionalAsObjectMember)
+{
+	// Simple types as members of object
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<bool>>>();
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<bool>>>(TestClassWithSubType(std::optional<bool>(std::nullopt)));
+
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<int>>>();
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<int>>>(TestClassWithSubType(std::optional<int>(std::nullopt)));
+
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<float>>>();
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<float>>>(TestClassWithSubType(std::optional<float>(std::nullopt)));
+
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::string>>>();
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>(std::nullopt)));
+
+	// Object as member of object
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<TestPointClass>>>();
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<TestPointClass>>>(TestClassWithSubType(std::optional<TestPointClass>(std::nullopt)));
+
+	// Array as member of object
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::vector<int>>>>();
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
+}
+
+//-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeStdTypes)
@@ -587,7 +638,6 @@ TEST(RapidJsonArchive, SerializeStdTypes)
 	TestSerializeType<JsonArchive, std::pair<std::string, int>>();
 	TestSerializeType<JsonArchive, std::tuple<std::string, int, float, bool>>();
 
-	TestSerializeType<JsonArchive>(std::optional<std::string>("test"));
 	TestSerializeType<JsonArchive>(std::make_unique<std::string>("test"));
 	TestSerializeType<JsonArchive>(std::make_shared<std::string>("test"));
 

@@ -254,7 +254,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 						{
 							return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this);
 						}
-						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
+						if (!IsNullYamlValue(yamlValue.val())) {
+							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						}
 					}
 					return std::nullopt;
 				}
@@ -281,7 +284,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 						{
 							return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this);
 						}
-						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
+						if (!IsNullYamlValue(yamlValue.val())) {
+							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						}
 					}
 					return std::nullopt;
 				}
@@ -409,7 +415,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 						{
 							return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key);
 						}
-						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
+						if (!IsNullYamlValue(yamlValue.val())) {
+							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						}
 					}
 					return std::nullopt;
 				}
@@ -441,7 +450,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 						{
 							return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this, key);
 						}
-						HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
+						if (!IsNullYamlValue(yamlValue.val())) {
+							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+						}
 					}
 					return std::nullopt;
 				}

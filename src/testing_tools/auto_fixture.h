@@ -86,15 +86,10 @@ constexpr bool has_assert_method_v = has_assert_method<T>::value;
  * @tparam T The class or union type.
  * @param value Reference to the object to initialize.
  */
-template <typename T, std::enable_if_t<(std::is_class_v<T> || std::is_union_v<T>), int> = 0>
+template <typename T, std::enable_if_t<has_build_fixture_method_v<T>, int> = 0>
 static void BuildFixture(T& value)
 {
-	constexpr auto hasBuildMethod = has_build_fixture_method_v<T>;
-	static_assert(hasBuildMethod, "Your test class should implement static method BuildFixture(ClassType&).");
-
-	if constexpr (hasBuildMethod) {
-		T::BuildFixture(value);
-	}
+	T::BuildFixture(value);
 }
 
 /**
@@ -210,18 +205,6 @@ template <typename ...TArgs>
 	std::apply([](auto&&... args) {
 		((BuildFixture(args)), ...);
 	}, value);
-}
-
-/**
- * @brief Builds a test fixture for `std::optional<TValue>` value.
- *
- * @param optionalValue Reference to the `std::optional<TValue>`.
- */
-template <typename TValue>
-[[maybe_unused]] static void BuildFixture(std::optional<TValue>& optionalValue)
-{
-	optionalValue = TValue();
-	BuildFixture(optionalValue.value());
 }
 
 /**
@@ -359,6 +342,15 @@ template <typename T, size_t Size>
 
 template <typename T, typename TAllocator>
 [[maybe_unused]] static void BuildFixture(std::vector<T, TAllocator>& cont)
+{
+	static constexpr int size = 7;
+	cont.resize(size);
+	for (auto& elem : cont) {
+		BuildFixture(elem);
+	}
+}
+
+[[maybe_unused]] static void BuildFixture(std::vector<float>& cont)
 {
 	static constexpr int size = 7;
 	cont.resize(size);
@@ -574,4 +566,16 @@ template <typename T>
 	for (size_t i = 0; i < size; i++) {
 		BuildFixture(cont[i]);
 	}
+}
+
+/**
+ * @brief Builds a test fixture for `std::optional<TValue>` value.
+ *
+ * @param optionalValue Reference to the `std::optional<TValue>`.
+ */
+template <typename TValue>
+[[maybe_unused]] static void BuildFixture(std::optional<TValue>& optionalValue)
+{
+	TValue& value = optionalValue.emplace();
+	BuildFixture(value);
 }

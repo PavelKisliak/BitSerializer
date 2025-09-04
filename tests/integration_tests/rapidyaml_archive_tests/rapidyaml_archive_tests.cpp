@@ -407,6 +407,33 @@ TEST(RapidYamlArchive, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of `std::optional` (additional coverage of MismatchedTypesPolicy handling)
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, SerializeStdOptionalAsObjectMember)
+{
+	// Simple types as members of object
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<bool>>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<bool>>>(TestClassWithSubType(std::optional<bool>(std::nullopt)));
+
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<int>>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<int>>>(TestClassWithSubType(std::optional<int>(std::nullopt)));
+
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<float>>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<float>>>(TestClassWithSubType(std::optional<float>(std::nullopt)));
+
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::string>>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>(std::nullopt)));
+
+	// Object as member of object
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<TestPointClass>>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<TestPointClass>>>(TestClassWithSubType(std::optional<TestPointClass>(std::nullopt)));
+
+	// Array as member of object
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>();
+	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
+}
+
+//-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeStdTypes)
@@ -415,7 +442,6 @@ TEST(RapidYamlArchive, SerializeStdTypes)
 	TestSerializeType<YamlArchive, std::pair<std::string, int>>();
 	TestSerializeType<YamlArchive, std::tuple<std::string, int, float, bool>>();
 
-	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::string>>>(TestClassWithSubType(std::optional<std::string>("test")));
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));
 

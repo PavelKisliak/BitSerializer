@@ -5,6 +5,15 @@
 #include "testing_tools/common_test_methods.h"
 #include "csv_archive_fixture.h"
 
+// STD types
+#include "bitserializer/types/std/atomic.h"
+#include "bitserializer/types/std/chrono.h"
+#include "bitserializer/types/std/ctime.h"
+#include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/memory.h"
+#include "bitserializer/types/std/filesystem.h"
+
 using namespace BitSerializer;
 using BitSerializer::Csv::CsvArchive;
 
@@ -338,4 +347,39 @@ TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenEncodingError) {
 
 TEST_F(CsvArchiveTests, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 	TestEncodingPolicy<CsvArchive>(Convert::Utf::UtfEncodingErrorPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of `std::optional` (additional coverage of MismatchedTypesPolicy handling)
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, SerializeStdOptionalAsObjectMember)
+{
+	// Simple types as members of object
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<bool>>[1]>();
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<bool>>[1]>({ TestClassWithSubType(std::optional<bool>(std::nullopt)) });
+
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<int>>[1]>();
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<int>>[1]>({ TestClassWithSubType(std::optional<int>(std::nullopt)) });
+
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<float>>[1]>();
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<float>>[1]>({ TestClassWithSubType(std::optional<float>(std::nullopt)) });
+
+	// String types cannot be represented as Null in CSV
+	TestSerializeType<CsvArchive, TestClassWithSubType<std::optional<std::string>>[1]>();
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, SerializeStdTypes)
+{
+	TestSerializeArray<CsvArchive, TestClassWithSubType<std::atomic_int>>();
+
+	TestSerializeArray<CsvArchive, TestClassWithSubType<std::unique_ptr<std::string>>>();
+	TestSerializeArray<CsvArchive, TestClassWithSubType<std::shared_ptr<std::string>>>();
+
+	TestSerializeArray<CsvArchive, TestClassWithSubType<std::filesystem::path>>();
+
+	TestSerializeArray<CsvArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
+	TestSerializeArray<CsvArchive, TestClassWithSubType<std::chrono::seconds>>();
 }

@@ -98,7 +98,7 @@ protected:
 	template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
 	bool LoadValue(const RapidJsonNode& jsonValue, T& value, const SerializationOptions& serializationOptions)
 	{
-		// Null value from JSON is excluded from MismatchedTypesPolicy processing
+		// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 		if (jsonValue.IsNull()) {
 			return std::is_null_pointer_v<T>;
 		}
@@ -133,7 +133,7 @@ protected:
 
 	bool LoadValue(const RapidJsonNode& jsonValue, string_view_type& value, const SerializationOptions& serializationOptions)
 	{
-		// Null value from JSON is excluded from MismatchedTypesPolicy processing
+		// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 		if (jsonValue.IsNull()) {
 			return false;
 		}
@@ -250,7 +250,11 @@ public:
 			if (jsonValue.IsObject()) {
 				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this->GetContext(), this);
 			}
-			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
+			if (!jsonValue.IsNull())
+			{
+				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else
@@ -269,7 +273,11 @@ public:
 			if (jsonValue.IsArray()) {
 				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this->GetContext(), this);
 			}
-			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
+			if (!jsonValue.IsNull())
+			{
+				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else
@@ -411,7 +419,11 @@ public:
 				{
 					return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
 				}
-				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
+				if (!jsonValue->IsNull())
+				{
+					RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -434,7 +446,11 @@ public:
 				{
 					return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
 				}
-				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
+				if (!jsonValue->IsNull())
+				{
+					RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+				}
 			}
 			return std::nullopt;
 		}
@@ -612,7 +628,11 @@ public:
 			{
 				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 			}
-			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
+			if (!mRootJson.IsNull())
+			{
+				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else
@@ -633,7 +653,11 @@ public:
 			{
 				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 			}
-			RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
+			if (!mRootJson.IsNull())
+			{
+				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
+			}
 			return std::nullopt;
 		}
 		else

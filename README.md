@@ -5,6 +5,7 @@ ___
 ### Main features:
 - One common interface allows easy switching between formats JSON, XML, YAML, CSV and MsgPack.
 - Modular architecture lets you include only the serialization archives you need.
+- Compile-time validation of format rules (e.g. JSON allows primitives as roots, while CSV only allows arrays).
 - Functional serialization style similar to the Boost library.
 - Support loading named fields in any order with conditional logic to preserve model compatibility.
 - Customizable validation produces a detailed list of errors for deserialized values.
@@ -103,8 +104,8 @@ struct CUser
         // Optional field (should be empty or contain a valid phone number)
         archive << KeyValue("PhoneNumber", PhoneNumber, Refine::TrimWhitespace(), Validate::PhoneNumber());
         archive << KeyValue("NickName", NickName);
-        // Use fallback value "en" if deserialization fails
-        archive << KeyValue("Language", Language, Refine::TrimWhitespace(), Refine::ToLowerCase(), Fallback("en"));
+        // Use fallback value "en" if missing data
+        archive << KeyValue("Language", Language, Refine::ToLowerCase(), Fallback("en"));
     }
 };
 
@@ -113,7 +114,7 @@ int main()  // NOLINT(bugprone-exception-escape)
     const char* sourceJson = R"([
 { "Id": 1, "Birthday": "1998-05-15T00:00:00Z", "Name": "John Doe", "Email": "john.doe@example.com", "PhoneNumber": "+(123) 4567890", "NickName": "JD" },
 { "Id": 2, "Birthday": "1993-08-20T00:00:00Z", "Name": "Alice Smith", "Email": "alice.smith@example.com", "PhoneNumber": "+(098) 765-43-21", "NickName": "Ali" },
-{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Ivan Petrov", "Email": "ivan.petrov@example.com", "PhoneNumber": null, "Language": " RU " }
+{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Ivan Petrov", "Email": "ivan.petrov@example.com", "PhoneNumber": null, "Language": "RU" }
 ])";
 
     // Load list of users from JSON
@@ -765,7 +766,7 @@ class YourCustomKey
 ```
 
 ### Serialization date and time
-The  ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:
+The ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:
 ```cpp
 #include "bitserializer/types/std/chrono.h"
 #include "bitserializer/types/std/ctime.h"
@@ -975,7 +976,10 @@ First, let's list what are considered as errors and will throw exception:
  - UTF encoding/decoding errors (can be configured via `UtfEncodingErrorPolicy`)
  - Unsupported UTF encoding
 
-By default, any missed field in the input format (e.g. JSON) is not treated as an error, but you can add `Required()` validator if needed.
+By default, any missed field in the input format (e.g. JSON) is not treated as an error, you can specify a default value using the `Fallback()` refiner or add the `Required()` validator if the field is mandatory.
+> [!NOTE]
+> In the previously released v0.80, loading a `null` (e.g. "myValue": null) value into an object or array (e.g. `std::optional<CMyClass>`) would throw an exception with error code `MismatchedTypes` (all archives except MsgPack and CSV).
+
 You can handle `std::exception` just for log errors, but if you need to provide more detailed information to the user, you may need to handle the following exceptions:
 
  - `SerializationException` - base BitSerializer exception, contains `SerializationErrorCode`

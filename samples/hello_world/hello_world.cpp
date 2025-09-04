@@ -32,8 +32,8 @@ struct CUser
 		// Optional field (should be empty or contain a valid phone number)
 		archive << KeyValue("PhoneNumber", PhoneNumber, Refine::TrimWhitespace(), Validate::PhoneNumber());
 		archive << KeyValue("NickName", NickName);
-		// Use fallback value "en" if deserialization fails
-		archive << KeyValue("Language", Language, Refine::TrimWhitespace(), Refine::ToLowerCase(), Fallback("en"));
+		// Use fallback value "en" if missing data
+		archive << KeyValue("Language", Language, Refine::ToLowerCase(), Fallback("en"));
 	}
 };
 
@@ -42,7 +42,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 	const char* sourceJson = R"([
 { "Id": 1, "Birthday": "1998-05-15T00:00:00Z", "Name": "John Doe", "Email": "john.doe@example.com", "PhoneNumber": "+(123) 4567890", "NickName": "JD" },
 { "Id": 2, "Birthday": "1993-08-20T00:00:00Z", "Name": "Alice Smith", "Email": "alice.smith@example.com", "PhoneNumber": "+(098) 765-43-21", "NickName": "Ali" },
-{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Ivan Petrov", "Email": "ivan.petrov@example.com", "PhoneNumber": null, "Language": " RU " }
+{ "Id": 3, "Birthday": "2001-03-10T00:00:00Z", "Name": "Ivan Petrov", "Email": "ivan.petrov@example.com", "PhoneNumber": null, "Language": "RU" }
 ])";
 
 	// Load list of users from JSON

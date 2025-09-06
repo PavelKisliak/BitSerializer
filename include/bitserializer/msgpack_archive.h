@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <iosfwd>
 #include <optional>
 #include <type_traits>
-#include <functional>
 #include "bitserializer/export.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
@@ -157,7 +157,6 @@ private:
 };
 
 using MsgPackVariableKey = CVariableKey<MsgPackArchiveTraits::supported_key_types>;
-using PathResolver = std::function<std::string()>;
 
 class BITSERIALIZER_API IMsgPackWriter
 {

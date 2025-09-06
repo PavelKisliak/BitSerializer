@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <cassert>
+#include <iosfwd>
 #include <optional>
 #include <type_traits>
 #include <variant>

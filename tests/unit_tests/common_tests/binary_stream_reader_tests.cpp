@@ -37,7 +37,7 @@ TEST_F(BinaryStreamReaderTest, ShouldCheckIsEndWhenInputDataGreaterThanChunk)
 {
 	// Arrange
 	PrepareStreamReader(reader_type::chunk_size + 1);
-	const auto skippedChunk = mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size);
+	const auto skippedChunk = mBinaryStreamReader->ReadExactly(reader_type::chunk_size);
 
 	// Act / Assert
 	ASSERT_FALSE(skippedChunk.empty());
@@ -78,7 +78,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGetPositionAtMiddle)
 {
 	// Arrange
 	PrepareStreamReader(4);
-	const auto solidBlock = mBinaryStreamReader->ReadSolidBlock(2);
+	const auto solidBlock = mBinaryStreamReader->ReadExactly(2);
 
 	// Act
 	const auto actual = mBinaryStreamReader->GetPosition();
@@ -93,7 +93,7 @@ TEST_F(BinaryStreamReaderTest, ShouldGetPositionAtEnd)
 {
 	// Arrange
 	PrepareStreamReader(4);
-	const auto solidBlock = mBinaryStreamReader->ReadSolidBlock(4);
+	const auto solidBlock = mBinaryStreamReader->ReadExactly(4);
 
 	// Act
 	const auto actual = mBinaryStreamReader->GetPosition();
@@ -114,7 +114,7 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItInTheCachedChunk)
 		PrepareStreamReader(testSize);
 
 		// Act
-		const auto solidBlock = mBinaryStreamReader->ReadSolidBlock(2);
+		const auto solidBlock = mBinaryStreamReader->ReadExactly(2);
 		const bool result = mBinaryStreamReader->SetPosition(testPos);
 		const auto actualByte = mBinaryStreamReader->PeekByte();
 
@@ -165,7 +165,7 @@ TEST_F(BinaryStreamReaderTest, ShouldSetPositionWhenItBeforeCachedChunk)
 	PrepareStreamReader(testPos + 1);
 
 	// Act
-	const auto solidBlock = mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size);
+	const auto solidBlock = mBinaryStreamReader->ReadExactly(reader_type::chunk_size);
 	const bool result = mBinaryStreamReader->SetPosition(testPos);
 	const auto actualByte = mBinaryStreamReader->PeekByte();
 
@@ -314,7 +314,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockWhenSizeEqualToChunk)
 	PrepareStreamReader(reader_type::chunk_size);
 
 	// Act
-	const std::string actual(mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size));
+	const std::string actual(mBinaryStreamReader->ReadExactly(reader_type::chunk_size));
 
 	// Assert
 	ASSERT_EQ(mInputString.size(), actual.size());
@@ -330,7 +330,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockWhenSizeLessThanChunk)
 	const std::string expected = mInputString.substr(0, testBlockSize);
 
 	// Act
-	const std::string actual(mBinaryStreamReader->ReadSolidBlock(testBlockSize));
+	const std::string actual(mBinaryStreamReader->ReadExactly(testBlockSize));
 
 	// Assert
 	ASSERT_EQ(testBlockSize, actual.size());
@@ -341,17 +341,19 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockWhenSizeLessThanChunk)
 TEST_F(BinaryStreamReaderTest, ShouldReadMultipleSolidBlocksExceedChunkSize)
 {
 	// Arrange
-	PrepareStreamReader(reader_type::chunk_size + 4);
+	constexpr uint16_t expectedFirstChunkSize = reader_type::chunk_size - 3;
+	constexpr uint16_t expectedSecondChunkSize = 4;
+	PrepareStreamReader(expectedFirstChunkSize + expectedSecondChunkSize);
 
 	// Act
-	const std::string actual1(mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size));
-	const std::string actual2(mBinaryStreamReader->ReadSolidBlock(4));
+	const std::string actual1(mBinaryStreamReader->ReadExactly(expectedFirstChunkSize));
+	const std::string actual2(mBinaryStreamReader->ReadExactly(expectedSecondChunkSize));
 
 	// Assert
-	ASSERT_EQ(reader_type::chunk_size, actual1.size());
-	ASSERT_EQ(4U, actual2.size());
-	EXPECT_EQ(mInputString.substr(0, reader_type::chunk_size), actual1);
-	EXPECT_EQ(mInputString.substr(reader_type::chunk_size), actual2);
+	ASSERT_EQ(expectedFirstChunkSize, actual1.size());
+	ASSERT_EQ(expectedSecondChunkSize, actual2.size());
+	EXPECT_EQ(mInputString.substr(0, expectedFirstChunkSize), actual1);
+	EXPECT_EQ(mInputString.substr(expectedFirstChunkSize), actual2);
 	EXPECT_TRUE(mBinaryStreamReader->IsEnd());
 }
 
@@ -361,7 +363,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenEmptySource)
 	PrepareStreamReader(0);
 
 	// Act
-	const std::string actual(mBinaryStreamReader->ReadSolidBlock(1));
+	const std::string actual(mBinaryStreamReader->ReadExactly(1));
 
 	// Assert
 	ASSERT_TRUE(actual.empty());
@@ -374,8 +376,8 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenNoMoreData)
 	PrepareStreamReader(reader_type::chunk_size + 1);
 
 	// Act
-	const std::string actual1(mBinaryStreamReader->ReadSolidBlock(reader_type::chunk_size));
-	const std::string actual2(mBinaryStreamReader->ReadSolidBlock(2));
+	const std::string actual1(mBinaryStreamReader->ReadExactly(reader_type::chunk_size));
+	const std::string actual2(mBinaryStreamReader->ReadExactly(2));
 
 	// Assert
 	ASSERT_EQ(reader_type::chunk_size, actual1.size());
@@ -390,7 +392,7 @@ TEST_F(BinaryStreamReaderTest, ShouldReadSolidBlockEmptyWhenInputDataSizeIsLess)
 	PrepareStreamReader(1);
 
 	// Act
-	const std::string actual(mBinaryStreamReader->ReadSolidBlock(2));
+	const std::string actual(mBinaryStreamReader->ReadExactly(2));
 
 	// Assert
 	ASSERT_TRUE(actual.empty());

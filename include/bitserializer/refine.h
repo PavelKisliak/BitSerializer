@@ -70,6 +70,8 @@ namespace BitSerializer::Refine
 		template <typename TString>
 		void operator()(TString& str, bool isLoaded) const noexcept
 		{
+			static_assert(is_enumerable_v<TString>, "BitSerializer. Target string must support iterators.");
+
 			if (isLoaded)
 			{
 				for (auto& c : str)
@@ -91,6 +93,8 @@ namespace BitSerializer::Refine
 		template <typename TString>
 		void operator()(TString& str, bool isLoaded) const noexcept
 		{
+			static_assert(is_enumerable_v<TString>, "BitSerializer. Target string must support iterators.");
+
 			if (isLoaded)
 			{
 				for (auto& c : str)

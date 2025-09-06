@@ -3,9 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "binary_stream_reader.h"
-#include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <istream>
 
 namespace BitSerializer::Detail
 {
@@ -83,8 +83,9 @@ namespace BitSerializer::Detail
 		return std::nullopt;
 	}
 
-	std::string_view CBinaryStreamReader::ReadSolidBlock(size_t blockSize)
+	std::string_view CBinaryStreamReader::ReadExactly(size_t blockSize)
 	{
+		assert(blockSize <= chunk_size);
 		if (blockSize > chunk_size) {
 			return {};
 		}
@@ -107,11 +108,11 @@ namespace BitSerializer::Detail
 		return block;
 	}
 
-	std::string_view CBinaryStreamReader::ReadByChunks(size_t remainingSize)
+	std::string_view CBinaryStreamReader::ReadUpTo(size_t maxBytesToRead)
 	{
 		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
 		{
-			const size_t chunkSize = std::min(static_cast<size_t>(mEndDataPtr - mStartDataPtr), remainingSize);
+			const size_t chunkSize = std::min(static_cast<size_t>(mEndDataPtr - mStartDataPtr), maxBytesToRead);
 			const std::string_view block(mStartDataPtr, chunkSize);
 			mStartDataPtr += chunkSize;
 			if (mStartDataPtr == mEndDataPtr)

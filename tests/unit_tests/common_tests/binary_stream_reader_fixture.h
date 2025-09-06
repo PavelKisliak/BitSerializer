@@ -33,7 +33,7 @@ public:
 		size_t remainingSize = testSize;
 		for (size_t i = 0; i < maxIterations; ++i)
 		{
-			if (std::string_view chunk = mBinaryStreamReader->ReadByChunks(remainingSize); !chunk.empty())
+			if (std::string_view chunk = mBinaryStreamReader->ReadUpTo(remainingSize); !chunk.empty())
 			{
 				actual += chunk;
 				remainingSize -= chunk.size();

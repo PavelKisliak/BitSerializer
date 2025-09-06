@@ -832,7 +832,7 @@ namespace
 	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
 	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
 	{
-		if (const auto data = binaryStreamReader.ReadSolidBlock(sizeof(T)); !data.empty())
+		if (const auto data = binaryStreamReader.ReadExactly(sizeof(T)); !data.empty())
 		{
 			outValue = Memory::BigEndianToNative(*reinterpret_cast<const T*>(data.data()));
 		}
@@ -1247,7 +1247,7 @@ namespace BitSerializer::MsgPack::Detail
 			mBuffer.reserve(remainingSize);
 			while (remainingSize != 0)
 			{
-				if (const std::string_view chunk = mBinaryStreamReader.ReadByChunks(remainingSize); !chunk.empty())
+				if (const std::string_view chunk = mBinaryStreamReader.ReadUpTo(remainingSize); !chunk.empty())
 				{
 					mBuffer += chunk;
 					remainingSize -= chunk.size();

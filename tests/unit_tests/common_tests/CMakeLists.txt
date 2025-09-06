@@ -14,7 +14,6 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE
     $<TARGET_OBJECTS:common_impl>
     GTest::Main
-    GTest::GTest
     testing_tools
 )
 

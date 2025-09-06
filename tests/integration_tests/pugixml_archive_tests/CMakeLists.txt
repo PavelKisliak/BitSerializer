@@ -11,7 +11,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::pugixml-archive
-    GTest::GTest
     GTest::Main
     testing_tools
 )

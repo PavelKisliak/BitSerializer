@@ -161,7 +161,7 @@ In the future, we plan to include benchmarks against other libraries from the "S
 
 #### Comparison of serialized data size
 In addition to performance metrics, the size of the serialized output is another important factor to consider when choosing a serialization format.
-Below is a comparison of the serialized output sizes (in bytes) for the same test model using different formats and libraries:
+Below is a comparison of the serialized output sizes (in bytes) for the same test model using different formats:
 
 ![image info](benchmarks/archives/benchmark_results/serialization_output_size_chart.png)
 
@@ -607,7 +607,7 @@ To be able to serialize `enum` types as string, you need to register a map with 
 ```cpp
 // file HttpMethods.h
 #pragma once
-#include "bitserializer\string_conversion.h"
+#include "bitserializer\convert.h"
 
 enum class HttpMethod {
     Delete = 1,
@@ -620,6 +620,9 @@ REGISTER_ENUM(HttpMethod, {
     { HttpMethod::Get,      "get" },
     { HttpMethod::Head,     "head" }
 })
+
+// Optionally, you can declare stream operators (`<<` and `>>`) for the registered enum type
+DECLARE_ENUM_STREAM_OPS(HttpMethod)
 ```
 
 ### Serializing to multiple formats
@@ -672,8 +675,8 @@ The second thing which you would like to customize is default structure of outpu
         // Serialize as attributes when archive type is XML
         if constexpr (TArchive::archive_type == ArchiveType::Xml)
         {
-            archive << MakeAutoAttributeValue("x", x);
-            archive << MakeAutoAttributeValue("y", y);
+            archive << AttributeValue("x", x);
+            archive << AttributeValue("y", y);
         }
         else
         {
@@ -808,7 +811,6 @@ void Serialize(TArchive& archive)
 ```
 
 ### Conditional loading and versioning
-
 The functional style of serialization used in BitSerializer has one advantage over the declarative one - you can write branches depending on the data.
 To check the current serialization mode, use two static methods - `IsLoading()` and `IsSaving()`. As they are «constexpr», you will not have any overhead.
 ```cpp

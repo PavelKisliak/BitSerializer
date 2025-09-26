@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <charconv>
+#include <cmath>
 #include <limits>
 #include <stdexcept>
 #include "bitserializer/config.h"
@@ -122,7 +123,8 @@ namespace BitSerializer::Convert::Detail
 		if constexpr (sizeof(TSym) == sizeof(char)) {
 			validateResult(std::from_chars(it, end, out), in);
 		}
-		else {
+		else
+		{
 			std::string utf8Str;
 			Utf::Utf8::Encode(it, end, utf8Str);
 			validateResult(std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out), utf8Str);
@@ -212,7 +214,22 @@ namespace BitSerializer::Convert::Detail
 			), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		char buf[42];
+		if constexpr (std::numeric_limits<T>::has_quiet_NaN)
+		{
+			// Handle NAN for cross-platform compatibility
+			if (std::isnan(in))
+			{
+				if (std::signbit(in)) {
+					out.append({ '-', 'n', 'a', 'n' });
+				}
+				else {
+					out.append({ 'n', 'a', 'n' });
+				}
+				return;
+			}
+		}
+
+		char buf[std::numeric_limits<T>::digits];
 		const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
 		if (rc.ec != std::errc())
 		{

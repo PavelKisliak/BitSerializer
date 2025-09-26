@@ -5,6 +5,7 @@
 #pragma once
 #include <optional>
 #include <memory>
+#include <cmath>
 #include <gtest/gtest.h>
 #include "bitserializer/serialization_detail/generic_container.h"
 
@@ -35,12 +36,26 @@ void GTestExpectEq(T expected, T actual)
 
 inline void GTestExpectEq(const float& expected, const float& actual)
 {
-	EXPECT_FLOAT_EQ(expected, actual);
+	if (std::isnan(expected))
+	{
+		EXPECT_TRUE(std::isnan(actual));
+	}
+	else
+	{
+		EXPECT_FLOAT_EQ(expected, actual);
+	}
 }
 
 inline void GTestExpectEq(const double& expected, const double& actual)
 {
-	EXPECT_DOUBLE_EQ(expected, actual);
+	if (std::isnan(expected))
+	{
+		EXPECT_TRUE(std::isnan(actual));
+	}
+	else
+	{
+		EXPECT_DOUBLE_EQ(expected, actual);
+	}
 }
 
 inline void GTestExpectEq(const std::nullptr_t&, const std::nullptr_t&)

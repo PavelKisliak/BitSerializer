@@ -49,6 +49,27 @@ TEST(RapidYamlArchive, SerializeArrayOfFloats)
 	TestSerializeArray<YamlArchive, double>();
 }
 
+TEST(RapidYamlArchive, SerializeArrayWithSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestClassWithSubTypes<float> testArray1[3] = { 1.0f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
+		TestSerializeArrayToStream<YamlArchive>(testArray1);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
+		TestSerializeArrayToStream<YamlArchive>(testArray2);
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestClassWithSubTypes<float> testArray1[3] = { 1.0f, std::numeric_limits<float>::quiet_NaN(), 2.0f };
+		TestSerializeArrayToStream<YamlArchive>(testArray1);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::quiet_NaN(), 2.0 };
+		TestSerializeArrayToStream<YamlArchive>(testArray2);
+	}
+}
+
 TEST(RapidYamlArchive, SerializeArrayOfNullptrs)
 {
 	TestSerializeArray<YamlArchive, std::nullptr_t>();
@@ -99,6 +120,21 @@ TEST(RapidYamlArchive, SerializeClassWithMemberFloat)
 TEST(RapidYamlArchive, SerializeClassWithMemberDouble)
 {
 	TestSerializeType<YamlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+}
+
+TEST(RapidYamlArchive, SerializeClassWithSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestSerializeType<YamlArchive>(TestClassWithSubType(std::numeric_limits<float>::infinity()));
+		TestSerializeType<YamlArchive>(TestClassWithSubType(-std::numeric_limits<double>::infinity()));
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestSerializeType<YamlArchive>(TestClassWithSubType(-std::numeric_limits<float>::quiet_NaN()));
+		TestSerializeType<YamlArchive>(TestClassWithSubType(-std::numeric_limits<double>::quiet_NaN()));
+	}
 }
 
 TEST(RapidYamlArchive, SerializeClassWithMemberNullptr)

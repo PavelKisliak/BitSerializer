@@ -27,6 +27,28 @@ TEST_F(CsvArchiveTests, SerializeArrayOfClasses)
 	TestSerializeArray<CsvArchive, TestClassWithSubTypes<bool, short, int, size_t, std::string>>();
 }
 
+TEST_F(CsvArchiveTests, SerializeArrayWithSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<long double>::has_infinity)
+	{
+
+		TestClassWithSubTypes<float> testArray[3] = { 1.0f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
+		TestSerializeArrayToStream<CsvArchive>(testArray);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
+		TestSerializeArrayToStream<CsvArchive>(testArray2);
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestClassWithSubTypes<float> testArray3[3] = { 1.0f, std::numeric_limits<float>::quiet_NaN(), 2.0f };
+		TestSerializeArrayToStream<CsvArchive>(testArray3);
+
+		TestClassWithSubTypes<double> testArray4[3] = { 1.0f, std::numeric_limits<double>::quiet_NaN(), 2.0f };
+		TestSerializeArrayToStream<CsvArchive>(testArray4);
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

@@ -1,7 +1,8 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <cmath>
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
 
@@ -354,6 +355,28 @@ TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(0.f, Convert::To<float>("  0  "));
 	EXPECT_EQ(123.4567f, Convert::To<float>(u"  123.4567  "));
 	EXPECT_EQ(-123.4567f, Convert::To<float>(U"  -123.4567  "));
+	EXPECT_EQ(1.0f, Convert::To<float>(L"1.0 .............................. following text should be ignored "));
+}
+
+TEST(ConvertFundamentals, FloatSpecialFromString) {
+	if constexpr (std::numeric_limits<float>::has_infinity)
+	{
+		EXPECT_EQ(std::numeric_limits<float>::infinity(), Convert::To<float>("  inf  "));
+		EXPECT_EQ(-std::numeric_limits<float>::infinity(), Convert::To<float>("  -INF  "));
+		EXPECT_EQ(-std::numeric_limits<float>::infinity(), Convert::To<float>(L"  -Inf .............................. following text should be ignored "));
+
+		EXPECT_THROW(Convert::To<float>("in "), std::invalid_argument);
+		EXPECT_THROW(Convert::To<float>("-in"), std::invalid_argument);
+	}
+	if constexpr (std::numeric_limits<float>::has_quiet_NaN)
+	{
+		EXPECT_TRUE(std::isnan(Convert::To<float>("  -nan  ")));
+		EXPECT_TRUE(std::isnan(Convert::To<float>("  -NAN  ")));
+		EXPECT_TRUE(std::isnan(Convert::To<float>(L"  -Nan  .............................. following text should be ignored ")));
+
+		EXPECT_THROW(Convert::To<float>("na "), std::invalid_argument);
+		EXPECT_THROW(Convert::To<float>("-na"), std::invalid_argument);
+	}
 }
 
 TEST(ConvertFundamentals, FloatFromEmptyStringShouldThrowException) {
@@ -382,11 +405,46 @@ TEST(ConvertFundamentals, FloatMaxToString) {
 	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<float>::max()).empty());
 }
 
+TEST(ConvertFundamentals, FloatSpecialToString) {
+	if constexpr (std::numeric_limits<float>::has_infinity)
+	{
+		EXPECT_EQ("inf", Convert::To<std::string>(std::numeric_limits<float>::infinity()));
+		EXPECT_EQ(U"-inf", Convert::To<std::u32string>(-std::numeric_limits<float>::infinity()));
+	}
+	if constexpr (std::numeric_limits<float>::has_quiet_NaN)
+	{
+		EXPECT_EQ("nan", Convert::To<std::string>(std::numeric_limits<float>::quiet_NaN()));
+		EXPECT_EQ(u"-nan", Convert::To<std::u16string>(-std::numeric_limits<float>::quiet_NaN()));
+	}
+}
+
 //-----------------------------------------------------------------------------
 TEST(ConvertFundamentals, DoubleFromString) {
 	EXPECT_EQ(-0.0, Convert::To<double>("  -0  "));
 	EXPECT_EQ(1234567.12345678, Convert::To<double>(u"  1234567.12345678  "));
 	EXPECT_EQ(-1234567.12345678, Convert::To<double>(U"  -1234567.12345678  "));
+	EXPECT_EQ(1.0, Convert::To<double>(L"1.0 .............................. following text should be ignored "));
+}
+
+TEST(ConvertFundamentals, DoubleSpecialFromString) {
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		EXPECT_EQ(std::numeric_limits<double>::infinity(), Convert::To<double>("  inf  "));
+		EXPECT_EQ(-std::numeric_limits<double>::infinity(), Convert::To<double>("  -INF  "));
+		EXPECT_EQ(-std::numeric_limits<double>::infinity(), Convert::To<double>(L"  -Inf .............................. following text should be ignored "));
+
+		EXPECT_THROW(Convert::To<double>("in "), std::invalid_argument);
+		EXPECT_THROW(Convert::To<double>("-in"), std::invalid_argument);
+	}
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		EXPECT_TRUE(std::isnan(Convert::To<double>("  -nan  ")));
+		EXPECT_TRUE(std::isnan(Convert::To<double>("  -NAN  ")));
+		EXPECT_TRUE(std::isnan(Convert::To<double>(L"  -Nan  .............................. following text should be ignored ")));
+
+		EXPECT_THROW(Convert::To<double>("na "), std::invalid_argument);
+		EXPECT_THROW(Convert::To<double>("-na"), std::invalid_argument);
+	}
 }
 
 TEST(ConvertFundamentals, DoubleFromEmptyStringShouldThrowException) {
@@ -410,12 +468,47 @@ TEST(ConvertFundamentals, DoubleMaxToString) {
 	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<double>::max()).empty());
 }
 
+TEST(ConvertFundamentals, DoubleSpecialToString) {
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		EXPECT_EQ("inf", Convert::To<std::string>(std::numeric_limits<double>::infinity()));
+		EXPECT_EQ(U"-inf", Convert::To<std::u32string>(-std::numeric_limits<double>::infinity()));
+	}
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		EXPECT_EQ("nan", Convert::To<std::string>(std::numeric_limits<double>::quiet_NaN()));
+		EXPECT_EQ(u"-nan", Convert::To<std::u16string>(-std::numeric_limits<double>::quiet_NaN()));
+	}
+}
+
 //-----------------------------------------------------------------------------
 
 TEST(ConvertFundamentals, LongDoubleFromString) {
 	EXPECT_EQ(0.0L, Convert::To<long double>("  0  "));
 	EXPECT_EQ(3.14159265358979L, Convert::To<long double>(u"  3.14159265358979  "));
 	EXPECT_EQ(-3.14159265358979L, Convert::To<long double>(U"  -3.14159265358979  "));
+	EXPECT_EQ(1.0, Convert::To<long double>("1.0 .............................. following text should be ignored "));
+}
+
+TEST(ConvertFundamentals, LongDoubleSpecialFromString) {
+	if constexpr (std::numeric_limits<long double>::has_infinity)
+	{
+		EXPECT_EQ(std::numeric_limits<long double>::infinity(), Convert::To<long double>("  inf  "));
+		EXPECT_EQ(-std::numeric_limits<long double>::infinity(), Convert::To<long double>("  -INF  "));
+		EXPECT_EQ(-std::numeric_limits<long double>::infinity(), Convert::To<long double>("  -Inf .............................. following text should be ignored "));
+
+		EXPECT_THROW(Convert::To<long double>("in "), std::invalid_argument);
+		EXPECT_THROW(Convert::To<long double>("-in"), std::invalid_argument);
+	}
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		EXPECT_TRUE(std::isnan(Convert::To<long double>("  -nan  ")));
+		EXPECT_TRUE(std::isnan(Convert::To<long double>("  -NAN  ")));
+		EXPECT_TRUE(std::isnan(Convert::To<long double>("  -Nan  .............................. following text should be ignored ")));
+
+		EXPECT_THROW(Convert::To<long double>("na "), std::invalid_argument);
+		EXPECT_THROW(Convert::To<long double>("-na"), std::invalid_argument);
+	}
 }
 
 TEST(ConvertFundamentals, LongDoubleFromEmptyStringShouldThrowException) {
@@ -437,4 +530,17 @@ TEST(ConvertFundamentals, LongDoubleToString) {
 TEST(ConvertFundamentals, LongDoubleMaxToString) {
 	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<long double>::lowest()).empty());
 	EXPECT_TRUE(!Convert::ToString(std::numeric_limits<long double>::max()).empty());
+}
+
+TEST(ConvertFundamentals, LongDoubleSpecialToString) {
+	if constexpr (std::numeric_limits<long double>::has_infinity)
+	{
+		EXPECT_EQ("inf", Convert::To<std::string>(std::numeric_limits<long double>::infinity()));
+		EXPECT_EQ(U"-inf", Convert::To<std::u32string>(-std::numeric_limits<long double>::infinity()));
+	}
+	if constexpr (std::numeric_limits<long double>::has_quiet_NaN)
+	{
+		EXPECT_EQ("nan", Convert::To<std::string>(std::numeric_limits<long double>::quiet_NaN()));
+		EXPECT_EQ(u"-nan", Convert::To<std::u16string>(-std::numeric_limits<long double>::quiet_NaN()));
+	}
 }

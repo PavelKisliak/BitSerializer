@@ -48,6 +48,27 @@ TEST(PugiXmlArchive, SerializeArrayOfFloats) {
 	TestSerializeArray<XmlArchive, double>();
 }
 
+TEST(PugiXmlArchive, SerializeArrayWithSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestClassWithSubTypes<float> testArray1[3] = { 1.0f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
+		TestSerializeArrayToStream<XmlArchive>(testArray1);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
+		TestSerializeArrayToStream<XmlArchive>(testArray2);
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestClassWithSubTypes<float> testArray1[3] = { 1.0f, std::numeric_limits<float>::quiet_NaN(), 2.0f };
+		TestSerializeArrayToStream<XmlArchive>(testArray1);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::quiet_NaN(), 2.0 };
+		TestSerializeArrayToStream<XmlArchive>(testArray2);
+	}
+}
+
 TEST(PugiXmlArchive, SerializeArrayOfNullptrs) {
 	TestSerializeArray<XmlArchive, std::nullptr_t>();
 }
@@ -103,6 +124,24 @@ TEST(PugiXmlArchive, SerializeClassWithMemberFloat) {
 
 TEST(PugiXmlArchive, SerializeClassWithMemberDouble) {
 	TestSerializeType<XmlArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+}
+
+TEST(PugiXmlArchive, SerializeClassWithSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestSerializeType<XmlArchive>(TestClassWithSubType(std::numeric_limits<float>::infinity()));
+		TestSerializeType<XmlArchive>(TestClassWithSubType(-std::numeric_limits<float>::infinity()));
+
+		TestSerializeType<XmlArchive>(TestClassWithSubType(std::numeric_limits<double>::infinity()));
+		TestSerializeType<XmlArchive>(TestClassWithSubType(-std::numeric_limits<double>::infinity()));
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestSerializeType<XmlArchive>(TestClassWithSubType(-std::numeric_limits<float>::quiet_NaN()));
+		TestSerializeType<XmlArchive>(TestClassWithSubType(-std::numeric_limits<double>::quiet_NaN()));
+	}
 }
 
 TEST(PugiXmlArchive, SerializeClassWithMemberNullptr) {

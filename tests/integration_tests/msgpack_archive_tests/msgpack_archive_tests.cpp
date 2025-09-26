@@ -71,6 +71,21 @@ TEST(MsgPackArchive, SerializeDouble)
 	TestSerializeType<MsgPackArchive, double>(std::numeric_limits<double>::max());
 }
 
+TEST(MsgPackArchive, SerializeSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestSerializeType<MsgPackArchive, float>(std::numeric_limits<float>::infinity());
+		TestSerializeType<MsgPackArchive, double>(-std::numeric_limits<double>::infinity());
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestSerializeType<MsgPackArchive, float>(std::numeric_limits<float>::quiet_NaN());
+		TestSerializeType<MsgPackArchive, double>(-std::numeric_limits<double>::quiet_NaN());
+	}
+}
+
 TEST(MsgPackArchive, ShouldAllowToLoadBooleanFromInteger)
 {
 	bool actual = false;
@@ -192,11 +207,28 @@ TEST(MsgPackArchive, SerializeArrayOfIntegers)
 TEST(MsgPackArchive, SerializeArrayOfFloats)
 {
 	TestSerializeArray<MsgPackArchive, float>();
+	TestSerializeArray<MsgPackArchive, double>();
 }
 
-TEST(MsgPackArchive, SerializeArrayOfDoubles)
+TEST(MsgPackArchive, SerializeArrayWithSpecialNumbers)
 {
-	TestSerializeArray<MsgPackArchive, double>();
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestClassWithSubTypes<float> testArray1[3] = { 1.0f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
+		TestSerializeArrayToStream<MsgPackArchive>(testArray1);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() };
+		TestSerializeArrayToStream<MsgPackArchive>(testArray2);
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestClassWithSubTypes<float> testArray1[3] = { 1.0f, std::numeric_limits<float>::quiet_NaN(), 2.0f };
+		TestSerializeArrayToStream<MsgPackArchive>(testArray1);
+
+		TestClassWithSubTypes<double> testArray2[3] = { 1.0, std::numeric_limits<double>::quiet_NaN(), 2.0 };
+		TestSerializeArrayToStream<MsgPackArchive>(testArray2);
+	}
 }
 
 TEST(MsgPackArchive, SerializeArrayOfNullptrs)
@@ -249,6 +281,21 @@ TEST(MsgPackArchive, SerializeClassWithMemberFloat)
 TEST(MsgPackArchive, SerializeClassWithMemberDouble)
 {
 	TestSerializeType<MsgPackArchive>(TestClassWithSubTypes(std::numeric_limits<double>::min(), 0.0, std::numeric_limits<double>::max()));
+}
+
+TEST(MsgPackArchive, SerializeClassWithSpecialNumbers)
+{
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		TestSerializeType<MsgPackArchive>(TestClassWithSubType(std::numeric_limits<float>::infinity()));
+		TestSerializeType<MsgPackArchive>(TestClassWithSubType(-std::numeric_limits<double>::infinity()));
+	}
+
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		TestSerializeType<MsgPackArchive>(TestClassWithSubType(std::numeric_limits<float>::quiet_NaN()));
+		TestSerializeType<MsgPackArchive>(TestClassWithSubType(-std::numeric_limits<double>::quiet_NaN()));
+	}
 }
 
 TEST(MsgPackArchive, SerializeClassWithMemberNullptr)

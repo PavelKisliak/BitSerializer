@@ -143,10 +143,6 @@ TEST(RapidJsonArchive, SerializeArrayOfFloats)
 {
 	// Min/max floats cannot be tested because of type overflow which happens due lost precision in the RapidJson library
 	TestSerializeType<JsonArchive>(std::vector{ -3.141592654f, 0.0f, -3.141592654f });
-}
-
-TEST(RapidJsonArchive, SerializeArrayOfDoubles)
-{
 	TestSerializeArray<JsonArchive, double>();
 }
 

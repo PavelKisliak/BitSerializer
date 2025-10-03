@@ -48,6 +48,7 @@ struct RapidJsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functi
 	using string_view_type = std::basic_string_view<typename TEncoding::Ch>;
 	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
+	using raw_type = rapidjson::GenericDocument<RapidJsonEncoding<char>>;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = false;
 
@@ -175,6 +176,7 @@ public:
 	using iterator = typename RapidJsonNode::ValueIterator;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
 	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
+	using raw_type = typename RapidJsonArchiveTraits<TEncoding>::raw_type;
 
 	RapidJsonArrayScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
 		: TArchiveScope<TMode>(serializationContext)
@@ -241,6 +243,20 @@ public:
 			SaveJsonValue(RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
 			return true;
 		}
+	}
+
+	bool SerializeValue(raw_type& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			RapidJsonNode& jsonNode = LoadNextItem();
+			value.CopyFrom(jsonNode, value.GetAllocator());
+		}
+		else
+		{
+			SaveJsonValue(RapidJsonNode(value, mAllocator));
+		}
+		return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks) - False positive: RapidJSON properly manages memory via RAII
 	}
 
 	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope(size_t)
@@ -343,6 +359,7 @@ public:
 	using key_type = typename RapidJsonArchiveTraits<TEncoding>::key_type;
 	using key_type_view = std::basic_string_view<typename TEncoding::Ch>;
 	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
+	using raw_type = typename RapidJsonArchiveTraits<TEncoding>::raw_type;
 	using key_raw_ptr = const typename TEncoding::Ch*;
 
 	RapidJsonObjectScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
@@ -406,6 +423,24 @@ public:
 		}
 		else {
 			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
+		}
+	}
+
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, raw_type& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
+			if (jsonValue)
+			{
+				value.CopyFrom(*jsonValue, value.GetAllocator());
+				return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks) - False positive: RapidJSON properly manages memory via RAII
+			}
+			return false;
+		}
+		else {
+			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value, mAllocator));
 		}
 	}
 
@@ -524,6 +559,7 @@ protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<TEncoding>;
 	using allocator_type = typename RapidJsonDocument::AllocatorType;
 	using char_type = typename TEncoding::Ch;
+	using raw_type = typename RapidJsonArchiveTraits<TEncoding>::raw_type;
 
 public:
 	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
@@ -617,8 +653,20 @@ public:
 		else
 		{
 			mRootJson.SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), mRootJson.GetAllocator());
-			return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
+			return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks) - False positive: RapidJSON properly manages memory via RAII
 		}
+	}
+
+	bool SerializeValue(raw_type& value)
+	{
+		if constexpr (TMode == SerializeMode::Load)
+		{
+			value.CopyFrom(mRootJson, value.GetAllocator());
+		}
+		else {
+			mRootJson.CopyFrom(value, mRootJson.GetAllocator());
+		}
+		return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks) - False positive: RapidJSON properly manages memory via RAII
 	}
 
 	std::optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>> OpenArrayScope(size_t arraySize)
@@ -757,6 +805,14 @@ using JsonArchive = TArchiveBase<
 	Detail::RapidJsonArchiveTraits<>,
 	Detail::RapidJsonRootScope<SerializeMode::Load>,
 	Detail::RapidJsonRootScope<SerializeMode::Save>>;
+
+/**
+ * @brief Represents an opaque JSON subtree for efficient pass-through handling.
+ *
+ * This type captures a JSON subtree as a DOM fragment during deserialization, avoiding conversion to C++ objects.
+ * During serialization, the fragment is directly inserted without re-parsing (cannot be used with another archive).
+ */
+using Raw = JsonArchive::raw_type;
 
 } // namespace BitSerializer::Json::RapidJson
 

@@ -13,6 +13,7 @@ ___
 - Seamless handling of optional and required fields, bypassing the need to use `std::optional`.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
+- Payload passthrough of unprocessed data structures with minimal serialization overhead.¹
 - Enums can be serialized as integers or strings, giving you full control over representation.
 - Support serialization to memory, streams and files.
 - Full Unicode support with automatic detection and transcoding (except YAML).
@@ -55,6 +56,7 @@ ___
 - [Serialization STD types](#serialization-std-types)
 - [Specifics of serialization STD map](#specifics-of-serialization-std-map)
 - [Serialization date and time](#serialization-date-and-time)
+- [Payload passthrough of unprocessed data structures](#payload-passthrough-of-unprocessed-data-structures)
 - [Conditional loading and versioning](#conditional-loading-and-versioning)
 - [Serialization to streams and files](#serialization-to-streams-and-files)
 - [Error handling](#error-handling)
@@ -809,6 +811,62 @@ void Serialize(TArchive& archive)
     archive << KeyValue("Time", CTimeRef(timeValue));
 }
 ```
+
+### Payload passthrough of unprocessed data structures
+In distributed systems, services often need to process messages while forwarding parts they don't interpret.
+This occurs in API gateways, event routers, and integration points where your service cares about specific fields but must forward the rest of the structure.
+BitSerializer efficiently handles these scenarios with its payload passthrough feature.
+
+> [!NOTE]
+> Currently only one archive (RapidJson) supports data passthrough.
+
+```cpp
+using namespace BitSerializer;
+using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+
+// Incoming message structure (from external system)
+struct ExternalEvent
+{
+    std::string EventId;
+    Json::RapidJson::Raw Payload;  // Opaque payload
+
+    template <typename TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("event_id", EventId, Required());
+        archive << KeyValue("payload", Payload, Required("Must contain valid JSON payload"));
+    }
+};
+
+// Internal routing structure (for our system)
+struct RoutingEnvelope
+{
+    std::string RouteId;
+    Json::RapidJson::Raw Payload;  // Pass-through payload
+
+    template <typename TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("route_id", RouteId);
+        archive << KeyValue("payload", Payload);
+    }
+};
+
+// Deserialize external event (payload remains raw)
+ExternalEvent externalEvent;
+BitSerializer::LoadObject<JsonArchive>(externalEvent, incomingMsg);
+
+// Forward payload to internal routing system WITHOUT PROCESSING
+RoutingEnvelope envelope{ "route_789", std::move(externalEvent.Payload) };
+std::string routedMessage;
+BitSerializer::SaveObject<JsonArchive>(envelope, routedMessage);
+```
+[See full sample](samples/payload_passthrough/payload_passthrough.cpp)
+
+> [!IMPORTANT]
+> The passthrough data maintains its logical structure but follows standard formatting rules during serialization (whitespace/indentation may differ from original).
+
+This approach minimizes processing overhead for pass-through fields while maintaining container-level validation (e.g., ensuring required fields exist).
 
 ### Conditional loading and versioning
 The functional style of serialization used in BitSerializer has one advantage over the declarative one - you can write branches depending on the data.

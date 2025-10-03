@@ -277,6 +277,92 @@ TEST(RapidJsonArchive, SerializeClassWithSkippingFields)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for raw JSON
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, SerializeRawJson)
+{
+	// Arrange
+	std::string testJson = R"({"payload":[1,2,3,4,5,6,7,8,9,10]})";
+	JsonArchive::raw_type raw;
+
+	// Act
+	BitSerializer::LoadObject<JsonArchive>(raw, testJson);
+	// Change the source JSON to ensure that the deserialized raw JSON does not reference it
+	testJson.assign(testJson.size(), '-');
+	std::string actual;
+	BitSerializer::SaveObject<JsonArchive>(raw, actual);
+
+	// Assert
+	ASSERT_TRUE(raw.IsObject());
+	EXPECT_EQ(R"({"payload":[1,2,3,4,5,6,7,8,9,10]})", actual);
+}
+
+TEST(RapidJsonArchive, SerializeRawJsonToStream)
+{
+	// Arrange
+	std::istringstream ss(R"({"payload":[1,2,3,4,5,6,7,8,9,10]})");
+	JsonArchive::raw_type raw;
+	BitSerializer::SerializationOptions options;
+	options.streamOptions.writeBom = false;
+
+	// Act
+	BitSerializer::LoadObject<JsonArchive>(raw, ss);
+	std::ostringstream actual;
+	BitSerializer::SaveObject<JsonArchive>(raw, actual, options);
+
+	// Assert
+	ASSERT_TRUE(raw.IsObject());
+	EXPECT_EQ(R"({"payload":[1,2,3,4,5,6,7,8,9,10]})", actual.str());
+}
+
+TEST(RapidJsonArchive, SerializeRawJsonAsObjectMember)
+{
+	// Arrange
+	const std::string testJson = R"({"payload":[1,2,3,4,5]})";
+	JsonArchive::raw_type rawJson;
+	rawJson.Parse(testJson.c_str());
+	std::string outputJson;
+	TestClassWithSubType testSaveObj(std::move(rawJson));
+
+	// Act
+	BitSerializer::SaveObject<JsonArchive>(testSaveObj, outputJson);
+	ASSERT_FALSE(outputJson.empty());
+
+	TestClassWithSubType testLoadObj{ JsonArchive::raw_type() };
+	BitSerializer::LoadObject<JsonArchive>(testLoadObj, outputJson);
+
+	// Assert
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer writer(buffer);
+	testLoadObj.GetValue().Accept(writer);
+	EXPECT_EQ(testJson, buffer.GetString());
+}
+
+TEST(RapidJsonArchive, SerializeRawJsonAsArrayElement)
+{
+	// Arrange
+	const std::string json = R"({"payload":[1,2,3,4,5]})";
+	JsonArchive::raw_type rawJson;
+	rawJson.Parse(json.c_str());
+	std::string outputJson;
+	JsonArchive::raw_type testSaveArray[1] = { std::move(rawJson) };
+
+	// Act
+	BitSerializer::SaveObject<JsonArchive>(testSaveArray, outputJson);
+	ASSERT_FALSE(outputJson.empty());
+
+	JsonArchive::raw_type testLoadArray[1] = { JsonArchive::raw_type() };
+	BitSerializer::LoadObject<JsonArchive>(testLoadArray, outputJson);
+
+	// Assert
+	ASSERT_TRUE(testLoadArray[0].IsObject());
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer writer(buffer);
+	testLoadArray[0].Accept(writer);
+	EXPECT_EQ(json, buffer.GetString());
+}
+
+//-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ShouldReturnPathInObjectScopeWhenLoading)

@@ -1,10 +1,14 @@
-if(BUILD_RAPIDJSON_ARCHIVE)
+if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_CSV_ARCHIVE)
     add_subdirectory(hello_world)
+endif()
+
+if(BUILD_RAPIDJSON_ARCHIVE)
     add_subdirectory(validation)
     add_subdirectory(serialize_third_party_class)
     add_subdirectory(serialize_custom_string)
     add_subdirectory(serialize_custom_array)
     add_subdirectory(serialize_to_stream)
+    add_subdirectory(payload_passthrough)
 endif()
 
 if(BUILD_PUGIXML_ARCHIVE)

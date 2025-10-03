@@ -389,22 +389,28 @@ namespace BitSerializer
 	template <class TArchive, typename TKey, typename TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
+		constexpr auto hasArchiveBuiltInSerialize = can_serialize_value_with_key_v<TArchive, TValue, TKey>;
 		constexpr auto hasSerializeMethod = has_serialize_method_v<TValue>;
 		constexpr auto hasGlobalSerializeObject = has_global_serialize_object_v<TValue>;
 		constexpr auto hasGlobalSerializeArray = has_global_serialize_array_v<TValue>;
 
 		// If you are trying to serialize one of known STD types, please make sure that you are included
 		// required header with implementation (from "bitserializer/types/std/").
-		static_assert(hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray,
+		static_assert(hasArchiveBuiltInSerialize || hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray,
 			"BitSerializer. The class must have defined Serialize() method or one of global functions - SerializeObject() or SerializeArray().");
 
-		if constexpr (hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray)
+		if constexpr (hasArchiveBuiltInSerialize || hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray)
 		{
 			static_assert(!(hasGlobalSerializeObject && hasGlobalSerializeArray),
 				"BitSerializer. Only one function from SerializeObject() or SerializeArray() should be defined for particular type.");
 
+			// Built-in archive serialization has the highest priority
+			if constexpr (hasArchiveBuiltInSerialize)
+			{
+				return archive.SerializeValue(std::forward<TKey>(key), value);
+			}
 			// Internal Serialize() method has higher priority than global one
-			if constexpr (hasSerializeMethod)
+			else if constexpr (hasSerializeMethod)
 			{
 				constexpr auto hasObjectWithKeySupport = can_serialize_object_with_key_v<TArchive, TKey>;
 				static_assert(hasObjectWithKeySupport, "BitSerializer. The archive doesn't support serialize class with key on this level.");
@@ -478,22 +484,28 @@ namespace BitSerializer
 	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
 	bool Serialize(TArchive& archive, TValue& value)
 	{
+		constexpr auto hasArchiveBuiltInSerialize = can_serialize_value_v<TArchive, TValue>;
 		constexpr auto hasSerializeMethod = has_serialize_method_v<TValue>;
 		constexpr auto hasGlobalSerializeObject = has_global_serialize_object_v<TValue>;
 		constexpr auto hasGlobalSerializeArray = has_global_serialize_array_v<TValue>;
 
 		// If you are trying to serialize one of known STD types, please make sure that you are included
 		// required header with implementation (from "bitserializer/types/std/").
-		static_assert(hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray,
+		static_assert(hasArchiveBuiltInSerialize || hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray,
 			"BitSerializer. The class must have defined Serialize() method or one of global functions - SerializeObject() or SerializeArray().");
 
-		if constexpr (hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray)
+		if constexpr (hasArchiveBuiltInSerialize || hasSerializeMethod || hasGlobalSerializeObject || hasGlobalSerializeArray)
 		{
 			static_assert(!(hasGlobalSerializeObject && hasGlobalSerializeArray),
 				"BitSerializer. Only one function from SerializeObject() or SerializeArray() should be defined.");
 
+			// Built-in archive serialization has the highest priority
+			if constexpr (hasArchiveBuiltInSerialize)
+			{
+				return archive.SerializeValue(value);
+			}
 			// Internal Serialize() method has higher priority than global one
-			if constexpr (hasSerializeMethod)
+			else if constexpr (hasSerializeMethod)
 			{
 				constexpr auto hasObjectSupport = can_serialize_object_v<TArchive>;
 				static_assert(hasObjectSupport, "BitSerializer. The archive doesn't support serialize class without key on this level.");

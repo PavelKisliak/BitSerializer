@@ -6,6 +6,8 @@ trigger:
     include:
       - 'refs/tags/*'
 
+pr: none
+
 variables:
 - name: CmakeGenOptions
   value: -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON

@@ -10,7 +10,7 @@ namespace BitSerializer::Text
 	/**
 	 * @brief Checks if a character is ASCII whitespace.
 	 *
-	 * ASCII whitespace includes: space, tab, newline, vertical tab, form feed, carriage return.
+	 * ASCII whitespace includes: space, tab, newline, carriage return.
 	 *
 	 * @param c Character to check
 	 * @return true if character is whitespace, false otherwise
@@ -21,8 +21,6 @@ namespace BitSerializer::Text
 		return c == static_cast<TChar>(' ') ||
 			c == static_cast<TChar>('\t') ||
 			c == static_cast<TChar>('\n') ||
-			c == static_cast<TChar>('\v') ||
-			c == static_cast<TChar>('\f') ||
 			c == static_cast<TChar>('\r');
 	}
 

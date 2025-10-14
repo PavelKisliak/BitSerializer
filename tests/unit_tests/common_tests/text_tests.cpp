@@ -15,8 +15,6 @@ TEST(IsWhitespaceTest, CheckAsciiWhitespace)
     EXPECT_TRUE(Text::IsWhitespace(' '));
     EXPECT_TRUE(Text::IsWhitespace('\t'));
     EXPECT_TRUE(Text::IsWhitespace('\n'));
-    EXPECT_TRUE(Text::IsWhitespace('\v'));
-    EXPECT_TRUE(Text::IsWhitespace('\f'));
     EXPECT_TRUE(Text::IsWhitespace('\r'));
 }
 
@@ -67,7 +65,7 @@ TEST(TrimWhitespaceTest, ShouldHandleSingleCharacterString)
 
 TEST(TrimWhitespaceTest, ShouldHandleAllWhitespaceString)
 {
-	std::string testValue = " \t\n\v\f\r ";
+	std::string testValue = " \t\n\r ";
 	Text::TrimWhitespace(testValue);
 	EXPECT_EQ("", testValue);
 }
@@ -112,7 +110,7 @@ TEST(TrimWhitespaceTest, ShouldHandleSingleCharacterStringView)
 
 TEST(TrimWhitespaceTest, ShouldHandleAllWhitespaceStringView)
 {
-	std::string_view testValue = " \t\n\v\f\r ";
+	std::string_view testValue = " \t\n\r ";
 	Text::TrimWhitespace(testValue);
 	EXPECT_EQ("", testValue);
 }

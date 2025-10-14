@@ -134,7 +134,7 @@ TEST(RefineTrimWhitespace, ShouldHandleAllWhitespaceString)
 {
 	// Arrange
 	constexpr auto trimWhitespace = Refine::TrimWhitespace();
-	std::string testValue = " \t\n\v\f\r ";
+	std::string testValue = " \t\n\r ";
 
 	// Act
 	trimWhitespace(testValue, true);

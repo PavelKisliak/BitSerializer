@@ -182,8 +182,10 @@ private:
 			mSerializedData.clear();
 			break;
 		case TestStage::LoadFromMemory:
-			if (mSerializedData.empty()) {
-				throw std::runtime_error("No serialized data available. Perform 'SaveToMemory' test first.");
+			if (mSerializedData.empty())
+			{
+				// `SaveToMemory` step was skipped, need to run it once to get the test data
+				RunOneTimeTest(TestStage::SaveToMemory);
 			}
 			mTargetModel = {};
 			break;
@@ -191,13 +193,15 @@ private:
 			mStringStream = {};
 			break;
 		case TestStage::LoadFromStream:
-			mTargetModel = {};
+			if (mStringStream.str().empty())
+			{
+				// `SaveToStream` step was skipped, need to run it once to get the test data
+				RunOneTimeTest(TestStage::SaveToStream);
+			}
 			// Need to clear the error flags for able to rewind
 			mStringStream.clear();
 			mStringStream.seekg(0, std::ios::beg);
-			if (mStringStream.eof()) {
-				throw std::runtime_error("No serialized data available. Perform 'SaveToStream' test first.");
-			}
+			mTargetModel = {};
 			break;
 		}
 
@@ -207,10 +211,10 @@ private:
 	/**
 	 * @brief Executes a single iteration of the current test stage.
 	 */
-	void RunOneTimeTest()
+	void RunOneTimeTest(TestStage testStage)
 	{
 		assert(mInProgress);
-		switch (mTestStage)
+		switch (testStage)
 		{
 		case TestStage::SaveToMemory:
 			BenchmarkSaveToMemory(mSourceTestModel, mSerializedData);

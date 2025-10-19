@@ -64,7 +64,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 #endif
 	}
 	catch (const std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
+		std::cerr << std::endl << ex.what() << std::endl;
 		return 1;
 	}
 

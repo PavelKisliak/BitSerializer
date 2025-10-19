@@ -50,7 +50,7 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 			// Run benchmark
 			PrepareTest();
 			auto startTime = Timer::now();
-			RunOneTimeTest();
+			RunOneTimeTest(mTestStage);
 			const auto testDuration = Timer::now() - startTime;
 
 			// Record serialization time

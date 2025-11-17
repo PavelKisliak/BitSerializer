@@ -1,9 +1,10 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2025 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 #include "testing_tools/perf_utils.h"
 #include "bitserializer/types/std/unordered_map.h"
@@ -23,12 +24,18 @@ static constexpr std::chrono::seconds DefaultStageTestTime = std::chrono::second
 
 int main()	// NOLINT(bugprone-exception-escape)
 {
-	// Set the highest priority for the process to minimize fluctuations in results.
-	// Setting physical core affinity leads to worse results (possibly due to throttling).
-	PerfUtils::SetMaxPriority();
-
 	std::vector<CLibraryTestResults> benchmarkResults;
 	std::cout << "Testing, please do not touch mouse and keyboard." << std::endl;
+
+	// Set the highest priority for the process to minimize fluctuations in results
+	PerfUtils::SetMaxPriority();
+
+	// Pin current thread to fixed core
+	const uint32_t coreId = (std::thread::hardware_concurrency() - 1) >> 1;
+	PerfUtils::SetCurrentThreadAffinity(coreId);
+
+	std::cout << "Warm up the CPU" << std::endl;
+	PerfUtils::PreheatCPU(std::chrono::seconds(10));
 
 	// Benchmarking libraries
 	try

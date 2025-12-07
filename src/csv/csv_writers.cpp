@@ -16,7 +16,7 @@ namespace
 		for (; it != endIt; ++it)
 		{
 			const char sym = *it;
-			if (sym == '"' || sym == separator || sym == '\n')
+			if (sym == '"' || sym == separator || sym == '\n' || sym == '\r')
 			{
 				break;
 			}

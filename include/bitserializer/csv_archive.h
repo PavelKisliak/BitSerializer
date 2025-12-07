@@ -69,7 +69,7 @@ public:
 class CCsvWriteObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
+	CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
@@ -120,11 +120,10 @@ private:
 class CsvWriteArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
 {
 public:
-	explicit CsvWriteArrayScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
+	CsvWriteArrayScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
 		: TArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
-
 
 	/**
 	 * @brief Gets the current path in CSV.

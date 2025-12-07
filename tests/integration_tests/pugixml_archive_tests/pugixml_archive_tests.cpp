@@ -48,7 +48,7 @@ TEST(PugiXmlArchive, SerializeArrayOfFloats) {
 	TestSerializeArray<XmlArchive, double>();
 }
 
-TEST(PugiXmlArchive, SerializeArrayWithSpecialNumbers)
+TEST(PugiXmlArchive, SerializeArrayWithSpecialNumbersToStream)
 {
 	if constexpr (std::numeric_limits<double>::has_infinity)
 	{

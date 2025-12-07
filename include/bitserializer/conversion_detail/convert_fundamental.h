@@ -214,7 +214,7 @@ namespace BitSerializer::Convert::Detail
 			), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		if constexpr (std::numeric_limits<T>::has_quiet_NaN)
+		if constexpr (std::is_floating_point_v<T> && std::numeric_limits<T>::has_quiet_NaN)
 		{
 			// Handle NAN for cross-platform compatibility
 			if (std::isnan(in))

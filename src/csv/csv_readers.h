@@ -8,40 +8,47 @@
 
 namespace BitSerializer::Csv::Detail
 {
-	struct CValueMeta
-	{
-		CValueMeta(size_t offset, size_t size, bool hasEscapedChars) noexcept
-			: Offset(offset), Size(size), HasEscapedChars(hasEscapedChars)
-		{ }
-
-		size_t Offset;
-		size_t Size;
-		bool HasEscapedChars;
-	};
-
 	class CCsvStringReader final : public ICsvReader
 	{
+		struct CValueMeta
+		{
+			CValueMeta(size_t offset, size_t size, bool inOriginalData) noexcept
+				: Offset(offset), Size(size), InOriginalData(inOriginalData)
+			{
+			}
+
+			size_t Offset;
+			size_t Size;
+			// Indicates where the decoded value is located (in the original data or in a local buffer)
+			bool InOriginalData;
+		};
+
 	public:
 		CCsvStringReader(std::string_view inputString, bool withHeader, char separator = ',');
 
+		[[nodiscard]] size_t GetCurrentLine() const noexcept override { return mLineNumber; }
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
 		[[nodiscard]] bool IsEnd() const noexcept override { return mCurrentPos >= mSourceString.size(); }
-		bool ReadValue(std::string_view key, std::string_view& out_value) override;
+
+		[[nodiscard]] size_t GetHeadersCount() const noexcept override { return mHeaders.size(); }
+		[[nodiscard]] bool SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept override;
+
+		bool ReadValue(std::string_view key, std::string_view& out_value) noexcept override;
 		void ReadValue(std::string_view& out_value) override;
 		bool ParseNextRow() override;
-		[[nodiscard]] const std::vector<std::string>& GetHeaders() const noexcept override { return mHeaders; }
 
 	private:
-		bool ParseNextLine(std::vector<CValueMeta>& out_values);
-		std::string_view UnescapeValue(std::string_view value);
+		bool ParseNextLine();
+		void UnescapeValue(std::string_view value);
 
 		std::string_view mSourceString;
 		const bool mWithHeader;
 		const char mSeparator;
 
-		std::vector<std::string> mHeaders;
+		std::vector<std::string_view> mHeaders;
 		std::vector<CValueMeta> mRowValuesMeta;
-		std::string mTempValueBuffer;
+		std::vector<std::string::value_type> mTempValueBuffer;
+		size_t mLockedBufferSize = 0;
 		size_t mCurrentPos = 0;
 		size_t mLineNumber = 0;
 		size_t mRowIndex = 0;
@@ -51,19 +58,34 @@ namespace BitSerializer::Csv::Detail
 
 	class CCsvStreamReader final : public ICsvReader
 	{
+		struct CValueMeta
+		{
+			CValueMeta(size_t offset, size_t size) noexcept
+				: Offset(offset), Size(size)
+			{
+			}
+
+			size_t Offset;
+			size_t Size;
+		};
+
 	public:
 		CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',');
 
+		[[nodiscard]] size_t GetCurrentLine() const noexcept override { return mLineNumber; }
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
 		[[nodiscard]] bool IsEnd() const override { return mCurrentPos >= mDecodedBuffer.size() && mEncodedStreamReader.IsEnd(); }
-		bool ReadValue(std::string_view key, std::string_view& out_value) override;
+
+		[[nodiscard]] size_t GetHeadersCount() const noexcept override { return mHeaders.size(); }
+		[[nodiscard]] bool SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept override;
+
+		bool ReadValue(std::string_view key, std::string_view& out_value) noexcept override;
 		void ReadValue(std::string_view& out_value) override;
 		bool ParseNextRow() override;
-		[[nodiscard]] const std::vector<std::string>& GetHeaders() const noexcept override { return mHeaders; }
 
 	private:
-		bool ParseNextLine(std::vector<CValueMeta>& out_values);
-		std::string_view UnescapeValue(char* beginIt, const char* endIt);
+		bool ParseNextLine();
+		void UnescapeValue(char* beginIt, const char* endIt);
 
 		Convert::Utf::CEncodedStreamReader<char> mEncodedStreamReader;
 		std::string mDecodedBuffer;

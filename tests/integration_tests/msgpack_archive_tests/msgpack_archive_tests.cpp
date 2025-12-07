@@ -210,7 +210,7 @@ TEST(MsgPackArchive, SerializeArrayOfFloats)
 	TestSerializeArray<MsgPackArchive, double>();
 }
 
-TEST(MsgPackArchive, SerializeArrayWithSpecialNumbers)
+TEST(MsgPackArchive, SerializeArrayWithSpecialNumbersToStream)
 {
 	if constexpr (std::numeric_limits<double>::has_infinity)
 	{

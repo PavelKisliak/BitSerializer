@@ -954,12 +954,12 @@ namespace BitSerializer::Convert::Utf
 			, mErrorMark(errorMark)
 		{
 			static_assert((ChunkSize % 4) == 0, "Chunk size must be a multiple of 4");
-			static_assert(ChunkSize >= 32, "Chunk size must be at least 32 bytes for correctly detect the encoding");
+			static_assert(ChunkSize >= 32, "Chunk size must be at least 32 bytes to correctly detect the encoding");
 
 			if (ReadNextEncodedChunk())
 			{
 				size_t bomSize = 0;
-				mUtfType = DetectEncoding(std::string_view(mStartDataPtr, mEndDataPtr - mStartDataPtr), bomSize);
+				mDetectedEncoding = DetectEncoding(std::string_view(mStartDataPtr, mEndDataPtr - mStartDataPtr), bomSize);
 				mStartDataPtr += bomSize;
 			}
 		}
@@ -975,13 +975,13 @@ namespace BitSerializer::Convert::Utf
 				return EncodedStreamReadResult::EndFile;
 			}
 
-			switch (mUtfType)
+			switch (mDetectedEncoding)
 			{
 			case UtfType::Utf8:
 				if constexpr (std::is_same_v<TTargetCharType, char>)
 				{
 					outStr.append(mStartDataPtr, mEndDataPtr);
-					mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+					mStartDataPtr = mEndDataPtr = mRawBuffer;
 					return EncodedStreamReadResult::Success;
 				}
 				else
@@ -1006,49 +1006,49 @@ namespace BitSerializer::Convert::Utf
 		}
 
 		[[nodiscard]] UtfType GetSourceUtfType() const noexcept {
-			return mUtfType;
+			return mDetectedEncoding;
 		}
 
 	private:
 		template <typename T>
-		T* GetAlignedEndDataPtr() noexcept {
+		T* GetLastAlignedPosition() noexcept {
 			return reinterpret_cast<T*>(mEndDataPtr - ((mEndDataPtr - mStartDataPtr) % sizeof(T)));
 		}
 
 		bool ReadNextEncodedChunk()
 		{
-			if (mStartDataPtr == mEndBufferPtr)
+			if (mStartDataPtr == mBufferEnd)
 			{
-				mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+				mStartDataPtr = mEndDataPtr = mRawBuffer;
 			}
-			else if (mStartDataPtr != mEncodedBuffer)
+			else if (mStartDataPtr != mRawBuffer)
 			{
 				// Squeeze buffer
-				std::memcpy(mEncodedBuffer, mStartDataPtr, mEndDataPtr - mStartDataPtr);
-				mEndDataPtr -= mStartDataPtr - mEncodedBuffer;
-				mStartDataPtr = mEncodedBuffer;
+				std::memcpy(mRawBuffer, mStartDataPtr, mEndDataPtr - mStartDataPtr);
+				mEndDataPtr -= mStartDataPtr - mRawBuffer;
+				mStartDataPtr = mRawBuffer;
 			}
 
 			// Read next chunk
-			mInputStream.read(mEndDataPtr, mEndBufferPtr - mEndDataPtr);
+			mInputStream.read(mEndDataPtr, mBufferEnd - mEndDataPtr);
 			const auto lastReadSize = mInputStream.gcount();
 			mEndDataPtr += lastReadSize;
-			assert(mStartDataPtr >= mEncodedBuffer && mStartDataPtr <= mEndDataPtr);
+			assert(mStartDataPtr >= mRawBuffer && mStartDataPtr <= mEndDataPtr);
 			return lastReadSize != 0;
 		}
 
 		template <typename TUtf, typename TAllocator>
 		EncodedStreamReadResult DecodeChunk(std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>, TAllocator>& outStr)
 		{
-			const auto result = TUtf::Decode(reinterpret_cast<typename TUtf::char_type*>(mStartDataPtr), GetAlignedEndDataPtr<typename TUtf::char_type>(), outStr, mEncodingErrorPolicy, mErrorMark);
+			const auto result = TUtf::Decode(reinterpret_cast<typename TUtf::char_type*>(mStartDataPtr), GetLastAlignedPosition<typename TUtf::char_type>(), outStr, mEncodingErrorPolicy, mErrorMark);
 			mStartDataPtr = reinterpret_cast<char*>(result.Iterator);
 			assert(mStartDataPtr <= mEndDataPtr);
 			if (mInputStream.eof())
 			{
-				// Handle uncompleted sequence at the end of file
+				// Handle incomplete sequence at end of file
 				if (result.ErrorCode == UtfEncodingErrorCode::UnexpectedEnd && Detail::HandleEncodingError(outStr, mEncodingErrorPolicy, mErrorMark))
 				{
-					mStartDataPtr = mEndDataPtr = mEncodedBuffer;
+					mStartDataPtr = mEndDataPtr = mRawBuffer;
 					return EncodedStreamReadResult::Success;
 				}
 				return result.ErrorCode == UtfEncodingErrorCode::Success ? EncodedStreamReadResult::Success : EncodedStreamReadResult::DecodeError;
@@ -1057,14 +1057,14 @@ namespace BitSerializer::Convert::Utf
 			return result.ErrorCode == UtfEncodingErrorCode::Success || result.ErrorCode == UtfEncodingErrorCode::UnexpectedEnd ? EncodedStreamReadResult::Success : EncodedStreamReadResult::DecodeError;
 		}
 
-		UtfType mUtfType;
+		UtfType mDetectedEncoding;
 		std::istream& mInputStream;
 		UtfEncodingErrorPolicy mEncodingErrorPolicy;
 		const TTargetCharType* mErrorMark;
-		char mEncodedBuffer[ChunkSize]{};
-		char* const mEndBufferPtr = mEncodedBuffer + ChunkSize;
-		char* mStartDataPtr = mEncodedBuffer;
-		char* mEndDataPtr = mEncodedBuffer;
+		char mRawBuffer[ChunkSize];
+		char* mBufferEnd = mRawBuffer + ChunkSize;
+		char* mStartDataPtr = mRawBuffer;
+		char* mEndDataPtr = mRawBuffer;
 	};
 
 	/**

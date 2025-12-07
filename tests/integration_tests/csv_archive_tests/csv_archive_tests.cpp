@@ -27,7 +27,7 @@ TEST_F(CsvArchiveTests, SerializeArrayOfClasses)
 	TestSerializeArray<CsvArchive, TestClassWithSubTypes<bool, short, int, size_t, std::string>>();
 }
 
-TEST_F(CsvArchiveTests, SerializeArrayWithSpecialNumbers)
+TEST_F(CsvArchiveTests, SerializeArrayWithSpecialNumbersToStream)
 {
 	if constexpr (std::numeric_limits<long double>::has_infinity)
 	{

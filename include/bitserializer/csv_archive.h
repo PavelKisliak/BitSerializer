@@ -51,12 +51,16 @@ class BITSERIALIZER_API ICsvReader
 public:
 	virtual ~ICsvReader() = default;
 
+	[[nodiscard]] virtual size_t GetCurrentLine() const noexcept = 0;
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
-	virtual bool ReadValue(std::string_view key, std::string_view& out_value) = 0;
+
+	[[nodiscard]] virtual size_t GetHeadersCount() const noexcept = 0;
+	[[nodiscard]] virtual bool SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept = 0;
+
+	virtual bool ReadValue(std::string_view key, std::string_view& out_value) noexcept = 0;
 	virtual void ReadValue(std::string_view& out_value) = 0;
 	virtual bool ParseNextRow() = 0;
-	[[nodiscard]] virtual const std::vector<std::string>& GetHeaders() const noexcept = 0;
 };
 
 /**
@@ -200,7 +204,7 @@ public:
 	 */
 	[[nodiscard]] size_t GetEstimatedSize() const noexcept
 	{
-		return mCsvReader->GetHeaders().size();
+		return mCsvReader->GetHeadersCount();
 	}
 
 	/**
@@ -212,8 +216,12 @@ public:
 	template <typename TCallback>
 	void VisitKeys(TCallback&& fn)
 	{
-		for (const auto& key : mCsvReader->GetHeaders()) {
+		size_t headerIndex = 0;
+		std::string_view key;
+		while (mCsvReader->SeekToHeader(headerIndex, key))
+		{
 			fn(key);
+			++headerIndex;
 		}
 	}
 
@@ -237,18 +245,26 @@ public:
 			{
 				if (GetOptions().overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 				{
-					throw SerializationException(SerializationErrorCode::Overflow,
-						std::string("The size of target field '") + key + "' is insufficient to deserialize number: " +
-						std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+					std::string errMsg = "The size of target field '";
+					errMsg.append(key);
+					errMsg.append("' is insufficient to deserialize number: ");
+					errMsg.append(strValue);
+					errMsg.append(", line: ");
+					errMsg.append(Convert::ToString(mCsvReader->GetCurrentLine()));
+					throw SerializationException(SerializationErrorCode::Overflow, errMsg);
 				}
 			}
 			catch (...)
 			{
 				if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 				{
-					throw SerializationException(SerializationErrorCode::MismatchedTypes,
-						std::string("Failed to deserialize field '") + key + "' - type mismatch. Value: " +
-						std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+					std::string errMsg = "Failed to deserialize field '";
+					errMsg.append(key);
+					errMsg.append("' - type mismatch. Value: ");
+					errMsg.append(strValue);
+					errMsg.append(", line: ");
+					errMsg.append(Convert::ToString(mCsvReader->GetCurrentLine()));
+					throw SerializationException(SerializationErrorCode::MismatchedTypes, errMsg);
 				}
 			}
 		}
@@ -274,7 +290,7 @@ public:
 			{
 				throw SerializationException(SerializationErrorCode::MismatchedTypes,
 					"Failed to deserialize field '" + key + "' - type mismatch. Value: " +
-					std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentIndex()));
+					std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentLine()));
 			}
 			return false;
 		}

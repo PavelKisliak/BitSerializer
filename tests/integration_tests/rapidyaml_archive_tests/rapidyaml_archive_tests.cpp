@@ -49,7 +49,7 @@ TEST(RapidYamlArchive, SerializeArrayOfFloats)
 	TestSerializeArray<YamlArchive, double>();
 }
 
-TEST(RapidYamlArchive, SerializeArrayWithSpecialNumbers)
+TEST(RapidYamlArchive, SerializeArrayWithSpecialNumbersToStream)
 {
 	if constexpr (std::numeric_limits<double>::has_infinity)
 	{

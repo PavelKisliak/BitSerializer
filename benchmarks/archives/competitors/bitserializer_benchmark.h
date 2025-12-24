@@ -61,6 +61,27 @@ template <class TArchive>
 class CBitSerializerBenchmark final : public CBenchmarkBase
 {
 public:
+	CBitSerializerBenchmark()
+	{
+		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::string>)
+		{
+			mSupportedStagesList.push_back(TestStage::SaveToMemory);
+		}
+		if constexpr (BitSerializer::is_archive_support_input_data_type_v<typename TArchive::input_archive_type, std::string_view>)
+		{
+			mSupportedStagesList.push_back(TestStage::LoadFromMemory);
+		}
+
+		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::ostream>)
+		{
+			mSupportedStagesList.push_back(TestStage::SaveToStream);
+		}
+		if constexpr (BitSerializer::is_archive_support_input_data_type_v<typename TArchive::input_archive_type, std::istream>)
+		{
+			mSupportedStagesList.push_back(TestStage::LoadFromStream);
+		}
+	}
+
 	[[nodiscard]] std::string GetLibraryName() const override
 	{
 #ifdef RAPIDJSON_BENCHMARK
@@ -81,26 +102,62 @@ public:
 		return "BitSerializer-" + BitSerializer::Convert::ToString(TArchive::archive_type);
 	}
 
+	std::vector<TestStage> GetStagesList() const override
+	{
+		return mSupportedStagesList;
+	}
+
 protected:
 	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
 	{
-		BitSerializer::SaveObject<TArchive>(sourceTestModel, outputData);
+		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::string>)
+		{
+			BitSerializer::SaveObject<TArchive>(sourceTestModel, outputData);
+		}
+		else
+		{
+			std::cout << GetLibraryName() << ": Internal error - save to memory is not supported." << std::endl;
+		}
 	}
 
 	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
-		BitSerializer::LoadObject<TArchive>(targetTestModel, sourceData);
+		if constexpr (BitSerializer::is_archive_support_input_data_type_v<typename TArchive::input_archive_type, std::string_view>)
+		{
+			BitSerializer::LoadObject<TArchive>(targetTestModel, sourceData);
+		}
+		else
+		{
+			std::cout << GetLibraryName() << ": Internal error - load from memory is not supported." << std::endl;
+		}
 	}
 
 	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
-		BitSerializer::SaveObject<TArchive>(sourceTestModel, outputStream);
+		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::ostream>)
+		{
+			BitSerializer::SaveObject<TArchive>(sourceTestModel, outputStream);
+		}
+		else
+		{
+			std::cout << GetLibraryName() << ": Internal error - save to stream is not supported." << std::endl;
+		}
 	}
 
 	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
-		BitSerializer::LoadObject<TArchive>(targetTestModel, inputStream);
+		if constexpr (BitSerializer::is_archive_support_input_data_type_v<typename TArchive::input_archive_type, std::istream>)
+		{
+			BitSerializer::LoadObject<TArchive>(targetTestModel, inputStream);
+		}
+		else
+		{
+			std::cout << GetLibraryName() << ": Internal error - load from stream is not supported." << std::endl;
+		}
 	}
+
+private:
+	std::vector<TestStage> mSupportedStagesList;
 };
 
 #pragma warning(pop)

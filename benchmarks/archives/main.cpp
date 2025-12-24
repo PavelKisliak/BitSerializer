@@ -34,8 +34,10 @@ int main()	// NOLINT(bugprone-exception-escape)
 	const uint32_t coreId = (std::thread::hardware_concurrency() - 1) >> 1;
 	PerfUtils::SetCurrentThreadAffinity(coreId);
 
+#if !defined(_DEBUG) || (!defined(NDEBUG) && defined(RELEASE))
 	std::cout << "Warm up the CPU" << std::endl;
 	PerfUtils::PreheatCPU(std::chrono::seconds(10));
+#endif
 
 	// Benchmarking libraries
 	try

@@ -97,9 +97,13 @@ TEST(RapidJsonArchive, SerializeNullptr)
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, SerializeUtf8Sting)
+TEST(RapidJsonArchive, SerializeAnsiSting)
 {
 	TestSerializeType<JsonArchive, std::string>("Test ANSI string");
+}
+
+TEST(RapidJsonArchive, SerializeUtf8Sting)
+{
 	TestSerializeType<JsonArchive, std::string>(UTF8("Test UTF8 string - Привет мир!"));
 }
 
@@ -108,6 +112,11 @@ TEST(RapidJsonArchive, SerializeUnicodeString)
 	TestSerializeType<JsonArchive, std::wstring>(L"Test wide string - Привет мир!");
 	TestSerializeType<JsonArchive, std::u16string>(u"Test UTF-16 string - Привет мир!");
 	TestSerializeType<JsonArchive, std::u32string>(U"Test UTF-32 string - Привет мир!");
+}
+
+TEST(RapidJsonArchive, SerializeStringWithEscapeSequences)
+{
+	TestSerializeType<JsonArchive, std::string>("\"\\/\b\f\n\r\t");
 }
 
 TEST(RapidJsonArchive, SerializeEnum)
@@ -209,7 +218,7 @@ TEST(RapidJsonArchive, SerializeClassWithMemberString)
 	TestSerializeType<JsonArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
-TEST(RapidJsonArchive, SerializeClassWithExternalSerializeFuntion)
+TEST(RapidJsonArchive, SerializeClassWithExternalSerializeFunction)
 {
 	TestSerializeType<JsonArchive, TestClassWithExternalSerialization>();
 }
@@ -220,7 +229,7 @@ TEST(RapidJsonArchive, SerializeClassHierarchy)
 	TestSerializeType<JsonArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
-TEST(RapidJsonArchive, SerializeClassWithMemberClass)
+TEST(RapidJsonArchive, SerializeClassWithSubClass)
 {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
 	TestSerializeType<JsonArchive>(BuildFixture<TestClassType>());

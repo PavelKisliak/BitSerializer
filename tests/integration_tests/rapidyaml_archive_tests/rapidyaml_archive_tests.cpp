@@ -147,7 +147,7 @@ TEST(RapidYamlArchive, SerializeClassWithMemberString)
 	TestSerializeType<YamlArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
-TEST(RapidYamlArchive, SerializeClassWithExternalSerializeFuntion)
+TEST(RapidYamlArchive, SerializeClassWithExternalSerializeFunction)
 {
 	TestSerializeType<YamlArchive, TestClassWithExternalSerialization>();
 }
@@ -158,7 +158,7 @@ TEST(RapidYamlArchive, SerializeClassHierarchy)
 	TestSerializeArray<YamlArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
-TEST(RapidYamlArchive, SerializeClassWithMemberClass)
+TEST(RapidYamlArchive, SerializeClassWithSubClass)
 {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
 	TestSerializeType<YamlArchive>(BuildFixture<TestClassType>());

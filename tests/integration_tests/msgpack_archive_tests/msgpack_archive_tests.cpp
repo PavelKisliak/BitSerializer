@@ -101,9 +101,13 @@ TEST(MsgPackArchive, SerializeNullptr)
 //-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
-TEST(MsgPackArchive, SerializeUtf8Sting)
+TEST(MsgPackArchive, SerializeAnsiSting)
 {
 	TestSerializeType<MsgPackArchive, std::string>("Test ANSI string");
+}
+
+TEST(MsgPackArchive, SerializeUtf8Sting)
+{
 	TestSerializeType<MsgPackArchive, std::string>(UTF8("Test UTF8 string - Привет мир!"));
 }
 
@@ -308,7 +312,7 @@ TEST(MsgPackArchive, SerializeClassWithMemberString)
 	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithSubTypes<std::string, std::wstring, std::u16string, std::u32string>>());
 }
 
-TEST(MsgPackArchive, SerializeClassWithExternalSerializeFuntion)
+TEST(MsgPackArchive, SerializeClassWithExternalSerializeFunction)
 {
 	TestSerializeType<MsgPackArchive, TestClassWithExternalSerialization>();
 }
@@ -319,7 +323,7 @@ TEST(MsgPackArchive, SerializeClassHierarchy)
 	TestSerializeType<MsgPackArchive, TestClassWithInheritance<TestClassWithExternalSerialization>>();
 }
 
-TEST(MsgPackArchive, SerializeClassWithMemberClass)
+TEST(MsgPackArchive, SerializeClassWithSubClass)
 {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
 	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassType>());

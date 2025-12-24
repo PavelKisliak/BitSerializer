@@ -31,11 +31,11 @@ namespace BitSerializer
 		}
 	};
 
-	// Deduction guide for constructing `KeyValue` class when value passed as lvalue
+	// Deduction guide for constructing `AttributeValue` class when value passed as lvalue
 	template<class TAttrKey, class TValue, class... TArgs>
 	AttributeValue(TAttrKey&&, TValue&, TArgs&&...) -> AttributeValue<TAttrKey, TValue&, TArgs...>;
 
-	// Deduction guide for constructing `KeyValue` class when value passed as rvalue
+	// Deduction guide for constructing `AttributeValue` class when value passed as rvalue
 	template<class TAttrKey, class TValue, class... TArgs>
 	AttributeValue(TAttrKey&&, TValue&&, TArgs&&...) -> AttributeValue<TAttrKey, TValue, TArgs...>;
 

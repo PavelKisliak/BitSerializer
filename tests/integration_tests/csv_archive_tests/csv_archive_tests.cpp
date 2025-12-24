@@ -117,7 +117,7 @@ TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScopeWhenSkipValues)
 //-----------------------------------------------------------------------------
 // Tests of serialization array of classes
 //-----------------------------------------------------------------------------
-TEST_F(CsvArchiveTests, SerializeClassWithExternalSerializeFuntion) {
+TEST_F(CsvArchiveTests, SerializeClassWithExternalSerializeFunction) {
 	TestSerializeArray<CsvArchive, TestClassWithExternalSerialization>();
 }
 

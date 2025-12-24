@@ -78,7 +78,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBooleanWhenPolicyIsSkip)
 TYPED_TEST(MsgPackReaderTest, ShouldReadInt8Fix)
 {
 	this->PrepareReader({ '\xE0', '\x09', '\x20', '\x7F' });
-	int8_t value = false;
+	int8_t value = -1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(-32, value);
@@ -96,7 +96,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt8Fix)
 TYPED_TEST(MsgPackReaderTest, ShouldReadUInt8Fix)
 {
 	this->PrepareReader({ '\x00', '\x20', '\x7F' });
-	uint8_t value = false;
+	uint8_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0, value);
@@ -115,7 +115,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt8)
 		'\xD0', '\xCE',		// From int8
 		'\xD0', '\x7F',		// From int8
 		});
-	int8_t value = false;
+	int8_t value = -1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(std::numeric_limits<int8_t>::min(), value);
@@ -134,7 +134,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt8)
 		'\xCC', '\xC1',		// From uint8
 		'\xCC', '\xFF'		// From uint8
 		});
-	uint8_t value = false;
+	uint8_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0x80, value);
@@ -156,7 +156,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt8FromLongerType)
 		'\xD2', '\x00', '\x00', '\x00', '\x7F',										// From int32
 		'\xD3', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x5F'		// From int64
 		});
-	int8_t value = false;
+	int8_t value = -1;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(-50, value);
@@ -185,7 +185,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt8FromLongerType)
 		'\xCE', '\x00', '\x00', '\x00', '\xCF',										// From uint32
 		'\xCF', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\xFF'		// From uint64
 		});
-	uint8_t value = false;
+	uint8_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0x20, value);
@@ -207,7 +207,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt16)
 		'\xD1', '\xA0', '\x83',		// From int16
 		'\xD1', '\x7F', '\xFF'		// From int16
 		});
-	int16_t value = false;
+	int16_t value = -1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(std::numeric_limits<int16_t>::min(), value);
@@ -226,7 +226,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt16)
 		'\xCD', '\xCA', '\xFE',			// From uint16
 		'\xCD', '\xFF', '\xFF'	 		// From uint16
 		});
-	uint16_t value = false;
+	uint16_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0x4080, value);
@@ -246,7 +246,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt16FromLongerType)
 		'\xCE', '\x00', '\x00', '\x00', '\x7F',										// From uint32
 		'\xCF', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x10', '\x5F'		// From uint64
 		});
-	int16_t value = false;
+	int16_t value = -1;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(-49, value);
@@ -269,7 +269,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt16FromLongerType)
 		'\xCE', '\x00', '\x00', '\x00', '\xCF',										// From uint32
 		'\xCF', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\xFA', '\xAF'		// From uint64
 		});
-	uint16_t value = false;
+	uint16_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0x6F, value);
@@ -291,7 +291,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt32)
 		'\xD2', '\xA0', '\x83', '\x00', '\x00',		// From int32
 		'\xD2', '\x7F', '\xFF', '\xFF', '\xFF'		// From int32
 		});
-	int32_t value = false;
+	int32_t value = -1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(std::numeric_limits<int32_t>::min(), value);
@@ -310,7 +310,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt32)
 		'\xCE', '\xCA', '\xFE', '\x20', '\x30',		// From uint32
 		'\xCE', '\xFF', '\xFF', '\xFF', '\xFF' 		// From uint32
 		});
-	uint32_t value = false;
+	uint32_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0x40802010U, value);
@@ -328,7 +328,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt32FromLongerType)
 		'\xD3', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xD0',		// From int64
 		'\xCF', '\x00', '\x00', '\x00', '\x00', '\x00', '\x50', '\x90', '\x7F'		// From uint64
 		});
-	int32_t value = false;
+	int32_t value = -1;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(-48, value);
@@ -343,7 +343,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt32FromLongerType)
 		'\xD3', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x80', '\x6F',		// From int64
 		'\xCF', '\x00', '\x00', '\x00', '\x00', '\x00', '\x70', '\x80', '\xCF'		// From uint64
 		});
-	uint32_t value = false;
+	uint32_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0x806FU, value);
@@ -358,7 +358,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadInt64)
 		'\xD3', '\x80', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',		// From int64
 		'\xD3', '\x7F', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF'		// From int64
 		});
-	int64_t value = false;
+	int64_t value = -1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(std::numeric_limits<int64_t>::min(), value);
@@ -373,7 +373,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadUInt64)
 		'\xCF', '\xA0', '\x90', '\x80', '\x70', '\x60', '\x50', '\x40', '\x30',		// From uint64
 		'\xCF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF', '\xFF' 		// From uint64
 		});
-	uint64_t value = false;
+	uint64_t value = 1;
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_EQ(0xA090807060504030UL, value);
@@ -433,7 +433,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipInt16OverflowWhenPolicyIsSkip)
 TYPED_TEST(MsgPackReaderTest, ShouldReadFloat)
 {
 	this->PrepareReader("\xCA\x40\x48\xF5\xC3");
-	float value = false;
+	float value{};
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_FLOAT_EQ(3.14f, value);
@@ -442,7 +442,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadFloat)
 TYPED_TEST(MsgPackReaderTest, ShouldReadDouble)
 {
 	this->PrepareReader("\xCB\x40\x09\x21\xFB\x54\x52\x45\x50");
-	double value = false;
+	double value{};
 
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_DOUBLE_EQ(3.141592654, value);

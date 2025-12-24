@@ -382,11 +382,11 @@ TEST(BaseTypes, ShouldTrimStringFieldsInClassMembers)
 	EXPECT_EQ("value", actual.GetValue());
 }
 
-TEST(BaseTypes, SerializeClassWithExternalSerializeFuntion) {
+TEST(BaseTypes, SerializeClassWithExternalSerializeFunction) {
 	TestSerializeType<ArchiveStub, TestClassWithExternalSerialization>();
 }
 
-TEST(BaseTypes, SerializeClassWithMemberClass) {
+TEST(BaseTypes, SerializeClassWithSubClass) {
 	using TestClassType = TestClassWithSubTypes<TestClassWithSubTypes<int64_t>>;
 	TestSerializeType<ArchiveStub>(BuildFixture<TestClassType>());
 }

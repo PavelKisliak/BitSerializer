@@ -181,7 +181,7 @@ TYPED_TEST(MsgPackWriterTest, ShouldWriteDouble)
 //-----------------------------------------------------------------------------
 // Tests of writing strings
 //-----------------------------------------------------------------------------
-TYPED_TEST(MsgPackWriterTest, ShouldWriteStringEmptySize)
+TYPED_TEST(MsgPackWriterTest, ShouldWriteEmptyString)
 {
 	this->mMsgPackWriter->WriteValue("");
 	const std::string expectedStr(MakeStringFromSequence(0b10100000));

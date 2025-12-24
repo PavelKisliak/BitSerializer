@@ -24,7 +24,7 @@ namespace
 
 		if (it == endIt)
 		{
-			// No any characters that must be escaped
+			// There are no characters that need to be escaped
 			outputString.append(value);
 		}
 		else

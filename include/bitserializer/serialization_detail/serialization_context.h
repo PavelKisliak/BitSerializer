@@ -84,6 +84,13 @@ namespace BitSerializer
 			return mStringValueBuffer.emplace<TString>();
 		}
 
+		/**
+		 * @brief Determines whether the current stack is being unwound due to an active exception.
+		 */
+		[[nodiscard]] bool IsStackUnwinding() const noexcept {
+			return std::uncaught_exceptions() > mInitialUncaughtCount;
+		}
+
 	private:
 		/// @brief Variant type supporting multiple string encodings.
 		using StringsVariant = std::variant<std::string,
@@ -95,5 +102,6 @@ namespace BitSerializer
 		StringsVariant mStringValueBuffer;
 		ValidationMap mErrorsMap;
 		const SerializationOptions& mSerializationOptions;
+		int mInitialUncaughtCount = std::uncaught_exceptions();
 	};
 }

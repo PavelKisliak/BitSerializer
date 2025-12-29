@@ -708,13 +708,16 @@ public:
 
 	~CMsgPackReadObjectScope()
 	{
-		ResetKey();
-		// Skip key/values that was not read
-		for (size_t c = mIndex; c < mSize; ++c)
+		if (!GetContext().IsStackUnwinding())
 		{
-			mMsgPackReader->SkipValue();
-			mMsgPackReader->SkipValue();
-			++mIndex;
+			ResetKey();
+			// Skip key/value pairs ​​that were not read
+			for (size_t c = mIndex; c < mSize; ++c)
+			{
+				mMsgPackReader->SkipValue();
+				mMsgPackReader->SkipValue();
+				++mIndex;
+			}
 		}
 	}
 

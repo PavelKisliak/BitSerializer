@@ -466,6 +466,42 @@ TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEnd)
 	}
 }
 
+TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEndInObject)
+{
+	try
+	{
+		TestPointClass point;
+		BitSerializer::LoadObject<MsgPackArchive>(point, "\x82\xA1\x78\x29\xA1");
+		EXPECT_FALSE(true);
+	}
+	catch (const ParsingException& ex)
+	{
+		EXPECT_EQ(5U, ex.Offset);
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
+}
+
+TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEndInArray)
+{
+	try
+	{
+		bool testArray[3];
+		BitSerializer::LoadObject<MsgPackArchive>(testArray, "\x93\xC3\xC2");
+		EXPECT_FALSE(true);
+	}
+	catch (const ParsingException& ex)
+	{
+		EXPECT_EQ(3U, ex.Offset);
+	}
+	catch (const std::exception&)
+	{
+		EXPECT_FALSE(true);
+	}
+}
+
 TEST(MsgPackArchive, ThrowExceptionWhenNoMoreValuesToRead)
 {
 	const char* testMsgPack = "\x92"

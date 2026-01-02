@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -561,6 +561,10 @@ TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<JsonArchive, int32_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -534,7 +534,18 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 
 	// Use array with one object for compatibility with formats like CSV
 	TestClassWithSubTypes<TSourceType, TTargetType> sourceObj[1];
-	BuildFixture(sourceObj);
+	if constexpr (std::is_signed_v<TSourceType>)
+	{
+		std::get<TSourceType>(sourceObj[0]) = std::numeric_limits<TSourceType>::min();
+	}
+	else if constexpr (std::is_unsigned_v<TSourceType>)
+	{
+		std::get<TSourceType>(sourceObj[0]) = std::numeric_limits<TSourceType>::max();
+	}
+	else
+	{
+		BuildFixture(sourceObj);
+	}
 	TestClassWithSubTypes<TTargetType, TTargetType> targetObj[1];
 	// Loading with "Required" validator for force throw ValidationException
 	targetObj->WithRequired();

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2020-2025 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2026 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -343,6 +343,11 @@ TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
+	TestMismatchedTypesPolicy<YamlArchive, int32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<YamlArchive, int32_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 TEST(RapidYamlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<YamlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);

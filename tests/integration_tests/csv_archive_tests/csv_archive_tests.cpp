@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -292,6 +292,11 @@ TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
+TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
+	TestMismatchedTypesPolicy<CsvArchive, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<CsvArchive, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
+}
+
 TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<CsvArchive, float, uint32_t>(MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::ThrowError);

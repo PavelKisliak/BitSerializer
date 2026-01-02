@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -544,6 +544,10 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
+}
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {

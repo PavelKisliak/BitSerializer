@@ -41,7 +41,16 @@ TEST(ConvertFundamentals, BoolFromIntegers)
 TEST(ConvertFundamentals, BoolFromTooBigIntegerThrowException)
 {
 	EXPECT_THROW(Convert::To<bool>(2), std::out_of_range);
-	EXPECT_THROW(Convert::To<bool>(-1), std::out_of_range);
+}
+
+TEST(ConvertFundamentals, BoolFromNegativeValueThrowException)
+{
+	EXPECT_THROW(Convert::To<bool>(-1), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, BoolFromFloatThrowException)
+{
+	EXPECT_THROW(Convert::To<bool>(1.1f), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, IntMaxToUnsigned)
@@ -92,8 +101,8 @@ TEST(ConvertFundamentals, IntFromTooBigIntThrowException)
 
 TEST(ConvertFundamentals, UnsignedFromNegativeIntThrowException)
 {
-	EXPECT_THROW(Convert::To<uint8_t>(-1), std::out_of_range);
-	EXPECT_THROW(Convert::To<uint16_t>(std::numeric_limits<int16_t>::min()), std::out_of_range);
+	EXPECT_THROW(Convert::To<uint8_t>(-1), std::invalid_argument);
+	EXPECT_THROW(Convert::To<uint16_t>(std::numeric_limits<int16_t>::min()), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, UnsignedFromTooBigUnsignedThrowException)

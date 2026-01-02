@@ -24,7 +24,7 @@ namespace BitSerializer::Convert::Detail
 	 * @param[in] sourceValue The value to convert from.
 	 * @param[out] targetValue The converted value will be stored here.
 	 * @throws std::out_of_range If the conversion resulted in data loss.
-	 * @throws std::invalid_argument If float-to-integer conversion is attempted.
+	 * @throws std::invalid_argument If attempted conversion float to integer or negative value to unsigned.
 	 */
 	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource>&& std::is_arithmetic_v<TTarget>, int> = 0>
 	void To(const TSource& sourceValue, TTarget& targetValue)
@@ -35,6 +35,13 @@ namespace BitSerializer::Convert::Detail
 		}
 		else
 		{
+			if constexpr (std::is_signed_v<TSource> && std::is_unsigned_v<TTarget>)
+			{
+				if (sourceValue < 0) {
+					throw std::invalid_argument("Negative value cannot be converted to unsigned type");
+				}
+			}
+
 			if constexpr (std::is_floating_point_v<TSource>)
 			{
 				if constexpr (std::is_floating_point_v<TTarget>)

@@ -72,10 +72,6 @@ TEST(ConvertByPolicyTest, SkipOverflowValueWhenPolicyIsSkip)
 	EXPECT_FALSE(Detail::ConvertByPolicy(2, targetBoolean, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
 	EXPECT_EQ(false, targetBoolean);
 
-	uint8_t targetUint8 = 0;
-	EXPECT_FALSE(Detail::ConvertByPolicy(-1, targetUint8, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
-	EXPECT_EQ(0, targetUint8);
-
 	float targetFloat = 0.f;
 	constexpr auto sourceDouble = static_cast<double>(std::numeric_limits<float>::max()) * 1.00001;
 	EXPECT_FALSE(Detail::ConvertByPolicy(sourceDouble, targetFloat, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
@@ -84,9 +80,17 @@ TEST(ConvertByPolicyTest, SkipOverflowValueWhenPolicyIsSkip)
 
 TEST(ConvertByPolicyTest, ThrowExceptionWhenMismatchedType)
 {
+	bool targetBool = false;
+	EXPECT_THROW(Detail::ConvertByPolicy(-1, targetBool, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(false, targetBool);
+
 	int targetInteger = 0;
 	EXPECT_THROW(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
 	EXPECT_EQ(0, targetInteger);
+
+	uint8_t targetUint8 = 0;
+	EXPECT_THROW(Detail::ConvertByPolicy(-1, targetUint8, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(0, targetUint8);
 
 	EXPECT_THROW(Detail::ConvertByPolicy("InvalidNumber", targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
 	EXPECT_EQ(0, targetInteger);
@@ -94,9 +98,17 @@ TEST(ConvertByPolicyTest, ThrowExceptionWhenMismatchedType)
 
 TEST(ConvertByPolicyTest, SkipMismatchedTypeWhenPolicyIsSkip)
 {
+	bool targetBool = false;
+	EXPECT_FALSE(Detail::ConvertByPolicy(-1, targetBool, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
+	EXPECT_EQ(false, targetBool);
+
 	int targetInteger = 0;
 	EXPECT_FALSE(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(0, targetInteger);
+
+	uint8_t targetUint8 = 0;
+	EXPECT_FALSE(Detail::ConvertByPolicy(-1, targetUint8, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
+	EXPECT_EQ(0, targetUint8);
 
 	EXPECT_FALSE(Detail::ConvertByPolicy("InvalidNumber", targetInteger, MismatchedTypesPolicy::Skip, OverflowNumberPolicy::ThrowError));
 	EXPECT_EQ(0, targetInteger);

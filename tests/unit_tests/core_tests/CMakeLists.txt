@@ -6,7 +6,6 @@ find_package(GTest REQUIRED)
 # Project sources
 add_executable(${PROJECT_NAME}
     archive_base_tests.cpp
-    attribute_value_tests.cpp
     bin_timestamp_tests.cpp
     key_value_tests.cpp
     serialization_archive_traits_tests.cpp

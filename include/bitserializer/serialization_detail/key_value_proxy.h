@@ -4,7 +4,6 @@
 *******************************************************************************/
 #pragma once
 #include "bitserializer/key_value.h"
-#include "bitserializer/serialization_detail/attr_key_value.h"
 #include "bitserializer/serialization_detail/archive_traits.h"
 #include "bitserializer/serialization_detail/serialization_context.h"
 

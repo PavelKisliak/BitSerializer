@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -7,7 +7,7 @@
 #include <version>
 #endif
 #include <variant>
-#include "bitserializer/serialization_detail/serialization_options.h"
+#include "bitserializer/serialization_options.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 
 namespace BitSerializer

@@ -3,7 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include "bitserializer/serialization_detail/key_value.h"
+#include "bitserializer/key_value.h"
 
 namespace BitSerializer
 {

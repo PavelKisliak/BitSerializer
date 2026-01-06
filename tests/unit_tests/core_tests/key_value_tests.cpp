@@ -1,9 +1,9 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
-#include "bitserializer/serialization_detail/key_value.h"
+#include "bitserializer/key_value.h"
 #include "bitserializer/validate.h"
 
 

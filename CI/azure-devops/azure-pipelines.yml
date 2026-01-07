@@ -105,6 +105,14 @@ stages:
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
 
+      - template: templates/windows-msvc-build-and-test-template.yml
+        parameters:
+          name: 'Windows_Clang_x64_static'
+          image: 'windows-2022'
+          platform: 'x64'
+          vcpkgTriplet: "x64-windows-release"
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DBUILD_RAPIDYAML_ARCHIVE=OFF'
+
       - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC_9_static'

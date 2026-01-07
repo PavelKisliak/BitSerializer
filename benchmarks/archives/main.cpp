@@ -10,9 +10,15 @@
 #include "bitserializer/types/std/unordered_map.h"
 
 #include "competitors/bitserializer_benchmark.h"
+#ifdef RAPIDJSON_BENCHMARK
 #include "competitors/rapidjson_benchmark.h"
+#endif
+#ifdef PUGIXML_BENCHMARK
 #include "competitors/pugixml_benchmark.h"
+#endif
+#ifdef RAPIDYAML_BENCHMARK
 #include "competitors/rapidyaml_benchmark.h"
+#endif
 
 #if defined(_DEBUG) || (!defined(NDEBUG) && !defined(RELEASE))
 // In the debug configuration using minimal testing time

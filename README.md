@@ -617,15 +617,17 @@ enum class HttpMethod {
     Head = 3
 };
 
-REGISTER_ENUM(HttpMethod, {
+BITSERIALIZER_REGISTER_ENUM(HttpMethod, {
     { HttpMethod::Delete,   "delete" },
     { HttpMethod::Get,      "get" },
     { HttpMethod::Head,     "head" }
 })
 
 // Optionally, you can declare stream operators (`<<` and `>>`) for the registered enum type
-DECLARE_ENUM_STREAM_OPS(HttpMethod)
+BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(HttpMethod)
 ```
+> [!NOTE]
+> In the previously released v0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
 
 ### Serializing to multiple formats
 One of the advantages of BitSerializer is the ability to serialize into multiple formats through a single interface. The following example shows how to save an object to JSON and XML:

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -18,40 +18,66 @@
  * @par Example:
  * @code
  * enum class Fruit { Apple, Orange };
- * REGISTER_ENUM(Fruit, {
+ * BITSERIALIZER_REGISTER_ENUM(Fruit, {
  *     { Fruit::Apple, "Apple" },
  *     { Fruit::Orange, "Orange" }
  * })
  * @endcode
  */
-#define REGISTER_ENUM(enumType, ...) \
+#define BITSERIALIZER_REGISTER_ENUM(enumType, ...) \
     namespace { \
         static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::Register(__VA_ARGS__); \
     }
 
- /**
-  * @brief Declares stream operators (`<<` and `>>`) for an enum type.
-  *
-  * This macro allows use of standard I/O streams with enums after registering them using `REGISTER_ENUM`.
-  *
-  * @param enumType The enumeration type for which stream operators will be declared.
-  *
-  * @note Must be placed in the same namespace as the enum.
-  *
-  * @par Example:
-  * @code
-  * DECLARE_ENUM_STREAM_OPS(Fruit)
-  *
-  * std::stringstream ss;
-  * Fruit fruit = Fruit::Apple;
-  * ss << fruit; // Outputs: "Apple"
-  * ss >> fruit; // Parses: "Orange" -> Fruit::Orange
-  * @endcode
-  */
+// DEPRECATED: Use BITSERIALIZER_REGISTER_ENUM instead.
+#define REGISTER_ENUM(enumType, ...) \
+    namespace { \
+        static const bool registration_##enumType = ::BitSerializer::Convert::Detail::EnumRegistry<enumType>::RegisterDeprecated(__VA_ARGS__); \
+    }
+
+/**
+ * @brief Declares stream operators (`<<` and `>>`) for an enum type.
+ *
+ * This macro allows use of standard I/O streams with enums after registering them using `REGISTER_ENUM`.
+ *
+ * @param enumType The enumeration type for which stream operators will be declared.
+ *
+ * @note Must be placed in the same namespace as the enum.
+ *
+ * @par Example:
+ * @code
+ * DECLARE_ENUM_STREAM_OPS(Fruit)
+ *
+ * std::stringstream ss;
+ * Fruit fruit = Fruit::Apple;
+ * ss << fruit; // Outputs: "Apple"
+ * ss >> fruit; // Parses: "Orange" -> Fruit::Orange
+ * @endcode
+ */
+#define BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(enumType) \
+template <typename TSym, class TTraits = std::char_traits<TSym>> \
+std::basic_ostream<TSym, TTraits>& operator<<(std::basic_ostream<TSym, TTraits>& stream, enumType value) \
+{ \
+	std::basic_string<TSym, TTraits> str; \
+	BitSerializer::Convert::Detail::To(value, str); \
+	return stream << str; \
+} \
+template <class TSym, class TTraits = std::char_traits<TSym>> \
+std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enumType& value) \
+{ \
+	TSym sym; std::basic_string<TSym, TTraits> str; \
+	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = static_cast<TSym>(stream.get())) { \
+		str.push_back(sym); } \
+	BitSerializer::Convert::Detail::To(std::basic_string_view<TSym>(str), value); \
+	return stream; \
+} \
+
+// DEPRECATED: Use BITSERIALIZER_DECLARE_ENUM_STREAM_OPS instead.
 #define DECLARE_ENUM_STREAM_OPS(enumType) \
 template <typename TSym, class TTraits = std::char_traits<TSym>> \
 std::basic_ostream<TSym, TTraits>& operator<<(std::basic_ostream<TSym, TTraits>& stream, enumType value) \
 { \
+	::BitSerializer::Convert::Detail::EnumRegistry<enumType>::DeclareStreamOpsDeprecated(); \
 	std::basic_string<TSym, TTraits> str; \
 	BitSerializer::Convert::Detail::To(value, str); \
 	return stream << str; \
@@ -115,6 +141,15 @@ namespace BitSerializer::Convert::Detail
 			mEndIt = descriptors_ + Size;
 			return true;
 		}
+
+		template <size_t Size>
+		[[deprecated("REGISTER_ENUM macro is deprecated, use BITSERIALIZER_REGISTER_ENUM")]]
+		static bool RegisterDeprecated(const EnumMetadata<TEnum>(&descriptors)[Size]) {
+			return Register<Size>(descriptors);
+		}
+
+		[[deprecated("DECLARE_ENUM_STREAM_OPS macro is deprecated, use BITSERIALIZER_DECLARE_ENUM_STREAM_OPS")]]
+		static constexpr void DeclareStreamOpsDeprecated() { }
 
 		/**
 		 * @brief Checks whether the enum has been registered.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -28,7 +28,7 @@ namespace BitSerializer
 		UnregisteredEnum        ///< Attempted to serialize/deserialize an unregistered enum.
 	};
 
-	REGISTER_ENUM(SerializationErrorCode, {
+	BITSERIALIZER_REGISTER_ENUM(SerializationErrorCode, {
 		{ SerializationErrorCode::InvalidOptions, "Invalid options" },
 		{ SerializationErrorCode::ParsingError, "Parsing error" },
 		{ SerializationErrorCode::InputOutputError, "Input/output error" },

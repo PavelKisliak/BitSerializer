@@ -22,7 +22,7 @@ enum class Number {
 };
 
 // Registration names map
-REGISTER_ENUM(Number, {
+BITSERIALIZER_REGISTER_ENUM(Number, {
 	{ Number::One, "One" },
 	{ Number::Two, "Two" },
 	{ Number::Three, "Three" },

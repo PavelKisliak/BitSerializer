@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -30,7 +30,7 @@ namespace BitSerializer
 		MsgPack
 	};
 
-	REGISTER_ENUM(ArchiveType, {
+	BITSERIALIZER_REGISTER_ENUM(ArchiveType, {
 		{ ArchiveType::Json, "Json" },
 		{ ArchiveType::Xml, "Xml" },
 		{ ArchiveType::Yaml, "Yaml" },

@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -27,14 +27,14 @@ namespace BitSerializer::Convert::Utf
 		Utf32be
 	};
 
-	REGISTER_ENUM(UtfType, {
+	BITSERIALIZER_REGISTER_ENUM(UtfType, {
 		{ UtfType::Utf8, "UTF-8" },
 		{ UtfType::Utf16le, "UTF-16LE" },
 		{ UtfType::Utf16be, "UTF-16BE" },
 		{ UtfType::Utf32le, "UTF-32LE" },
 		{ UtfType::Utf32be, "UTF-32BE" }
 	})
-	DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::Utf::UtfType)
+	BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(BitSerializer::Convert::Utf::UtfType)
 
 	/**
 	 * @brief Error handling policy for UTF encoding operations.

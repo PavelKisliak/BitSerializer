@@ -3,13 +3,13 @@
 Type conversion submodule of **BitSerializer** library. Basically, it is just convenient wrapper around STD, but with some interesting features:
 
 - Supports modern STD types - `string_view`, `u16string` and `u32string`
-- Supports conversion `chrono::time_point` and `chrono::duration` to/from ISO8601 strings
-- Supports UTF transcoding between all STD string types
+- Converts `chrono::time_point` and `chrono::duration` to/from ISO 8601 strings
+- Provides UTF transcoding between all STD string types
 - Conversion any fundamental type to any STD string types and vice versa
-- Conversion any fundamental type to any other fundamental type with overflow checking
-- Conversion enum types via declaring names map
-- Allows to overload conversion functions for custom types
-- Simple API - only two main functions `Convert::To<>()` and `Convert::TryTo<>()`
+- Safely converts between fundamental types with overflow and mismatch types checking
+- Supports enum conversion via user-defined name-to-value mappings
+- Enables custom type support through user-overloaded conversion functions
+- Offers a minimalistic API with two main functions `Convert::To<>()` and `Convert::TryTo<>()`
 
 ___
 ### Table of contents
@@ -100,7 +100,7 @@ enum class Number {
 };
 
 // Registration names map
-REGISTER_ENUM(Number, {
+BITSERIALIZER_REGISTER_ENUM(Number, {
 	{ Number::One, "One" },
 	{ Number::Two, "Two" },
 	{ Number::Three, "Three" },
@@ -118,11 +118,14 @@ int main()
 }
 ```
 
-Additionally, you can declare functions for support input/output streams using `DECLARE_ENUM_STREAM_OPS` macro, as shown below:
+Additionally, you can declare functions for support input/output streams using `BITSERIALIZER_DECLARE_ENUM_STREAM_OPS` macro, as shown below:
 ```cpp
-DECLARE_ENUM_STREAM_OPS(EnumType)
+BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(EnumType)
 ```
-In comparison with macro `REGISTER_ENUM` you have to take care of including the header file in which you declared this.
+In comparison with macro `BITSERIALIZER_REGISTER_ENUM` you have to take care of including the header file in which you declared this.
+
+> [!NOTE]
+> In the previously released v0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
 
 ### Date and time conversion
 Date, time and duration can be converted to string representation of ISO 8601 and vice versa. The following table contains all supported types with string examples:

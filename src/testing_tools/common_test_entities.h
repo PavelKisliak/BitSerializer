@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -22,14 +22,14 @@ enum class TestEnum {
 	Five = 5
 };
 
-REGISTER_ENUM(TestEnum, {
+BITSERIALIZER_REGISTER_ENUM(TestEnum, {
 	{ TestEnum::One,	"One" },
 	{ TestEnum::Two,	"Two" },
 	{ TestEnum::Three,	"Three" },
 	{ TestEnum::Four,	"Four" },
 	{ TestEnum::Five,	"Five" }
 })
-DECLARE_ENUM_STREAM_OPS(TestEnum)
+BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(TestEnum)
 
 
 //-----------------------------------------------------------------------------

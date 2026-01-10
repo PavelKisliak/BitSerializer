@@ -15,6 +15,9 @@
 #ifdef MSGPACK_BENCHMARK
 #include "bitserializer/msgpack_archive.h"
 #endif
+#ifdef JSON_BENCHMARK
+#include "bitserializer/json_archive.h"
+#endif
 #ifdef RAPIDJSON_BENCHMARK
 #include "bitserializer/rapidjson_archive.h"
 #endif

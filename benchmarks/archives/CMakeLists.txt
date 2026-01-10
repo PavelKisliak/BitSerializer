@@ -5,6 +5,8 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(nlohmann_json CONFIG REQUIRED)
+
 add_executable(${PROJECT_NAME}
     main.cpp
     test_model.h
@@ -14,7 +16,10 @@ add_executable(${PROJECT_NAME}
     competitors/rapidjson_benchmark.h
     competitors/pugixml_benchmark.h
     competitors/rapidyaml_benchmark.h
+    competitors/nlohmannjson_benchmark.h
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 

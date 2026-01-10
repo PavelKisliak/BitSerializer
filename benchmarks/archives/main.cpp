@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <iostream>
@@ -19,6 +19,7 @@
 #ifdef RAPIDYAML_BENCHMARK
 #include "competitors/rapidyaml_benchmark.h"
 #endif
+#include "competitors/nlohmannjson_benchmark.h"
 
 #if defined(_DEBUG) || (!defined(NDEBUG) && !defined(RELEASE))
 // In the debug configuration using minimal testing time
@@ -77,6 +78,8 @@ int main()	// NOLINT(bugprone-exception-escape)
 		CRapidYamlBenchmark rapidYamlBenchmark;
 		benchmarkResults.push_back(rapidYamlBenchmark.RunBenchmark(DefaultStageTestTime));
 #endif
+		CNlohmannMsgPackBenchmark nlohmannMsgPackBenchmark;
+		benchmarkResults.push_back(nlohmannMsgPackBenchmark.RunBenchmark(DefaultStageTestTime));
 	}
 	catch (const std::exception& ex) {
 		std::cerr << std::endl << ex.what() << std::endl;

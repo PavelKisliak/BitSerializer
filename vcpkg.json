@@ -8,7 +8,8 @@
     "rapidjson",
     "pugixml",
     "ryml",
-    "gtest"
+    "gtest",
+    "nlohmann-json"
   ],
   "builtin-baseline": "74e6536215718009aae747d86d84b78376bf9e09",
   "vcpkg-configuration": {

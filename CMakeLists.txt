@@ -39,6 +39,9 @@ message(STATUS "[Option] BUILD_CSV_ARCHIVE: ${BUILD_CSV_ARCHIVE}")
 option(BUILD_MSGPACK_ARCHIVE "Build MsgPack archive" OFF)
 message(STATUS "[Option] BUILD_MSGPACK_ARCHIVE: ${BUILD_MSGPACK_ARCHIVE}")
 
+option(BUILD_JSON_ARCHIVE "Build JSON archive" OFF)
+message(STATUS "[Option] BUILD_JSON_ARCHIVE: ${BUILD_JSON_ARCHIVE}")
+
 option(BUILD_TESTS "Build tests" OFF)
 message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 
@@ -283,9 +286,50 @@ if(BUILD_MSGPACK_ARCHIVE)
         PROPERTIES
             OUTPUT_NAME "bitserializer-msgpack"
     )
-    
+
     target_link_libraries(${MSGPACK_ARCHIVE_NAME} INTERFACE
         ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    )
+endif()
+
+# BitSerializer JSON archive
+if(BUILD_JSON_ARCHIVE)
+    # MsgPack archive object files
+    add_library(json_impl OBJECT
+        "src/json/json_archive.cpp" "src/json/json_traits.h"
+        "src/json/json_string_readers.h" "src/json/json_string_readers.cpp"
+        "src/json/json_string_writers.h" "src/json/json_string_writers.cpp"
+    )
+    target_include_directories(json_impl PRIVATE "src/")
+    if(BUILD_SHARED_LIBS)
+        target_compile_definitions(json_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
+    endif()
+
+    # Temporary
+    find_package(RapidJSON CONFIG REQUIRED)
+    target_link_libraries(json_impl PUBLIC
+        rapidjson
+    )
+
+    # JSON archive public library
+    set(JSON_ARCHIVE_NAME "json-archive")
+    if(BUILD_SHARED_LIBS)
+        add_library(${JSON_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:json_impl> $<TARGET_OBJECTS:common_impl>)
+    else()
+        add_library(${JSON_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:json_impl> $<TARGET_OBJECTS:common_impl>)
+    endif()
+    add_library(${BITSERIALIZER_NAMESPACE}::${JSON_ARCHIVE_NAME} ALIAS ${JSON_ARCHIVE_NAME})
+    list(APPEND BITSERIALIZER_TARGETS ${JSON_ARCHIVE_NAME})
+
+    set_target_properties(${JSON_ARCHIVE_NAME}
+        PROPERTIES
+            OUTPUT_NAME "bitserializer-json"
+    )
+
+    target_link_libraries(${JSON_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+        # Temporary
+        rapidjson
     )
 endif()
 

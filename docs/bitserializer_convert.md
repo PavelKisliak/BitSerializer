@@ -125,7 +125,7 @@ BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(EnumType)
 In comparison with macro `BITSERIALIZER_REGISTER_ENUM` you have to take care of including the header file in which you declared this.
 
 > [!NOTE]
-> In the previously released v0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
+> In the previous version 0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
 
 ### Date and time conversion
 Date, time and duration can be converted to string representation of ISO 8601 and vice versa. The following table contains all supported types with string examples:
@@ -265,9 +265,6 @@ In the same way, you can convert a type to an existing string:
     std::cout << str << std::endl;
     assert(data == str.data());
 ```
-
-> [!NOTE]
-> Arguments for initializing the output type `TInitArgs... initArgs` were introduced in the latest v0.80.
 
 ### UTF encoding
 In addition to simple UTF conversion via `Convert::To()` function, there is also exists set of classes with more granular API for all kind of formats:

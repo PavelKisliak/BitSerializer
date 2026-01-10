@@ -9,7 +9,7 @@ ___
 - Functional serialization style similar to the Boost library.
 - Support loading named fields in any order with conditional logic to preserve model compatibility.
 - Customizable validation produces a detailed list of errors for deserialized values.
-- Post-load refiners transform deserialized data, for example, trimming strings or setting default values.¹
+- Post-load refiners transform deserialized data, for example, trimming strings or setting default values.
 - Seamless handling of optional and required fields, bypassing the need to use `std::optional`.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
@@ -18,8 +18,6 @@ ___
 - Support serialization to memory, streams and files.
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
-
- ¹ New feature (not supported in the latest released version of BitSerializer v0.80, please use the master branch).
 
 #### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
@@ -155,12 +153,12 @@ It is important to note that comparing "Serialization" classes (like BitSerializ
 - **Parsers:** Typically operate on a DOM-based model, where the entire document is loaded into memory before processing. This approach is well-suited for tasks requiring extensive manipulation of the data structure but can introduce overhead during serialization and deserialization.
 - **Serializers:** Focus on streaming serialization, where data is processed incrementally without the need to build an intermediate DOM. This approach is generally faster and more memory-efficient but may lack some of the advanced manipulation features offered by parsers.
 
+It should be noted, that the historical distinction between "DOM parsers" and "stream serializers" is increasingly blurred by modern libraries offering hybrid approaches.
 In this performance analysis, we have benchmarked BitSerializer against the base libraries it relies on (e.g., RapidJSON, PugiXML, and RapidYAML).
 These libraries are primarily "Parser" classes, and the performance differences observed reflect the inherent trade-offs between DOM-based parsing and streaming serialization. 
 
 We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization).
 However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
-In the future, we plan to include benchmarks against other libraries from the "Serializers" class to offer a more direct comparison. 
 
 #### Comparison of serialized data size
 In addition to performance metrics, the size of the serialized output is another important factor to consider when choosing a serialization format.
@@ -423,9 +421,6 @@ The size of list can be obtained via one of the following ways:
 
 So, in case if your class has a different signature for the size getter than `size()`, then you need to implement it as a global function.
 
-> [!WARNING]
-> In the previous version of BitSerializer v0.75, was incorrect detecting internal `size()` method (if it's not in the `std` namespace).
-
 Please take a look at the following example:
 ```cpp
 // Some custom array type
@@ -628,7 +623,7 @@ BITSERIALIZER_REGISTER_ENUM(HttpMethod, {
 BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(HttpMethod)
 ```
 > [!NOTE]
-> In the previously released v0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
+> In the previous version 0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
 
 ### Serializing to multiple formats
 One of the advantages of BitSerializer is the ability to serialize into multiple formats through a single interface. The following example shows how to save an object to JSON and XML:
@@ -1041,7 +1036,7 @@ First, let's list what are considered as errors and will throw exception:
 
 By default, any missed field in the input format (e.g. JSON) is not treated as an error, you can specify a default value using the `Fallback()` refiner or add the `Required()` validator if the field is mandatory.
 > [!NOTE]
-> In the previously released v0.80, loading a `null` (e.g. "myValue": null) value into an object or array (e.g. `std::optional<CMyClass>`) would throw an exception with error code `MismatchedTypes` (all archives except MsgPack and CSV).
+> In the previous version 0.80, loading a `null` (e.g. "myValue": null) value into an object or array (e.g. `std::optional<CMyClass>`) would throw an exception with error code `MismatchedTypes` (all archives except MsgPack and CSV).
 
 You can handle `std::exception` just for log errors, but if you need to provide more detailed information to the user, you may need to handle the following exceptions:
 
@@ -1110,8 +1105,6 @@ The following validators are available out-of-the-box:
 | `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | Validates phone numbers with configurable digit ranges and format requirements |
 
 All validators are declared in the `BitSerializer::Validate` namespace, except `Required` which also has alias in the `BitSerializer`.
-> [!NOTE]
-> In the previously released v0.75, all validators were declared in the BitSerializer namespace.
 
 Usage example:
 ```cpp
@@ -1198,7 +1191,7 @@ Returned paths for invalid values is dependent to archive type, usually it's JSO
 
 ### Post-load data refinement
 > [!NOTE]
-> New feature (not supported in the latest released version of BitSerializer v0.80, please use the master branch).
+> New feature, available since v0.85.
 
 In addition to validators, BitSerializer also has the ability to transform deserialized values using specialized processors called "Refiners".
 This feature is designed to ensure data quality and consistency by cleaning, normalizing, and providing default values for missing data.

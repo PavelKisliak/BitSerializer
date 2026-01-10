@@ -1,5 +1,21 @@
 # BitSerializer (History log)
 
+##### What's new in version 0.85: (11 Jan 2026):
+- [ + ] Introduced deserialization postprocessors (`Fallback`, `TrimWhitespace`, `ToLowerCase`, `ToUpperCase`).
+- [ + ] Added new serialization option `trimStringFields` (automatically trims whitespace from all string fields).
+- [ + ] Added the ability to pass through the payload of raw data structures (thanks @hoshinohikari for the idea!).
+- [ + ] Added new sample `payload_passthrough`; see also the corresponding section in `README.md`.
+- [ * ] Reworked all comments in Doxygen style.
+- [ * ] Added prefix `BITSERIALIZER_` to the enum registration macros: `REGISTER_ENUM` and `DECLARE_ENUM_STREAM_OPS`.
+- [ * ] Moved some header files containing public types to the root directory of `bitserializer`.
+- [ * ] Fixed typo where the alias for `MaxSize` was incorrectly named `Validate::MinSize` (thanks @mattlutz-acre).
+- [ * ] Changed `OverflowTypeException` to `MismatchedTypeException` when attempting to load a negative value into an unsigned type.
+- [ * ] [Convert] Changed exception type to `invalid_argument` when attempting to convert a negative value to an unsigned type.
+- [ * ] [CSV] Optimized deserialization performance (+22% faster from memory and +32% faster from stream).
+- [ * ] [MsgPack] Fixed crash in certain cases when loading corrupted MsgPack data (caused by a nested exception).
+- [ * ] [CSV, PugiXml, RapidYaml] Fixed cross-platform compatibility for serializing special floating-point values (`INF`, `NAN`).
+- [ * ] [RapidJson, PugiXml, RapidYaml] Fixed loading of optional objects and arrays from `null` values (thanks @mattlutz-acre).
+
 ##### What's new in version 0.80: (3 May 2025):
 - [ ! ] Improved code quality and sanity check of commits with helping ClangTidy and Valgrind.
 - [ ! ] Changed the priority of serialization methods, the internal `Serialize()` method will have a higher priority than the global one.
@@ -38,7 +54,6 @@
 - [ - ] [CppRestJson] JSON archive based on CppRestSdk library is deprecated, please use - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md).
 
 ##### What's new in version 0.70 (31 May 2024):
-
 - [ ! ] Added new archive for serialization to [MsgPack](docs/bitserializer_msgpack.md) (built-in implementation, no dependencies).
 - [ ! ] Improved performance for all archives (sufficiently for **CSV**).
 - [ ! ] Deprecated `AutoKeyValue` and `AutoAttributeValue` (use regular `KeyValue` and `AttributeValue` for all cases).
@@ -68,7 +83,6 @@
 - [ * ] [RapidYaml] Changed serialization of boolean values to "true|false", as in other archives (thanks @psallandre).
 
 ##### What's new in version 0.65 (12 September 2023):
-
 - [ ! ] The repository has been migrated to GitHub.
 - [ ! ] Added support serialization of `chrono::time_point`, `chrono::duration` and `time_t`.
 - [ ! ] Conversion sub-module: Added conversion of `chrono::time_point`,  `chrono::duration` and `time_t`.
@@ -85,7 +99,6 @@
 - [ * ] [RapidJson, CSV] Optimized the performance.
 
 ##### What's new in version 0.50 (5 December 2022):
-
 - [ ! ] Added new archive for serialization to CSV, supports all UTF encodings with auto-detection (built-in implementation, no dependencies).
 - [ ! ] API breaking change - deprecated global `BitSerializer::Context`, now validation errors will propagate only via `ValidationException`.
 - [ ! ] Removed all static memory allocations for be compatible with custom allocators.
@@ -106,7 +119,6 @@
 - [ * ] [RapidJson, CppRestJson, RapidYaml] Fixed path in the validation errors, index in arrays was shifted by 1.
 
 ##### What's new in version 0.44 (1 October 2021):
-
 - [ ! ] Changed minimum requirement for CLang compiler from version 7 to 8.
 - [ ! ] API breaking change - global `Serialize()` function should now return `bool`.
 - [ ! ] API breaking change - validation messages now storing in UTF-8, function GetValidationErrors() returns vector of `std::string`.
@@ -130,7 +142,6 @@
 - [ * ] Conversion sub-module: boolean type will be converted to "true|false" strings (please cast to <int> if you expect "1|0").
 
 ##### Version 0.10 (1 June 2020):
-
 - [ ! ] Changed main concept with separate library for each format to all-in-one library with components.
 - [ ! ] Changed include paths for archives (all archive implementations are now in the "bitserializer" directory).
 

@@ -216,8 +216,8 @@ TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenOverflow) {
 }
 
 TEST(ConvertChrono, ConvertUtcStringShouldThrowExceptionWhenNotEnoughPrecision) {
-	using days = duration<int64_t, std::ratio<86400>>;
-	using TimePointDays = time_point<system_clock, days>;
+	using days_i64 = duration<int64_t, std::ratio<86400>>;
+	using TimePointDays = time_point<system_clock, days_i64>;
 	EXPECT_THROW(Convert::To<TimePointDays>("2023-09-01T01:00:00Z"), std::out_of_range);
 
 	using TimePointHours = time_point<system_clock, hours>;

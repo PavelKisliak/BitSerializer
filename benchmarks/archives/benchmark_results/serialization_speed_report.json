@@ -1,48 +1,52 @@
 {
 	"BitSerializer-RapidJson": {
-		"Save to memory": 12548,
-		"Load from memory": 11340,
-		"Save to std::ostream": 1083,
-		"Load from std::istream": 3030
+		"Save to memory": 13636,
+		"Load from memory": 11149,
+		"Save to std::ostream": 1045,
+		"Load from std::istream": 2885
 	},
 	"BitSerializer-MsgPack": {
-		"Save to memory": 97059,
-		"Load from memory": 47143,
-		"Save to std::ostream": 11744,
-		"Load from std::istream": 15942
+		"Save to memory": 86842,
+		"Load from memory": 49254,
+		"Save to std::ostream": 11379,
+		"Load from std::istream": 21711
 	},
 	"BitSerializer-Csv": {
-		"Save to memory": 31731,
-		"Load from memory": 14348,
-		"Save to std::ostream": 26400,
-		"Load from std::istream": 10714
+		"Save to memory": 28205,
+		"Load from memory": 17368,
+		"Save to std::ostream": 24444,
+		"Load from std::istream": 12840
 	},
 	"RapidJson": {
 		"Save to memory": 14103,
-		"Load from memory": 11744,
-		"Save to std::ostream": 1069,
-		"Load from std::istream": 3039
+		"Load from memory": 11957,
+		"Save to std::ostream": 1051,
+		"Load from std::istream": 2928
 	},
 	"BitSerializer-PugiXml": {
-		"Save to memory": 10543,
-		"Load from memory": 14667,
+		"Save to memory": 10645,
+		"Load from memory": 13693,
 		"Save to std::ostream": 10123,
-		"Load from std::istream": 14474
+		"Load from std::istream": 13693
 	},
 	"PugiXml": {
-		"Save to memory": 10185,
-		"Load from memory": 15421,
-		"Save to std::ostream": 9763,
-		"Load from std::istream": 12692
+		"Save to memory": 10577,
+		"Load from memory": 15068,
+		"Save to std::ostream": 10061,
+		"Load from std::istream": 14474
 	},
 	"BitSerializer-RapidYaml": {
-		"Save to memory": 2437,
-		"Load from memory": 5263,
-		"Save to std::ostream": 2407,
-		"Load from std::istream": 2347
+		"Save to memory": 1992,
+		"Load from memory": 5124,
+		"Save to std::ostream": 2242,
+		"Load from std::istream": 2366
 	},
 	"RapidYaml": {
-		"Save to memory": 2334,
-		"Load from memory": 5093
+		"Save to memory": 2006,
+		"Load from memory": 5546
+	},
+	"NlohmannJson-MsgPack": {
+		"Save to memory": 2621,
+		"Load from memory": 2206
 	}
 }

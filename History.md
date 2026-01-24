@@ -1,9 +1,9 @@
 # BitSerializer (History log)
 
 ##### What's new in version 0.85: (11 Jan 2026):
-- [ + ] Introduced deserialization postprocessors (`Fallback`, `TrimWhitespace`, `ToLowerCase`, `ToUpperCase`).
+- [ ! ] Introduced deserialization postprocessors (`Fallback`, `TrimWhitespace`, `ToLowerCase`, `ToUpperCase`).
+- [ ! ] Added the ability to pass through the payload of raw data structures (thanks @hoshinohikari for the idea!).
 - [ + ] Added new serialization option `trimStringFields` (automatically trims whitespace from all string fields).
-- [ + ] Added the ability to pass through the payload of raw data structures (thanks @hoshinohikari for the idea!).
 - [ + ] Added new sample `payload_passthrough`; see also the corresponding section in `README.md`.
 - [ * ] Reworked all comments in Doxygen style.
 - [ * ] Added prefix `BITSERIALIZER_` to the enum registration macros: `REGISTER_ENUM` and `DECLARE_ENUM_STREAM_OPS`.

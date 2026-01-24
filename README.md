@@ -19,6 +19,8 @@ ___
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
 
+¹ Payload passthrough is currently only supported by JSON archive.
+
 #### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
@@ -153,12 +155,12 @@ It is important to note that comparing "Serialization" classes (like BitSerializ
 - **Parsers:** Typically operate on a DOM-based model, where the entire document is loaded into memory before processing. This approach is well-suited for tasks requiring extensive manipulation of the data structure but can introduce overhead during serialization and deserialization.
 - **Serializers:** Focus on streaming serialization, where data is processed incrementally without the need to build an intermediate DOM. This approach is generally faster and more memory-efficient but may lack some of the advanced manipulation features offered by parsers.
 
-It should be noted, that the historical distinction between "DOM parsers" and "stream serializers" is increasingly blurred by modern libraries offering hybrid approaches.
+It should be noted, that the historical distinction between "DOM parsers" and "stream serializers" is increasingly blurred by modern libraries offering hybrid approaches (e.g. SAX, "on demand").
+
 In this performance analysis, we have benchmarked BitSerializer against the base libraries it relies on (e.g., RapidJSON, PugiXML, and RapidYAML).
 These libraries are primarily "Parser" classes, and the performance differences observed reflect the inherent trade-offs between DOM-based parsing and streaming serialization. 
 
-We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization).
-However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
+We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization). However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
 
 #### Comparison of serialized data size
 In addition to performance metrics, the size of the serialized output is another important factor to consider when choosing a serialization format.
@@ -716,7 +718,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::tuple | #include "bitserializer/types/std/tuple.h" |
 | std::optional | #include "bitserializer/types/std/optional.h" |
 | std::unique_ptr, std::shared_ptr | #include "bitserializer/types/std/memory.h" |
-| std::chrono::time_point, std::chrono::time_point | #include "bitserializer/types/std/chrono.h" |
+| std::chrono::time_point, chrono::duration | #include "bitserializer/types/std/chrono.h" |
 | std::time_t | #include "bitserializer/types/std/ctime.h" |
 | std::filesystem::path | #include "bitserializer/types/std/filesystem.h" |
 

@@ -38,7 +38,7 @@
 /**
  * @brief Declares stream operators (`<<` and `>>`) for an enum type.
  *
- * This macro allows use of standard I/O streams with enums after registering them using `REGISTER_ENUM`.
+ * This macro allows use of standard I/O streams with enums after registering them using `BITSERIALIZER_REGISTER_ENUM`.
  *
  * @param enumType The enumeration type for which stream operators will be declared.
  *
@@ -46,7 +46,7 @@
  *
  * @par Example:
  * @code
- * DECLARE_ENUM_STREAM_OPS(Fruit)
+ * BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(Fruit)
  *
  * std::stringstream ss;
  * Fruit fruit = Fruit::Apple;

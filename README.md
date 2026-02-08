@@ -1071,13 +1071,18 @@ catch (const std::exception& ex)
 }
 ```
 
-### Validation of deserialized values
-BitSerializer provides a flexible validation system that allows you to apply an arbitrary number of validation rules to named values.
-The syntax is straightforward:
+### Validation of Deserialized Values
+BitSerializer provides a comprehensive and extensible validation system that enables you to enforce data integrity constraints during deserialization. The library supports both built-in validators and custom validation logic, with all validation errors collected and reported in a single `ValidationException`.
+
+#### Basic Usage
+Validators are applied directly within the serialization interface using a fluent syntax:
 ```cpp
 archive << KeyValue("testFloat", testFloat, Required(), Validate::Range(-1.0f, 1.0f));
 ```
-Validation errors are collected during deserialization and thrown as a `ValidationException` at the end of the deserialization. To handle validation errors:
+All validation errors encountered during deserialization are aggregated and thrown as a `ValidationException` upon completion, enabling comprehensive error reporting rather than failing on the first constraint violation.
+
+#### Error Handling
+By default, there is no limit on the number of validation errors collected. This behavior can be configured via the `maxValidationErrors` parameter in `SerializationOptions`. The validation error map contains JSON Pointer paths (RFC 6901) as keys, with each path mapping to a list of error messages for that field.
 ```cpp
 try {
     BitSerializer::LoadObject<JsonArchive>(user, json);
@@ -1087,28 +1092,48 @@ catch (BitSerializer::ValidationException& ex) {
     // Process errors...
 }
 ```
-By default, the number of errors is unlimited, but you can configure this using `maxValidationErrors` in `SerializationOptions`.
-The validation error map can be obtained by calling the `GetValidationErrors()` method from the exception object, it contains paths to fields with errors lists.
 
-The default error message can be overridden (you can also pass string ID for further localization):
+#### Custom Error Messages
+All validators support customizable error messages, which is particularly useful for localization scenarios:
 ```cpp
-archive << KeyValue("Age", mAge, Required("Age is required"), Validate::Range(0, 150, "Age must be between 0 and 150 (inclusive)"));
+archive << KeyValue("Age", mAge, 
+    Required("Age is required"), 
+    Validate::Range(0, 150, "Age must be between 0 and 150 (inclusive)"));
 ```
+Error messages can contain either descriptive text or localization string identifiers.
 
-The following validators are available out-of-the-box:
+#### Built-in Validators
+All validators are declared in the `BitSerializer::Validate` namespace (except `Required`, which is also available in the `BitSerializer` namespace).
 
 | Signature           | Description   |
 | ------------------- | --------------------- |
 | `Required(errorMessage = nullptr)`         | Ensures the field is present in the source data |
-| `Range(min, max, errorMessage = nullptr)`  | Validates value range for types that have `<` and `>` operators (for example, these could be types from `std::chrono`) |
+| `GreaterThan(threshold, errorMessage = nullptr)` | Validates value > threshold |
+| `GreaterThanOrEqual(threshold, errorMessage = nullptr)` | Validates value >= threshold |
+| `LessThan(threshold, errorMessage = nullptr)` | Validates value < threshold |
+| `LessThanOrEqual(threshold, errorMessage = nullptr)` | Validates value <= threshold |
+| `Range(min, max, errorMessage = nullptr)`  | Validates min <= value <= max |
 | `MinSize(minSize, errorMessage = nullptr)` | Ensures containers or strings meet minimum size requirements |
 | `MaxSize(maxSize, errorMessage = nullptr)` | Ensures containers or strings do not exceed maximum size |
-| `Email(errorMessage = nullptr)`            | Validates email format according to RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains) |
-| `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | Validates phone numbers with configurable digit ranges and format requirements |
+| `Email(errorMessage = nullptr)`            | Validates email format per RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains)) |
+| `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | Validates international phone number format with configurable digit constraints |
 
-All validators are declared in the `BitSerializer::Validate` namespace, except `Required` which also has alias in the `BitSerializer`.
+> [!NOTE]
+> Comparison validators (`GreaterThan`, `LessThan`, etc.) support any type that implements the corresponding comparison operators, including `std::chrono` time points and durations.
 
-Usage example:
+#### Custom Validation
+For domain-specific validation logic, you can provide custom lambda validators:
+```cpp
+archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string> {
+    if (!isLoaded || value.find_first_of(' ') == std::string::npos) {
+        return std::nullopt;
+    }
+    return "Nickname must not contain spaces";
+});
+```
+Custom validators receive the deserialized value and a boolean indicating whether the field was present in the source data, returning an error message when validation fails.
+
+#### Complete Example
 ```cpp
 using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
@@ -1189,7 +1214,7 @@ Path: /LastName
 Path: /NickName
         Nickname must not contain spaces
 ```
-Returned paths for invalid values is dependent to archive type, usually it's JSON Pointer (RFC 6901).
+The validation system provides flexible constraint checking with efficient error aggregation, suitable for applications requiring robust data integrity without significant performance overhead.
 
 ### Post-load data refinement
 > [!NOTE]

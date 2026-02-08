@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -30,11 +30,11 @@ TEST(ValidatorRequired, ShouldReturnErrorIfValueIsNotLoaded)
 	const auto validator = Validate::Required();
 
 	// Act
-	const auto result = validator(10, false);
+	const auto result = validator(0, false);
 
 	// Assert
 	ASSERT_TRUE(result.has_value());
-	EXPECT_FALSE(result->empty());
+	EXPECT_EQ("Value is required", result.value());
 }
 
 TEST(ValidatorRequired, ShouldReturnCustomErrorMessage)
@@ -43,7 +43,243 @@ TEST(ValidatorRequired, ShouldReturnCustomErrorMessage)
 	const auto validator = Validate::Required("Custom error message");
 
 	// Act
-	const auto result = validator(10, false);
+	const auto result = validator(0, false);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
+}
+
+//-----------------------------------------------------------------------------
+// Tests for 'GreaterThan' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorGreaterThan, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThan(10);
+
+	// Act
+	const auto result = validator(0, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorGreaterThan, ShouldPassWhenValueIsGreater)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThan(1.0f);
+
+	// Act
+	const auto result = validator(1.1f, true);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorGreaterThan, ShouldReturnErrorWhenValueIsEqual)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThan(100);
+
+	// Act
+	const auto result = validator(100, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Value must be greater than 100", result.value());
+}
+
+TEST(ValidatorGreaterThan, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThan(11, "Custom error message");
+
+	// Act
+	const auto result = validator(10, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
+}
+
+//-----------------------------------------------------------------------------
+// Tests for 'GreaterThanOrEqual' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorGreaterThanOrEqual, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThanOrEqual(10);
+
+	// Act
+	const auto result = validator(0, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorGreaterThanOrEqual, ShouldPassWhenValueIsGreater)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThanOrEqual(1.0f);
+
+	// Act
+	const auto result = validator(1.1f, true);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorGreaterThanOrEqual, ShouldPassWhenValueIsEqual)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThanOrEqual(std::chrono::seconds(500));
+
+	// Act
+	const auto result = validator(std::chrono::seconds(500), true);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorGreaterThanOrEqual, ShouldReturnErrorWhenValueIsLess)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThanOrEqual(100);
+
+	// Act
+	const auto result = validator(99, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Value must be greater than or equal to 100", result.value());
+}
+
+TEST(ValidatorGreaterThanOrEqual, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Validate::GreaterThanOrEqual(11, "Custom error message");
+
+	// Act
+	const auto result = validator(10, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
+}
+
+//-----------------------------------------------------------------------------
+// Tests for 'LessThan' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorLessThan, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	const auto validator = Validate::LessThan(10);
+
+	// Act
+	const auto result = validator(0, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorLessThan, ShouldPassWhenValueIsLess)
+{
+	// Arrange
+	const auto validator = Validate::LessThan(1.0f);
+
+	// Act
+	const auto result = validator(0.9f, true);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorLessThan, ShouldReturnErrorWhenValueIsEqual)
+{
+	// Arrange
+	const auto validator = Validate::LessThan(100);
+
+	// Act
+	const auto result = validator(100, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Value must be less than 100", result.value());
+}
+
+TEST(ValidatorLessThan, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Validate::LessThan(9, "Custom error message");
+
+	// Act
+	const auto result = validator(10, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Custom error message", result.value());
+}
+
+//-----------------------------------------------------------------------------
+// Tests for 'LessThanOrEqual' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorLessThanOrEqual, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	const auto validator = Validate::LessThanOrEqual(10);
+
+	// Act
+	const auto result = validator(0, false);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorLessThanOrEqual, ShouldPassWhenValueIsLess)
+{
+	// Arrange
+	const auto validator = Validate::LessThanOrEqual(1.0f);
+
+	// Act
+	const auto result = validator(0.9f, true);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorLessThanOrEqual, ShouldPassWhenValueIsEqual)
+{
+	// Arrange
+	const auto validator = Validate::LessThanOrEqual(std::chrono::nanoseconds(500));
+
+	// Act
+	const auto result = validator(std::chrono::nanoseconds(500), true);
+
+	// Assert
+	EXPECT_FALSE(result.has_value());
+}
+
+TEST(ValidatorLessThanOrEqual, ShouldReturnErrorWhenValueIsGreater)
+{
+	// Arrange
+	const auto validator = Validate::LessThanOrEqual(100);
+
+	// Act
+	const auto result = validator(101, true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Value must be less than or equal to 100", result.value());
+}
+
+TEST(ValidatorLessThanOrEqual, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Validate::LessThanOrEqual(9, "Custom error message");
+
+	// Act
+	const auto result = validator(10, true);
 
 	// Assert
 	ASSERT_TRUE(result.has_value());

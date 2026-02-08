@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -35,11 +35,94 @@ namespace BitSerializer::Validate
 		const char* mErrorMessage;
 	};
 
-	/**
-	 * @brief Validates that a numeric value is within the specified range.
-	 *
-	 * Can be applied for any type that has operators '<' and '>' (e.g. `std::chrono` types).
-	 */
+	namespace Detail
+	{
+		template <typename T, template <typename> class TCompareOp>
+		class Compare
+		{
+		public:
+			Compare(T threshold, const char* errorMessage = nullptr) noexcept
+				: mThreshold(threshold)
+				, mErrorMessage(errorMessage)
+			{ }
+
+			[[nodiscard]] std::optional<std::string> operator()(const T& value, bool isLoaded) const
+			{
+				if (!isLoaded) {
+					return std::nullopt;
+				}
+
+				TCompareOp<T> comp;
+				if (!comp(value, mThreshold)) {
+					return mErrorMessage ? mErrorMessage : GenerateDefaultMessage();
+				}
+				return std::nullopt;
+			}
+
+		private:
+			[[nodiscard]] std::string GenerateDefaultMessage() const
+			{
+				if constexpr (std::is_same_v<TCompareOp<T>, std::greater<T>>) {
+					return "Value must be greater than " + Convert::ToString(mThreshold);
+				}
+				else if constexpr (std::is_same_v<TCompareOp<T>, std::greater_equal<T>>) {
+					return "Value must be greater than or equal to " + Convert::ToString(mThreshold);
+				}
+				else if constexpr (std::is_same_v<TCompareOp<T>, std::less<T>>) {
+					return "Value must be less than " + Convert::ToString(mThreshold);
+				}
+				else if constexpr (std::is_same_v<TCompareOp<T>, std::less_equal<T>>) {
+					return "Value must be less than or equal to " + Convert::ToString(mThreshold);
+				}
+				//return "Validation failed";
+			}
+
+			T mThreshold;
+			const char* mErrorMessage;
+		};
+	}
+
+	/// Validates that the value is strictly greater than the specified threshold.
+	template <typename T>
+	class GreaterThan : public Detail::Compare<T, std::greater>
+	{
+	public:
+		GreaterThan(T threshold, const char* errorMessage = nullptr) noexcept
+			: Detail::Compare<T, std::greater>(threshold, errorMessage)
+		{ }
+	};
+
+	/// Validates that the value is greater than or equal to the specified threshold.
+	template <typename T>
+	class GreaterThanOrEqual : public Detail::Compare<T, std::greater_equal>
+	{
+	public:
+		GreaterThanOrEqual(T threshold, const char* errorMessage = nullptr) noexcept
+			: Detail::Compare<T, std::greater_equal>(threshold, errorMessage)
+		{ }
+	};
+
+	/// Validates that the value is strictly less than the specified threshold.
+	template <typename T>
+	class LessThan : public Detail::Compare<T, std::less>
+	{
+	public:
+		LessThan(T threshold, const char* errorMessage = nullptr) noexcept
+			: Detail::Compare<T, std::less>(threshold, errorMessage)
+		{ }
+	};
+
+	/// Validates that the value is less than or equal to the specified threshold.
+	template <typename T>
+	class LessThanOrEqual : public Detail::Compare<T, std::less_equal>
+	{
+	public:
+		LessThanOrEqual(T threshold, const char* errorMessage = nullptr) noexcept
+			: Detail::Compare<T, std::less_equal>(threshold, errorMessage)
+		{ }
+	};
+
+	/// Validates that the value is within the specified range.
 	template <class TValue>
 	class Range
 	{

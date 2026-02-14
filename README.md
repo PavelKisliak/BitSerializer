@@ -1113,6 +1113,7 @@ All validators are declared in the `BitSerializer::Validate` namespace (except `
 | `LessThan(threshold, errorMessage = nullptr)` | Validates value < threshold |
 | `LessThanOrEqual(threshold, errorMessage = nullptr)` | Validates value <= threshold |
 | `Range(min, max, errorMessage = nullptr)`  | Validates min <= value <= max |
+| `MultipleOf(divisor, errorMessage = nullptr)` | Validates that value is a multiple of divisor (supports integer and floating-point types with epsilon-based comparison) |
 | `MinSize(minSize, errorMessage = nullptr)` | Ensures containers or strings meet minimum size requirements |
 | `MaxSize(maxSize, errorMessage = nullptr)` | Ensures containers or strings do not exceed maximum size |
 | `Email(errorMessage = nullptr)`            | Validates email format per RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains)) |
@@ -1292,4 +1293,4 @@ Additionally, you may want to use the [string conversion submodule](docs/bitseri
 - Mateusz Pusz for code review and useful advices.
 
 ----
-MIT, Copyright (C) 2018-2025 by Pavel Kisliak, made in Belarus 🇧🇾
+MIT, Copyright (C) 2018-2026 by Pavel Kisliak, made in Belarus 🇧🇾

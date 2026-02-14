@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cmath>
 #include "bitserializer/serialization_detail/object_traits.h"
 #include "bitserializer/convert.h"
 
@@ -159,6 +160,63 @@ namespace BitSerializer::Validate
 	private:
 		TValue mMin;
 		TValue mMax;
+		const char* mErrorMessage;
+	};
+
+	/**
+	 * @brief Validates that a numeric value is a multiple of a specified divisor.
+	 * 
+	 * For floating-point types, uses epsilon-based comparison to handle precision issues.
+	 */
+	template <typename T>
+	class MultipleOf
+	{
+	public:
+		MultipleOf(T divisor, const char* errorMessage = nullptr)
+			: mDivisor(divisor)
+			, mErrorMessage(errorMessage)
+		{
+			static_assert(std::is_arithmetic_v<T>, "MultipleOfValidator supports only arithmetic types");
+			if constexpr (std::is_floating_point_v<T>)
+			{
+				if (mDivisor <= std::numeric_limits<T>::epsilon()) {
+					throw std::invalid_argument("Divisor must be greater than epsilon for floating-point types");
+				}
+			}
+			else
+			{
+				if (mDivisor == T{ 0 }) {
+					throw std::invalid_argument("Divisor cannot be zero");
+				}
+			}
+		}
+
+		[[nodiscard]] std::optional<std::string> operator()(const T& value, bool isLoaded) const
+		{
+			if (!isLoaded) {
+				return std::nullopt;
+			}
+
+			if constexpr (std::is_integral_v<T>)
+			{
+				if (value % mDivisor == T{ 0 }) {
+					return std::nullopt;
+				}
+			}
+			else if constexpr (std::is_floating_point_v<T>)
+			{
+				// For floating-point types - epsilon-based comparison
+				const T remainder = std::fmod(std::abs(value), mDivisor);
+				const T epsilon = std::numeric_limits<T>::epsilon() * std::abs(value);
+				if (remainder <= epsilon || std::abs(mDivisor - remainder) <= epsilon) {
+					return std::nullopt;
+				}
+			}
+			return mErrorMessage ? mErrorMessage : "Value must be a multiple of " + Convert::ToString(mDivisor);
+		}
+
+	private:
+		T mDivisor;
 		const char* mErrorMessage;
 	};
 

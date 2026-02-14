@@ -353,6 +353,99 @@ TEST(ValidatorRange, ShouldReturnCustomErrorMessage)
 }
 
 //-----------------------------------------------------------------------------
+// Tests for 'MultipleOf' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorMultipleOf, ShouldAlwaysPassIfValueIsNotLoaded)
+{
+	// Arrange
+	const auto validator = Validate::MultipleOf(10);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(0, false));
+}
+
+TEST(ValidatorMultipleOf, ShouldValidateIntegerValues)
+{
+	// Arrange
+	const auto validator = Validate::MultipleOf(100ULL);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(100ULL, true).has_value());
+	EXPECT_FALSE(validator(1000ULL, true).has_value());
+	EXPECT_FALSE(validator(18446744073709551600ULL, true).has_value());
+
+	EXPECT_TRUE(validator(1ULL, true).has_value());
+	EXPECT_TRUE(validator(99ULL, true).has_value());
+	EXPECT_TRUE(validator(101ULL, true).has_value());
+}
+
+TEST(ValidatorMultipleOf, ShouldValidateFloatValues)
+{
+	// Arrange
+	const auto validator = Validate::MultipleOf(0.1f);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(0.3f, true).has_value());
+	EXPECT_FALSE(validator(0.6f, true).has_value());
+
+	EXPECT_TRUE(validator(0.35f, true).has_value());
+	EXPECT_TRUE(validator(0.67f, true).has_value());
+}
+
+TEST(ValidatorMultipleOf, ShouldValidateDoubleValues)
+{
+	// Arrange
+	const auto validator = Validate::MultipleOf(0.01);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(1.00, true).has_value());
+	EXPECT_FALSE(validator(1.99, true).has_value());
+	EXPECT_FALSE(validator(0.01, true).has_value());
+	EXPECT_FALSE(validator(1234.56, true).has_value());
+
+	EXPECT_TRUE(validator(1.995, true).has_value());
+	EXPECT_TRUE(validator(0.001, true).has_value());
+}
+
+TEST(ValidatorMultipleOf, ShouldValidateWithNegativeDivisor)
+{
+	auto validator = Validate::MultipleOf(-5);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(10, true).has_value());
+	EXPECT_FALSE(validator(-10, true).has_value());
+	EXPECT_FALSE(validator(0, true).has_value());
+
+	EXPECT_TRUE(validator(7, true).has_value());
+	EXPECT_TRUE(validator(-7, true).has_value());
+}
+
+TEST(ValidatorMultipleOf, ShouldThrowsExceptionWhenZeroDivisor)
+{
+	EXPECT_THROW(Validate::MultipleOf(0), std::invalid_argument);
+	EXPECT_THROW(Validate::MultipleOf(0U), std::invalid_argument);
+}
+
+TEST(ValidatorMultipleOf, ShouldThrowsExceptionWhenSmallDivisor)
+{
+	EXPECT_THROW(Validate::MultipleOf(std::numeric_limits<float>::epsilon() / 2.0f), std::invalid_argument);
+	EXPECT_THROW(Validate::MultipleOf(std::numeric_limits<double>::epsilon() / 2.0), std::invalid_argument);
+}
+
+TEST(ValidatorMultipleOf, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Validate::MultipleOf(5, "Value must be multiple of 5 cents");
+
+	// Act
+	auto result2 = validator(7, true);
+
+	// Assert
+	ASSERT_TRUE(result2.has_value());
+	EXPECT_EQ(result2.value(), "Value must be multiple of 5 cents");
+}
+
+//-----------------------------------------------------------------------------
 // Tests for 'MinSize' validator
 //-----------------------------------------------------------------------------
 TEST(ValidatorMinSize, ShouldAlwaysPassIfValueIsNotLoaded)

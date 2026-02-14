@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -533,6 +533,67 @@ namespace BitSerializer::Validate
 		size_t mMinDigits;
 		size_t mMaxDigits;
 		bool mPlusRequired;
+		const char* mErrorMessage;
+	};
+
+	/**
+	 * @brief Validates that a value is a valid UUID (RFC 4122 and RFC 9562).
+	 */
+	class Uuid
+	{
+	public:
+		explicit Uuid(const char* errorMessage = "Invalid UUID format")
+			: mErrorMessage(errorMessage)
+		{ }
+
+		template <typename TContainer>
+		[[nodiscard]] std::optional<std::string> operator()(const TContainer& value, bool isLoaded) const
+		{
+			if (!isLoaded) {
+				return std::nullopt;
+			}
+
+			// UUID must be exactly 36 characters: 8-4-4-4-12 + 4 hyphens
+			size_t length;
+			if constexpr (std::is_array_v<std::remove_reference_t<TContainer>>) {
+				length = std::size(value) - 1;
+			}
+			else {
+				length = value.size();
+			}
+			if (length != 36) {
+				return mErrorMessage;
+			}
+
+			for (size_t i = 0; i < 36; ++i)
+			{
+				if (i == 8 || i == 13 || i == 18 || i == 23)
+				{
+					if (!IsHyphen(value[i])) {
+						return mErrorMessage;
+					}
+				}
+				else if (!IsHexDigit(value[i])) {
+					return mErrorMessage;
+				}
+			}
+			return std::nullopt;
+		}
+
+	private:
+		template <typename TChar>
+		static constexpr bool IsHyphen(TChar c) noexcept {
+			return c == static_cast<TChar>('-');
+		}
+
+		template <typename TChar>
+		static constexpr bool IsHexDigit(TChar c) noexcept
+		{
+			return (c >= static_cast<TChar>('0') && c <= static_cast<TChar>('9')) ||
+				(c >= static_cast<TChar>('a') && c <= static_cast<TChar>('f')) ||
+				(c >= static_cast<TChar>('A') && c <= static_cast<TChar>('F'));
+		}
+
 		const char* mErrorMessage;
 	};
 }

@@ -1118,6 +1118,7 @@ All validators are declared in the `BitSerializer::Validate` namespace (except `
 | `MaxSize(maxSize, errorMessage = nullptr)` | Ensures containers or strings do not exceed maximum size |
 | `Email(errorMessage = nullptr)`            | Validates email format per RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains)) |
 | `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | Validates international phone number format with configurable digit constraints |
+| `Uuid(errorMessage = nullptr)` | Validates UUID format according to RFC 4122/RFC 9562 |
 
 > [!NOTE]
 > Comparison validators (`GreaterThan`, `LessThan`, etc.) support any type that implements the corresponding comparison operators, including `std::chrono` time points and durations.

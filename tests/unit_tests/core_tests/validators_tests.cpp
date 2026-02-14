@@ -759,4 +759,73 @@ TEST(ValidatorPhoneNumber, TestPhonesWithInvalidCharacters)
 	EXPECT_TRUE(validator("1 (555) 555-55=55", true).has_value());
 }
 
+//-----------------------------------------------------------------------------
+// Tests for 'Uuid' validator
+//-----------------------------------------------------------------------------
+TEST(ValidatorUuid, TestValidUuids)
+{
+	// Arrange
+	auto validator = Validate::Uuid();
+
+	// Act / Assert
+	EXPECT_FALSE(validator(std::u16string(u"550e8400-e29b-41d4-a716-446655440000"), true).has_value());	// Lowercase variant
+	EXPECT_FALSE(validator(std::u32string(U"550E8400-E29B-41D4-A716-446655440000"), true).has_value());	// Uppercase variant
+
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-11d4-a716-446655440000"), true).has_value());		// UUID v1 (time-based)
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-21d4-a716-446655440000"), true).has_value());		// UUID v2 (DCE security)
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-31d4-a716-446655440000"), true).has_value());		// UUID v3 (MD5 hash)
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-41d4-a716-446655440000"), true).has_value());		// UUID v4 (random)
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-51d4-a716-446655440000"), true).has_value());		// UUID v5 (SHA-1 hash)
+	EXPECT_FALSE(validator(std::string("1ec9414c-22a8-6f5f-b432-2f8e3a5f9a6d"), true).has_value());		// UUID v6 (reordered time-based)
+	EXPECT_FALSE(validator(std::string("01889360-5c47-7b7c-a3d1-9f8b6c5d4e3a"), true).has_value());		// UUID v7 (Unix Epoch time + random)
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-81d4-a716-446655440000"), true).has_value());		// UUID v8 (custom)
+}
+
+TEST(ValidatorUuid, TestInvalidUuids)
+{
+	// Arrange
+	auto validator = Validate::Uuid();
+
+	// Empty string
+	EXPECT_TRUE(validator("", true).has_value());
+
+	// Wrong length
+	EXPECT_TRUE(validator("550e8400-e29b-41d4-a716-44665544000", true).has_value());							// 35 chars
+	EXPECT_TRUE(validator("550e8400-e29b-41d4-a716-4466554400000", true).has_value());							// 37 chars
+
+	// Missing hyphens
+	EXPECT_TRUE(validator(std::u16string(u"550e8400e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_TRUE(validator(std::u32string(U"550e8400-e29b41d4-a716-446655440000"), true).has_value());
+
+	// Wrong hyphen positions
+	EXPECT_TRUE(validator(std::string_view("550e840-e29b-41d4-a716-446655440000"), true).has_value());	// hyphen at pos 7
+	EXPECT_TRUE(validator(std::string_view("550e8400e-29b-41d4-a716-446655440000"), true).has_value());	// hyphen at pos 9
+
+	// Non-hex characters
+	EXPECT_TRUE(validator(std::string_view("550e8400-e29b-41d4-a71g-446655440000"), true).has_value());	// 'g' is not hex
+	EXPECT_TRUE(validator(std::string_view("550e8400-e29b-41d4-a716-44665544000-"), true).has_value());	// trailing hyphen
+
+	// Whitespace
+	EXPECT_TRUE(validator(std::string_view(" 550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_TRUE(validator(std::string_view("550e8400-e29b-41d4-a716-446655440000 "), true).has_value());
+
+	// Too long
+	const auto result = validator(std::string_view("12345678-1234-1234-1234-1234567890123"), true);
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Invalid UUID format", result.value());
+}
+
+TEST(ValidatorUuid, ShouldReturnCustomErrorMessage)
+{
+	// Arrange
+	const auto validator = Validate::Uuid("ID must be a valid UUID v4");
+
+	// Act
+	const auto result = validator(std::string_view("550e8400-e29b-"), true);
+
+	// Assert
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("ID must be a valid UUID v4", result.value());
+}
+
 // NOLINTEND(bugprone-unchecked-optional-access)

@@ -5,40 +5,41 @@
 #pragma once
 #include "bitserializer/key_value.h"
 #include "bitserializer/serialization_detail/archive_traits.h"
-#include "bitserializer/serialization_detail/serialization_context.h"
 
-namespace BitSerializer::KeyValueProxy
+namespace BitSerializer::Detail
 {
 	/**
-	 * @brief Serializes a plain value directly using the provided archive.
+	 * @brief Dispatches serialization of an arbitrary value to the archive.
 	 *
-	 * This overload handles basic values that do not require key-value splitting.
+	 * This overload handles values without explicit keys.
 	 *
 	 * @tparam TArchive Type of the serialization archive.
 	 * @tparam TValue   Type of the value being serialized.
 	 * @param archive   Archive used for serialization.
-	 * @param value     Value to serialize.
+	 * @param value     Value to dispatch (consumed via perfect forwarding).
 	 */
 	template <class TArchive, class TValue>
-	void SplitAndSerialize(TArchive& archive, TValue&& value)
+	void Dispatch(TArchive& archive, TValue&& value)
 	{
 		Serialize(archive, value);
 	}
 
 	/**
-	 * @brief Serializes a `KeyValue` wrapper by splitting its key and value components.
+	 * @brief Dispatches serialization of a key-value pair with optional validators/refiners.
 	 *
-	 * Handles both saving and loading, including validator invocation on load.
+	 * Handles both saving and loading modes:
+	 * - During saving: Serializes key (with automatic transcoding to archive's key_type if needed) and value.
+	 * - During loading: Deserializes value, then applies refiners and validators. Validation errors are collected in the archive context.
 	 *
-	 * @tparam TArchive    Type of the serialization archive.
-	 * @tparam TKey        Type of the key.
-	 * @tparam TValue      Type of the value being serialized.
-	 * @tparam TArgs       Types of extra parameters.
-	 * @param archive      Archive used for serialization.
-	 * @param keyValue     KeyValue wrapper containing key, value, and validators.
+	 * @tparam TArchive Type of the serialization archive.
+	 * @tparam TKey     Type of the key (any string-like or convertible type).
+	 * @tparam TValue   Type of the value being serialized.
+	 * @tparam TArgs    Types of validators/refiners attached to the pair.
+	 * @param archive   Archive used for serialization.
+	 * @param keyValue  KeyValue wrapper (key + value + metadata).
 	 */
 	template <class TArchive, class TKey, class TValue, class... TArgs>
-	static void SplitAndSerialize(TArchive& archive, KeyValue<TKey, TValue, TArgs...>&& keyValue)
+	void Dispatch(TArchive& archive, KeyValue<TKey, TValue, TArgs...>&& keyValue)
 	{
 		bool result;
 		if constexpr (BitSerializer::is_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>)
@@ -78,19 +79,19 @@ namespace BitSerializer::KeyValueProxy
 	}
 
 	/**
-	 * @brief Serializes an `AttributeValue` wrapper by opening an attribute scope.
+	 * @brief Dispatches serialization of an attribute-value pair.
 	 *
-	 * Requires the archive to support attribute scopes.
+	 * Requires the archive to support attribute scopes (e.g., XML attributes).
 	 *
 	 * @tparam TArchive     Type of the serialization archive.
 	 * @tparam TAttrKey     Type of the attribute key.
 	 * @tparam TValue       Type of the attribute value.
-	 * @tparam TArgs        Types of extra parameters.
+	 * @tparam TArgs        Types of validators/refiners (applied during loading).
 	 * @param archive       Archive used for serialization.
-	 * @param attrValuePair AttributeValue wrapper containing key, value, and validators.
+	 * @param attrValuePair AttributeValue wrapper (key + value + metadata).
 	 */
 	template <class TArchive, class TAttrKey, class TValue, class... TArgs>
-	static void SplitAndSerialize(TArchive& archive, AttributeValue<TAttrKey, TValue, TArgs...>&& attrValuePair)
+	void Dispatch(TArchive& archive, AttributeValue<TAttrKey, TValue, TArgs...>&& attrValuePair)
 	{
 		constexpr auto hasSupportAttributes = BitSerializer::can_serialize_attribute_v<TArchive>;
 		static_assert(hasSupportAttributes, "BitSerializer. The archive doesn't support serialization attribute (on current level or for format at all)");
@@ -100,9 +101,9 @@ namespace BitSerializer::KeyValueProxy
 			auto attributesScope = archive.OpenAttributeScope();
 			if (attributesScope)
 			{
-				SplitAndSerialize(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValuePair));
+				Dispatch(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValuePair));
 			}
 		}
 	}
 
-} // namespace BitSerializer::KeyValueProxy
+} // namespace BitSerializer::Detail

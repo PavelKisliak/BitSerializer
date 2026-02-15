@@ -5,7 +5,7 @@
 #pragma once
 #include <fstream>
 #include "bitserializer/serialization_detail/serialization_base_types.h"
-#include "bitserializer/serialization_detail/key_value_proxy.h"
+#include "bitserializer/serialization_detail/serialization_dispatch.h"
 #include "bitserializer/serialization_detail/serialization_context.h"
 #include "bitserializer/validate.h"
 #include "bitserializer/refine.h"
@@ -40,7 +40,7 @@ namespace BitSerializer
 		{
 			SerializationContext context(options);
 			typename TArchive::input_archive_type archive(input, context);
-			KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(object));
+			Detail::Dispatch(archive, std::forward<TValue>(object));
 			archive.Finalize();
 			context.OnFinishSerialization();
 		}
@@ -66,7 +66,7 @@ namespace BitSerializer
 		{
 			SerializationContext context(options);
 			typename TArchive::input_archive_type archive(input, context);
-			KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(object));
+			Detail::Dispatch(archive, std::forward<TValue>(object));
 			archive.Finalize();
 			context.OnFinishSerialization();
 		}
@@ -92,7 +92,7 @@ namespace BitSerializer
 		{
 			SerializationContext context(options);
 			typename TArchive::output_archive_type archive(output, context);
-			KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(object));
+			Detail::Dispatch(archive, std::forward<TValue>(object));
 			archive.Finalize();
 			context.OnFinishSerialization();
 		}
@@ -118,7 +118,7 @@ namespace BitSerializer
 		{
 			SerializationContext context(options);
 			typename TArchive::output_archive_type archive(output, context);
-			KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(object));
+			Detail::Dispatch(archive, std::forward<TValue>(object));
 			archive.Finalize();
 			context.OnFinishSerialization();
 		}
@@ -227,6 +227,6 @@ namespace BitSerializer
 template <class TArchive, class TValue, std::enable_if_t<BitSerializer::is_archive_scope_v<TArchive>, int> = 0>
 TArchive& operator<<(TArchive& archive, TValue&& value)
 {
-	BitSerializer::KeyValueProxy::SplitAndSerialize(archive, std::forward<TValue>(value));
+	BitSerializer::Detail::Dispatch(archive, std::forward<TValue>(value));
 	return archive;
 }

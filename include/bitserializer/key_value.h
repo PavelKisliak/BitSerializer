@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -9,13 +9,13 @@
 namespace BitSerializer
 {
 	/**
-	 * @brief A generic wrapper for a key-value pair with optional extra parameters.
+	 * @brief Wrapper for key-value serialization with optional validators/refiners.
 	 *
-	 * This class is used to associate a key with a value and a set of extra parameters.
+	 * Primary wrapper for serializing named fields. Use by default for all formats.
 	 *
 	 * @tparam TKey      Type of the key.
-	 * @tparam TValue    Type of the value being stored.
-	 * @tparam TArgs     Optional extra types.
+	 * @tparam TValue    Type of the value.
+	 * @tparam TArgs     Optional extra types (validators, refiners).
 	 */
 	template<class TKey, class TValue, class... TArgs>
 	class KeyValue
@@ -23,23 +23,16 @@ namespace BitSerializer
 	protected:
 		TKey mKey;
 		TValue mValue;
-		std::tuple<TArgs...> mTArgs;
+		std::tuple<TArgs...> mArgs;
 
 	public:
 		using value_type = TValue;
 		using key_type = TKey;
 
-		/**
-		 * @brief Constructs a KeyValue instance from a key, value, and optional extra parameters.
-		 *
-		 * @param key    The key associated with the value.
-		 * @param value  The value to store.
-		 * @param args   Optional extra parameters to apply to the value.
-		 */
 		constexpr KeyValue(TKey&& key, TValue&& value, TArgs&&... args)
 			: mKey(std::forward<TKey>(key))
 			, mValue(std::forward<TValue>(value))
-			, mTArgs(std::forward<TArgs>(args)...)
+			, mArgs(std::forward<TArgs>(args)...)
 		{
 		}
 
@@ -74,7 +67,7 @@ namespace BitSerializer
 		{
 			std::apply([&visitor](auto&& ...args) {
 				(visitor(args), ...);
-			}, mTArgs);
+			}, mArgs);
 		}
 	};
 
@@ -88,27 +81,23 @@ namespace BitSerializer
 
 
 	/**
-	 * @brief Wrapper for serializing attribute values (specific for XML format).
+	 * @brief Wrapper for XML attribute serialization.
 	 *
-	 * @tparam TAttrKey     Type of the attribute key.
-	 * @tparam TValue       Type of the attribute value.
-	 * @tparam TArgs        Types of extra parameters.
+	 * Forces serialization as an XML attribute. Causes compile-time error if used with non-XML archives (JSON, YAML, CSV, MsgPack).
+	 *
+	 * @see PropertyValue For multi-format safe alternative
+	 *
+	 * @tparam TAttrKey  Type of the attribute key.
+	 * @tparam TValue    Type of the attribute value.
+	 * @tparam TArgs     Optional extra types (validators, refiners).
 	 */
 	template<class TAttrKey, class TValue, class... TArgs>
 	class AttributeValue : public KeyValue<TAttrKey, TValue, TArgs...>
 	{
 	public:
-		/**
-		 * @brief Constructs an AttributeValue instance from a key, value, and optional validators.
-		 *
-		 * @param attributeKey The key identifying the attribute.
-		 * @param value        The value to be serialized as an attribute.
-		 * @param args         Optional extra parameters to apply to the value.
-		 */
-		AttributeValue(TAttrKey&& attributeKey, TValue&& value, TArgs&&... args)
-			: KeyValue<TAttrKey, TValue, TArgs...>(std::forward<TAttrKey>(attributeKey), std::forward<TValue>(value), std::forward<TArgs>(args)...)
-		{
-		}
+		constexpr AttributeValue(TAttrKey&& key, TValue&& value, TArgs&&... args)
+			: KeyValue<TAttrKey, TValue, TArgs...>(std::forward<TAttrKey>(key), std::forward<TValue>(value), std::forward<TArgs>(args)...)
+		{ }
 	};
 
 	// Deduction guide for constructing `AttributeValue` class when value passed as lvalue
@@ -118,5 +107,39 @@ namespace BitSerializer
 	// Deduction guide for constructing `AttributeValue` class when value passed as rvalue
 	template<class TAttrKey, class TValue, class... TArgs>
 	AttributeValue(TAttrKey&&, TValue&&, TArgs&&...) -> AttributeValue<TAttrKey, TValue, TArgs...>;
+
+
+	/**
+	 * @brief Smart wrapper for property serialization with automatic format adaptation.
+	 *
+	 * Adapts serialization behavior based on archive type and value convertibility:
+	 * - XML: Serializes as attribute if convertible to string, otherwise as element
+	 * - Other formats: Always serializes as key-value pair
+	 *
+	 * Ideal for code generation (e.g., OpenAPI) and multi-format APIs.
+	 *
+	 * @see KeyValue For default element/key serialization
+	 * @see AttributeValue For strict XML attribute serialization
+	 *
+	 * @tparam TKey      Type of the property key.
+	 * @tparam TValue    Type of the property value.
+	 * @tparam TArgs     Optional extra types (validators, refiners).
+	 */
+	template<class TKey, class TValue, class... TArgs>
+	class PropertyValue : public AttributeValue<TKey, TValue, TArgs...>
+	{
+	public:
+		constexpr PropertyValue(TKey&& key, TValue&& value, TArgs&&... args)
+			: AttributeValue<TKey, TValue, TArgs...>(std::forward<TKey>(key), std::forward<TValue>(value), std::forward<TArgs>(args)...)
+		{ }
+	};
+
+	// Deduction guide for constructing `PropertyValue` class when value passed as lvalue
+	template<class TKey, class TValue, class... TArgs>
+	PropertyValue(TKey&&, TValue&, TArgs&&...) -> PropertyValue<TKey, TValue&, TArgs...>;
+
+	// Deduction guide for constructing `PropertyValue` class when value passed as rvalue
+	template<class TKey, class TValue, class... TArgs>
+	PropertyValue(TKey&&, TValue&&, TArgs&&...) -> PropertyValue<TKey, TValue, TArgs...>;
 
 } // namespace BitSerializer

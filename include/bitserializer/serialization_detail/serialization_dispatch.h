@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -11,7 +11,7 @@ namespace BitSerializer::Detail
 	/**
 	 * @brief Dispatches serialization of an arbitrary value to the archive.
 	 *
-	 * This overload handles values without explicit keys.
+	 * This overload handles values without explicit keys (e.g., array elements, root objects).
 	 *
 	 * @tparam TArchive Type of the serialization archive.
 	 * @tparam TValue   Type of the value being serialized.
@@ -88,10 +88,10 @@ namespace BitSerializer::Detail
 	 * @tparam TValue       Type of the attribute value.
 	 * @tparam TArgs        Types of validators/refiners (applied during loading).
 	 * @param archive       Archive used for serialization.
-	 * @param attrValuePair AttributeValue wrapper (key + value + metadata).
+	 * @param attrValue     AttributeValue wrapper (key + value + metadata).
 	 */
 	template <class TArchive, class TAttrKey, class TValue, class... TArgs>
-	void Dispatch(TArchive& archive, AttributeValue<TAttrKey, TValue, TArgs...>&& attrValuePair)
+	void Dispatch(TArchive& archive, AttributeValue<TAttrKey, TValue, TArgs...>&& attrValue)
 	{
 		constexpr auto hasSupportAttributes = BitSerializer::can_serialize_attribute_v<TArchive>;
 		static_assert(hasSupportAttributes, "BitSerializer. The archive doesn't support serialization attribute (on current level or for format at all)");
@@ -101,8 +101,39 @@ namespace BitSerializer::Detail
 			auto attributesScope = archive.OpenAttributeScope();
 			if (attributesScope)
 			{
-				Dispatch(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValuePair));
+				Dispatch(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValue));
 			}
+		}
+	}
+
+	/**
+	 * @brief Dispatches serialization of a property-value pair with automatic adaptation.
+	 *
+	 * Decision matrix:
+	 * - XML + String-convertible type	-> Attribute
+	 * - XML + Non-convertible type		-> Element (KeyValue)
+	 * - Non-XML formats				-> Key-Value pair
+	 *
+	 * @tparam TArchive     Type of the serialization archive.
+	 * @tparam TKey         Type of the property key.
+	 * @tparam TValue       Type of the property value.
+	 * @tparam TArgs        Types of validators/refiners (applied during loading).
+	 * @param archive       Archive used for serialization.
+	 * @param propValue     PropertyValue wrapper (key + value + metadata).
+	 */
+	template <class TArchive, class TKey, class TValue, class... TArgs>
+	void Dispatch(TArchive& archive, PropertyValue<TKey, TValue, TArgs...>&& propValue)
+	{
+		constexpr auto hasSupportAttributes = BitSerializer::can_serialize_attribute_v<TArchive>;
+		constexpr auto isConvertible = Convert::IsConvertible<TValue, typename TArchive::key_type>();
+
+		if constexpr (isConvertible && hasSupportAttributes)
+		{
+			Dispatch(archive, std::forward<AttributeValue<TKey, TValue, TArgs...>>(propValue));
+		}
+		else
+		{
+			Dispatch(archive, std::forward<KeyValue<TKey, TValue, TArgs...>>(propValue));
 		}
 	}
 

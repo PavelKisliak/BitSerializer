@@ -343,6 +343,9 @@ Returns result
 ```
 For serializing a named object please use helper class `KeyValue` which takes `key` and `value` as constructor arguments. Usually the type of key is UTF-8 string, but you are free to use any other convertible type (`std::u16string`, `std::u32string` or any numeric types). For example, MsgPack archive has native support for numbers as keys, they will be converted to string when use with another archives. For get maximum performance, better to avoid any conversions.
 
+> [!TIP]
+> For multi-format code, consider using `PropertyValue` instead of `KeyValue` if you want scalar fields to be serialized as XML attributes automatically. See [Serializing to multiple formats](#serializing-to-multiple-formats) for details.
+
 ### Serializing base class
 To serialize the base class, use the helper method `BaseObject()`, like as in the next example.
 ```cpp
@@ -628,7 +631,7 @@ BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(HttpMethod)
 > In the previous version 0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
 
 ### Serializing to multiple formats
-One of the advantages of BitSerializer is the ability to serialize into multiple formats through a single interface. The following example shows how to save an object to JSON and XML:
+One of the core advantages of BitSerializer is the ability to serialize objects into multiple formats through a unified interface. The following example demonstrates how to save the same object to JSON and XML with minimal code changes:
 ```cpp
 class CPoint
 {
@@ -659,39 +662,85 @@ int main()
     return 0;
 }
 ```
-The output result of this code:
+Output:
 ```
 JSON: {"x":100,"y":200}
 XML: <?xml version="1.0"?><root><x>100</x><y>200</y></root>
 ```
-The serialization code differs only in the template parameter -  **JsonArchive** and **XmlArchive**.
-But here are some moments which need comments. As you can see in the XML was created node with name "root". This is auto generated name when it was not specified explicitly for root node. The library does this just to smooth out differences in the structure of formats. But you are free to set name of root node if needed:
+The serialization logic differs only in the template parameter (`JsonArchive` vs `XmlArchive`). However, there are two aspects worth addressing for production use.
+
+#### Root node naming
+As shown above, XML output contains an auto-generated root node named "root" when no explicit name is provided. This behavior ensures structural consistency across formats but can be customized:
 ```cpp
+// Specify explicit root node name for XML
 const auto xmlResult = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", testObj));
 ```
-The second thing which you would like to customize is default structure of output XML. In this example it does not looks good from XML perspective, as it has specific element for this purpose which known as "attribute". The BitSerializer also allow to customize the serialization behavior for different formats:
+Output:
+```xml
+<?xml version="1.0"?><Point><x>100</x><y>200</y></Point>
+```
+
+#### Customizing XML structure
+By default, all fields are serialized as XML elements. However, XML supports attributes, which can produce more compact and idiomatic output for scalar values. BitSerializer provides three approaches to handle this:
+
+##### Option 1: Manual format detection (explicit control)
+Use `if constexpr` to apply format-specific logic:
 ```cpp
-    template <class TArchive>
-    void Serialize(TArchive& archive)
+template <class TArchive>
+void Serialize(TArchive& archive)
+{
+    if constexpr (TArchive::archive_type == ArchiveType::Xml)
     {
-        // Serialize as attributes when archive type is XML
-        if constexpr (TArchive::archive_type == ArchiveType::Xml)
-        {
-            archive << AttributeValue("x", x);
-            archive << AttributeValue("y", y);
-        }
-        else
-        {
-            archive << KeyValue("x", x);
-            archive << KeyValue("y", y);
-        }
+        archive << AttributeValue("x", x);
+        archive << AttributeValue("y", y);
     }
+    else
+    {
+        archive << KeyValue("x", x);
+        archive << KeyValue("y", y);
+    }
+}
 ```
-With these changes, the result of this code will look like this:
+
+##### Option 2: Smart wrapper (recommended for multi-format code)
+Use `PropertyValue` for automatic adaptation based on archive type and value convertibility:
+```cpp
+template <class TArchive>
+void Serialize(TArchive& archive)
+{
+    // Scalar types → XML attribute, JSON key
+    archive << PropertyValue("x", x);
+    archive << PropertyValue("y", y);
+    
+    // Complex types → XML element, JSON key (automatic fallback)
+    archive << PropertyValue("profile", mProfile);
+}
 ```
-JSON: {"x":100,"y":200}
-XML: <?xml version="1.0"?><Point x="100" y="200"/>
+
+##### Option 3: Strict XML attributes (XML-only code)
+Use `AttributeValue` when targeting XML exclusively:
+```cpp
+template <class TArchive>
+void Serialize(TArchive& archive)
+{
+    archive << AttributeValue("x", x);
+    archive << AttributeValue("y", y);
+}
 ```
+
+> [!NOTE]
+> Note: `AttributeValue` causes a compile-time error when used with non-XML archives (JSON, YAML, CSV, MsgPack).
+
+##### Comparison of helper classes
+| Approach       | JSON                | XML                                 |
+| -------------- | ------------------- | ----------------------------------- |
+| KeyValue       | `{"x":100,"y":200}` | `<root><x>100</x><y>200</y></root>` |
+| AttributeValue | ❌ Compile error    | `<root x="100" y="200"/>`           |
+| PropertyValue  | `{"x":100,"y":200}` | `<root x="100" y="200"/>`           |
+
+> [!NOTE]
+> `PropertyValue` automatically falls back to `KeyValue` for complex types (objects, arrays) that cannot be represented as XML attributes. This behavior is determined at compile time using `BitSerializer::Convert::IsConvertible<TValue, std::string>()`.
+
 [See full sample](samples/multiformat_customization/multiformat_customization.cpp)
 
 ### Serialization STD types
@@ -1071,17 +1120,19 @@ catch (const std::exception& ex)
 }
 ```
 
-### Validation of Deserialized Values
+### Validation of deserialized values
 BitSerializer provides a comprehensive and extensible validation system that enables you to enforce data integrity constraints during deserialization. The library supports both built-in validators and custom validation logic, with all validation errors collected and reported in a single `ValidationException`.
 
-#### Basic Usage
+#### Basic usage
 Validators are applied directly within the serialization interface using a fluent syntax:
 ```cpp
 archive << KeyValue("testFloat", testFloat, Required(), Validate::Range(-1.0f, 1.0f));
+// Or with PropertyValue for multi-format attribute support:
+archive << PropertyValue("testFloat", testFloat, Required(), Validate::Range(-1.0f, 1.0f));
 ```
 All validation errors encountered during deserialization are aggregated and thrown as a `ValidationException` upon completion, enabling comprehensive error reporting rather than failing on the first constraint violation.
 
-#### Error Handling
+#### Error handling
 By default, there is no limit on the number of validation errors collected. This behavior can be configured via the `maxValidationErrors` parameter in `SerializationOptions`. The validation error map contains JSON Pointer paths (RFC 6901) as keys, with each path mapping to a list of error messages for that field.
 ```cpp
 try {
@@ -1093,7 +1144,7 @@ catch (BitSerializer::ValidationException& ex) {
 }
 ```
 
-#### Custom Error Messages
+#### Custom error messages
 All validators support customizable error messages, which is particularly useful for localization scenarios:
 ```cpp
 archive << KeyValue("Age", mAge, 
@@ -1102,7 +1153,7 @@ archive << KeyValue("Age", mAge,
 ```
 Error messages can contain either descriptive text or localization string identifiers.
 
-#### Built-in Validators
+#### Built-in validators
 All validators are declared in the `BitSerializer::Validate` namespace (except `Required`, which is also available in the `BitSerializer` namespace).
 
 | Signature           | Description   |
@@ -1123,7 +1174,7 @@ All validators are declared in the `BitSerializer::Validate` namespace (except `
 > [!NOTE]
 > Comparison validators (`GreaterThan`, `LessThan`, etc.) support any type that implements the corresponding comparison operators, including `std::chrono` time points and durations.
 
-#### Custom Validation
+#### Custom validation
 For domain-specific validation logic, you can provide custom lambda validators:
 ```cpp
 archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string> {
@@ -1135,7 +1186,7 @@ archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isL
 ```
 Custom validators receive the deserialized value and a boolean indicating whether the field was present in the source data, returning an error message when validation fails.
 
-#### Complete Example
+#### Complete example
 ```cpp
 using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;

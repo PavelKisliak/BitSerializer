@@ -51,9 +51,13 @@ find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 ```
 
-### Implementation detail
-XML format requires root named node, but BitSerializer allows to serialize objects with and without keys.
-When name for root node was not provided, BitSerializer uses default name "**root**" for objects and "**array**" for arrays.
+### Implementation details
+
+#### Root node naming
+XML requires a named root node. When no explicit name is provided, BitSerializer uses default names:
+ - "root" for objects
+ - "array" for arrays
+
 ```cpp
 class CPoint
 {
@@ -91,10 +95,16 @@ XML with defined root name: <?xml version="1.0"?><Point><x>10</x><y>20</y></Poin
 XML without defined root name: <?xml version="1.0"?><root><x>10</x><y>20</y></root>
 ```
 
-By default, **PugiXml** uses 8-bit chars as keys (for nodes and attributes), but with global definition **PUGIXML_WCHAR_MODE** the key type will be **wchar_t**. In any case, BitSerializer adapts the key to the target archive.
+#### Key type adaptation
+By default, **PugiXml** uses 8-bit chars for keys (nodes and attributes). With the global definition `PUGIXML_WCHAR_MODE`, the key type becomes `wchar_t`. BitSerializer automatically adapts keys to the target archive's key type.
 
 #### Serialization attributes
-The XML nodes perfectly fits to common BitSerialazer interface, but serialization attributes is a bit specific, for support them, BitSerializer has one more helper class - `AttributeValue`.
+The XML nodes perfectly fit the common BitSerializer interface, but serialization of attributes is format-specific.
+BitSerializer provides two helper classes for this purpose:
+
+##### `AttributeValue` (XML-only)
+Forces serialization as an XML attribute. **Causes compile-time error if used with non-XML archives** (JSON, YAML, CSV, MsgPack).
+
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -142,8 +152,36 @@ int main()
 ```
 [See full sample](../samples/serialize_xml_attributes/serialize_xml_attributes.cpp)
 
+##### PropertyValue (Multi-format safe)
+Automatically adapts serialization behavior based on archive type and value convertibility:
+
+ - **XML:** Serializes as attribute if type is convertible to string, otherwise as element
+ - **JSON/YAML/CSV/MsgPack:** Always serializes as key-value pair
+
+```cpp
+template <class TArchive>
+void Serialize(TArchive& archive)
+{
+    // Scalar types → XML attribute, JSON key
+    archive << PropertyValue("Width", mWidth);
+    archive << PropertyValue("Height", mHeight);
+
+    // Complex types → XML element, JSON key (automatic fallback)
+    archive << PropertyValue("Profile", mProfile);
+}
+```
+
+**When to use which:**
+| Approach       | XML         | JSON             | Use case                               |
+| -------------- | ------------| -----------------| -------------------------------------- |
+| KeyValue       | Element     | Key              | Default choice, predictable structure  |
+| AttributeValue | Attribute   | ❌ Compile error | XML-specific code, explicit attributes |
+| PropertyValue  | Attribute¹  | Key              | Multi-format, code generation, OpenAPI |
+
+¹ Falls back to element for non-string-convertible types
+
 ### Pretty format
-As base library (PugiXml) has the functionality for output to human readable format, the BitSerializer also allows to do this:
+**PugiXml** supports human-readable output with indentation. BitSerializer exposes this functionality through `SerializationOptions`:
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"

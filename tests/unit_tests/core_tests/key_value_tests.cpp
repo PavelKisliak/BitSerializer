@@ -180,3 +180,89 @@ TEST(AttributeValue, ShouldVisitExtraParameters)
 	EXPECT_EQ(2, knownArgs);
 	EXPECT_EQ(0, unknownArgs);
 }
+
+//-----------------------------------------------------------------------------
+// Tests of PropertyValue
+//-----------------------------------------------------------------------------
+TEST(PropertyValue, ShouldStoreRefToKey)
+{
+	// Arrange
+	const std::string key = "key1";
+	int value = 10;
+
+	// Act
+	const PropertyValue attrValue(key, value);
+
+	// Assert
+	EXPECT_TRUE(&attrValue.GetKey() == &key);
+}
+
+TEST(PropertyValue, ShouldStoreKeyAsPtrToCString)
+{
+	// Arrange
+	const char* key = "key1";
+	int value = 10;
+
+	// Act
+	const PropertyValue attrValue(key, value);
+
+	// Assert
+	EXPECT_TRUE(attrValue.GetKey() == key);
+}
+
+TEST(PropertyValue, ShouldStoreKeyWhenPassedAsRValue)
+{
+	// Arrange
+	int value = 10;
+
+	// Act
+	const PropertyValue attrValue(std::string("key"), value);
+
+	// Assert
+	EXPECT_EQ("key", attrValue.GetKey());
+}
+
+TEST(PropertyValue, ShouldStoreRefToValue)
+{
+	// Arrange
+	int value = 10;
+
+	// Act
+	const PropertyValue attrValue("key", value);
+
+	// Assert
+	EXPECT_TRUE(&attrValue.GetValue() == &value);
+}
+
+TEST(PropertyValue, ShouldStoreValueWhenPassedAsRValue)
+{
+	// Act
+	const PropertyValue attrValue("key", std::string("value"));
+
+	// Assert
+	EXPECT_EQ("value", attrValue.GetValue());
+}
+
+TEST(PropertyValue, ShouldVisitExtraParameters)
+{
+	// Arrange
+	int value = 10;
+
+	// Act
+	PropertyValue attrValue("key", value, Validate::Required(), Validate::Range(0, 20));
+
+	// Assert
+	int knownArgs = 0, unknownArgs = 0;
+	attrValue.VisitArgs([&knownArgs, &unknownArgs](auto& handler)
+	{
+		using Type = std::decay_t<decltype(handler)>;
+		if constexpr (std::is_same_v<Type, Validate::Required> || std::is_same_v<Type, Validate::Range<int>>) {
+			++knownArgs;
+		}
+		else {
+			++unknownArgs;
+		}
+	});
+	EXPECT_EQ(2, knownArgs);
+	EXPECT_EQ(0, unknownArgs);
+}

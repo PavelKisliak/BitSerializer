@@ -6,6 +6,12 @@
 using namespace BitSerializer;
 using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 
+/**
+ * Example demonstrates XML-specific attribute serialization using AttributeValue.
+ * 
+ * Note: AttributeValue causes compile-time error with non-XML archives.
+ * For multi-format code, consider using PropertyValue instead (see multiformat_customization.cpp).
+ */
 class CRectangle
 {
 public:
@@ -20,9 +26,15 @@ public:
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
+		// XML-only: forces attribute serialization (compile error for JSON/YAML/CSV/MsgPack)
 		archive << AttributeValue("Type", mType);
 		archive << AttributeValue("Width", mWidth);
 		archive << AttributeValue("Height", mHeight);
+
+		// Alternative for multi-format code:
+		// archive << PropertyValue("Type", mType);
+		// archive << PropertyValue("Width", mWidth);
+		// archive << PropertyValue("Height", mHeight);
 	}
 
 	std::string mType;

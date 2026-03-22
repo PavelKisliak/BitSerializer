@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <cmath>
@@ -40,7 +40,7 @@ TEST(ConvertFundamentals, BoolFromIntegers)
 
 TEST(ConvertFundamentals, BoolFromTooBigIntegerThrowException)
 {
-	EXPECT_THROW(Convert::To<bool>(2), std::out_of_range);
+	EXPECT_THROW(Convert::To<bool>(2), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, BoolFromNegativeValueThrowException)
@@ -153,8 +153,13 @@ TEST(ConvertFundamentals, BoolFromStringWithNegativeDigitShouldThrowException) {
 }
 
 TEST(ConvertFundamentals, BoolFromStringWithBigNumberShouldThrowException) {
-	EXPECT_THROW(Convert::To<bool>("2"), std::out_of_range);
-	EXPECT_THROW(Convert::To<bool>("555"), std::out_of_range);
+	EXPECT_THROW(Convert::To<bool>("2"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>("555"), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithFloatShouldThrowException) {
+	EXPECT_THROW(Convert::To<bool>("1.0"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>("0.1"), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, BoolFromStringWithTrueFalse) {

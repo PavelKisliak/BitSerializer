@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -66,8 +66,14 @@ namespace BitSerializer::Convert::Detail
 				if (static_cast<TSource>(value) == sourceValue) {
 					targetValue = value;
 				}
-				else {
-					throw std::out_of_range("Target type size is insufficient");
+				else
+				{
+					if constexpr (std::is_same_v<TTarget, bool>) {
+						throw std::invalid_argument("Integer value cannot be converted to boolean, only 0 and 1 are allowed");
+					}
+					else {
+						throw std::out_of_range("Target type size is insufficient");
+					}
 				}
 			}
 			else
@@ -164,23 +170,6 @@ namespace BitSerializer::Convert::Detail
 		const auto size = endIt - startIt;
 		if (size >= 1)
 		{
-			if (std::isdigit(*startIt))
-			{
-				if (*startIt == '1' && (size == 1 || !std::isdigit(startIt[1])))
-				{
-					ret_Val = true;
-					return;
-				}
-
-				if (*startIt == '0' && (size == 1 || !std::isdigit(startIt[1])))
-				{
-					ret_Val = false;
-					return;
-				}
-
-				throw std::out_of_range("Argument out of range");
-			}
-
 			if (size >= 4 &&
 				(startIt[0] == 't' || startIt[0] == 'T') &&
 				(startIt[1] == 'r' || startIt[1] == 'R') &&
@@ -200,6 +189,22 @@ namespace BitSerializer::Convert::Detail
 			{
 				ret_Val = false;
 				return;
+			}
+
+			// Allow to read unsigned to boolean
+			if (std::isdigit(*startIt))
+			{
+				if (*startIt == '1' && (size == 1 || !(std::isdigit(startIt[1]) || startIt[1] == '.')))
+				{
+					ret_Val = true;
+					return;
+				}
+
+				if (*startIt == '0' && (size == 1 || !(std::isdigit(startIt[1]) || startIt[1] == '.')))
+				{
+					ret_Val = false;
+					return;
+				}
 			}
 		}
 

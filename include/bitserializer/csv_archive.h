@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -40,7 +40,7 @@ class BITSERIALIZER_API ICsvWriter
 public:
 	virtual ~ICsvWriter() = default;
 
-	virtual void SetEstimatedSize(size_t size) = 0;
+	virtual void SetEstimatedSize(size_t size) noexcept = 0;
 	virtual void WriteValue(const std::string_view& key, std::string_view value) = 0;
 	virtual void NextLine() = 0;
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
@@ -133,7 +133,7 @@ public:
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
 	}
 
-	[[nodiscard]] std::optional<CCsvWriteObjectScope> OpenObjectScope(size_t) const
+	[[nodiscard]] std::optional<CCsvWriteObjectScope> OpenObjectScope(size_t) const noexcept
 	{
 		return std::make_optional<CCsvWriteObjectScope>(mCsvWriter, GetContext());
 	}
@@ -166,7 +166,7 @@ public:
 		return {};
 	}
 
-	[[nodiscard]] std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize) const
+	[[nodiscard]] std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize) const noexcept
 	{
 		mCsvWriter->SetEstimatedSize(arraySize);
 		return std::make_optional<CsvWriteArrayScope>(mCsvWriter, GetContext());
@@ -373,7 +373,7 @@ public:
 		return {};
 	}
 
-	std::optional<CsvReadArrayScope> OpenArrayScope(size_t)
+	std::optional<CsvReadArrayScope> OpenArrayScope(size_t) noexcept
 	{
 		return std::make_optional<CsvReadArrayScope>(mCsvReader, GetContext());
 	}

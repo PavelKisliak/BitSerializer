@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -68,9 +68,9 @@ TEST(ConvertByPolicyTest, ThrowExceptionWhenOverflowType)
 
 TEST(ConvertByPolicyTest, SkipOverflowValueWhenPolicyIsSkip)
 {
-	bool targetBoolean = false;
-	EXPECT_FALSE(Detail::ConvertByPolicy(2, targetBoolean, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
-	EXPECT_EQ(false, targetBoolean);
+	int16_t targetInt16 = 0;
+	EXPECT_FALSE(Detail::ConvertByPolicy(32768, targetInt16, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip));
+	EXPECT_EQ(0, targetInt16);
 
 	float targetFloat = 0.f;
 	constexpr auto sourceDouble = static_cast<double>(std::numeric_limits<float>::max()) * 1.00001;
@@ -80,9 +80,13 @@ TEST(ConvertByPolicyTest, SkipOverflowValueWhenPolicyIsSkip)
 
 TEST(ConvertByPolicyTest, ThrowExceptionWhenMismatchedType)
 {
-	bool targetBool = false;
-	EXPECT_THROW(Detail::ConvertByPolicy(-1, targetBool, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
-	EXPECT_EQ(false, targetBool);
+	bool targetBoolean = false;
+	EXPECT_THROW(Detail::ConvertByPolicy(-1, targetBoolean, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);
+	EXPECT_EQ(false, targetBoolean);
+
+	targetBoolean = false;
+	EXPECT_THROW(Detail::ConvertByPolicy(2, targetBoolean, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::Skip), SerializationException);
+	EXPECT_EQ(false, targetBoolean);
 
 	int targetInteger = 0;
 	EXPECT_THROW(Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError), SerializationException);

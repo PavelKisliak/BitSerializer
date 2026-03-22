@@ -373,11 +373,11 @@ TEST(STD_Chrono, SkipErrorOfRoundingDurationWhenPolicyIsSkip)
 	// Act
 	SerializationOptions options;
 	options.overflowNumberPolicy = OverflowNumberPolicy::Skip;
-	minutes actual(0);
+	TestClassWithSubType actual(minutes{});
 	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
 
 	// Assert
-	EXPECT_EQ(0, actual.count());
+	EXPECT_EQ(0, actual.GetValue().count());
 }
 
 TEST(STD_Chrono, SerializeArrayOfDurations) {

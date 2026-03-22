@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -146,7 +146,7 @@ TEST(ConvertApi, ShouldThrowExceptionWhenBadArgument) {
 }
 
 TEST(ConvertApi, ShouldThrowExceptionWhenOverflow) {
-	EXPECT_THROW(Convert::To<bool>("5"), std::out_of_range);
+	EXPECT_THROW(Convert::To<int8_t>("128"), std::out_of_range);
 }
 
 

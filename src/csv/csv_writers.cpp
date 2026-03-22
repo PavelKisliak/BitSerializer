@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_writers.h"
@@ -57,11 +57,6 @@ namespace BitSerializer::Csv::Detail
 	{
 		mCurrentRow.reserve(256);
 		mOutputString.reserve(256);
-	}
-
-	void CCsvStringWriter::SetEstimatedSize(size_t size)
-	{
-		mEstimatedSize = size;
 	}
 
 	void CCsvStringWriter::WriteValue(const std::string_view& key, std::string_view value)

@@ -158,7 +158,8 @@ namespace BitSerializer
 					}
 				}
 
-				if (options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				// NULL value deserialized from the archive is excluded from MismatchedTypesPolicy processing
+				if (!std::holds_alternative<std::nullptr_t>(ioData) && options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::MismatchedTypes,
 						"The type of target field does not match the value being loaded");
@@ -195,13 +196,21 @@ namespace BitSerializer
 			/**
 			 * @brief Loads a string value from I/O data.
 			 */
-			static bool LoadString(const TestIoData& ioData, string_view_type& value)
+			static bool LoadString(const TestIoData& ioData, string_view_type& value, const SerializationOptions& options)
 			{
-				if (!std::holds_alternative<key_type>(ioData)) {
-					return false;
+				if (std::holds_alternative<std::wstring>(ioData))
+				{
+					value = std::get<std::wstring>(ioData);
+					return true;
 				}
-				value = std::get<key_type>(ioData);
-				return true;
+
+				// NULL value deserialized from the archive is excluded from MismatchedTypesPolicy processing
+				if (!std::holds_alternative<std::nullptr_t>(ioData) && options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						"The type of target field does not match the value being loaded");
+				}
+				return false;
 			}
 
 			/**
@@ -265,7 +274,7 @@ namespace BitSerializer
 				if (TestIoDataPtr ioData = LoadNextItem())
 				{
 					if constexpr (TMode == SerializeMode::Load) {
-						return LoadString(*ioData, value);
+						return LoadString(*ioData, value, this->GetOptions());
 					}
 					else
 					{
@@ -406,7 +415,7 @@ namespace BitSerializer
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					const auto archiveValue = LoadArchiveValueByKey(key);
-					return archiveValue == nullptr ? false : LoadString(*archiveValue, value);
+					return archiveValue == nullptr ? false : LoadString(*archiveValue, value, this->GetOptions());
 				}
 				else
 				{
@@ -552,7 +561,7 @@ namespace BitSerializer
 			bool SerializeValue(string_view_type& value)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
-					return LoadString(*mInputData->Data, value);
+					return LoadString(*mInputData->Data, value, this->GetOptions());
 				}
 				else {
 					SaveString(*mOutputData->Data, value);

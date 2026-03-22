@@ -536,6 +536,10 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<MsgPackArchive, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
+}
 TEST(MsgPackArchive, ThrowPolicyForArrayWhenMismatchedLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
@@ -571,6 +575,10 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
+TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntToBoolean) {
+	TestMismatchedTypesPolicy<MsgPackArchive, int, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<MsgPackArchive, uint32_t, bool>(MismatchedTypesPolicy::Skip);
+}
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
@@ -605,9 +613,6 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
 //-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------
-TEST(MsgPackArchive, ThrowSerializationExceptionWhenOverflowBool) {
-	TestOverflowNumberPolicy<MsgPackArchive, int32_t, bool>(OverflowNumberPolicy::ThrowError);
-}
 TEST(MsgPackArchive, ThrowSerializationExceptionWhenOverflowInt8) {
 	TestOverflowNumberPolicy<MsgPackArchive, int16_t, int8_t>(OverflowNumberPolicy::ThrowError);
 	TestOverflowNumberPolicy<MsgPackArchive, uint16_t, uint8_t>(OverflowNumberPolicy::ThrowError);
@@ -627,9 +632,6 @@ TEST(MsgPackArchive, ThrowSerializationExceptionWhenOverflowFloat) {
 //-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::Skip
 //-----------------------------------------------------------------------------
-TEST(MsgPackArchive, ThrowValidationExceptionWhenOverflowBool) {
-	TestOverflowNumberPolicy<MsgPackArchive, int32_t, bool>(OverflowNumberPolicy::Skip);
-}
 TEST(MsgPackArchive, ThrowValidationExceptionWhenNumberOverflowInt8) {
 	TestOverflowNumberPolicy<MsgPackArchive, int16_t, int8_t>(OverflowNumberPolicy::Skip);
 	TestOverflowNumberPolicy<MsgPackArchive, uint16_t, uint8_t>(OverflowNumberPolicy::Skip);

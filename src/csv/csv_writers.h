@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -12,7 +12,7 @@ namespace BitSerializer::Csv::Detail
 	public:
 		CCsvStringWriter(std::string& outputString, bool withHeader, char separator = ',');
 
-		void SetEstimatedSize(size_t size) override;
+		void SetEstimatedSize(size_t size) noexcept override { mEstimatedSize = size; }
 		void WriteValue(const std::string_view& key, std::string_view value) override;
 		void NextLine() override;
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }

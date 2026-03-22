@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #if defined __has_include && __has_include(<version>)
@@ -522,6 +522,12 @@ TEST(BaseTypes, ShouldCollectErrorsAboutRequiredNamedValues) {
 }
 
 //-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::ThrowError
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
+	TestMismatchedTypesPolicy<ArchiveStub, int, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<ArchiveStub, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
+}
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
@@ -531,7 +537,26 @@ TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
+	TestMismatchedTypesPolicy<ArchiveStub, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<ArchiveStub, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
+}
 
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
+	TestMismatchedTypesPolicy<ArchiveStub, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
+}
+TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
+	TestMismatchedTypesPolicy<ArchiveStub, float, int>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedTypesPolicy<ArchiveStub, double, int>(MismatchedTypesPolicy::ThrowError);
+}
+
+//-----------------------------------------------------------------------------
+// Test MismatchedTypesPolicy::Skip
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadIntToBoolean) {
+	TestMismatchedTypesPolicy<ArchiveStub, int, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedTypesPolicy<ArchiveStub, uint32_t, bool>(MismatchedTypesPolicy::Skip);
+}
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToBoolean) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
@@ -558,11 +583,16 @@ TEST(BaseTypes, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
 }
 
-//-----------------------------------------------------------------------------
-
-TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowBool) {
-	TestOverflowNumberPolicy<ArchiveStub, int32_t, bool>(OverflowNumberPolicy::ThrowError);
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadIntegerToArray) {
+	TestMismatchedTypesPolicy<ArchiveStub, int32_t, int32_t[3]>(MismatchedTypesPolicy::Skip);
 }
+TEST(BaseTypes, ThrowValidationExceptionWhenLoadIntegerToObject) {
+	TestMismatchedTypesPolicy<ArchiveStub, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::ThrowError
+//-----------------------------------------------------------------------------
 TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowInt8) {
 	TestOverflowNumberPolicy<ArchiveStub, int16_t, int8_t>(OverflowNumberPolicy::ThrowError);
 	TestOverflowNumberPolicy<ArchiveStub, uint16_t, uint8_t>(OverflowNumberPolicy::ThrowError);
@@ -579,9 +609,9 @@ TEST(BaseTypes, ThrowSerializationExceptionWhenOverflowFloat) {
 	TestOverflowNumberPolicy<ArchiveStub, double, float>(OverflowNumberPolicy::ThrowError);
 }
 
-TEST(BaseTypes, ThrowValidationExceptionWhenOverflowBool) {
-	TestOverflowNumberPolicy<ArchiveStub, int32_t, bool>(OverflowNumberPolicy::Skip);
-}
+//-----------------------------------------------------------------------------
+// Test OverflowNumberPolicy::Skip
+//-----------------------------------------------------------------------------
 TEST(BaseTypes, ThrowValidationExceptionWhenNumberOverflowInt8) {
 	TestOverflowNumberPolicy<ArchiveStub, int16_t, int8_t>(OverflowNumberPolicy::Skip);
 	TestOverflowNumberPolicy<ArchiveStub, uint16_t, uint8_t>(OverflowNumberPolicy::Skip);

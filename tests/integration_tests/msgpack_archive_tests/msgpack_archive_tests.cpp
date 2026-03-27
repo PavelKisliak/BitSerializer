@@ -13,6 +13,7 @@
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 
@@ -710,6 +711,23 @@ TEST(MsgPackArchive, SerializeStdOptionalAsObjectMember)
 	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
 }
 
+TEST(MsgPackArchive, SerializeStdVariantAsRootElement)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<MsgPackArchive>(VariantType(321));
+	TestSerializeType<MsgPackArchive>(VariantType(std::string("test")));
+	TestSerializeType<MsgPackArchive>(VariantType(TestPointClass(5, 8)));
+	TestSerializeType<MsgPackArchive>(VariantType(std::vector<int>{ 1, 2, 3 }));
+}
+
+TEST(MsgPackArchive, SerializeStdVariantAsObjectMember)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<MsgPackArchive>(TestClassWithSubType(VariantType(TestPointClass(13, 21))));
+	TestSerializeType<MsgPackArchive>(TestClassWithSubType(VariantType(std::vector<int>{ 8, 5, 3 })));
+	TestSerializeType<MsgPackArchive>(TestClassWithSubType(VariantType(std::string("variant"))));
+}
+
 //-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
@@ -718,6 +736,7 @@ TEST(MsgPackArchive, SerializeStdTypes)
 	TestSerializeType<MsgPackArchive, std::atomic_int>();
 	TestSerializeType<MsgPackArchive, std::pair<std::string, int>>();
 	TestSerializeType<MsgPackArchive, std::tuple<std::string, int, float, bool>>();
+	TestSerializeType<MsgPackArchive>(std::variant<int, std::string, TestPointClass>(TestPointClass(1, 2)));
 
 	TestSerializeType<MsgPackArchive>(std::make_unique<std::string>("test"));
 	TestSerializeType<MsgPackArchive>(std::make_shared<std::string>("test"));

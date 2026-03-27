@@ -27,6 +27,7 @@
 #include <tuple>
 #include <filesystem>
 #include <atomic>
+#include <variant>
 #if defined(__cpp_lib_memory_resource)
 #include <memory_resource>
 #endif
@@ -205,6 +206,39 @@ template <typename ...TArgs>
 	std::apply([](auto&&... args) {
 		((BuildFixture(args)), ...);
 	}, value);
+}
+
+namespace AutoFixtureDetail
+{
+	template <size_t TIndex = 0, typename... TArgs>
+	void BuildVariantFixture(std::variant<TArgs...>& value, size_t activeIndex)
+	{
+		if constexpr (TIndex < sizeof...(TArgs))
+		{
+			if (activeIndex == TIndex)
+			{
+				value.template emplace<TIndex>();
+				::BuildFixture(std::get<TIndex>(value));
+			}
+			else
+			{
+				BuildVariantFixture<TIndex + 1>(value, activeIndex);
+			}
+		}
+	}
+}
+
+/**
+ * @brief Builds a test fixture for `std::variant` value.
+ *
+ * Randomly selects one of the alternatives and initializes it.
+ */
+template <typename ...TArgs>
+[[maybe_unused]] static void BuildFixture(std::variant<TArgs...>& value)
+{
+	static_assert(sizeof...(TArgs) > 0);
+	const size_t activeIndex = static_cast<size_t>(std::rand()) % sizeof...(TArgs);
+	AutoFixtureDetail::BuildVariantFixture(value, activeIndex);
 }
 
 /**

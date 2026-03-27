@@ -8,6 +8,7 @@
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/atomic.h"
 
@@ -72,6 +73,31 @@ TEST(STD_Types, SerializeOptionalAsClassMember) {
 
 TEST(STD_Types, SerializeOptionalAsClassMemberWithNull) {
 	TestSerializeType<ArchiveStub>(TestClassWithSubType<std::optional<float>>(std::nullopt));
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::variant
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantWithPrimitiveAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, std::string, float>(123));
+}
+
+TEST(STD_Types, SerializeVariantWithStringAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, std::string, float>(std::string("test")));
+}
+
+TEST(STD_Types, SerializeVariantWithObjectAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, TestPointClass, std::vector<int>>(TestPointClass(10, 20)));
+}
+
+TEST(STD_Types, SerializeVariantWithArrayAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, TestPointClass, std::vector<int>>(std::vector<int>{ 1, 2, 3, 4 }));
+}
+
+TEST(STD_Types, SerializeVariantAsClassMember) {
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(TestPointClass(7, 11))));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(std::vector<int>{ 3, 1, 4 })));
 }
 
 //-----------------------------------------------------------------------------

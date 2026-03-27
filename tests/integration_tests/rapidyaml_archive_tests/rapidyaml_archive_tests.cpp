@@ -14,6 +14,7 @@
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 
@@ -476,6 +477,23 @@ TEST(RapidYamlArchive, SerializeStdOptionalAsObjectMember)
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
 }
 
+TEST(RapidYamlArchive, SerializeStdVariantAsRootElement)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<YamlArchive>(VariantType(321));
+	TestSerializeType<YamlArchive>(VariantType(std::string("test")));
+	TestSerializeType<YamlArchive>(VariantType(TestPointClass(5, 8)));
+	TestSerializeType<YamlArchive>(VariantType(std::vector<int>{ 1, 2, 3 }));
+}
+
+TEST(RapidYamlArchive, SerializeStdVariantAsObjectMember)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<YamlArchive>(TestClassWithSubType(VariantType(TestPointClass(13, 21))));
+	TestSerializeType<YamlArchive>(TestClassWithSubType(VariantType(std::vector<int>{ 8, 5, 3 })));
+	TestSerializeType<YamlArchive>(TestClassWithSubType(VariantType(std::string("variant"))));
+}
+
 //-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
@@ -484,6 +502,7 @@ TEST(RapidYamlArchive, SerializeStdTypes)
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::atomic_int>>();
 	TestSerializeType<YamlArchive, std::pair<std::string, int>>();
 	TestSerializeType<YamlArchive, std::tuple<std::string, int, float, bool>>();
+	TestSerializeType<YamlArchive>(TestClassWithSubType(std::variant<int, std::string, TestPointClass>(TestPointClass(1, 2))));
 
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));

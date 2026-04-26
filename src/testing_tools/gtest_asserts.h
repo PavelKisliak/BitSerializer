@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -8,6 +8,47 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include "bitserializer/serialization_detail/generic_container.h"
+
+
+/**
+ * @brief Invokes @p fn with optional @p args and returns the caught exception.
+ * @details Supports lambdas, free functions, and member function pointers via @c std::invoke.
+ * @tparam TEx Expected exception type (must be copy-constructible).
+ * @tparam TFn Callable type.
+ * @tparam TArgs Argument types.
+ * @param fn Callable to execute.
+ * @param args Arguments to forward to @p fn.
+ * @return Copy of the caught exception.
+ * @note Fails the test if no exception or a wrong type is thrown.
+ *
+ * @code
+ * // 1. Lambda
+ * auto ex1 = GTestExpectException<MyErr>([] { do_something(); });
+ *
+ * // 2. Member function + object + args
+ * MyClass obj;
+ * auto ex2 = GTestExpectException<MyErr>(&MyClass::process, obj, "data", 42);
+ *
+ * // 3. Free function + args
+ * auto ex3 = GTestExpectException<MyErr>(free_func, "arg");
+ * @endcode
+ */
+template <typename TEx, typename TFn, typename... TArgs>
+TEx GTestExpectException(TFn&& fn, TArgs&&... args)
+{
+	static_assert(std::is_copy_constructible_v<TEx>, "TEx must be copy-constructible.");
+	try {
+		std::invoke(std::forward<TFn>(fn), std::forward<TArgs>(args)...);
+	}
+	catch (const TEx& e) {
+		return e;
+	}
+	catch (...) {
+		ADD_FAILURE() << "Expected '" << typeid(TEx).name() << "', but got a different exception.";
+	}
+	ADD_FAILURE() << "Expected '" << typeid(TEx).name() << "', but nothing was thrown.";
+	throw std::logic_error("gtest assertion failure");
+}
 
 template <typename T, std::enable_if_t<std::is_integral_v<T>, int> = 0>
 void GTestExpectEq(T expected, T actual)

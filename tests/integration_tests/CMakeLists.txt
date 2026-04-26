@@ -19,3 +19,7 @@ endif()
 if(BUILD_MSGPACK_ARCHIVE)
     add_subdirectory(msgpack_archive_tests)
 endif()
+
+if(BUILD_JSON_ARCHIVE)
+    add_subdirectory(json_archive_tests)
+endif()

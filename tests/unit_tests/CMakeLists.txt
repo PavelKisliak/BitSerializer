@@ -10,3 +10,7 @@ endif()
 if(BUILD_MSGPACK_ARCHIVE)
     add_subdirectory(msgpack_tests)
 endif()
+
+if(BUILD_JSON_ARCHIVE)
+    add_subdirectory(json_tests)
+endif()

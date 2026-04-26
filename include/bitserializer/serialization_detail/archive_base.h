@@ -120,6 +120,36 @@ namespace BitSerializer
 		TBase& Object;
 	};
 
+	/**
+	 * @brief Opaque wrapper for payload passthrough.
+	 * @tparam T          Underlying storage type (e.g. std::string, std::vector<uint8_t>)
+	 * @tparam TFormat    Archive format type for compile-time safety & compatibility checks
+	 */
+	template <typename T, ArchiveType TFormat>
+	class RawPayload
+	{
+	public:
+		using value_type = T;
+		static constexpr ArchiveType Format = TFormat;
+
+		RawPayload() = default;
+		explicit RawPayload(T&& data) noexcept(std::is_nothrow_move_constructible_v<T>) : mData(std::move(data)) { }
+		explicit RawPayload(const T& data) : mData(data) {}
+
+		[[nodiscard]] const T& Get() const noexcept { return mData; }
+		[[nodiscard]] T& Get() noexcept { return mData; }
+
+		RawPayload(const RawPayload&) = default;
+		RawPayload(RawPayload&&) noexcept(std::is_nothrow_move_constructible_v<T>) = default;
+		RawPayload& operator=(const RawPayload&) = default;
+		RawPayload& operator=(RawPayload&&) noexcept(std::is_nothrow_move_assignable_v<T>) = default;
+		~RawPayload() = default;
+
+	private:
+		T mData;
+	};
+
+
 	namespace Detail
 	{
 		/**

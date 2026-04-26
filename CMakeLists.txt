@@ -294,7 +294,7 @@ endif()
 
 # BitSerializer JSON archive
 if(BUILD_JSON_ARCHIVE)
-    # MsgPack archive object files
+    # JSON archive object files
     add_library(json_impl OBJECT
         "src/json/json_archive.cpp" "src/json/json_traits.h"
         "src/json/json_string_readers.h" "src/json/json_string_readers.cpp"
@@ -304,12 +304,6 @@ if(BUILD_JSON_ARCHIVE)
     if(BUILD_SHARED_LIBS)
         target_compile_definitions(json_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
     endif()
-
-    # Temporary
-    find_package(RapidJSON CONFIG REQUIRED)
-    target_link_libraries(json_impl PUBLIC
-        rapidjson
-    )
 
     # JSON archive public library
     set(JSON_ARCHIVE_NAME "json-archive")
@@ -324,12 +318,6 @@ if(BUILD_JSON_ARCHIVE)
     set_target_properties(${JSON_ARCHIVE_NAME}
         PROPERTIES
             OUTPUT_NAME "bitserializer-json"
-    )
-
-    target_link_libraries(${JSON_ARCHIVE_NAME} INTERFACE
-        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
-        # Temporary
-        rapidjson
     )
 endif()
 

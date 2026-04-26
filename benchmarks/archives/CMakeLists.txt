@@ -29,6 +29,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:"RAPIDYAML_BENCHMARK">
     $<$<BOOL:${BUILD_CSV_ARCHIVE}>:"CSV_BENCHMARK">
     $<$<BOOL:${BUILD_MSGPACK_ARCHIVE}>:"MSGPACK_BENCHMARK">
+    $<$<BOOL:${BUILD_JSON_ARCHIVE}>:"JSON_BENCHMARK">
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -38,4 +39,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:BitSerializer::rapidyaml-archive>
     $<$<BOOL:${BUILD_CSV_ARCHIVE}>:BitSerializer::csv-archive>
     $<$<BOOL:${BUILD_MSGPACK_ARCHIVE}>:BitSerializer::msgpack-archive>
+    $<$<BOOL:${BUILD_JSON_ARCHIVE}>:BitSerializer::json-archive>
 )

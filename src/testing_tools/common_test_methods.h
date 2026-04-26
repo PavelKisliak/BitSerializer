@@ -156,6 +156,31 @@ void TestLoadingToDifferentType(TSource&& value, const TExpected& expected)
 }
 
 /**
+ * @brief Tests skipping key/value in the object when key doesn't match.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ */
+template <typename TArchive>
+void TestSkippingObjectValueWhenMismatchKey()
+{
+	// Arrange
+	TestClassWithMismatchedField arrayOfObjects[3];
+	::BuildFixture(arrayOfObjects);
+
+	TestClassWithMismatchedField actual[3], expected[3];
+	::BuildFixture(actual);
+	std::copy(std::begin(actual), std::end(actual), std::begin(expected));
+
+	// Act
+	std::string outputArchive;
+	BitSerializer::SaveObject<TArchive>(arrayOfObjects, outputArchive);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+
+	// Assert (target fields in the object should not be changed when missing in the archive)
+	GTestExpectEq(expected, actual);
+}
+
+/**
  * @brief Tests serialization and deserialization of a C-style array.
  *
  * @tparam TArchive The archive type used for serialization.

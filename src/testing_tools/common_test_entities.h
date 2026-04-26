@@ -485,6 +485,35 @@ private:
 	TestType mTestField;
 };
 
+class TestClassWithMismatchedField
+{
+public:
+	static void BuildFixture(TestClassWithMismatchedField& fixture)
+	{
+		::BuildFixture(fixture.id);
+	}
+
+	void Assert(const TestClassWithMismatchedField& rhs) const
+	{
+		GTestExpectEq(id, rhs.id);
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		if constexpr (TArchive::IsSaving())
+		{
+			archive << BitSerializer::KeyValue("id", id);
+		}
+		else
+		{
+			archive << BitSerializer::KeyValue("guid", id);
+		}
+	}
+
+	std::string id;
+};
+
 class TestClassWithVersioning
 {
 public:

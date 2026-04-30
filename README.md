@@ -35,7 +35,7 @@ ___
  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be²).
  - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
 
- ¹ Except for the YAML archive, since RapidYaml library does not compile with Clang-cl(Windows) yet.<br />
+ ¹ Versions of the RapidYaml base library less than v0.11.1 does not support Clang-cl(Windows).<br />
  ² Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture.
 
 #### Limitations:

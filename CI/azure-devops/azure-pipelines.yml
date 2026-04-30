@@ -111,7 +111,7 @@ stages:
           image: 'windows-2022'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DBUILD_RAPIDYAML_ARCHIVE=OFF'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:

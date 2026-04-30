@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2020-2025 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2020-2026 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -592,7 +592,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 			template <typename TParser>
 			void Parse(std::string_view inputStr)
 			{
-#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
+#if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 9
+				ryml::Callbacks callbacks;
+				callbacks.set_error_parse(&RapidYamlRootScope::ErrorCallback);
+				c4::yml::EventHandlerTree EventHandlerTree(callbacks);
+				TParser parser(&EventHandlerTree);
+				mTree = parse_in_arena(&parser, c4::csubstr(inputStr.data(), inputStr.size()));
+#elif RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
 				c4::yml::EventHandlerTree EventHandlerTree(ryml::Callbacks(nullptr, nullptr, nullptr, &RapidYamlRootScope::ErrorCallback));
 				TParser parser(&EventHandlerTree);
 				mTree = parse_in_arena(&parser, c4::csubstr(inputStr.data(), inputStr.size()));
@@ -601,6 +607,11 @@ namespace BitSerializer::Yaml::RapidYaml {
 				mTree = parser.parse_in_arena({}, c4::csubstr(inputStr.data(), inputStr.size()));
 #endif
 				mNode = mTree.rootref();
+			}
+
+			static void ErrorCallback(c4::csubstr msg, c4::yml::ErrorDataParse const& errdata, [[maybe_unused]] void* user_dat)
+			{
+				throw ParsingException({ msg.data(), msg.data() + msg.size() }, errdata.ymlloc.line);
 			}
 
 			static void ErrorCallback(const char* msg, size_t length, ryml::Location location, [[maybe_unused]] void* user_data)

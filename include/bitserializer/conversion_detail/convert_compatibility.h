@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -136,14 +136,28 @@ namespace BitSerializer::Convert::Detail
 		template <typename T> const char* _get() { throw; }
 		template <typename T> const wchar_t* _getW() { throw; }
 
-		template <>	constexpr const char* _get<float>() { return "%.7g"; }
-		template <>	constexpr const wchar_t* _getW<float>() { return L"%.7g"; }
+		template <>	constexpr const char* _get<float>() { return "%.9g"; }
+		template <>	constexpr const wchar_t* _getW<float>() { return L"%.9g"; }
 
-		template <>	constexpr const char* _get<double>() { return "%.15g"; }
-		template <>	constexpr const wchar_t* _getW<double>() { return L"%.15g"; }
+		template <>	constexpr const char* _get<double>() { return "%.17g"; }
+		template <>	constexpr const wchar_t* _getW<double>() { return L"%.17g"; }
 
-		template <>	constexpr const char* _get<long double>() { return "%.15Lg"; }
-		template <>	constexpr const wchar_t* _getW<long double>() { return L"%.15Lg"; }
+		template <>	constexpr const char* _get<long double>()
+		{
+			constexpr int p = std::numeric_limits<long double>::max_digits10;
+			if constexpr (p == 18) return "%.18Lg";  // MSVC / ARM (long double == double)
+			if constexpr (p == 21) return "%.21Lg";  // x86 Extended Precision (80-bit)
+			if constexpr (p >= 33) return "%.36Lg";  // Quad precision (128-bit)
+			return "%.21Lg";                         // Fallback
+		}
+		template <>	constexpr const wchar_t* _getW<long double>()
+		{
+			constexpr int p = std::numeric_limits<long double>::max_digits10;
+			if constexpr (p == 18) return L"%.18Lg";
+			if constexpr (p == 21) return L"%.21Lg";
+			if constexpr (p >= 33) return L"%.36Lg";
+			return L"%.21Lg";
+		}
 	}
 
 	/**

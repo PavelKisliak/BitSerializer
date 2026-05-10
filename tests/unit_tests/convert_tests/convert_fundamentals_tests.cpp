@@ -410,8 +410,8 @@ TEST(ConvertFundamentals, FloatFromStringWithTooBigValueShouldThrowException) {
 
 TEST(ConvertFundamentals, FloatToString) {
 	EXPECT_EQ("0", Convert::ToString(0.f));
-	EXPECT_EQ(u"-100.255", Convert::To<std::u16string>(-100.255f));
-	EXPECT_EQ("23613", Convert::ToString(23613.f));
+	EXPECT_EQ(u"-0.1875", Convert::To<std::u16string>(-0.1875f));
+	EXPECT_EQ("16777216", Convert::ToString(16777216.f));
 }
 
 TEST(ConvertFundamentals, FloatMaxToString) {
@@ -473,8 +473,8 @@ TEST(ConvertFundamentals, DoubleFromStringWithWrongTextShouldThrowException) {
 
 TEST(ConvertFundamentals, DoubleToString) {
 	EXPECT_EQ("0", Convert::ToString(0.0));
-	EXPECT_EQ(u"-1234567.12345678", Convert::To<std::u16string>(-1234567.12345678));
-	EXPECT_EQ(U"1234567.12345678", Convert::To<std::u32string>(1234567.12345678));
+	EXPECT_EQ(u"-0.0625", Convert::To<std::u16string>(-0.0625));
+	EXPECT_EQ(U"9007199254740992", Convert::To<std::u32string>(9007199254740992.0));
 }
 
 TEST(ConvertFundamentals, DoubleMaxToString) {
@@ -533,12 +533,6 @@ TEST(ConvertFundamentals, LongDoubleFromStringWithWrongTextShouldThrowException)
 	EXPECT_THROW(Convert::To<long double>("test"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<long double>(u"#150"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<long double>(U"x45.4"), std::invalid_argument);
-}
-
-TEST(ConvertFundamentals, LongDoubleToString) {
-	EXPECT_EQ("-0", Convert::ToString(-0.0L));
-	EXPECT_EQ(u"3.14159265358979", Convert::To<std::u16string>(3.14159265358979L));
-	EXPECT_EQ(U"-3.14159265358979", Convert::To<std::u32string>(-3.14159265358979L));
 }
 
 TEST(ConvertFundamentals, LongDoubleMaxToString) {

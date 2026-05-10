@@ -64,7 +64,7 @@ TEST(ConvertCustomString, ConvertCustomStringToStdString)
 TEST(ConvertCustomString, ConvertNumberToCustomString)
 {
 	EXPECT_EQ("100", Convert::To<TestSpace::CCustomString>(100).ToGenericString());
-	EXPECT_EQ("123.123", Convert::To<TestSpace::CCustomString>(123.123f).ToGenericString());
+	EXPECT_EQ("-0.1875", Convert::To<TestSpace::CCustomString>(-0.1875f).ToGenericString());
 }
 
 TEST(ConvertCustomString, ConvertRawStringToCustomString)

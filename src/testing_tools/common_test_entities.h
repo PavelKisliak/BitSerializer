@@ -249,7 +249,7 @@ protected:
 		{
 			decltype(auto) member = std::get<Index>(*this);
 
-			static const auto key = "Member_" + BitSerializer::Convert::ToString(Index);
+			const auto key = "Member_" + BitSerializer::Convert::ToString(Index);
 			if (mRequired)
 			{
 				archive << BitSerializer::KeyValue(key, member, BitSerializer::Required());

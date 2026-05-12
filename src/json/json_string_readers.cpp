@@ -4,7 +4,9 @@
 *******************************************************************************/
 #include "json_string_readers.h"
 #include "bitserializer/common/text.h"
-#include "json_traits.h"
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
+#include "bitserializer/conversion_detail/convert_compatibility.h"
+#endif
 
 namespace
 {
@@ -281,7 +283,7 @@ namespace
 	{
 		if (SkipWhitespaceAndPeek(inputData, pos, line))
 		{
-			const auto start = inputData.data() + pos;
+			const auto* const start = inputData.data() + pos;
 			T parsedNumber;
 			const std::from_chars_result rc = std::from_chars(start, inputData.data() + inputData.size(), parsedNumber);
 			if (rc.ec == std::errc())
@@ -312,6 +314,46 @@ namespace
 		}
 		throw ParsingException("No more values to read", line, pos);
 	}
+
+#if (BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0)
+	template <typename T, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
+	bool ReadNumber(std::string_view inputData, size_t& pos, T& outValue, size_t& line, const SerializationOptions& serializationOptions)
+	{
+		if (SkipWhitespaceAndPeek(inputData, pos, line))
+		{
+			// Copy to temporary buffer for prepare null-terminated c-string
+			constexpr size_t maxBufSize = 64;
+			const size_t remainingSize = inputData.size() - pos;
+			char buf[maxBufSize];
+
+			const size_t copySize = (remainingSize < maxBufSize - 1) ? remainingSize : maxBufSize - 1;
+			std::memcpy(buf, inputData.data() + pos, copySize);
+			buf[copySize] = '\0';
+
+			errno = 0;
+			char* endPos = nullptr;
+			T result = Convert::Detail::_stdWrappers::_fromStr<T>(buf, &endPos);
+			if (errno == ERANGE)
+			{
+				if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow, "The target field range is insufficient for the value being loaded");
+				}
+				pos += endPos - buf;
+				return false;
+			}
+			if (endPos == buf)
+			{
+				HandleMismatchedTypesPolicy(inputData, pos, line, serializationOptions.mismatchedTypesPolicy);
+				return false;
+			}
+			pos += endPos - buf;
+			outValue = result;
+			return true;
+		}
+		throw ParsingException("No more values to read", line, pos);
+	}
+#endif
 
 	bool ReadString(std::string_view inputData, size_t& pos, std::string_view& outValue, size_t& line, std::string& buffer)
 	{
@@ -431,15 +473,6 @@ namespace
 		// Reached end without closing quote
 		throw ParsingException("Unterminated string literal", line, pos);
 	}
-
-#if !defined(BITSERIALIZER_HAS_FLOAT_FROM_CHARS)
-	template <typename T, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
-	bool ReadNumber(std::string_view inputData, size_t& pos, T& outValue, const SerializationOptions& serializationOptions)
-	{
-		// ToDo:
-		static_assert(false, "Not implemented");
-	}
-#endif
 
 	bool TryConsumeColon(std::string_view inputData, size_t& pos, size_t& line) noexcept
 	{
@@ -637,14 +670,16 @@ namespace BitSerializer::Json::Detail
 		SkipValueImpl(mInputData, mPos, mLineNumber);
 	}
 
-	bool CJsonStringReader::TryConsumeComma() noexcept
+	void CJsonStringReader::ReadValueSeparator()
 	{
 		if (SkipWhitespaceAndPeek(mInputData, mPos, mLineNumber) == ',')
 		{
 			++mPos;
-			return true;
 		}
-		return false;
+		else
+		{
+			throw ParsingException("Missing a comma between elements", mLineNumber, mPos);
+		}
 	}
 
 	bool CJsonStringReader::OpenArray()
@@ -673,7 +708,7 @@ namespace BitSerializer::Json::Detail
 		throw ParsingException("Missing closing bracket ']' at end of array JSON", mLineNumber, mPos);
 	}
 
-	void CJsonStringReader::CloseArray()
+	void CJsonStringReader::CloseArray(bool expectedComma)
 	{
 		while (const char ch = SkipWhitespaceAndPeek(mInputData, mPos, mLineNumber))
 		{
@@ -683,10 +718,21 @@ namespace BitSerializer::Json::Detail
 				return;
 			}
 
-			TryConsumeComma();
+			if (expectedComma)
+			{
+				if (ch == ',')
+				{
+					++mPos;
+				}
+				else
+				{
+					throw ParsingException("Missing a comma between elements", mLineNumber, mPos);
+				}
+			}
 
 			// Skip all remaining elements in the array
 			SkipValueImpl(mInputData, mPos, mLineNumber);
+			expectedComma = true;
 		}
 		throw ParsingException("Missing closing bracket ']' at end of source JSON", mLineNumber, mPos);
 	}
@@ -717,7 +763,7 @@ namespace BitSerializer::Json::Detail
 		throw ParsingException("Missing closing bracket '}' at end of source JSON", mLineNumber, mPos);
 	}
 
-	void CJsonStringReader::CloseObject()
+	void CJsonStringReader::CloseObject(bool expectedComma)
 	{
 		while (const char ch = SkipWhitespaceAndPeek(mInputData, mPos, mLineNumber))
 		{
@@ -727,15 +773,25 @@ namespace BitSerializer::Json::Detail
 				return;
 			}
 
-			// The object is expected to close at the end of the key/value
-			TryConsumeComma();
+			if (expectedComma)
+			{
+				if (ch == ',')
+				{
+					++mPos;
+				}
+				else
+				{
+					throw ParsingException("Missing a comma between elements", mLineNumber, mPos);
+				}
+			}
 
 			// Skip all remaining elements in the object
 			SkipValueImpl(mInputData, mPos, mLineNumber);
 			if (!TryConsumeColon(mInputData, mPos, mLineNumber)) {
-				throw SerializationException(SerializationErrorCode::ParsingError, "Missing a colon between key and value");
+				throw ParsingException("Missing a colon between key and value", mLineNumber, mPos);
 			}
 			SkipValueImpl(mInputData, mPos, mLineNumber);
+			expectedComma = true;
 		}
 		throw ParsingException("Missing closing bracket '}' at end of source JSON", mLineNumber, mPos);
 	}

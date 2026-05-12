@@ -15,7 +15,7 @@ namespace BitSerializer::Json::Detail
 
 		[[nodiscard]] size_t GetPosition() const noexcept override { return mPos; }
 		void SetPosition(size_t pos) override;
-		size_t GetLineNumber() const noexcept override { return mLineNumber; }
+		[[nodiscard]] size_t GetLineNumber() const noexcept override { return mLineNumber; }
 		[[nodiscard]] bool IsEnd() const override { return mPos == mInputData.size(); }
 
 		void ReadKey(std::string_view& key) override;
@@ -46,15 +46,15 @@ namespace BitSerializer::Json::Detail
 
 		void SkipValue() override;
 
-		bool TryConsumeComma() noexcept override;
+		void ReadValueSeparator() override;
 
 		bool OpenArray() override;
 		bool IsArrayEnd() override;
-		void CloseArray() override;
+		void CloseArray(bool expectedComma) override;
 
 		bool OpenObject() override;
 		bool IsObjectEnd() override;
-		void CloseObject() override;
+		void CloseObject(bool expectedComma) override;
 
 	private:
 		size_t mPos = 0;

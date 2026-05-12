@@ -102,7 +102,7 @@ public:
 
 	[[nodiscard]] virtual size_t GetPosition() const noexcept = 0;
 	virtual void SetPosition(size_t pos) = 0;
-	virtual size_t GetLineNumber() const noexcept = 0;
+	[[nodiscard]] virtual size_t GetLineNumber() const noexcept = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
 
 	virtual void ReadKey(std::string_view& key) = 0;
@@ -144,17 +144,17 @@ public:
 
 	[[nodiscard]] virtual ValueType ReadValueType() = 0;
 
-	virtual bool TryConsumeComma() noexcept = 0;
+	virtual void ReadValueSeparator() = 0;
 
 	virtual void SkipValue() = 0;
 
 	virtual bool OpenArray() = 0;
 	virtual bool IsArrayEnd() = 0;
-	virtual void CloseArray() = 0;
+	virtual void CloseArray(bool expectedComma) = 0;
 
 	virtual bool OpenObject() = 0;
 	virtual bool IsObjectEnd() = 0;
-	virtual void CloseObject() = 0;
+	virtual void CloseObject(bool expectedComma) = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -394,7 +394,7 @@ public:
 	{
 		if (!GetContext().IsStackUnwinding())
 		{
-			mJsonReader->CloseArray();
+			mJsonReader->CloseArray(!!mIndex);
 		}
 	}
 
@@ -414,10 +414,7 @@ public:
 	{
 		if (mIndex)
 		{
-			if (!mJsonReader->TryConsumeComma())
-			{
-				throw SerializationException(SerializationErrorCode::ParsingError, "Missing a comma between array elements");
-			}
+			mJsonReader->ReadValueSeparator();
 		}
 
 		if (mJsonReader->ReadValue(value))
@@ -448,16 +445,13 @@ public:
 	{
 		if (mIndex)
 		{
-			if (!mJsonReader->TryConsumeComma())
-			{
-				throw SerializationException(SerializationErrorCode::ParsingError, "Missing a comma between array elements");
-			}
+			mJsonReader->ReadValueSeparator();
 		}
 
 		if (mJsonReader->OpenArray())
 		{
 			++mIndex;
-			return std::make_optional<CJsonReadArrayScope<IJsonReader>>(mJsonReader, GetContext(), this);
+			return std::make_optional<CJsonReadArrayScope<TReader>>(mJsonReader, GetContext(), this);
 		}
 		return std::nullopt;
 	}
@@ -466,16 +460,13 @@ public:
 	{
 		if (mIndex)
 		{
-			if (!mJsonReader->TryConsumeComma())
-			{
-				throw SerializationException(SerializationErrorCode::ParsingError, "Missing a comma between array elements");
-			}
+			mJsonReader->ReadValueSeparator();
 		}
 
 		if (mJsonReader->OpenObject())
 		{
 			++mIndex;
-			return std::make_optional<CJsonReadObjectScope<IJsonReader>>(mJsonReader, GetContext(), this);
+			return std::make_optional<CJsonReadObjectScope<TReader>>(mJsonReader, GetContext(), this);
 		}
 		return std::nullopt;
 	}
@@ -507,7 +498,7 @@ public:
 			{
 				SkipCurrentKeyValue();
 			}
-			mJsonReader->CloseObject();
+			mJsonReader->CloseObject(!!mIndex);
 		}
 	}
 
@@ -580,7 +571,7 @@ public:
 		{
 			if (mJsonReader->OpenArray())
 			{
-				return std::make_optional<CJsonReadArrayScope<IJsonReader>>(mJsonReader, GetContext(), this);
+				return std::make_optional<CJsonReadArrayScope<TReader>>(mJsonReader, GetContext(), this);
 			}
 			OnFinishChildScope();
 		}
@@ -612,11 +603,8 @@ private:
 	{
 		if (mIndex)
 		{
-			if (!mJsonReader->TryConsumeComma()) {
-				throw SerializationException(SerializationErrorCode::ParsingError, "Missing a comma between object elements");
-			}
+			mJsonReader->ReadValueSeparator();
 		}
-
 		mJsonReader->ReadKey(mCurrentKey);
 	}
 

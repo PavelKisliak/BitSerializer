@@ -296,7 +296,7 @@ endif()
 if(BUILD_JSON_ARCHIVE)
     # JSON archive object files
     add_library(json_impl OBJECT
-        "src/json/json_archive.cpp" "src/json/json_traits.h"
+        "src/json/json_archive.cpp"
         "src/json/json_string_readers.h" "src/json/json_string_readers.cpp"
         "src/json/json_string_writers.h" "src/json/json_string_writers.cpp"
     )

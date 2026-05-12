@@ -77,14 +77,14 @@ TYPED_TEST(JsonWriterTest, WriteInt)
 //-----------------------------------------------------------------------------
 TYPED_TEST(JsonWriterTest, WriteFloat)
 {
-	this->mJsonWriter->WriteValue(3.14f);
-	EXPECT_EQ("3.14", this->TakeResult());
+	this->mJsonWriter->WriteValue(-0.1875f);
+	EXPECT_EQ("-0.1875", this->TakeResult());
 }
 
 TYPED_TEST(JsonWriterTest, WriteDouble)
 {
-	this->mJsonWriter->WriteValue(3.141592654);
-	EXPECT_EQ("3.141592654", this->TakeResult());
+	this->mJsonWriter->WriteValue(-0.0625);
+	EXPECT_EQ("-0.0625", this->TakeResult());
 }
 
 //-----------------------------------------------------------------------------

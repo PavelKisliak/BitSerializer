@@ -42,7 +42,7 @@ TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenEmptyJson)
 
 TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenValueInUpperCase)
 {
-	for (auto testJson : { "NULL", "Null" })
+	for (const auto* testJson : { "NULL", "Null" })
 	{
 		this->PrepareReader(testJson);
 		std::nullptr_t value{};
@@ -57,7 +57,7 @@ TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenValueInUpperCase)
 
 TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "true", "123", "[ ]", "{ }" })
+	for (const auto *testJson : { "true", "123", "[ ]", "{ }" })
 	{
 		this->PrepareReader(testJson);
 		std::nullptr_t value{};
@@ -107,7 +107,7 @@ TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenEmptyJson)
 
 TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenValueInUpperCase)
 {
-	for (auto testJson : { "TRUE", "FALSE", "True", "False" })
+	for (const auto *testJson : { "TRUE", "FALSE", "True", "False" })
 	{
 		this->PrepareReader(testJson);
 		bool value{};
@@ -122,7 +122,7 @@ TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenValueInUpperCase)
 
 TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "\"true\"", "3.14", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "\"true\"", "3.14", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		bool value{};
@@ -161,7 +161,7 @@ TYPED_TEST(JsonReaderTest, ReadInt8)
 
 TYPED_TEST(JsonReaderTest, ReadInt8ShouldThrowExceptionWhenOverflow)
 {
-	for (auto testJson : { "-129", "128" })
+	for (const auto *testJson : { "-129", "128" })
 	{
 		this->PrepareReader(testJson);
 		int8_t value{};
@@ -175,7 +175,7 @@ TYPED_TEST(JsonReaderTest, ReadInt8ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadInt8ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		int8_t value{};
@@ -215,7 +215,7 @@ TYPED_TEST(JsonReaderTest, ReadUInt8ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadUInt8ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "-1", "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "-1", "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		uint8_t value{};
@@ -244,7 +244,7 @@ TYPED_TEST(JsonReaderTest, ReadInt16)
 
 TYPED_TEST(JsonReaderTest, ReadInt16ShouldThrowExceptionWhenOverflow)
 {
-	for (auto testJson : { "-32769", "32768" })
+	for (const auto *testJson : { "-32769", "32768" })
 	{
 		this->PrepareReader(testJson);
 		int16_t value{};
@@ -258,7 +258,7 @@ TYPED_TEST(JsonReaderTest, ReadInt16ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadInt16ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		int16_t value{};
@@ -293,7 +293,7 @@ TYPED_TEST(JsonReaderTest, ReadUInt16ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadUInt16ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "-1", "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "-1", "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		uint16_t value{};
@@ -322,7 +322,7 @@ TYPED_TEST(JsonReaderTest, ReadInt32)
 
 TYPED_TEST(JsonReaderTest, ReadInt32ShouldThrowExceptionWhenOverflow)
 {
-	for (auto testJson : { "-2147483649", "2147483648" })
+	for (const auto *testJson : { "-2147483649", "2147483648" })
 	{
 		this->PrepareReader(testJson);
 		int32_t value{};
@@ -336,7 +336,7 @@ TYPED_TEST(JsonReaderTest, ReadInt32ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadInt32ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		int32_t value{};
@@ -372,7 +372,7 @@ TYPED_TEST(JsonReaderTest, ReadUInt32ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadUInt32ShouldThrowExceptionWhenMismatchedType)
 {
-	for (auto testJson : { "-1", "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "-1", "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		uint32_t value{};
@@ -412,7 +412,7 @@ TYPED_TEST(JsonReaderTest, ReadInt64ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadInt64ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		int64_t value{};
@@ -457,7 +457,7 @@ TYPED_TEST(JsonReaderTest, ReadUInt64ShouldThrowExceptionWhenOverflow)
 
 TYPED_TEST(JsonReaderTest, ReadUInt64ShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "-1", "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "-1", "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		uint64_t value{};
@@ -504,7 +504,7 @@ TYPED_TEST(JsonReaderTest, ReadFloat)
 
 TYPED_TEST(JsonReaderTest, ReadFloatShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		float value{};
@@ -549,7 +549,7 @@ TYPED_TEST(JsonReaderTest, ReadDouble)
 
 TYPED_TEST(JsonReaderTest, ReadDoubleShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "\"123\"", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "\"123\"", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		double value{};
@@ -753,7 +753,7 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenEmptyJson)
 
 TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "123", "false", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "123", "false", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		std::string_view actualStr;
@@ -781,8 +781,7 @@ TYPED_TEST(JsonReaderTest, ReadArrayWithEmptySize)
 	this->PrepareReader("[]");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 	EXPECT_TRUE(this->mJsonReader->IsArrayEnd());
-	EXPECT_FALSE(this->mJsonReader->TryConsumeComma());
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -798,41 +797,40 @@ TYPED_TEST(JsonReaderTest, ReadArrayWithPrimitives)
 	bool boolean = false;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(boolean));
 	EXPECT_TRUE(boolean);
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	ASSERT_TRUE(this->mJsonReader->ReadValue(boolean));
 	EXPECT_FALSE(boolean);
 	ASSERT_FALSE(this->mJsonReader->IsArrayEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read integer
 	int64_t integer = 0;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(integer));
 	EXPECT_EQ(123456789, integer);
 	ASSERT_FALSE(this->mJsonReader->IsArrayEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read floating
 	float number = 0.f;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(number));
 	EXPECT_EQ(3.14f, number);
 	ASSERT_FALSE(this->mJsonReader->IsArrayEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read string
 	std::string_view str;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(str));
 	EXPECT_EQ("text", str);
 	ASSERT_FALSE(this->mJsonReader->IsArrayEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read null value
 	std::nullptr_t nullValue;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(nullValue));
 
 	// Check for correct handling of the end of array
-	EXPECT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsArrayEnd());
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -849,25 +847,24 @@ TYPED_TEST(JsonReaderTest, ReadArrayOfArrays)
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 	int64_t integer = 0;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(integer));
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	EXPECT_EQ(1, integer);
 
 	std::string_view str;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(str));
 	EXPECT_EQ("test", str);
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 
 	// Read 2nd element - child array
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 	bool boolean = false;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(boolean));
 	EXPECT_TRUE(boolean);
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 
 	// Check for correct handling of the end of array
-	ASSERT_FALSE(this->mJsonReader->TryConsumeComma());
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 	EXPECT_EQ(4, this->mJsonReader->GetLineNumber());
 }
@@ -887,10 +884,9 @@ TYPED_TEST(JsonReaderTest, ReadArrayOfObjects)
 
 	// Read 1st element - object (empty)
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
-	ASSERT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsObjectEnd());
-	this->mJsonReader->CloseObject();
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->CloseObject(true);
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read 2nd element - object with two key/value pairs
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
@@ -901,18 +897,17 @@ TYPED_TEST(JsonReaderTest, ReadArrayOfObjects)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(integer));
 	EXPECT_EQ(1, integer);
 
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	this->mJsonReader->ReadKey(key);
 	EXPECT_EQ("key2", key);
 	std::string_view value;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
 	EXPECT_EQ("test", value);
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(true);
 
 	// Check for correct handling of the end of array
-	ASSERT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsArrayEnd());
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(false);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -927,7 +922,7 @@ TYPED_TEST(JsonReaderTest, OpenArrayShouldThrowExceptionWhenEmptyJson)
 
 TYPED_TEST(JsonReaderTest, OpenArrayShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "true", "3.14", "{ }" })
+	for (const auto *testJson : { "true", "3.14", "{ }" })
 	{
 		this->PrepareReader(testJson);
 		BitSerializer::SerializationException ex1 = GTestExpectException<BitSerializer::SerializationException>(&TypeParam::OpenArray, this->mJsonReader);
@@ -948,7 +943,7 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldSkipRemainingElements)
 	std::string testJson = R"([true, 123456789, 3.14, "text", null])";
 	this->PrepareReader(testJson);
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(false);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -957,7 +952,7 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCloseBracket
 	this->PrepareReader("[");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.Line);
 	EXPECT_EQ(1, ex.Offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket ']' at end of source JSON", ex.what());
@@ -968,18 +963,25 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenRedundantCommaBefor
 	this->PrepareReader("[,]");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.Offset);
 	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
 }
 
-//TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCommaBetweenElements)
-//{
-//	std::string testJson = R"([true false])";
-//	ASSERT_TRUE(this->mJsonReader->OpenArray());
-//	EXPECT_THROW(this->mJsonReader->CloseArray(), BitSerializer::ParsingException);
-//}
+TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCommaBetweenElements)
+{
+	this->PrepareReader(R"([
+	true
+	false
+])");
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
+	EXPECT_EQ(3, ex.Line);
+	EXPECT_EQ(9, ex.Offset);
+	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
+}
 
 TYPED_TEST(JsonReaderTest, IsArrayEndShouldThrowExceptionWhenMissingCloseBracket)
 {
@@ -992,6 +994,19 @@ TYPED_TEST(JsonReaderTest, IsArrayEndShouldThrowExceptionWhenMissingCloseBracket
 	EXPECT_STREQ("Parsing error: Missing closing bracket ']' at end of array JSON", ex.what());
 }
 
+TYPED_TEST(JsonReaderTest, ReadValueSeparatorShouldThrowExceptionWhenMissingComma)
+{
+	this->PrepareReader("[true false]");
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	bool value;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueSeparator, this->mJsonReader);
+	EXPECT_EQ(1, ex.Line);
+	EXPECT_EQ(6, ex.Offset);
+	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
+}
+
 //-----------------------------------------------------------------------------
 // Tests of reading objects
 //-----------------------------------------------------------------------------
@@ -1000,8 +1015,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithEmptySize)
 	this->PrepareReader("{}");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 	EXPECT_TRUE(this->mJsonReader->IsObjectEnd());
-	EXPECT_FALSE(this->mJsonReader->TryConsumeComma());
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -1027,7 +1041,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithPrimitives)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(boolean));
 	EXPECT_TRUE(boolean);
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read integer
 	this->mJsonReader->ReadKey(key);
@@ -1036,7 +1050,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithPrimitives)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(integer));
 	EXPECT_EQ(-123456789, integer);
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read floating
 	this->mJsonReader->ReadKey(key);
@@ -1045,7 +1059,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithPrimitives)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(number));
 	EXPECT_EQ(3.14f, number);
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read string
 	this->mJsonReader->ReadKey(key);
@@ -1054,7 +1068,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithPrimitives)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(str));
 	EXPECT_EQ("text", str);
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read null value
 	this->mJsonReader->ReadKey(key);
@@ -1063,9 +1077,8 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithPrimitives)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(nullValue));
 
 	// Check for correct handling of the end of object
-	EXPECT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsObjectEnd());
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(true);
 	EXPECT_EQ(7, this->mJsonReader->GetLineNumber());
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
@@ -1091,22 +1104,21 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithChildArray)
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
 
 	// Read child array
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	this->mJsonReader->ReadKey(key);
 	EXPECT_EQ("key2", key);
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 	int integer;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(integer));
 	EXPECT_EQ(1, integer);
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	ASSERT_TRUE(this->mJsonReader->ReadValue(integer));
 	EXPECT_EQ(2, integer);
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(false);
 
 	// Check for correct handling of the end of object
-	EXPECT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsObjectEnd());
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -1136,7 +1148,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithChildObject)
 	bool boolean;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(boolean));
 	EXPECT_TRUE(boolean);
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read integer
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
@@ -1147,13 +1159,12 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithChildObject)
 	EXPECT_EQ(-1, integer);
 
 	// Check for correct handling of the end of child object
-	ASSERT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsObjectEnd());
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(true);
 
 	// Read string from root object
 	ASSERT_FALSE(this->mJsonReader->IsObjectEnd());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	this->mJsonReader->ReadKey(key);
 	EXPECT_EQ("key2", key);
 	std::string_view str;
@@ -1161,9 +1172,8 @@ TYPED_TEST(JsonReaderTest, ReadObjectWithChildObject)
 	EXPECT_EQ("test", str);
 
 	// Check for correct handling of the end of object
-	EXPECT_FALSE(this->mJsonReader->TryConsumeComma());
 	ASSERT_TRUE(this->mJsonReader->IsObjectEnd());
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -1179,7 +1189,7 @@ TYPED_TEST(JsonReaderTest, OpenObjectShouldThrowExceptionEmptyJson)
 
 TYPED_TEST(JsonReaderTest, OpenObjectShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (auto testJson : { "true", "3.14", "[ ]" })
+	for (const auto *testJson : { "true", "3.14", "[ ]" })
 	{
 		this->PrepareReader(testJson);
 		BitSerializer::SerializationException ex1 = GTestExpectException<BitSerializer::SerializationException>(&TypeParam::OpenObject, this->mJsonReader);
@@ -1242,7 +1252,7 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldSkipRemainingElements)
 })";
 	this->PrepareReader(testJson);
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
-	this->mJsonReader->CloseObject();
+	this->mJsonReader->CloseObject(false);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -1251,7 +1261,7 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCloseBracke
 	this->PrepareReader("{");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.Line);
 	EXPECT_EQ(1, ex.Offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket '}' at end of source JSON", ex.what());
@@ -1262,21 +1272,38 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenRedundantCommaBefo
 	this->PrepareReader("{,}");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.Offset);
 	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
 }
 
-//TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCommaBetweenKeyValuePairs)
-//{
-//	std::string testJson = R"({
-//	"key1": true
-//	"key2": -123456789
-//})";
-//	ASSERT_TRUE(this->mJsonReader->OpenObject());
-//	EXPECT_THROW(this->mJsonReader->CloseObject(), BitSerializer::ParsingException);
-//}
+TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCommaBetweenKeyValuePairs)
+{
+	this->PrepareReader(R"({
+	"key1": true
+	"key2": -123456789
+})");
+	ASSERT_TRUE(this->mJsonReader->OpenObject());
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
+	EXPECT_EQ(3, ex.Line);
+	EXPECT_EQ(17, ex.Offset);
+	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingColonBetweenKeyValue)
+{
+	this->PrepareReader(R"({
+	"key1" true
+})");
+	ASSERT_TRUE(this->mJsonReader->OpenObject());
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
+	EXPECT_EQ(2, ex.Line);
+	EXPECT_EQ(10, ex.Offset);
+	EXPECT_STREQ("Parsing error: Missing a colon between key and value", ex.what());
+}
 
 TYPED_TEST(JsonReaderTest, IsObjectEndShouldThrowExceptionWhenMissingCloseBracket)
 {
@@ -1305,13 +1332,13 @@ TYPED_TEST(JsonReaderTest, GetPosition)
 	EXPECT_TRUE(this->mJsonReader->ReadValue(boolean));
 	EXPECT_EQ(5U, this->mJsonReader->GetPosition());
 
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	EXPECT_EQ(6U, this->mJsonReader->GetPosition());
 	int integer;
 	EXPECT_TRUE(this->mJsonReader->ReadValue(integer));
 	EXPECT_EQ(11U, this->mJsonReader->GetPosition());
 
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 	EXPECT_EQ(12U, this->mJsonReader->GetPosition());
 }
 
@@ -1355,11 +1382,11 @@ TYPED_TEST(JsonReaderTest, IsEnd)
 	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
 	EXPECT_FALSE(this->mJsonReader->IsEnd());
 
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
 	EXPECT_FALSE(this->mJsonReader->IsEnd());
 
-	this->mJsonReader->CloseArray();
+	this->mJsonReader->CloseArray(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
@@ -1375,7 +1402,7 @@ TYPED_TEST(JsonReaderTest, ReadTypeOfNull)
 TYPED_TEST(JsonReaderTest, ReadTypeOfBoolean)
 {
 	constexpr auto expectedType = BitSerializer::Json::Detail::ValueType::Boolean;
-	for (auto testJson : { "true", "false" })
+	for (const auto *testJson : { "true", "false" })
 	{
 		this->PrepareReader({ testJson });
 		EXPECT_EQ(expectedType, this->mJsonReader->ReadValueType());
@@ -1482,7 +1509,7 @@ TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenEmptyJson)
 
 TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenInvalidSequence)
 {
-	for (auto testJson : { "//", "()", "#", "True", "Null" })
+	for (const auto *testJson : { "//", "()", "#", "True", "Null" })
 	{
 		this->PrepareReader(testJson);
 		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
@@ -1576,7 +1603,7 @@ TYPED_TEST(JsonReaderTest, SkipElementOfArray)
 	// Skip first element (object)
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 	this->mJsonReader->SkipValue();
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 	EXPECT_EQ(6, this->mJsonReader->GetLineNumber());
 
 	// Read second element
@@ -1668,7 +1695,7 @@ TYPED_TEST(JsonReaderTest, SkipKeyValueInObject)
 	this->mJsonReader->ReadKey(key);
 	this->mJsonReader->SkipValue();
 	EXPECT_EQ(2, this->mJsonReader->GetLineNumber());
-	ASSERT_TRUE(this->mJsonReader->TryConsumeComma());
+	this->mJsonReader->ReadValueSeparator();
 
 	// Read second key/value
 	this->mJsonReader->ReadKey(key);

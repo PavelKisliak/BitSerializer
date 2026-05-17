@@ -703,7 +703,7 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenIncompleteUnicodeSe
 	});
 	EXPECT_EQ(1, ex.Line);
 	EXPECT_EQ(6, ex.Offset);
-	EXPECT_STREQ("Parsing error: Incomplete \\u escape sequence", ex.what());
+	EXPECT_STREQ("Parsing error: Invalid hex digit in \\u escape", ex.what());
 }
 
 TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenUnexpectedEndInUnicodeSequence)
@@ -730,13 +730,93 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenInvalidInvalidHexDi
 	EXPECT_STREQ("Parsing error: Invalid hex digit in \\u escape", ex2.what());
 }
 
-//TYPED_TEST(JsonReaderTest, ReadStringWithSurrogatePairs)
-//{
-//	std::string_view actualStr;
-//	this->PrepareReader(R"("\uD83D\uDE00test\uD83D\uDE00")");
-//	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
-//	EXPECT_EQ(UTF8("😀test😀"), actualStr);
-//}
+TYPED_TEST(JsonReaderTest, ReadStringWithSurrogatePairs)
+{
+	std::string_view actualStr;
+	this->PrepareReader(R"("\uD83D\uDE00test\uD83D\uDE00")");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(UTF8("😀test😀"), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringWithMultipleSurrogatePairs)
+{
+	std::string_view actualStr;
+	this->PrepareReader(R"("\uD83D\uDE00\uD83D\uDE01\uD83D\uDE02")");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(UTF8("😀😁😂"), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringWithSurrogatePairAndEscapes)
+{
+	std::string_view actualStr;
+	this->PrepareReader(R"("hello\n\uD83D\uDE00\tworld")");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(UTF8("hello\n😀\tworld"), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringWithHighBmpUnicodeEscape)
+{
+	std::string_view actualStr;
+	this->PrepareReader(R"("\uFFFD")");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(UTF8("\uFFFD"), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringWithBomUnicodeEscape)
+{
+	std::string_view actualStr;
+	this->PrepareReader(R"("\uFEFF")");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(UTF8("\uFEFF"), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringWithNullUnicodeEscape)
+{
+	std::string_view actualStr;
+	this->PrepareReader(R"("\u0000")");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(std::string_view("\0", 1), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenLoneLowSurrogate)
+{
+	std::string_view actualStr;
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->PrepareReader(R"("\uDC00test")");
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Invalid surrogate pair", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateFollowedByHigh)
+{
+	std::string_view actualStr;
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->PrepareReader(R"("\uD800\uD800")");
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Invalid low surrogate", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateNotFollowedByUnicode)
+{
+	std::string_view actualStr;
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->PrepareReader(R"("\uD800test")");
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Incomplete surrogate pair", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateAtEndOfString)
+{
+	std::string_view actualStr;
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->PrepareReader(R"("\uD800")");
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Incomplete surrogate pair", ex.what());
+}
 
 TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenEmptyJson)
 {

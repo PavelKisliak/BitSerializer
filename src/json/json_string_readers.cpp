@@ -10,7 +10,79 @@
 
 namespace
 {
-	using namespace BitSerializer;
+	constexpr uint8_t kHexLUT[256] =
+	{
+		// 0x00-0x2F: all invalid (0xFF)
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		// 0x30-0x39: '0'-'9' -> 0-9
+		0x0,  0x1,  0x2,  0x3,  0x4,  0x5,  0x6,  0x7,  0x8,  0x9,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		// 0x40: '@' invalid, 0x41-0x46: 'A'-'F' -> 10-15
+		0xFF,
+		0xA,  0xB,  0xC,  0xD,  0xE,  0xF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		// 0x60: '`' invalid, 0x61-0x66: 'a'-'f' -> 10-15
+		0xFF,
+		0xA,  0xB,  0xC,  0xD,  0xE,  0xF,
+		// 0x67-0xFF: all invalid
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+	};
+
+	[[nodiscard]] uint16_t ParseHex4(std::string_view input, size_t pos, size_t lineNumber)
+	{
+		if (pos + 4 > input.size()) {
+			throw BitSerializer::ParsingException("Unexpected end of input in string escape sequence", lineNumber, pos);
+		}
+
+		uint16_t codepoint = 0;
+		for (int i = 0; i < 4; ++i)
+		{
+			const uint8_t hexVal = kHexLUT[static_cast<uint8_t>(input[pos + i])];
+			if (hexVal == 0xFF) {
+				throw BitSerializer::ParsingException("Invalid hex digit in \\u escape", lineNumber, pos + i);
+			}
+			codepoint = (codepoint << 4) | hexVal;
+		}
+		return codepoint;
+	}
+
+	void AppendUtf8Codepoint(std::string& buffer, uint32_t codepoint) noexcept
+	{
+		if (codepoint < 0x80)
+		{
+			buffer += static_cast<char>(codepoint);
+		}
+		else if (codepoint < 0x800)
+		{
+			buffer += static_cast<char>(0xC0 | (codepoint >> 6));
+			buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
+		}
+		else if (codepoint < 0x10000)
+		{
+			// BMP: 3 bytes
+			buffer += static_cast<char>(0xE0 | (codepoint >> 12));
+			buffer += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+			buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
+		}
+		else
+		{
+			// Supplementary plane (surrogate pairs decoded): 4 bytes
+			buffer += static_cast<char>(0xF0 | (codepoint >> 18));
+			buffer += static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F));
+			buffer += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+			buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
+		}
+	}
 
 	char SkipWhitespaceAndPeek(std::string_view data, size_t& pos, size_t& line) noexcept
 	{
@@ -358,32 +430,30 @@ namespace
 	bool ReadString(std::string_view inputData, size_t& pos, std::string_view& outValue, size_t& line, std::string& buffer)
 	{
 		char ch = SkipWhitespaceAndPeek(inputData, pos, line);
-		if (ch == 0)
-		{
+		if (ch == 0) {
 			throw ParsingException("No more values to read", line, inputData.size());
 		}
-		if (ch != '"')
-		{
+		if (ch != '"') {
 			return false;
 		}
 
 		++pos; // Skip opening quote
 		const size_t start = pos;
-		const size_t f = inputData.find_first_of("\"\\", pos);
-		if (f == std::string_view::npos)
-		{
-			// Reached end without closing quote
+		const size_t firstEscape = inputData.find_first_of("\"\\", pos);
+		if (firstEscape == std::string_view::npos) {
 			throw ParsingException("Unterminated string literal", line, inputData.size());
 		}
-		if (inputData[f] == '"')
+
+		// Fast path: string without escape sequences
+		if (inputData[firstEscape] == '"')
 		{
-			// End of string
-			outValue = std::string_view(inputData.data() + start, f - start);
-			pos = f + 1;
+			outValue = std::string_view(inputData.data() + start, firstEscape - start);
+			pos = firstEscape + 1;
 			return true;
 		}
 
-		pos = f;
+		// Slow path: string contains escape sequences — copy prefix and process via buffer
+		pos = firstEscape;
 		buffer.clear();
 		buffer.assign(inputData.data() + start, pos - start);
 
@@ -391,20 +461,20 @@ namespace
 		do
 		{
 			ch = inputData[pos];
+			++pos;
 			if (ch == '"')
 			{
 				outValue = buffer;
-				++pos;
 				return true;
 			}
 			if (ch == '\\')
 			{
-				++pos;
-				if (pos >= inputData.size()) {
+				if (pos >= size) {
 					throw ParsingException("Unexpected end of input in string escape sequence", line, pos);
 				}
 
 				const char esc = inputData[pos];
+				++pos;
 				switch (esc)
 				{
 				case '"':  buffer += '"';  break;
@@ -417,60 +487,48 @@ namespace
 				case 't':  buffer += '\t'; break;
 				case 'u':
 				{
-					if (pos + 5 > inputData.size()) {
-						throw ParsingException("Unexpected end of input in string escape sequence", line, pos);
+					if (pos + 4 > size) {
+						throw ParsingException("Unexpected end of input in string escape sequence", line, pos - 1);
 					}
-					// Parse 4 hex digits
-					uint16_t codepoint = 0;
-					for (int i = 0; i < 4; ++i)
+
+					const uint16_t codepoint = ParseHex4(inputData, pos, line);
+					if (codepoint >= 0xD800 && codepoint <= 0xDBFF)
 					{
-						char hexCh = inputData[pos + 1 + i];
-						if ((hexCh >= '0' && hexCh <= '9')) {
-							codepoint = (codepoint << 4) + (hexCh - '0');
+						// High surrogate: expect \uXXXX low surrogate immediately after
+						if (pos + 10 > size || inputData[pos + 4] != '\\' || inputData[pos + 5] != 'u') {
+							throw ParsingException("Incomplete surrogate pair", line, pos);
 						}
-						else if ((hexCh >= 'a' && hexCh <= 'f')) {
-							codepoint = (codepoint << 4) + (hexCh - 'a' + 10);
+						const uint16_t lowSurrogate = ParseHex4(inputData, pos + 6, line);
+						if (lowSurrogate < 0xDC00 || lowSurrogate > 0xDFFF) {
+							throw ParsingException("Invalid low surrogate", line, pos + 6);
 						}
-						else if ((hexCh >= 'A' && hexCh <= 'F')) {
-							codepoint = (codepoint << 4) + (hexCh - 'A' + 10);
-						}
-						else {
-							throw ParsingException(
-								hexCh == '"' ? "Incomplete \\u escape sequence" : "Invalid hex digit in \\u escape"
-								, line, pos + 1 + i);
-						}
+						const uint32_t fullCp = 0x10000 + ((codepoint - 0xD800) << 10) + (lowSurrogate - 0xDC00);
+						AppendUtf8Codepoint(buffer, fullCp);
+						pos += 10; // Skip \uXXXX\uYYYY
 					}
-					// Basic UTF-8 encoding (assuming codepoint < 0xD800 or valid BMP)
-					if (codepoint < 0x80) {
-						buffer += static_cast<char>(codepoint);
-					}
-					else if (codepoint < 0x800)
+					else if (codepoint >= 0xDC00 && codepoint <= 0xDFFF)
 					{
-						buffer += static_cast<char>(0xC0 | (codepoint >> 6));
-						buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
+						// Lone low surrogate without preceding high surrogate
+						throw ParsingException("Invalid surrogate pair", line, pos);
 					}
 					else
 					{
-						buffer += static_cast<char>(0xE0 | (codepoint >> 12));
-						buffer += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
-						buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
+						// BMP codepoint: 1-3 bytes UTF-8
+						AppendUtf8Codepoint(buffer, codepoint);
+						pos += 4;
 					}
-					pos += 4;
 					break;
 				}
-
 				default:
-					throw ParsingException("Invalid escape sequence", line, pos);
+					throw ParsingException("Invalid escape sequence", line, pos - 1);
 				}
 			}
 			else
 			{
 				buffer.push_back(ch);
 			}
-			++pos;
 		} while (pos < size);
 
-		// Reached end without closing quote
 		throw ParsingException("Unterminated string literal", line, pos);
 	}
 

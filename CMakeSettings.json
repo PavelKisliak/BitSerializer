@@ -812,7 +812,7 @@
       ]
     },
     {
-      "name": "Linux-GCC8-Debug",
+      "name": "Linux-GCC8-x64-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -878,7 +878,7 @@
       ]
     },
     {
-      "name": "Linux-GCC8-Release",
+      "name": "Linux-GCC8-x64-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",
@@ -944,7 +944,7 @@
       ]
     },
     {
-      "name": "Linux-GCC12-CXX20-Debug",
+      "name": "Linux-GCC12-x64-CXX20-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -1010,7 +1010,7 @@
       ]
     },
     {
-      "name": "Linux-GCC12-CXX20-Release",
+      "name": "Linux-GCC12-x64-CXX20-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",
@@ -1076,7 +1076,7 @@
       ]
     },
     {
-      "name": "Linux-Clang8-Debug",
+      "name": "Linux-Clang8-x64-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -1142,7 +1142,7 @@
       ]
     },
     {
-      "name": "Linux-Clang8-Release",
+      "name": "Linux-Clang8-x64-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",
@@ -1208,7 +1208,7 @@
       ]
     },
     {
-      "name": "Linux-Clang14-CXX20-Debug",
+      "name": "Linux-Clang14-x64-CXX20-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -1274,7 +1274,7 @@
       ]
     },
     {
-      "name": "Linux-Clang14-CXX20-Release",
+      "name": "Linux-Clang14-x64-CXX20-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",
@@ -1340,7 +1340,7 @@
       ]
     },
     {
-      "name": "Arm32-Linux-Debug",
+      "name": "Linux-GCC-ARM32-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -1406,7 +1406,7 @@
       ]
     },
     {
-      "name": "Arm32-Linux-Release",
+      "name": "Linux-GCC-ARM32-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",
@@ -1472,7 +1472,7 @@
       ]
     },
     {
-      "name": "Arm64-Linux-CXX20-Debug",
+      "name": "Linux-GCC-ARM64-CXX20-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -1538,7 +1538,7 @@
       ]
     },
     {
-      "name": "Arm64-Linux-CXX20-Release",
+      "name": "Linux-GCC-ARM64-CXX20-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",
@@ -1604,7 +1604,7 @@
       ]
     },
     {
-      "name": "Arm64be-Linux-Debug",
+      "name": "Linux-GCC-ARM64BE-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "cmakeExecutable": "cmake",
@@ -1670,7 +1670,7 @@
       ]
     },
     {
-      "name": "Arm64be-Linux-Release",
+      "name": "Linux-GCC-ARM64BE-Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "cmakeExecutable": "cmake",

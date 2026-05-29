@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -23,17 +23,21 @@ public:
 };
 
 class TestExtSerializableClass { };
-template <class TArchive> void SerializeObject(TArchive&, TestExtSerializableClass&) { }
+
+template <class TArchive>
+static void SerializeObject(TArchive&, TestExtSerializableClass&) { }
 
 class TestExtSerializableArray
 {
 public:
 	[[nodiscard]] constexpr int32_t GetSize() const { return 0; }  // NOLINT(readability-convert-member-functions-to-static)
 };
-template <class TArchive> void SerializeArray(TArchive&, TestExtSerializableArray&) { }
+
+template <class TArchive>
+static void SerializeArray(TArchive&, TestExtSerializableArray&) { }
 
 // External size() for test array serialization
-auto size(const TestExtSerializableArray& value) {
+[[maybe_unused]] static auto size(const TestExtSerializableArray& value) {
 	return value.GetSize();
 }
 
@@ -218,7 +222,7 @@ struct FieldsCounterFixtureWithInheritance : IntFieldsCounterFixture
 };
 
 template<typename TArchive>
-void SerializeObject(TArchive& archive, ExtFieldsCounterFixture& fixture)
+static void SerializeObject(TArchive& archive, ExtFieldsCounterFixture& fixture)
 {
 	archive << KeyValue("x", fixture.x) << KeyValue("y", fixture.y) << KeyValue("z", fixture.z);
 }

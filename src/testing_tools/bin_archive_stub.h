@@ -228,7 +228,6 @@ namespace BitSerializer {
 			BinArchiveStubArrayScope(BinTestIoDataPtr node, SerializationContext& context, BinArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
 				: TArchiveScope<TMode>(context)
 				, BinArchiveStubScopeBase(std::move(node), parent, parentKey)
-				, mIndex(0)
 			{
 				assert(std::holds_alternative<BinTestIoDataArrayPtr>(*mNode));
 			}
@@ -386,7 +385,7 @@ namespace BitSerializer {
 			}
 
 		private:
-			size_t mIndex;
+			size_t mIndex = 0;
 		};
 
 		/**

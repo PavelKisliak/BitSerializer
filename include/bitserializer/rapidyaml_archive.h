@@ -172,7 +172,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 				: TArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(node, parent, parentKey)
 				, mSize(size)
-				, mIndex(0)
 			{
 				assert(mNode.is_seq());
 			}
@@ -313,7 +312,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			size_t mSize;
-			size_t mIndex;
+			size_t mIndex = 0;
 		};
 
 

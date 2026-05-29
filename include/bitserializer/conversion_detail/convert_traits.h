@@ -23,7 +23,7 @@ namespace BitSerializer::Convert::Detail
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<T>(0)) type;
+		using type = decltype(test<T>(0));
 		enum { value = type::value };
 	};
 
@@ -49,7 +49,7 @@ namespace BitSerializer::Convert::Detail
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TSource, TTarget>(0)) type;
+		using type = decltype(test<TSource, TTarget>(0));
 		enum { value = type::value };
 	};
 

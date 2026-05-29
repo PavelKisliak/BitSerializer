@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
@@ -30,8 +30,8 @@ public:
  */
 class ExternalConversionFixture {};
 
-std::string to_string(const ExternalConversionFixture&) { return {}; }
-std::wstring to_wstring(const ExternalConversionFixture&) { return {}; }
+[[maybe_unused]] static std::string to_string(const ExternalConversionFixture&) { return {}; }
+[[maybe_unused]] static std::wstring to_wstring(const ExternalConversionFixture&) { return {}; }
 
 /**
  * @brief Test class without any conversions methods (internal or external).

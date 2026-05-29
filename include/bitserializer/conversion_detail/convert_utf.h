@@ -898,15 +898,15 @@ namespace BitSerializer::Convert::Utf
 namespace BitSerializer::Convert
 {
 	[[deprecated("Moved into sub-namespace `BitSerializer::Convert::Utf::UtfType`")]]
-	typedef Utf::UtfType UtfType;
+	typedef Utf::UtfType UtfType; // NOLINT(modernize-use-using)
 	[[deprecated("Moved into sub-namespace `BitSerializer::Convert::Utf::Utf8`")]]
-	typedef Utf::Utf8 Utf8;
+	typedef Utf::Utf8 Utf8; // NOLINT(modernize-use-using)
 	[[deprecated("Moved into sub-namespace `BitSerializer::Convert::Utf::Utf16Le`")]]
-	typedef Utf::Utf16Le Utf16Le;
+	typedef Utf::Utf16Le Utf16Le; // NOLINT(modernize-use-using)
 	[[deprecated("Moved into sub-namespace `BitSerializer::Convert::Utf::Utf16Be`")]]
-	typedef Utf::Utf16Be Utf16Be;
+	typedef Utf::Utf16Be Utf16Be; // NOLINT(modernize-use-using)
 	[[deprecated("Moved into sub-namespace `BitSerializer::Convert::Utf::Utf32Le`")]]
-	typedef Utf::Utf32Le Utf32Le;
+	typedef Utf::Utf32Le Utf32Le; // NOLINT(modernize-use-using)
 	[[deprecated("Moved into sub-namespace `BitSerializer::Convert::Utf::Utf32Be`")]]
-	typedef Utf::Utf32Be Utf32Be;
+	typedef Utf::Utf32Be Utf32Be; // NOLINT(modernize-use-using)
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_entities.h"
@@ -99,12 +99,12 @@ public:
 	std::string value;
 };
 
-void To(const CExternalConvertFixture& in, std::string& out)
+static void To(const CExternalConvertFixture& in, std::string& out)
 {
 	out = in.value;
 }
 
-void To(std::string_view in, CExternalConvertFixture& out)
+static void To(std::string_view in, CExternalConvertFixture& out)
 {
 	out.value = in;
 }

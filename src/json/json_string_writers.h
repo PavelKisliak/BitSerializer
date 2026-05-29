@@ -247,7 +247,6 @@ namespace BitSerializer::Json::Detail
 			}
 		}
 
-	private:
 		std::string& mOutputString;
 		uint32_t mCurrentPadding = 0;
 		uint16_t mPaddingCharNum;

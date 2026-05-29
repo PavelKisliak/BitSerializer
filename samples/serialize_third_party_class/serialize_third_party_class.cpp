@@ -27,7 +27,7 @@ namespace MyApp
 
 	// Serializes TestThirdPartyClass.
 	template<typename TArchive>
-	void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
+	static void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass)
 	{
 		// Serialize public property
 		archive << KeyValue("x", testThirdPartyClass.x);

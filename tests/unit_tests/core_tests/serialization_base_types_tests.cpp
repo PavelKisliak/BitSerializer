@@ -440,7 +440,7 @@ public:
 };
 
 template<typename TArchive>
-void SerializeObject(TArchive& archive, TestGlobalSerializeObjectFixture& fixture)
+static void SerializeObject(TArchive& archive, TestGlobalSerializeObjectFixture& fixture)
 {
 	archive << KeyValue("Value", fixture.value);
 }
@@ -479,7 +479,7 @@ public:
 };
 
 template<typename TArchive>
-void SerializeArray(TArchive& archive, TestGlobalSerializeArrayFixture& fixture)
+static void SerializeArray(TArchive& archive, TestGlobalSerializeArrayFixture& fixture)
 {
 	for (int& value : fixture.values) {
 		archive << value;

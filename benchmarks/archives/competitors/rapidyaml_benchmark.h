@@ -40,9 +40,8 @@ protected:
 		root |= ryml::SEQ;
 
 		// Save array of objects
-		for (size_t i = 0; i < sourceTestModel.size(); ++i)
+		for (const auto& obj : sourceTestModel)
 		{
-			const auto& obj = sourceTestModel[i];
 			auto yamlObj = root.append_child();
 			yamlObj |= ryml::MAP;
 			yamlObj.append_child() << ryml::key("BooleanValue") << c4::fmt::boolalpha(obj.BooleanValue);

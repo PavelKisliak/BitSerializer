@@ -28,7 +28,7 @@ struct TestObject
 };
 
 template <class TArchive>
-void SerializeObject(TArchive& archive, TestObject& obj)
+static void SerializeObject(TArchive& archive, TestObject& obj)
 {
 	archive << KeyValue("string", obj.string);
 	archive << KeyValue("integer", obj.integer);
@@ -37,7 +37,7 @@ void SerializeObject(TArchive& archive, TestObject& obj)
 	archive << KeyValue("array", obj.array);
 }
 
-std::string PrintAsHexString(const std::string& data)
+static std::string PrintAsHexString(const std::string& data)
 {
 	constexpr char hexChars[] = "0123456789ABCDEF";
 	std::string result;
@@ -52,7 +52,7 @@ std::string PrintAsHexString(const std::string& data)
 }
 
 template <typename TArchive, typename TTestValue>
-void TestSaveAs(std::string_view archiveName, TTestValue& testValue)
+static void TestSaveAs(std::string_view archiveName, TTestValue& testValue)
 {
 	auto result = BitSerializer::SaveObject<TArchive>(testValue);
 	const auto resultSize = std::to_string(result.size());

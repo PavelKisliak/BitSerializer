@@ -466,7 +466,7 @@ public:
 		else
 		{
 			SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(rapidjson::kObjectType));
-			auto& insertedMember = FindMember(std::forward<TKey>(key))->value;
+			auto& insertedMember = FindMember(key)->value;
 			return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&insertedMember, mAllocator, this->GetContext(), this, key);
 		}
 	}
@@ -497,7 +497,7 @@ public:
 				rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
 			}
 			SaveJsonValue(std::forward<TKey>(key), std::move(rapidJsonArray));
-			auto& insertedMember = FindMember(std::forward<TKey>(key))->value;
+			auto& insertedMember = FindMember(key)->value;
 			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&insertedMember, mAllocator, this->GetContext(), this, key);
 		}
 	}

@@ -73,7 +73,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 	std::cout << "Conversion to float result: " << f1 << std::endl;
 
 	// Convert from one UTF string to another (there is used "syntax sugar" function ToString() which is equivalent to Convert::To<std::string>)
-	const auto u8Str = Convert::ToString(u"Привет мир!");
+	[[maybe_unused]] const auto u8Str = Convert::ToString(u"Привет мир!");
 	assert(reinterpret_cast<const char*>(u8"Привет мир!") == u8Str);
 
 	// Convert with error handling (overflow, parse errors, etc)
@@ -85,7 +85,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 	}
 
 	// Convert enum types
-	const auto u16Str = Convert::To<std::u16string>(Number::Five);
+	[[maybe_unused]] const auto u16Str = Convert::To<std::u16string>(Number::Five);
 	assert(Number::Five == Convert::To<Number>(u16Str));
 
 	// Convert custom class

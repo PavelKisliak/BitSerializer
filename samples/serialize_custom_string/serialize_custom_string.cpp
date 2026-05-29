@@ -29,7 +29,7 @@ private:
 
 // Serializes CMyString with key
 template <class TArchive, typename TKey>
-bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
+static bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
 {
 	if constexpr (TArchive::IsLoading())
 	{
@@ -50,7 +50,7 @@ bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
 
 // Serializes CMyString without key
 template <class TArchive>
-bool Serialize(TArchive& archive, CMyString& value)
+static bool Serialize(TArchive& archive, CMyString& value)
 {
 	if constexpr (TArchive::IsLoading())
 	{

@@ -32,11 +32,11 @@ namespace MyApp
 
 	// Returns the size of the CMyArray.
 	template <class T>
-	size_t size(const CMyArray<T>& cont) noexcept { return cont.GetSize(); }
+	static size_t size(const CMyArray<T>& cont) noexcept { return cont.GetSize(); }
 
 	// Serializes CMyArray.
 	template <class TArchive, class TValue>
-	void SerializeArray(TArchive& arrayScope, CMyArray<TValue>& cont)
+	static void SerializeArray(TArchive& arrayScope, CMyArray<TValue>& cont)
 	{
 		if constexpr (TArchive::IsLoading())
 		{

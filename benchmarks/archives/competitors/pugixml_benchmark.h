@@ -49,19 +49,19 @@ protected:
 
 		// Load array of objects
 		int i = 0;
-		for (auto it = rootNode.begin(); it != rootNode.end(); ++it)
+		for (auto& it : rootNode)
 		{
 			auto& obj = targetTestModel[i];
-			obj.BooleanValue = it->child(PUGIXML_TEXT("BooleanValue")).text().as_bool();
-			obj.SignedIntValue = static_cast<int8_t>(it->child(PUGIXML_TEXT("SignedIntValue")).text().as_int());
-			obj.UnsignedIntValue = it->child(PUGIXML_TEXT("UnsignedIntValue")).text().as_llong();
-			obj.FloatValue = it->child(PUGIXML_TEXT("FloatValue")).text().as_float();
-			obj.DoubleValue = it->child(PUGIXML_TEXT("DoubleValue")).text().as_double();
-			obj.ShortString = it->child(PUGIXML_TEXT("ShortString")).text().as_string();
-			obj.StringWithLongKeyAndValue = it->child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().as_string();
-			obj.UnicodeString = it->child(PUGIXML_TEXT("UnicodeString")).text().as_string();
-			obj.StringWithEscapedChars = it->child(PUGIXML_TEXT("StringWithEscapedChars")).text().as_string();
-			obj.MultiLineString = it->child(PUGIXML_TEXT("MultiLineString")).text().as_string();
+			obj.BooleanValue = it.child(PUGIXML_TEXT("BooleanValue")).text().as_bool();
+			obj.SignedIntValue = static_cast<int8_t>(it.child(PUGIXML_TEXT("SignedIntValue")).text().as_int());
+			obj.UnsignedIntValue = it.child(PUGIXML_TEXT("UnsignedIntValue")).text().as_llong();
+			obj.FloatValue = it.child(PUGIXML_TEXT("FloatValue")).text().as_float();
+			obj.DoubleValue = it.child(PUGIXML_TEXT("DoubleValue")).text().as_double();
+			obj.ShortString = it.child(PUGIXML_TEXT("ShortString")).text().as_string();
+			obj.StringWithLongKeyAndValue = it.child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().as_string();
+			obj.UnicodeString = it.child(PUGIXML_TEXT("UnicodeString")).text().as_string();
+			obj.StringWithEscapedChars = it.child(PUGIXML_TEXT("StringWithEscapedChars")).text().as_string();
+			obj.MultiLineString = it.child(PUGIXML_TEXT("MultiLineString")).text().as_string();
 			++i;
 		}
 	}

@@ -33,13 +33,13 @@ namespace TestSpace
 	};
 
 	template <typename T>
-	void To(const T& in, CCustomString& out)
+	[[maybe_unused]] static void To(const T& in, CCustomString& out)
 	{
 		out.Append(Convert::To<std::string>(in));
 	}
 
 	template <typename T>
-	void To(const CCustomString& in, T& out)
+	[[maybe_unused]] static void To(const CCustomString& in, T& out)
 	{
 		out = Convert::To<T>(in.ToGenericString());
 	}

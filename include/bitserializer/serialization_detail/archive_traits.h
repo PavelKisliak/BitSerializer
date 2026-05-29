@@ -74,7 +74,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive, TValue>(0)) type;
+		using type = decltype(test<TArchive, TValue>(0));
 		enum { value = type::value };
 	};
 
@@ -102,7 +102,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive, TValue>(0)) type;
+		using type = decltype(test<TArchive, TValue>(0));
 		enum { value = type::value };
 	};
 
@@ -128,7 +128,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 
@@ -155,7 +155,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 
@@ -184,7 +184,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 
@@ -211,7 +211,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 
@@ -237,7 +237,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 
@@ -264,7 +264,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 
@@ -290,7 +290,7 @@ namespace BitSerializer
 		static std::false_type test(...);
 
 	public:
-		typedef decltype(test<TArchive>(0)) type;
+		using type = decltype(test<TArchive>(0));
 		enum { value = type::value };
 	};
 

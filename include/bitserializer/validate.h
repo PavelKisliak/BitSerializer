@@ -613,14 +613,14 @@ namespace BitSerializer
 	};
 
 	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
-	typedef Validate::MinSize MinSize;
+	typedef Validate::MinSize MinSize; // NOLINT(modernize-use-using)
 
 	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
-	typedef Validate::MaxSize MaxSize;
+	typedef Validate::MaxSize MaxSize; // NOLINT(modernize-use-using)
 
 	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
-	typedef Validate::Email Email;
+	typedef Validate::Email Email; // NOLINT(modernize-use-using)
 
 	[[deprecated("Moved into sub-namespace `BitSerializer::Validate`")]]
-	typedef Validate::PhoneNumber PhoneNumber;
+	typedef Validate::PhoneNumber PhoneNumber; // NOLINT(modernize-use-using)
 }

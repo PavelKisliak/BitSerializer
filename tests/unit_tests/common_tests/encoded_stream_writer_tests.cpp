@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "encoded_stream_writer_fixture.h"
@@ -115,4 +115,50 @@ TYPED_TEST(EncodedStreamWriterTest, ShouldStopEncodingInvalidUtfWhenPolicyIsThro
 		// Act / Assert
 		EXPECT_EQ(BitSerializer::Convert::Utf::UtfEncodingErrorCode::InvalidSequence, this->TestWrite(source));
 	}
+}
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldWriteEmptyString)
+{
+	// Act
+	this->TestWrite("");
+
+	// Assert
+	this->Assert();
+}
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldWriteLargeString)
+{
+	// Arrange
+	std::string largeStr;
+	largeStr.reserve(5000);
+	for (int i = 0; i < 1000; ++i)
+	{
+		largeStr += "The quick brown fox jumps over the lazy dog. ";
+	}
+
+	// Act
+	this->TestWrite(largeStr);
+
+	// Assert
+	this->Assert();
+}
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldWriteMixedEncodedStrings)
+{
+	// Act
+	this->TestWrite(UTF8("Hello"));
+	this->TestWrite(u" Привет");
+	this->TestWrite(U" 世界");
+
+	// Assert
+	this->Assert();
+}
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldWriteSingleCharacter)
+{
+	// Act
+	this->TestWrite(UTF8("A"));
+
+	// Assert
+	this->Assert();
 }

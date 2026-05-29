@@ -147,6 +147,10 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE
 add_library(common_impl OBJECT
     "src/common/binary_stream_reader.h"
     "src/common/binary_stream_reader.cpp"
+    "src/common/encoded_stream_reader.h"
+    "src/common/encoded_stream_reader.cpp"
+    "src/common/encoded_stream_writer.h"
+    "src/common/encoded_stream_writer.cpp"
 )
 
 # BitSerializer core
@@ -242,9 +246,9 @@ if(BUILD_CSV_ARCHIVE)
     # CSV archive public library
     set(CSV_ARCHIVE_NAME "csv-archive")
     if(BUILD_SHARED_LIBS)
-        add_library(${CSV_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:csv_impl>)
+        add_library(${CSV_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:csv_impl> $<TARGET_OBJECTS:common_impl>)
     else()
-        add_library(${CSV_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:csv_impl>)
+        add_library(${CSV_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:csv_impl> $<TARGET_OBJECTS:common_impl>)
     endif()
     add_library(${BITSERIALIZER_NAMESPACE}::${CSV_ARCHIVE_NAME} ALIAS ${CSV_ARCHIVE_NAME})
     list(APPEND BITSERIALIZER_TARGETS ${CSV_ARCHIVE_NAME})

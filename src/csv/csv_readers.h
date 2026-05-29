@@ -5,6 +5,7 @@
 #pragma once
 #include <vector>
 #include "bitserializer/csv_archive.h"
+#include "common/encoded_stream_reader.h"
 
 namespace BitSerializer::Csv::Detail
 {
@@ -70,7 +71,8 @@ namespace BitSerializer::Csv::Detail
 		};
 
 	public:
-		CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',');
+		CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',',
+			Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 		[[nodiscard]] size_t GetCurrentLine() const noexcept override { return mLineNumber; }
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
@@ -85,9 +87,10 @@ namespace BitSerializer::Csv::Detail
 
 	private:
 		bool ParseNextLine();
+		bool ReadChunk();
 		void UnescapeValue(char* beginIt, const char* endIt);
 
-		Convert::Utf::CEncodedStreamReader<char> mEncodedStreamReader;
+		Convert::Utf::EncodedStreamReader<char> mEncodedStreamReader;
 		std::string mDecodedBuffer;
 		const bool mWithHeader;
 		const char mSeparator;

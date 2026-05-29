@@ -60,7 +60,8 @@ namespace BitSerializer::Csv::Detail
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
-		mCsvReader = std::make_unique<CCsvStreamReader>(encodedInputStream, true, serializationContext.GetOptions().valuesSeparator).release();
+		mCsvReader = std::make_unique<CCsvStreamReader>(encodedInputStream, true, serializationContext.GetOptions().valuesSeparator,
+			serializationContext.GetOptions().utfEncodingErrorPolicy).release();
 	}
 
 	CsvReadRootScope::~CsvReadRootScope()

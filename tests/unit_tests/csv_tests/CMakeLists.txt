@@ -6,6 +6,7 @@ find_package(GTest REQUIRED)
 # Target configuration
 add_executable(${PROJECT_NAME}
     $<TARGET_OBJECTS:csv_impl>
+    $<TARGET_OBJECTS:common_impl>
     csv_reader_fixture.h
     csv_reader_tests.cpp
     csv_writer_fixture.h

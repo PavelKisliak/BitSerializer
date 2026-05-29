@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include "bitserializer/csv_archive.h"
+#include "common/encoded_stream_writer.h"
 
 namespace BitSerializer::Csv::Detail
 {
@@ -41,7 +42,7 @@ namespace BitSerializer::Csv::Detail
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
 
 	private:
-		Convert::Utf::CEncodedStreamWriter mEncodedStream;
+		Convert::Utf::EncodedStreamWriter mEncodedStream;
 		const bool mWithHeader;
 		const char mSeparator;
 

@@ -1,11 +1,12 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <memory>
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "common/encoded_stream_writer.h"
 
 template <class TUtfEncoder>
 class EncodedStreamWriterTest : public ::testing::Test
@@ -16,14 +17,14 @@ public:
 
 	void SetUp() override
 	{
-		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TUtfEncoder::utfType, false);
+		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::EncodedStreamWriter>(mOutputStream, TUtfEncoder::utfType, false);
 	}
 
 	EncodedStreamWriterTest<TUtfEncoder>& WithBom(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip)
 	{
 		mWithBom = true;
 		mUtfEncodingErrorPolicy = encodingErrorPolicy;
-		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::CEncodedStreamWriter>(mOutputStream, TUtfEncoder::utfType, true, encodingErrorPolicy);
+		mEncodedStreamWriter = std::make_shared<BitSerializer::Convert::Utf::EncodedStreamWriter>(mOutputStream, TUtfEncoder::utfType, true, encodingErrorPolicy);
 		return *this;
 	}
 
@@ -78,7 +79,7 @@ public:
 	}
 
 protected:
-	std::shared_ptr<BitSerializer::Convert::Utf::CEncodedStreamWriter> mEncodedStreamWriter;
+	std::shared_ptr<BitSerializer::Convert::Utf::EncodedStreamWriter> mEncodedStreamWriter;
 	std::ostringstream mOutputStream;
 	BitSerializer::Convert::Utf::UtfEncodingErrorPolicy mUtfEncodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip;
 	TUtfEncoder mEncoder;

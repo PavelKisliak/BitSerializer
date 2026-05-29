@@ -1,32 +1,32 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <memory>
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "common/encoded_stream_reader.h"
 
 template <class TTargetCharType>
 class EncodedStreamReaderTest : public ::testing::Test
 {
 public:
-	// Use minimal chunk size for simplify testing all streaming cases
-	using reader_type = BitSerializer::Convert::Utf::CEncodedStreamReader<TTargetCharType, 32>;
+	using reader_type = BitSerializer::Convert::Utf::EncodedStreamReader<TTargetCharType>;
 	using target_string_type = std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>>;
 
 	template <typename TSourceUtfType>
 	void PrepareEncodedStreamReader(std::u32string_view testStr, bool addBom = false,
 		BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip,
-		const TTargetCharType* errorMark = BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<TTargetCharType>())
+		const TTargetCharType* errorMark = BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<TTargetCharType>(),
+		size_t chunkSize = 32)
 	{
 		using source_char_type = typename TSourceUtfType::char_type;
 		using source_string_type = std::basic_string<source_char_type, std::char_traits<source_char_type>>;
 
-		// Prepare expected string in the native UTF encoding
 		mExpectedString = BitSerializer::Convert::To<target_string_type>(testStr);
 
-		// Encode test string to specified UTF which will be used as source of stream
+		mInputString.clear();
 		if (addBom) {
 			mInputString.append(TSourceUtfType::bom, sizeof TSourceUtfType::bom);
 		}
@@ -34,26 +34,43 @@ public:
 		TSourceUtfType::Encode(testStr.cbegin(), testStr.cend(), sourceEncodedString);
 		mInputString.append(reinterpret_cast<const char*>(sourceEncodedString.data()), sourceEncodedString.size() * sizeof(source_char_type));
 
-		// Prepare stream reader
-		mInputStream = std::stringstream(mInputString);
-		mEncodedStreamReader = std::make_shared<reader_type>(mInputStream, encodingErrorPolicy, errorMark);
+		mInputStream.str(mInputString);
+		mInputStream.clear();
+		mEncodedStreamReader = std::make_shared<reader_type>(mInputStream, encodingErrorPolicy, errorMark, chunkSize);
 	}
 
-	void ReadFromStream()
+	void PrepareRawStream(const std::string& rawData,
+		BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip,
+		size_t chunkSize = 32)
 	{
-		static constexpr int MaxIterations = 100;
+		mInputString = rawData;
+		mInputStream.str(mInputString);
+		mInputStream.clear();
+		mEncodedStreamReader = std::make_shared<reader_type>(mInputStream, encodingErrorPolicy,
+			BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<TTargetCharType>(), chunkSize);
+	}
 
-		for (int i = 0; i < MaxIterations; ++i)
+	target_string_type ReadAll()
+	{
+		target_string_type result;
+		while (true)
 		{
-			const auto result = mEncodedStreamReader->ReadChunk(mActualString);
-			if (result == BitSerializer::Convert::Utf::EncodedStreamReadResult::EndFile)
-			{
-				break;
-			}
-			ASSERT_TRUE(result != BitSerializer::Convert::Utf::EncodedStreamReadResult::DecodeError);
-			// For prevent infinite loop when something went wrong
-			ASSERT_TRUE(i < 100);
+			const auto view = mEncodedStreamReader->PeekData(1);
+			if (view.empty()) { break; }
+			result.append(view.data(), view.size());
+			mEncodedStreamReader->SkipChars(view.size());
 		}
+		return result;
+	}
+
+	target_string_type ReadAllCharByChar()
+	{
+		target_string_type result;
+		while (auto ch = mEncodedStreamReader->ReadChar())
+		{
+			result.push_back(*ch);
+		}
+		return result;
 	}
 
 protected:
@@ -61,5 +78,4 @@ protected:
 	std::stringstream mInputStream;
 	std::shared_ptr<reader_type> mEncodedStreamReader;
 	target_string_type mExpectedString;
-	target_string_type mActualString;
 };

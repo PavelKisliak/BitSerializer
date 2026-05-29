@@ -251,8 +251,8 @@ namespace BitSerializer::Csv::Detail
 
 	//------------------------------------------------------------------------------
 
-	CCsvStreamReader::CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator)
-		: mEncodedStreamReader(inputStream)
+	CCsvStreamReader::CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
+		: mEncodedStreamReader(inputStream, encodingErrorPolicy)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
 	{
@@ -373,8 +373,8 @@ namespace BitSerializer::Csv::Detail
 		mRowValuesMeta.clear();
 
 		// Remove parsed part if processed more than half of the buffer
-		constexpr size_t minSizeToSqueeze = Convert::Utf::CEncodedStreamReader<char>::chunk_size >> 1;
-		if (mDecodedBuffer.size() >= Convert::Utf::CEncodedStreamReader<char>::chunk_size && mCurrentPos >= minSizeToSqueeze)
+		constexpr size_t minSizeToSqueeze = Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize >> 1;
+		if (mDecodedBuffer.size() >= Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize && mCurrentPos >= minSizeToSqueeze)
 		{
 			mDecodedBuffer.erase(0, mCurrentPos);
 			mCurrentPos = 0;
@@ -392,9 +392,7 @@ namespace BitSerializer::Csv::Detail
 			{
 				if (mCurrentPos == mDecodedBuffer.size())
 				{
-					const auto result = mEncodedStreamReader.ReadChunk(mDecodedBuffer);
-					// When reached end of file
-					if (result == Convert::Utf::EncodedStreamReadResult::EndFile)
+					if (!ReadChunk())
 					{
 						endValuePos = mDecodedBuffer.size();
 						if (pendingCR && endValuePos > 0) {
@@ -402,9 +400,6 @@ namespace BitSerializer::Csv::Detail
 						}
 						isEndLine = true;
 						break;
-					}
-					if (result == Convert::Utf::EncodedStreamReadResult::DecodeError) {
-						throw SerializationException(SerializationErrorCode::UtfEncodingError, "The input stream might be corrupted, unable to decode UTF");
 					}
 
 					// After reading new chunk, check if pending \r is followed by \n
@@ -482,10 +477,30 @@ namespace BitSerializer::Csv::Detail
 		// When entire buffer has been parsed, need to read next chunk for detect end of file
 		if (mCurrentPos == mDecodedBuffer.size())
 		{
-			mEncodedStreamReader.ReadChunk(mDecodedBuffer);
+			ReadChunk();
 		}
 
 		return !mRowValuesMeta.empty();
+	}
+
+	bool CCsvStreamReader::ReadChunk()
+	{
+		try
+		{
+			const auto view = mEncodedStreamReader.PeekData(1);
+			if (view.empty())
+			{
+				return false;
+			}
+			mDecodedBuffer.append(view.data(), view.size());
+			mEncodedStreamReader.SkipChars(view.size());
+			return true;
+		}
+		catch (const std::invalid_argument&)
+		{
+			throw ParsingException("Invalid UTF sequence detected in the stream, line: "
+				+ Convert::ToString(mLineNumber), mLineNumber);
+		}
 	}
 
 	void CCsvStreamReader::UnescapeValue(char* beginIt, const char* endIt)

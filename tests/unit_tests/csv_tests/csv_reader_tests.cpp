@@ -414,7 +414,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenCrAtTheEndOfChunk)
 	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
 	{
 		// Arrange
-		constexpr size_t chunkSize = BitSerializer::Convert::Utf::CEncodedStreamReader<char>::chunk_size;
+		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
 		const std::string expectedFirstRow(chunkSize - 1, 'a');
 		const std::string csv = expectedFirstRow + "\rRow2\r";
 		this->PrepareCsvReader(csv, false);
@@ -437,7 +437,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenCrLfInSeparateChunks)
 	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
 	{
 		// Arrange
-		constexpr size_t chunkSize = BitSerializer::Convert::Utf::CEncodedStreamReader<char>::chunk_size;
+		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
 		const std::string expectedRow1(chunkSize - 1, 'a');
 		const std::string csv = expectedRow1 + "\r\nRow2\r\n";
 		this->PrepareCsvReader(csv, false);
@@ -460,7 +460,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenFileEndsWithCrAndSizeEqualToChunk)
 	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
 	{
 		// Arrange
-		constexpr size_t chunkSize = BitSerializer::Convert::Utf::CEncodedStreamReader<char>::chunk_size;
+		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
 		const std::string expectedFirstRow(chunkSize - 1, 'a');
 		const std::string csv = expectedFirstRow + "\r";
 		this->PrepareCsvReader(csv, false);
@@ -480,7 +480,7 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenValuesInSeparateChunks)
 	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
 	{
 		// Arrange
-		constexpr size_t chunkSize = BitSerializer::Convert::Utf::CEncodedStreamReader<char>::chunk_size;
+		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
 		const std::string expectedValue1(chunkSize - 1, 'a');
 		const std::string expectedValue2(chunkSize - 1, 'b');
 		const std::string csv = expectedValue1 + "," + expectedValue2 + "\r";
@@ -688,4 +688,33 @@ Value1,Value2,Value3,Value4
 	// Act / Assert
 	EXPECT_TRUE(this->mCsvReader->ParseNextRow());
 	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldThrowParsingExceptionOnInvalidUtfWhenPolicyThrowError)
+{
+	// This test is for CCsvStreamReader only (CCsvStringReader doesn't decode UTF)
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
+	{
+		// Arrange: UTF-16LE (triggers non-raw mode) with lone high surrogate
+		const char utf16Data[] = {
+			'\xFF', '\xFE',                   // BOM
+			'A', '\x00', '\n', '\x00',         // "A\n" in UTF-16LE (valid first row)
+			'\x00', '\xD8'                     // lone high surrogate (invalid)
+		};
+		const std::string inputData(utf16Data, sizeof(utf16Data));
+
+		// Act / Assert: error is detected during first ParseNextLine() in constructor
+		bool thrown = false;
+		try
+		{
+			std::istringstream s(inputData);
+			BitSerializer::Csv::Detail::CCsvStreamReader(s, true, ',',
+				BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+		}
+		catch (const BitSerializer::ParsingException&)
+		{
+			thrown = true;
+		}
+		EXPECT_TRUE(thrown);
+	}
 }

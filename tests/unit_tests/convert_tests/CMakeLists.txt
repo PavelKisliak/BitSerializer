@@ -5,6 +5,7 @@ find_package(GTest REQUIRED)
 
 # Project sources
 add_executable(${PROJECT_NAME}
+    $<TARGET_OBJECTS:common_impl>
     convert_chrono_tests.cpp
     convert_classes_tests.cpp
     convert_custom_string_tests.cpp
@@ -14,10 +15,6 @@ add_executable(${PROJECT_NAME}
     convert_traits_tests.cpp
     detect_encodings_fixture.h
     detect_encodings_tests.cpp
-    encoded_stream_reader_fixture.h
-    encoded_stream_reader_tests.cpp
-    encoded_stream_writer_fixture.h
-    encoded_stream_writer_tests.cpp
     utf8_encoding_tests.cpp
     utf16be_encoding_tests.cpp
     utf16le_encoding_tests.cpp

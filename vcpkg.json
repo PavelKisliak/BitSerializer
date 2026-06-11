@@ -11,7 +11,7 @@
     "gtest",
     "nlohmann-json"
   ],
-  "builtin-baseline": "56bb2411609227288b70117ead2c47585ba07713",
+  "builtin-baseline": "06a7fdd564234908731c59ac46a624f808e87b1c",
   "vcpkg-configuration": {
     "overlay-triplets": [
       "./cmake/vcpkg/triplets"

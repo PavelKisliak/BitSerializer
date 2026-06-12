@@ -139,11 +139,11 @@ stages:
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
-          name: 'Ubuntu_Clang_15_dynamic'
+          name: 'Ubuntu_Clang_18_dynamic'
           image: 'ubuntu-latest'
-          installToolsCmd: 'sudo apt-get install clang-15 ninja-build --install-suggests'
+          installToolsCmd: 'sudo apt-get install clang-18 ninja-build --install-suggests'
           vcpkgTriplet: "x64-linux-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15 -DBUILD_SHARED_LIBS=ON'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:

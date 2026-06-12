@@ -46,7 +46,7 @@ TEST(STD_Containers, SerializeArrayAsClassMember) {
 TEST(STD_Containers, ThrowExceptionWhenLoadTooBigArray)
 {
 	std::array<int, 7> sourceObj({1, 2, 3, 4, 5, 6, 7});
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
 
 	try
@@ -66,7 +66,7 @@ TEST(STD_Containers, ThrowExceptionWhenLoadTooBigArray)
 TEST(STD_Containers, ThrowExceptionWhenLoadTooSmallArray)
 {
 	std::array<int, 7> sourceObj({ 1, 2, 3, 4, 5, 6, 7 });
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
 
 	try
@@ -365,7 +365,7 @@ TEST(STD_Containers, SerializeMapThrowMismatchedTypesExceptionWhenLoadInvalidVal
 	TestClassWithSubType sourceObj(
 		std::map<int32_t, int32_t>{{-23613, 4543534}}
 	);
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
 
 	try
@@ -388,7 +388,7 @@ TEST(STD_Containers, SerializeMapThrowOverflowTypeExceptionWhenLoadTooBigKey)
 	TestClassWithSubType sourceObj(
 		 std::map<int32_t, int32_t>{{10324678, 4543534}}
 	);
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
 
 	try

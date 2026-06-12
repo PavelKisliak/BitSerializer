@@ -73,7 +73,7 @@ namespace BitSerializer
 			using key_type = std::wstring;
 			using supported_key_types = TSupportedKeyTypes<std::wstring>;
 			using string_view_type = std::basic_string_view<wchar_t>;
-			using preferred_output_format = TestIoDataRoot;
+			using preferred_output_type = TestIoDataRoot;
 			static constexpr char path_separator = '/';
 			static constexpr bool is_binary = false;
 

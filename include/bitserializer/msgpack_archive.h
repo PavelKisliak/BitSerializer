@@ -27,7 +27,7 @@ struct MsgPackArchiveTraits  // NOLINT(cppcoreguidelines-special-member-function
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view, int64_t, uint64_t, float, double, CBinTimestamp>;
 	using string_view_type = std::string_view;
-	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
+	using preferred_output_type = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = true;

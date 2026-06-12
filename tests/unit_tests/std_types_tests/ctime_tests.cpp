@@ -34,7 +34,7 @@ TEST(STD_Ctime, SerializeTimeType)
 {
 	// Arrange
 	time_t expected = std::numeric_limits<int32_t>::max(), actual = 0;
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 
 	// Act
 	BitSerializer::SaveObject<ArchiveStub>(CTimeRef(expected), testArchive);
@@ -48,7 +48,7 @@ TEST(STD_Ctime, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDate)
 {
 	// Save as string
 	std::string invalidDatetime = "1970/01/01T00:00:00Z";
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, testArchive);
 
 	try
@@ -69,7 +69,7 @@ TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkip)
 {
 	// Save as string
 	std::string invalidDatetime = "1970/01/01T00:00:00Z";
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, testArchive);
 
 	// Load as `time_t`
@@ -85,7 +85,7 @@ TEST(STD_Ctime, SerializeTimeTypeAsClassMember)
 {
 	// Arrange
 	TestCTime expected(std::numeric_limits<int32_t>::max()), actual;
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 
 	// Act
 	BitSerializer::SaveObject<ArchiveStub>(expected, testArchive);
@@ -98,7 +98,7 @@ TEST(STD_Ctime, SerializeTimeTypeAsClassMember)
 TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkipFromObject)
 {
 	// Arrange
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 	auto& binObjRef = testArchive.Data->emplace<Detail::TestIoDataObjectPtr>(std::make_shared<Detail::TestIoDataObject>());
 	Detail::TestIoDataPtr strIoData = std::make_shared<Detail::TestIoData>();
 	strIoData->emplace<std::wstring>(L"Invalid date");
@@ -121,7 +121,7 @@ TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkipFromObject)
 TEST(STD_CtimeAsBin, SkipInvalidIsoDateInObjectWhenPolicyIsSkip)
 {
 	// Arrange
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 	auto& binObjRef = testArchive.Data->emplace<Detail::TestIoDataObjectPtr>(std::make_shared<Detail::TestIoDataObject>());
 	Detail::TestIoDataPtr strIoData = std::make_shared<Detail::TestIoData>();
 	strIoData->emplace<std::wstring>(L"Invalid date");
@@ -145,7 +145,7 @@ TEST(STD_CtimeAsBin, SerializeTimeType)
 {
 	// Arrange
 	time_t expected = std::numeric_limits<int32_t>::max(), actual = 0;
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 
 	// Act
 	BitSerializer::SaveObject<BinArchiveStub>(CTimeRef(expected), binArchive);
@@ -159,7 +159,7 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(59, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	time_t actual = 0;
@@ -173,7 +173,7 @@ TEST(STD_CtimeAsBin, SerializeTimeTypeAsClassMember)
 {
 	// Arrange
 	TestCTime expected(std::numeric_limits<int32_t>::max()), actual;
-	BinArchiveStub::preferred_output_format outputArchive;
+	BinArchiveStub::preferred_output_type outputArchive;
 
 	// Act
 	BitSerializer::SaveObject<BinArchiveStub>(expected, outputArchive);
@@ -186,7 +186,7 @@ TEST(STD_CtimeAsBin, SerializeTimeTypeAsClassMember)
 TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
 {
 	// Arrange
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	Detail::CBinTimestamp timestamp(59, 999999999);
 	auto& binObjRef = binArchive.Data->emplace<Detail::BinTestIoDataObjectPtr>(std::make_shared<Detail::BinTestIoDataObject>());
 	Detail::BinTestIoDataPtr timestampIoData = std::make_shared<Detail::BinTestIoData>();

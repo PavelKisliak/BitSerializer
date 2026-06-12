@@ -46,7 +46,7 @@ struct RapidJsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functi
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
 	using supported_key_types = TSupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using string_view_type = std::basic_string_view<typename TEncoding::Ch>;
-	using preferred_output_format = std::basic_string<char, std::char_traits<char>>;
+	using preferred_output_type = std::basic_string<char, std::char_traits<char>>;
 	using preferred_stream_char_type = char;
 	using raw_type = rapidjson::GenericDocument<RapidJsonEncoding<char>>;
 	static constexpr char path_separator = '/';

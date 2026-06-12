@@ -78,7 +78,7 @@ TEST(STD_Chrono, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDate)
 {
 	// Save as string
 	TestClassWithSubType<std::string> invalidDatetime("1970/01/01T00:00:00Z");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, outputArchive);
 
 	try
@@ -99,7 +99,7 @@ TEST(STD_Chrono, ThrowOverflowTypeExceptionWhenLoadTooBigDate)
 {
 	// Save as string
 	TestClassWithSubType<std::string> sourceObj("9999-12-31T23:59:59Z");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
 
 	try
@@ -120,7 +120,7 @@ TEST(STD_Chrono, SkipInvalidIsoDateWhenPolicyIsSkip)
 {
 	// Save as string
 	TestClassWithSubType<std::string> invalidDatetime("1970/01/01T00:00:00Z");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidDatetime, outputArchive);
 
 	// Load as time_point
@@ -137,7 +137,7 @@ TEST(STD_Chrono, SkipTooBigDateWhenPolicyIsSkip)
 {
 	// Save as string
 	TestClassWithSubType<std::string> sourceObj("9999-12-31T23:59:59Z");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(sourceObj, outputArchive);
 
 	// Load as time_point
@@ -168,7 +168,7 @@ TEST(STD_Chrono, ThrowOverflowExceptionWhenTimepointCannotBeRounded)
 {
 	// Arrange
 	time_point<system_clock, nanoseconds> testTpNs1(61499999999ns);
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(testTpNs1, outputArchive);
 
 	// Act / Assert
@@ -188,7 +188,7 @@ TEST(STD_Chrono, SkipErrorOfRoundingTimepointWhenPolicyIsSkip)
 {
 	// Arrange
 	time_point<system_clock, nanoseconds> testTpNs1(61499999999ns);
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(testTpNs1, outputArchive);
 
 	// Act
@@ -256,7 +256,7 @@ TEST(STD_Chrono, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDuration)
 {
 	// Save as string
 	TestClassWithSubType<std::string> invalidDuration("P?MT10S");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidDuration, outputArchive);
 
 	try
@@ -277,7 +277,7 @@ TEST(STD_Chrono, ThrowOverflowTypeExceptionWhenLoadIsoDuration)
 {
 	// Save as string
 	TestClassWithSubType<std::string> isoDuration("PT500S");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(isoDuration, outputArchive);
 
 	try
@@ -299,7 +299,7 @@ TEST(STD_Chrono, SkipInvalidIsoDurationWhenPolicyIsSkip)
 {
 	// Save as string
 	TestClassWithSubType<std::string> invalidDuration("PMT10S");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidDuration, outputArchive);
 
 	// Load as time_point
@@ -316,7 +316,7 @@ TEST(STD_Chrono, SkipTooBigDurationWhenPolicyIsSkip)
 {
 	// Save as string
 	TestClassWithSubType<std::string> isoDuration("PT256S");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(isoDuration, outputArchive);
 
 	// Load as duration (to type which can store -128...127 seconds)
@@ -347,7 +347,7 @@ TEST(STD_Chrono, ThrowOverflowExceptionWhenDurationCannotBeRounded)
 {
 	// Arrange
 	TestClassWithSubType<std::string> isoDuration("PT9M59S");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(isoDuration, outputArchive);
 
 	// Act / Assert
@@ -367,7 +367,7 @@ TEST(STD_Chrono, SkipErrorOfRoundingDurationWhenPolicyIsSkip)
 {
 	// Arrange
 	TestClassWithSubType<std::string> isoDuration("PT9M59S");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(isoDuration, outputArchive);
 
 	// Act
@@ -441,7 +441,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenSaveTooBigTimepoint)
 TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestamp)
 {
 	// Arrange
-	BinArchiveStub::preferred_output_format outputArchive;
+	BinArchiveStub::preferred_output_type outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
 	outputArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
@@ -464,7 +464,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestamp)
 TEST(STD_ChronoAsBin, SkipTooBigTimestampWhenPolicyIsSkip)
 {
 	// Arrange
-	BinArchiveStub::preferred_output_format outputArchive;
+	BinArchiveStub::preferred_output_type outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
 	outputArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
@@ -488,7 +488,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigTimestampFromObject)
 	using TimePoint = time_point<system_clock, nanoseconds>;
 	using TestObject = TestClassWithSubType<TimePoint>;
 
-	BinArchiveStub::preferred_output_format outputArchive;
+	BinArchiveStub::preferred_output_type outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
 	auto& binObjRef = outputArchive.Data->emplace<Detail::BinTestIoDataObjectPtr>(std::make_shared<Detail::BinTestIoDataObject>());
 	Detail::BinTestIoDataPtr timestampIoData = std::make_shared<Detail::BinTestIoData>();
@@ -516,7 +516,7 @@ TEST(STD_ChronoAsBin, SkipTooBigTimestampInObjectWhenPolicyIsSkip)
 	using TimePoint = time_point<system_clock, nanoseconds>;
 	using TestObject = TestClassWithSubType<TimePoint>;
 
-	BinArchiveStub::preferred_output_format outputArchive;
+	BinArchiveStub::preferred_output_type outputArchive;
 	Detail::CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
 	auto& binObjRef = outputArchive.Data->emplace<Detail::BinTestIoDataObjectPtr>(std::make_shared<Detail::BinTestIoDataObject>());
 	Detail::BinTestIoDataPtr timestampIoData = std::make_shared<Detail::BinTestIoData>();
@@ -552,7 +552,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenTimepointCannotBeRounded)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
@@ -572,7 +572,7 @@ TEST(STD_ChronoAsBin, SkipErrorOfRoundingTimepointWhenPolicyIsSkip)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act
@@ -646,7 +646,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenLoadTooBigDuration)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(256);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
@@ -667,7 +667,7 @@ TEST(STD_ChronoAsBin, SkipTooBigDurationWhenPolicyIsSkip)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act
@@ -697,7 +697,7 @@ TEST(STD_ChronoAsBin, ThrowOverflowExceptionWhenDurationCannotBeRounded)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act / Assert
@@ -717,7 +717,7 @@ TEST(STD_ChronoAsBin, SkipErrorOfRoundingDurationWhenPolicyIsSkip)
 {
 	// Arrange
 	Detail::CBinTimestamp timestamp(119, 999999999);
-	BinArchiveStub::preferred_output_format binArchive;
+	BinArchiveStub::preferred_output_type binArchive;
 	binArchive.Data->emplace<Detail::CBinTimestamp>(timestamp);
 
 	// Act

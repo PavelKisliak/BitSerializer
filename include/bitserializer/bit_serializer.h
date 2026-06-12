@@ -129,15 +129,15 @@ namespace BitSerializer
 	 *
 	 * @tparam TArchive   The archive type that handles serialization/deserialization (e.g. JsonArchive, MsgPackArchive).
 	 * @tparam TValue     The type of the object to be serialized.
-	 * @tparam TOutput    The preferred output format for the archive (default: typename TArchive::preferred_output_format).
+	 * @tparam TOutput    The preferred output format for the archive (default: typename TArchive::preferred_output_type).
 	 * @param[in] object  The object to be serialized.
 	 * @param[in] options The serialization options.
 	 * @return The serialized data in the archive's preferred format.
 	 */
-	template <typename TArchive, typename TValue, typename TOutput = typename TArchive::preferred_output_format>
+	template <typename TArchive, typename TValue, typename TOutput = typename TArchive::preferred_output_type>
 	static TOutput SaveObject(TValue&& object, const SerializationOptions& options = DefaultOptions)
 	{
-		typename TArchive::preferred_output_format output;
+		typename TArchive::preferred_output_type output;
 		SaveObject<TArchive>(std::forward<TValue>(object), output, options);
 		return output;
 	}

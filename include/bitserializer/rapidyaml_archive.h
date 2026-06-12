@@ -30,7 +30,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			using key_type = std::string;
 			using supported_key_types = TSupportedKeyTypes<const char*, key_type>;
 			using string_view_type = std::string_view;
-			using preferred_output_format = std::string;
+			using preferred_output_type = std::string;
 			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
 			static constexpr bool is_binary = false;

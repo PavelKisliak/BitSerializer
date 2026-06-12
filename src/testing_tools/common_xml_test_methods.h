@@ -110,7 +110,7 @@ template <typename TArchive>
 void TestSaveFormattedXml()
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputStr;
+	typename TArchive::preferred_output_type outputStr;
 	TestClassWithSubType<std::string> testObj("Hello world!");
 
 	BitSerializer::SerializationOptions options;
@@ -122,7 +122,7 @@ void TestSaveFormattedXml()
 	BitSerializer::SaveObject<TArchive>(testObj, outputStr, options);
 
 	// Assert
-	const auto expected = BitSerializer::Convert::To<typename TArchive::preferred_output_format>(
+	const auto expected = BitSerializer::Convert::To<typename TArchive::preferred_output_type>(
 		"<?xml version=\"1.0\"?>\n"
 		"<root>\n"
 		"  <TestValue>Hello world!</TestValue>\n"

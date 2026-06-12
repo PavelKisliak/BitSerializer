@@ -61,7 +61,7 @@ TEST(BaseTypes, SerializeStdByte) {
 TEST(BaseTypes, SerializeConstValue)
 {
 	const int expected = BuildFixture<int>();
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(expected, outputArchive);
 	int actual;
 	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive);
@@ -99,7 +99,7 @@ TEST(BaseTypes, SerializeEnumAsRootThrowMismatchedTypesExceptionWhenLoadInvalid)
 {
 	// Save as string
 	std::string invalidEnum = "InvalidEnum";
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidEnum, outputArchive);
 
 	try
@@ -121,7 +121,7 @@ TEST(BaseTypes, SerializeUnregisteredEnumAsRootShouldThrowException)
 	try
 	{
 		UnregisteredEnum testValue = UnregisteredEnum::One;
-		ArchiveStub::preferred_output_format outputArchive;
+		ArchiveStub::preferred_output_type outputArchive;
 		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive);
 	}
 	catch (const SerializationException& ex)
@@ -138,7 +138,7 @@ TEST(BaseTypes, SerializeUnknownEnumAsRootShouldThrowException)
 	try
 	{
 		auto testValue = static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max());  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
-		ArchiveStub::preferred_output_format outputArchive;
+		ArchiveStub::preferred_output_type outputArchive;
 		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive);
 	}
 	catch (const SerializationException& ex)
@@ -160,7 +160,7 @@ TEST(BaseTypes, SerializeEnumAsClassMemberThrowMismatchedTypesExceptionWhenLoadI
 {
 	// Save as string
 	TestClassWithSubType<std::string> invalidEnum("InvalidEnum");
-	ArchiveStub::preferred_output_format outputArchive;
+	ArchiveStub::preferred_output_type outputArchive;
 	BitSerializer::SaveObject<ArchiveStub>(invalidEnum, outputArchive);
 
 	try
@@ -182,7 +182,7 @@ TEST(BaseTypes, SerializeUnregisteredEnumAsClassMemberShouldThrowException)
 	try
 	{
 		TestClassWithSubType objWithInvalidEnum(UnregisteredEnum::One);
-		ArchiveStub::preferred_output_format outputArchive;
+		ArchiveStub::preferred_output_type outputArchive;
 		BitSerializer::SaveObject<ArchiveStub>(objWithInvalidEnum, outputArchive);
 	}
 	catch (const SerializationException& ex)
@@ -199,7 +199,7 @@ TEST(BaseTypes, SerializeUnknownEnumAsClassMemberShouldThrowException)
 	try
 	{
 		TestClassWithSubType objWithInvalidEnum(static_cast<TestEnum>(std::numeric_limits<std::underlying_type_t<TestEnum>>::max()));  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
-		ArchiveStub::preferred_output_format outputArchive;
+		ArchiveStub::preferred_output_type outputArchive;
 		BitSerializer::SaveObject<ArchiveStub>(objWithInvalidEnum, outputArchive);
 	}
 	catch (const SerializationException& ex)
@@ -233,7 +233,7 @@ TEST(BaseTypes, SerializeEnumBinAsRoot)
 {
 	// Arrange
 	TestEnum expected = TestEnum::Three, actual = TestEnum::One;
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 
 	// Act
 	BitSerializer::SaveObject<ArchiveStub>(EnumAsBin(expected), testArchive);
@@ -247,7 +247,7 @@ TEST(BaseTypes, SerializeEnumTypeAsClassMember)
 {
 	// Arrange
 	TestEnumAsBin expected(TestEnum::Four), actual;
-	ArchiveStub::preferred_output_format testArchive;
+	ArchiveStub::preferred_output_type testArchive;
 
 	// Act
 	BitSerializer::SaveObject<ArchiveStub>(expected, testArchive);
@@ -295,7 +295,7 @@ TEST(BaseTypes, ShouldTrimStringFieldsInArray)
 	// Arrange
 	SerializationOptions options;
 	options.trimStringFields = true;
-	ArchiveStub::preferred_output_format outputArchive{};
+	ArchiveStub::preferred_output_type outputArchive{};
 	std::vector<std::string> actual = { " value1 ", " value2\n", "\t value3 \t" };
 
 	// Act
@@ -371,7 +371,7 @@ TEST(BaseTypes, ShouldTrimStringFieldsInClassMembers)
 	// Arrange
 	SerializationOptions options;
 	options.trimStringFields = true;
-	ArchiveStub::preferred_output_format outputArchive{};
+	ArchiveStub::preferred_output_type outputArchive{};
 	TestClassWithSubType actual(std::string(" value "), Refine::TrimWhitespace());
 
 	// Act

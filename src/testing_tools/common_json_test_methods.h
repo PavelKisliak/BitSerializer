@@ -17,7 +17,7 @@ void TestGetPathInJsonObjectScopeWhenLoading()
 	// Arrange
 	TestClassWithSubType<TestPointClass> testObj;
 	::BuildFixture(testObj);
-	using OutputFormat = typename TArchive::preferred_output_format;
+	using OutputFormat = typename TArchive::preferred_output_type;
 	OutputFormat outputData;
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
 
@@ -45,7 +45,7 @@ template <typename TArchive>
 void TestGetPathInJsonObjectScopeWhenSaving()
 {
 	// Arrange
-	using OutputFormat = typename TArchive::preferred_output_format;
+	using OutputFormat = typename TArchive::preferred_output_type;
 	OutputFormat outputData;
 	BitSerializer::SerializationOptions options;
 	BitSerializer::SerializationContext context(options);
@@ -75,7 +75,7 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 	TestType testObj;
 	::BuildFixture(testObj);
 
-	using OutputFormat = typename TArchive::preferred_output_format;
+	using OutputFormat = typename TArchive::preferred_output_type;
 	OutputFormat outputData;
 	BitSerializer::SaveObject<TArchive>(testObj, outputData);
 
@@ -120,7 +120,7 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 {
 	// Arrange
 	constexpr size_t array1stLevelSize = 3, array2stLevelSize = 5;
-	using OutputFormat = typename TArchive::preferred_output_format;
+	using OutputFormat = typename TArchive::preferred_output_type;
 	OutputFormat outputData;
 	BitSerializer::SerializationOptions options;
 	BitSerializer::SerializationContext context(options);
@@ -243,7 +243,7 @@ template <typename TArchive>
 void TestSaveFormattedJson()
 {
 	// Arrange
-	typename TArchive::preferred_output_format outputStr;
+	typename TArchive::preferred_output_type outputStr;
 	TestClassWithSubType<std::string> testObj("Hello world!");
 	BitSerializer::SerializationOptions serializationOptions;
 	serializationOptions.formatOptions.enableFormat = true;
@@ -254,7 +254,7 @@ void TestSaveFormattedJson()
 	BitSerializer::SaveObject<TArchive>(testObj, outputStr, serializationOptions);
 
 	// Assert
-	const auto expected = BitSerializer::Convert::To<typename TArchive::preferred_output_format>(
+	const auto expected = BitSerializer::Convert::To<typename TArchive::preferred_output_type>(
 		"{\n"
 		"  \"TestValue\": \"Hello world!\"\n"
 		"}");

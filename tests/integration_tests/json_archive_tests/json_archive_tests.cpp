@@ -384,32 +384,32 @@ TEST(JsonArchive, SaveWithFormatting)
 	TestSaveFormattedJson<JsonArchive>();
 }
 
-////-----------------------------------------------------------------------------
-//// Tests streams / files
-////-----------------------------------------------------------------------------
-//TEST(JsonArchive, SerializeClassToStream) {
-//	TestSerializeClassToStream<JsonArchive>(BuildFixture<TestPointClass>());
-//}
-//
-//TEST(JsonArchive, SerializeArrayOfClassesToStream)
-//{
-//	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
-//	BuildFixture(testArray);
-//	TestSerializeArrayToStream<JsonArchive>(testArray);
-//}
-//
-//TEST(JsonArchive, SerializeUnicodeToEncodedStream) {
-//	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
-//	TestSerializeClassToStream<JsonArchive>(TestValue);
-//}
-//
-//TEST(JsonArchive, LoadFromUtf8Stream) {
-//	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
-//}
-//TEST(JsonArchive, LoadFromUtf8StreamWithBom) {
-//	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
-//}
-//
+//-----------------------------------------------------------------------------
+// Tests streams / files
+//-----------------------------------------------------------------------------
+TEST(JsonArchive, SerializeClassToStream) {
+	TestSerializeClassToStream<JsonArchive>(BuildFixture<TestPointClass>());
+}
+
+TEST(JsonArchive, SerializeArrayOfClassesToStream)
+{
+	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];
+	BuildFixture(testArray);
+	TestSerializeArrayToStream<JsonArchive>(testArray);
+}
+
+TEST(JsonArchive, SerializeUnicodeToEncodedStream) {
+	TestClassWithSubType<std::wstring> TestValue(L"Привет мир!");
+	TestSerializeClassToStream<JsonArchive>(TestValue);
+}
+
+TEST(JsonArchive, LoadFromUtf8Stream) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
+}
+TEST(JsonArchive, LoadFromUtf8StreamWithBom) {
+	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
+}
+
 //TEST(JsonArchive, LoadFromUtf16LeStream) {
 //	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Le>(false);
 //}
@@ -437,14 +437,14 @@ TEST(JsonArchive, SaveWithFormatting)
 //TEST(JsonArchive, LoadFromUtf32BeStreamWithBom) {
 //	TestLoadJsonFromEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Be>(true);
 //}
-//
-//TEST(JsonArchive, SaveToUtf8Stream) {
-//	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
-//}
-//TEST(JsonArchive, SaveToUtf8StreamWithBom) {
-//	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
-//}
-//
+
+TEST(JsonArchive, SaveToUtf8Stream) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(false);
+}
+TEST(JsonArchive, SaveToUtf8StreamWithBom) {
+	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf8>(true);
+}
+
 //TEST(JsonArchive, SaveToUtf16LeStream) {
 //	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf16Le>(false);
 //}
@@ -472,24 +472,24 @@ TEST(JsonArchive, SaveWithFormatting)
 //TEST(JsonArchive, SaveToUtf32BeStreamWithBom) {
 //	TestSaveJsonToEncodedStream<JsonArchive, BitSerializer::Convert::Utf::Utf32Be>(true);
 //}
-//
-//TEST(JsonArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
-//{
-//	BitSerializer::SerializationOptions serializationOptions;
-//	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::Utf::UtfType>(-1);  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
-//	std::stringstream outputStream;
-//	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
-//	EXPECT_THROW(BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
-//}
-//
-//TEST(JsonArchive, SerializeToFile) {
-//	TestSerializeArrayToFile<JsonArchive>();
-//	TestSerializeArrayToFile<JsonArchive>(true);
-//}
-//
-//TEST(JsonArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
-//	TestThrowExceptionWhenFileAlreadyExists<JsonArchive>();
-//}
+
+TEST(JsonArchive, ThrowExceptionWhenUnsupportedStreamEncoding)
+{
+	BitSerializer::SerializationOptions serializationOptions;
+	serializationOptions.streamOptions.encoding = static_cast<BitSerializer::Convert::Utf::UtfType>(-1);  // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
+	std::stringstream outputStream;
+	auto testObj = BuildFixture<TestClassWithSubTypes<std::string>>();
+	EXPECT_THROW(BitSerializer::SaveObject<JsonArchive>(testObj, outputStream, serializationOptions), BitSerializer::SerializationException);
+}
+
+TEST(JsonArchive, SerializeToFile) {
+	TestSerializeArrayToFile<JsonArchive>();
+	TestSerializeArrayToFile<JsonArchive>(true);
+}
+
+TEST(JsonArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
+	TestThrowExceptionWhenFileAlreadyExists<JsonArchive>();
+}
 
 //-----------------------------------------------------------------------------
 // Tests of errors handling

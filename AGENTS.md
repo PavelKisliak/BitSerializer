@@ -120,6 +120,21 @@ The library uses an **archive pattern**: each format provides `input_archive_typ
 
 ---
 
+## Archive Traits
+
+Each archive declares capabilities via a traits struct (e.g. `JsonArchiveTraits`). Archives are assembled via `TArchiveBase<Traits, ReadRootScope, WriteRootScope>` which sets `input_archive_type` / `output_archive_type`.
+
+| Trait | Role |
+|-------|------|
+| `preferred_output_type` | Default buffer type for serialized output (`std::string`) |
+| `string_view_type` | Canonical string view for I/O (`std::string_view`) |
+| `is_binary` | Whether format is binary (`true` for MsgPack) |
+| `require_array_size` / `require_map_size` | Whether size must be known before writing |
+
+Stream support is determined at compile-time via `is_archive_support_{input,output}_data_type_v` (checks `is_constructible_v` of root scope with `(stream, SerializationContext&)`). If an archive lacks stream constructors, `bit_serializer.h` applies a fallback: **Load** → read stream into `preferred_output_type`, verify UTF-8, skip BOM, delegate to string `LoadObject`; **Save** → serialize to `preferred_output_type`, write optional BOM + data to stream. Only `char` streams and UTF-8 are supported in the fallback.
+
+---
+
 ## Key APIs
 
 ### Serialization wrappers

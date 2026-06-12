@@ -4,15 +4,14 @@
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <iosfwd>
 #include <optional>
 #include <type_traits>
-#include <variant>
 
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 
 // External dependency (Rapid YAML)
+#include <c4/substr.hpp>
 #include "c4/format.hpp"
 #include "ryml/ryml.hpp"
 #include "ryml/ryml_std.hpp"
@@ -31,7 +30,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			using supported_key_types = TSupportedKeyTypes<const char*, key_type>;
 			using string_view_type = std::string_view;
 			using preferred_output_type = std::string;
-			using preferred_stream_char_type = std::ostream::char_type;
 			static constexpr char path_separator = '/';
 			static constexpr bool is_binary = false;
 
@@ -471,7 +469,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		 * @brief YAML root scope for serializing data (can serialize array or object).
 		 */
 		template <SerializeMode TMode>
-		class RapidYamlRootScope final: public TArchiveScope<TMode>, public RapidYamlScopeBase
+		class RapidYamlRootScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
@@ -481,7 +479,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 
 			RapidYamlRootScope(std::string_view inputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
-				, mOutput(nullptr)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 				Parse<c4::yml::Parser>(inputStr);
@@ -490,30 +487,6 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext)
 				: TArchiveScope<TMode>(serializationContext)
 				, mOutput(&outputStr)
-			{
-				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
-				mNode = mTree.rootref();
-			}
-
-			RapidYamlRootScope(std::istream& inputStream, SerializationContext& serializationContext)
-				: TArchiveScope<TMode>(serializationContext)
-				, mOutput(nullptr)
-			{
-				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
-
-				const auto utfType = Convert::Utf::DetectEncoding(inputStream);
-				if (utfType != Convert::Utf::UtfType::Utf8) {
-					throw SerializationException(SerializationErrorCode::UnsupportedEncoding, "The archive does not support encoding: " + Convert::ToString(utfType));
-				}
-
-				// ToDo: base library does not support std::stream (check in new versions)
-				const std::string inputStr(std::istreambuf_iterator<char>(inputStream), {});
-				Parse<c4::yml::Parser>(inputStr);
-			}
-
-			RapidYamlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-				: TArchiveScope<TMode>(serializationContext)
-				, mOutput(&outputStream)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 				mNode = mTree.rootref();
@@ -567,23 +540,10 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Save)
 				{
-					std::visit([this](auto&& arg)
+					if (mOutput)
 					{
-						using T = std::decay_t<decltype(arg)>;
-						if constexpr (std::is_same_v<T, std::string*>)
-						{
-							*arg = ryml::emitrs_yaml<std::string>(mTree);
-						}
-						else if constexpr (std::is_same_v<T, std::ostream*>)
-						{
-							auto& options = TArchiveScope<TMode>::GetOptions();
-							if (options.streamOptions.writeBom) {
-								arg->write(Convert::Utf::Utf8::bom, sizeof Convert::Utf::Utf8::bom);
-							}
-							*arg << mTree;
-						}
-					}, mOutput);
-					mOutput = nullptr;
+						*mOutput = ryml::emitrs_yaml<std::string>(mTree);
+					}
 				}
 			}
 
@@ -619,7 +579,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			}
 
 			ryml::Tree mTree;
-			std::variant<std::nullptr_t, std::string*, std::ostream*> mOutput;
+			std::string* mOutput = nullptr;
 		};
 	}
 
@@ -627,8 +587,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 	 * @brief RapidYaml archive (based on RapidYaml library).
 	 *
 	 * Supports load/save from:
-	 * - `std::string`: UTF-8
-	 * - `std::istream` and `std::ostream`: UTF-8
+	 * - `std::string_view` / `std::string`: UTF-8
+	 * - Streams are supported via fallback (reads entire stream into memory)
 	 */
 	using YamlArchive = TArchiveBase<
 		Detail::RapidYamlArchiveTraits,

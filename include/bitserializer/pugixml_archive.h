@@ -35,7 +35,6 @@ struct PugiXmlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-function
 #endif
 
 	using preferred_output_type = std::string;
-	using preferred_stream_char_type = char;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = false;
 

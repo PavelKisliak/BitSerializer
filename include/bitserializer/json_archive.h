@@ -26,7 +26,6 @@ struct JsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
 	using string_view_type = std::string_view;
 	using preferred_output_type = std::basic_string<char, std::char_traits<char>>;
-	using preferred_stream_char_type = char;
 	using raw_type = RawPayload<std::string, ArchiveType::Json>;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = false;

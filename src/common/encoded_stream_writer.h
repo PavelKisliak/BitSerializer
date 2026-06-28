@@ -54,7 +54,7 @@ namespace BitSerializer::Convert::Utf
 		template <typename TCharType, size_t ArraySize>
 		UtfEncodingErrorCode Write(const TCharType(&str)[ArraySize])
 		{
-			return Write(std::basic_string_view<TCharType>(std::cbegin(str), std::size(str)));
+			return Write(std::basic_string_view<TCharType>(str, ArraySize - 1));
 		}
 
 	private:

@@ -29,19 +29,22 @@ namespace BitSerializer::Convert::Utf
 		explicit EncodedStreamReader(std::istream& inputStream, UtfEncodingErrorPolicy encodeErrorPolicy = UtfEncodingErrorPolicy::Skip,
 			const TTargetCharType* errorMark = Detail::GetDefaultErrorMark<TTargetCharType>(), size_t chunkSize = DefaultChunkSize);
 
-		[[nodiscard]] std::basic_string_view<TTargetCharType> PeekData(size_t minChars);
-		void SkipChars(size_t count);
-		[[nodiscard]] bool IsEnd() const noexcept;
 		[[nodiscard]] UtfType GetSourceUtfType() const noexcept;
 		[[nodiscard]] size_t GetPosition() const noexcept;
 		void SetPosition(size_t pos);
 		[[nodiscard]] std::optional<TTargetCharType> PeekChar();
 		[[nodiscard]] std::optional<TTargetCharType> ReadChar();
+		[[nodiscard]] std::basic_string_view<TTargetCharType> PeekChars(size_t minChars);
+		void SkipChars(size_t count);
+		[[nodiscard]] bool IsEnd() const noexcept;
 
 	private:
-		[[nodiscard]] size_t CountRawBytes(size_t numChars, size_t rawOffset) const noexcept;
+		friend class EncodedStreamReaderAccess;
+
+		[[nodiscard]] size_t CountRawBytesPerChar(size_t rawOffset) const noexcept;
+		[[nodiscard]] size_t CountRawBytesForChars(size_t numChars, size_t rawOffset) const noexcept;
 		void EnsureRawDataAvailable();
-		void TrimDecodedBuf();
+		void TrimConsumedData();
 		void DecodeNextBatch();
 
 		UtfType mDetectedEncoding = UtfType::Utf8;
@@ -50,11 +53,13 @@ namespace BitSerializer::Convert::Utf
 		const TTargetCharType* mErrorMark;
 		size_t mChunkSize;
 		std::vector<char> mRawBytes;
-		size_t mStreamPos = 0;
+		size_t mRawBytesPos = 0;
 		bool mRawMode = true;
 		std::basic_string<TTargetCharType> mDecodedBuf;
 		size_t mDecodedPos = 0;
+		size_t mDecodedRawPos = 0;
 		size_t mConsumedRawBytes = 0;
+		size_t mStreamOffset = 0;
 	};
 
 	extern template class EncodedStreamReader<char>;

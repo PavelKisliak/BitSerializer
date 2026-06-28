@@ -487,7 +487,7 @@ namespace BitSerializer::Csv::Detail
 	{
 		try
 		{
-			const auto view = mEncodedStreamReader.PeekData(1);
+			const auto view = mEncodedStreamReader.PeekChars(1);
 			if (view.empty())
 			{
 				return false;

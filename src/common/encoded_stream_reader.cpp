@@ -3,8 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "encoded_stream_reader.h"
-#include <algorithm>
-#include <optional>
 
 namespace BitSerializer::Convert::Utf
 {
@@ -31,50 +29,11 @@ namespace BitSerializer::Convert::Utf
 		{
 			size_t bomSize = 0;
 			mDetectedEncoding = DetectEncoding(std::string_view(mRawBytes.data(), mRawBytes.size()), bomSize);
-			mStreamPos = bomSize;
+			mRawBytesPos = bomSize;
 			mConsumedRawBytes = bomSize;
 		}
 
 		mRawMode = std::is_same_v<TTargetCharType, char> && mDetectedEncoding == UtfType::Utf8;
-	}
-
-	template <typename TTargetCharType>
-	std::basic_string_view<TTargetCharType> EncodedStreamReader<TTargetCharType>::PeekData(size_t minChars)
-	{
-		if (mRawMode)
-		{
-			EnsureRawDataAvailable();
-			const size_t avail = (mStreamPos < mRawBytes.size()) ? (mRawBytes.size() - mStreamPos) : 0;
-			return std::basic_string_view<TTargetCharType>(
-				reinterpret_cast<const TTargetCharType*>(mRawBytes.data() + mStreamPos), avail);
-		}
-		while (mDecodedBuf.size() - mDecodedPos < minChars && !IsEnd())
-		{
-			DecodeNextBatch();
-		}
-		const size_t avail = mDecodedBuf.size() - mDecodedPos;
-		return std::basic_string_view<TTargetCharType>(mDecodedBuf.data() + mDecodedPos, avail);
-	}
-
-	template <typename TTargetCharType>
-	void EncodedStreamReader<TTargetCharType>::SkipChars(size_t count)
-	{
-		if (mRawMode)
-		{
-			mStreamPos += count;
-			return;
-		}
-		mDecodedPos += count;
-		TrimDecodedBuf();
-	}
-
-	template <typename TTargetCharType>
-	bool EncodedStreamReader<TTargetCharType>::IsEnd() const noexcept
-	{
-		if (mRawMode) {
-			return mStreamPos >= mRawBytes.size() && mInputStream.eof();
-		}
-		return mDecodedPos >= mDecodedBuf.size() && mStreamPos >= mRawBytes.size() && mInputStream.eof();
 	}
 
 	template <typename TTargetCharType>
@@ -87,49 +46,82 @@ namespace BitSerializer::Convert::Utf
 	size_t EncodedStreamReader<TTargetCharType>::GetPosition() const noexcept
 	{
 		if (mRawMode) {
-			return mStreamPos;
+			return mRawBytesPos;
 		}
-		return mConsumedRawBytes + CountRawBytes(mDecodedPos, mConsumedRawBytes);
+		return mConsumedRawBytes + mDecodedRawPos;
 	}
 
 	template <typename TTargetCharType>
 	void EncodedStreamReader<TTargetCharType>::SetPosition(size_t pos)
 	{
-		if (pos > mRawBytes.size()) {
-			throw std::out_of_range("Position is out of range");
+		// Re-read from stream if position was trimmed
+		if (pos < mStreamOffset)
+		{
+			mInputStream.clear();
+			mInputStream.seekg(static_cast<std::streamoff>(pos), std::ios::beg);
+			if (mInputStream.fail())
+			{
+				mInputStream.clear();
+				throw std::out_of_range("Cannot seek to position " + std::to_string(pos) + " in the stream");
+			}
+
+			mRawBytes.clear();
+			mRawBytes.resize(mChunkSize);
+			mInputStream.read(mRawBytes.data(), static_cast<std::streamsize>(mChunkSize));
+			const auto n = mInputStream.gcount();
+			mRawBytes.resize(static_cast<size_t>(n));
+
+			mDecodedBuf.clear();
+			mDecodedPos = 0;
+			mDecodedRawPos = 0;
+			mConsumedRawBytes = pos;
+			mStreamOffset = pos;
+			mRawBytesPos = 0;
+			return;
+		}
+
+		// Try to fetch more data if position is beyond current buffer
+		if (pos > mStreamOffset + mRawBytes.size())
+		{
+			mRawBytesPos = pos - mStreamOffset;
+			EnsureRawDataAvailable();
+			if (pos > mStreamOffset + mRawBytes.size()) {
+				throw std::out_of_range("Position is out of range");
+			}
 		}
 
 		if (mRawMode)
 		{
-			mStreamPos = pos;
+			mRawBytesPos = pos - mStreamOffset;
 			return;
 		}
+
+		// Decoded mode: position is within buffered data
+		const size_t bufPos = pos - mStreamOffset;
 
 		// Try to find position within already-decoded data
 		if (pos >= mConsumedRawBytes && !mDecodedBuf.empty())
 		{
-			const size_t totalDecodedRaw = CountRawBytes(mDecodedBuf.size(), mConsumedRawBytes);
-			if (pos < mConsumedRawBytes + totalDecodedRaw)
+			const size_t decodedBufStartRaw = mConsumedRawBytes - mStreamOffset;
+			size_t currentRawPos = decodedBufStartRaw;
+			for (size_t i = 0; i < mDecodedBuf.size(); ++i)
 			{
-				size_t cumRaw = mConsumedRawBytes;
-				for (size_t i = 0; i < mDecodedBuf.size(); ++i)
+				if (currentRawPos >= bufPos)
 				{
-					if (cumRaw >= pos)
-					{
-						mDecodedPos = i;
-						TrimDecodedBuf();
-						return;
-					}
-					cumRaw += CountRawBytes(1, cumRaw);
+					mDecodedPos = i;
+					mDecodedRawPos = currentRawPos - decodedBufStartRaw;
+					return;
 				}
+				currentRawPos += CountRawBytesPerChar(currentRawPos);
 			}
 		}
 
-		// Fallback: clear and reset to raw position
-		mStreamPos = pos;
+		// Fallback: clear decoded state and reset to raw position
+		mRawBytesPos = bufPos;
 		mDecodedBuf.clear();
 		mDecodedPos = 0;
-		mConsumedRawBytes = 0;
+		mDecodedRawPos = 0;
+		mConsumedRawBytes = pos;
 	}
 
 	template <typename TTargetCharType>
@@ -137,15 +129,16 @@ namespace BitSerializer::Convert::Utf
 	{
 		if (mRawMode)
 		{
-			if (mStreamPos >= mRawBytes.size())
+			if (mRawBytesPos >= mRawBytes.size())
 			{
 				EnsureRawDataAvailable();
-				if (mStreamPos >= mRawBytes.size()) {
+				if (mRawBytesPos >= mRawBytes.size()) {
 					return std::nullopt;
 				}
 			}
-			return static_cast<TTargetCharType>(mRawBytes[mStreamPos]);
+			return static_cast<TTargetCharType>(mRawBytes[mRawBytesPos]);
 		}
+
 		if (mDecodedPos >= mDecodedBuf.size()) {
 			DecodeNextBatch();
 		}
@@ -160,92 +153,140 @@ namespace BitSerializer::Convert::Utf
 	{
 		if (mRawMode)
 		{
-			if (mStreamPos >= mRawBytes.size())
+			if (mRawBytesPos >= mRawBytes.size())
 			{
 				EnsureRawDataAvailable();
-				if (mStreamPos >= mRawBytes.size()) {
+				if (mRawBytesPos >= mRawBytes.size()) {
 					return std::nullopt;
 				}
 			}
-			return static_cast<TTargetCharType>(mRawBytes[mStreamPos++]);
+			return static_cast<TTargetCharType>(mRawBytes[mRawBytesPos++]);
 		}
+
 		auto result = PeekChar();
-		if (result) {
+		if (result)
+		{
+			mDecodedRawPos += CountRawBytesPerChar((mConsumedRawBytes + mDecodedRawPos) - mStreamOffset);
 			++mDecodedPos;
 		}
 		return result;
 	}
 
 	template <typename TTargetCharType>
-	size_t EncodedStreamReader<TTargetCharType>::CountRawBytes(size_t numChars, size_t rawOffset) const noexcept
+	std::basic_string_view<TTargetCharType> EncodedStreamReader<TTargetCharType>::PeekChars(size_t minChars)
+	{
+		if (mRawMode)
+		{
+			if (mRawBytesPos + minChars > mRawBytes.size()) {
+				EnsureRawDataAvailable();
+			}
+			const size_t avail = (mRawBytesPos < mRawBytes.size()) ? (mRawBytes.size() - mRawBytesPos) : 0;
+			return std::basic_string_view<TTargetCharType>(reinterpret_cast<const TTargetCharType*>(mRawBytes.data() + mRawBytesPos), avail);
+		}
+
+		while (mDecodedBuf.size() - mDecodedPos < minChars)
+		{
+			const auto prevSize = mDecodedBuf.size();
+			DecodeNextBatch();
+			if (mDecodedBuf.size() == prevSize) {
+				break;
+			}
+		}
+		const size_t avail = mDecodedBuf.size() - mDecodedPos;
+		return std::basic_string_view<TTargetCharType>(mDecodedBuf.data() + mDecodedPos, avail);
+	}
+
+	template <typename TTargetCharType>
+	void EncodedStreamReader<TTargetCharType>::SkipChars(size_t count)
+	{
+		if (mRawMode)
+		{
+			mRawBytesPos += count;
+			return;
+		}
+		mDecodedRawPos += CountRawBytesForChars(count, (mConsumedRawBytes + mDecodedRawPos) - mStreamOffset);
+		mDecodedPos += count;
+	}
+
+	template <typename TTargetCharType>
+	bool EncodedStreamReader<TTargetCharType>::IsEnd() const noexcept
+	{
+		if (mRawMode) {
+			return mRawBytesPos >= mRawBytes.size() && mInputStream.eof();
+		}
+		return mDecodedPos >= mDecodedBuf.size() && mRawBytesPos >= mRawBytes.size() && mInputStream.eof();
+	}
+
+	template <typename TTargetCharType>
+	size_t EncodedStreamReader<TTargetCharType>::CountRawBytesPerChar(size_t rawOffset) const noexcept
+	{
+		switch (mDetectedEncoding)
+		{
+		case UtfType::Utf8:
+		{
+			const auto b = static_cast<uint8_t>(mRawBytes[rawOffset]);
+			if (b < 0xC0) {
+				return 1;
+			}
+			if (b < 0xE0) {
+				return 2;
+			}
+			if (b < 0xF0) {
+				return 3;
+			}
+			return 4;
+		}
+		case UtfType::Utf16le:
+		{
+			if constexpr (std::is_same_v<TTargetCharType, char32_t>)
+			{
+				if (rawOffset + 4 <= mRawBytes.size())
+				{
+					const auto ch = static_cast<uint8_t>(mRawBytes[rawOffset])
+						| (static_cast<uint8_t>(mRawBytes[rawOffset + 1]) << 8);
+					if (ch >= UnicodeTraits::HighSurrogatesStart && ch <= UnicodeTraits::HighSurrogatesEnd)
+					{
+						return 4;
+					}
+				}
+			}
+			return 2;
+		}
+		case UtfType::Utf16be:
+		{
+			if constexpr (std::is_same_v<TTargetCharType, char32_t>)
+			{
+				if (rawOffset + 4 <= mRawBytes.size())
+				{
+					const auto ch = (static_cast<uint8_t>(mRawBytes[rawOffset]) << 8)
+						| static_cast<uint8_t>(mRawBytes[rawOffset + 1]);
+					if (ch >= UnicodeTraits::HighSurrogatesStart && ch <= UnicodeTraits::HighSurrogatesEnd)
+					{
+						return 4;
+					}
+				}
+			}
+			return 2;
+		}
+		case UtfType::Utf32le:
+		case UtfType::Utf32be:
+			return 4;
+		}
+		return 0;
+	}
+
+	template <typename TTargetCharType>
+	size_t EncodedStreamReader<TTargetCharType>::CountRawBytesForChars(size_t numChars, size_t rawOffset) const noexcept
 	{
 		size_t pos = rawOffset;
-		for (size_t i = 0; i < numChars && pos < mRawBytes.size(); ++i)
-		{
-			switch (mDetectedEncoding)
-			{
-			case UtfType::Utf8:
-			{
-				const auto b = static_cast<uint8_t>(mRawBytes[pos]);
-				if (b < 0xC0) {
-					pos += 1;
-				}
-				else if (b < 0xE0) {
-					pos += 2;
-				}
-				else if (b < 0xF0) {
-					pos += 3;
-				}
-				else {
-					pos += 4;
-				}
-				break;
-			}
-			case UtfType::Utf16le:
-			{
-				if constexpr (std::is_same_v<TTargetCharType, char32_t>)
-				{
-					if (pos + 4 <= mRawBytes.size())
-					{
-						const auto ch = static_cast<uint8_t>(mRawBytes[pos]) | (static_cast<uint8_t>(mRawBytes[pos + 1]) << 8);
-						if (ch >= UnicodeTraits::HighSurrogatesStart && ch <= UnicodeTraits::HighSurrogatesEnd)
-						{
-							pos += 4;
-							continue;
-						}
-					}
-				}
-				pos += 2;
-				break;
-			}
-			case UtfType::Utf16be:
-			{
-				if constexpr (std::is_same_v<TTargetCharType, char32_t>)
-				{
-					if (pos + 4 <= mRawBytes.size())
-					{
-						const auto ch = (static_cast<uint8_t>(mRawBytes[pos]) << 8) | static_cast<uint8_t>(mRawBytes[pos + 1]);
-						if (ch >= UnicodeTraits::HighSurrogatesStart && ch <= UnicodeTraits::HighSurrogatesEnd)
-						{
-							pos += 4;
-							continue;
-						}
-					}
-				}
-				pos += 2;
-				break;
-			}
-			case UtfType::Utf32le:
-			case UtfType::Utf32be:
-				pos += 4;
-				break;
-			}
+		for (size_t i = 0; i < numChars && pos < mRawBytes.size(); ++i) {
+			pos += CountRawBytesPerChar(pos);
 		}
 		return pos - rawOffset;
 	}
 
 	template <typename TTargetCharType>
-	void EncodedStreamReader<TTargetCharType>::TrimDecodedBuf()
+	void EncodedStreamReader<TTargetCharType>::TrimConsumedData()
 	{
 		if (mDecodedBuf.empty() || mDecodedPos == 0) {
 			return;
@@ -255,15 +296,27 @@ namespace BitSerializer::Convert::Utf
 		}
 
 		const size_t trimCount = (std::min)(mDecodedPos, mDecodedBuf.size());
-		mConsumedRawBytes += CountRawBytes(trimCount, mConsumedRawBytes);
+		mConsumedRawBytes += mDecodedRawPos;
 		mDecodedBuf.erase(0, trimCount);
 		mDecodedPos = 0;
+		mDecodedRawPos = 0;
+
+		const size_t shift = mConsumedRawBytes - mStreamOffset;
+		if (shift >= mChunkSize)
+		{
+			mRawBytes.erase(mRawBytes.begin(), mRawBytes.begin() + shift);
+			mRawBytesPos -= shift;
+			mStreamOffset += shift;
+		}
 	}
 
 	template <typename TTargetCharType>
 	void EncodedStreamReader<TTargetCharType>::EnsureRawDataAvailable()
 	{
-		while (mStreamPos + mChunkSize > mRawBytes.size() && !mInputStream.eof())
+		if (mInputStream.eof()) {
+			return;
+		}
+		while (mRawBytesPos + mChunkSize > mRawBytes.size() && !mInputStream.eof())
 		{
 			const auto oldSize = mRawBytes.size();
 			mRawBytes.resize(oldSize + mChunkSize);
@@ -279,17 +332,18 @@ namespace BitSerializer::Convert::Utf
 		if (IsEnd()) {
 			return;
 		}
+		TrimConsumedData();
 		EnsureRawDataAvailable();
-		if (mStreamPos >= mRawBytes.size()) {
+		if (mRawBytesPos >= mRawBytes.size()) {
 			return;
 		}
 
-		const char* data = mRawBytes.data() + mStreamPos;
-		const size_t available = mRawBytes.size() - mStreamPos;
+		const char* data = mRawBytes.data() + mRawBytesPos;
+		const size_t available = mRawBytes.size() - mRawBytesPos;
 
 		const auto handleDecodeResult = [&](auto result) -> void
 		{
-			mStreamPos += static_cast<size_t>(reinterpret_cast<const char*>(result.Iterator) - data);
+			mRawBytesPos += static_cast<size_t>(reinterpret_cast<const char*>(result.Iterator) - data);
 			if (result.ErrorCode != UtfEncodingErrorCode::Success && mEncodingErrorPolicy == UtfEncodingErrorPolicy::ThrowError)
 			{
 				throw std::invalid_argument("Invalid UTF sequence detected");

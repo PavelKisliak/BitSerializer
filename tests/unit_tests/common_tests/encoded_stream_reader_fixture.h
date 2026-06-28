@@ -8,6 +8,25 @@
 #include "bitserializer/convert.h"
 #include "common/encoded_stream_reader.h"
 
+namespace BitSerializer::Convert::Utf
+{
+	class EncodedStreamReaderAccess
+	{
+	public:
+		template <typename T>
+		static size_t GetRawBufferSize(const EncodedStreamReader<T>& reader) noexcept
+		{
+			return reader.mRawBytes.size();
+		}
+
+		template <typename T>
+		static size_t GetDecodedBufferSize(const EncodedStreamReader<T>& reader) noexcept
+		{
+			return reader.mDecodedBuf.size();
+		}
+	};
+}
+
 template <class TTargetCharType>
 class EncodedStreamReaderTest : public ::testing::Test
 {
@@ -15,11 +34,13 @@ public:
 	using reader_type = BitSerializer::Convert::Utf::EncodedStreamReader<TTargetCharType>;
 	using target_string_type = std::basic_string<TTargetCharType, std::char_traits<TTargetCharType>>;
 
+	// Tests use a small chunk size (32) to reliably trigger chunk boundaries and trim cycles
+	static constexpr size_t DefaultChunkSize = 32;
+
 	template <typename TSourceUtfType>
-	void PrepareEncodedStreamReader(std::u32string_view testStr, bool addBom = false,
+	void PrepareEncodedStreamReader(std::u32string_view testStr, size_t chunkSize = DefaultChunkSize, bool addBom = false,
 		BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip,
-		const TTargetCharType* errorMark = BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<TTargetCharType>(),
-		size_t chunkSize = 32)
+		const TTargetCharType* errorMark = BitSerializer::Convert::Utf::Detail::GetDefaultErrorMark<TTargetCharType>())
 	{
 		using source_char_type = typename TSourceUtfType::char_type;
 		using source_string_type = std::basic_string<source_char_type, std::char_traits<source_char_type>>;
@@ -55,7 +76,7 @@ public:
 		target_string_type result;
 		while (true)
 		{
-			const auto view = mEncodedStreamReader->PeekData(1);
+			const auto view = mEncodedStreamReader->PeekChars(1);
 			if (view.empty()) { break; }
 			result.append(view.data(), view.size());
 			mEncodedStreamReader->SkipChars(view.size());

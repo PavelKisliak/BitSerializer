@@ -102,3 +102,4 @@ jobs:
     continueOnError: true
     displayName: 'Static analysis [full]'
     condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', true))
+    timeoutInMinutes: 90

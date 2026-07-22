@@ -41,6 +41,65 @@ namespace BitSerializer
 	}
 
 	/**
+	 * @brief A wrapper that explicitly requests tagged serialization of `std::variant`.
+	 *
+	 * Serializes the variant as an object with `index` and `value` fields,
+	 * preserving the type information. This is useful when the default
+	 * serialization behavior for `std::variant` may change in the future,
+	 * and you want to explicitly opt in to the tagged format.
+	 *
+	 * @par Example:
+	 * @code
+	 * std::variant<int, std::string, CUser> data;
+	 * archive << KeyValue("data", VariantAsTagged(data));
+	 * @endcode
+	 */
+	template <typename T>
+	struct VariantAsTagged
+	{
+		explicit VariantAsTagged(T& v) noexcept : value(v) {}
+		T& value;
+	};
+
+	/**
+	 * @brief Serializes `VariantAsTagged<std::variant<...>>` as an object with `index` and `value` fields.
+	 *
+	 * @note This representation requires object support in the target archive.
+	 * Flat archives such as CSV may not support nested alternatives.
+	 */
+	template <typename TArchive, typename... TArgs>
+	void SerializeObject(TArchive& archive, VariantAsTagged<std::variant<TArgs...>> taggedVariant)
+	{
+		static const auto indexName = Convert::To<typename TArchive::key_type>("index");
+		static const auto valueName = Convert::To<typename TArchive::key_type>("value");
+
+		using index_type = size_t;
+
+		if constexpr (TArchive::IsLoading())
+		{
+			index_type activeIndex = 0;
+			if (Serialize(archive, indexName, activeIndex))
+			{
+				Detail::SerializeVariantAlternative(archive, valueName, taggedVariant.value, activeIndex);
+			}
+		}
+		else
+		{
+			if (taggedVariant.value.valueless_by_exception())
+			{
+				throw SerializationException(SerializationErrorCode::MismatchedTypes,
+					"Cannot serialize std::variant in valueless_by_exception state");
+			}
+
+			index_type activeIndex = taggedVariant.value.index();
+			archive << KeyValue(indexName, activeIndex);
+			std::visit([&archive](auto& activeValue) {
+				archive << KeyValue(valueName, activeValue);
+			}, taggedVariant.value);
+		}
+	}
+
+	/**
 	 * @brief Serializes `std::variant` as an object with `index` and `value` fields.
 	 *
 	 * @note This representation requires object support in the target archive.

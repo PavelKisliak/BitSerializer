@@ -70,33 +70,7 @@ namespace BitSerializer
 	template <typename TArchive, typename... TArgs>
 	void SerializeObject(TArchive& archive, VariantAsTagged<std::variant<TArgs...>> taggedVariant)
 	{
-		static const auto indexName = Convert::To<typename TArchive::key_type>("index");
-		static const auto valueName = Convert::To<typename TArchive::key_type>("value");
-
-		using index_type = size_t;
-
-		if constexpr (TArchive::IsLoading())
-		{
-			index_type activeIndex = 0;
-			if (Serialize(archive, indexName, activeIndex))
-			{
-				Detail::SerializeVariantAlternative(archive, valueName, taggedVariant.value, activeIndex);
-			}
-		}
-		else
-		{
-			if (taggedVariant.value.valueless_by_exception())
-			{
-				throw SerializationException(SerializationErrorCode::MismatchedTypes,
-					"Cannot serialize std::variant in valueless_by_exception state");
-			}
-
-			index_type activeIndex = taggedVariant.value.index();
-			archive << KeyValue(indexName, activeIndex);
-			std::visit([&archive](auto& activeValue) {
-				archive << KeyValue(valueName, activeValue);
-			}, taggedVariant.value);
-		}
+		SerializeObject(archive, taggedVariant.value);
 	}
 
 	/**
@@ -108,13 +82,13 @@ namespace BitSerializer
 	template <typename TArchive, typename... TArgs>
 	void SerializeObject(TArchive& archive, std::variant<TArgs...>& value)
 	{
-		static const auto indexName = Convert::To<typename TArchive::key_type>("index");
-		static const auto valueName = Convert::To<typename TArchive::key_type>("value");
-
 		using index_type = size_t;
 
 		if constexpr (TArchive::IsLoading())
 		{
+			const auto indexName = Convert::To<typename TArchive::key_type>("index");
+			const auto valueName = Convert::To<typename TArchive::key_type>("value");
+
 			index_type activeIndex = 0;
 			if (Serialize(archive, indexName, activeIndex))
 			{
@@ -130,9 +104,9 @@ namespace BitSerializer
 			}
 
 			index_type activeIndex = value.index();
-			archive << KeyValue(indexName, activeIndex);
+			archive << KeyValue("index", activeIndex);
 			std::visit([&archive](auto& activeValue) {
-				archive << KeyValue(valueName, activeValue);
+				archive << KeyValue("value", activeValue);
 			}, value);
 		}
 	}

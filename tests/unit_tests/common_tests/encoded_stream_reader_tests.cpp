@@ -243,16 +243,15 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldAccumulateDecodedDataOnSequentialPeeks
 
 	if constexpr (std::is_same_v<TypeParam, char>)
 	{
-		// Raw mode: PeekChars returns a view from mStreamPos through end of raw buffer.
-		// mStreamPos is never advanced by PeekChars, and EnsureRawDataAvailable only
-		// reads ahead if mStreamPos + chunkSize > rawBytes.size(). So without SkipChars,
-		// subsequent PeekChars calls return the same view.
-		const auto size1 = view.size();
+		// Raw mode: PeekChars returns a view from mStreamPos through the buffered data,
+		// growing the raw buffer to satisfy the requested minimum.
+		EXPECT_EQ(32, view.size());
 		const auto view2 = this->mEncodedStreamReader->PeekChars(48);
-		EXPECT_EQ(size1, view2.size());
+		EXPECT_GE(view2.size(), 48);
+		EXPECT_EQ(this->mExpectedString.substr(0, 48), view2.substr(0, 48));
 		const auto view3 = this->mEncodedStreamReader->PeekChars(64);
-		EXPECT_EQ(size1, view3.size());
-		EXPECT_EQ(0, memcmp(view.data(), view2.data(), size1));
+		EXPECT_GE(view3.size(), 64);
+		EXPECT_EQ(this->mExpectedString.substr(0, 64), view3.substr(0, 64));
 	}
 	else
 	{
@@ -503,16 +502,53 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldCompactRawBufferOnTrim)
 
 	const auto inputSize = this->mInputString.size();
 	this->ReadAll();
+	// Manual trim compacts buffers, keeping them bounded
+	this->mEncodedStreamReader->TrimConsumedData();
+	EXPECT_LE(ReaderAccess::GetRawBufferSize(*this->mEncodedStreamReader), chunkSize * 2);
 	if constexpr (std::is_same_v<TypeParam, char>)
 	{
-		// Raw mode: no decode/trim path, raw buffer holds all input
-		EXPECT_EQ(inputSize, ReaderAccess::GetRawBufferSize(*this->mEncodedStreamReader));
+		// Raw mode: no decoded buffer, raw buffer must be compacted
+		EXPECT_EQ(inputSize, this->mEncodedStreamReader->GetPosition());
+		EXPECT_EQ(0, ReaderAccess::GetDecodedBufferSize(*this->mEncodedStreamReader));
 	}
 	else
 	{
-		// Decoded mode: buffers are compacted on trim, stay bounded
-		EXPECT_LE(ReaderAccess::GetRawBufferSize(*this->mEncodedStreamReader), chunkSize * 2);
+		// Decoded mode: both buffers must be compacted
 		EXPECT_LE(ReaderAccess::GetDecodedBufferSize(*this->mEncodedStreamReader), chunkSize * 2);
+	}
+}
+
+TYPED_TEST(EncodedStreamReaderTest, ShouldKeepPositionConsistentAfterTrimInRawMode)
+{
+	if constexpr (std::is_same_v<TypeParam, char>)
+	{
+		constexpr size_t chunkSize = 32;
+		std::u32string source;
+		source.reserve(200);
+		for (int i = 0; i < 200; ++i) {
+			source += U'A' + (i % 52);
+		}
+		this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(source, chunkSize);
+
+		// Consume a bit more than one chunk, then trim
+		const auto view = this->mEncodedStreamReader->PeekChars(100);
+		this->mEncodedStreamReader->SkipChars(view.size());
+		EXPECT_GT(ReaderAccess::GetRawBufferSize(*this->mEncodedStreamReader), chunkSize);
+
+		this->mEncodedStreamReader->TrimConsumedData();
+		EXPECT_EQ(view.size(), this->mEncodedStreamReader->GetPosition());
+		EXPECT_LE(ReaderAccess::GetRawBufferSize(*this->mEncodedStreamReader), chunkSize * 2);
+
+		// Continue reading from the trimmed position
+		std::string result;
+		while (true)
+		{
+			const auto nextView = this->mEncodedStreamReader->PeekChars(1);
+			if (nextView.empty()) { break; }
+			result.append(nextView.data(), nextView.size());
+			this->mEncodedStreamReader->SkipChars(nextView.size());
+		}
+		EXPECT_EQ(this->mInputString.substr(view.size()), result);
 	}
 }
 

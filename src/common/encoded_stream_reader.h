@@ -37,14 +37,19 @@ namespace BitSerializer::Convert::Utf
 		[[nodiscard]] std::basic_string_view<TTargetCharType> PeekChars(size_t minChars);
 		void SkipChars(size_t count);
 		[[nodiscard]] bool IsEnd() const noexcept;
+		/**
+		 * @brief Discards already consumed data from the internal buffers to keep their size bounded.
+		 * @details It's a no-op until more than one chunk is consumed, so it's safe to call
+		 *          after each logical unit (e.g. after a line or an object) without performance impact.
+		 */
+		void TrimConsumedData();
 
 	private:
 		friend class EncodedStreamReaderAccess;
 
 		[[nodiscard]] size_t CountRawBytesPerChar(size_t rawOffset) const noexcept;
 		[[nodiscard]] size_t CountRawBytesForChars(size_t numChars, size_t rawOffset) const noexcept;
-		void EnsureRawDataAvailable();
-		void TrimConsumedData();
+		void EnsureRawDataAvailable(size_t targetSize = 0);
 		void DecodeNextBatch();
 
 		UtfType mDetectedEncoding = UtfType::Utf8;

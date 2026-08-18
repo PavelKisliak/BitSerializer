@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
@@ -313,7 +313,7 @@ namespace BitSerializer::Csv::Detail
 		}
 
 		const auto& valueMeta = mRowValuesMeta[mValueIndex];
-		out_value = std::string_view(mDecodedBuffer.data() + valueMeta.Offset, valueMeta.Size);
+		out_value = std::string_view((valueMeta.InOriginalData ? mRowDataBase : mTempValueBuffer.data()) + valueMeta.Offset, valueMeta.Size);
 		++mValueIndex;
 		return true;
 	}
@@ -323,7 +323,7 @@ namespace BitSerializer::Csv::Detail
 		if (mValueIndex < mRowValuesMeta.size())
 		{
 			const auto& valueMeta = mRowValuesMeta[mValueIndex];
-			out_value = std::string_view(mDecodedBuffer.data() + valueMeta.Offset, valueMeta.Size);
+			out_value = std::string_view((valueMeta.InOriginalData ? mRowDataBase : mTempValueBuffer.data()) + valueMeta.Offset, valueMeta.Size);
 
 			++mValueIndex;
 			return;
@@ -371,30 +371,48 @@ namespace BitSerializer::Csv::Detail
 		++mLineNumber;
 		mPrevValuesCount = mRowValuesMeta.size();
 		mRowValuesMeta.clear();
+		mTempValueBuffer.clear();
 
-		// Remove parsed part if processed more than half of the buffer
-		constexpr size_t minSizeToSqueeze = Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize >> 1;
-		if (mDecodedBuffer.size() >= Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize && mCurrentPos >= minSizeToSqueeze)
+		// Trim consumed data in the internal stream reader (no-op when less than one chunk was consumed)
+		mEncodedStreamReader.TrimConsumedData();
+
+		auto readChunk = [this](size_t minChars) -> std::string_view
 		{
-			mDecodedBuffer.erase(0, mCurrentPos);
-			mCurrentPos = 0;
-		}
+			try
+			{
+				return mEncodedStreamReader.PeekChars(minChars);
+			}
+			catch (const std::invalid_argument&)
+			{
+				throw ParsingException("Invalid UTF sequence detected in the stream, line: "
+					+ Convert::ToString(mLineNumber), mLineNumber);
+			}
+		};
 
+		// Parse the line directly from the stream reader buffer, growing the peeked window when
+		// the end of the available data is reached. Value offsets are relative to the buffer start,
+		// which is stable until the next TrimConsumedData.
+		std::string_view window = readChunk(1);
+		size_t pos = 0;
 		bool pendingCR = false;
 		for (auto isEndLine = false; !isEndLine;)
 		{
-			const size_t startValuePos = mCurrentPos;
+			const size_t startValuePos = pos;
 			uint_fast32_t doubleQuotesCount = 0;
 			bool inDoubleQuotes = false;
 			size_t endValuePos;
 
 			while (true)
 			{
-				if (mCurrentPos == mDecodedBuffer.size())
+				if (pos == window.size())
 				{
-					if (!ReadChunk())
+					// Grow the window to fetch the next chunk
+					const auto prevSize = window.size();
+					window = readChunk(prevSize + 1);
+					if (window.size() == prevSize)
 					{
-						endValuePos = mDecodedBuffer.size();
+						// End of stream
+						endValuePos = pos;
 						if (pendingCR && endValuePos > 0) {
 							--endValuePos;
 						}
@@ -402,20 +420,20 @@ namespace BitSerializer::Csv::Detail
 						break;
 					}
 
-					// After reading new chunk, check if pending \r is followed by \n
+					// After reading a new chunk, check if pending \r is followed by \n
 					if (pendingCR)
 					{
-						endValuePos = mCurrentPos - 1;
-						if (mCurrentPos < mDecodedBuffer.size() && mDecodedBuffer[mCurrentPos] == '\n')
+						endValuePos = pos - 1;
+						if (pos < window.size() && window[pos] == '\n')
 						{
-							++mCurrentPos;
+							++pos;
 						}
 						isEndLine = true;
 						break;
 					}
 				}
 
-				const char sym = mDecodedBuffer[mCurrentPos];
+				const char sym = window[pos];
 				if (sym == '"')
 				{
 					++doubleQuotesCount;
@@ -427,83 +445,67 @@ namespace BitSerializer::Csv::Detail
 					// Handle delimiter
 					if (sym == mSeparator)
 					{
-						endValuePos = mCurrentPos;
-						++mCurrentPos;
+						endValuePos = pos;
+						++pos;
 						break;
 					}
 					if (sym == '\r')
 					{
-						if (mCurrentPos == mDecodedBuffer.size() - 1)
+						if (pos == window.size() - 1)
 						{
-							// At the end of chunk - defer
+							// At the end of the window - defer
 							pendingCR = true;
-							++mCurrentPos;
+							++pos;
 							continue;
 						}
-						if (mDecodedBuffer[mCurrentPos + 1] == '\n')
+						if (window[pos + 1] == '\n')
 						{
-							endValuePos = mCurrentPos;
-							mCurrentPos += 2;
+							endValuePos = pos;
+							pos += 2;
 							isEndLine = true;
 							break;
 						}
-						endValuePos = mCurrentPos;
-						++mCurrentPos;
+						endValuePos = pos;
+						++pos;
 						isEndLine = true;
 						break;
 					}
 					if (sym == '\n')
 					{
-						endValuePos = mCurrentPos;
-						++mCurrentPos;
+						endValuePos = pos;
+						++pos;
 						isEndLine = true;
 						break;
 					}
 				}
-				++mCurrentPos;
+				++pos;
 			}
 
-			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
+			// Extract values even when the line is empty (CSV can consist of one column with some empty values)
 			if (doubleQuotesCount == 0u)
 			{
-				mRowValuesMeta.emplace_back(startValuePos, endValuePos - startValuePos);
+				mRowValuesMeta.emplace_back(startValuePos, endValuePos - startValuePos, true);
 			}
 			else
 			{
-				UnescapeValue(mDecodedBuffer.data() + startValuePos, mDecodedBuffer.data() + endValuePos);
+				UnescapeValue(window.data() + startValuePos, window.data() + endValuePos);
 			}
 		}
 
-		// When entire buffer has been parsed, need to read next chunk for detect end of file
-		if (mCurrentPos == mDecodedBuffer.size())
+		// Advance the stream reader position to the end of the parsed line
+		mEncodedStreamReader.SkipChars(pos);
+
+		if (!mRowValuesMeta.empty())
 		{
-			ReadChunk();
+			// Read ahead to detect end of stream and pin the row data base pointer,
+			// which is stable until the next ParseNextLine call
+			mRowDataBase = readChunk(1).data() - pos;
 		}
 
 		return !mRowValuesMeta.empty();
 	}
 
-	bool CCsvStreamReader::ReadChunk()
-	{
-		try
-		{
-			const auto view = mEncodedStreamReader.PeekChars(1);
-			if (view.empty())
-			{
-				return false;
-			}
-			mDecodedBuffer.append(view.data(), view.size());
-			mEncodedStreamReader.SkipChars(view.size());
-			return true;
-		}
-		catch (const std::invalid_argument&)
-		{
-			throw ParsingException("Invalid UTF sequence detected in the stream, line: "
-				+ Convert::ToString(mLineNumber), mLineNumber);
-		}
-	}
-
-	void CCsvStreamReader::UnescapeValue(char* beginIt, const char* endIt)
+	void CCsvStreamReader::UnescapeValue(const char* beginIt, const char* endIt)
 	{
 		// Validate first and end double quotes
 		if (*beginIt != '"')
@@ -516,10 +518,13 @@ namespace BitSerializer::Csv::Detail
 			throw ParsingException("Missing trailing double quotes, line: " + Convert::ToString(mLineNumber), mLineNumber);
 		}
 
-		// Decode to the same buffer
-		char* decodedIt = beginIt;
+		// Copy to the temp buffer with skipping one of two double quotes
+		const size_t startIndex = mTempValueBuffer.size();
+		size_t outIndex = startIndex;
+		mTempValueBuffer.resize(outIndex + static_cast<size_t>(endIt - beginIt));
+
 		const char* lastDoubleQuotes = nullptr;
-		for (char* currentPos = beginIt + 1; currentPos != endIt; ++currentPos)
+		for (const char* currentPos = beginIt + 1; currentPos != endIt; ++currentPos)
 		{
 			const char sym = *currentPos;
 			if (sym == '"')
@@ -537,8 +542,8 @@ namespace BitSerializer::Csv::Detail
 				}
 				lastDoubleQuotes = nullptr;
 			}
-			*decodedIt = sym;
-			++decodedIt;
+			mTempValueBuffer[outIndex] = sym;
+			++outIndex;
 		}
 
 		if (lastDoubleQuotes)
@@ -546,6 +551,9 @@ namespace BitSerializer::Csv::Detail
 			throw ParsingException("Unescaped double quotes, line: " + Convert::ToString(mLineNumber), mLineNumber);
 		}
 
-		mRowValuesMeta.emplace_back(beginIt - mDecodedBuffer.data(), decodedIt - beginIt);
+		// Adjust buffer to actual value size
+		mTempValueBuffer.resize(outIndex);
+
+		mRowValuesMeta.emplace_back(startIndex, outIndex - startIndex, false);
 	}
 }

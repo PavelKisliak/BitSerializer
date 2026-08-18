@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -61,13 +61,15 @@ namespace BitSerializer::Csv::Detail
 	{
 		struct CValueMeta
 		{
-			CValueMeta(size_t offset, size_t size) noexcept
-				: Offset(offset), Size(size)
+			CValueMeta(size_t offset, size_t size, bool inOriginalData) noexcept
+				: Offset(offset), Size(size), InOriginalData(inOriginalData)
 			{
 			}
 
 			size_t Offset;
 			size_t Size;
+			// Indicates where the decoded value is located (in the row data or in a local buffer)
+			bool InOriginalData;
 		};
 
 	public:
@@ -76,7 +78,7 @@ namespace BitSerializer::Csv::Detail
 
 		[[nodiscard]] size_t GetCurrentLine() const noexcept override { return mLineNumber; }
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
-		[[nodiscard]] bool IsEnd() const override { return mCurrentPos >= mDecodedBuffer.size() && mEncodedStreamReader.IsEnd(); }
+		[[nodiscard]] bool IsEnd() const override { return mEncodedStreamReader.IsEnd(); }
 
 		[[nodiscard]] size_t GetHeadersCount() const noexcept override { return mHeaders.size(); }
 		[[nodiscard]] bool SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept override;
@@ -87,17 +89,18 @@ namespace BitSerializer::Csv::Detail
 
 	private:
 		bool ParseNextLine();
-		bool ReadChunk();
-		void UnescapeValue(char* beginIt, const char* endIt);
+		void UnescapeValue(const char* beginIt, const char* endIt);
 
 		Convert::Utf::EncodedStreamReader<char> mEncodedStreamReader;
-		std::string mDecodedBuffer;
 		const bool mWithHeader;
 		const char mSeparator;
 
 		std::vector<std::string> mHeaders;
 		std::vector<CValueMeta> mRowValuesMeta;
-		size_t mCurrentPos = 0;
+		// Buffer for unescaped (quoted) values; unquoted values are views into the stream reader buffer
+		std::string mTempValueBuffer;
+		// Pointer to the start of the current row data in the stream reader buffer, valid until the next ParseNextLine
+		const char* mRowDataBase = nullptr;
 		size_t mLineNumber = 0;
 		size_t mRowIndex = 0;
 		size_t mValueIndex = 0;

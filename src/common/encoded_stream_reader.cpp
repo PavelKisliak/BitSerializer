@@ -46,7 +46,7 @@ namespace BitSerializer::Convert::Utf
 	size_t EncodedStreamReader<TTargetCharType>::GetPosition() const noexcept
 	{
 		if (mRawMode) {
-			return mRawBytesPos;
+			return mStreamOffset + mRawBytesPos;
 		}
 		return mConsumedRawBytes + mDecodedRawPos;
 	}
@@ -177,9 +177,7 @@ namespace BitSerializer::Convert::Utf
 	{
 		if (mRawMode)
 		{
-			if (mRawBytesPos + minChars > mRawBytes.size()) {
-				EnsureRawDataAvailable();
-			}
+			EnsureRawDataAvailable(mRawBytesPos + minChars);
 			const size_t avail = (mRawBytesPos < mRawBytes.size()) ? (mRawBytes.size() - mRawBytesPos) : 0;
 			return std::basic_string_view<TTargetCharType>(reinterpret_cast<const TTargetCharType*>(mRawBytes.data() + mRawBytesPos), avail);
 		}
@@ -288,10 +286,21 @@ namespace BitSerializer::Convert::Utf
 	template <typename TTargetCharType>
 	void EncodedStreamReader<TTargetCharType>::TrimConsumedData()
 	{
-		if (mDecodedBuf.empty() || mDecodedPos == 0) {
+		if (mRawMode)
+		{
+			// Trim only when more than one chunk was consumed
+			if (mRawBytesPos < mChunkSize) {
+				return;
+			}
+			mRawBytes.erase(mRawBytes.begin(), mRawBytes.begin() + mRawBytesPos);
+			mStreamOffset += mRawBytesPos;
+			mRawBytesPos = 0;
+			mConsumedRawBytes = mStreamOffset;
 			return;
 		}
-		if (mDecodedPos < mChunkSize) {
+
+		// Trim only when more than one chunk was consumed
+		if (mDecodedBuf.empty() || mDecodedPos < mChunkSize) {
 			return;
 		}
 
@@ -311,12 +320,15 @@ namespace BitSerializer::Convert::Utf
 	}
 
 	template <typename TTargetCharType>
-	void EncodedStreamReader<TTargetCharType>::EnsureRawDataAvailable()
+	void EncodedStreamReader<TTargetCharType>::EnsureRawDataAvailable(size_t targetSize)
 	{
 		if (mInputStream.eof()) {
 			return;
 		}
-		while (mRawBytesPos + mChunkSize > mRawBytes.size() && !mInputStream.eof())
+		// Keep at least one chunk of data ahead of the current position by default,
+		// or grow the buffer up to the requested size.
+		targetSize = (std::max)(mRawBytesPos + mChunkSize, targetSize);
+		while (mRawBytes.size() < targetSize && !mInputStream.eof())
 		{
 			const auto oldSize = mRawBytes.size();
 			mRawBytes.resize(oldSize + mChunkSize);
@@ -332,7 +344,6 @@ namespace BitSerializer::Convert::Utf
 		if (IsEnd()) {
 			return;
 		}
-		TrimConsumedData();
 		EnsureRawDataAvailable();
 		if (mRawBytesPos >= mRawBytes.size()) {
 			return;

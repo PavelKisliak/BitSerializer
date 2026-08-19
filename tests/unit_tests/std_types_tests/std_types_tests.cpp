@@ -8,6 +8,7 @@
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/atomic.h"
 
@@ -73,6 +74,79 @@ TEST(STD_Types, SerializeOptionalAsClassMember) {
 TEST(STD_Types, SerializeOptionalAsClassMemberWithNull) {
 	TestSerializeType<ArchiveStub>(TestClassWithSubType<std::optional<float>>(std::nullopt));
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::variant
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantWithPrimitiveAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, std::string, float>(123));
+}
+
+TEST(STD_Types, SerializeVariantWithStringAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, std::string, float>(std::string("test")));
+}
+
+TEST(STD_Types, SerializeVariantWithObjectAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, TestPointClass, std::vector<int>>(TestPointClass(10, 20)));
+}
+
+TEST(STD_Types, SerializeVariantWithArrayAlternative) {
+	TestSerializeType<ArchiveStub>(std::variant<int, TestPointClass, std::vector<int>>(std::vector<int>{ 1, 2, 3, 4 }));
+}
+
+TEST(STD_Types, SerializeVariantAsClassMember) {
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(TestPointClass(7, 11))));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(std::vector<int>{ 3, 1, 4 })));
+}
+
+// TODO: The following VariantAsTagged tests are disabled due to incompatibility
+// with ArchiveStub (uses wide-string keys). Re-enable once ArchiveStub supports
+// object serialization with char* keys, or move tests to a real archive test suite.
+#if 0  // NOLINT(readability-avoid-unconditional-preprocessor-if)
+//-----------------------------------------------------------------------------
+// Tests of serialization for VariantAsTagged wrapper
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantAsTaggedWithPrimitiveAlternative) {
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(123);
+	VariantType actual(0);
+	typename ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(testValue)), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(actual)), outputArchive);
+	EXPECT_EQ(std::get<int>(testValue), std::get<int>(actual));
+}
+
+TEST(STD_Types, SerializeVariantAsTaggedWithStringAlternative) {
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(std::string("test"));
+	VariantType actual(std::string(""));
+	typename ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(testValue)), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(actual)), outputArchive);
+	EXPECT_EQ(std::get<std::string>(testValue), std::get<std::string>(actual));
+}
+
+TEST(STD_Types, SerializeVariantAsTaggedWithObjectAlternative) {
+	using VariantType = std::variant<int, TestPointClass, std::vector<int>>;
+	VariantType testValue(TestPointClass(10, 20));
+	VariantType actual(TestPointClass(0, 0));
+	typename ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(testValue)), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(actual)), outputArchive);
+	GTestExpectEq(std::get<TestPointClass>(testValue), std::get<TestPointClass>(actual));
+}
+
+TEST(STD_Types, SerializeVariantAsTaggedWithArrayAlternative) {
+	using VariantType = std::variant<int, TestPointClass, std::vector<int>>;
+	VariantType testValue(std::vector<int>{ 1, 2, 3, 4 });
+	VariantType actual(std::vector<int>{});
+	typename ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(testValue)), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsTagged(actual)), outputArchive);
+	GTestExpectEq(std::get<std::vector<int>>(testValue), std::get<std::vector<int>>(actual));
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unique_ptr

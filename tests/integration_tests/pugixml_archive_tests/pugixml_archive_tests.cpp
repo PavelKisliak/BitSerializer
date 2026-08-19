@@ -13,6 +13,7 @@
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 
@@ -554,6 +555,23 @@ TEST(PugiXmlArchive, SerializeStdOptionalAsObjectMember)
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
 }
 
+TEST(PugiXmlArchive, SerializeStdVariantAsRootElement)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<XmlArchive>(VariantType(321));
+	TestSerializeType<XmlArchive>(VariantType(std::string("test")));
+	TestSerializeType<XmlArchive>(VariantType(TestPointClass(5, 8)));
+	TestSerializeType<XmlArchive>(VariantType(std::vector<int>{ 1, 2, 3 }));
+}
+
+TEST(PugiXmlArchive, SerializeStdVariantAsObjectMember)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<XmlArchive>(TestClassWithSubType(VariantType(TestPointClass(13, 21))));
+	TestSerializeType<XmlArchive>(TestClassWithSubType(VariantType(std::vector<int>{ 8, 5, 3 })));
+	TestSerializeType<XmlArchive>(TestClassWithSubType(VariantType(std::string("variant"))));
+}
+
 //-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
@@ -562,6 +580,7 @@ TEST(PugiXmlArchive, SerializeStdTypes)
 	TestSerializeArray<XmlArchive, std::atomic_int>();
 	TestSerializeType<XmlArchive, std::pair<std::string, int>>();
 	TestSerializeType<XmlArchive, std::tuple<std::string, int, float, bool>>();
+	TestSerializeType<XmlArchive>(TestClassWithSubType(std::variant<int, std::string, TestPointClass>(TestPointClass(1, 2))));
 
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));

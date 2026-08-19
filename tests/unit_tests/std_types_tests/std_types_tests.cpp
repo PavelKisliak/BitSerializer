@@ -103,7 +103,7 @@ TEST(STD_Types, SerializeVariantAsClassMember) {
 // TODO: The following VariantAsTagged tests are disabled due to incompatibility
 // with ArchiveStub (uses wide-string keys). Re-enable once ArchiveStub supports
 // object serialization with char* keys, or move tests to a real archive test suite.
-#if 0
+#if 0  // NOLINT(readability-avoid-unconditional-preprocessor-if)
 //-----------------------------------------------------------------------------
 // Tests of serialization for VariantAsTagged wrapper
 //-----------------------------------------------------------------------------

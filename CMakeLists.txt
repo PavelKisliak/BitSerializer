@@ -141,7 +141,13 @@ endif()
 #################################################################################
 set(BITSERIALIZER_NAMESPACE "BitSerializer")
 
-configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
+# Generate config.h with LF line endings so the file doesn't appear as modified
+# in Git on Windows (CMake writes native CRLF line endings otherwise).
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h" NEWLINE_STYLE LF)
+else()
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
+endif()
 
 # Private implementation of common code (object files)
 add_library(common_impl OBJECT

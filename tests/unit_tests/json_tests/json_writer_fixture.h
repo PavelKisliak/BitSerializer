@@ -7,6 +7,7 @@
 #include <variant>
 #include "gtest/gtest.h"
 #include "json/json_string_writers.h"
+#include "json/json_stream_writers.h"
 
 template <class TWriter>
 class JsonWriterTest : public ::testing::Test
@@ -23,6 +24,20 @@ public:
 		{
 			mResult.emplace<std::string>();
 			mJsonWriter = std::make_shared<TWriter>(std::get<std::string>(mResult), mPaddingChar, mPaddingCharNum);
+		}
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::CJsonStreamWriter>)
+		{
+			mResult.emplace<std::ostringstream>();
+			BitSerializer::StreamOptions streamOptions;
+			streamOptions.writeBom = false;
+			mJsonWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult), streamOptions);
+		}
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::CJsonStreamPrettyWriter>)
+		{
+			mResult.emplace<std::ostringstream>();
+			BitSerializer::StreamOptions streamOptions;
+			streamOptions.writeBom = false;
+			mJsonWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult), streamOptions, mPaddingChar, mPaddingCharNum);
 		}
 	}
 

@@ -10,7 +10,8 @@
 using JsonWritersTypes = ::testing::Types<
 	BitSerializer::Json::Detail::CJsonStringWriter
 	, BitSerializer::Json::Detail::CJsonStringPrettyWriter
-	/*, BitSerializer::Json::Detail::CJsonStreamWriter*/
+	, BitSerializer::Json::Detail::CJsonStreamWriter
+	, BitSerializer::Json::Detail::CJsonStreamPrettyWriter
 >;
 
 // Tests for all implementations of IJsonWriter (without formatting)
@@ -153,12 +154,15 @@ TYPED_TEST(JsonWriterTest, WriteArrayElements)
 	this->mJsonWriter->WriteValue(false);
 	this->mJsonWriter->EndArray(true);
 
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStringWriter>)
+	constexpr bool isCompact = std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStringWriter>
+		|| std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamWriter>;
+	if constexpr (isCompact)
 	{
 		EXPECT_EQ(R"(["Hello",10,false])", this->TakeResult());
 	}
 	else
 	{
+		// For pretty writer
 		EXPECT_EQ(R"([
 	"Hello",
 	10,
@@ -195,7 +199,9 @@ TYPED_TEST(JsonWriterTest, WriteObjectElements)
 	this->mJsonWriter->WriteValue(true);
 	this->mJsonWriter->EndObject(true);
 
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStringWriter>)
+	constexpr bool isCompact = std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStringWriter>
+		|| std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamWriter>;
+	if constexpr (isCompact)
 	{
 		EXPECT_EQ("{\"Key1\":\"Value1\",\"Key2\":true}", this->TakeResult());
 	}

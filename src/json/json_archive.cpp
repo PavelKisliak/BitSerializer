@@ -4,7 +4,9 @@
 *******************************************************************************/
 #include <memory>
 #include "json_string_readers.h"
+#include "json_stream_readers.h"
 #include "json_string_writers.h"
+#include "json_stream_writers.h"
 #include "bitserializer/json_archive.h"
 
 
@@ -24,10 +26,34 @@ namespace BitSerializer::Json::Detail
 		}
 	}
 
-	//JsonWriteRootScope::JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-	//	: TArchiveScope<SerializeMode::Save>(serializationContext)
-	//	, mJsonWriter(std::make_unique<CJsonStreamWriter>(outputStream).release())
-	//{ }
+	JsonWriteRootScope::JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
+		: TArchiveScope<SerializeMode::Save>(serializationContext)
+	{
+		const auto& options = serializationContext.GetOptions();
+		switch (options.streamOptions.encoding)
+		{
+		case Convert::Utf::UtfType::Utf8:
+		case Convert::Utf::UtfType::Utf16le:
+		case Convert::Utf::UtfType::Utf16be:
+		case Convert::Utf::UtfType::Utf32le:
+		case Convert::Utf::UtfType::Utf32be:
+			break;
+		default:
+			throw SerializationException(SerializationErrorCode::UnsupportedEncoding);
+		}
+
+		if (options.formatOptions.enableFormat)
+		{
+			mJsonWriter = std::make_unique<CJsonStreamPrettyWriter>(outputStream, options.streamOptions,
+				options.formatOptions.paddingChar, options.formatOptions.paddingCharNum,
+				options.utfEncodingErrorPolicy).release();
+		}
+		else
+		{
+			mJsonWriter = std::make_unique<CJsonStreamWriter>(outputStream, options.streamOptions,
+				options.utfEncodingErrorPolicy).release();
+		}
+	}
 
 	JsonWriteRootScope::~JsonWriteRootScope()
 	{
@@ -39,10 +65,10 @@ namespace BitSerializer::Json::Detail
 		, mJsonReader(std::make_unique<CJsonStringReader>(inputData, serializationContext.GetOptions()).release())
 	{ }
 
-	//JsonReadRootScope::JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext)
-	//	: TArchiveScope<SerializeMode::Load>(serializationContext)
-	//	, mJsonReader(std::make_unique<CJsonStreamReader>(inputStream, serializationContext.GetOptions()).release())
-	//{ }
+	JsonReadRootScope::JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext)
+		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		, mJsonReader(std::make_unique<CJsonStreamReader>(inputStream, serializationContext.GetOptions()).release())
+	{ }
 
 	JsonReadRootScope::~JsonReadRootScope()
 	{

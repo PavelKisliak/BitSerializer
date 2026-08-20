@@ -3,87 +3,15 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "json_string_readers.h"
+#include "json_reader_common.h"
 #include "bitserializer/common/text.h"
+#include <charconv>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 #include "bitserializer/conversion_detail/convert_compatibility.h"
 #endif
 
 namespace
 {
-	constexpr uint8_t kHexLUT[256] =
-	{
-		// 0x00-0x2F: all invalid (0xFF)
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		// 0x30-0x39: '0'-'9' -> 0-9
-		0x0,  0x1,  0x2,  0x3,  0x4,  0x5,  0x6,  0x7,  0x8,  0x9,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		// 0x40: '@' invalid, 0x41-0x46: 'A'-'F' -> 10-15
-		0xFF,
-		0xA,  0xB,  0xC,  0xD,  0xE,  0xF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		// 0x60: '`' invalid, 0x61-0x66: 'a'-'f' -> 10-15
-		0xFF,
-		0xA,  0xB,  0xC,  0xD,  0xE,  0xF,
-		// 0x67-0xFF: all invalid
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-	};
-
-	[[nodiscard]] uint16_t ParseHex4(std::string_view input, size_t pos, size_t lineNumber)
-	{
-		if (pos + 4 > input.size()) {
-			throw BitSerializer::ParsingException("Unexpected end of input in string escape sequence", lineNumber, pos);
-		}
-
-		uint16_t codepoint = 0;
-		for (int i = 0; i < 4; ++i)
-		{
-			const uint8_t hexVal = kHexLUT[static_cast<uint8_t>(input[pos + i])];
-			if (hexVal == 0xFF) {
-				throw BitSerializer::ParsingException("Invalid hex digit in \\u escape", lineNumber, pos + i);
-			}
-			codepoint = (codepoint << 4) | hexVal;
-		}
-		return codepoint;
-	}
-
-	void AppendUtf8Codepoint(std::string& buffer, uint32_t codepoint) noexcept
-	{
-		if (codepoint < 0x80)
-		{
-			buffer += static_cast<char>(codepoint);
-		}
-		else if (codepoint < 0x800)
-		{
-			buffer += static_cast<char>(0xC0 | (codepoint >> 6));
-			buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
-		}
-		else if (codepoint < 0x10000)
-		{
-			// BMP: 3 bytes
-			buffer += static_cast<char>(0xE0 | (codepoint >> 12));
-			buffer += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
-			buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
-		}
-		else
-		{
-			// Supplementary plane (surrogate pairs decoded): 4 bytes
-			buffer += static_cast<char>(0xF0 | (codepoint >> 18));
-			buffer += static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F));
-			buffer += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
-			buffer += static_cast<char>(0x80 | (codepoint & 0x3F));
-		}
-	}
-
 	char SkipWhitespaceAndPeek(std::string_view data, size_t& pos, size_t& line) noexcept
 	{
 		const size_t len = data.size();
@@ -111,6 +39,8 @@ namespace
 namespace
 {
 	using namespace BitSerializer;
+	using BitSerializer::Json::Detail::ParseHex4;
+	using BitSerializer::Json::Detail::AppendUtf8Codepoint;
 	using ValueType = Json::Detail::ValueType;
 
 	ValueType ReadValueTypeImpl(std::string_view inputData, size_t pos, size_t line)
@@ -167,12 +97,13 @@ namespace
 				for (size_t i = pos + 1; i < size; ++i)
 				{
 					ch = inputData[i];
-					if (ch <= '0' || ch > '9')
+					if (ch < '0' || ch > '9')
 					{
-						if (ch == '.' || ch == 'e' || ch == 'E' || ch == '+' || ch == '-')
+						if (ch == '.' || ch == 'e' || ch == 'E')
 						{
 							return ValueType::Float;
 						}
+						break;
 					}
 				}
 				return isSigned ? ValueType::SignedInteger : ValueType::UnsignedInteger;
@@ -291,17 +222,17 @@ namespace
 		// Skip boolean or null types
 		if (std::isalpha(static_cast<unsigned char>(ch)))
 		{
-			if (inputData.substr(pos, 4) == "true")
+			if (inputData.compare(pos, 4, "true") == 0)
 			{
 				pos += 4;
 				return;
 			}
-			if (inputData.substr(pos, 5) == "false")
+			if (inputData.compare(pos, 5, "false") == 0)
 			{
 				pos += 5;
 				return;
 			}
-			if (inputData.substr(pos, 4) == "null")
+			if (inputData.compare(pos, 4, "null") == 0)
 			{
 				pos += 4;
 				return;
@@ -310,8 +241,9 @@ namespace
 		}
 
 		// Skip number (including scientific notation)
-		if (std::isdigit(static_cast<unsigned char>(ch)) || ch == '-' || ch == '+')
+		if (std::isdigit(static_cast<unsigned char>(ch)) || ch == '-' )
 		{
+			++pos;
 			while (pos < size)
 			{
 				ch = inputData[pos];
@@ -357,7 +289,7 @@ namespace
 		{
 			const auto* const start = inputData.data() + pos;
 			T parsedNumber;
-			const std::from_chars_result rc = std::from_chars(start, inputData.data() + inputData.size(), parsedNumber);
+			const std::from_chars_result rc = std::from_chars(start, start + inputData.size(), parsedNumber);
 			if (rc.ec == std::errc())
 			{
 				if constexpr (std::is_integral_v<T>)
@@ -394,7 +326,7 @@ namespace
 		if (SkipWhitespaceAndPeek(inputData, pos, line))
 		{
 			// Copy to temporary buffer for prepare null-terminated c-string
-			constexpr size_t maxBufSize = 64;
+			constexpr size_t maxBufSize = BitSerializer::Json::Detail::MaxNumberLength;
 			const size_t remainingSize = inputData.size() - pos;
 			char buf[maxBufSize];
 
@@ -452,7 +384,7 @@ namespace
 			return true;
 		}
 
-		// Slow path: string contains escape sequences — copy prefix and process via buffer
+		// Slow path: string contains escape sequences - copy prefix and process via buffer
 		pos = firstEscape;
 		buffer.clear();
 		buffer.assign(inputData.data() + start, pos - start);

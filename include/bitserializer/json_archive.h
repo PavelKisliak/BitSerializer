@@ -290,7 +290,7 @@ class BITSERIALIZER_API JsonWriteRootScope final : public JsonArchiveTraits, pub
 {
 public:
 	JsonWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
-	//JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
+	JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
 	~JsonWriteRootScope();
 
 	JsonWriteRootScope(JsonWriteRootScope&&) = delete;
@@ -664,7 +664,7 @@ class BITSERIALIZER_API JsonReadRootScope final : public JsonArchiveTraits, publ
 {
 public:
 	JsonReadRootScope(std::string_view inputData, SerializationContext& serializationContext);
-	//JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext);
+	JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext);
 	~JsonReadRootScope();
 
 	/**

@@ -3,13 +3,14 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/auto_fixture.h"
+#include "testing_tools/string_utils.h"
 #include "bitserializer/json_archive.h"
 #include "json_reader_fixture.h"
 #include "testing_tools/gtest_asserts.h"
 
 using JsonReadersTypes = ::testing::Types<
 	BitSerializer::Json::Detail::CJsonStringReader
-	/*, BitSerializer::Json::Detail::CJsonStreamWriter*/
+	, BitSerializer::Json::Detail::CJsonStreamReader
 >;
 
 // Tests for all implementations of IJsonReader
@@ -818,6 +819,80 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateAtEndO
 	EXPECT_STREQ("Parsing error: Incomplete surrogate pair", ex.what());
 }
 
+//-----------------------------------------------------------------------------
+// Tests of reading long strings (larger than the internal read chunk)
+//-----------------------------------------------------------------------------
+constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
+
+TYPED_TEST(JsonReaderTest, ReadLongString)
+{
+	const std::string expectedValue = this->GenTestString(chunkSize * 5);
+	std::string_view actualStr;
+	this->PrepareReader("\"" + expectedValue + "\"");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(expectedValue, actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongStringWithEscapeAtChunkBoundary)
+{
+	// Place an escape sequence exactly on the boundary of the internal read chunk
+	const std::string prefix = this->GenTestString(chunkSize - 4);
+	std::string testJson = "\"" + prefix + "\\u0041" + this->GenTestString(chunkSize) + "\"";
+	std::string_view actualStr;
+	this->PrepareReader(testJson);
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(prefix + "A" + this->GenTestString(chunkSize), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongStringWithSurrogatePairAtChunkBoundary)
+{
+	const std::string prefix = this->GenTestString(chunkSize - 4);
+	std::string testJson = "\"" + prefix + "\\uD83D\\uDE00" + this->GenTestString(chunkSize) + "\"";
+	std::string_view actualStr;
+	this->PrepareReader(testJson);
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(prefix + UTF8("😀") + this->GenTestString(chunkSize), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongStringWithEscapedQuoteAtChunkBoundary)
+{
+	// The escaped quote starts at the very last byte of the internal read chunk
+	const std::string prefix = this->GenTestString(chunkSize - 2);
+	std::string testJson = "\"" + prefix + "\\\"" + this->GenTestString(chunkSize) + "\"";
+	std::string_view actualStr;
+	this->PrepareReader(testJson);
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(prefix + "\"" + this->GenTestString(chunkSize), actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongStringWithMultipleEscapes)
+{
+	std::string testJson = "\"";
+	std::string expected;
+	for (int i = 0; i < 10; ++i)
+	{
+		const std::string part = this->GenTestString(300);
+		testJson += part + "\\n\\u0041";
+		expected += part + "\n" + "A";
+	}
+	testJson += "\"";
+	std::string_view actualStr;
+	this->PrepareReader(testJson);
+	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(expected, actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongStringShouldThrowExceptionWhenNoCloseQuotes)
+{
+	const std::string testJson = "\"" + this->GenTestString(chunkSize * 5);
+	this->PrepareReader(testJson);
+	std::string_view actualStr;
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
+}
+
 TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenEmptyJson)
 {
 	std::string_view actualStr;
@@ -1623,6 +1698,39 @@ TYPED_TEST(JsonReaderTest, SkipStringShouldThrowExceptionWhenNoCloseQuotes)
 	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
 }
 
+TYPED_TEST(JsonReaderTest, SkipLongString)
+{
+	const std::string testJson = "\"" + this->GenTestString(chunkSize * 5) + "\"";
+	this->PrepareReader(testJson);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, SkipLongStringWithEscapedQuoteAtChunkBoundary)
+{
+	// The backslash starts at the very last byte of the internal read chunk
+	const std::string testJson = "\"" + this->GenTestString(chunkSize - 2) + "\\\"" + this->GenTestString(chunkSize) + "\"";
+	this->PrepareReader(testJson);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, SkipLongStringWithEscapes)
+{
+	const std::string testJson = "\"" + this->GenTestString(chunkSize * 3) + R"(\"\u0041)" + this->GenTestString(chunkSize * 3) + "\"";
+	this->PrepareReader(testJson);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, SkipLongNumber)
+{
+	const std::string testJson(chunkSize * 5, '1');
+	this->PrepareReader(testJson);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
 //-----------------------------------------------------------------------------
 
 TYPED_TEST(JsonReaderTest, SkipArrayWithPrimitives)
@@ -1832,6 +1940,96 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingClosingBrack
 	EXPECT_EQ(1, ex.Line);
 	EXPECT_EQ(15, ex.Offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or '}' in object", ex.what());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of reading from UTF encoded streams (stream reader only)
+//-----------------------------------------------------------------------------
+TYPED_TEST(JsonReaderTest, ReadFromUtf8StreamWithBom)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		std::string sourceStr = std::string(
+			BitSerializer::Convert::Utf::Utf8::bom, sizeof(BitSerializer::Convert::Utf::Utf8::bom)) + R"({"key":"value"})";
+		this->PrepareStreamReader(std::move(sourceStr));
+		this->AssertReadKeyValue("key", "value");
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStream)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		auto json = NativeStringToLittleEndian(u"{\"key\":\"value\"}");
+		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t)));
+		this->AssertReadKeyValue("key", "value");
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStreamWithBom)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		std::string sourceStr = std::string(BitSerializer::Convert::Utf::Utf16Le::bom, sizeof(BitSerializer::Convert::Utf::Utf16Le::bom));
+		auto json = NativeStringToLittleEndian(u"{\"key\":\"value\"}");
+		sourceStr.append(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t));
+		this->PrepareStreamReader(std::move(sourceStr));
+		this->AssertReadKeyValue("key", "value");
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf16BeStream)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		auto json = NativeStringToBigEndian(u"{\"key\":\"value\"}");
+		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t)));
+		this->AssertReadKeyValue("key", "value");
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf32LeStream)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		auto json = NativeStringToLittleEndian(U"{\"key\":\"value\"}");
+		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char32_t)));
+		this->AssertReadKeyValue("key", "value");
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf32BeStream)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		auto json = NativeStringToBigEndian(U"{\"key\":\"value\"}");
+		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char32_t)));
+		this->AssertReadKeyValue("key", "value");
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStreamWithSurrogatePair)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		// JSON: {"msg":"Hi😀"} where 😀 = U+1F600 = surrogate pair 0xD83D, 0xDE00
+		auto json = NativeStringToLittleEndian(u"{\"msg\":\"Hi😀\"}");
+		std::string sourceStr(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t));
+		this->PrepareStreamReader(std::move(sourceStr));
+		this->AssertReadKeyValue("msg", std::string("Hi\xF0\x9F\x98\x80", 6));
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadFromUtf16BeStreamWithSurrogatePair)
+{
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	{
+		// JSON: {"msg":"Hi😀"} as UTF-16BE
+		auto json = NativeStringToBigEndian(u"{\"msg\":\"Hi😀\"}");
+		std::string sourceStr(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t));
+		this->PrepareStreamReader(std::move(sourceStr));
+		this->AssertReadKeyValue("msg", std::string("Hi\xF0\x9F\x98\x80", 6));
+	}
 }
 
 #pragma warning(pop)

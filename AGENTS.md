@@ -249,6 +249,8 @@ ctest --test-dir build -T test --output-on-failure -j2
 -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 ```
 
+> **Note:** Environment variables set by vcvarsall are lost when the shell exits. Every `cmake --build` / `ninja` invocation must run in a shell that has executed the environment-capture block (steps 1–2) above — it is **not** enough to configure once. If compilation fails with `fatal error C1083: Cannot open include file: 'iosfwd'` (or `'memory'`, `'cstddef'`), the MSVC environment is missing from the current shell; re-run the capture block before building.
+
 ### Linux/macOS Build
 
 ```bash

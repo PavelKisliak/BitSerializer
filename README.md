@@ -15,15 +15,21 @@ ___
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
 - Payload passthrough of unprocessed data structures with minimal serialization overhead.¹
 - Enums can be serialized as integers or strings, giving you full control over representation.
-- Support serialization to memory, streams and files.
+- Serialization to memory, streams, files; built-in JSON/CSV/MsgPack handle large files via effective chunked streaming.
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
 
 ¹ Payload passthrough is currently only supported by JSON archive.
 
+> [!IMPORTANT]
+> The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which requires no external dependencies. The built-in implementation is about 40% faster and offers the same functionality.
+>
+> Your help with testing the built-in implementation before the switch would be much appreciated — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
+
 #### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
+| [json-archive](docs/bitserializer_json.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | Built-in |
 | [rapidjson-archive](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
 | [pugixml-archive](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
 | [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
@@ -1070,6 +1076,9 @@ BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const Se
 
 > [!NOTE]
 > Note that the stream implementation must support the `seekg()` operation to load fields non-linearly.
+
+> [!NOTE]
+> Built-in archives (JSON, CSV, MsgPack) deserialize streams incrementally in chunks with bounded memory usage, so they can handle files much larger than available RAM. Third-party archives (RapidJSON, PugiXML, RapidYAML) are DOM-based and keep the whole document in memory.
 
 ### Error handling
 First, let's list what are considered as errors and will throw exception:

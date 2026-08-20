@@ -253,36 +253,4 @@ namespace BitSerializer::Json::Detail
 		char mPaddingChar;
 		bool mPadding = false;
 	};
-
-	//class CJsonStreamWriter final : public IJsonWriter
-	//{
-	//public:
-	//	CJsonStreamWriter(std::ostream& outputStream);
-
-	//	void WriteValue(std::nullptr_t) override;
-
-	//	void WriteValue(bool value) override;
-
-	//	void WriteValue(uint8_t value) override;
-	//	void WriteValue(uint16_t value) override;
-	//	void WriteValue(uint32_t value) override;
-	//	void WriteValue(uint64_t value) override;
-
-	//	void WriteValue(int8_t value) override;
-	//	void WriteValue(int16_t value) override;
-	//	void WriteValue(int32_t value) override;
-	//	void WriteValue(int64_t value) override;
-
-	//	void WriteValue(float value) override;
-	//	void WriteValue(double value) override;
-
-	//	void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
-	//	void WriteValue(std::string_view value) override;
-
-	//	void BeginArray(size_t arraySize) override;
-	//	void BeginMap(size_t mapSize) override;
-
-	//private:
-	//	std::ostream& mOutputStream;
-	//};
 }

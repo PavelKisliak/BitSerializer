@@ -307,8 +307,12 @@ if(BUILD_JSON_ARCHIVE)
     # JSON archive object files
     add_library(json_impl OBJECT
         "src/json/json_archive.cpp"
+        "src/json/json_reader_common.h"
         "src/json/json_string_readers.h" "src/json/json_string_readers.cpp"
+        "src/json/json_stream_readers.h" "src/json/json_stream_readers.cpp"
+        "src/json/json_writer_common.h"
         "src/json/json_string_writers.h" "src/json/json_string_writers.cpp"
+        "src/json/json_stream_writers.h" "src/json/json_stream_writers.cpp"
     )
     target_include_directories(json_impl PRIVATE "src/")
     if(BUILD_SHARED_LIBS)

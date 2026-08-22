@@ -17,8 +17,8 @@ namespace BitSerializer
 		using value_type = std::pair<TFirst, TSecond>;
 		using noConstKeyType = std::remove_const_t<typename value_type::first_type>;
 
-		static const auto keyName = Convert::To<typename TArchive::key_type>("key");
-		static const auto valueName = Convert::To<typename TArchive::key_type>("value");
+		const auto keyName = Convert::To<typename TArchive::key_type>("key");
+		const auto valueName = Convert::To<typename TArchive::key_type>("value");
 
 		archive << KeyValue(keyName, const_cast<noConstKeyType&>(pair.first));
 		archive << KeyValue(valueName, pair.second);

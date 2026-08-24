@@ -15,7 +15,7 @@ ___
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
 - Payload passthrough of unprocessed data structures with minimal serialization overhead.¹
 - Enums can be serialized as integers or strings, giving you full control over representation.
-- Serialization to memory, streams, files; built-in JSON/CSV/MsgPack handle large files via effective chunked streaming.
+- Effective deserialization from streams with bounded memory usage (built-in JSON/CSV/MsgPack archives).
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
 
@@ -772,6 +772,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::pair | #include "bitserializer/types/std/pair.h" |
 | std::tuple | #include "bitserializer/types/std/tuple.h" |
 | std::optional | #include "bitserializer/types/std/optional.h" |
+| std::variant | #include "bitserializer/types/std/variant.h" |
 | std::unique_ptr, std::shared_ptr | #include "bitserializer/types/std/memory.h" |
 | std::chrono::time_point, chrono::duration | #include "bitserializer/types/std/chrono.h" |
 | std::time_t | #include "bitserializer/types/std/ctime.h" |

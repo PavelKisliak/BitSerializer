@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <variant>
+#include <type_traits>
 
 #include "bitserializer/convert.h"
 #include "bitserializer/key_value.h"
@@ -41,34 +42,32 @@ namespace BitSerializer
 	}
 
 	/**
-	 * @brief A wrapper that explicitly requests tagged serialization of `std::variant`.
+	 * @brief A wrapper that explicitly requests indexed serialization of `std::variant`.
 	 *
 	 * Serializes the variant as an object with `index` and `value` fields,
-	 * preserving the type information. This is useful when the default
-	 * serialization behavior for `std::variant` may change in the future,
-	 * and you want to explicitly opt in to the tagged format.
+	 * preserving the type information via integer index.
 	 *
 	 * @par Example:
 	 * @code
 	 * std::variant<int, std::string, CUser> data;
-	 * archive << KeyValue("data", VariantAsTagged(data));
+	 * archive << KeyValue("data", VariantAsIndexed(data));
 	 * @endcode
 	 */
 	template <typename T>
-	struct VariantAsTagged
+	struct VariantAsIndexed
 	{
-		explicit VariantAsTagged(T& v) noexcept : value(v) {}
+		explicit VariantAsIndexed(T& v) noexcept : value(v) {}
 		T& value;
 	};
 
 	/**
-	 * @brief Serializes `VariantAsTagged<std::variant<...>>` as an object with `index` and `value` fields.
+	 * @brief Serializes `VariantAsIndexed<std::variant<...>>` as an object with `index` and `value` fields.
 	 *
 	 * @note This representation requires object support in the target archive.
 	 * Flat archives such as CSV may not support nested alternatives.
 	 */
 	template <typename TArchive, typename... TArgs>
-	void SerializeObject(TArchive& archive, VariantAsTagged<std::variant<TArgs...>> taggedVariant)
+	void SerializeObject(TArchive& archive, VariantAsIndexed<std::variant<TArgs...>> taggedVariant)
 	{
 		SerializeObject(archive, taggedVariant.value);
 	}
@@ -86,6 +85,9 @@ namespace BitSerializer
 
 		if constexpr (TArchive::IsLoading())
 		{
+			static_assert((std::is_default_constructible_v<TArgs> && ...),
+				"BitSerializer. All std::variant alternatives must be default-constructible for deserialization");
+
 			const auto indexName = Convert::To<typename TArchive::key_type>("index");
 			const auto valueName = Convert::To<typename TArchive::key_type>("value");
 
@@ -99,7 +101,7 @@ namespace BitSerializer
 		{
 			if (value.valueless_by_exception())
 			{
-				throw SerializationException(SerializationErrorCode::MismatchedTypes,
+				throw SerializationException(SerializationErrorCode::OutOfRange,
 					"Cannot serialize std::variant in valueless_by_exception state");
 			}
 

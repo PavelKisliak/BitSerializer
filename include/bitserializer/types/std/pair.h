@@ -1,10 +1,9 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <utility>
-#include "bitserializer/convert.h"
 
 namespace BitSerializer
 {
@@ -14,13 +13,7 @@ namespace BitSerializer
 	template<typename TArchive, typename TFirst, typename TSecond>
 	void SerializeObject(TArchive& archive, std::pair<TFirst, TSecond>& pair)
 	{
-		using value_type = std::pair<TFirst, TSecond>;
-		using noConstKeyType = std::remove_const_t<typename value_type::first_type>;
-
-		const auto keyName = Convert::To<typename TArchive::key_type>("key");
-		const auto valueName = Convert::To<typename TArchive::key_type>("value");
-
-		archive << KeyValue(keyName, const_cast<noConstKeyType&>(pair.first));
-		archive << KeyValue(valueName, pair.second);
+		archive << KeyValue("key", const_cast<std::remove_const_t<TFirst>&>(pair.first));
+		archive << KeyValue("value", pair.second);
 	}
 }

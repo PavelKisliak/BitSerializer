@@ -477,6 +477,9 @@ TEST(RapidYamlArchive, SerializeStdOptionalAsObjectMember)
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
 }
 
+//-----------------------------------------------------------------------------
+// Tests of `std::variant`
+//-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeStdVariantAsRootElement)
 {
 	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;

@@ -13,6 +13,7 @@
 #include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/types/std/tuple.h"
+#include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 
@@ -753,6 +754,26 @@ TEST(JsonArchive, SerializeStdOptionalAsObjectMember)
 	// Array as member of object
 	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::vector<int>>>>();
 	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
+}
+
+//-----------------------------------------------------------------------------
+// Tests of `std::variant`
+//-----------------------------------------------------------------------------
+TEST(JsonArchive, SerializeStdVariantAsRootElement)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<JsonArchive>(VariantType(321));
+	TestSerializeType<JsonArchive>(VariantType(std::string("test")));
+	TestSerializeType<JsonArchive>(VariantType(TestPointClass(5, 8)));
+	TestSerializeType<JsonArchive>(VariantType(std::vector<int>{ 1, 2, 3 }));
+}
+
+TEST(JsonArchive, SerializeStdVariantAsObjectMember)
+{
+	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
+	TestSerializeType<JsonArchive>(TestClassWithSubType(VariantType(TestPointClass(13, 21))));
+	TestSerializeType<JsonArchive>(TestClassWithSubType(VariantType(std::vector<int>{ 8, 5, 3 })));
+	TestSerializeType<JsonArchive>(TestClassWithSubType(VariantType(std::string("variant"))));
 }
 
 //-----------------------------------------------------------------------------

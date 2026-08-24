@@ -160,7 +160,7 @@ Stream support is determined at compile-time via `is_archive_support_{input,outp
 | Fundamentals (int, float, bool, string) | built-in |
 | Enums (register with `BITSERIALIZER_REGISTER_ENUM`) | `conversion_detail/convert_enum.h` |
 | Chrono, Filesystem | `types/std/chrono.h`, `types/std/filesystem.h` |
-| STD containers (vector, map, set, optional, tuple, pair) | `types/std/*.h` |
+| STD containers (vector, map, set, optional, tuple, pair, variant) | `types/std/*.h` |
 | Custom classes | user `Serialize()` method or global `SerializeObject()`/`SerializeArray()` |
 
 ---
@@ -301,6 +301,41 @@ ctest -T test --output-on-failure -j2      # Run all
 ```bash
 ninja -C build convert_tests    # Rebuild only one test target
 ```
+
+### Test helpers
+
+Shared test utilities live in `src/testing_tools/` — reuse them instead of writing ad-hoc code.
+
+**`common_test_methods.h`** — serialization test methods:
+
+| Helper | Purpose |
+|--------|---------|
+| `TestSerializeType<TArchive, TValue>()` | Roundtrip: build fixture → save → load → compare (root scope) |
+| `TestSerializeType<TArchive>(value)` | Roundtrip a specific value instance |
+| `TestSerializeArray<TArchive, T>()` | Roundtrip C-array of elements |
+| `TestSerializePmrType<TArchive, TValue>()` | Roundtrip PMR containers |
+| `TestMismatchedTypesPolicy<TArchive, SourceType, TargetType>(policy)` | Serialize `SourceType`, load into incompatible `TargetType`, verify `MismatchedTypesPolicy` behavior |
+| `TestOverflowNumberPolicy<TArchive, SourceType, TargetType>(policy)` | Serialize value near type limits, load into narrower type, verify `OverflowNumberPolicy` |
+| `TestLoadingToDifferentType<TArchive>(value, expected)` | Load source into different target type, expect conversion result |
+| `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into pre-filled container (must be cleared) |
+| `TestValidationForNamedValues<TArchive, T>()` | Validators (`Required()` etc.) on named fields |
+
+**`common_test_entities.h`** — test classes:
+- `TestClassWithSubType<T>` — wraps a value as named class member (`"TestValue"`), use when root scope does not support the type directly (e.g. objects in ArchiveStub)
+- `TestClassWithSubTypes<Args...>` — class with multiple members
+- `TestPointClass`, `TestEnum`, `TestUnion` — simple serializable fixtures
+
+**`auto_fixture.h`** — `::BuildFixture(value)` / `BuildFixture<T>()` generate random test data for any supported type (fundamentals, strings, containers, chrono, custom types via ADL `static void BuildFixture(T&)`).
+
+**`archive_stub.h`** — format-independent archive for unit tests. Key specifics:
+- `key_type` is `std::wstring`; root scope supports only values/arrays, **not keyed objects** — wrap objects via `TestClassWithSubType`
+- `preferred_output_type` is `TestIoDataRoot` (internal IOData tree), not a string — roundtrip works without any text parsing
+
+### Testing patterns
+
+- **STL types unit tests** (`std_types_tests`) run against `ArchiveStub` only — base serialization logic is shared, so per-archive coverage is done by smoke tests (`SerializeStdTypes`) in each archive's integration tests.
+- **Error policy tests**: serialize a *source* type, deserialize into an *incompatible target* type rather than crafting broken input data manually. E.g. variant out-of-range index = save `variant<int, std::string, double>` (index 2 active) → load into `variant<int, std::string>`.
+- **Custom options** are passed explicitly: `SerializationOptions options; options.mismatchedTypesPolicy = ...; LoadObject<TArchive>(obj, output, options);`
 
 ---
 

@@ -727,6 +727,9 @@ TEST(RapidJsonArchive, SerializeStdOptionalAsObjectMember)
 	TestSerializeType<JsonArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
 }
 
+//-----------------------------------------------------------------------------
+// Tests of `std::variant`
+//-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeStdVariantAsRootElement)
 {
 	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;

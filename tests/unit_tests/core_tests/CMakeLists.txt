@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
     serialization_base_types_tests.cpp
     serialization_context_tests.cpp
     serialization_object_traits_tests.cpp
+    type_registry_tests.cpp
     validators_tests.cpp
     refine_tests.cpp
 )

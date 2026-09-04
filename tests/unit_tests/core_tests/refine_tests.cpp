@@ -5,6 +5,9 @@
 #include <gtest/gtest.h>
 #include "bitserializer/refine.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4566)
+
 using namespace BitSerializer;
 
 //-----------------------------------------------------------------------------
@@ -265,3 +268,5 @@ TEST(RefineToUpperCase, ShouldIgnoreUnicodeCharaters)
 	// Assert
 	EXPECT_EQ(U"HELLO WORLD! привет мир!", testValue);
 }
+
+#pragma warning(pop)

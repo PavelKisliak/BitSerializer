@@ -35,8 +35,12 @@ namespace
 	};
 }
 
-//-----------------------------------------------------------------------------
-// Tests of serialization for std::pair
+// Register types for VariantAsNamed tests
+BITSERIALIZER_REGISTER_TYPE(int, "Int")
+BITSERIALIZER_REGISTER_TYPE(std::string, "String")
+BITSERIALIZER_REGISTER_TYPE(float, "Float")
+BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
+
 //-----------------------------------------------------------------------------
 TEST(STD_Types, SerializePair) {
 	auto pair = BuildFixture<std::pair<std::string, int>>();
@@ -156,53 +160,61 @@ TEST(STD_Types, ThrowWhenSavingValuelessVariant) {
 	EXPECT_THROW(BitSerializer::SaveObject<ArchiveStub>(v, outputArchive), BitSerializer::SerializationException);
 }
 
-// TODO: The following VariantAsIndexed tests are disabled due to incompatibility
-// with ArchiveStub (uses wide-string keys). Re-enable once ArchiveStub supports
-// object serialization with char* keys, or move tests to a real archive test suite.
-#if 0  // NOLINT(readability-avoid-unconditional-preprocessor-if)
 //-----------------------------------------------------------------------------
-// Tests of serialization for VariantAsIndexed wrapper
+// Tests of serialization for VariantAsNamed wrapper
 //-----------------------------------------------------------------------------
-TEST(STD_Types, SerializeVariantAsIndexedWithPrimitiveAlternative) {
+TEST(STD_Types, SerializeVariantAsNamedWithPrimitiveAlternative)
+{
 	using VariantType = std::variant<int, std::string, float>;
-	VariantType testValue(123);
-	VariantType actual(0);
-	typename ArchiveStub::preferred_output_type outputArchive{};
-	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(testValue)), outputArchive);
-	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(actual)), outputArchive);
-	EXPECT_EQ(std::get<int>(testValue), std::get<int>(actual));
+	VariantType testValue, actual;
+	BuildFixture(testValue);
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsNamed(testValue), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsNamed(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
 }
 
-TEST(STD_Types, SerializeVariantAsIndexedWithStringAlternative) {
-	using VariantType = std::variant<int, std::string, float>;
-	VariantType testValue(std::string("test"));
-	VariantType actual(std::string(""));
-	typename ArchiveStub::preferred_output_type outputArchive{};
-	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(testValue)), outputArchive);
-	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(actual)), outputArchive);
-	EXPECT_EQ(std::get<std::string>(testValue), std::get<std::string>(actual));
-}
-
-TEST(STD_Types, SerializeVariantAsIndexedWithObjectAlternative) {
+TEST(STD_Types, SerializeVariantAsNamedWithObjectAlternative)
+{
 	using VariantType = std::variant<int, TestPointClass, std::vector<int>>;
-	VariantType testValue(TestPointClass(10, 20));
-	VariantType actual(TestPointClass(0, 0));
-	typename ArchiveStub::preferred_output_type outputArchive{};
-	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(testValue)), outputArchive);
-	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(actual)), outputArchive);
-	GTestExpectEq(std::get<TestPointClass>(testValue), std::get<TestPointClass>(actual));
+	VariantType testValue(TestPointClass(10, 20)), actual;
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsNamed(testValue), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsNamed(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
 }
 
-TEST(STD_Types, SerializeVariantAsIndexedWithArrayAlternative) {
+TEST(STD_Types, SerializeVariantAsNamedWithArrayAlternative)
+{
 	using VariantType = std::variant<int, TestPointClass, std::vector<int>>;
-	VariantType testValue(std::vector<int>{ 1, 2, 3, 4 });
-	VariantType actual(std::vector<int>{});
-	typename ArchiveStub::preferred_output_type outputArchive{};
-	BitSerializer::SaveObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(testValue)), outputArchive);
-	BitSerializer::LoadObject<ArchiveStub>(BitSerializer::KeyValue("data", BitSerializer::VariantAsIndexed(actual)), outputArchive);
-	GTestExpectEq(std::get<std::vector<int>>(testValue), std::get<std::vector<int>>(actual));
+	VariantType testValue(std::vector<int>{ 1, 2, 3, 4 }), actual;
+	ArchiveStub::preferred_output_type outputArchive{};
+
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsNamed(testValue), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsNamed(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
 }
-#endif
+
+TEST(STD_Types, ThrowWhenLoadingVariantAsNamedWithUnknownType)
+{
+	// Save a variant whose active alternative is not registered in the target variant
+	using SourceVariant = std::variant<int, std::string, float>;
+	using TargetVariant = std::variant<std::string, float>;
+	SourceVariant testValue(123);
+	TargetVariant actual;
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsNamed(testValue), outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
+	EXPECT_THROW(
+		BitSerializer::LoadObject<ArchiveStub>(BitSerializer::VariantAsNamed(actual), outputArchive, options),
+		BitSerializer::SerializationException
+	);
+}
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::unique_ptr

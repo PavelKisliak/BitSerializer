@@ -371,6 +371,7 @@ Examples:
 | Interfaces | `I` + CamelCase | `IJsonReader` |
 | Methods (public/private) | CamelCase | `ReadValue()` |
 | Private members | `m` + CamelCase | `mPos` |
+| Public struct members | PascalCase | `Name`, `Object`, `Index` |
 | Local variables | camelCase | `hexVal` |
 | Template params | `T` + CamelCase | `TArchive` |
 | Type aliases | `snake_case_type` | `key_type` |

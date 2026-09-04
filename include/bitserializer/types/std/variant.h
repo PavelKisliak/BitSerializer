@@ -10,6 +10,7 @@
 #include "bitserializer/key_value.h"
 #include "bitserializer/serialization_options.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
+#include "bitserializer/serialization_detail/type_registry.h"
 
 namespace BitSerializer
 {
@@ -73,7 +74,92 @@ namespace BitSerializer
 	}
 
 	/**
-	 * @brief Serializes `std::variant` as an object with `index` and `value` fields.
+	 * @brief A wrapper that explicitly requests name-based serialization of `std::variant`.
+	 *
+	 * Serializes the variant as an object with `type` and `value` fields, using registered type names instead of integer indices.
+	 * Requires all alternatives to be registered via BITSERIALIZER_REGISTER_TYPE.
+	 *
+	 * @par Example:
+	 * @code
+	 * std::variant<int, std::string, CUser> data;
+	 * archive << KeyValue("data", VariantAsNamed(data));
+	 * @endcode
+	 */
+	template <typename T>
+	struct VariantAsNamed
+	{
+		explicit VariantAsNamed(T& v) noexcept : value(v) {}
+		T& value;
+	};
+
+	/**
+	 * @brief Serializes `VariantAsNamed<std::variant<...>>` as an object with `type` and `value` fields.
+	 *
+	 * Uses TypeRegistry to serialize variant by type name instead of index.
+	 * Requires all alternatives to be registered via BITSERIALIZER_REGISTER_TYPE.
+	 *
+	 * @note This representation requires object support in the target archive.
+	 * Flat archives such as CSV may not support nested alternatives.
+	 */
+	template <typename TArchive, typename... TArgs>
+	void SerializeObject(TArchive& archive, VariantAsNamed<std::variant<TArgs...>> taggedVariant)
+	{
+		using Registry = Detail::TypeRegistry<TArgs...>;
+
+		if constexpr (TArchive::IsLoading())
+		{
+			static_assert((std::is_default_constructible_v<TArgs> && ...),
+				"BitSerializer. All std::variant alternatives must be default-constructible for deserialization");
+
+			std::string typeName;
+			const auto typeNameKey = Convert::To<typename TArchive::key_type>("type");
+			const auto valueKey = Convert::To<typename TArchive::key_type>("value");
+
+			if (Serialize(archive, typeNameKey, typeName))
+			{
+				const auto* entry = Registry::Find(typeName);
+				if (!entry)
+				{
+					if (archive.GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+					{
+						throw SerializationException(SerializationErrorCode::MismatchedTypes,
+							"Unknown variant type: " + typeName);
+					}
+					return;
+				}
+
+				Registry::EmplaceByIndex(taggedVariant.value, entry->Index);
+				std::visit([&archive, &valueKey](auto& activeValue) {
+					Serialize(archive, valueKey, activeValue);
+				}, taggedVariant.value);
+			}
+		}
+		else
+		{
+			if (taggedVariant.value.valueless_by_exception())
+			{
+				throw SerializationException(SerializationErrorCode::OutOfRange,
+					"Cannot serialize std::variant in valueless_by_exception state");
+			}
+
+			const auto* entry = Registry::FindByIndex(taggedVariant.value.index());
+			if (!entry)
+			{
+				throw SerializationException(SerializationErrorCode::OutOfRange,
+					"Variant index out of registry range");
+			}
+
+			archive << KeyValue("type", std::string(entry->Name));
+			std::visit([&archive](auto& activeValue) {
+				archive << KeyValue("value", activeValue);
+			}, taggedVariant.value);
+		}
+	}
+
+	/**
+	 * @brief Serializes `std::variant` as an object with `index` and `value` fields (DEFAULT).
+	 *
+	 * This is the default serialization format using integer indices.
 	 *
 	 * @note This representation requires object support in the target archive.
 	 * Flat archives such as CSV may not support nested alternatives.

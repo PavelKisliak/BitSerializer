@@ -12,6 +12,7 @@
 #include "auto_fixture.h"
 #include "gtest_asserts.h"
 #include "bitserializer/bit_serializer.h"
+#include "bitserializer/serialization_detail/type_registry.h"
 
 //-----------------------------------------------------------------------------
 enum class TestEnum {
@@ -132,6 +133,10 @@ namespace std
 		}
 	};
 }
+
+// Register `TestPointClass` for name-based serialization (VariantAsNamed) in this header,
+// to verify that registration works across translation units.
+BITSERIALIZER_REGISTER_TYPE(TestPointClass, "TestPointClass")
 
 template <typename T, class... TKeyValueArgs>
 class TestClassWithSubType

@@ -29,13 +29,15 @@ jobs:
       echo ------------------------------------------------------------------------------
       echo -- Clone latest VCPKG
       echo ------------------------------------------------------------------------------
-      git clone -v "https://github.com/Microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
+      git clone -v "https://$(GITHUB_TOKEN)@github.com/Microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
       echo.
       echo ------------------------------------------------------------------------------
       echo -- Bootstrap VCPKG
       echo ------------------------------------------------------------------------------
       ${{ variables.vcpkgDir }}/bootstrap-vcpkg
     displayName: 'Install VCPKG'
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
 
   - script: |
       echo ------------------------------------------------------------------------------

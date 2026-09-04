@@ -422,6 +422,7 @@ When in doubt, follow the patterns you see in the surrounding code.
 | Public/protected methods | CamelCase | `ReadValue()`, `OpenArray()`, `GetPosition()` |
 | Private methods | CamelCase | `ParseNextLine()`, `UnescapeValue()` |
 | Private member variables | `m` + CamelCase | `mPos`, `mLineNumber`, `mInputData` |
+| Public struct members | PascalCase | `Name`, `Object`, `Index` |
 | Local variables / Constants | camelCase | `codepoint`, `hexVal`, `targetValue` |
 | Template parameters | `T` + CamelCase | `TSource`, `TTarget`, `TArchive` |
 | Type aliases (public, in traits/classes) | `snake_case_type` | `value_type`, `key_type`, `input_archive_type` |

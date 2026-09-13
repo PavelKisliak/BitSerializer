@@ -72,7 +72,7 @@ BitSerializer/
 │   │   └── convert_api_tests/
 │   └── acceptance_tests/           # Installed-library tests (reuses integration tests, CI Valgrind checks)
 │
-├── samples/                        # 14 example projects (hello_world, validation, versioning, etc.)
+├── samples/                        # 15 example projects (hello_world, validation, versioning, etc.)
 ├── benchmarks/                     # Performance benchmarks vs nlohmann-json, RapidJSON, PugiXml, RapidYAML
 ├── docs/                           # Per-format documentation (markdown)
 ├── cmake/

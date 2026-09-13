@@ -61,8 +61,9 @@ ___
 - [Serializing enum types](#serializing-enum-types)
 - [Serializing to multiple formats](#serializing-to-multiple-formats)
 - [Serialization STD types](#serialization-std-types)
-- [Specifics of serialization STD map](#specifics-of-serialization-std-map)
-- [Serialization date and time](#serialization-date-and-time)
+  - [Serialization of std::map](#serialization-of-stdmap)
+  - [Serialization of date and time](#serialization-of-date-and-time)
+  - [Serialization of std::variant](#serialization-of-stdvariant)
 - [Payload passthrough of unprocessed data structures](#payload-passthrough-of-unprocessed-data-structures)
 - [Conditional loading and versioning](#conditional-loading-and-versioning)
 - [Serialization to streams and files](#serialization-to-streams-and-files)
@@ -780,7 +781,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
-### Specifics of serialization STD map
+#### Serialization of std::map
 BitSerializer does not add any system information when saving the map, for example serialization to JSON would look like this:
 ```cpp
 std::map<std::string, int> testMap = 
@@ -826,7 +827,7 @@ class YourCustomKey
 }
 ```
 
-### Serialization date and time
+#### Serialization of date and time
 The ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:
 ```cpp
 #include "bitserializer/types/std/chrono.h"
@@ -867,6 +868,50 @@ void Serialize(TArchive& archive)
     archive << KeyValue("Time", CTimeRef(timeValue));
 }
 ```
+
+#### Serialization of std::variant
+`std::variant` is serialized as an object, so it requires object support in the target archive. Flat formats such as CSV may not support nested alternatives. Include the header to enable serialization:
+```cpp
+#include "bitserializer/types/std/variant.h"
+```
+
+By default the active alternative is encoded by its **integer index**:
+```cpp
+using VariantType = std::variant<int, std::string, CUser, std::vector<int>>;
+VariantType testValue(CUser("Alice", 30));
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testValue);
+```
+Returns result:
+```json
+{ "index": 2, "value": { "name": "Alice", "age": 30 } }
+```
+
+The index-based representation requires no additional setup, but the index is unstable if the list of alternatives changes. For a more stable and human-readable format, use the `VariantAsNamed` wrapper, which encodes the active type by its **registered name**:
+```cpp
+VariantType testValue(std::vector<int>{ 1, 2, 3 });
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(VariantAsNamed(testValue));
+```
+Returns result:
+```json
+{ "type": "IntVector", "value": [1, 2, 3] }
+```
+
+`VariantAsNamed` requires every alternative to be registered with a unique type name via `BITSERIALIZER_REGISTER_TYPE`:
+```cpp
+BITSERIALIZER_REGISTER_TYPE(CUser, "User")
+BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
+BITSERIALIZER_REGISTER_TYPE(int, "Int")
+BITSERIALIZER_REGISTER_TYPE(std::string, "String")
+```
+
+Registration details:
+- It must be placed at **global (file) namespace scope** - it cannot appear inside a function or another namespace.
+- It is safe to use in both headers and `.cpp` files (no ODR issues, since all members are inline). Registering in a header is a good way to make the registration available to every translation unit that needs it.
+- The registration must be **visible (via `#include`)** in every translation unit that uses `VariantAsNamed` for the type, and each type must be registered **exactly once** in the program.
+
+Loading a `VariantAsNamed` value that contains an unknown type name respects the `MismatchedTypesPolicy` - with `ThrowError` it throws a `SerializationException`, otherwise the field is skipped.
+
+[See full sample](samples/serialize_variant/serialize_variant.cpp)
 
 ### Payload passthrough of unprocessed data structures
 In distributed systems, services often need to process messages while forwarding parts they don't interpret.

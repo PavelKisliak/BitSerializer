@@ -27,6 +27,10 @@ if(BUILD_CSV_ARCHIVE)
     add_subdirectory(serialize_to_csv)
 endif()
 
+if(BUILD_JSON_ARCHIVE)
+    add_subdirectory(serialize_variant)
+endif()
+
 if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_MSGPACK_ARCHIVE)
     add_subdirectory(msgpack_vs_json)
 endif()

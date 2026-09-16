@@ -9,6 +9,10 @@
 #include "bitserializer/types/std/filesystem.h"
 #include "bitserializer/types/std/array.h"
 
+// STD types (test fixtures)
+#include "testing_tools/auto_fixture/std/array.h"
+#include "testing_tools/auto_fixture/std/filesystem.h"
+
 
 using namespace BitSerializer;
 

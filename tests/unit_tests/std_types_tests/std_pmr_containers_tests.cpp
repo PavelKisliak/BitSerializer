@@ -17,6 +17,9 @@
 #include "bitserializer/types/std/map.h"
 #include "bitserializer/types/std/unordered_map.h"
 
+// STD containers (test fixtures)
+#include "testing_tools/auto_fixture/std/all.h"
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::pmr containers.
 //-----------------------------------------------------------------------------

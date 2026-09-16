@@ -306,26 +306,53 @@ ninja -C build convert_tests    # Rebuild only one test target
 
 Shared test utilities live in `src/testing_tools/` — reuse them instead of writing ad-hoc code.
 
-**`common_test_methods.h`** — serialization test methods:
+**`common_test_methods.h`** — serialization test methods. These encapsulate the whole arrange → save → load → assert cycle, so **prefer them over hand-writing a full test**. Every helper uses `AutoFixture` to fill random data and `GTestExpectEq` to compare.
 
 | Helper | Purpose |
 |--------|---------|
-| `TestSerializeType<TArchive, TValue>()` | Roundtrip: build fixture → save → load → compare (root scope) |
-| `TestSerializeType<TArchive>(value)` | Roundtrip a specific value instance |
-| `TestSerializeArray<TArchive, T>()` | Roundtrip C-array of elements |
-| `TestSerializePmrType<TArchive, TValue>()` | Roundtrip PMR containers |
-| `TestMismatchedTypesPolicy<TArchive, SourceType, TargetType>(policy)` | Serialize `SourceType`, load into incompatible `TargetType`, verify `MismatchedTypesPolicy` behavior |
-| `TestOverflowNumberPolicy<TArchive, SourceType, TargetType>(policy)` | Serialize value near type limits, load into narrower type, verify `OverflowNumberPolicy` |
-| `TestLoadingToDifferentType<TArchive>(value, expected)` | Load source into different target type, expect conversion result |
-| `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into pre-filled container (must be cleared) |
+| `TestSerializeType<TArchive, TValue>()` | Roundtrip a freshly generated value at the root scope: build fixture → save → load → compare |
+| `TestSerializeType<TArchive>(value)` | Roundtrip a specific value instance (root scope) |
+| `TestSerializeType<TArchive>(KeyValue(k, v))` | Roundtrip a key-value pair at root scope (XML) |
+| `TestSerializeArray<TArchive, TValue>(srcSize=7, tgtSize=src)` | Roundtrip a C-array of `TValue` |
+| `TestSerializeArrayWithKey<TArchive, TValue>(...)` | Roundtrip a named C-array |
+| `TestSerializeTwoDimensionalArray<TArchive, TValue>(...)` | Roundtrip a 2D C-array |
+| `TestSerializePmrType<TArchive, TValue>()` | Roundtrip a `std::pmr` container (asserts allocator is `polymorphic_allocator`) |
+| `TestSerializeClassToStream<TArchive>(value)` | Roundtrip a class through `std::stringstream` |
+| `TestSerializeArrayToStream<TArchive>(array)` | Roundtrip a C-array through a stream |
+| `TestSerializeArrayToFile<TArchive>(overwrite=false)` | Roundtrip to/from a temp file (array of `TestPointClass`) |
+| `TestLoadingToDifferentType<TArchive>(value, expected)` | Load source into a *different* target type, expect conversion |
+| `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into a pre-filled container (must be cleared) |
+| `TestLoadingEmptyContainer<TArchive, TContainer>()` | Loading an empty array must clear a non-empty container |
+| `TestMismatchedTypesPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
+| `TestOverflowNumberPolicy<TArchive, Source, Target>(policy)` | Serialize a value near type limits, load into narrower type, verify `OverflowNumberPolicy` |
 | `TestValidationForNamedValues<TArchive, T>()` | Validators (`Required()` etc.) on named fields |
+| `TestEncodingPolicy<TArchive>(policy)` | UTF encoding error policy on invalid sequences |
+| `TestSkippingObjectValueWhenMismatchKey<TArchive>()` | Mismatched keys must leave target fields untouched |
+| `TestVisitKeysInObjectScope<TArchive>(skipValues=false)` | Visit keys in an object scope |
+| `TestThrowExceptionWhenFileAlreadyExists<TArchive>()` | `SaveObjectToFile` must throw when the file exists |
 
-**`common_test_entities.h`** — test classes:
-- `TestClassWithSubType<T>` — wraps a value as named class member (`"TestValue"`), use when root scope does not support the type directly (e.g. objects in ArchiveStub)
-- `TestClassWithSubTypes<Args...>` — class with multiple members
-- `TestPointClass`, `TestEnum`, `TestUnion` — simple serializable fixtures
+**`common_test_entities.h`** — reusable serializable test classes. Use these instead of writing your own one-field/multi-field classes for roundtrip tests.
 
-**`auto_fixture.h`** — `::BuildFixture(value)` / `BuildFixture<T>()` generate random test data for any supported type (fundamentals, strings, containers, chrono, custom types via ADL `static void BuildFixture(T&)`).
+- `TestClassWithSubType<T, KeyValueArgs...>` — wraps a single value under the key `"TestValue"` and serializes it as a named field. Default-ctor fills the value via `BuildFixture`; the `explicit` ctor accepts an initial value (`TestClassWithSubType(initValue)`) plus optional `KeyValue` modifiers (e.g. validators). Use when you need **a single named field** with a **specific value** (unlike `TestClassWithSubTypes`, which only supports default-construction). Also usable when the archive's root scope can't hold a bare value (e.g. objects in `ArchiveStub`). Members: `GetValue()`, `KeyName`.
+- `TestClassWithSubTypes<Args...>` — a `std::tuple<Args...>` whose elements are serialized as named fields `"Member_0"`, `"Member_1"`, … Only default-constructible (plus `WithRequired()` to mark all fields `Required()`). Use for **multiple fields** when you don't need to set initial values.
+- `TestClassWithAttributes<Args...>` — tuple serialized as XML `AttributeValue`s (`"Attribute_0"`, …) for attribute-only archives.
+- `TestClassWithReverseLoad<Args...>` — like `TestClassWithSubTypes` but writes in forward order and loads in reverse order (tests order-agnostic deserialization).
+- `TestClassWithCustomKey<T>` — two `pair` members whose keys come from the value's type (min/max of `T`).
+- `TestClassWithSubArray<T, Size=7>` / `TestClassWithSubTwoDimArray<T, ...>` — wrap a C-array / 2D C-array under one key.
+- `TestClassWithExternalSerialization` — uses a global `SerializeObject()` instead of a member method.
+- `TestClassWithInheritance<TBase>` — tests `BaseObject<TBase>`.
+- `TestClassWithMismatchedField` — saves as `"id"`, loads as `"guid"`.
+- `TestClassWithVersioning` — adds extra fields when saving (versioning).
+- `TestClassForCheckValidation<T>` / `TestClassForCheckCompatibleTypes<T>` — a `Required()` field plus a deliberately-absent field.
+- `TestPointClass` (2 ints), `TestUnion` (int+float), `TestEnum` — simple fixtures.
+
+**`auto_fixture.h`** — random test-data generator. Core type is `AutoFixture::Fixture` (seeded `std::mt19937`, `GetContainerSize()`), used via:
+- Free functions `::BuildFixture(value)` / `::BuildFixture<T>()` — the common case; use the shared default `Fixture` (size 7).
+- Explicit `AutoFixture::Fixture().Build(value)` / `.Build<T>()` — configure via fluent `WithContainerSize(n)` / `WithSeed(s)`.
+
+Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::BuildFixture(Fixture&, T&)` functions in `namespace AutoFixture`. Custom types opt in with `static void BuildFixture(T&)` (member) or a free `AutoFixture::BuildFixture(Fixture&, T&)`.
+
+**`auto_fixture/std/*.h`** — one header per std type (vector, map, variant, chrono, memory, etc.). Include only the ones your test uses; `auto_fixture/std/all.h` pulls in every std fixture (use in the `*_std_containers_tests.cpp` files). Prefer per-type includes elsewhere.
 
 **`archive_stub.h`** — format-independent archive for unit tests. Key specifics:
 - `key_type` is `std::wstring`; root scope supports only values/arrays, **not keyed objects** — wrap objects via `TestClassWithSubType`
@@ -336,6 +363,7 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 - **STL types unit tests** (`std_types_tests`) run against `ArchiveStub` only — base serialization logic is shared, so per-archive coverage is done by smoke tests (`SerializeStdTypes`) in each archive's integration tests.
 - **Error policy tests**: serialize a *source* type, deserialize into an *incompatible target* type rather than crafting broken input data manually. E.g. variant out-of-range index = save `variant<int, std::string, double>` (index 2 active) → load into `variant<int, std::string>`.
 - **Custom options** are passed explicitly: `SerializationOptions options; options.mismatchedTypesPolicy = ...; LoadObject<TArchive>(obj, output, options);`
+- **Prefer the `TestSerialize*` helpers** over hand-rolling arrange/save/load/assert. For a single named field with a known value use `TestClassWithSubType`; for several generated fields use `TestClassWithSubTypes`.
 
 ---
 

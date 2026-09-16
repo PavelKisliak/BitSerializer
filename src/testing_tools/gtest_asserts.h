@@ -6,6 +6,9 @@
 #include <optional>
 #include <memory>
 #include <cmath>
+#include <map>
+#include <queue>
+#include <valarray>
 #include <gtest/gtest.h>
 #include "bitserializer/serialization_detail/generic_container.h"
 
@@ -59,7 +62,7 @@ void GTestExpectEq(T expected, T actual)
 template <typename T, std::enable_if_t<std::is_class_v<T> || std::is_union_v<T>, int> = 0>
 void GTestExpectEq(const T& expected, const T& actual)
 {
-	if constexpr (has_assert_method_v<std::decay_t<T>>)
+	if constexpr (AutoFixture::has_assert_method_v<std::decay_t<T>>)
 	{
 		expected.Assert(actual);
 	}

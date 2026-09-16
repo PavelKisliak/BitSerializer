@@ -138,6 +138,18 @@ namespace std
 // to verify that registration works across translation units.
 BITSERIALIZER_REGISTER_TYPE(TestPointClass, "TestPointClass")
 
+/**
+ * @brief A test class that wraps a single value under the key "TestValue" and serializes it as a named field.
+ *
+ * Use it instead of hand-writing a one-field test class. Because the value is exposed as a named field,
+ * it works in archives whose root scope cannot hold a bare value (e.g. objects in `ArchiveStub`).
+ *
+ * The default constructor fills `mTestValue` via `BuildFixture`; the `explicit` constructor accepts an
+ * initial value and optional `KeyValue` modifiers (e.g. `Required()`, validators, refiners).
+ *
+ * @tparam TValue The wrapped value type.
+ * @tparam TKeyValueArgs Additional arguments forwarded to the `BitSerializer::KeyValue` wrapper.
+ */
 template <typename T, class... TKeyValueArgs>
 class TestClassWithSubType
 {
@@ -184,7 +196,16 @@ private:
 template<class TValue, class... TKeyValueArgs>
 TestClassWithSubType(TValue, TKeyValueArgs...) -> TestClassWithSubType<TValue, TKeyValueArgs...>;
 
-//-----------------------------------------------------------------------------
+
+/**
+ * @brief A test class that wraps multiple values as a `std::tuple` and serializes them as named fields.
+ *
+ * Each element is serialized under the key `"Member_<index>"` (e.g. "Member_0", "Member_1").
+ * Use it instead of hand-writing a multi-field test class when you don't need to set the initial values
+ * (all fields are filled via `BuildFixture`). To mark every field `Required()`, chain `.WithRequired()`.
+ *
+ * @tparam Args The types of the wrapped members.
+ */
 template <class ...Args>
 class TestClassWithSubTypes : public std::tuple<Args...>
 {

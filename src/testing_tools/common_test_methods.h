@@ -5,6 +5,12 @@
 #pragma once
 #include <filesystem>
 #include <map>
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
+#if defined(__cpp_lib_memory_resource)
+#include <memory_resource>
+#endif
 #include <optional>
 
 #include "common_test_entities.h"

@@ -17,6 +17,18 @@
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 
+// STD types (test fixtures)
+#include "testing_tools/auto_fixture/std/array.h"
+#include "testing_tools/auto_fixture/std/atomic.h"
+#include "testing_tools/auto_fixture/std/chrono.h"
+#include "testing_tools/auto_fixture/std/filesystem.h"
+#include "testing_tools/auto_fixture/std/memory.h"
+#include "testing_tools/auto_fixture/std/optional.h"
+#include "testing_tools/auto_fixture/std/pair.h"
+#include "testing_tools/auto_fixture/std/tuple.h"
+#include "testing_tools/auto_fixture/std/variant.h"
+#include "testing_tools/auto_fixture/std/vector.h"
+
 using BitSerializer::Xml::PugiXml::XmlArchive;
 
 //-----------------------------------------------------------------------------

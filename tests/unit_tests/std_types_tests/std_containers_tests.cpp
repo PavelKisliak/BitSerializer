@@ -19,6 +19,9 @@
 #include "bitserializer/types/std/unordered_map.h"
 #include "bitserializer/types/std/valarray.h"
 
+// STD containers (test fixtures)
+#include "testing_tools/auto_fixture/std/all.h"
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for STL containers.
 // As containers serialization used methods for serialization of base types,

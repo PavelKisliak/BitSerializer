@@ -5,6 +5,8 @@
 #include "benchmark_base.h"
 #include <cmath>
 
+#include "testing_tools/auto_fixture/std/array.h"
+
 
 CBenchmarkBase::CBenchmarkBase()
 {

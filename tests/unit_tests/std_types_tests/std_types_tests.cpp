@@ -12,6 +12,15 @@
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/atomic.h"
 
+// STD types (test fixtures)
+#include "testing_tools/auto_fixture/std/atomic.h"
+#include "testing_tools/auto_fixture/std/memory.h"
+#include "testing_tools/auto_fixture/std/optional.h"
+#include "testing_tools/auto_fixture/std/pair.h"
+#include "testing_tools/auto_fixture/std/tuple.h"
+#include "testing_tools/auto_fixture/std/variant.h"
+#include "testing_tools/auto_fixture/std/vector.h"
+
 //-----------------------------------------------------------------------------
 // Serialization tests for STL types.
 // Because for serialization of STL types used base common methods for serialization,

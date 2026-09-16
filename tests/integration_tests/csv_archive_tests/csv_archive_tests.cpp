@@ -14,6 +14,13 @@
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 
+// STD types (test fixtures)
+#include "testing_tools/auto_fixture/std/atomic.h"
+#include "testing_tools/auto_fixture/std/chrono.h"
+#include "testing_tools/auto_fixture/std/filesystem.h"
+#include "testing_tools/auto_fixture/std/memory.h"
+#include "testing_tools/auto_fixture/std/optional.h"
+
 using namespace BitSerializer;
 using BitSerializer::Csv::CsvArchive;
 

@@ -345,7 +345,7 @@ namespace BitSerializer::Validate
 
 			bool isValid = true, isLocalPart = true;
 			int currentLabelSize = 0, startDomainPos = 0, lastDotPos = -1;
-			const auto str = Convert::Detail::ToStringView(value);
+			const auto str = Convert::ToStringView(value);
 			const auto strSize = static_cast<int>(str.size());
 			using char_type = std::make_unsigned_t<typename decltype(str)::value_type>;
 			for (int i = 0; i < strSize && isValid; ++i)
@@ -461,7 +461,7 @@ namespace BitSerializer::Validate
 			size_t digitCount = 0;
 			const char* error = nullptr;
 
-			const auto str = Convert::Detail::ToStringView(value);
+			const auto str = Convert::ToStringView(value);
 			const size_t strSize = str.size();
 
 			using char_type = std::make_unsigned_t<typename decltype(str)::value_type>;

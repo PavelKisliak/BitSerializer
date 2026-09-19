@@ -8,6 +8,7 @@
 #include "bitserializer/conversion_detail/convert_fundamental.h"
 #include "bitserializer/conversion_detail/convert_detail.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
+#include "bitserializer/conversion_detail/string_traits.h"
 #if BITSERIALIZER_HAS_FILESYSTEM
 #include "bitserializer/conversion_detail/convert_filesystem.h"
 #endif
@@ -66,7 +67,7 @@ namespace BitSerializer::Convert
 			using namespace Detail;
 			if constexpr (is_convertible_to_string_view_v<TIn>) {
 				// String types like std::basic_string and c-strings must be converted to string_view
-				To(ToStringView(value), result);
+				To(StringViewOf(value), result);
 			}
 			else {
 				To(std::forward<TIn>(value), result);
@@ -94,6 +95,23 @@ namespace BitSerializer::Convert
 	std::string ToString(TIn&& value, TInitArgs... initArgs)
 	{
 		return To<std::string>(std::forward<TIn>(value), std::forward<TInitArgs>(initArgs)...);
+	}
+
+	/**
+	 * @brief Returns a zero-copy `std::string_view` over a string-like value.
+	 *
+	 * Works for `std::basic_string`, C-strings, and any type registered as a string-like type
+	 * via `BITSERIALIZER_DECLARE_STRING_TYPE`.
+	 *
+	 * @tparam T Source type.
+	 * @param[in] value Input string-like value.
+	 * @return String view pointing to the contents of the input value.
+	 */
+	template <typename T>
+	auto ToStringView(const T& value) noexcept
+	{
+		using namespace Detail;
+		return StringViewOf(value);
 	}
 
 	/**

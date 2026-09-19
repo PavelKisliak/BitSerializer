@@ -13,6 +13,7 @@
 #include "gtest_asserts.h"
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/serialization_detail/type_registry.h"
+#include "bitserializer/conversion_detail/string_traits.h"
 
 //-----------------------------------------------------------------------------
 enum class TestEnum {
@@ -137,6 +138,43 @@ namespace std
 // Register `TestPointClass` for name-based serialization (VariantAsNamed) in this header,
 // to verify that registration works across translation units.
 BITSERIALIZER_REGISTER_TYPE(TestPointClass, "TestPointClass")
+
+/**
+ * @brief A test class that wraps a `std::string` and is declared as a string-like type.
+ *
+ * It is registered as a string-like type via `BITSERIALIZER_DECLARE_STRING_TYPE_EXPLICIT`, which provides
+ * a zero-copy `std::string_view` conversion on save and an assignment on load. The class is defined in this
+ * shared header (included by many translation units) to verify that the macro-based registration
+ * (`StringViewOf` / `AssignString`) works correctly across translation units.
+ */
+class CustomStringType
+{
+public:
+	static void BuildFixture(CustomStringType& fixture)
+	{
+		::BuildFixture(fixture.mString);
+	}
+
+	CustomStringType() = default;
+	explicit CustomStringType(const char* str) : mString(str) {}
+
+	[[nodiscard]] const char* Data() const noexcept { return mString.data(); }
+	[[nodiscard]] size_t Size() const noexcept { return mString.size(); }
+	void FromString(std::string_view str) { mString = str; }
+
+	bool operator==(const CustomStringType& rhs) const { return mString == rhs.mString; }
+	[[nodiscard]] const std::string& GetValue() const { return mString; }
+
+private:
+	std::string mString;
+};
+
+inline std::ostream& operator<<(std::ostream& stream, const CustomStringType& value)
+{
+	return stream << value.GetValue();
+}
+
+BITSERIALIZER_DECLARE_STRING_TYPE_EXPLICIT(CustomStringType, &CustomStringType::Data, &CustomStringType::Size, &CustomStringType::FromString)
 
 /**
  * @brief A test class that wraps a single value under the key "TestValue" and serializes it as a named field.

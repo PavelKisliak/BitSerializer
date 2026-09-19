@@ -369,6 +369,14 @@ Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::Bui
 
 ## Working with This Codebase
 
+### File encoding & line endings
+
+- **Never corrupt encoding.** Many files are UTF-8 **with BOM** and contain non-ASCII text (e.g. `—`, `→`, emoji, Russian strings in docs/tests). Some files are UTF-8 without BOM. Preserve the exact bytes (BOM included) of anything you edit.
+- **Use the dedicated `edit`/`write` tools** — they read and write bytes without re-encoding. **Never** edit a file with PowerShell text cmdlets (`Get-Content`/`Set-Content`/`Out-File`) or other shell text redirection: PowerShell 5.1 decodes/re-encodes and corrupts non-ASCII and BOM. Avoid `cmd /c "type ... > file"` style redirects for the same reason.
+- **Respect `.gitattributes`** — all source and markdown files are `text eol=lf` (normalized to LF in the repo), so line endings are **not** a correctness concern; git normalizes them on commit. Still, for the user's local convenience, **preserve the file's current line endings** (CRLF or LF) instead of rewriting the whole file — the platform may not be Windows, and a bulk EOL rewrite creates noisy diffs. If you must script a bulk change, operate on bytes via .NET (`[IO.File]::ReadAllBytes`/`WriteAllBytes`) and re-run a `git diff` afterwards.
+- **Verify after editing** any file that may contain non-ASCII: run `git diff -- <file>` and confirm the diff contains **no multibyte character changes** (grep the diff for `[^\x00-\x7F]`). If the diff shows `?`, `Â`, or replacement characters, you corrupted the encoding — restore from HEAD (`git checkout -- <file>`) and redo the edit with the `edit` tool.
+- **Verify line endings** after editing: the diff should show only your intended change, not a whole-file whitespace rewrite.
+
 ### Making changes
 
 1. **Identify the component** you're modifying (archive, core, convert, etc.)
@@ -399,7 +407,7 @@ Examples:
 | Interfaces | `I` + CamelCase | `IJsonReader` |
 | Methods (public/private) | CamelCase | `ReadValue()` |
 | Private members | `m` + CamelCase | `mPos` |
-| Public struct members | PascalCase | `Name`, `Object`, `Index` |
+| Public struct members | camelCase | `name`, `object`, `index` |
 | Local variables | camelCase | `hexVal` |
 | Template params | `T` + CamelCase | `TArchive` |
 | Type aliases | `snake_case_type` | `key_type` |

@@ -242,6 +242,34 @@ As an alternative to internal methods, you can achieve the same by implementing 
 Optionally, they can be overridden for conversions any other string types (when you are worried about performance).
 As an examples, you also can see the conversion implementation for [filesystem::path](../include/bitserializer/conversion_detail/convert_std.h).
 
+### String-like types (zero-copy view)
+If your class is a *string* type (wraps a character buffer), you can register it as a string-like type via the `BITSERIALIZER_DECLARE_STRING_TYPE` macro. This provides a zero-copy `std::string_view` of the data (instead of the
+copying `ToString()` conversion) and is picked up automatically by the serialization machinery:
+```cpp
+class MyString
+{
+public:
+    MyString() = default;
+    MyString(const char* str) : mString(str) { }
+
+    const char* Data() const noexcept { return mString.data(); }
+    size_t Size() const noexcept { return mString.size(); }
+    void FromString(std::string_view str) { mString = str; }
+
+private:
+    std::string mString;
+};
+
+// Must be placed in the same namespace as the type
+BITSERIALIZER_DECLARE_STRING_TYPE_EXPLICIT(MyString, &MyString::Data, &MyString::Size, &MyString::FromString)
+```
+This allows `Convert::ToStringView(value)` to return a view without copying, and makes the type usable as a map key.
+
+> [!NOTE]
+> `BITSERIALIZER_DECLARE_STRING_TYPE` is not available in the previous version 0.85.
+
+If the type exposes the standard `data()`, `size()` and `assign(std::string_view)` methods, the shorter form can be used: `BITSERIALIZER_DECLARE_STRING_TYPE(MyString)`.
+
 ### Convert to string using custom allocator
 The `Convert` API allows to pass any extra arguments that will be used to construct the output type:
 ```cpp

@@ -57,7 +57,7 @@ ___
 - [Serializing base class](#serializing-base-class)
 - [Serializing third party class](#serializing-third-party-class)
 - [Serializing a class that represents an array](#serializing-a-class-that-represents-an-array)
-- [Serializing custom class representing a string](#serializing-custom-class-representing-a-string)
+- [Serializing custom string types](#serializing-custom-string-types)
 - [Serializing enum types](#serializing-enum-types)
 - [Serializing to multiple formats](#serializing-to-multiple-formats)
 - [Serialization STD types](#serialization-std-types)
@@ -499,93 +499,51 @@ Additional recommendations:
  - For fixed size arrays, always check the size of the array and the elements actually loaded (throw an exception if they differ).
  - Use [std containers serialization implementation](include/bitserializer/types/std) as examples.
 
-### Serializing custom class representing a string
+### Serializing custom string types
 Most frameworks/engines have their own implementation of the string type, and most likely you will want to add support for serializing these types.
-BitSerializer allows you to do this in a simple and efficient way by using `std::basic_string_view<>` as an intermediate type (supported any char type).
+BitSerializer allows you to do this efficiently by using `std::basic_string_view<>` as an intermediate type, which supports any character type.
 
-Let's imagine that you would like to implement serialization of your own `std::string` alternative, which is called `CMyString`.
-For this purpose you would need two global functions in the same namespace as the serializing class, or in `BitSerializer`:
-```cpp
-template <class TArchive, typename TKey>
-bool Serialize(TArchive& archive, TKey&& key, CMyString& value);
-
-template <class TArchive>
-bool Serialize(TArchive& archive, CMyString& value);
-```
-These two functions are necessary for serialization any type with and without **key** into the output archive.
-For example, object in the JSON format, has named properties, but JSON-array can contain only values.
-
-Additionally, you will need to implement string conversion methods (internal or global), please read more about ([convert sub-module](docs/bitserializer_convert.md)).
-They will add support for using string types as keys, for example it will allow serialization of `std::map<CMyString, int>` where `CMyString` is used as a key.
-
-This all looks a bit more complicated than serializing an object, but the code is pretty simple, please have a look at the example below:
+To declare your own `std::string` alternative (e.g. `MyString`) as a string-like type, use the `BITSERIALIZER_DECLARE_STRING_TYPE` macro.
+If the type's method names don't follow the `std::basic_string` convention (`data()`, `size()`, `assign()`), use the `_EXPLICIT` variant to point at them.
+Both generate the necessary `StringViewOf()` / `AssignString()` functions (found via ADL) that provide a **zero-copy** view of the string data on save and assign it on load:
 ```cpp
 // Some custom string type
-class CMyString
+class MyString
 {
 public:
-    CMyString() = default;
-    CMyString(const char* str) : mString(str) { }
+    MyString() = default;
+    MyString(const char* str) : mString(str) { }
 
-    bool operator<(const CMyString& rhs) const { return this->mString < rhs.mString; }
+    bool operator<(const MyString& rhs) const { return this->mString < rhs.mString; }
 
-    const char* data() const noexcept { return mString.data(); }
-    size_t size() const noexcept { return mString.size(); }
+    const char* Data() const noexcept { return mString.data(); }
+    size_t Size() const noexcept { return mString.size(); }
 
-    // Required methods for conversion from/to std::string (can be implemented as external functions)
-    std::string ToString() const { return mString; }
     void FromString(std::string_view str) { mString = str; }
 
 private:
     std::string mString;
 };
 
-// Serializes CMyString with key
-template <class TArchive, typename TKey>
-bool Serialize(TArchive& archive, TKey&& key, CMyString& value)
-{
-    if constexpr (TArchive::IsLoading())
-    {
-        std::string_view stringView;
-        if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
-        {
-            value.FromString(stringView);
-            return true;
-        }
-    }
-    else
-    {
-        std::string_view stringView(value.data(), value.size());
-        return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
-    }
-    return false;
-}
+// Declares MyString as a string-like type (must be placed in the same namespace as the type)
+BITSERIALIZER_DECLARE_STRING_TYPE_EXPLICIT(MyString, &MyString::Data, &MyString::Size, &MyString::FromString)
+```
 
-// Serializes CMyString without key
-template <class TArchive>
-bool Serialize(TArchive& archive, CMyString& value)
-{
-    if constexpr (TArchive::IsLoading())
-    {
-        std::string_view stringView;
-        if (Detail::SerializeString(archive, stringView))
-        {
-            value.FromString(stringView);
-            return true;
-        }
-        return false;
-    }
-    else
-    {
-        std::string_view stringView(value.data(), value.size());
-        return Detail::SerializeString(archive, stringView);
-    }
-}
+That's all you need for both serialization with and without **key** (objects and arrays). If your class exposes the standard `std::basic_string` style method names `data()`, `size()` and `assign(std::string_view)`, you can use the shorter form:
+```cpp
+BITSERIALIZER_DECLARE_STRING_TYPE(MyString)
+```
 
+The macro relies on the [convert sub-module](docs/bitserializer_convert.md) so that string types can also be used as keys, for example it allows serialization of `std::map<MyString, int>` where `MyString` is used as a key.
+
+> [!NOTE]
+> `BITSERIALIZER_DECLARE_STRING_TYPE` is not available in the previous version 0.85.
+
+```cpp
 int main()
 {
     // Save list of custom strings to JSON
-    std::vector<CMyString> srcStrList = { "Red", "Green", "Blue" };
+    std::vector<MyString> srcStrList = { "Red", "Green", "Blue" };
     std::string jsonResult;
     SerializationOptions serializationOptions;
     serializationOptions.formatOptions.enableFormat = true;
@@ -593,13 +551,13 @@ int main()
     std::cout << "Saved JSON: " << jsonResult << std::endl;
 
     // Load JSON-object to std::map based on custom strings
-    std::map<CMyString, CMyString> mapResult;
+    std::map<MyString, MyString> mapResult;
     const std::string srcJson = R"({ "Background": "Blue", "PenColor": "White", "PenSize": "3", "PenOpacity": "50" })";
     BitSerializer::LoadObject<JsonArchive>(mapResult, srcJson);
     std::cout << std::endl << "Loaded map: " << std::endl;
     for (const auto& val : mapResult)
     {
-        std::cout << "\t" << val.first.ToString() << ": " << val.second.ToString() << std::endl;
+        std::cout << "\t" << Convert::To<std::string>(val.first) << ": " << Convert::To<std::string>(val.second) << std::endl;
     }
 
     return 0;

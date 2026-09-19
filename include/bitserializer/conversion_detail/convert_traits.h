@@ -10,14 +10,14 @@ namespace BitSerializer::Convert::Detail
 	/**
 	 * @brief Determines whether a type can be converted to `std::basic_string_view`.
 	 *
-	 * Checks if the type `T` supports conversion via the `ToStringView(...)` function.
+	 * Checks if the type `T` supports conversion via the `StringViewOf(...)` function.
 	 */
 	template <typename T>
 	struct is_convertible_to_string_view
 	{
 	private:
 		template <typename TObj>
-		static decltype(ToStringView(std::declval<TObj>()), std::true_type()) test(int);
+		static decltype(StringViewOf(std::declval<TObj>()), std::true_type()) test(int);
 
 		template <typename>
 		static std::false_type test(...);
@@ -39,7 +39,7 @@ namespace BitSerializer::Convert::Detail
 	private:
 		template <typename TIn, typename TOut>
 		static std::enable_if_t<is_convertible_to_string_view_v<TIn> &&
-			std::is_same_v<void, decltype(To(ToStringView(std::declval<TIn&>()), std::declval<TOut&>()))>, std::true_type> test(int);
+			std::is_same_v<void, decltype(To(StringViewOf(std::declval<TIn&>()), std::declval<TOut&>()))>, std::true_type> test(int);
 
 		template <typename TIn, typename TOut>
 		static std::enable_if_t<!is_convertible_to_string_view_v<TIn> &&

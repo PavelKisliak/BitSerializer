@@ -89,6 +89,26 @@ TEST(BaseTypes, SerializeUnicodeString)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for custom string-like types (declared via BITSERIALIZER_DECLARE_STRING_TYPE).
+// `CustomStringType` itself is defined in the shared "common_test_entities.h" header (see `project(testing_tools)`),
+// so this also verifies that the macro-based registration works correctly across translation units.
+//-----------------------------------------------------------------------------
+TEST(BaseTypes, SerializeCustomStringType)
+{
+	TestSerializeType<ArchiveStub>(CustomStringType("Test custom string"));
+}
+
+TEST(BaseTypes, SerializeCustomStringTypeAsClassMember)
+{
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<CustomStringType>(CustomStringType("Class member string")));
+}
+
+TEST(BaseTypes, SerializeArrayOfCustomStringType)
+{
+	TestSerializeArray<ArchiveStub, CustomStringType>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for enum
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, SerializeEnumAsRoot) {

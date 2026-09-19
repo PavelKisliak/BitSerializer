@@ -5,6 +5,7 @@
 #pragma once
 #include "bitserializer/conversion_detail/convert_utf.h"
 #include "bitserializer/conversion_detail/object_traits.h"
+#include "bitserializer/conversion_detail/string_traits.h"
 
 namespace BitSerializer::Convert::Detail
 {
@@ -182,26 +183,4 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	//------------------------------------------------------------------------------
-
-	/**
-	 * @brief Converts a `basic_string` to its corresponding `string_view` type.
-	 *
-	 * @param in Input string.
-	 * @return String view pointing to the contents of the input string.
-	 */
-	template <typename TSym, typename TAllocator>
-	constexpr std::basic_string_view<TSym> ToStringView(const std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& in) noexcept {
-		return in;
-	}
-
-	/**
-	 * @brief Converts a C-string to a `string_view`.
-	 *
-	 * @param in Null-terminated input string.
-	 * @return String view pointing to the input string.
-	 */
-	template <typename TSym>
-	constexpr std::basic_string_view<TSym> ToStringView(const TSym* in) noexcept {
-		return in;
-	}
 }

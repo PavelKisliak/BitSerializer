@@ -256,42 +256,69 @@ namespace BitSerializer
 		}
 	}
 
-	template <class TArchive, typename TKey, typename TSym, typename TAllocator>
-	bool Serialize(TArchive& archive, TKey&& key, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	/**
+	 * @brief Serializes a string-like type with a key.
+	 *
+	 * A string-like type is any type that has `StringViewOf(const T&)` and `AssignString(T&, ...)` functions
+	 * (usually generated via `BITSERIALIZER_DECLARE_STRING_TYPE`). The value is serialized as a zero-copy
+	 * string view on save and assigned back on load.
+	 *
+	 * @param archive   Archive used for serialization.
+	 * @param key       The key associated with the value.
+	 * @param value     Reference to the string-like value being serialized.
+	 * @return true if serialization succeeded, false otherwise.
+	 */
+	template <class TArchive, typename TKey, class TValue, std::enable_if_t<Convert::Detail::is_string_type_v<TValue>, int> = 0>
+	bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
+		using namespace Convert::Detail;
+
 		if constexpr (TArchive::IsLoading())
 		{
-			std::basic_string_view<TSym> stringView;
+			auto stringView = StringViewOf(value);
 			if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
 			{
-				value.assign(stringView);
+				AssignString(value, stringView);
 				return true;
 			}
 			return false;
 		}
 		else
 		{
-			std::basic_string_view<TSym> stringView(value);
+			auto stringView = StringViewOf(value);
 			return Detail::SerializeString(archive, std::forward<TKey>(key), stringView);
 		}
 	}
 
-	template <class TArchive, typename TSym, typename TAllocator>
-	bool Serialize(TArchive& archive, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& value)
+	/**
+	 * @brief Serializes a string-like type without a key.
+	 *
+	 * A string-like type is any type that has `StringViewOf(const T&)` and `AssignString(T&, ...)` functions
+	 * (usually generated via `BITSERIALIZER_DECLARE_STRING_TYPE`). The value is serialized as a zero-copy
+	 * string view on save and assigned back on load.
+	 *
+	 * @param archive   Archive used for serialization.
+	 * @param value     Reference to the string-like value being serialized.
+	 * @return true if serialization succeeded, false otherwise.
+	 */
+	template <class TArchive, class TValue, std::enable_if_t<Convert::Detail::is_string_type_v<TValue>, int> = 0>
+	bool Serialize(TArchive& archive, TValue& value)
 	{
+		using namespace Convert::Detail;
+
 		if constexpr (TArchive::IsLoading())
 		{
-			std::basic_string_view<TSym> stringView;
+			auto stringView = StringViewOf(value);
 			if (Detail::SerializeString(archive, stringView))
 			{
-				value.assign(stringView);
+				AssignString(value, stringView);
 				return true;
 			}
 			return false;
 		}
 		else
 		{
-			std::basic_string_view<TSym> stringView(value);
+			auto stringView = StringViewOf(value);
 			return Detail::SerializeString(archive, stringView);
 		}
 	}
@@ -386,7 +413,7 @@ namespace BitSerializer
 	//------------------------------------------------------------------------------
 	// Serialize classes
 	//------------------------------------------------------------------------------
-	template <class TArchive, typename TKey, typename TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
+	template <class TArchive, typename TKey, typename TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>) && !Convert::Detail::is_string_type_v<TValue>, int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, TValue& value)
 	{
 		constexpr auto hasArchiveBuiltInSerialize = can_serialize_value_with_key_v<TArchive, TValue, TKey>;
@@ -481,7 +508,7 @@ namespace BitSerializer
 		}
 	}
 
-	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>), int> = 0>
+	template <class TArchive, class TValue, std::enable_if_t<(std::is_class_v<TValue> || std::is_union_v<TValue>) && !Convert::Detail::is_string_type_v<TValue>, int> = 0>
 	bool Serialize(TArchive& archive, TValue& value)
 	{
 		constexpr auto hasArchiveBuiltInSerialize = can_serialize_value_v<TArchive, TValue>;

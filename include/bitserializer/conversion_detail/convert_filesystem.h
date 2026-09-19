@@ -21,7 +21,7 @@ namespace BitSerializer::Convert::Detail
 			out.append(nativePath);
 		}
 		else {
-			To(ToStringView(nativePath), out);
+			To(StringViewOf(nativePath), out);
 		}
 	}
 

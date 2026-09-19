@@ -3,6 +3,14 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <gtest/gtest.h>
+#include <string>
+#include <string_view>
+#if defined __has_include && __has_include(<version>)
+#include <version>
+#endif
+#if defined(__cpp_lib_memory_resource)
+#include <memory_resource>
+#endif
 #include "testing_tools/common_test_entities.h"
 
 using namespace BitSerializer;
@@ -99,6 +107,32 @@ TEST(ConvertTraits, ShouldDetectConversibilityToStringView) {
 	EXPECT_FALSE(Convert::Detail::is_convertible_to_string_view_v<std::string_view>);
 	EXPECT_FALSE(Convert::Detail::is_convertible_to_string_view_v<int>);
 	EXPECT_FALSE(Convert::Detail::is_convertible_to_string_view_v<NotConvertibleFixture>);
+}
+
+//-----------------------------------------------------------------------------
+TEST(ConvertTraits, ShouldDetectStringLikeTypesRegisteredViaMacro)
+{
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<CustomStringType>);
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<std::string>);
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<std::u16string>);
+#if defined(__cpp_lib_memory_resource)
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<std::pmr::string>);
+#endif
+	EXPECT_FALSE(Convert::Detail::is_string_type_v<NotConvertibleFixture>);
+	EXPECT_FALSE(Convert::Detail::is_string_type_v<int>);
+}
+
+TEST(ConvertTraits, ShouldConvertStringLikeTypeToStringView)
+{
+	EXPECT_TRUE(Convert::Detail::is_convertible_to_string_view_v<CustomStringType>);
+
+	const CustomStringType value("Hello view");
+	EXPECT_EQ(std::string_view("Hello view"), Convert::ToStringView(value));
+}
+
+TEST(ConvertTraits, ShouldConvertStringLikeTypeToString)
+{
+	EXPECT_EQ("Hello convert", Convert::To<std::string>(CustomStringType("Hello convert")));
 }
 
 //-----------------------------------------------------------------------------

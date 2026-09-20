@@ -232,6 +232,7 @@ struct ArchiveTest
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::string;
+	using string_view_type = std::string_view;
 	static constexpr bool is_binary = IsBinary;		// Only binary archive's types require counting number of fields
 
 	static constexpr SerializeMode GetMode() noexcept { return SerializeMode::Save; }

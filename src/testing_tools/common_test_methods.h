@@ -193,9 +193,10 @@ void TestSkippingObjectValueWhenMismatchKey()
  * @tparam TValue Type of elements in the array.
  * @tparam SourceArraySize Size of the source array.
  * @tparam TargetArraySize Size of the target array.
+ * @param options The serialization options.
  */
 template<typename TArchive, typename TValue, size_t SourceArraySize = 7, size_t TargetArraySize = SourceArraySize>
-void TestSerializeArray()
+void TestSerializeArray(const BitSerializer::SerializationOptions& options = BitSerializer::DefaultOptions)
 {
 	// Arrange
 	TValue testArray[SourceArraySize]{};
@@ -205,8 +206,8 @@ void TestSerializeArray()
 	::BuildFixture(actual);
 
 	// Act
-	BitSerializer::SaveObject<TArchive>(testArray, outputArchive);
-	BitSerializer::LoadObject<TArchive>(actual, outputArchive);
+	BitSerializer::SaveObject<TArchive>(testArray, outputArchive, options);
+	BitSerializer::LoadObject<TArchive>(actual, outputArchive, options);
 
 	// Assert
 	for (size_t i = 0; i < (std::min)(SourceArraySize, TargetArraySize); i++)

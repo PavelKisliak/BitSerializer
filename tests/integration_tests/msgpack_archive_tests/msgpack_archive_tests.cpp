@@ -725,26 +725,6 @@ TEST(MsgPackArchive, SerializeStdOptionalAsObjectMember)
 }
 
 //-----------------------------------------------------------------------------
-// Tests of `std::variant`
-//-----------------------------------------------------------------------------
-TEST(MsgPackArchive, SerializeStdVariantAsRootElement)
-{
-	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
-	TestSerializeType<MsgPackArchive>(VariantType(321));
-	TestSerializeType<MsgPackArchive>(VariantType(std::string("test")));
-	TestSerializeType<MsgPackArchive>(VariantType(TestPointClass(5, 8)));
-	TestSerializeType<MsgPackArchive>(VariantType(std::vector<int>{ 1, 2, 3 }));
-}
-
-TEST(MsgPackArchive, SerializeStdVariantAsObjectMember)
-{
-	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
-	TestSerializeType<MsgPackArchive>(TestClassWithSubType(VariantType(TestPointClass(13, 21))));
-	TestSerializeType<MsgPackArchive>(TestClassWithSubType(VariantType(std::vector<int>{ 8, 5, 3 })));
-	TestSerializeType<MsgPackArchive>(TestClassWithSubType(VariantType(std::string("variant"))));
-}
-
-//-----------------------------------------------------------------------------
 // Smoke tests of STD types serialization (more detailed tests in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeStdTypes)
@@ -752,7 +732,7 @@ TEST(MsgPackArchive, SerializeStdTypes)
 	TestSerializeType<MsgPackArchive, std::atomic_int>();
 	TestSerializeType<MsgPackArchive, std::pair<std::string, int>>();
 	TestSerializeType<MsgPackArchive, std::tuple<std::string, int, float, bool>>();
-	TestSerializeType<MsgPackArchive>(std::variant<int, std::string, TestPointClass>(TestPointClass(1, 2)));
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::variant<int, std::string, TestPointClass, std::vector<int>>>>();
 
 	TestSerializeType<MsgPackArchive>(std::make_unique<std::string>("test"));
 	TestSerializeType<MsgPackArchive>(std::make_shared<std::string>("test"));

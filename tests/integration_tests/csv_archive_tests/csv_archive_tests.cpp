@@ -13,6 +13,7 @@
 #include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
+#include "bitserializer/types/std/variant.h"
 
 // STD types (test fixtures)
 #include "testing_tools/auto_fixture/std/atomic.h"
@@ -20,10 +21,10 @@
 #include "testing_tools/auto_fixture/std/filesystem.h"
 #include "testing_tools/auto_fixture/std/memory.h"
 #include "testing_tools/auto_fixture/std/optional.h"
+#include "testing_tools/auto_fixture/std/variant.h"
 
 using namespace BitSerializer;
 using BitSerializer::Csv::CsvArchive;
-
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for c-arrays (at root scope of archive)
@@ -416,6 +417,10 @@ TEST_F(CsvArchiveTests, SerializeStdOptionalAsObjectMember)
 TEST_F(CsvArchiveTests, SerializeStdTypes)
 {
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::atomic_int>>();
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Discriminated;
+	TestSerializeArray<CsvArchive, std::variant<TestPointClass>>(options);
 
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::unique_ptr<std::string>>>();
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::shared_ptr<std::string>>>();

@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -48,11 +48,11 @@ TEST(TypeRegistry, FindByNameReturnsCorrectEntry)
 {
 	const auto* userEntry = VariantRegistry::Find("User");
 	ASSERT_NE(userEntry, nullptr);
-	EXPECT_EQ(userEntry->Name, "User");
+	EXPECT_EQ(userEntry->name, "User");
 
 	const auto* adminEntry = VariantRegistry::Find("Admin");
 	ASSERT_NE(adminEntry, nullptr);
-	EXPECT_EQ(adminEntry->Name, "Admin");
+	EXPECT_EQ(adminEntry->name, "Admin");
 
 	const auto* missingEntry = VariantRegistry::Find("NonExistent");
 	EXPECT_EQ(missingEntry, nullptr);
@@ -92,21 +92,21 @@ TEST(TypeRegistry, RegistryEntriesAreConstexpr)
 	// Runtime checks for constexpr functionality
 	const auto* entry = VariantRegistry::Find("Guest");
 	ASSERT_NE(entry, nullptr);
-	EXPECT_EQ(entry->Name, "Guest");
-	EXPECT_EQ(entry->Index, 2u);
+	EXPECT_EQ(entry->name, "Guest");
+	EXPECT_EQ(entry->index, 2u);
 }
 
 TEST(TypeRegistry, FindByIndexReturnsCorrectEntry)
 {
 	const auto* entry0 = VariantRegistry::FindByIndex(0);
 	ASSERT_NE(entry0, nullptr);
-	EXPECT_EQ(entry0->Name, "User");
-	EXPECT_EQ(entry0->Index, 0u);
+	EXPECT_EQ(entry0->name, "User");
+	EXPECT_EQ(entry0->index, 0u);
 
 	const auto* entry2 = VariantRegistry::FindByIndex(2);
 	ASSERT_NE(entry2, nullptr);
-	EXPECT_EQ(entry2->Name, "Guest");
-	EXPECT_EQ(entry2->Index, 2u);
+	EXPECT_EQ(entry2->name, "Guest");
+	EXPECT_EQ(entry2->index, 2u);
 
 	const auto* entryOutOfRange = VariantRegistry::FindByIndex(10);
 	EXPECT_EQ(entryOutOfRange, nullptr);
@@ -144,6 +144,6 @@ TEST(TypeRegistry, HeaderRegisteredTypeIsFound)
 	EXPECT_TRUE(HeaderRegistry::Contains("TestPointClass"));
 	const auto* entry = HeaderRegistry::Find("TestPointClass");
 	ASSERT_NE(entry, nullptr);
-	EXPECT_EQ(entry->Name, "TestPointClass");
-	EXPECT_EQ(entry->Index, 0u);
+	EXPECT_EQ(entry->name, "TestPointClass");
+	EXPECT_EQ(entry->index, 0u);
 }

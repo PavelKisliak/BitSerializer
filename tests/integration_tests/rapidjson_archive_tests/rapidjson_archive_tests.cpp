@@ -740,23 +740,43 @@ TEST(RapidJsonArchive, SerializeStdOptionalAsObjectMember)
 }
 
 //-----------------------------------------------------------------------------
-// Tests of `std::variant`
+// Tests of `std::variant` (wire-format shape tests; logic covered in "unit_tests/std_types_tests")
 //-----------------------------------------------------------------------------
-TEST(RapidJsonArchive, SerializeStdVariantAsRootElement)
+BITSERIALIZER_REGISTER_TYPE(int, "Int")
+BITSERIALIZER_REGISTER_TYPE(std::string, "String")
+BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
+BITSERIALIZER_REGISTER_TYPE(TestClassWithSubType<int>, "TestClassWithSubTypeInt")
+
+TEST(RapidJsonArchive, SerializeVariantAsDiscriminatedProducesFlattenedObject)
 {
-	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
-	TestSerializeType<JsonArchive>(VariantType(321));
-	TestSerializeType<JsonArchive>(VariantType(std::string("test")));
-	TestSerializeType<JsonArchive>(VariantType(TestPointClass(5, 8)));
-	TestSerializeType<JsonArchive>(VariantType(std::vector<int>{ 1, 2, 3 }));
+	using VariantType = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(TestPointClass(5, 8));
+
+	// The discriminated representation flattens the type name next to the object fields
+	// (OpenAPI `discriminator` style), instead of nesting them under a "value" key.
+	const auto jsonResult = BitSerializer::SaveObject<JsonArchive>(BitSerializer::VariantAsDiscriminated(testValue));
+	EXPECT_EQ(jsonResult, R"({"type":"TestPointClass","x":5,"y":8})");
 }
 
-TEST(RapidJsonArchive, SerializeStdVariantAsObjectMember)
+TEST(RapidJsonArchive, SerializeVariantAsNamedWithCustomFieldNames)
+{
+	using VariantType = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(TestPointClass(5, 8));
+
+	const auto jsonResult = BitSerializer::SaveObject<JsonArchive>(BitSerializer::VariantAsNamed(testValue, "kind", "payload"));
+	EXPECT_EQ(jsonResult, R"({"kind":"TestPointClass","payload":{"x":5,"y":8}})");
+}
+
+TEST(RapidJsonArchive, SerializeVariantWithDefaultNamedModeProducesNamedObject)
 {
 	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
-	TestSerializeType<JsonArchive>(TestClassWithSubType(VariantType(TestPointClass(13, 21))));
-	TestSerializeType<JsonArchive>(TestClassWithSubType(VariantType(std::vector<int>{ 8, 5, 3 }))); 
-	TestSerializeType<JsonArchive>(TestClassWithSubType(VariantType(std::string("variant"))));
+	VariantType testValue(TestPointClass(5, 8));
+
+	BitSerializer::SerializationOptions options;
+	options.variantOptions.mode = BitSerializer::VariantSerializationMode::Named;
+	std::string jsonResult;
+	BitSerializer::SaveObject<JsonArchive>(testValue, jsonResult, options);
+	EXPECT_EQ(jsonResult, R"({"type":"TestPointClass","value":{"x":5,"y":8}})");
 }
 
 //-----------------------------------------------------------------------------
@@ -767,7 +787,7 @@ TEST(RapidJsonArchive, SerializeStdTypes)
 	TestSerializeType<JsonArchive, std::atomic_int>();
 	TestSerializeType<JsonArchive, std::pair<std::string, int>>();
 	TestSerializeType<JsonArchive, std::tuple<std::string, int, float, bool>>();
-	TestSerializeType<JsonArchive>(std::variant<int, std::string, TestPointClass>(TestPointClass(1, 2)));
+	TestSerializeType<JsonArchive, TestClassWithSubType<std::variant<int, std::string, TestPointClass, std::vector<int>>>>();
 
 	TestSerializeType<JsonArchive>(std::make_unique<std::string>("test"));
 	TestSerializeType<JsonArchive>(std::make_shared<std::string>("test"));

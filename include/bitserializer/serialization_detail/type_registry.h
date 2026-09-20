@@ -36,6 +36,13 @@ namespace BitSerializer::Detail
 	};
 
 	/**
+	 * @brief Checks whether a type has a registered name via `BITSERIALIZER_REGISTER_TYPE`.
+	 *
+	 */
+	template <class T>
+	inline constexpr bool is_type_registered_v = !SerializableTypeTraits<T>::Name.empty();
+
+	/**
 	 * @brief Base type registry for a set of types.
 	 *
 	 * Provides compile-time mapping from type name to a registry entry (name + index).
@@ -51,8 +58,8 @@ namespace BitSerializer::Detail
 	public:
 		struct Entry
 		{
-			std::string_view Name;
-			size_t Index = 0;
+			std::string_view name;
+			size_t index = 0;
 		};
 
 		static constexpr size_t Size() noexcept
@@ -65,7 +72,7 @@ namespace BitSerializer::Detail
 		{
 			for (const auto& e : mEntries)
 			{
-				if (e.Name == name) {
+				if (e.name == name) {
 					return &e;
 				}
 			}

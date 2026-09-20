@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -243,6 +243,7 @@ namespace BitSerializer {
 
 		static constexpr ArchiveType archive_type = TArchive::archive_type;
 		using key_type = typename TArchive::key_type;
+		using string_view_type = typename TArchive::string_view_type;
 		static constexpr bool is_binary = TArchive::is_binary;
 
 		static constexpr auto GetMode() noexcept { return TArchive::GetMode(); }
@@ -251,6 +252,34 @@ namespace BitSerializer {
 
 		[[nodiscard]] SerializationContext& GetContext() const noexcept { return Archive.GetContext(); }
 		[[nodiscard]] const SerializationOptions& GetOptions() const noexcept { return Archive.GetOptions(); }
+
+		/**
+		 * @brief Counts a value serialized under a key as a single field.
+		 */
+		template <typename TKey, typename T>
+		bool SerializeValue(TKey&&, T&) noexcept
+		{
+			++Size;
+			return true;
+		}
+
+		/**
+		 * @brief Counts a value serialized without a key as a single field.
+		 */
+		template <typename T>
+		bool SerializeValue(T&) noexcept
+		{
+			++Size;
+			return true;
+		}
+
+		template <typename TKey>
+		std::nullopt_t OpenObjectScope(TKey&&, size_t) noexcept { return std::nullopt; }
+		std::nullopt_t OpenObjectScope(size_t) noexcept	{ return std::nullopt; }
+
+		template <typename TKey>
+		std::nullopt_t OpenArrayScope(TKey&&, size_t) noexcept { return std::nullopt; }
+		std::nullopt_t OpenArrayScope(size_t) noexcept { return std::nullopt; }
 
 		template <class TValue>
 		FieldsCountVisitor& operator<<(TValue&&) noexcept

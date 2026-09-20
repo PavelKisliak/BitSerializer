@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -224,7 +224,7 @@ namespace BitSerializer
 			using archive_string_view = typename TArchive::string_view_type;
 
 			constexpr auto hasExactStringViewSupport = can_serialize_value_v<TArchive, std::basic_string_view<TSym>>;
-			constexpr auto hasKnownStringViewSupport = can_serialize_value_v < TArchive, archive_string_view>;
+			constexpr auto hasKnownStringViewSupport = can_serialize_value_v<TArchive, archive_string_view>;
 			static_assert(hasExactStringViewSupport || hasKnownStringViewSupport,
 				"BitSerializer. The archive doesn't support serialize string type without key on this level.");
 

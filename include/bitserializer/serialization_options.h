@@ -1,9 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
 #include <cstdint>
+#include <string_view>
 #include "bitserializer/conversion_detail/convert_utf.h"
 
 namespace BitSerializer
@@ -90,6 +91,63 @@ namespace BitSerializer
 	};
 
 	/**
+	 * @brief Defines the default representation used to serialize `std::variant`.
+	 *
+	 * The chosen representation applies to every `std::variant` value that is not wrapped
+	 * explicitly with one of the `VariantAs*` helpers, including elements of containers.
+	 */
+	enum class VariantSerializationMode
+	{
+		/**
+		 * @brief Serializes as an object with `index` and `value` fields (default).
+		 *
+		 * No registration is required and any alternative type is supported.
+		 */
+		Indexed,
+
+		/**
+		 * @brief Serializes as an object with `type` and `value` fields, using registered type names.
+		 *
+		 * Requires every alternative to be registered via `BITSERIALIZER_REGISTER_TYPE`.
+		 */
+		Named,
+
+		/**
+		 * @brief Serializes as an object with an embedded discriminator, flattening the active alternative's fields.
+		 *
+		 * Requires every alternative to be registered via `BITSERIALIZER_REGISTER_TYPE` and to be
+		 * an object type (has a `Serialize()` method or a global `SerializeObject()`).
+		 */
+		Discriminated
+	};
+
+	/**
+	 * @brief Configuration options for serialization of `std::variant`.
+	 */
+	struct VariantOptions
+	{
+		/**
+		 * @brief Default representation used for serialization of `std::variant`.
+		 */
+		VariantSerializationMode mode = VariantSerializationMode::Indexed;
+
+		/**
+		 * @brief Default key name for the discriminator field (used by the `Named` representation).
+		 */
+		std::string_view typeKey = "type";
+
+		/**
+		 * @brief Default key name for the value field (used by the `Indexed` and `Named` representations).
+		 */
+		std::string_view valueKey = "value";
+
+		/**
+		 * @brief Default key name for the index field (used by the `Indexed` representation).
+		 */
+		std::string_view indexKey = "index";
+	};
+
+	/**
 	 * @brief Serialization options.
 	 */
 	struct SerializationOptions
@@ -147,5 +205,10 @@ namespace BitSerializer
 		 * Supported separators: ',', ';', '\t', ' ', '|'
 		 */
 		char valuesSeparator = ',';
+
+		/**
+		 * @brief Options controlling serialization of `std::variant`.
+		 */
+		VariantOptions variantOptions;
 	};
 }

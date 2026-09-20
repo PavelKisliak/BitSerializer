@@ -223,6 +223,11 @@ public:
 		}, mKeyValueExtraArgs);
 	}
 
+	bool operator==(const TestClassWithSubType& rhs) const
+	{
+		return mTestValue == rhs.mTestValue;
+	}
+
 	[[nodiscard]] const T& GetValue() const { return mTestValue; }
 
 private:
@@ -252,6 +257,11 @@ public:
 	TestClassWithSubTypes(Args... args)
 		: std::tuple<Args...>(args...)
 	{
+	}
+
+	bool operator==(const TestClassWithSubTypes& rhs) const
+	{
+		return static_cast<const std::tuple<Args...>&>(*this) == static_cast<const std::tuple<Args...>&>(rhs);
 	}
 
 	template<std::size_t I = 0>

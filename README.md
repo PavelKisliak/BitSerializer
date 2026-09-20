@@ -2,7 +2,7 @@
 
 ___
 
-### Main features:
+## Main features:
 - One common interface allows easy switching between formats JSON, XML, YAML, CSV and MsgPack.
 - Modular architecture lets you include only the serialization archives you need.
 - Compile-time validation of format rules (e.g. JSON allows primitives as roots, while CSV only allows arrays).
@@ -26,7 +26,7 @@ ___
 >
 > Your help with testing the built-in implementation before the switch would be much appreciated — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
 
-#### Supported formats:
+### Supported formats:
 | Component | Format | Encoding | Pretty format | Based on |
 | ------ | ------ | ------ |:------:| ------ |
 | [json-archive](docs/bitserializer_json.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | Built-in |
@@ -36,7 +36,7 @@ ___
 | [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
 | [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
 
-#### Requirements:
+### Requirements:
  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12, Clang-cl¹).
  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be²).
  - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
@@ -44,7 +44,7 @@ ___
  ¹ Versions of the RapidYaml base library less than v0.11.1 does not support Clang-cl(Windows).<br />
  ² Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture.
 
-#### Limitations:
+### Limitations:
  - Work without exceptions is not supported.
 
 ___
@@ -76,7 +76,7 @@ ___
 
 ___
 
-### Hello world
+## Hello world
 Let's get started with a traditional "Hello world!" example that demonstrates BitSerializer's serialization features, such as validation (e.g., email and phone number formats), post-load value refinement (trimming whitespace, case conversion, fallbacks), handling optional fields, and converting between formats (JSON to CSV).
 The example highlights the flexibility of the library in handling different data types, including `std::chrono`, Unicode strings, and data integrity through required/optional constraints.
 ```cpp
@@ -148,16 +148,16 @@ Id,Birthday,Name,Email,PhoneNumber,NickName,Language
 ```
 BitSerializer treats missing fields as optional by default, but you can enforce mandatory fields using the `Required()` validator. This approach eliminates the need for workarounds like using `std::optional`, simplifying your business logic by avoiding repetitive checks for value existence. The library's robust validation system collects all invalid fields during deserialization, enabling comprehensive error reporting (with localization support if needed). Additionally, BitSerializer ensures type safety by throwing exceptions for type mismatches or overflow errors, such as when deserializing values that exceed the capacity of the target type.
 
-### Performance overview
+## Performance overview
 BitSerializer prioritizes reliability and usability, but we understand that performance remains a critical factor for serialization libraries.
 This chapter provides an overview of the performance characteristics of BitSerializer across various serialization formats, as well as comparative tests with the used third-party libraries.
 
-#### Key performance insights
+### Key performance insights
 - Formats implemented natively in BitSerializer (MsgPack and CSV) demonstrate excellent performance due to their DOM-free architecture. This approach eliminates intermediate object tree construction, enabling direct serialization/deserialization to/from streams.
 - Formats relying on external libraries (RapidJSON, PugiXML, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
 
-#### Comparing "Parsers" and "Serializers" library classes
+### Comparing "Parsers" and "Serializers" library classes
 It is important to note that comparing "Serialization" classes (like BitSerializer) with "Parser" classes (such as RapidJSON, NlohmannJson, PugiXML, or RapidYAML) may not always be entirely fair. These two categories of libraries differ fundamentally in their design and purpose:
 - **Parsers:** Typically operate on a DOM-based model, where the entire document is loaded into memory before processing. This approach is well-suited for tasks requiring extensive manipulation of the data structure but can introduce overhead during serialization and deserialization.
 - **Serializers:** Focus on streaming serialization, where data is processed incrementally without the need to build an intermediate DOM. This approach is generally faster and more memory-efficient but may lack some of the advanced manipulation features offered by parsers.
@@ -169,7 +169,7 @@ These libraries are primarily "Parser" classes, and the performance differences 
 
 We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization). However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
 
-#### Comparison of serialized data size
+### Comparison of serialized data size
 In addition to performance metrics, the size of the serialized output is another important factor to consider when choosing a serialization format.
 Below is a comparison of the serialized output sizes (in bytes) for the same test model using different formats:
 
@@ -178,21 +178,21 @@ Below is a comparison of the serialized output sizes (in bytes) for the same tes
 Binary formats like MsgPack produce significantly smaller outputs compared to text-based formats like JSON, XML, or YAML.
 The CSV format is the most compact among all tested formats, making it an excellent choice for storage and transmission of tabular data.
 
-#### Performance test methodology
+### Performance test methodology
 - ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
 - **Test model:** The [test model](benchmarks/archives/test_model.h) consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
 
-#### Performance test results
+### Performance test results
 ![image info](benchmarks/archives/benchmark_results/serialization_speed_chart.png)
 
 For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
 
-### How to install
+## How to install
 Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
 
-#### VCPKG
+### VCPKG
 Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
 ```json
 {
@@ -214,7 +214,7 @@ Alternatively, you can install the library via the command line:
 ```
 In the square brackets enumerated all available formats, install only which you need.
 
-#### Conan 2
+### Conan 2
 The recipe of BitSerializer is available on [Conan-center](https://github.com/conan-io/conan-center-index), just add BitSerializer to `conanfile.txt` in your project and enable archives which you need via options (by default all are disabled):
 ```
 [requires]
@@ -229,7 +229,7 @@ bitserializer/*:with_msgpack=True
 ```
 Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
 
-#### Installation via CMake on a Unix system
+### Installation via CMake on a Unix system
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git
 $ # Enable only archives which you need (by default all are disabled)
@@ -243,7 +243,7 @@ You will also need to install dev-packages of base libraries (CSV and MsgPack ar
 > [!IMPORTANT]
 > Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 
-#### How to use with CMake
+### How to use with CMake
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 # Link only archives which you need
@@ -256,7 +256,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 ```
 
-### Unicode support
+## Unicode support
 BitSerializer provides comprehensive Unicode support by enabling serialization of any `std::basic_string` type (e.g., `std::u8string`, `std::u16string`, `std::u32string`) while automatically handling transcoding to the target output format. You can also use any string type as keys, but keep in mind that transcoding incurs additional processing overhead. For optimal performance, prefer UTF-8 strings, as they are natively supported by all archives and minimize transcoding costs. 
 
 The example below demonstrates how BitSerializer seamlessly handles different string types and encodings: 
@@ -286,7 +286,7 @@ private:
 This flexibility allows you to work with various Unicode encodings without worrying about manual transcoding.
 However, for best results, use UTF-8 consistently unless your application specifically requires other encodings.
 
-### Serializing class
+## Serializing class
 There are two ways to serialize a class:
 
   * Internal public method `Serialize()` - good way for your own classes.
@@ -353,7 +353,7 @@ For serializing a named object please use helper class `KeyValue` which takes `k
 > [!TIP]
 > For multi-format code, consider using `PropertyValue` instead of `KeyValue` if you want scalar fields to be serialized as XML attributes automatically. See [Serializing to multiple formats](#serializing-to-multiple-formats) for details.
 
-### Serializing base class
+## Serializing base class
 To serialize the base class, use the helper method `BaseObject()`, like as in the next example.
 ```cpp
 template <class TArchive>
@@ -366,7 +366,7 @@ void Serialize(TArchive& archive)
 > [!NOTE]
 > Version 0.75 and earlier support serialization of the base class only via the internal `Serialize()` method.
 
-### Serializing third party class
+## Serializing third party class
 As alternative for internal `Serialize()` method also exists approach with defining global functions, it will be useful in next cases:
 
  - Sources of serializing class cannot be modified (for example from third party library).
@@ -419,7 +419,7 @@ void SerializeObject(TArchive& archive, TestThirdPartyClass& testThirdPartyClass
 ```
 [See full sample](samples/serialize_third_party_class/serialize_third_party_class.cpp)
 
-### Serializing a class that represents an array
+## Serializing a class that represents an array
 In this chapter described how to serialize your own class that represent a list of values (similar to `std::vector`).
 For this purpose, need to implement a global function `SerializeArray()` in the same namespace as the serializing class, or in `BitSerializer`.
 
@@ -499,7 +499,7 @@ Additional recommendations:
  - For fixed size arrays, always check the size of the array and the elements actually loaded (throw an exception if they differ).
  - Use [std containers serialization implementation](include/bitserializer/types/std) as examples.
 
-### Serializing custom string types
+## Serializing custom string types
 Most frameworks/engines have their own implementation of the string type, and most likely you will want to add support for serializing these types.
 BitSerializer allows you to do this efficiently by using `std::basic_string_view<>` as an intermediate type, which supports any character type.
 
@@ -565,7 +565,7 @@ int main()
 ```
 [See full sample](samples/serialize_custom_string/serialize_custom_string.cpp)
 
-### Serializing enum types
+## Serializing enum types
 Enum types can be serialized as integers or as strings, as you prefer.
 By default, they serializing as strings, to serialize as integers, use the `EnumAsBin` wrapper:
 ```cpp
@@ -595,7 +595,7 @@ BITSERIALIZER_DECLARE_ENUM_STREAM_OPS(HttpMethod)
 > [!NOTE]
 > In the previous version 0.80, used the REGISTER_ENUM and DECLARE_ENUM_STREAM_OPS macros.
 
-### Serializing to multiple formats
+## Serializing to multiple formats
 One of the core advantages of BitSerializer is the ability to serialize objects into multiple formats through a unified interface. The following example demonstrates how to save the same object to JSON and XML with minimal code changes:
 ```cpp
 class CPoint
@@ -634,7 +634,7 @@ XML: <?xml version="1.0"?><root><x>100</x><y>200</y></root>
 ```
 The serialization logic differs only in the template parameter (`JsonArchive` vs `XmlArchive`). However, there are two aspects worth addressing for production use.
 
-#### Root node naming
+### Root node naming
 As shown above, XML output contains an auto-generated root node named "root" when no explicit name is provided. This behavior ensures structural consistency across formats but can be customized:
 ```cpp
 // Specify explicit root node name for XML
@@ -645,10 +645,10 @@ Output:
 <?xml version="1.0"?><Point><x>100</x><y>200</y></Point>
 ```
 
-#### Customizing XML structure
+### Customizing XML structure
 By default, all fields are serialized as XML elements. However, XML supports attributes, which can produce more compact and idiomatic output for scalar values. BitSerializer provides three approaches to handle this:
 
-##### Option 1: Manual format detection (explicit control)
+#### Option 1: Manual format detection (explicit control)
 Use `if constexpr` to apply format-specific logic:
 ```cpp
 template <class TArchive>
@@ -667,7 +667,7 @@ void Serialize(TArchive& archive)
 }
 ```
 
-##### Option 2: Smart wrapper (recommended for multi-format code)
+#### Option 2: Smart wrapper (recommended for multi-format code)
 Use `PropertyValue` for automatic adaptation based on archive type and value convertibility:
 ```cpp
 template <class TArchive>
@@ -682,7 +682,7 @@ void Serialize(TArchive& archive)
 }
 ```
 
-##### Option 3: Strict XML attributes (XML-only code)
+#### Option 3: Strict XML attributes (XML-only code)
 Use `AttributeValue` when targeting XML exclusively:
 ```cpp
 template <class TArchive>
@@ -696,7 +696,7 @@ void Serialize(TArchive& archive)
 > [!NOTE]
 > Note: `AttributeValue` causes a compile-time error when used with non-XML archives (JSON, YAML, CSV, MsgPack).
 
-##### Comparison of helper classes
+#### Comparison of helper classes
 | Approach       | JSON                | XML                                 |
 | -------------- | ------------------- | ----------------------------------- |
 | KeyValue       | `{"x":100,"y":200}` | `<root><x>100</x><y>200</y></root>` |
@@ -708,7 +708,7 @@ void Serialize(TArchive& archive)
 
 [See full sample](samples/multiformat_customization/multiformat_customization.cpp)
 
-### Serialization STD types
+## Serialization STD types
 BitSerializer has built-in serialization for all STD containers and most other commonly used types. For add support of required STD type just need to include related header file.
 | Types  | Header |
 | ------ | ------ |
@@ -739,7 +739,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
-#### Serialization of std::map
+### Serialization of std::map
 BitSerializer does not add any system information when saving the map, for example serialization to JSON would look like this:
 ```cpp
 std::map<std::string, int> testMap = 
@@ -785,7 +785,7 @@ class YourCustomKey
 }
 ```
 
-#### Serialization of date and time
+### Serialization of date and time
 The ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:
 ```cpp
 #include "bitserializer/types/std/chrono.h"
@@ -827,16 +827,47 @@ void Serialize(TArchive& archive)
 }
 ```
 
-#### Serialization of std::variant
-`std::variant` is serialized as an object, so it requires object support in the target archive. Flat formats such as CSV may not support nested alternatives. Include the header to enable serialization:
+### Serialization of std::variant
+A `std::variant` can hold a value of one of several types, so the serialized data must somehow record **which** alternative is active. There is no single canonical way to do this, and different ecosystems have converged on different conventions. BitSerializer supports the most popular of them and lets you pick the one that best fits your format and use case (only CSV is limited when nested objects are involved).
+
+Because the active type information is stored as part of the value, a variant is serialized as an object - so this feature requires object support in the target archive. Include the header to enable serialization:
 ```cpp
 #include "bitserializer/types/std/variant.h"
 ```
 
+#### Available representations
+| Representation | JSON example (active `User` alternative) | Registration | Objects only |
+| --- | --- | --- | --- |
+| Index-based | `{ "index": 2, "value": { "name": "Rob", "age": 30 } }` | ❌ No | ❌ No |
+| Name-based | `{ "type": "User", "value": { "name": "Rob", "age": 30 } }` | ✅ Yes | ❌ No |
+| Discriminated | `{ "type": "User", "name": "Rob", "age": 30 }` | ✅ Yes | ✅ Yes |
+
+- **Index-based** is the default (wrapper: `VariantAsIndexed`). Requires no setup and works with any alternative type, but the index is unstable if the list of alternatives changes.
+- **Name-based** (wrapper: `VariantAsNamed`) encodes the type by a stable registered name and supports any alternative type, but nests the value.
+- **Discriminated** (wrapper: `VariantAsDiscriminated`) flattens the type name next to the alternative's fields (the OpenAPI `discriminator` style), which is what enables object hierarchies in flat formats such as CSV - but every alternative must be an object type.
+
+All three representations support customizable field names.
+
+The index-based and name-based representations nest the value under a separate key; the discriminated representation merges it with the discriminator. The rest of this section walks through each in detail.
+
+#### Selecting the default representation
+By default the active alternative is encoded by its **integer index** (see below). You can change the default for **every** `std::variant` value in a serialization call - including elements of containers and arbitrarily nested variants - via `SerializationOptions::variantOptions`:
+```cpp
+BitSerializer::SerializationOptions options;
+options.variantOptions.mode = BitSerializer::VariantSerializationMode::Named; // Indexed, Named or Discriminated
+options.variantOptions.typeKey = "kind";   // discriminator key (Named/Discriminated)
+options.variantOptions.valueKey = "payload"; // value key (Indexed/Named)
+options.variantOptions.indexKey = "idx";   // index key (Indexed)
+
+std::string jsonResult;
+BitSerializer::SaveObject<JsonArchive>(testValue, jsonResult, options);
+```
+The `Indexed` mode is the default and requires no setup. The `Named` mode requires every alternative to be registered with `BITSERIALIZER_REGISTER_TYPE`, and the alternatives are serialized as `{ type, value }` objects - so it inherits the same constraints as the `VariantAsNamed` wrapper. The `Discriminated` mode requires every alternative to be both registered and an object type - so it inherits the same constraints as the `VariantAsDiscriminated` wrapper. If a selected mode is not available for the given alternatives (e.g. `Discriminated` for a variant holding scalars), a `SerializationException` is thrown at runtime. An explicit `VariantAs*` wrapper always overrides the configured default for that value; because it picks the representation explicitly, an unsupported combination is reported at compile time (`static_assert`) instead of at runtime.
+
 By default the active alternative is encoded by its **integer index**:
 ```cpp
-using VariantType = std::variant<int, std::string, CUser, std::vector<int>>;
-VariantType testValue(CUser("Alice", 30));
+using VariantType = std::variant<int, std::string, User, std::vector<int>>;
+VariantType testValue(User("Alice", 30));
 auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testValue);
 ```
 Returns result:
@@ -856,7 +887,7 @@ Returns result:
 
 `VariantAsNamed` requires every alternative to be registered with a unique type name via `BITSERIALIZER_REGISTER_TYPE`:
 ```cpp
-BITSERIALIZER_REGISTER_TYPE(CUser, "User")
+BITSERIALIZER_REGISTER_TYPE(User, "User")
 BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
 BITSERIALIZER_REGISTER_TYPE(int, "Int")
 BITSERIALIZER_REGISTER_TYPE(std::string, "String")
@@ -867,11 +898,45 @@ Registration details:
 - It is safe to use in both headers and `.cpp` files (no ODR issues, since all members are inline). Registering in a header is a good way to make the registration available to every translation unit that needs it.
 - The registration must be **visible (via `#include`)** in every translation unit that uses `VariantAsNamed` for the type, and each type must be registered **exactly once** in the program.
 
-Loading a `VariantAsNamed` value that contains an unknown type name respects the `MismatchedTypesPolicy` - with `ThrowError` it throws a `SerializationException`, otherwise the field is skipped.
+The field names can be customized. `VariantAsNamed` takes the tag and content key names as optional constructor arguments:
+```cpp
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(VariantAsNamed(testValue, "kind", "payload"));
+```
+Returns result:
+```json
+{ "kind": "IntVector", "payload": [1, 2, 3] }
+```
+
+The **discriminated** representation, `VariantAsDiscriminated`, embeds the type name next to the active alternative's fields instead of wrapping it around a nested value (the OpenAPI `discriminator` style). This is what allows object hierarchies to be represented in flat formats such as CSV:
+```cpp
+using DiscriminatedVariantType = std::variant<User, Product>;
+DiscriminatedVariantType testValue(User("Alice", 30));
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(VariantAsDiscriminated(testValue));
+```
+Returns result:
+```json
+{ "type": "User", "name": "Alice", "age": 30 }
+```
+
+Every alternative must be an **object type** (has `Serialize()` method or a global `SerializeObject()`), since a scalar or array cannot be flattened; this is enforced at compile time. The discriminator field name is customizable as well:
+```cpp
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(VariantAsDiscriminated(testValue, "kind"));
+```
+
+#### CSV compatibility
+CSV is flat and cannot represent nested objects or arrays, so the representation determines what works:
+
+| Representation | CSV support |
+| --- | --- |
+| Index-based | Only scalar alternatives (flattened into `index`, `value` columns). |
+| Name-based | Only scalar alternatives. |
+| Discriminated | Object alternatives (fields become columns); scalar/array alternatives cannot be flattened. |
+
+Loading a `VariantAsNamed` / `VariantAsDiscriminated` value that contains an unknown type name respects the `MismatchedTypesPolicy` - with `ThrowError` it throws a `SerializationException`, otherwise the field is skipped.
 
 [See full sample](samples/serialize_variant/serialize_variant.cpp)
 
-### Payload passthrough of unprocessed data structures
+## Payload passthrough of unprocessed data structures
 In distributed systems, services often need to process messages while forwarding parts they don't interpret.
 This occurs in API gateways, event routers, and integration points where your service cares about specific fields but must forward the rest of the structure.
 BitSerializer efficiently handles these scenarios with its payload passthrough feature.
@@ -927,7 +992,7 @@ BitSerializer::SaveObject<JsonArchive>(envelope, routedMessage);
 
 This approach minimizes processing overhead for pass-through fields while maintaining container-level validation (e.g., ensuring required fields exist).
 
-### Conditional loading and versioning
+## Conditional loading and versioning
 The functional style of serialization used in BitSerializer has one advantage over the declarative one - you can write branches depending on the data.
 To check the current serialization mode, use two static methods - `IsLoading()` and `IsSaving()`. As they are «constexpr», you will not have any overhead.
 ```cpp
@@ -1023,7 +1088,7 @@ int main()
 ```
 [See full sample](samples/versioning/versioning.cpp)
 
-### Serialization to streams and files
+## Serialization to streams and files
 All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.
 BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but last is only supported by RapidJson, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
 The following example shows how to save/load to `std::stream`:
@@ -1084,7 +1149,7 @@ BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const Se
 > [!NOTE]
 > Built-in archives (JSON, CSV, MsgPack) deserialize streams incrementally in chunks with bounded memory usage, so they can handle files much larger than available RAM. Third-party archives (RapidJSON, PugiXML, RapidYAML) are DOM-based and keep the whole document in memory.
 
-### Error handling
+## Error handling
 First, let's list what are considered as errors and will throw exception:
 
  - Syntax errors in the input source (e.g. JSON)
@@ -1133,10 +1198,10 @@ catch (const std::exception& ex)
 }
 ```
 
-### Validation of deserialized values
+## Validation of deserialized values
 BitSerializer provides a comprehensive and extensible validation system that enables you to enforce data integrity constraints during deserialization. The library supports both built-in validators and custom validation logic, with all validation errors collected and reported in a single `ValidationException`.
 
-#### Basic usage
+### Basic usage
 Validators are applied directly within the serialization interface using a fluent syntax:
 ```cpp
 archive << KeyValue("testFloat", testFloat, Required(), Validate::Range(-1.0f, 1.0f));
@@ -1145,7 +1210,7 @@ archive << PropertyValue("testFloat", testFloat, Required(), Validate::Range(-1.
 ```
 All validation errors encountered during deserialization are aggregated and thrown as a `ValidationException` upon completion, enabling comprehensive error reporting rather than failing on the first constraint violation.
 
-#### Error handling
+### Error handling
 By default, there is no limit on the number of validation errors collected. This behavior can be configured via the `maxValidationErrors` parameter in `SerializationOptions`. The validation error map contains JSON Pointer paths (RFC 6901) as keys, with each path mapping to a list of error messages for that field.
 ```cpp
 try {
@@ -1157,7 +1222,7 @@ catch (BitSerializer::ValidationException& ex) {
 }
 ```
 
-#### Custom error messages
+### Custom error messages
 All validators support customizable error messages, which is particularly useful for localization scenarios:
 ```cpp
 archive << KeyValue("Age", mAge, 
@@ -1166,7 +1231,7 @@ archive << KeyValue("Age", mAge,
 ```
 Error messages can contain either descriptive text or localization string identifiers.
 
-#### Built-in validators
+### Built-in validators
 All validators are declared in the `BitSerializer::Validate` namespace (except `Required`, which is also available in the `BitSerializer` namespace).
 
 | Signature           | Description   |
@@ -1187,7 +1252,7 @@ All validators are declared in the `BitSerializer::Validate` namespace (except `
 > [!NOTE]
 > Comparison validators (`GreaterThan`, `LessThan`, etc.) support any type that implements the corresponding comparison operators, including `std::chrono` time points and durations.
 
-#### Custom validation
+### Custom validation
 For domain-specific validation logic, you can provide custom lambda validators:
 ```cpp
 archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isLoaded) -> std::optional<std::string> {
@@ -1199,7 +1264,7 @@ archive << KeyValue("NickName", mNickName, [](const std::string& value, bool isL
 ```
 Custom validators receive the deserialized value and a boolean indicating whether the field was present in the source data, returning an error message when validation fails.
 
-#### Complete example
+### Complete example
 ```cpp
 using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
@@ -1282,7 +1347,7 @@ Path: /NickName
 ```
 The validation system provides flexible constraint checking with efficient error aggregation, suitable for applications requiring robust data integrity without significant performance overhead.
 
-### Post-load data refinement
+## Post-load data refinement
 > [!NOTE]
 > New feature, available since v0.85.
 
@@ -1325,7 +1390,7 @@ Available refiners:
 All refiners are declared in the `BitSerializer::Refine` namespace, except `Fallback` which also has alias in the `BitSerializer`.
 It's quite easy to write your own refiner or use a lambda function (similar to validators).
 
-### Compile-time format validation
+## Compile-time format validation
 BitSerializer performs format-specific validation during compilation, catching serialization errors before runtime by verifying your code against the actual constraints of the target output format. This will help you get immediate feedback, ensuring that your serialized data always conforms to the target format specification.
 ```cpp
 int testNumber = 12345;
@@ -1340,7 +1405,7 @@ BitSerializer::SaveObject<JsonArchive>(testNumber, outputData);
 BitSerializer::SaveObject<CsvArchive>(testNumber, outputData);
 ```
 
-### What else to read
+## What else to read
 Each of the supported archives has its own page with details (installation, features, samples, etc.):
 - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
@@ -1350,7 +1415,7 @@ Each of the supported archives has its own page with details (installation, feat
 
 Additionally, you may want to use the [string conversion submodule](docs/bitserializer_convert.md).
 
-### Thanks
+## Thanks
 - Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.

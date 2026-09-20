@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -42,6 +42,18 @@ namespace
 		template <typename TArchive>
 		void Serialize(TArchive&) {}
 	};
+
+	// Object type that is deliberately NOT registered with BITSERIALIZER_REGISTER_TYPE.
+	struct UnregisteredObject
+	{
+		int Value = 0;
+
+		template <typename TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << BitSerializer::KeyValue("Value", Value);
+		}
+	};
 }
 
 // Register types for VariantAsNamed tests
@@ -49,6 +61,7 @@ BITSERIALIZER_REGISTER_TYPE(int, "Int")
 BITSERIALIZER_REGISTER_TYPE(std::string, "String")
 BITSERIALIZER_REGISTER_TYPE(float, "Float")
 BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
+BITSERIALIZER_REGISTER_TYPE(TestClassWithSubType<int>, "TestClassWithSubTypeInt")
 
 //-----------------------------------------------------------------------------
 TEST(STD_Types, SerializePair) {
@@ -112,6 +125,12 @@ TEST(STD_Types, SerializeVariantWithPrimitiveAlternative) {
 
 TEST(STD_Types, SerializeVariantWithStringAlternative) {
 	TestSerializeType<ArchiveStub>(std::variant<int, std::string, float>(std::string("test")));
+}
+
+TEST(STD_Types, SerializeVariantWithCustomStringAlternative) {
+	// Custom string-like types (declared via BITSERIALIZER_DECLARE_STRING_TYPE) are
+	// detected by the variant alternative capability check via the string path.
+	TestSerializeType<ArchiveStub>(std::variant<int, CustomStringType, float>(CustomStringType("custom string")));
 }
 
 TEST(STD_Types, SerializeVariantWithObjectAlternative) {
@@ -223,6 +242,191 @@ TEST(STD_Types, ThrowWhenLoadingVariantAsNamedWithUnknownType)
 		BitSerializer::LoadObject<ArchiveStub>(BitSerializer::VariantAsNamed(actual), outputArchive, options),
 		BitSerializer::SerializationException
 	);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for VariantAsDiscriminated wrapper
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantAsDiscriminatedWithObjectAlternative)
+{
+	using VariantType = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(TestPointClass(10, 20)), actual;
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsDiscriminated(testValue), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsDiscriminated(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantAsDiscriminatedWithCustomTypeKey)
+{
+	using VariantType = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(TestPointClass(10, 20)), actual;
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsDiscriminated(testValue, "kind"), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsDiscriminated(actual, "kind"), outputArchive);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, ThrowWhenLoadingVariantAsDiscriminatedWithUnknownType)
+{
+	// Both alternatives are object types (required by the discriminated representation).
+	// The source variant holds `TestPointClass`, which is not present in the target's registry.
+	using SourceVariant = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	using TargetVariant = std::variant<TestClassWithSubType<int>>;
+	SourceVariant testValue(TestPointClass(10, 20));
+	TargetVariant actual;
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsDiscriminated(testValue), outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
+	EXPECT_THROW(
+		BitSerializer::LoadObject<ArchiveStub>(BitSerializer::VariantAsDiscriminated(actual), outputArchive, options),
+		BitSerializer::SerializationException
+	);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for VariantAsNamed with custom field names
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantAsNamedWithCustomFieldNames)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(std::string("test")), actual;
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsNamed(testValue, "kind", "payload"), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsNamed(actual, "kind", "payload"), outputArchive);
+	GTestExpectEq(testValue, actual);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::variant with default representation (SerializationOptions)
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantWithDefaultIndexedMode)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(123), actual;
+	BuildFixture(testValue);
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantWithDefaultNamedMode)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(std::string("test")), actual;
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Named;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantWithDefaultNamedModeAndCustomKeys)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(std::string("test")), actual;
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Named;
+	options.variantOptions.typeKey = "kind";
+	options.variantOptions.valueKey = "payload";
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantInVectorWithDefaultNamedMode)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	std::vector<VariantType> testValue = { VariantType(1), VariantType(std::string("test")), VariantType(2.5f) };
+	std::vector<VariantType> actual(testValue.size());
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Named;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, ExplicitVariantAsIndexedIsNotAffectedByDefaultMode)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(std::string("test")), actual;
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Named;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsIndexed(testValue), outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsIndexed(actual), outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantWithDefaultDiscriminatedMode)
+{
+	using VariantType = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(TestPointClass(10, 20)), actual;
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Discriminated;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantWithDefaultDiscriminatedModeAndCustomTypeKey)
+{
+	using VariantType = std::variant<TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(TestClassWithSubType<int>(7)), actual;
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Discriminated;
+	options.variantOptions.typeKey = "kind";
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, ThrowWhenDiscriminatedModeIsNotSupportedByAlternatives)
+{
+	using VariantType = std::variant<int, std::string, float>;
+	VariantType testValue(123);
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Discriminated;
+	ArchiveStub::preferred_output_type outputArchive{};
+	const auto exception = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	});
+	EXPECT_NE(std::string(exception.what()).find("object type"), std::string::npos);
+}
+
+TEST(STD_Types, ThrowWhenDiscriminatedModeIsNotSupportedByUnregisteredAlternatives)
+{
+	// Both alternatives are object types but not registered with BITSERIALIZER_REGISTER_TYPE.
+	using VariantType = std::variant<TestPointClass, UnregisteredObject>;
+	VariantType testValue(TestPointClass(10, 20));
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Discriminated;
+	ArchiveStub::preferred_output_type outputArchive{};
+	const auto exception = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	});
+	EXPECT_NE(std::string(exception.what()).find("registered"), std::string::npos);
 }
 
 //-----------------------------------------------------------------------------

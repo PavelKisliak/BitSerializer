@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * Copyright (C) 2017 Howard Hinnant (datetime algorithms from 'date' library)  *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -28,12 +28,12 @@ namespace BitSerializer
 	struct CRawTime
 	{
 		CRawTime() = default;
-		explicit CRawTime(time_t time) noexcept : Time(time) {}
+		explicit CRawTime(time_t inTime) noexcept : time(inTime) {}
 
-		operator time_t& () noexcept { return Time; }
-		operator const time_t& () const noexcept { return Time; }
+		operator time_t& () noexcept { return time; }
+		operator const time_t& () const noexcept { return time; }
 
-		time_t Time = 0;
+		time_t time = 0;
 	};
 }
 
@@ -47,18 +47,18 @@ namespace BitSerializer::Convert::Detail
 		struct CDateTimeParts
 	{
 		CDateTimeParts() = default;
-		CDateTimeParts(const tm& tm, std::optional<TFractions> secFractions = std::nullopt)
-			: Year(tm.tm_year), Month(tm.tm_mon), Day(tm.tm_mday), Hour(tm.tm_hour)
-			, Min(tm.tm_min), Sec(tm.tm_sec), SecFractions(secFractions)
+		CDateTimeParts(const tm& tm, std::optional<TFractions> inSecFractions = std::nullopt)
+			: year(tm.tm_year), month(tm.tm_mon), day(tm.tm_mday), hour(tm.tm_hour)
+			, min(tm.tm_min), sec(tm.tm_sec), secFractions(inSecFractions)
 		{ }
 
-		int64_t Year = 0;
-		int Month = 1;
-		int Day = 1;
-		int Hour = 1;
-		int Min = 1;
-		int Sec = 1;
-		std::optional<TFractions> SecFractions;
+		int64_t year = 0;
+		int month = 1;
+		int day = 1;
+		int hour = 1;
+		int min = 1;
+		int sec = 1;
+		std::optional<TFractions> secFractions;
 	};
 
 	/**
@@ -359,12 +359,12 @@ namespace BitSerializer::Convert::Detail
 			};
 
 			CDateTimeParts utc{};
-			pos = parseDatetimePart(pos, end, utc.Year, std::nullopt, std::nullopt, '-', true);
-			pos = parseDatetimePart(pos, end, utc.Month, 1, 12, '-');
-			pos = parseDatetimePart(pos, end, utc.Day, 1, DaysInMonth[utc.Month - 1], 'T');
-			pos = parseDatetimePart(pos, end, utc.Hour, 0, 23, ':');
-			pos = parseDatetimePart(pos, end, utc.Min, 0, 59, ':');
-			pos = parseDatetimePart(pos, end, utc.Sec, 0, 59);
+			pos = parseDatetimePart(pos, end, utc.year, std::nullopt, std::nullopt, '-', true);
+			pos = parseDatetimePart(pos, end, utc.month, 1, 12, '-');
+			pos = parseDatetimePart(pos, end, utc.day, 1, DaysInMonth[utc.month - 1], 'T');
+			pos = parseDatetimePart(pos, end, utc.hour, 0, 23, ':');
+			pos = parseDatetimePart(pos, end, utc.min, 0, 59, ':');
+			pos = parseDatetimePart(pos, end, utc.sec, 0, 59);
 			// Parse optional fractions of second
 			if (pos != end && (*pos == '.' || *pos == ','))
 			{
@@ -372,7 +372,7 @@ namespace BitSerializer::Convert::Detail
 				if (pos = ParseSecondFractions(++pos, end, ns); pos == nullptr) {
 					throw std::invalid_argument("Input ISO datetime has invalid fractions of second");
 				}
-				utc.SecFractions = ns;
+				utc.secFractions = ns;
 			}
 			// Should have 'Z' at the end of UTC datetime
 			if (pos == end || *pos != 'Z') {
@@ -406,15 +406,15 @@ namespace BitSerializer::Convert::Detail
 	{
 		if (pos != endPos)
 		{
-			if (utc.Year >= 10000) {
+			if (utc.year >= 10000) {
 				*pos++ = '+';
 			}
-			const size_t outSize = snprintf(pos, endPos - pos, "%04" PRId64 "-%02d-%02dT%02d:%02d:%02d", utc.Year, utc.Month, utc.Day, utc.Hour, utc.Min, utc.Sec);
+			const size_t outSize = snprintf(pos, endPos - pos, "%04" PRId64 "-%02d-%02dT%02d:%02d:%02d", utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec);
 			if (outSize > 0)
 			{
 				pos += outSize;
-				if (utc.SecFractions) {
-					pos = PrintSecondsFractions(pos, endPos, utc.SecFractions.value());
+				if (utc.secFractions) {
+					pos = PrintSecondsFractions(pos, endPos, utc.secFractions.value());
 				}
 				if (pos != endPos)
 				{
@@ -451,15 +451,15 @@ namespace BitSerializer::Convert::Detail
 	void To(std::basic_string_view<TSym> in, tm& out)
 	{
 		const CDateTimeParts<> utc = ParseIsoUtc(in);
-		if (utc.Year > (std::numeric_limits<int>::max)() || utc.Year < (std::numeric_limits<int>::min)()) {
+		if (utc.year > (std::numeric_limits<int>::max)() || utc.year < (std::numeric_limits<int>::min)()) {
 			throw std::out_of_range("The target range of years in the `tm` structure is not sufficient");
 		}
-		out.tm_year = static_cast<int>(utc.Year);
-		out.tm_mon = utc.Month;
-		out.tm_mday = utc.Day;
-		out.tm_hour = utc.Hour;
-		out.tm_min = utc.Min;
-		out.tm_sec = utc.Sec;
+		out.tm_year = static_cast<int>(utc.year);
+		out.tm_mon = utc.month;
+		out.tm_mday = utc.day;
+		out.tm_hour = utc.hour;
+		out.tm_min = utc.min;
+		out.tm_sec = utc.sec;
 		out.tm_yday = out.tm_isdst = 0;
 	}
 
@@ -493,15 +493,15 @@ namespace BitSerializer::Convert::Detail
 		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
 
 		CDateTimeParts<std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
-		utc.Year = y + (m <= 2);
-		utc.Month = static_cast<int>(m);
-		utc.Day = static_cast<int>(d);
-		utc.Hour = static_cast<int>(timeInSec / 3600);
-		utc.Min = timeInSec % 3600 / 60;
-		utc.Sec = timeInSec % 60;
+		utc.year = y + (m <= 2);
+		utc.month = static_cast<int>(m);
+		utc.day = static_cast<int>(d);
+		utc.hour = static_cast<int>(timeInSec / 3600);
+		utc.min = timeInSec % 3600 / 60;
+		utc.sec = timeInSec % 60;
 		// Print fractions if time is based on a duration that's more precise than seconds
 		if constexpr (std::ratio_less_v<typename TDuration::period, std::chrono::seconds::period>) {
-			utc.SecFractions = timePart - std::chrono::seconds(timeInSec);
+			utc.secFractions = timePart - std::chrono::seconds(timeInSec);
 		}
 		char buf[UtcBufSize];
 		char* pos = PrintIsoUtc(utc, buf, buf + sizeof(buf));
@@ -527,9 +527,9 @@ namespace BitSerializer::Convert::Detail
 
 		// Based on Howard Hinnant's algorithm
 		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");
-		auto const y = utc.Year - (utc.Month <= 2);
-		auto const m = static_cast<unsigned>(utc.Month);
-		auto const d = static_cast<unsigned>(utc.Day);
+		auto const y = utc.year - (utc.month <= 2);
+		auto const m = static_cast<unsigned>(utc.month);
+		auto const d = static_cast<unsigned>(utc.day);
 		auto const era = (y >= 0 ? y : y - 399) / 400;
 		auto const yoe = static_cast<unsigned>(y - era * 400);				// [0, 399]
 		auto const doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1;	// [0, 365]
@@ -541,13 +541,13 @@ namespace BitSerializer::Convert::Detail
 			throw std::out_of_range("Target duration is not enough");
 		}
 		const int64_t days = era * 146097ll + (static_cast<int>(doe) - 719468);
-		const auto time = static_cast<long long>(utc.Hour) * 3600 + static_cast<long long>(utc.Min) * 60 + utc.Sec;
+		const auto time = static_cast<long long>(utc.hour) * 3600 + static_cast<long long>(utc.min) * 60 + utc.sec;
 
 		std::chrono::time_point<TClock, TDuration> tp;
 		SafeAddDuration(tp, std::chrono::seconds(time));
-		if (utc.SecFractions) {
+		if (utc.secFractions) {
 			// Only seconds fractions can be rounded to target timepoint type
-			SafeAddDuration(tp, std::chrono::round<TDuration>(utc.SecFractions.value()));
+			SafeAddDuration(tp, std::chrono::round<TDuration>(utc.secFractions.value()));
 		}
 		SafeAddDuration(tp, std::chrono::duration<int64_t, std::ratio<86400>>(days));
 		out = tp;
@@ -562,7 +562,7 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym, typename TAllocator>
 	void To(const CRawTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		const std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp(std::chrono::seconds(in.Time));
+		const std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp(std::chrono::seconds(in.time));
 		To(tp, out);
 	}
 
@@ -577,7 +577,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp;
 		To(in, tp);
-		out.Time = tp.time_since_epoch().count();
+		out.time = tp.time_since_epoch().count();
 	}
 
 	/**

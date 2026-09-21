@@ -107,17 +107,17 @@ namespace BitSerializer
 		 * @brief Constructs the wrapper with a reference to a derived object.
 		 *
 		 * @tparam TDerived Derived class type.
-		 * @param[in] object Reference to the derived object.
+		 * @param[in] inObject Reference to the derived object.
 		 */
 		template <typename TDerived>
-		explicit BaseObject(TDerived& object) noexcept
-			: Object(object)
+		explicit BaseObject(TDerived& inObject) noexcept
+			: object(inObject)
 		{
 			static_assert(std::is_base_of_v<TBase, TDerived>,
 				"BitSerializer. The template parameter 'TBase' should be a base type of passed object.");
 		}
 
-		TBase& Object;
+		TBase& object;
 	};
 
 	/**

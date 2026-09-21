@@ -634,6 +634,7 @@ private:
 			}
 
 			ReadKey();
+			// NOLINTNEXTLINE(readability-string-compare)
 			if (mCurrentKey.compare(key) == 0) {
 				return true;
 			}

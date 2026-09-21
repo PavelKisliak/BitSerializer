@@ -668,22 +668,22 @@ namespace BitSerializer::MsgPack::Detail
 			{
 				uint32_t data32;
 				GetValue(mInputData, mPos, data32);
-				timestamp.Seconds = data32;
-				timestamp.Nanoseconds = 0;
+				timestamp.seconds = data32;
+				timestamp.nanoseconds = 0;
 				return true;
 			}
 			if (extTypeInfo.Size == 8)
 			{
 				uint64_t data64;
 				GetValue(mInputData, mPos, data64);
-				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003FFFFFFFFul);
-				timestamp.Nanoseconds = static_cast<int32_t>(data64 >> 34u);
+				timestamp.seconds = static_cast<int64_t>(data64 & 0x00000003FFFFFFFFul);
+				timestamp.nanoseconds = static_cast<int32_t>(data64 >> 34u);
 				return true;
 			}
 			if (extTypeInfo.Size == 12)
 			{
-				GetValue(mInputData, mPos, timestamp.Seconds);
-				GetValue(mInputData, mPos, timestamp.Nanoseconds);
+				GetValue(mInputData, mPos, timestamp.seconds);
+				GetValue(mInputData, mPos, timestamp.nanoseconds);
 				return true;
 			}
 			throw SerializationException(SerializationErrorCode::ParsingError,
@@ -1273,22 +1273,22 @@ namespace BitSerializer::MsgPack::Detail
 			{
 				uint32_t data32;
 				GetValue(mBinaryStreamReader, data32);
-				timestamp.Seconds = data32;
-				timestamp.Nanoseconds = 0;
+				timestamp.seconds = data32;
+				timestamp.nanoseconds = 0;
 				return true;
 			}
 			if (extTypeInfo.Size == 8)
 			{
 				uint64_t data64;
 				GetValue(mBinaryStreamReader, data64);
-				timestamp.Seconds = static_cast<int64_t>(data64 & 0x00000003FFFFFFFFul);
-				timestamp.Nanoseconds = static_cast<int32_t>(data64 >> 34u);
+				timestamp.seconds = static_cast<int64_t>(data64 & 0x00000003FFFFFFFFul);
+				timestamp.nanoseconds = static_cast<int32_t>(data64 >> 34u);
 				return true;
 			}
 			if (extTypeInfo.Size == 12)
 			{
-				GetValue(mBinaryStreamReader, timestamp.Seconds);
-				GetValue(mBinaryStreamReader, timestamp.Nanoseconds);
+				GetValue(mBinaryStreamReader, timestamp.seconds);
+				GetValue(mBinaryStreamReader, timestamp.nanoseconds);
 				return true;
 			}
 			throw SerializationException(SerializationErrorCode::ParsingError,

@@ -22,9 +22,9 @@ namespace BitSerializer
 	 */
 	struct CTimeRef
 	{
-		explicit CTimeRef(time_t& timeRef) noexcept : Time(timeRef) {}
+		explicit CTimeRef(time_t& inTimeRef) noexcept : time(inTimeRef) {}
 
-		time_t& Time; ///< Reference to the underlying time value.
+		time_t& time; ///< Reference to the underlying time value.
 	};
 
 	namespace Detail
@@ -44,7 +44,7 @@ namespace BitSerializer
 		{
 			try
 			{
-				time.Time = Convert::To<CRawTime>(isoDate);
+				time.time = Convert::To<CRawTime>(isoDate);
 				return true;
 			}
 			catch (const std::invalid_argument&)
@@ -77,14 +77,14 @@ namespace BitSerializer
 				if (archive.SerializeValue(std::forward<TKey>(key), timestamp))
 				{
 					// Ignore nanoseconds
-					timeRef.Time = timestamp.Seconds;
+					timeRef.time = timestamp.seconds;
 					return true;
 				}
 				return false;
 			}
 			else
 			{
-				Detail::CBinTimestamp timestamp(timeRef.Time);
+				Detail::CBinTimestamp timestamp(timeRef.time);
 				return archive.SerializeValue(std::forward<TKey>(key), timestamp);
 			}
 		}
@@ -101,7 +101,7 @@ namespace BitSerializer
 			}
 			else
 			{
-				std::string isoDate = Convert::ToString(CRawTime(timeRef.Time));
+				std::string isoDate = Convert::ToString(CRawTime(timeRef.time));
 				return Serialize(archive, std::forward<TKey>(key), isoDate);
 			}
 		}
@@ -122,14 +122,14 @@ namespace BitSerializer
 				if (archive.SerializeValue(timestamp))
 				{
 					// Ignore nanoseconds
-					timeRef.Time = timestamp.Seconds;
+					timeRef.time = timestamp.seconds;
 					return true;
 				}
 				return false;
 			}
 			else
 			{
-				Detail::CBinTimestamp timestamp(timeRef.Time);
+				Detail::CBinTimestamp timestamp(timeRef.time);
 				return archive.SerializeValue(timestamp);
 			}
 		}
@@ -146,7 +146,7 @@ namespace BitSerializer
 			}
 			else
 			{
-				std::string isoDate = Convert::ToString(CRawTime(timeRef.Time));
+				std::string isoDate = Convert::ToString(CRawTime(timeRef.time));
 				return Serialize(archive, isoDate);
 			}
 		}

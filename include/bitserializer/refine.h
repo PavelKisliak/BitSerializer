@@ -27,7 +27,7 @@ namespace BitSerializer::Refine
 		{ }
 
 		template <typename TValue>
-		void operator()(TValue& value, bool isLoaded) const noexcept(std::is_nothrow_assignable_v<TValue, T>)
+		void operator()(TValue& value, bool isLoaded) const
 		{
 			static_assert(std::is_assignable_v<TValue&, T>, "BitSerializer. The specified fallback value cannot be assigned to the target value.");
 

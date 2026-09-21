@@ -291,7 +291,7 @@ namespace BitSerializer {
 		template <class TBase>
 		FieldsCountVisitor& operator<<(BaseObject<TBase>&& value) noexcept
 		{
-			Count(value.Object);
+			Count(value.object);
 			return *this;
 		}
 

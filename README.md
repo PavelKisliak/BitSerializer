@@ -1183,8 +1183,8 @@ catch (const BitSerializer::ParsingException& ex)
 {
     // Parsing error: Malformed token
     std::string message = ex.what();
-    size_t line = ex.Line;
-    size_t offset = ex.Offset;
+    size_t line = ex.line;
+    size_t offset = ex.offset;
 }
 catch (const BitSerializer::ValidationException& ex)
 {

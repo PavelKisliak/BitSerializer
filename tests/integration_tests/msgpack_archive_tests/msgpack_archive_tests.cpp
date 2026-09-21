@@ -472,7 +472,7 @@ TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEnd)
 	}
 	catch (const ParsingException& ex)
 	{
-		EXPECT_EQ(1U, ex.Offset);
+		EXPECT_EQ(1U, ex.offset);
 	}
 	catch (const std::exception&)
 	{
@@ -490,7 +490,7 @@ TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEndInObject)
 	}
 	catch (const ParsingException& ex)
 	{
-		EXPECT_EQ(5U, ex.Offset);
+		EXPECT_EQ(5U, ex.offset);
 	}
 	catch (const std::exception&)
 	{
@@ -508,7 +508,7 @@ TEST(MsgPackArchive, ThrowExceptionWhenUnexpectedEndInArray)
 	}
 	catch (const ParsingException& ex)
 	{
-		EXPECT_EQ(3U, ex.Offset);
+		EXPECT_EQ(3U, ex.offset);
 	}
 	catch (const std::exception&)
 	{
@@ -529,7 +529,7 @@ TEST(MsgPackArchive, ThrowExceptionWhenNoMoreValuesToRead)
 	}
 	catch (const ParsingException& ex)
 	{
-		EXPECT_EQ(ex.Offset, std::strlen(testMsgPack));
+		EXPECT_EQ(ex.offset, std::strlen(testMsgPack));
 	}
 	catch (const std::exception&)
 	{

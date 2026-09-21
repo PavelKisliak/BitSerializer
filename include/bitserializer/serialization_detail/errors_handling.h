@@ -109,6 +109,19 @@ namespace BitSerializer
 	 *
 	 * Contains additional context such as line and offset where the error occurred.
 	 */
+	// The deprecated member aliases are (re)initialized inside the mem-initializer lists below,
+	// which some compilers report as deprecated-declaration uses. Suppress only within this class,
+	// so that user code reading the deprecated members is still warned.
+#if defined(__clang__)
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#	pragma warning(push)
+#	pragma warning(disable: 4996)
+#endif
 	class ParsingException : public SerializationException
 	{
 	public:
@@ -123,12 +136,24 @@ namespace BitSerializer
 			: SerializationException(SerializationErrorCode::ParsingError, message)
 			, Line(line)
 			, Offset(offset)
+			, line(line)
+			, offset(offset)
 		{
 		}
 
-		const size_t Line;   ///< Line number where parsing failed (0-based if used).
-		const size_t Offset; ///< Character offset where parsing failed (0-based).
+		[[deprecated("use 'line' instead")]] const size_t Line;   ///< Line number where parsing failed (0-based if used).
+		[[deprecated("use 'offset' instead")]] const size_t Offset; ///< Character offset where parsing failed (0-based).
+
+		const size_t line;   ///< Line number where parsing failed (0-based if used).
+		const size_t offset; ///< Character offset where parsing failed (0-based).
 	};
+#if defined(__clang__)
+#	pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#	pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#	pragma warning(pop)
+#endif
 
 	/**
 	 * @brief Exception thrown when validation of deserialized data fails.

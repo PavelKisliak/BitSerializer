@@ -102,12 +102,12 @@ namespace BitSerializer::Convert::Detail
 	class EnumMetadata
 	{
 	public:
-		TEnum Value{};
-		std::string_view Name;
+		TEnum value{};
+		std::string_view name;
 
 		EnumMetadata() = default;
-		EnumMetadata(TEnum value, const char* name) noexcept
-			: Value(value), Name(name)
+		EnumMetadata(TEnum inValue, const char* inName) noexcept
+			: value(inValue), name(inName)
 		{
 		}
 	};
@@ -169,7 +169,7 @@ namespace BitSerializer::Convert::Detail
 		{
 			for (auto it = mBeginIt; it != mEndIt; ++it)
 			{
-				if (it->Value == val)
+				if (it->value == val)
 				{
 					return it;
 				}
@@ -189,12 +189,12 @@ namespace BitSerializer::Convert::Detail
 			const auto nameSize = name.size();
 			for (auto it = mBeginIt; it != mEndIt; ++it)
 			{
-				if (it->Name.size() == nameSize)
+				if (it->name.size() == nameSize)
 				{
 					bool isMatched = true;
 					for (size_t i = 0; i < nameSize; ++i)
 					{
-						if (std::tolower(static_cast<int>(it->Name[i])) != std::tolower(name[i]))
+						if (std::tolower(static_cast<int>(it->name[i])) != std::tolower(name[i]))
 						{
 							isMatched = false;
 							break;
@@ -249,7 +249,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		if (auto metadata = EnumRegistry<T>::GetEnumMetadata(in))
 		{
-			out = metadata->Value;
+			out = metadata->value;
 			return;
 		}
 		throw std::invalid_argument("Enum with passed name is not registered");
@@ -267,7 +267,7 @@ namespace BitSerializer::Convert::Detail
 	{
 		if (auto metadata = EnumRegistry<T>::GetEnumMetadata(val))
 		{
-			ret_Str.append(metadata->Name.cbegin(), metadata->Name.cend());
+			ret_Str.append(metadata->name.cbegin(), metadata->name.cend());
 			return;
 		}
 		throw std::invalid_argument("Enum with passed value is not registered");

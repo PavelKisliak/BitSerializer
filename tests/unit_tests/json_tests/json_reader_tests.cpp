@@ -37,8 +37,8 @@ TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenEmptyJson)
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(value);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 }
 
 TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenValueInUpperCase)
@@ -50,8 +50,8 @@ TYPED_TEST(JsonReaderTest, ReadNullShouldThrowExceptionWhenValueInUpperCase)
 		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 			this->mJsonReader->ReadValue(value);
 		});
-		EXPECT_EQ(1, ex.Line);
-		EXPECT_EQ(0, ex.Offset);
+		EXPECT_EQ(1, ex.line);
+		EXPECT_EQ(0, ex.offset);
 		EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
 	}
 }
@@ -102,8 +102,8 @@ TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenEmptyJson)
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(value);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 }
 
 TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenValueInUpperCase)
@@ -115,8 +115,8 @@ TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenValueInUpperCase)
 		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 			this->mJsonReader->ReadValue(value);
 		});
-		EXPECT_EQ(1, ex.Line);
-		EXPECT_EQ(0, ex.Offset);
+		EXPECT_EQ(1, ex.line);
+		EXPECT_EQ(0, ex.offset);
 		EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
 	}
 }
@@ -487,8 +487,8 @@ TYPED_TEST(JsonReaderTest, ReadUInt64ShouldThrowExceptionWhenEmptyJson)
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(uInt64);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 }
 
 //-----------------------------------------------------------------------------
@@ -533,8 +533,8 @@ TYPED_TEST(JsonReaderTest, ReadFloatShouldThrowExceptionWhenEmptyJson)
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(value);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 }
 
 //-----------------------------------------------------------------------------
@@ -578,8 +578,8 @@ TYPED_TEST(JsonReaderTest, ReadDoubleShouldThrowExceptionWhenEmptyJson)
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(value);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 }
 
 //-----------------------------------------------------------------------------
@@ -666,8 +666,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenUnexpectedEndInEsca
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected end of input in string escape sequence", ex.what());
 }
 
@@ -678,8 +678,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenInvalidEscapeSequen
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Invalid escape sequence", ex.what());
 }
 
@@ -690,8 +690,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenInvalidUnicodePrefi
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Invalid escape sequence", ex.what());
 }
 
@@ -702,8 +702,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenIncompleteUnicodeSe
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(6, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(6, ex.offset);
 	EXPECT_STREQ("Parsing error: Invalid hex digit in \\u escape", ex.what());
 }
 
@@ -714,8 +714,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenUnexpectedEndInUnic
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected end of input in string escape sequence", ex.what());
 }
 
@@ -726,8 +726,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenInvalidInvalidHexDi
 	BitSerializer::ParsingException ex2 = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex2.Line);
-	EXPECT_EQ(6, ex2.Offset);
+	EXPECT_EQ(1, ex2.line);
+	EXPECT_EQ(6, ex2.offset);
 	EXPECT_STREQ("Parsing error: Invalid hex digit in \\u escape", ex2.what());
 }
 
@@ -901,8 +901,8 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenEmptyJson)
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
 }
 
@@ -1070,8 +1070,8 @@ TYPED_TEST(JsonReaderTest, OpenArrayShouldThrowExceptionWhenEmptyJson)
 {
 	this->PrepareReader("");
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::OpenArray, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
 }
 
@@ -1108,8 +1108,8 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCloseBracket
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(1, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket ']' at end of source JSON", ex.what());
 }
 
@@ -1119,8 +1119,8 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenRedundantCommaBefor
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(1, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
 }
 
@@ -1133,8 +1133,8 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCommaBetween
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
-	EXPECT_EQ(3, ex.Line);
-	EXPECT_EQ(9, ex.Offset);
+	EXPECT_EQ(3, ex.line);
+	EXPECT_EQ(9, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
 }
 
@@ -1144,8 +1144,8 @@ TYPED_TEST(JsonReaderTest, IsArrayEndShouldThrowExceptionWhenMissingCloseBracket
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::IsArrayEnd, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(1, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket ']' at end of array JSON", ex.what());
 }
 
@@ -1157,8 +1157,8 @@ TYPED_TEST(JsonReaderTest, ReadValueSeparatorShouldThrowExceptionWhenMissingComm
 	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueSeparator, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(6, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(6, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
 }
 
@@ -1337,8 +1337,8 @@ TYPED_TEST(JsonReaderTest, OpenObjectShouldThrowExceptionEmptyJson)
 	this->PrepareReader("");
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::OpenObject, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
 }
 
@@ -1367,8 +1367,8 @@ TYPED_TEST(JsonReaderTest, OpenObjectKeyShouldThrowExceptionWhenInvalidKey)
 	std::string_view key;
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadKey, this->mJsonReader, key);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected string for JSON object key", ex.what());
 }
 
@@ -1379,8 +1379,8 @@ TYPED_TEST(JsonReaderTest, OpenObjectKeyShouldThrowExceptionWhenMissingColon)
 	std::string_view key;
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadKey, this->mJsonReader, key);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(8, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(8, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a colon between key and value", ex.what());
 }
 
@@ -1391,8 +1391,8 @@ TYPED_TEST(JsonReaderTest, ReadObjectKeyShouldThrowExceptionWhenIsNotString)
 	std::string_view key;
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadKey, this->mJsonReader, key);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(2, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected string for JSON object key", ex.what());
 }
 
@@ -1417,8 +1417,8 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCloseBracke
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(1, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket '}' at end of source JSON", ex.what());
 }
 
@@ -1428,8 +1428,8 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenRedundantCommaBefo
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(1, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
 }
 
@@ -1442,8 +1442,8 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCommaBetwee
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
-	EXPECT_EQ(3, ex.Line);
-	EXPECT_EQ(17, ex.Offset);
+	EXPECT_EQ(3, ex.line);
+	EXPECT_EQ(17, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
 }
 
@@ -1455,8 +1455,8 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingColonBetwee
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
-	EXPECT_EQ(2, ex.Line);
-	EXPECT_EQ(10, ex.Offset);
+	EXPECT_EQ(2, ex.line);
+	EXPECT_EQ(10, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a colon between key and value", ex.what());
 }
 
@@ -1466,8 +1466,8 @@ TYPED_TEST(JsonReaderTest, IsObjectEndShouldThrowExceptionWhenMissingCloseBracke
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::IsObjectEnd, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(1, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket '}' at end of source JSON", ex.what());
 }
 
@@ -1614,8 +1614,8 @@ TYPED_TEST(JsonReaderTest, ReadTypeShouldThrowExceptionWhenInvalidSequence)
 	this->PrepareReader("//");
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
 }
 
@@ -1624,8 +1624,8 @@ TYPED_TEST(JsonReaderTest, ReadTypeShouldThrowExceptionWhenEmptyJson)
 	this->PrepareReader("");
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
 }
 
@@ -1634,8 +1634,8 @@ TYPED_TEST(JsonReaderTest, ReadTypeShouldThrowExceptionWhenUnexpectedEnd)
 	this->PrepareReader("-");	// Minus without specifying the actual number
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected end of input archive", ex.what());
 }
 
@@ -1657,8 +1657,8 @@ TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenEmptyJson)
 	this->PrepareReader("");
 
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(0, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
 }
 
@@ -1668,8 +1668,8 @@ TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenInvalidSequence)
 	{
 		this->PrepareReader(testJson);
 		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
-		EXPECT_EQ(1, ex.Line);
-		EXPECT_EQ(0, ex.Offset);
+		EXPECT_EQ(1, ex.line);
+		EXPECT_EQ(0, ex.offset);
 		EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
 	}
 }
@@ -1693,8 +1693,8 @@ TYPED_TEST(JsonReaderTest, SkipStringShouldThrowExceptionWhenNoCloseQuotes)
 	this->PrepareReader(R"("text)");
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(5, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(5, ex.offset);
 	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
 }
 
@@ -1807,8 +1807,8 @@ TYPED_TEST(JsonReaderTest, SkipArrayShouldThrowExceptionWhenMissingComma)
 	this->PrepareReader(testJson);
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(3, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(3, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or ']' in array", ex.what());
 }
 
@@ -1818,8 +1818,8 @@ TYPED_TEST(JsonReaderTest, SkipArrayShouldThrowExceptionWhenMissingClosingBracke
 	this->PrepareReader(testJson);
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(6, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(6, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or ']' in array", ex.what());
 }
 
@@ -1912,8 +1912,8 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingColon)
 	this->PrepareReader(testJson);
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(9, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(9, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ':' in object", ex.what());
 }
 
@@ -1926,8 +1926,8 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingComma)
 	this->PrepareReader(testJson);
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
-	EXPECT_EQ(3, ex.Line);
-	EXPECT_EQ(17, ex.Offset);
+	EXPECT_EQ(3, ex.line);
+	EXPECT_EQ(17, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or '}' in object", ex.what());
 }
 
@@ -1937,8 +1937,8 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingClosingBrack
 	this->PrepareReader(testJson);
 
 	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
-	EXPECT_EQ(1, ex.Line);
-	EXPECT_EQ(15, ex.Offset);
+	EXPECT_EQ(1, ex.line);
+	EXPECT_EQ(15, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or '}' in object", ex.what());
 }
 

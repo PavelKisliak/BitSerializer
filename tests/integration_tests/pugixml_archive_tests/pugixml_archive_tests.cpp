@@ -404,7 +404,7 @@ TEST(PugiXmlArchive, ThrowParsingExceptionWithCorrectPosition)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_TRUE(ex.Offset > 63 && ex.Offset < testJson.size());
+		EXPECT_TRUE(ex.offset > 63 && ex.offset < testJson.size());
 	}
 	catch (const std::exception&)
 	{

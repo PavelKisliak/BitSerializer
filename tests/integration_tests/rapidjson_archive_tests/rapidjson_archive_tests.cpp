@@ -545,7 +545,7 @@ TEST(RapidJsonArchive, ThrowParsingExceptionWithCorrectPosition)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_TRUE(ex.Offset > 24 && ex.Offset < std::strlen(testJson));
+		EXPECT_TRUE(ex.offset > 24 && ex.offset < std::strlen(testJson));
 	}
 	catch (const std::exception&)
 	{

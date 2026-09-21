@@ -408,6 +408,7 @@ Examples:
 | Methods (public/private) | CamelCase | `ReadValue()` |
 | Private members | `m` + CamelCase | `mPos` |
 | Public struct members | camelCase | `name`, `object`, `index` |
+| Constructor parameters | camelCase with `in` prefix to avoid shadowing | `inValue`, `inName` |
 | Local variables | camelCase | `hexVal` |
 | Template params | `T` + CamelCase | `TArchive` |
 | Type aliases | `snake_case_type` | `key_type` |
@@ -416,6 +417,23 @@ Examples:
 
 - **Braces**: Allman style (opening brace on separate line), always use braces
 - **Comments**: Doxygen-style (`/** @brief ... */`) in English
+
+### Static analysis (clang-tidy)
+
+CI runs clang-tidy on **changed files** only (`.clang-tidy`, warnings as errors). Reproduce locally before pushing:
+
+```powershell
+cmake -GNinja -B build-tidy -DCMAKE_BUILD_TYPE=Release `
+  -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+  -DVCPKG_TARGET_TRIPLET=x64-windows-release `
+  -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl `
+  -DSTATIC_ANALYSIS_CLANG_TIDY=ON -DBUILD_TESTS=ON -DBUILD_JSON_ARCHIVE=ON
+ninja -C build-tidy json_tests
+```
+
+Requires the MSVC environment (see Windows build above). Single file: `clang-tidy -p=build-tidy --config-file=.clang-tidy --extra-arg=/EHsc <file.cpp>`.
+
+**Deprecated members:** the *implicit* copy/move constructor reads members one by one, so a class with `[[deprecated]]` members fails clang-tidy as soon as it's copied (e.g. `return e;`) even if your code never reads them. Fix by declaring an explicit copy constructor that initializes deprecated members from their non-deprecated counterparts — *not* with `#pragma`/`NOLINT` (and a `#pragma` inside a member initializer list is ill-formed). See `ParsingException` in `serialization_detail/errors_handling.h`.
 
 ### Pull requests
 

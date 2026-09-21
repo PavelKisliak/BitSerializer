@@ -516,7 +516,7 @@ TEST(JsonArchive, ThrowExceptionWhenUnexpectedEnd)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_EQ(6U, ex.Offset);
+		EXPECT_EQ(6U, ex.offset);
 	}
 	catch (const std::exception&)
 	{
@@ -534,7 +534,7 @@ TEST(JsonArchive, ThrowExceptionWhenUnexpectedEndInObject)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_EQ(15U, ex.Offset);
+		EXPECT_EQ(15U, ex.offset);
 	}
 	catch (const std::exception&)
 	{
@@ -552,7 +552,7 @@ TEST(JsonArchive, ThrowExceptionWhenUnexpectedEndInArray)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_EQ(13U, ex.Offset);
+		EXPECT_EQ(13U, ex.offset);
 	}
 	catch (const std::exception&)
 	{
@@ -574,7 +574,7 @@ TEST(JsonArchive, ThrowParsingExceptionWithCorrectPosition)
 	}
 	catch (const BitSerializer::ParsingException& ex)
 	{
-		EXPECT_TRUE(ex.Offset > 24 && ex.Offset < std::strlen(testJson));
+		EXPECT_TRUE(ex.offset > 24 && ex.offset < std::strlen(testJson));
 	}
 	catch (const std::exception&)
 	{

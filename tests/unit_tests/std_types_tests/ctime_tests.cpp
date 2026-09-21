@@ -16,15 +16,15 @@ using namespace BitSerializer;
 struct TestCTime
 {
 	TestCTime() = default;
-	TestCTime(time_t time) : Time(time) { }
+	TestCTime(time_t inTime) : time(inTime) { }
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << KeyValue("Time", CTimeRef(Time));
+		archive << KeyValue("Time", CTimeRef(time));
 	}
 
-	time_t Time = 0;
+	time_t time = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -92,9 +92,8 @@ TEST(STD_Ctime, SerializeTimeTypeAsClassMember)
 	BitSerializer::LoadObject<ArchiveStub>(actual, testArchive);
 
 	// Assert
-	EXPECT_EQ(expected.Time, actual.Time);
+EXPECT_EQ(expected.time, actual.time);
 }
-
 TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkipFromObject)
 {
 	// Arrange
@@ -127,7 +126,7 @@ TEST(STD_CtimeAsBin, SkipInvalidIsoDateInObjectWhenPolicyIsSkip)
 	strIoData->emplace<std::wstring>(L"Invalid date");
 	binObjRef->emplace(std::wstring(L"Time"), std::move(strIoData));
 	TestCTime testEntity;
-	auto expected = testEntity.Time;
+	auto expected = testEntity.time;
 
 	// Act
 	SerializationOptions options;
@@ -135,7 +134,7 @@ TEST(STD_CtimeAsBin, SkipInvalidIsoDateInObjectWhenPolicyIsSkip)
 	BitSerializer::LoadObject<ArchiveStub>(testEntity, testArchive, options);
 
 	// Assert
-	EXPECT_EQ(expected, testEntity.Time);
+	EXPECT_EQ(expected, testEntity.time);
 }
 
 //-----------------------------------------------------------------------------
@@ -166,7 +165,7 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
 
 	// Assert
-	EXPECT_EQ(timestamp.Seconds, actual);
+	EXPECT_EQ(timestamp.seconds, actual);
 }
 
 TEST(STD_CtimeAsBin, SerializeTimeTypeAsClassMember)
@@ -180,7 +179,7 @@ TEST(STD_CtimeAsBin, SerializeTimeTypeAsClassMember)
 	BitSerializer::LoadObject<BinArchiveStub>(actual, outputArchive);
 
 	// Assert
-	EXPECT_EQ(expected.Time, actual.Time);
+	EXPECT_EQ(expected.time, actual.time);
 }
 
 TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
@@ -198,5 +197,5 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
 	BitSerializer::LoadObject<BinArchiveStub>(testEntity, binArchive);
 
 	// Assert
-	EXPECT_EQ(timestamp.Seconds, testEntity.Time);
+	EXPECT_EQ(timestamp.seconds, testEntity.time);
 }

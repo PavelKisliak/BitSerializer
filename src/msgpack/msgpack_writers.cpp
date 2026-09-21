@@ -189,9 +189,9 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStringWriter::WriteValue(const CBinTimestamp& timestamp)
 	{
-		if (static_cast<uint64_t>(timestamp.Seconds) >> 34u == 0u)
+		if (static_cast<uint64_t>(timestamp.seconds) >> 34u == 0u)
 		{
-			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34u) | static_cast<uint64_t>(timestamp.Seconds);
+			const uint64_t data64 = (static_cast<uint64_t>(timestamp.nanoseconds) << 34u) | static_cast<uint64_t>(timestamp.seconds);
 			if ((data64 & 0xFFFFFFFF00000000ul) == 0u)
 			{
 				// timestamp 32
@@ -210,8 +210,8 @@ namespace BitSerializer::MsgPack::Detail
 			mOutputString.push_back('\xC7');
 			mOutputString.push_back(12);
 			// timestamp 96
-			PushValue(mOutputString, -1, timestamp.Seconds);
-			PushValue(mOutputString, timestamp.Nanoseconds);
+			PushValue(mOutputString, -1, timestamp.seconds);
+			PushValue(mOutputString, timestamp.nanoseconds);
 		}
 	}
 
@@ -402,9 +402,9 @@ namespace BitSerializer::MsgPack::Detail
 
 	void CMsgPackStreamWriter::WriteValue(const CBinTimestamp& timestamp)
 	{
-		if (static_cast<uint64_t>(timestamp.Seconds) >> 34u == 0u)
+		if (static_cast<uint64_t>(timestamp.seconds) >> 34u == 0u)
 		{
-			const uint64_t data64 = (static_cast<uint64_t>(timestamp.Nanoseconds) << 34u) | static_cast<uint64_t>(timestamp.Seconds);
+			const uint64_t data64 = (static_cast<uint64_t>(timestamp.nanoseconds) << 34u) | static_cast<uint64_t>(timestamp.seconds);
 			if ((data64 & 0xFFFFFFFF00000000ul) == 0)
 			{
 				// timestamp 32
@@ -423,8 +423,8 @@ namespace BitSerializer::MsgPack::Detail
 			mOutputStream.put('\xC7');
 			mOutputStream.put(12);
 			// timestamp 96
-			PushValue(mOutputStream, -1, timestamp.Seconds);
-			PushValue(mOutputStream, timestamp.Nanoseconds);
+			PushValue(mOutputStream, -1, timestamp.seconds);
+			PushValue(mOutputStream, timestamp.nanoseconds);
 		}
 	}
 

@@ -46,12 +46,12 @@ namespace
 	// Object type that is deliberately NOT registered with BITSERIALIZER_REGISTER_TYPE.
 	struct UnregisteredObject
 	{
-		int Value = 0;
+		int value = 0;
 
 		template <typename TArchive>
 		void Serialize(TArchive& archive)
 		{
-			archive << BitSerializer::KeyValue("Value", Value);
+			archive << BitSerializer::KeyValue("Value", value);
 		}
 	};
 }

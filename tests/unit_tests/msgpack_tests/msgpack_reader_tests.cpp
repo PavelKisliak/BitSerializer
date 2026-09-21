@@ -848,12 +848,12 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp32)
 	BitSerializer::Detail::CBinTimestamp timestamp;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
-	EXPECT_EQ(0x10203040, timestamp.Seconds);
-	EXPECT_EQ(0, timestamp.Nanoseconds);
+	EXPECT_EQ(0x10203040, timestamp.seconds);
+	EXPECT_EQ(0, timestamp.nanoseconds);
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
-	EXPECT_EQ(0x8090A0B0, timestamp.Seconds);
-	EXPECT_EQ(0, timestamp.Nanoseconds);
+	EXPECT_EQ(0x8090A0B0, timestamp.seconds);
+	EXPECT_EQ(0, timestamp.nanoseconds);
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp64)
@@ -865,12 +865,12 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp64)
 	BitSerializer::Detail::CBinTimestamp timestamp;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
-	EXPECT_EQ(0x10203040, timestamp.Seconds);
-	EXPECT_EQ(0x01020304, timestamp.Nanoseconds);
+	EXPECT_EQ(0x10203040, timestamp.seconds);
+	EXPECT_EQ(0x01020304, timestamp.nanoseconds);
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
-	EXPECT_EQ(0x20304050, timestamp.Seconds);
-	EXPECT_EQ(0x01424348, timestamp.Nanoseconds);
+	EXPECT_EQ(0x20304050, timestamp.seconds);
+	EXPECT_EQ(0x01424348, timestamp.nanoseconds);
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp96)
@@ -882,12 +882,12 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp96)
 	BitSerializer::Detail::CBinTimestamp timestamp;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
-	EXPECT_EQ(0x0102030405060708, timestamp.Seconds);
-	EXPECT_EQ(0x090A0B0C, timestamp.Nanoseconds);
+	EXPECT_EQ(0x0102030405060708, timestamp.seconds);
+	EXPECT_EQ(0x090A0B0C, timestamp.nanoseconds);
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
-	EXPECT_EQ(0x1112131415161718, timestamp.Seconds);
-	EXPECT_EQ(0x191A1B1C, timestamp.Nanoseconds);
+	EXPECT_EQ(0x1112131415161718, timestamp.seconds);
+	EXPECT_EQ(0x191A1B1C, timestamp.nanoseconds);
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp32)

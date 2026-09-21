@@ -22,12 +22,12 @@ namespace BitSerializer::Detail
 		/**
 		 * @brief Constructs a timestamp from seconds and optional nanoseconds.
 		 *
-		 * @param seconds     Number of seconds since epoch.
-		 * @param nanoseconds Nanoseconds fraction (must be between 0 and 999,999,999).
+		 * @param[in] inSeconds     Number of seconds since epoch.
+		 * @param[in] inNanoseconds Nanoseconds fraction (must be between 0 and 999,999,999).
 		 */
-		explicit CBinTimestamp(int64_t seconds, int32_t nanoseconds = 0)
-			: Seconds(seconds)
-			, Nanoseconds(nanoseconds)
+		explicit CBinTimestamp(int64_t inSeconds, int32_t inNanoseconds = 0)
+			: seconds(inSeconds)
+			, nanoseconds(inNanoseconds)
 		{
 		}
 
@@ -36,7 +36,7 @@ namespace BitSerializer::Detail
 		 */
 		bool operator==(const CBinTimestamp& rhs) const
 		{
-			return Seconds == rhs.Seconds && Nanoseconds == rhs.Nanoseconds;
+			return seconds == rhs.seconds && nanoseconds == rhs.nanoseconds;
 		}
 
 		/**
@@ -44,11 +44,11 @@ namespace BitSerializer::Detail
 		 */
 		[[nodiscard]] std::string ToString() const
 		{
-			return std::to_string(Seconds) + " " + std::to_string(Nanoseconds);
+			return std::to_string(seconds) + " " + std::to_string(nanoseconds);
 		}
 
-		int64_t Seconds{};		///< Total seconds since epoch.
-		int32_t Nanoseconds{};	///< Nanoseconds fraction (must not exceed 999,999,999).
+		int64_t seconds{};		///< Total seconds since epoch.
+		int32_t nanoseconds{};	///< nanoseconds fraction (must not exceed 999,999,999).
 	};
 
 	//-----------------------------------------------------------------------------
@@ -67,15 +67,15 @@ namespace BitSerializer::Detail
 		if constexpr (std::ratio_greater_equal_v<typename TDuration::period, std::chrono::seconds::period>)
 		{
 			// Duration precision is equal or coarser than seconds
-			outTimestamp.Seconds = Convert::Detail::SafeDurationCast<std::chrono::seconds>(epochTime).count();
-			outTimestamp.Nanoseconds = 0;
+			outTimestamp.seconds = Convert::Detail::SafeDurationCast<std::chrono::seconds>(epochTime).count();
+			outTimestamp.nanoseconds = 0;
 		}
 		else
 		{
 			// Duration has finer precision than seconds
-			outTimestamp.Seconds = std::chrono::duration_cast<std::chrono::seconds>(epochTime).count();
-			const auto leftTime = epochTime - std::chrono::duration_cast<TDuration>(std::chrono::seconds(outTimestamp.Seconds));
-			outTimestamp.Nanoseconds = static_cast<int32_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(leftTime).count());
+			outTimestamp.seconds = std::chrono::duration_cast<std::chrono::seconds>(epochTime).count();
+			const auto leftTime = epochTime - std::chrono::duration_cast<TDuration>(std::chrono::seconds(outTimestamp.seconds));
+			outTimestamp.nanoseconds = static_cast<int32_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(leftTime).count());
 		}
 	}
 
@@ -90,8 +90,8 @@ namespace BitSerializer::Detail
 	void To(const CBinTimestamp& timestamp, std::chrono::time_point<TClock, TDuration>& outTimePoint)
 	{
 		outTimePoint = std::chrono::time_point<TClock, TDuration>(
-			Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.Seconds)));
-		if (timestamp.Nanoseconds)
+			Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.seconds)));
+		if (timestamp.nanoseconds)
 		{
 			// When duration period is greater than seconds (allowed rounding only seconds fractions)
 			if constexpr (std::ratio_greater_v<typename TDuration::period, std::chrono::seconds::period>)
@@ -101,7 +101,7 @@ namespace BitSerializer::Detail
 			else
 			{
 				// Only seconds fractions can be rounded to target type
-				auto leftTime = std::chrono::round<TDuration>(std::chrono::nanoseconds(timestamp.Nanoseconds));
+				auto leftTime = std::chrono::round<TDuration>(std::chrono::nanoseconds(timestamp.nanoseconds));
 				Convert::Detail::SafeAddDuration(outTimePoint, leftTime);
 			}
 		}
@@ -122,14 +122,14 @@ namespace BitSerializer::Detail
 		// When duration period is equal or greater than seconds
 		if constexpr (std::ratio_greater_equal_v<TPeriod, std::chrono::seconds::period>)
 		{
-			outTimestamp.Seconds = Convert::Detail::SafeDurationCast<std::chrono::seconds>(duration).count();
-			outTimestamp.Nanoseconds = 0;
+			outTimestamp.seconds = Convert::Detail::SafeDurationCast<std::chrono::seconds>(duration).count();
+			outTimestamp.nanoseconds = 0;
 		}
 		else
 		{
-			outTimestamp.Seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-			const auto leftTime = duration - std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(std::chrono::seconds(outTimestamp.Seconds));
-			outTimestamp.Nanoseconds = static_cast<int32_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(leftTime).count());
+			outTimestamp.seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+			const auto leftTime = duration - std::chrono::duration_cast<std::chrono::duration<TRep, TPeriod>>(std::chrono::seconds(outTimestamp.seconds));
+			outTimestamp.nanoseconds = static_cast<int32_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(leftTime).count());
 		}
 	}
 
@@ -145,8 +145,8 @@ namespace BitSerializer::Detail
 	{
 		using TDuration = std::chrono::duration<TRep, TPeriod>;
 
-		outDuration = Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.Seconds));
-		if (timestamp.Nanoseconds)
+		outDuration = Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.seconds));
+		if (timestamp.nanoseconds)
 		{
 			// When duration period is greater than seconds (allowed rounding only seconds fractions)
 			if constexpr (std::ratio_greater_v<TPeriod, std::chrono::seconds::period>)
@@ -156,7 +156,7 @@ namespace BitSerializer::Detail
 			else
 			{
 				// Only seconds fractions can be rounded to target type
-				Convert::Detail::SafeAddDuration(outDuration, std::chrono::round<TDuration>(std::chrono::nanoseconds(timestamp.Nanoseconds)));
+				Convert::Detail::SafeAddDuration(outDuration, std::chrono::round<TDuration>(std::chrono::nanoseconds(timestamp.nanoseconds)));
 			}
 		}
 	}

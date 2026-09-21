@@ -342,7 +342,7 @@ namespace BitSerializer
 		{
 			if (auto metadata = Convert::Detail::EnumRegistry<TValue>::GetEnumMetadata(value))
 			{
-				std::string_view valueName(metadata->Name);
+				std::string_view valueName(metadata->name);
 				return Detail::SerializeString(archive, std::forward<TKey>(key), valueName);
 			}
 			if (Convert::Detail::EnumRegistry<TValue>::IsRegistered())
@@ -370,7 +370,7 @@ namespace BitSerializer
 		{
 			if (auto metadata = Convert::Detail::EnumRegistry<TValue>::GetEnumMetadata(value))
 			{
-				std::string_view valueName(metadata->Name);
+				std::string_view valueName(metadata->name);
 				return Detail::SerializeString(archive, valueName);
 			}
 			if (Convert::Detail::EnumRegistry<TValue>::IsRegistered())
@@ -629,12 +629,12 @@ namespace BitSerializer
 			// Internal Serialize() method has higher priority than global one
 			if constexpr (hasSerializeMethod)
 			{
-				value.Object.Serialize(archive);
+				value.object.Serialize(archive);
 				return true;
 			}
 			else if constexpr (hasGlobalSerializeObject)
 			{
-				SerializeObject(archive, value.Object);
+				SerializeObject(archive, value.object);
 				return true;
 			}
 		}

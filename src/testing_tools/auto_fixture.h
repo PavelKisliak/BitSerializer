@@ -266,7 +266,7 @@ namespace AutoFixture
 	void BuildFixture(Fixture& fixture, T& value)
 	{
 		const auto randIndex = fixture.Rand() % BitSerializer::Convert::Detail::EnumRegistry<T>::size();
-		value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->Value;
+		value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->value;
 	}
 
 	/**

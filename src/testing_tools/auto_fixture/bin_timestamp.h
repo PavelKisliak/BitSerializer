@@ -37,7 +37,7 @@ namespace AutoFixture
 	 */
 	inline void BuildFixture(Fixture& fixture, BitSerializer::Detail::CBinTimestamp& timestamp)
 	{
-		BuildFixture(fixture, timestamp.Seconds);
-		BuildFixture(fixture, timestamp.Nanoseconds);
+		BuildFixture(fixture, timestamp.seconds);
+		BuildFixture(fixture, timestamp.nanoseconds);
 	}
 } // namespace AutoFixture

@@ -3,9 +3,34 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "benchmark_base.h"
+#include <cstdio>
 #include <cmath>
 
+#if defined(_WIN32)
+	#include <io.h>
+#else
+	#include <unistd.h>
+#endif
+
 #include "testing_tools/auto_fixture/std/array.h"
+
+
+namespace
+{
+	/**
+	 * @brief Determines whether the standard output is attached to a console.
+	 *
+	 * Used to hide the live progress updates when the output is redirected to a file or pipe.
+	 */
+	bool IsConsoleOutput() noexcept
+	{
+#if defined(_WIN32)
+		return _isatty(_fileno(stdout)) != 0;
+#else
+		return ::isatty(STDOUT_FILENO) != 0;
+#endif
+	}
+}
 
 
 CBenchmarkBase::CBenchmarkBase()
@@ -25,6 +50,7 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 {
 	constexpr auto NanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
 
+	const bool isConsoleOutput = IsConsoleOutput();
 	int progressPercent = -1;
 	CLibraryTestResults libTestResults;
 	libTestResults.LibraryName = GetLibraryName();
@@ -41,9 +67,9 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 		CLibraryTestResults::CTestMetrics testMetrics;
 		for (auto time = beginTime; time < endTime; time = Timer::now())
 		{
-			// Print progress
+			// Print progress (only when the output is a console)
 			const auto newPercent = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(time - beginTime).count() * 100 / testTimeMSec);
-			if (progressPercent != newPercent)
+			if (isConsoleOutput && progressPercent != newPercent)
 			{
 				progressPercent = newPercent;
 				std::cout << "\r" << GetLibraryName() << " | " << GetCurrentStageName() << ": " << progressPercent << "%";
@@ -74,7 +100,10 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 				}
 			}
 		}
-		std::cout << "\r";
+		if (isConsoleOutput)
+		{
+			std::cout << "\r";
+		}
 
 		// Calculate serialization speed (fields/ms)
 		testMetrics.SerializationSpeed = std::llround(

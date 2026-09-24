@@ -710,12 +710,12 @@ void TestVisitKeysInObjectScope(bool skipValues = false)
 
 	// Act / Assert
 	auto arrScope = inputArchive.OpenArrayScope(std::size(testObj));
-	ASSERT_TRUE(arrScope.has_value());
-	auto objScope = arrScope->OpenObjectScope(0);
-	ASSERT_TRUE(objScope.has_value());
+	ASSERT_TRUE(arrScope.IsOpened());
+	auto objScope = arrScope.OpenObjectScope(0);
+	ASSERT_TRUE(objScope.IsOpened());
 
 	size_t index = 0;
-	objScope->VisitKeys([&objScope, &expectedValues, &index, &skipValues](auto&& key)
+	objScope.VisitKeys([&objScope, &expectedValues, &index, &skipValues](auto&& key)
 	{
 		using T = std::decay_t<decltype(key)>;
 		ASSERT_TRUE(index < expectedValues.size());
@@ -727,7 +727,7 @@ void TestVisitKeysInObjectScope(bool skipValues = false)
 			if (!skipValues)
 			{
 				decltype(testObj->x) actualValue{};
-				objScope->SerializeValue(key, actualValue);
+				objScope.SerializeValue(key, actualValue);
 				EXPECT_EQ(it->second, actualValue);
 			}
 		}

@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include <variant>
-#include <optional>
 #include <type_traits>
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -230,15 +229,20 @@ namespace BitSerializer
 		 * @brief Scope for handling arrays (sequences of values without keys).
 		 */
 		template <SerializeMode TMode>
-		class ArchiveStubArrayScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
+		class ArchiveStubArrayScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 		{
 		public:
 			ArchiveStubArrayScope(TestIoDataPtr node, SerializationContext& context, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
-				: TArchiveScope<TMode>(context)
+				: ArchiveScope<TMode>(context)
 				, ArchiveStubScopeBase(std::move(node), parent, parentKey)
 			{
 				assert(std::holds_alternative<TestIoDataArrayPtr>(*mNode));
 			}
+
+			ArchiveStubArrayScope(ScopeUnopened, SerializationContext& context)
+				: ArchiveScope<TMode>(context, ScopeUnopened{})
+				, ArchiveStubScopeBase(nullptr)
+			{ }
 
 			/**
 			 * @brief Returns the estimated number of items to load (for reserving containers).
@@ -308,45 +312,45 @@ namespace BitSerializer
 			/**
 			 * @brief Opens a nested object scope.
 			 */
-			std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
+			ArchiveStubObjectScope<TMode> OpenObjectScope(size_t)
 			{
 				if (TestIoDataPtr ioData = LoadNextItem())
 				{
 					if constexpr (TMode == SerializeMode::Load)
 					{
-						return std::holds_alternative<TestIoDataObjectPtr>(*ioData)
-							? std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this)
-							: std::nullopt;
+						if (std::holds_alternative<TestIoDataObjectPtr>(*ioData)) {
+							return ArchiveStubObjectScope<TMode>(ioData, ArchiveScope<TMode>::GetContext(), this);
+						}
 					}
 					else
 					{
 						ioData->emplace<TestIoDataObjectPtr>(std::make_shared<TestIoDataObject>());
-						return std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this);
+						return ArchiveStubObjectScope<TMode>(ioData, ArchiveScope<TMode>::GetContext(), this);
 					}
 				}
-				return std::nullopt;
+				return ArchiveStubObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			}
 
 			/**
 			 * @brief Opens a nested array scope.
 			 */
-			std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+			ArchiveStubArrayScope<TMode> OpenArrayScope(size_t arraySize)
 			{
 				if (TestIoDataPtr ioData = LoadNextItem())
 				{
 					if constexpr (TMode == SerializeMode::Load)
 					{
-						return std::holds_alternative<TestIoDataArrayPtr>(*ioData)
-							? std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this)
-							: std::nullopt;
+						if (std::holds_alternative<TestIoDataArrayPtr>(*ioData)) {
+							return ArchiveStubArrayScope<TMode>(ioData, ArchiveScope<TMode>::GetContext(), this);
+						}
 					}
 					else
 					{
 						ioData->emplace<TestIoDataArrayPtr>(std::make_shared<TestIoDataArray>(arraySize));
-						return std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this);
+						return ArchiveStubArrayScope<TMode>(ioData, ArchiveScope<TMode>::GetContext(), this);
 					}
 				}
-				return std::nullopt;
+				return ArchiveStubArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			}
 
 		protected:
@@ -378,15 +382,20 @@ namespace BitSerializer
 		 * @brief Scope for handling objects (key-value pairs).
 		 */
 		template <SerializeMode TMode>
-		class ArchiveStubObjectScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
+		class ArchiveStubObjectScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 		{
 		public:
 			ArchiveStubObjectScope(TestIoDataPtr node, SerializationContext& context, ArchiveStubScopeBase* parent = nullptr, const key_type& parentKey = key_type())
-				: TArchiveScope<TMode>(context)
+				: ArchiveScope<TMode>(context)
 				, ArchiveStubScopeBase(std::move(node), parent, parentKey)
 			{
 				assert(std::holds_alternative<TestIoDataObjectPtr>(*mNode));
 			}
+
+			ArchiveStubObjectScope(ScopeUnopened, SerializationContext& context)
+				: ArchiveScope<TMode>(context, ScopeUnopened{})
+				, ArchiveStubScopeBase(nullptr)
+			{ }
 
 			/**
 			 * @brief Returns the estimated number of items to load (for reserving containers).
@@ -446,42 +455,42 @@ namespace BitSerializer
 			/**
 			 * @brief Opens a nested object scope for the specified key.
 			 */
-			std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(const key_type& key, size_t)
+			ArchiveStubObjectScope<TMode> OpenObjectScope(const key_type& key, size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					auto archiveValue = LoadArchiveValueByKey(key);
 					if (archiveValue != nullptr && std::holds_alternative<TestIoDataObjectPtr>(*archiveValue)) {
-						return std::make_optional<ArchiveStubObjectScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
+						return ArchiveStubObjectScope<TMode>(archiveValue, ArchiveScope<TMode>::GetContext(), this, key);
 					}
-					return std::nullopt;
+					return ArchiveStubObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					TestIoDataPtr ioData = AddArchiveValue(key);
 					ioData->template emplace<TestIoDataObjectPtr>(std::make_shared<TestIoDataObject>());
-					return std::make_optional<ArchiveStubObjectScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this, key);
+					return ArchiveStubObjectScope<TMode>(ioData, ArchiveScope<TMode>::GetContext(), this, key);
 				}
 			}
 
 			/**
 			 * @brief Opens a nested array scope for the specified key.
 			 */
-			std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(const key_type& key, size_t arraySize)
+			ArchiveStubArrayScope<TMode> OpenArrayScope(const key_type& key, size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					auto archiveValue = LoadArchiveValueByKey(key);
 					if (archiveValue != nullptr && std::holds_alternative<TestIoDataArrayPtr>(*archiveValue)) {
-						return std::make_optional<ArchiveStubArrayScope<TMode>>(archiveValue, TArchiveScope<TMode>::GetContext(), this, key);
+						return ArchiveStubArrayScope<TMode>(archiveValue, ArchiveScope<TMode>::GetContext(), this, key);
 					}
-					return std::nullopt;
+					return ArchiveStubArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					TestIoDataPtr ioData = AddArchiveValue(key);
 					ioData->emplace<TestIoDataArrayPtr>(std::make_shared<TestIoDataArray>(arraySize));
-					return std::make_optional<ArchiveStubArrayScope<TMode>>(ioData, TArchiveScope<TMode>::GetContext(), this, key);
+					return ArchiveStubArrayScope<TMode>(ioData, ArchiveScope<TMode>::GetContext(), this, key);
 				}
 			}
 
@@ -520,11 +529,11 @@ namespace BitSerializer
 		 * @brief The root scope for serializing one value, array, or object without a key.
 		 */
 		template <SerializeMode TMode>
-		class ArchiveStubRootScope final : public TArchiveScope<TMode>, public ArchiveStubScopeBase
+		class ArchiveStubRootScope final : public ArchiveScope<TMode>, public ArchiveStubScopeBase
 		{
 		public:
 			ArchiveStubRootScope(const TestIoDataRoot& inputData, SerializationContext& context)
-				: TArchiveScope<TMode>(context)
+				: ArchiveScope<TMode>(context)
 				, ArchiveStubScopeBase(inputData.Data)
 				, mOutputData(nullptr)
 				, mInputData(&inputData)
@@ -533,7 +542,7 @@ namespace BitSerializer
 			}
 
 			ArchiveStubRootScope(TestIoDataRoot& outputData, SerializationContext& context)
-				: TArchiveScope<TMode>(context)
+				: ArchiveScope<TMode>(context)
 				, ArchiveStubScopeBase(outputData.Data)
 				, mOutputData(&outputData)
 				, mInputData(nullptr)
@@ -569,32 +578,34 @@ namespace BitSerializer
 				}
 			}
 
-			std::optional<ArchiveStubObjectScope<TMode>> OpenObjectScope(size_t)
+			ArchiveStubObjectScope<TMode> OpenObjectScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
-					return std::holds_alternative<TestIoDataObjectPtr>(*mInputData->Data)
-						? std::make_optional<ArchiveStubObjectScope<TMode>>(mInputData->Data, TArchiveScope<TMode>::GetContext())
-						: std::nullopt;
+					if (std::holds_alternative<TestIoDataObjectPtr>(*mInputData->Data)) {
+						return ArchiveStubObjectScope<TMode>(mInputData->Data, ArchiveScope<TMode>::GetContext());
+					}
 				}
 				else
 				{
 					mOutputData->Data->emplace<TestIoDataObjectPtr>(std::make_shared<TestIoDataObject>());
-					return std::make_optional<ArchiveStubObjectScope<TMode>>(mOutputData->Data, TArchiveScope<TMode>::GetContext());
+					return ArchiveStubObjectScope<TMode>(mOutputData->Data, ArchiveScope<TMode>::GetContext());
 				}
+				return ArchiveStubObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			}
 
-			std::optional<ArchiveStubArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+			ArchiveStubArrayScope<TMode> OpenArrayScope(size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
-					return std::holds_alternative<TestIoDataArrayPtr>(*mInputData->Data)
-						? std::make_optional<ArchiveStubArrayScope<TMode>>(mInputData->Data, TArchiveScope<TMode>::GetContext())
-						: std::nullopt;
+					if (std::holds_alternative<TestIoDataArrayPtr>(*mInputData->Data)) {
+						return ArchiveStubArrayScope<TMode>(mInputData->Data, ArchiveScope<TMode>::GetContext());
+					}
 				}
 				else
 				{
 					mOutputData->Data->emplace<TestIoDataArrayPtr>(std::make_shared<TestIoDataArray>(arraySize));
-					return std::make_optional<ArchiveStubArrayScope<TMode>>(mOutputData->Data, TArchiveScope<TMode>::GetContext());
+					return ArchiveStubArrayScope<TMode>(mOutputData->Data, ArchiveScope<TMode>::GetContext());
 				}
+				return ArchiveStubArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			}
 
 		private:
@@ -607,7 +618,7 @@ namespace BitSerializer
 	/**
 	 * @brief Declaration of the archive stub used in unit tests.
 	 */
-	using ArchiveStub = TArchiveBase<
+	using ArchiveStub = ArchiveBase<
 		Detail::ArchiveStubTraits,
 		Detail::ArchiveStubRootScope<SerializeMode::Load>,
 		Detail::ArchiveStubRootScope<SerializeMode::Save>>;

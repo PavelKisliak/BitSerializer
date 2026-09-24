@@ -12,14 +12,17 @@ using namespace BitSerializer;
 /**
  * @brief Test stub of archive that implements loading mode and serialization types WITHOUT keys.
  */
-class TestArchive_LoadMode : TArchiveScope<SerializeMode::Load>
+class TestArchive_LoadMode : ArchiveScope<SerializeMode::Load>
 {
 public:
 	TestArchive_LoadMode(const std::string&, SerializationContext& context) 
-		: TArchiveScope<SerializeMode::Load>(context)
+		: ArchiveScope<SerializeMode::Load>(context)
 	{ }
 	TestArchive_LoadMode(std::istream&, SerializationContext& context)
-		: TArchiveScope<SerializeMode::Load>(context)
+		: ArchiveScope<SerializeMode::Load>(context)
+	{ }
+	TestArchive_LoadMode(ScopeUnopened, SerializationContext& context)
+		: ArchiveScope<SerializeMode::Load>(context, ScopeUnopened{})
 	{ }
 
 	bool SerializeValue(bool&) { return true; }
@@ -29,10 +32,10 @@ public:
 	template <typename TSym, typename TAllocator>
 	void SerializeString(std::basic_string<TSym, std::char_traits<TSym>, TAllocator>&) {}
 
-	std::optional<TestArchive_LoadMode> OpenObjectScope(size_t) { return std::nullopt; }
-	std::optional<TestArchive_LoadMode> OpenArrayScope(size_t) { return std::nullopt; }
-	std::optional<TestArchive_LoadMode> OpenBinaryScope(size_t) { return std::nullopt; }
-	std::optional<TestArchive_LoadMode> OpenAttributeScope() { return std::nullopt; }
+	TestArchive_LoadMode OpenObjectScope(size_t) { return {ScopeUnopened{}, GetContext()}; }
+	TestArchive_LoadMode OpenArrayScope(size_t) { return {ScopeUnopened{}, GetContext()}; }
+	TestArchive_LoadMode OpenBinaryScope(size_t) { return {ScopeUnopened{}, GetContext()}; }
+	TestArchive_LoadMode OpenAttributeScope() { return {ScopeUnopened{}, GetContext()}; }
 
 	[[nodiscard]] size_t GetEstimatedSize() const { return 0; }
 };
@@ -40,7 +43,7 @@ public:
 /**
  * @brief Test stub of archive that implements save mode and serialization types WITH keys.
  */
-class TestArchive_SaveMode : TArchiveScope<SerializeMode::Save>
+class TestArchive_SaveMode : ArchiveScope<SerializeMode::Save>
 {
 public:
 	using key_type = std::string;
@@ -56,9 +59,9 @@ public:
 	};
 
 	TestArchive_SaveMode(std::string&, SerializationContext& context)
-		: TArchiveScope<SerializeMode::Save>(context) { }
+		: ArchiveScope<SerializeMode::Save>(context) { }
 	TestArchive_SaveMode(std::ostream&, SerializationContext& context)
-		: TArchiveScope<SerializeMode::Save>(context)
+		: ArchiveScope<SerializeMode::Save>(context)
 	{ }
 
 	bool SerializeValue(const key_type&, bool&) { return true; }
@@ -68,10 +71,10 @@ public:
 	template <typename TSym, typename TAllocator>
 	bool SerializeString(const key_type&, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>&) {return true;}
 
-	std::optional<TestArchive_LoadMode> OpenObjectScope(const key_type&, size_t) { return std::nullopt; }
-	std::optional<TestArchive_LoadMode> OpenArrayScope(const key_type&, size_t) { return std::nullopt; }
-	std::optional<TestArchive_LoadMode> OpenBinaryScope(const key_type&, size_t) { return std::nullopt; }
-	std::optional<TestArchive_LoadMode> OpenAttributeScope(const key_type&) { return std::nullopt; }
+	TestArchive_LoadMode OpenObjectScope(const key_type&, size_t) { return {ScopeUnopened{}, GetContext()}; }
+	TestArchive_LoadMode OpenArrayScope(const key_type&, size_t) { return {ScopeUnopened{}, GetContext()}; }
+	TestArchive_LoadMode OpenBinaryScope(const key_type&, size_t) { return {ScopeUnopened{}, GetContext()}; }
+	TestArchive_LoadMode OpenAttributeScope(const key_type&) { return {ScopeUnopened{}, GetContext()}; }
 };
 
 class TestWrongArchive

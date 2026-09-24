@@ -10,13 +10,13 @@
 namespace BitSerializer
 {
 	/**
-	 * @brief Determines if a given type derives from `TArchiveScope`.
+	 * @brief Determines if a given type derives from `ArchiveScope`.
 	 */
 	template <typename T>
 	struct is_archive_scope
 	{
-		constexpr static bool value = std::is_base_of_v<TArchiveScope<SerializeMode::Load>, T> ||
-			std::is_base_of_v<TArchiveScope<SerializeMode::Save>, T>;
+		constexpr static bool value = std::is_base_of_v<ArchiveScope<SerializeMode::Load>, T> ||
+			std::is_base_of_v<ArchiveScope<SerializeMode::Save>, T>;
 	};
 
 	template <typename T>
@@ -113,7 +113,7 @@ namespace BitSerializer
 	 * @brief Determines if class objects can be serialized using the specified archive.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenObjectScope(size_t)` required to start serializing an object.
+	 * `ArchiveScope OpenObjectScope(size_t)` required to start serializing an object.
 	 *
 	 * @tparam TArchive The archive type.
 	 */
@@ -139,7 +139,7 @@ namespace BitSerializer
 	 * @brief Determines if class objects can be serialized with a key using the specified archive.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenObjectScope(const TKey&, size_t)` required to start serializing an object with a key.
+	 * `ArchiveScope OpenObjectScope(const TKey&, size_t)` required to start serializing an object with a key.
 	 *
 	 * @tparam TArchive The archive type.
 	 * @tparam TKey     The key type.
@@ -169,7 +169,7 @@ namespace BitSerializer
 	 * @brief Determines if arrays can be serialized using the specified archive.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenArrayScope(size_t)` required to start serializing an array.
+	 * `ArchiveScope OpenArrayScope(size_t)` required to start serializing an array.
 	 *
 	 * @tparam TArchive The archive type.
 	 */
@@ -195,7 +195,7 @@ namespace BitSerializer
 	 * @brief Determines if arrays can be serialized with a key using the specified archive.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenArrayScope(const TKey&, size_t)` required to start serializing an array with a key.
+	 * `ArchiveScope OpenArrayScope(const TKey&, size_t)` required to start serializing an array with a key.
 	 *
 	 * @tparam TArchive The archive type.
 	 * @tparam TKey     The key type.
@@ -222,7 +222,7 @@ namespace BitSerializer
 	 * @brief Determines if binary arrays can be serialized using the specified archive.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenBinaryScope(size_t)` required to start serializing binary data.
+	 * `ArchiveScope OpenBinaryScope(size_t)` required to start serializing binary data.
 	 *
 	 * @tparam TArchive The archive type.
 	 */
@@ -248,7 +248,7 @@ namespace BitSerializer
 	 * @brief Determines if binary arrays can be serialized with a key using the specified archive.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenBinaryScope(const TKey&, size_t)` required to start serializing binary data with a key.
+	 * `ArchiveScope OpenBinaryScope(const TKey&, size_t)` required to start serializing binary data with a key.
 	 *
 	 * @tparam TArchive The archive type.
 	 * @tparam TKey     The key type.
@@ -275,7 +275,7 @@ namespace BitSerializer
 	 * @brief Determines if the archive supports attribute serialization.
 	 *
 	 * Detects whether the archive provides a method matching:
-	 * `TArchiveScope OpenAttributeScope()` required to start serializing attributes.
+	 * `ArchiveScope OpenAttributeScope()` required to start serializing attributes.
 	 *
 	 * @tparam TArchive The archive type.
 	 */

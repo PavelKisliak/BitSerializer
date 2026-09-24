@@ -283,6 +283,14 @@ In Release mode, each archive and stage runs for **30 seconds** to produce repea
 - Measures serialization speed (fields/ms) for save and load operations
 - Reports are saved as JSON files in `benchmark_results/` directory (requires RapidJSON archive to be enabled)
 
+### Error handling: exceptions vs `Expected`
+
+Exceptions are the primary error-handling mechanism by design. An experimental migration of the
+`Convert` submodule to `Expected`-based error handling showed a regression in real serialization
+benchmarks (CSV save −9%, load −5%): the overhead is paid on every successful call, whereas
+exceptions are zero-cost on the happy path and cost only on rare error paths. `Expected`/error codes
+are therefore not used in the hot serialization code.
+
 ---
 
 ## Project Structure
@@ -341,7 +349,7 @@ sequenceDiagram
     Note over Serialize: For classes with Serialize() method:<br/>1. CountMapObjectFields(archive, userObj)<br/>2. archive.OpenObjectScope(mapSize)
 
     Serialize->>Root: rootScope.OpenObjectScope(mapSize)
-    Root-->>Serialize: optional<ObjectScope>
+    Root-->>Serialize: ObjectScope (opened)
     Serialize->>UserObj: userObj.Serialize(objectScope)
 
     Note over Root: Root scope has the same contract<br/>as child scopes (SerializeValue,<br/>OpenArrayScope, OpenObjectScope...).<br/>Compile-time validation works for all scopes.
@@ -353,7 +361,7 @@ sequenceDiagram
     UserObj->>Dispatch: objectScope << KeyValue("Items", vec)<br/>(operator<< calls Dispatch)
     Dispatch->>Serialize: Serialize(objectScope, "Items", vec)
     Serialize->>ObjScope: objectScope.OpenArrayScope("Items", size)
-    ObjScope-->>Serialize: optional<ArrayScope>
+    ObjScope-->>Serialize: ArrayScope (opened)
 
     loop for each element
         Serialize->>ArrScope: arrScope.SerializeValue(elem)
@@ -366,10 +374,13 @@ sequenceDiagram
 
 ### Archive scope contract
 
-A **scope** is a short-lived RAII object responsible for serializing the current node (object, array, or binary blob) in the archive. It does not own child scopes — each nested node creates its own scope, and when all nested elements are serialized, the parent scope's destructor finalizes the node. Root, object, and array scopes each implement the same core interface. Scopes inherit from both the archive traits and `TArchiveScope<SerializeMode>`, which provides `GetMode()`, `IsSaving()`, `IsLoading()`, `GetContext()`, and `GetOptions()`.
+A **scope** is a short-lived RAII object responsible for serializing the current node (object, array, or binary blob) in the archive. It does not own child scopes — each nested node creates its own scope, and when all nested elements are serialized, the parent scope's destructor finalizes the node. Root, object, and array scopes each implement the same core interface. Scopes inherit from both the archive traits and `ArchiveScope<SerializeMode>`, which provides `GetMode()`, `IsSaving()`, `IsLoading()`, `GetContext()`, `GetOptions()`, and the opened/not-opened state (`IsOpened()`, `operator bool`).
+
+`Open*Scope()` returns the concrete scope **by value**. A scope is either *opened* or *not opened*: when the node cannot be opened (for example a type mismatch while loading), the returned scope is in the not-opened state, so `IsOpened()`/`operator bool` yield `false` and the scope performs no operation on destruction.
 
 | Method | Scope types | Mode | Description |
 |--------|------------|------|-------------|
+| `IsOpened()` / `operator bool` | All | Both | Whether the scope was successfully opened |
 | `GetPath()` | All | Both | Current path in archive (for error messages) |
 | `SerializeValue(T& value)` | Root, Array, Binary | Both | Serialize next value |
 | `SerializeValue(TKey&& key, T& value)` | Object | Both | Serialize value by key |
@@ -385,17 +396,17 @@ All scopes, including root, implement the same contract — the combination of m
 
 ### Archive type alias
 
-The top-level archive (e.g., `MsgPackArchive`) is a type alias that specializes `TArchiveBase` with the archive's traits and root scope classes:
+The top-level archive (e.g., `MsgPackArchive`) is a type alias that specializes `ArchiveBase` with the archive's traits and root scope classes:
 
 ```cpp
-using MsgPackArchive = TArchiveBase<
+using MsgPackArchive = ArchiveBase<
     Detail::MsgPackArchiveTraits,
     Detail::MsgPackReadRootScope,
     Detail::MsgPackWriteRootScope
 >;
 ```
 
-`TArchiveBase` inherits the traits struct and provides:
+`ArchiveBase` inherits the traits struct and provides:
 - Traits constants (`archive_type`, `key_type`, `is_binary`, `require_array_size`, etc.)
 - `input_archive_type` — root scope class for deserialization
 - `output_archive_type` — root scope class for serialization
@@ -417,7 +428,7 @@ When in doubt, follow the patterns you see in the surrounding code.
 
 | Element | Convention | Examples |
 |---------|-----------|----------|
-| Classes / Structs | CamelCase | `SerializationOptions`, `CValueMeta` |
+| Classes / Structs (incl. class templates) | CamelCase, no `T` prefix | `ArchiveScope`, `SerializationOptions`, `CValueMeta` |
 | Interfaces | `I` + CamelCase | `IJsonReader`, `ICsvReader` |
 | Public/protected methods | CamelCase | `ReadValue()`, `OpenArray()`, `GetPosition()` |
 | Private methods | CamelCase | `ParseNextLine()`, `UnescapeValue()` |
@@ -433,6 +444,8 @@ When in doubt, follow the patterns you see in the surrounding code.
 
 > [!NOTE]
 > Some existing classes use a `C` prefix (e.g., `CJsonStringReader`) — this is a legacy convention. New code should use plain CamelCase without the prefix.
+>
+> The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
 
 ### Braces and formatting
 

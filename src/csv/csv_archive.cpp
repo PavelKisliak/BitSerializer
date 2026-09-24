@@ -27,7 +27,7 @@ namespace
 namespace BitSerializer::Csv::Detail
 {
 	CsvWriteRootScope::CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
@@ -35,7 +35,7 @@ namespace BitSerializer::Csv::Detail
 	}
 
 	CsvWriteRootScope::CsvWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
@@ -48,7 +48,7 @@ namespace BitSerializer::Csv::Detail
 	}
 
 	CsvReadRootScope::CsvReadRootScope(std::string_view encodedInputStr, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		: ArchiveScope<SerializeMode::Load>(serializationContext)
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor
@@ -56,7 +56,7 @@ namespace BitSerializer::Csv::Detail
 	}
 
 	CsvReadRootScope::CsvReadRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		: ArchiveScope<SerializeMode::Load>(serializationContext)
 	{
 		ValidateSeparator(serializationContext.GetOptions().valuesSeparator);
 		// Use `make_unique` to free memory gracefully when an exception occurs in the constructor

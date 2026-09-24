@@ -5,7 +5,6 @@
 #pragma once
 #include <cassert>
 #include <iosfwd>
-#include <optional>
 #include <type_traits>
 #include <variant>
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -168,7 +167,7 @@ protected:
  * @brief JSON scope for serializing arrays (sequential values).
  */
 template <SerializeMode TMode, class TEncoding, class TAllocator>
-class RapidJsonArrayScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
+class RapidJsonArrayScope final : public ArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
@@ -178,13 +177,20 @@ public:
 	using raw_type = typename RapidJsonArchiveTraits<TEncoding>::raw_type;
 
 	RapidJsonArrayScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(node, parent, parentKey)
 		, mAllocator(allocator)
 		, mValueIt(this->mNode->GetArray().Begin())
 	{
 		assert(this->mNode->IsArray());
 	}
+
+	RapidJsonArrayScope(ScopeUnopened, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr)
+		: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
+		, RapidJsonScopeBase<TEncoding>(nullptr, parent)
+		, mAllocator(allocator)
+		, mValueIt()
+	{ }
 
 	/**
 	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
@@ -258,43 +264,43 @@ public:
 		return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks) - False positive: RapidJSON properly manages memory via RAII
 	}
 
-	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope(size_t)
+	RapidJsonObjectScope<TMode, TEncoding, TAllocator> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto& jsonValue = LoadNextItem();
 			if (jsonValue.IsObject()) {
-				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this->GetContext(), this);
+				return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(&jsonValue, mAllocator, this->GetContext(), this);
 			}
 			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 			if (!jsonValue.IsNull())
 			{
 				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
-			return std::nullopt;
+			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(ScopeUnopened{}, mAllocator, this->GetContext());
 		}
 		else
 		{
 			SaveJsonValue(RapidJsonNode(rapidjson::kObjectType));
 			auto& lastJsonValue = (*this->mNode)[this->mNode->Size() - 1];
-			return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&lastJsonValue, mAllocator, this->GetContext(), this);
+			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(&lastJsonValue, mAllocator, this->GetContext(), this);
 		}
 	}
 
-	std::optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>> OpenArrayScope(size_t arraySize)
+	RapidJsonArrayScope<TMode, TEncoding, TAllocator> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			auto& jsonValue = LoadNextItem();
 			if (jsonValue.IsArray()) {
-				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&jsonValue, mAllocator, this->GetContext(), this);
+				return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(&jsonValue, mAllocator, this->GetContext(), this);
 			}
 			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 			if (!jsonValue.IsNull())
 			{
 				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
-			return std::nullopt;
+			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(ScopeUnopened{}, mAllocator, this->GetContext());
 		}
 		else
 		{
@@ -304,7 +310,7 @@ public:
 			}
 			SaveJsonValue(std::move(rapidJsonArray));
 			auto& lastJsonValue = (*this->mNode)[this->mNode->Size() - 1];
-			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&lastJsonValue, mAllocator, this->GetContext(), this);
+			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(&lastJsonValue, mAllocator, this->GetContext(), this);
 		}
 	}
 
@@ -351,7 +357,7 @@ protected:
  * @brief JSON scope for serializing objects (key-value pairs).
  */
 template <SerializeMode TMode, class TEncoding, class TAllocator>
-class RapidJsonObjectScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
+class RapidJsonObjectScope final : public ArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 public:
 	using RapidJsonNode = rapidjson::GenericValue<TEncoding>;
@@ -362,16 +368,18 @@ public:
 	using key_raw_ptr = const typename TEncoding::Ch*;
 
 	RapidJsonObjectScope(RapidJsonNode* node, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr, key_type_view parentKey = {})
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(node, parent, parentKey)
 		, mAllocator(allocator)
 	{
 		assert(this->mNode->IsObject());
 	}
 
-	[[nodiscard]] static size_t GetEstimatedSize() {
-		return 0;
-	}
+	RapidJsonObjectScope(ScopeUnopened, TAllocator& allocator, SerializationContext& serializationContext, RapidJsonScopeBase<TEncoding>* parent = nullptr)
+		: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
+		, RapidJsonScopeBase<TEncoding>(nullptr, parent)
+		, mAllocator(allocator)
+	{ }
 
 	/**
 	 * @brief Enumerates all keys in the current object.
@@ -444,7 +452,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>> OpenObjectScope(TKey&& key, size_t)
+	RapidJsonObjectScope<TMode, TEncoding, TAllocator> OpenObjectScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -452,7 +460,7 @@ public:
 			{
 				if (jsonValue->IsObject())
 				{
-					return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
+					return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(jsonValue, mAllocator, this->GetContext(), this, key);
 				}
 				// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 				if (!jsonValue->IsNull())
@@ -460,18 +468,18 @@ public:
 					RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(ScopeUnopened{}, mAllocator, this->GetContext());
 		}
 		else
 		{
 			SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(rapidjson::kObjectType));
 			auto& insertedMember = FindMember(key)->value;
-			return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, TAllocator>>(&insertedMember, mAllocator, this->GetContext(), this, key);
+			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, key);
 		}
 	}
 
 	template <typename TKey>
-	std::optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>> OpenArrayScope(TKey&& key, size_t arraySize)
+	RapidJsonArrayScope<TMode, TEncoding, TAllocator> OpenArrayScope(TKey&& key, size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -479,7 +487,7 @@ public:
 			{
 				if (jsonValue->IsArray())
 				{
-					return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(jsonValue, mAllocator, this->GetContext(), this, key);
+					return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(jsonValue, mAllocator, this->GetContext(), this, key);
 				}
 				// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 				if (!jsonValue->IsNull())
@@ -487,7 +495,7 @@ public:
 					RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(ScopeUnopened{}, mAllocator, this->GetContext());
 		}
 		else
 		{
@@ -497,7 +505,7 @@ public:
 			}
 			SaveJsonValue(std::forward<TKey>(key), std::move(rapidJsonArray));
 			auto& insertedMember = FindMember(key)->value;
-			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, TAllocator>>(&insertedMember, mAllocator, this->GetContext(), this, key);
+			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, key);
 		}
 	}
 
@@ -552,7 +560,7 @@ private:
  * @brief JSON root scope for serializing data (can serialize one value, array or object without key).
  */
 template <SerializeMode TMode, class TEncoding = RapidJsonEncoding<char>>
-class RapidJsonRootScope final : public TArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
+class RapidJsonRootScope final : public ArchiveScope<TMode>, public RapidJsonScopeBase<TEncoding>
 {
 protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<TEncoding>;
@@ -564,7 +572,7 @@ public:
 	using string_view_type = typename RapidJsonArchiveTraits<TEncoding>::string_view_type;
 
 	RapidJsonRootScope(const std::string_view& encodedInputStr, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
 	{
@@ -575,7 +583,7 @@ public:
 	}
 
 	RapidJsonRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&encodedOutputStr)
 	{
@@ -583,7 +591,7 @@ public:
 	}
 
 	RapidJsonRootScope(std::istream& encodedInputStream, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(nullptr)
 	{
@@ -596,7 +604,7 @@ public:
 	}
 
 	RapidJsonRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, RapidJsonScopeBase<TEncoding>(&mRootJson)
 		, mOutput(&outputStream)
 	{
@@ -668,20 +676,20 @@ public:
 		return true;	// NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks) - False positive: RapidJSON properly manages memory via RAII
 	}
 
-	std::optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>> OpenArrayScope(size_t arraySize)
+	RapidJsonArrayScope<TMode, TEncoding, allocator_type> OpenArrayScope(size_t arraySize)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			if (mRootJson.IsArray())
 			{
-				return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
+				return RapidJsonArrayScope<TMode, TEncoding, allocator_type>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 			}
 			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 			if (!mRootJson.IsNull())
 			{
 				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
-			return std::nullopt;
+			return RapidJsonArrayScope<TMode, TEncoding, allocator_type>(ScopeUnopened{}, mRootJson.GetAllocator(), this->GetContext());
 		}
 		else
 		{
@@ -689,29 +697,29 @@ public:
 			if (arraySize) {
 				mRootJson.Reserve(static_cast<rapidjson::SizeType>(arraySize), mRootJson.GetAllocator());
 			}
-			return std::make_optional<RapidJsonArrayScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
+			return RapidJsonArrayScope<TMode, TEncoding, allocator_type>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 		}
 	}
 
-	std::optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>> OpenObjectScope(size_t)
+	RapidJsonObjectScope<TMode, TEncoding, allocator_type> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
 			if (mRootJson.IsObject())
 			{
-				return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
+				return RapidJsonObjectScope<TMode, TEncoding, allocator_type>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 			}
 			// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 			if (!mRootJson.IsNull())
 			{
 				RapidJsonScopeBase<TEncoding>::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
-			return std::nullopt;
+			return RapidJsonObjectScope<TMode, TEncoding, allocator_type>(ScopeUnopened{}, mRootJson.GetAllocator(), this->GetContext());
 		}
 		else
 		{
 			mRootJson.SetObject();
-			return std::make_optional<RapidJsonObjectScope<TMode, TEncoding, allocator_type>>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
+			return RapidJsonObjectScope<TMode, TEncoding, allocator_type>(&mRootJson, mRootJson.GetAllocator(), this->GetContext());
 		}
 	}
 
@@ -800,7 +808,7 @@ private:
  * - `std::string`: UTF-8
  * - `std::istream`, `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
  */
-using JsonArchive = TArchiveBase<
+using JsonArchive = ArchiveBase<
 	Detail::RapidJsonArchiveTraits<>,
 	Detail::RapidJsonRootScope<SerializeMode::Load>,
 	Detail::RapidJsonRootScope<SerializeMode::Save>>;

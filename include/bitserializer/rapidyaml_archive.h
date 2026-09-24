@@ -4,7 +4,6 @@
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <optional>
 #include <type_traits>
 
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -163,16 +162,22 @@ namespace BitSerializer::Yaml::RapidYaml {
 		 * @brief YAML scope for serializing arrays (sequential values).
 		 */
 		template <SerializeMode TMode>
-		class RapidYamlArrayScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
+		class RapidYamlArrayScope final : public ArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
 			RapidYamlArrayScope(const RapidYamlNode& node, SerializationContext& serializationContext, size_t size, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
-				: TArchiveScope<TMode>(serializationContext)
+				: ArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(node, parent, parentKey)
 				, mSize(size)
 			{
 				assert(mNode.is_seq());
 			}
+
+			RapidYamlArrayScope(ScopeUnopened, SerializationContext& serializationContext)
+				: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
+				, RapidYamlScopeBase()
+				, mSize(0)
+			{ }
 
 			/**
 			 * @brief Returns the estimated number of items to load (for reserving the size of containers).
@@ -241,7 +246,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/**
 			 * @brief Opens a nested object scope.
 			 */
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
+			RapidYamlObjectScope<TMode> OpenObjectScope(size_t)
 			{				
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -250,28 +255,28 @@ namespace BitSerializer::Yaml::RapidYaml {
 						auto yamlValue = LoadNextItem();
 						if (yamlValue.is_map())
 						{
-							return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this);
+							return RapidYamlObjectScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), this);
 						}
 						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
 						if (!IsNullYamlValue(yamlValue.val())) {
 							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 						}
 					}
-					return std::nullopt;
+					return RapidYamlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::MAP;
 					mIndex++;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this);
+					return RapidYamlObjectScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), this);
 				}
 			}
 
 			/**
 			 * @brief Opens a nested array scope.
 			 */
-			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t arraySize)
+			RapidYamlArrayScope<TMode> OpenArrayScope(size_t arraySize)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -280,21 +285,21 @@ namespace BitSerializer::Yaml::RapidYaml {
 						auto yamlValue = LoadNextItem();
 						if (yamlValue.is_seq())
 						{
-							return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this);
+							return RapidYamlArrayScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this);
 						}
 						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
 						if (!IsNullYamlValue(yamlValue.val())) {
 							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 						}
 					}
-					return std::nullopt;
+					return RapidYamlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					auto yamlValue = mNode.append_child();
 					yamlValue |= ryml::SEQ;
 					mIndex++;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), arraySize, this);
+					return RapidYamlArrayScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), arraySize, this);
 				}
 			}
 
@@ -318,15 +323,20 @@ namespace BitSerializer::Yaml::RapidYaml {
 		 * @brief YAML scope for serializing objects (key-value pairs).
 		 */
 		template <SerializeMode TMode>
-		class RapidYamlObjectScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
+		class RapidYamlObjectScope final : public ArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
 			RapidYamlObjectScope(const RapidYamlNode& node, SerializationContext& serializationContext, RapidYamlScopeBase* parent = nullptr, key_type_view parentKey = {})
-				: TArchiveScope<TMode>(serializationContext)
+				: ArchiveScope<TMode>(serializationContext)
 				, RapidYamlScopeBase(node, parent, parentKey)
 			{
 				assert(mNode.is_map());
 			}
+
+			RapidYamlObjectScope(ScopeUnopened, SerializationContext& serializationContext)
+				: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
+				, RapidYamlScopeBase()
+			{ }
 
 			/**
 			 * @brief Returns the estimated number of items to load (for reserving the size of containers).
@@ -398,7 +408,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			 * @brief Opens a nested object scope for the specified key.
 			 */
 			template <typename TKey>
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(const TKey& key, size_t)
+			RapidYamlObjectScope<TMode> OpenObjectScope(const TKey& key, size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -411,21 +421,21 @@ namespace BitSerializer::Yaml::RapidYaml {
 					{
 						if (yamlValue.is_map())
 						{
-							return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key);
+							return RapidYamlObjectScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), this, key);
 						}
 						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
 						if (!IsNullYamlValue(yamlValue.val())) {
 							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 						}
 					}
-					return std::nullopt;
+					return RapidYamlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::yml::key(key);
 					yamlValue |= ryml::MAP;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), this, key);
+					return RapidYamlObjectScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), this, key);
 				}
 			}
 
@@ -433,7 +443,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			 * @brief Opens a nested array scope for the specified key.
 			 */
 			template <typename TKey>
-			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(const TKey& key, size_t)
+			RapidYamlArrayScope<TMode> OpenArrayScope(const TKey& key, size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
@@ -446,21 +456,21 @@ namespace BitSerializer::Yaml::RapidYaml {
 					{
 						if (yamlValue.is_seq())
 						{
-							return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this, key);
+							return RapidYamlArrayScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), yamlValue.num_children(), this, key);
 						}
 						// NULL value from the source YAML is excluded from MismatchedTypesPolicy processing
 						if (!IsNullYamlValue(yamlValue.val())) {
 							HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 						}
 					}
-					return std::nullopt;
+					return RapidYamlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					auto yamlValue = mNode.append_child();
 					yamlValue << c4::yml::key(key);
 					yamlValue |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(yamlValue, TArchiveScope<TMode>::GetContext(), 0, this, key);
+					return RapidYamlArrayScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), 0, this, key);
 				}
 			}
 		};
@@ -469,7 +479,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 		 * @brief YAML root scope for serializing data (can serialize array or object).
 		 */
 		template <SerializeMode TMode>
-		class RapidYamlRootScope final : public TArchiveScope<TMode>, public RapidYamlScopeBase
+		class RapidYamlRootScope final : public ArchiveScope<TMode>, public RapidYamlScopeBase
 		{
 		public:
 			RapidYamlRootScope(const RapidYamlRootScope&) = delete;
@@ -478,14 +488,14 @@ namespace BitSerializer::Yaml::RapidYaml {
 			RapidYamlRootScope& operator=(RapidYamlRootScope&&) = delete;
 
 			RapidYamlRootScope(std::string_view inputStr, SerializationContext& serializationContext)
-				: TArchiveScope<TMode>(serializationContext)
+				: ArchiveScope<TMode>(serializationContext)
 			{
 				static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
 				Parse<c4::yml::Parser>(inputStr);
 			}
 
 			RapidYamlRootScope(std::string& outputStr, SerializationContext& serializationContext)
-				: TArchiveScope<TMode>(serializationContext)
+				: ArchiveScope<TMode>(serializationContext)
 				, mOutput(&outputStr)
 			{
 				static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
@@ -497,42 +507,42 @@ namespace BitSerializer::Yaml::RapidYaml {
 			/**
 			 * @brief Opens a nested object scope.
 			 */
-			std::optional<RapidYamlObjectScope<TMode>> OpenObjectScope(size_t)
+			RapidYamlObjectScope<TMode> OpenObjectScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					if (mNode.is_map())
 					{
-						return std::make_optional<RapidYamlObjectScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext());
+						return RapidYamlObjectScope<TMode>(mNode, ArchiveScope<TMode>::GetContext());
 					}
 					HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
-					return std::nullopt;
+					return RapidYamlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					mNode |= ryml::MAP;
-					return std::make_optional<RapidYamlObjectScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext());
+					return RapidYamlObjectScope<TMode>(mNode, ArchiveScope<TMode>::GetContext());
 				}
 			}
 
 			/**
 			 * @brief Opens a nested array scope.
 			 */
-			std::optional<RapidYamlArrayScope<TMode>> OpenArrayScope(size_t)
+			RapidYamlArrayScope<TMode> OpenArrayScope(size_t)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					if (mNode.is_seq())
 					{
-						return std::make_optional<RapidYamlArrayScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext(), mNode.num_children());
+						return RapidYamlArrayScope<TMode>(mNode, ArchiveScope<TMode>::GetContext(), mNode.num_children());
 					}
 					HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
-					return std::nullopt;
+					return RapidYamlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					mNode |= ryml::SEQ;
-					return std::make_optional<RapidYamlArrayScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext(), 0);
+					return RapidYamlArrayScope<TMode>(mNode, ArchiveScope<TMode>::GetContext(), 0);
 				}
 			}
 
@@ -590,7 +600,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 	 * - `std::string_view` / `std::string`: UTF-8
 	 * - Streams are supported via fallback (reads entire stream into memory)
 	 */
-	using YamlArchive = TArchiveBase<
+	using YamlArchive = ArchiveBase<
 		Detail::RapidYamlArchiveTraits,
 		Detail::RapidYamlRootScope<SerializeMode::Load>,
 		Detail::RapidYamlRootScope<SerializeMode::Save>>;

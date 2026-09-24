@@ -13,7 +13,7 @@
 namespace BitSerializer::Json::Detail
 {
 	JsonWriteRootScope::JsonWriteRootScope(std::string& outputData, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		const auto& formatOptions = serializationContext.GetOptions().formatOptions;
 		if (formatOptions.enableFormat)
@@ -27,7 +27,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	JsonWriteRootScope::JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		const auto& options = serializationContext.GetOptions();
 		switch (options.streamOptions.encoding)
@@ -61,12 +61,12 @@ namespace BitSerializer::Json::Detail
 	}
 
 	JsonReadRootScope::JsonReadRootScope(std::string_view inputData, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		: ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mJsonReader(std::make_unique<CJsonStringReader>(inputData, serializationContext.GetOptions()).release())
 	{ }
 
 	JsonReadRootScope::JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext)
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		: ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mJsonReader(std::make_unique<CJsonStreamReader>(inputStream, serializationContext.GetOptions()).release())
 	{ }
 

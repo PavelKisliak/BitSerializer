@@ -16,6 +16,7 @@
 #include "bitserializer/types/std/variant.h"
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
+#include "bitserializer/types/std/vector.h"
 
 // STD types (test fixtures)
 #include "testing_tools/auto_fixture/std/array.h"
@@ -580,6 +581,25 @@ TEST(JsonArchive, ThrowParsingExceptionWithCorrectPosition)
 	{
 		EXPECT_FALSE(true);
 	}
+}
+
+// The malformed content below is detected only when the object scope is closed
+// (from its destructor), so the parsing exception is thrown from there.
+TEST(JsonArchive, ThrowParsingExceptionOnMalformedObject)
+{
+	TestPointClass point;
+	EXPECT_THROW(
+		BitSerializer::LoadObject<JsonArchive>(point, R"({ "x":1, "y":2 "z":3 })"),
+		BitSerializer::ParsingException);
+}
+
+TEST(JsonArchive, ThrowParsingExceptionOnMalformedNestedObject)
+{
+	const char* testJson = R"([{ "x":1, "y":2 "z":3 }, { "x":4, "y":5 }])";
+	std::vector<TestPointClass> points;
+	EXPECT_THROW(
+		BitSerializer::LoadObject<JsonArchive>(points, testJson),
+		BitSerializer::ParsingException);
 }
 
 //-----------------------------------------------------------------------------

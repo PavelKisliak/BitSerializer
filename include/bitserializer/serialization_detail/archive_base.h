@@ -45,37 +45,76 @@ namespace BitSerializer
 	using TSupportedKeyTypes = std::tuple<KeyTypes...>;
 
 	/**
+	 * @brief Tag for constructing an archive scope in the "not opened" state.
+	 *
+	 * Archive scopes are returned by value from `Open*Scope()` methods even when the underlying
+	 * value cannot be opened (e.g. a type mismatch). In that case the scope is constructed with
+	 * this tag, so it is considered not opened (`IsOpened() == false`).
+	 */
+	struct ScopeUnopened
+	{
+		explicit constexpr ScopeUnopened() = default;
+	};
+
+	/**
 	 * @brief Base class for implementing low-level archive structures such a key-value map (object) or sequence (array).
 	 *
 	 * The implementation must have a specific set of serialization methods that depend on the structure of the format.
 	 * For example, JSON may have object and array scopes with different allowed operations.
+	 *
+	 * Every scope is either opened or not. A not-opened scope is a valid object that performs no
+	 * operation on destruction and is contextually convertible to `false`.
 	 */
 	template <SerializeMode TMode>
-	class TArchiveScope
+	class ArchiveScope
 	{
 	public:
-		explicit TArchiveScope(SerializationContext& serializationContext) noexcept
+		explicit ArchiveScope(SerializationContext& serializationContext) noexcept
 			: mSerializationContext(serializationContext)
 		{
 		}
 
-		TArchiveScope(const TArchiveScope&) = delete;
-		TArchiveScope& operator=(const TArchiveScope&) = delete;
-		TArchiveScope& operator=(TArchiveScope&&) noexcept = default;
+		ArchiveScope(SerializationContext& serializationContext, ScopeUnopened) noexcept
+			: mSerializationContext(serializationContext)
+			, mIsOpened(false)
+		{
+		}
+
+		ArchiveScope(const ArchiveScope&) = delete;
+		ArchiveScope& operator=(const ArchiveScope&) = delete;
+		ArchiveScope& operator=(ArchiveScope&&) noexcept = default;
 
 		static constexpr SerializeMode GetMode() noexcept { return TMode; }
 		static constexpr bool IsSaving() noexcept { return TMode == SerializeMode::Save; }
 		static constexpr bool IsLoading() noexcept { return TMode == SerializeMode::Load; }
 
+		/**
+		 * @brief Determines whether this scope was successfully opened.
+		 */
+		[[nodiscard]] bool IsOpened() const noexcept { return mIsOpened; }
+
+		/**
+		 * @brief Determines whether this scope was successfully opened (contextual boolean conversion).
+		 */
+		explicit operator bool() const noexcept { return mIsOpened; }
+
+		/**
+		 * @brief Returns the estimated number of elements to load (for reserving the size of containers).
+		 *
+		 * The default implementation returns `0`, which means that the size is unknown.
+		 */
+		[[nodiscard]] size_t GetEstimatedSize() const noexcept { return 0; }
+
 		[[nodiscard]] SerializationContext& GetContext() const noexcept { return mSerializationContext; }
 		[[nodiscard]] const SerializationOptions& GetOptions() const noexcept { return mSerializationContext.GetOptions(); }
 
 	protected:
-		~TArchiveScope() = default;
-		TArchiveScope(TArchiveScope&&) noexcept = default;
+		~ArchiveScope() = default;
+		ArchiveScope(ArchiveScope&&) noexcept = default;
 
 	private:
 		SerializationContext& mSerializationContext;
+		bool mIsOpened = true;
 	};
 
 	/**
@@ -86,7 +125,7 @@ namespace BitSerializer
 	 * @tparam TOutputArchive Implementation of output archive.
 	 */
 	template <typename TArchiveTraits, class TInputArchive, class TOutputArchive>
-	class TArchiveBase : public TArchiveTraits
+	class ArchiveBase : public TArchiveTraits
 	{
 	public:
 		using input_archive_type = TInputArchive;

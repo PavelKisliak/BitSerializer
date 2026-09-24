@@ -447,9 +447,9 @@ namespace BitSerializer
 					const size_t mapSize = CountMapObjectFields(archive, value);
 					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key), mapSize);
 					if (objectScope) {
-						value.Serialize(*objectScope);
+						value.Serialize(objectScope);
 					}
-					return objectScope.has_value();
+					return objectScope.IsOpened();
 				}
 			}
 			else if constexpr (hasGlobalSerializeObject)
@@ -462,9 +462,9 @@ namespace BitSerializer
 					const size_t mapSize = CountMapObjectFields(archive, value);
 					auto objectScope = archive.OpenObjectScope(std::forward<TKey>(key), mapSize);
 					if (objectScope) {
-						SerializeObject(*objectScope, value);
+						SerializeObject(objectScope, value);
 					}
-					return objectScope.has_value();
+					return objectScope.IsOpened();
 				}
 			}
 			else if constexpr (hasGlobalSerializeArray)
@@ -492,7 +492,7 @@ namespace BitSerializer
 					auto binaryScope = archive.OpenBinaryScope(std::forward<TKey>(key), arraySize);
 					if (binaryScope)
 					{
-						SerializeArray(*binaryScope, value);
+						SerializeArray(binaryScope, value);
 						return true;
 					}
 				}
@@ -500,9 +500,9 @@ namespace BitSerializer
 				{
 					auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), arraySize);
 					if (arrayScope) {
-						SerializeArray(*arrayScope, value);
+						SerializeArray(arrayScope, value);
 					}
-					return arrayScope.has_value();
+					return arrayScope.IsOpened();
 				}
 			}
 		}
@@ -542,9 +542,9 @@ namespace BitSerializer
 					const size_t mapSize = CountMapObjectFields(archive, value);
 					auto objectScope = archive.OpenObjectScope(mapSize);
 					if (objectScope) {
-						value.Serialize(*objectScope);
+						value.Serialize(objectScope);
 					}
-					return objectScope.has_value();
+					return objectScope.IsOpened();
 				}
 			}
 			else if constexpr (hasGlobalSerializeObject)
@@ -557,9 +557,9 @@ namespace BitSerializer
 					const size_t mapSize = CountMapObjectFields(archive, value);
 					auto objectScope = archive.OpenObjectScope(mapSize);
 					if (objectScope) {
-						SerializeObject(*objectScope, value);
+						SerializeObject(objectScope, value);
 					}
-					return objectScope.has_value();
+					return objectScope.IsOpened();
 				}
 			}
 			else if constexpr (hasGlobalSerializeArray)
@@ -587,7 +587,7 @@ namespace BitSerializer
 					auto binaryScope = archive.OpenBinaryScope(arraySize);
 					if (binaryScope)
 					{
-						SerializeArray(*binaryScope, value);
+						SerializeArray(binaryScope, value);
 						return true;
 					}
 				}
@@ -595,9 +595,9 @@ namespace BitSerializer
 				{
 					auto arrayScope = archive.OpenArrayScope(arraySize);
 					if (arrayScope) {
-						SerializeArray(*arrayScope, value);
+						SerializeArray(arrayScope, value);
 					}
-					return arrayScope.has_value();
+					return arrayScope.IsOpened();
 				}
 			}
 		}
@@ -695,14 +695,14 @@ namespace BitSerializer
 		{
 			if (auto arrayScope = archive.OpenBinaryScope(std::forward<TKey>(key), ArraySize))
 			{
-				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+				return Detail::SerializeFixedSizeArray(arrayScope, std::begin(cont), std::end(cont));
 			}
 		}
 		if constexpr (hasArrayWithKeySupport)
 		{
 			if (auto arrayScope = archive.OpenArrayScope(std::forward<TKey>(key), ArraySize))
 			{
-				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+				return Detail::SerializeFixedSizeArray(arrayScope, std::begin(cont), std::end(cont));
 			}
 		}
 		return false;
@@ -721,14 +721,14 @@ namespace BitSerializer
 		{
 			if (auto arrayScope = archive.OpenBinaryScope(ArraySize))
 			{
-				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+				return Detail::SerializeFixedSizeArray(arrayScope, std::begin(cont), std::end(cont));
 			}
 		}
 		if constexpr (hasArraySupport)
 		{
 			if (auto arrayScope = archive.OpenArrayScope(ArraySize))
 			{
-				return Detail::SerializeFixedSizeArray(arrayScope.value(), std::begin(cont), std::end(cont));
+				return Detail::SerializeFixedSizeArray(arrayScope, std::begin(cont), std::end(cont));
 			}
 		}
 		return false;

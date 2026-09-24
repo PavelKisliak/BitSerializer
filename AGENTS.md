@@ -111,6 +111,7 @@ BitSerializer/
 | Run static analysis | `.clang-tidy`, `tools/static_analysis/` |
 | Modify build config | `CMakeLists.txt`, `CMakeSettings.json` |
 | Manage dependencies | `vcpkg.json`, `cmake/vcpkg/triplets/` |
+| Run performance benchmarks | `benchmarks/archives/` — machine-readable results in `benchmark_results/serialization_speed_report.json` (written when the RapidJSON archive is enabled) |
 
 ---
 
@@ -122,7 +123,7 @@ The library uses an **archive pattern**: each format provides `input_archive_typ
 
 ## Archive Traits
 
-Each archive declares capabilities via a traits struct (e.g. `JsonArchiveTraits`). Archives are assembled via `TArchiveBase<Traits, ReadRootScope, WriteRootScope>` which sets `input_archive_type` / `output_archive_type`.
+Each archive declares capabilities via a traits struct (e.g. `JsonArchiveTraits`). Archives are assembled via `ArchiveBase<Traits, ReadRootScope, WriteRootScope>` which sets `input_archive_type` / `output_archive_type`.
 
 | Trait | Role |
 |-------|------|
@@ -403,17 +404,20 @@ Examples:
 
 | Element | Convention | Example |
 |---------|-----------|---------|
-| Classes / Structs | CamelCase | `SerializationOptions` |
+| Classes / Structs (incl. class templates) | CamelCase, no `T` prefix | `ArchiveScope`, `SerializationOptions` |
 | Interfaces | `I` + CamelCase | `IJsonReader` |
 | Methods (public/private) | CamelCase | `ReadValue()` |
 | Private members | `m` + CamelCase | `mPos` |
 | Public struct members | camelCase | `name`, `object`, `index` |
 | Constructor parameters | camelCase with `in` prefix to avoid shadowing | `inValue`, `inName` |
 | Local variables | camelCase | `hexVal` |
-| Template params | `T` + CamelCase | `TArchive` |
+| Template type parameters | `T` + CamelCase | `TArchive`, `TValue` |
 | Type aliases | `snake_case_type` | `key_type` |
 | Macros | `BITSERIALIZER_` + `SCREAMING_SNAKE_CASE` | `BITSERIALIZER_HAS_FILESYSTEM` |
 | Namespaces | CamelCase | `BitSerializer::Json::Detail` |
+
+> [!NOTE]
+> The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
 
 - **Braces**: Allman style (opening brace on separate line), always use braces
 - **Comments**: Doxygen-style (`/** @brief ... */`) in English

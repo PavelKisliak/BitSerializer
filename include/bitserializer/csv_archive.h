@@ -4,7 +4,6 @@
 *******************************************************************************/
 #pragma once
 #include <iosfwd>
-#include <optional>
 #include <string>
 #include <type_traits>
 #include "bitserializer/export.h"
@@ -65,17 +64,35 @@ public:
 /**
  * @brief CSV scope for writing objects (key-value pairs).
  */
-class CCsvWriteObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class CCsvWriteObjectScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
 
-	~CCsvWriteObjectScope()
+	CCsvWriteObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
+		: ArchiveScope<SerializeMode::Save>(serializationContext, ScopeUnopened{})
+		, mCsvWriter(nullptr)
+	{ }
+
+	~CCsvWriteObjectScope() noexcept(false)
 	{
-		mCsvWriter->NextLine();
+		if (IsOpened())
+		{
+			try
+			{
+				mCsvWriter->NextLine();
+			}
+			catch (...)
+			{
+				if (!GetContext().IsStackUnwinding())
+				{
+					throw;
+				}
+			}
+		}
 	}
 
 	/**
@@ -116,11 +133,11 @@ private:
 /**
  * @brief CSV scope for writing arrays (sequential objects).
  */
-class CsvWriteArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class CsvWriteArrayScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CsvWriteArrayScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
 
@@ -132,9 +149,9 @@ public:
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
 	}
 
-	[[nodiscard]] std::optional<CCsvWriteObjectScope> OpenObjectScope(size_t) const noexcept
+	[[nodiscard]] CCsvWriteObjectScope OpenObjectScope(size_t) const noexcept
 	{
-		return std::make_optional<CCsvWriteObjectScope>(mCsvWriter, GetContext());
+		return {mCsvWriter, GetContext()};
 	}
 
 private:
@@ -145,7 +162,7 @@ private:
 /**
  * @brief CSV root scope for writing data.
  */
-class BITSERIALIZER_API CsvWriteRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class BITSERIALIZER_API CsvWriteRootScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CsvWriteRootScope(std::string& encodedOutputStr, SerializationContext& serializationContext);
@@ -165,10 +182,10 @@ public:
 		return {};
 	}
 
-	[[nodiscard]] std::optional<CsvWriteArrayScope> OpenArrayScope(size_t arraySize) const noexcept
+	[[nodiscard]] CsvWriteArrayScope OpenArrayScope(size_t arraySize) const noexcept
 	{
 		mCsvWriter->SetEstimatedSize(arraySize);
-		return std::make_optional<CsvWriteArrayScope>(mCsvWriter, GetContext());
+		return {mCsvWriter, GetContext()};
 	}
 
 	void Finalize() const noexcept { /* Not required */ }
@@ -181,12 +198,17 @@ private:
 /**
  * @brief CSV scope for reading objects (key-value pairs).
  */
-class CCsvReadObjectScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
+class CCsvReadObjectScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	CCsvReadObjectScope(ICsvReader* csvReader, SerializationContext& serializationContext) noexcept
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		: ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(csvReader)
+	{ }
+
+	CCsvReadObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
+		: ArchiveScope<SerializeMode::Load>(serializationContext, ScopeUnopened{})
+		, mCsvReader(nullptr)
 	{ }
 
 	/**
@@ -303,11 +325,11 @@ private:
 /**
  * @brief CSV scope for reading arrays (sequential objects).
  */
-class CsvReadArrayScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
+class CsvReadArrayScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	CsvReadArrayScope(ICsvReader* csvReader, SerializationContext& serializationContext) noexcept
-		: TArchiveScope<SerializeMode::Load>(serializationContext)
+		: ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(csvReader)
 	{ }
 
@@ -335,13 +357,13 @@ public:
 		return mCsvReader->IsEnd();
 	}
 
-	std::optional<CCsvReadObjectScope> OpenObjectScope(size_t)
+	CCsvReadObjectScope OpenObjectScope(size_t)
 	{
 		if (mCsvReader->ParseNextRow())
 		{
-			return std::make_optional<CCsvReadObjectScope>(mCsvReader, GetContext());
+			return {mCsvReader, GetContext()};
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
 private:
@@ -352,7 +374,7 @@ private:
 /**
  * @brief CSV root scope for reading data.
  */
-class BITSERIALIZER_API CsvReadRootScope final : public CsvArchiveTraits, public TArchiveScope<SerializeMode::Load>
+class BITSERIALIZER_API CsvReadRootScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	CsvReadRootScope(std::string_view encodedInputStr, SerializationContext& serializationContext);
@@ -372,9 +394,9 @@ public:
 		return {};
 	}
 
-	std::optional<CsvReadArrayScope> OpenArrayScope(size_t) noexcept
+	CsvReadArrayScope OpenArrayScope(size_t) noexcept
 	{
-		return std::make_optional<CsvReadArrayScope>(mCsvReader, GetContext());
+		return {mCsvReader, GetContext()};
 	}
 
 	void Finalize() const noexcept { /* Not required */ }
@@ -392,7 +414,7 @@ private:
  *  `std::string`: UTF-8
  *  `std::istream` and `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
  */
-using CsvArchive = TArchiveBase<
+using CsvArchive = ArchiveBase<
 	Detail::CsvArchiveTraits,
 	Detail::CsvReadRootScope,
 	Detail::CsvWriteRootScope>;

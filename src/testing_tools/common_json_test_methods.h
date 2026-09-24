@@ -28,14 +28,14 @@ void TestGetPathInJsonObjectScopeWhenLoading()
 	ASSERT_EQ(inputArchive.GetPath(), "");
 	size_t mapSize = 0;
 	auto objScope = inputArchive.OpenObjectScope(mapSize);
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), "");
+	ASSERT_TRUE(objScope.IsOpened());
+	ASSERT_EQ(objScope.GetPath(), "");
 
 	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestValue");
 	const auto expectedObjectPath = TArchive::path_separator + std::string("TestValue");
-	auto subScope = objScope->OpenObjectScope(objectKey, 0);
-	ASSERT_TRUE(subScope.has_value());
-	ASSERT_EQ(subScope->GetPath(), expectedObjectPath);
+	auto subScope = objScope.OpenObjectScope(objectKey, 0);
+	ASSERT_TRUE(subScope.IsOpened());
+	ASSERT_EQ(subScope.GetPath(), expectedObjectPath);
 }
 
 /**
@@ -55,13 +55,13 @@ void TestGetPathInJsonObjectScopeWhenSaving()
 	ASSERT_EQ(outputArchive.GetPath(), "");
 	size_t mapSize = 0;
 	auto objScope = outputArchive.OpenObjectScope(mapSize);
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), "");
+	ASSERT_TRUE(objScope.IsOpened());
+	ASSERT_EQ(objScope.GetPath(), "");
 
 	const auto objectKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestValue");
-	auto subScope = objScope->OpenObjectScope(objectKey, mapSize);
-	ASSERT_TRUE(subScope.has_value());
-	ASSERT_EQ(subScope->GetPath(), TArchive::path_separator + BitSerializer::Convert::ToString(objectKey));
+	auto subScope = objScope.OpenObjectScope(objectKey, mapSize);
+	ASSERT_TRUE(subScope.IsOpened());
+	ASSERT_EQ(subScope.GetPath(), TArchive::path_separator + BitSerializer::Convert::ToString(objectKey));
 }
 
 /**
@@ -86,28 +86,28 @@ void TestGetPathInJsonArrayScopeWhenLoading()
 	ASSERT_EQ(inputArchive.GetPath(), "");
 	size_t mapSize = 0;
 	auto objScope = inputArchive.OpenObjectScope(mapSize);
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), "");
+	ASSERT_TRUE(objScope.IsOpened());
+	ASSERT_EQ(objScope.GetPath(), "");
 
 	const auto arrayKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestTwoDimArray");
 	const auto expectedObjectPath = TArchive::path_separator + std::string("TestTwoDimArray");
-	auto arrayScope = objScope->OpenArrayScope(arrayKey, TestType::Array1stLevelSize);
-	ASSERT_TRUE(arrayScope.has_value());
-	ASSERT_EQ(arrayScope->GetPath(), expectedObjectPath + TArchive::path_separator + "0");
+	auto arrayScope = objScope.OpenArrayScope(arrayKey, TestType::Array1stLevelSize);
+	ASSERT_TRUE(arrayScope.IsOpened());
+	ASSERT_EQ(arrayScope.GetPath(), expectedObjectPath + TArchive::path_separator + "0");
 
 	int loadValue;
 	for (size_t k = 0; k < TestType::Array1stLevelSize; k++)
 	{
-		auto subArrayScope = arrayScope->OpenArrayScope(TestType::Array2stLevelSize);
-		ASSERT_TRUE(subArrayScope.has_value());
+		auto subArrayScope = arrayScope.OpenArrayScope(TestType::Array2stLevelSize);
+		ASSERT_TRUE(subArrayScope.IsOpened());
 
 		for (size_t i = 0; i < TestType::Array2stLevelSize; i++)
 		{
 			auto expectedPath = expectedObjectPath
 				+ TArchive::path_separator + BitSerializer::Convert::ToString(k + 1)
 				+ TArchive::path_separator + BitSerializer::Convert::ToString(i);
-			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
-			ASSERT_TRUE(subArrayScope->SerializeValue(loadValue));
+			ASSERT_EQ(subArrayScope.GetPath(), expectedPath);
+			ASSERT_TRUE(subArrayScope.SerializeValue(loadValue));
 		}
 	}
 }
@@ -129,28 +129,28 @@ void TestGetPathInJsonArrayScopeWhenSaving()
 	// Act / Assert
 	ASSERT_EQ(outputArchive.GetPath(), "");
 	auto objScope = outputArchive.OpenObjectScope(1);
-	ASSERT_TRUE(objScope.has_value());
-	ASSERT_EQ(objScope->GetPath(), "");
+	ASSERT_TRUE(objScope.IsOpened());
+	ASSERT_EQ(objScope.GetPath(), "");
 
 	const auto arrayKey = BitSerializer::Convert::To<typename TArchive::key_type>("TestTwoDimArray");
 	const auto expectedObjectPath = TArchive::path_separator + std::string("TestTwoDimArray");
-	auto arrayScope = objScope->OpenArrayScope(arrayKey, array1stLevelSize);
-	ASSERT_TRUE(arrayScope.has_value());
-	ASSERT_EQ(arrayScope->GetPath(), expectedObjectPath + TArchive::path_separator + "0");
+	auto arrayScope = objScope.OpenArrayScope(arrayKey, array1stLevelSize);
+	ASSERT_TRUE(arrayScope.IsOpened());
+	ASSERT_EQ(arrayScope.GetPath(), expectedObjectPath + TArchive::path_separator + "0");
 
 	int saveValue = 0x10203040;
 	for (size_t k = 0; k < array1stLevelSize; k++)
 	{
-		auto subArrayScope = arrayScope->OpenArrayScope(array2stLevelSize);
-		ASSERT_TRUE(subArrayScope.has_value());
+		auto subArrayScope = arrayScope.OpenArrayScope(array2stLevelSize);
+		ASSERT_TRUE(subArrayScope.IsOpened());
 
 		for (size_t i = 0; i < array2stLevelSize; i++)
 		{
-			subArrayScope->SerializeValue(saveValue);
+			subArrayScope.SerializeValue(saveValue);
 			auto expectedPath = expectedObjectPath
 				+ TArchive::path_separator + BitSerializer::Convert::ToString(k + 1)
 				+ TArchive::path_separator + BitSerializer::Convert::ToString(i + 1);
-			ASSERT_EQ(subArrayScope->GetPath(), expectedPath);
+			ASSERT_EQ(subArrayScope.GetPath(), expectedPath);
 		}
 	}
 }

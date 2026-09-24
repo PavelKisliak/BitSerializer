@@ -101,7 +101,7 @@ namespace BitSerializer::Detail
 			auto attributesScope = archive.OpenAttributeScope();
 			if (attributesScope)
 			{
-				Dispatch(*attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValue));
+				Dispatch(attributesScope, std::forward<KeyValue<TAttrKey, TValue, TArgs...>>(attrValue));
 			}
 		}
 	}

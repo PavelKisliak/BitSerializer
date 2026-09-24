@@ -4,7 +4,6 @@
 *******************************************************************************/
 #pragma once
 #include <cassert>
-#include <optional>
 #include <type_traits>
 #include <variant>
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -167,12 +166,18 @@ class PugiXmlObjectScope;
  * @brief XML scope for serializing arrays (sequential values).
  */
 template <SerializeMode TMode>
-class PugiXmlArrayScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlArrayScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlArrayScope(const pugi::xml_node& node, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mNode(node)
+		, mValueIt(mNode.begin())
+	{ }
+
+	PugiXmlArrayScope(ScopeUnopened, SerializationContext& serializationContext)
+		: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
+		, mNode()
 		, mValueIt(mNode.begin())
 	{ }
 
@@ -220,7 +225,7 @@ public:
 		}
 	}
 
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t)
+	PugiXmlArrayScope<TMode> OpenArrayScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -228,7 +233,7 @@ public:
 			{
 				if (xmlNode.first_child().type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlArrayScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
+					return PugiXmlArrayScope<TMode>(xmlNode, ArchiveScope<TMode>::GetContext());
 				}
 				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
 				if (xmlNode.first_child().type() != pugi::node_null)
@@ -236,16 +241,18 @@ public:
 					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto node = mNode.append_child(PUGIXML_TEXT("array"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+			return node.empty()
+				? PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(size_t)
+	PugiXmlObjectScope<TMode> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -253,7 +260,7 @@ public:
 			{
 				if (xmlNode.first_child().type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlObjectScope<TMode>>(xmlNode, TArchiveScope<TMode>::GetContext());
+					return PugiXmlObjectScope<TMode>(xmlNode, ArchiveScope<TMode>::GetContext());
 				}
 				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
 				if (xmlNode.first_child().type() != pugi::node_null)
@@ -261,12 +268,14 @@ public:
 					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto node = mNode.append_child(PUGIXML_TEXT("object"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+			return node.empty()
+				? PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlObjectScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -292,11 +301,11 @@ protected:
  * @brief XML scope for serializing attributes (key-value pairs represented as XML attributes in the XML node)
  */
 template <SerializeMode TMode>
-class PugiXmlAttributeScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlAttributeScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlAttributeScope(const pugi::xml_node& node, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mNode(node)
 	{
 		assert(mNode.type() == pugi::node_element);
@@ -395,15 +404,20 @@ protected:
  * @brief XML scope for serializing objects (key-value pairs represented as nodes in the XML).
  */
 template <SerializeMode TMode>
-class PugiXmlObjectScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlObjectScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	explicit PugiXmlObjectScope(const pugi::xml_node& node, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mNode(node)
 	{
 		assert(mNode.type() == pugi::node_element);
 	}
+
+	PugiXmlObjectScope(ScopeUnopened, SerializationContext& serializationContext)
+		: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
+		, mNode()
+	{ }
 
 	/**
 	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
@@ -457,7 +471,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
+	PugiXmlObjectScope<TMode> OpenObjectScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -465,7 +479,7 @@ public:
 			{
 				if (child.first_child().type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
+					return PugiXmlObjectScope<TMode>(child, ArchiveScope<TMode>::GetContext());
 				}
 				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
 				if (child.first_child().type() != pugi::node_null)
@@ -473,17 +487,19 @@ public:
 					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
+			return child.empty()
+				? PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlObjectScope<TMode>(child, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t)
+	PugiXmlArrayScope<TMode> OpenArrayScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -491,7 +507,7 @@ public:
 			{
 				if (node.first_child().type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+					return PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 				}
 				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
 				if (node.first_child().type() != pugi::node_null)
@@ -499,18 +515,20 @@ public:
 					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto node = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+			return node.empty()
+				? PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
-	std::optional<PugiXmlAttributeScope<TMode>> OpenAttributeScope()
+	PugiXmlAttributeScope<TMode> OpenAttributeScope()
 	{
-		return std::make_optional<PugiXmlAttributeScope<TMode>>(mNode, TArchiveScope<TMode>::GetContext());
+		return PugiXmlAttributeScope<TMode>(mNode, ArchiveScope<TMode>::GetContext());
 	}
 
 protected:
@@ -522,11 +540,11 @@ protected:
  * @brief XML root scope for serializing data (can serialize array or object with/without key).
  */
 template <SerializeMode TMode>
-class PugiXmlRootScope final : public TArchiveScope<TMode>, public PugiXmlArchiveTraits
+class PugiXmlRootScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
 {
 public:
 	PugiXmlRootScope(const std::string_view& inputStr, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -537,14 +555,14 @@ public:
 	}
 
 	PugiXmlRootScope(std::string& outputStr, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mOutput(&outputStr)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
 	}
 
 	PugiXmlRootScope(std::istream& inputStream, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mOutput(nullptr)
 	{
 		static_assert(TMode == SerializeMode::Load, "BitSerializer. This data type can be used only in 'Load' mode.");
@@ -555,7 +573,7 @@ public:
 	}
 
 	PugiXmlRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
-		: TArchiveScope<TMode>(serializationContext)
+		: ArchiveScope<TMode>(serializationContext)
 		, mOutput(&outputStream)
 	{
 		static_assert(TMode == SerializeMode::Save, "BitSerializer. This data type can be used only in 'Save' mode.");
@@ -568,7 +586,7 @@ public:
 		return PugiXmlExtensions::GetPath(mRootXml);
 	}
 
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(size_t)
+	PugiXmlArrayScope<TMode> OpenArrayScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -576,21 +594,23 @@ public:
 			{
 				if (childNode.type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlArrayScope<TMode>>(childNode, TArchiveScope<TMode>::GetContext());
+					return PugiXmlArrayScope<TMode>(childNode, ArchiveScope<TMode>::GetContext());
 				}
 				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
-			return std::nullopt;
+			return PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto node = mRootXml.append_child(PUGIXML_TEXT("array"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+			return node.empty()
+				? PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlArrayScope<TMode>> OpenArrayScope(TKey&& key, size_t)
+	PugiXmlArrayScope<TMode> OpenArrayScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -598,20 +618,22 @@ public:
 			{
 				if (node.type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+					return PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 				}
 				PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 			}
-			return std::nullopt;
+			return PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto node = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlArrayScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+			return node.empty()
+				? PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(size_t)
+	PugiXmlObjectScope<TMode> OpenObjectScope(size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -619,7 +641,7 @@ public:
 			{
 				if (node.type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+					return PugiXmlObjectScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 				}
 				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
 				if (node.type() != pugi::node_null)
@@ -627,17 +649,19 @@ public:
 					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 		}
 		else
 		{
 			auto node = mRootXml.append_child(PUGIXML_TEXT("root"));
-			return node.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(node, TArchiveScope<TMode>::GetContext());
+			return node.empty()
+				? PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlObjectScope<TMode>(node, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
 	template <typename TKey>
-	std::optional<PugiXmlObjectScope<TMode>> OpenObjectScope(TKey&& key, size_t)
+	PugiXmlObjectScope<TMode> OpenObjectScope(TKey&& key, size_t)
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
@@ -645,7 +669,7 @@ public:
 			{
 				if (child.type() == pugi::node_element)
 				{
-					return std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
+					return PugiXmlObjectScope<TMode>(child, ArchiveScope<TMode>::GetContext());
 				}
 				// NULL value from the source XML is excluded from MismatchedTypesPolicy processing
 				if (child.type() != pugi::node_null)
@@ -653,13 +677,15 @@ public:
 					PugiXmlExtensions::HandleMismatchedTypesPolicy(this->GetContext().GetOptions().mismatchedTypesPolicy);
 				}
 			}
-			return std::nullopt;
+			return PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			
 		}
 		else
 		{
 			auto child = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
-			return child.empty() ? std::nullopt : std::make_optional<PugiXmlObjectScope<TMode>>(child, TArchiveScope<TMode>::GetContext());
+			return child.empty()
+				? PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
+				: PugiXmlObjectScope<TMode>(child, ArchiveScope<TMode>::GetContext());
 		}
 	}
 
@@ -671,7 +697,7 @@ public:
 			{
 				using T = std::decay_t<decltype(arg)>;
 
-				auto& options = TArchiveScope<TMode>::GetOptions();
+				auto& options = ArchiveScope<TMode>::GetOptions();
 				unsigned int flags = options.formatOptions.enableFormat ? pugi::format_indent : pugi::format_raw;
 				const pugi::string_t indent(options.formatOptions.paddingCharNum, options.formatOptions.paddingChar);
 				assert(!options.formatOptions.enableFormat || !indent.empty());
@@ -744,7 +770,7 @@ private:
  * - `std::string`: UTF-8
  * - `std::istream`, `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
  */
-using XmlArchive = TArchiveBase<
+using XmlArchive = ArchiveBase<
 	Detail::PugiXmlArchiveTraits,
 	Detail::PugiXmlRootScope<SerializeMode::Load>,
 	Detail::PugiXmlRootScope<SerializeMode::Save>>;

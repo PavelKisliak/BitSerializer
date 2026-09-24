@@ -18,7 +18,7 @@ namespace BitSerializer {
 	{
 	private:
 		template <typename U>
-		static decltype(std::declval<U>().Serialize(std::declval<TArchiveScope<SerializeMode::Load>&>()), std::true_type()) test(int);
+		static decltype(std::declval<U>().Serialize(std::declval<ArchiveScope<SerializeMode::Load>&>()), std::true_type()) test(int);
 
 		template <typename>
 		static std::false_type test(...);
@@ -39,7 +39,7 @@ namespace BitSerializer {
 	{
 	private:
 		template <typename TObject>
-		static std::enable_if_t<std::is_same_v<decltype(SerializeObject(std::declval<TArchiveScope<SerializeMode::Load>&>(), std::declval<TObject&>())), void>, std::true_type> test(int);
+		static std::enable_if_t<std::is_same_v<decltype(SerializeObject(std::declval<ArchiveScope<SerializeMode::Load>&>(), std::declval<TObject&>())), void>, std::true_type> test(int);
 
 		template <typename>
 		static std::false_type test(...);
@@ -60,7 +60,7 @@ namespace BitSerializer {
 	{
 	private:
 		template <typename TObject>
-		static std::enable_if_t<std::is_same_v<decltype(SerializeArray(std::declval<TArchiveScope<SerializeMode::Load>&>(), std::declval<TObject&>())), void>, std::true_type> test(int);
+		static std::enable_if_t<std::is_same_v<decltype(SerializeArray(std::declval<ArchiveScope<SerializeMode::Load>&>(), std::declval<TObject&>())), void>, std::true_type> test(int);
 
 		template <typename>
 		static std::false_type test(...);
@@ -274,12 +274,22 @@ namespace BitSerializer {
 		}
 
 		template <typename TKey>
-		std::nullopt_t OpenObjectScope(TKey&&, size_t) noexcept { return std::nullopt; }
-		std::nullopt_t OpenObjectScope(size_t) noexcept	{ return std::nullopt; }
+		ArchiveScope<TArchive::GetMode()> OpenObjectScope(TKey&&, size_t) noexcept {
+			return ArchiveScope<TArchive::GetMode()>(GetContext(), ScopeUnopened{});
+		}
+
+		ArchiveScope<TArchive::GetMode()> OpenObjectScope(size_t) noexcept {
+			return ArchiveScope<TArchive::GetMode()>(GetContext(), ScopeUnopened{});
+		}
 
 		template <typename TKey>
-		std::nullopt_t OpenArrayScope(TKey&&, size_t) noexcept { return std::nullopt; }
-		std::nullopt_t OpenArrayScope(size_t) noexcept { return std::nullopt; }
+		ArchiveScope<TArchive::GetMode()> OpenArrayScope(TKey&&, size_t) noexcept {
+			return ArchiveScope<TArchive::GetMode()>(GetContext(), ScopeUnopened{});
+		}
+
+		ArchiveScope<TArchive::GetMode()> OpenArrayScope(size_t) noexcept {
+			return ArchiveScope<TArchive::GetMode()>(GetContext(), ScopeUnopened{});
+		}
 
 		template <class TValue>
 		FieldsCountVisitor& operator<<(TValue&&) noexcept

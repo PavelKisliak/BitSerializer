@@ -5,7 +5,6 @@
 #pragma once
 #include <iosfwd>
 #include <iostream>
-#include <optional>
 #include <type_traits>
 #include "bitserializer/export.h"
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -168,11 +167,11 @@ class CJsonWriteObjectScope;
  * @brief Json scope for writing arrays (sequential values).
  */
 template <class TWriter>
-class CJsonWriteArrayScope final : public JsonArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class CJsonWriteArrayScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CJsonWriteArrayScope(TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mJsonWriter(msgPackWriter)
 	{ }
 
@@ -193,7 +192,7 @@ public:
 		return true;
 	}
 
-	[[nodiscard]] std::optional<CJsonWriteArrayScope<TWriter>> OpenArrayScope(size_t)
+	[[nodiscard]] CJsonWriteArrayScope<TWriter> OpenArrayScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -201,10 +200,10 @@ public:
 		}
 		mJsonWriter->BeginArray();
 		++mIndex;
-		return std::make_optional<CJsonWriteArrayScope<TWriter>>(mJsonWriter, GetContext());
+		return {mJsonWriter, GetContext()};
 	}
 
-	[[nodiscard]] std::optional<CJsonWriteObjectScope<TWriter>> OpenObjectScope(size_t)
+	[[nodiscard]] CJsonWriteObjectScope<TWriter> OpenObjectScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -212,7 +211,7 @@ public:
 		}
 		mJsonWriter->BeginObject();
 		++mIndex;
-		return std::make_optional<CJsonWriteObjectScope<TWriter>>(mJsonWriter, GetContext());
+		return {mJsonWriter, GetContext()};
 	}
 
 private:
@@ -225,11 +224,11 @@ private:
  * @brief Json scope for writing objects (key-value pairs).
  */
 template <class TWriter>
-class CJsonWriteObjectScope final : public JsonArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class CJsonWriteObjectScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CJsonWriteObjectScope(TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
-		: TArchiveScope<SerializeMode::Save>(serializationContext)
+		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mJsonWriter(msgPackWriter)
 	{ }
 
@@ -252,7 +251,7 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<CJsonWriteArrayScope<TWriter>> OpenArrayScope(TKey&& key, size_t)
+	CJsonWriteArrayScope<TWriter> OpenArrayScope(TKey&& key, size_t)
 	{
 		if (mIndex)
 		{
@@ -261,11 +260,11 @@ public:
 		mJsonWriter->WriteKey(std::string_view(key));
 		mJsonWriter->BeginArray();
 		++mIndex;
-		return std::make_optional<CJsonWriteArrayScope<TWriter>>(mJsonWriter, GetContext());
+		return {mJsonWriter, GetContext()};
 	}
 
 	template <typename TKey>
-	[[nodiscard]] std::optional<CJsonWriteObjectScope<TWriter>> OpenObjectScope(TKey&& key, size_t)
+	[[nodiscard]] CJsonWriteObjectScope<TWriter> OpenObjectScope(TKey&& key, size_t)
 	{
 		if (mIndex)
 		{
@@ -274,7 +273,7 @@ public:
 		mJsonWriter->WriteKey(std::string_view(key));
 		mJsonWriter->BeginObject();
 		++mIndex;
-		return std::make_optional<CJsonWriteObjectScope<TWriter>>(mJsonWriter, GetContext());
+		return {mJsonWriter, GetContext()};
 	}
 
 private:
@@ -286,7 +285,7 @@ private:
 /**
  * @brief Json root scope for writing data (can write array or object).
  */
-class BITSERIALIZER_API JsonWriteRootScope final : public JsonArchiveTraits, public TArchiveScope<SerializeMode::Save>
+class BITSERIALIZER_API JsonWriteRootScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	JsonWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
@@ -313,16 +312,16 @@ public:
 		return true;
 	}
 
-	[[nodiscard]] std::optional<CJsonWriteArrayScope<IJsonWriter>> OpenArrayScope(size_t) const
+	[[nodiscard]] CJsonWriteArrayScope<IJsonWriter> OpenArrayScope(size_t) const
 	{
 		mJsonWriter->BeginArray();
-		return std::make_optional<CJsonWriteArrayScope<IJsonWriter>>(mJsonWriter, GetContext());
+		return {mJsonWriter, GetContext()};
 	}
 
-	[[nodiscard]] std::optional<CJsonWriteObjectScope<IJsonWriter>> OpenObjectScope(size_t) const
+	[[nodiscard]] CJsonWriteObjectScope<IJsonWriter> OpenObjectScope(size_t) const
 	{
 		mJsonWriter->BeginObject();
-		return std::make_optional<CJsonWriteObjectScope<IJsonWriter>>(mJsonWriter, GetContext());
+		return {mJsonWriter, GetContext()};
 	}
 
 	static constexpr void Finalize() noexcept { /* Not required */ }
@@ -380,20 +379,36 @@ private:
  * @brief Json scope for reading arrays (sequential values).
  */
 template <class TReader>
-class CJsonReadArrayScope final : public CJsonReadScopeBase, public TArchiveScope<SerializeMode::Load>
+class CJsonReadArrayScope final : public CJsonReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	CJsonReadArrayScope(TReader* msgPackReader, SerializationContext& serializationContext, CJsonReadScopeBase* parentScope = nullptr) noexcept
 		: CJsonReadScopeBase(parentScope)
-		, TArchiveScope<SerializeMode::Load>(serializationContext)
+		, ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mJsonReader(msgPackReader)
 	{ }
 
-	~CJsonReadArrayScope()
+	CJsonReadArrayScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
+		: CJsonReadScopeBase(nullptr)
+		, ArchiveScope<SerializeMode::Load>(serializationContext, ScopeUnopened{})
+		, mJsonReader(nullptr)
+	{ }
+
+	~CJsonReadArrayScope() noexcept(false)
 	{
-		if (!GetContext().IsStackUnwinding())
+		if (IsOpened())
 		{
-			mJsonReader->CloseArray(!!mIndex);
+			try
+			{
+				mJsonReader->CloseArray(!!mIndex);
+			}
+			catch (...)
+			{
+				if (!GetContext().IsStackUnwinding())
+				{
+					throw;
+				}
+			}
 		}
 	}
 
@@ -440,7 +455,7 @@ public:
 		return mJsonReader->IsArrayEnd();
 	}
 
-	std::optional<CJsonReadArrayScope<TReader>> OpenArrayScope(size_t)
+	CJsonReadArrayScope<TReader> OpenArrayScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -450,12 +465,12 @@ public:
 		if (mJsonReader->OpenArray())
 		{
 			++mIndex;
-			return std::make_optional<CJsonReadArrayScope<TReader>>(mJsonReader, GetContext(), this);
+			return {mJsonReader, GetContext(), this};
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
-	std::optional<CJsonReadObjectScope<TReader>> OpenObjectScope(size_t)
+	CJsonReadObjectScope<TReader> OpenObjectScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -465,9 +480,9 @@ public:
 		if (mJsonReader->OpenObject())
 		{
 			++mIndex;
-			return std::make_optional<CJsonReadObjectScope<TReader>>(mJsonReader, GetContext(), this);
+			return {mJsonReader, GetContext(), this};
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
 private:
@@ -479,25 +494,42 @@ private:
  * @brief Json scope for reading objects (key-value pairs).
  */
 template <class TReader>
-class CJsonReadObjectScope final : public CJsonReadScopeBase, public TArchiveScope<SerializeMode::Load>
+class CJsonReadObjectScope final : public CJsonReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	CJsonReadObjectScope(TReader* msgPackReader, SerializationContext& serializationContext, CJsonReadScopeBase* parentScope = nullptr) noexcept
 		: CJsonReadScopeBase(parentScope)
-		, TArchiveScope<SerializeMode::Load>(serializationContext)
+		, ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mJsonReader(msgPackReader)
 		, mStartPos(msgPackReader->GetPosition())
 	{ }
 
-	~CJsonReadObjectScope()
+	CJsonReadObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
+		: CJsonReadScopeBase(nullptr)
+		, ArchiveScope<SerializeMode::Load>(serializationContext, ScopeUnopened{})
+		, mJsonReader(nullptr)
+		, mStartPos(0)
+	{ }
+
+	~CJsonReadObjectScope() noexcept(false)
 	{
-		if (!GetContext().IsStackUnwinding())
+		if (IsOpened())
 		{
-			if (!mCurrentKey.empty())
+			try
 			{
-				SkipCurrentKeyValue();
+				if (!mCurrentKey.empty())
+				{
+					SkipCurrentKeyValue();
+				}
+				mJsonReader->CloseObject(!!mIndex);
 			}
-			mJsonReader->CloseObject(!!mIndex);
+			catch (...)
+			{
+				if (!GetContext().IsStackUnwinding())
+				{
+					throw;
+				}
+			}
 		}
 	}
 
@@ -514,11 +546,6 @@ public:
 		}
 		return path;
 	}
-
-	/**
-	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
-	 */
-	[[nodiscard]] static size_t GetEstimatedSize() noexcept { return 0; }
 
 	/**
 	 * @brief Enumerates all keys in the current object.
@@ -564,31 +591,31 @@ public:
 	}
 
 	template <typename TKey>
-	std::optional<CJsonReadArrayScope<TReader>> OpenArrayScope(TKey&& key, size_t)
+	CJsonReadArrayScope<TReader> OpenArrayScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
 			if (mJsonReader->OpenArray())
 			{
-				return std::make_optional<CJsonReadArrayScope<TReader>>(mJsonReader, GetContext(), this);
+				return {mJsonReader, GetContext(), this};
 			}
 			OnFinishChildScope();
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
 	template <typename TKey>
-	std::optional<CJsonReadObjectScope<TReader>> OpenObjectScope(TKey&& key, size_t)
+	CJsonReadObjectScope<TReader> OpenObjectScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
 			if (mJsonReader->OpenObject())
 			{
-				return std::make_optional<CJsonReadObjectScope<TReader>>(mJsonReader, GetContext(), this);
+				return {mJsonReader, GetContext(), this};
 			}
 			OnFinishChildScope();
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
 	void OnFinishChildScope() override
@@ -661,7 +688,7 @@ private:
 /**
  * @brief Json root scope for reading data (can read array or object).
  */
-class BITSERIALIZER_API JsonReadRootScope final : public JsonArchiveTraits, public TArchiveScope<SerializeMode::Load>
+class BITSERIALIZER_API JsonReadRootScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	JsonReadRootScope(std::string_view inputData, SerializationContext& serializationContext);
@@ -682,20 +709,20 @@ public:
 		return mJsonReader->ReadValue(value);
 	}
 
-	[[nodiscard]] std::optional<CJsonReadArrayScope<IJsonReader>> OpenArrayScope(size_t) const
+	[[nodiscard]] CJsonReadArrayScope<IJsonReader> OpenArrayScope(size_t) const
 	{
 		if (mJsonReader->OpenArray()) {
-			return std::make_optional<CJsonReadArrayScope<IJsonReader>>(mJsonReader, GetContext());
+			return {mJsonReader, GetContext()};
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
-	[[nodiscard]] std::optional<CJsonReadObjectScope<IJsonReader>> OpenObjectScope(size_t) const
+	[[nodiscard]] CJsonReadObjectScope<IJsonReader> OpenObjectScope(size_t) const
 	{
 		if (mJsonReader->OpenObject()) {
-			return std::make_optional<CJsonReadObjectScope<IJsonReader>>(mJsonReader, GetContext());
+			return {mJsonReader, GetContext()};
 		}
-		return std::nullopt;
+		return {ScopeUnopened{}, GetContext()};
 	}
 
 	static constexpr void Finalize() noexcept { /* Not required */ }
@@ -714,7 +741,7 @@ private:
  * - `std::string`
  * - `std::istream` and `std::ostream`
  */
-using JsonArchive = TArchiveBase<
+using JsonArchive = ArchiveBase<
 	Detail::JsonArchiveTraits,
 	Detail::JsonReadRootScope,
 	Detail::JsonWriteRootScope>;

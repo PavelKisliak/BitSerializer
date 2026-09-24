@@ -76,15 +76,15 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenLoading)
 	ASSERT_EQ(inputArchive.GetPath(), "");
 
 	auto rootArrayScope = inputArchive.OpenArrayScope(3);
-	ASSERT_TRUE(rootArrayScope.has_value());
+	ASSERT_TRUE(rootArrayScope.IsOpened());
 
 	for (size_t k = 0; k < 3; k++)
 	{
-		auto objectScope = rootArrayScope->OpenObjectScope(0);  // NOLINT(bugprone-unchecked-optional-access)
-		ASSERT_TRUE(objectScope.has_value());
+		auto objectScope = rootArrayScope.OpenObjectScope(0);
+		ASSERT_TRUE(objectScope.IsOpened());
 
-		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), rootArrayScope->GetPath());  // NOLINT(bugprone-unchecked-optional-access)
-		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), objectScope->GetPath());  // NOLINT(bugprone-unchecked-optional-access)
+		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), rootArrayScope.GetPath());
+		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), objectScope.GetPath());
 	}
 }
 
@@ -101,14 +101,14 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 
 	// Act / Assert
 	auto rootArrayScope = outputArchive.OpenArrayScope(3);
-	ASSERT_TRUE(rootArrayScope.has_value());
+	ASSERT_TRUE(rootArrayScope.IsOpened());
 	for (size_t k = 0; k < 3; k++)
 	{
-		auto objectScope = rootArrayScope->OpenObjectScope(0);  // NOLINT(bugprone-unchecked-optional-access)
-		ASSERT_TRUE(objectScope.has_value());
+		auto objectScope = rootArrayScope.OpenObjectScope(0);
+		ASSERT_TRUE(objectScope.IsOpened());
 
-		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), rootArrayScope->GetPath());  // NOLINT(bugprone-unchecked-optional-access)
-		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), objectScope->GetPath());  // NOLINT(bugprone-unchecked-optional-access)
+		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), rootArrayScope.GetPath());
+		ASSERT_EQ(CsvArchive::path_separator + Convert::ToString(k), objectScope.GetPath());
 	}
 }
 

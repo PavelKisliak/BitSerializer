@@ -396,6 +396,8 @@ Examples:
 [RapidJson, PugiXml, RapidYaml] Fix loading optional object from Null (#11)
 ```
 
+**Working-branch commits:** on a feature branch, commit only meaningful changes. When a commit still needs fixes or refinements (review feedback, CI failures, static-analysis errors, etc.), fold them into that commit with `git commit --amend` (or `git rebase -i` to squash a follow-up) — do **not** create separate "fix" commits. This keeps history clean; the PR ends up with one commit per logical change. Only make a new commit for a genuinely new piece of work. If the branch is already pushed, force-push after amending (`git push --force-with-lease`) — but only push when the user explicitly asks.
+
 ### Code style
 
 - **Formatter**: `.clang-tidy`, warnings as errors

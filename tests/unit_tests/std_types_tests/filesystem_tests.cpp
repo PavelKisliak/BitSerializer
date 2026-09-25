@@ -4,7 +4,6 @@
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/archive_stub.h"
-#include "testing_tools/bin_archive_stub.h"
 
 #include "bitserializer/types/std/filesystem.h"
 #include "bitserializer/types/std/array.h"

@@ -6,40 +6,43 @@ ___
 - One common interface allows easy switching between formats JSON, XML, YAML, CSV and MsgPack.
 - Modular architecture lets you include only the serialization archives you need.
 - Compile-time validation of format rules (e.g. JSON allows primitives as roots, while CSV only allows arrays).
-- Functional serialization style similar to the Boost library.
-- Support loading named fields in any order with conditional logic to preserve model compatibility.
+- Non-intrusive¹, functional serialization style allows branching logic.
+- Loading named fields in any order preserves model compatibility across versions.
 - Customizable validation produces a detailed list of errors for deserialized values.
 - Post-load refiners transform deserialized data, for example, trimming strings or setting default values.
 - Seamless handling of optional and required fields, bypassing the need to use `std::optional`.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
-- Payload passthrough of unprocessed data structures with minimal serialization overhead.¹
+- Payload passthrough of unprocessed data structures with minimal serialization overhead.²
 - Enums can be serialized as integers or strings, giving you full control over representation.
-- Effective deserialization from streams with bounded memory usage (built-in JSON/CSV/MsgPack archives).
+- Efficient deserialization from streams with bounded memory usage (built-in JSON/CSV/MsgPack archives).
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - A powerful [string conversion submodule](docs/bitserializer_convert.md) supports enums, classes, chrono types, and UTF encoding.
 
-¹ Payload passthrough is currently only supported by JSON archive.
+ ¹ Non-intrusive — serialization logic is defined outside user classes, so their source code stays unchanged.<br />
+ ² Payload passthrough is currently only supported by the JSON archives (built-in and RapidJSON).
+
+### Supported formats:
+| Format | Dependency | Encoding | Pretty format | Payload passthrough | Streaming |
+| ------ | ------ | ------ | :---: | :---: | :---: |
+| JSON | Built-in | UTF8-32 (LE/BE) | ✅ | ✅ | ✅ |
+| MsgPack | Built-in | Binary | ❌ | ❌ | ✅ |
+| CSV | Built-in | UTF8-32 (LE/BE) | ❌ | ❌ | ✅ |
+| JSON | [RapidJSON](https://github.com/Tencent/rapidjson) | UTF8-32 (LE/BE) | ✅ | ✅ | ❌ |
+| XML | [PugiXml](https://github.com/zeux/pugixml) | UTF8-32 (LE/BE) | ✅ | ❌ | ❌ |
+| YAML | [RapidYAML](https://github.com/biojppm/rapidyaml) | UTF-8 | ❌ | ❌ | ❌ |
+
+Streaming: incremental processing in chunks with bounded memory usage, so documents larger than available RAM can be loaded from streams. All archives support I/O via `std::stream`, but DOM-based archives (RapidJSON, PugiXml, RapidYAML) keep the whole document in memory.
 
 > [!IMPORTANT]
 > The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which requires no external dependencies. The built-in implementation is about 40% faster and offers the same functionality.
 >
 > Your help with testing the built-in implementation before the switch would be much appreciated — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
 
-### Supported formats:
-| Component | Format | Encoding | Pretty format | Based on |
-| ------ | ------ | ------ |:------:| ------ |
-| [json-archive](docs/bitserializer_json.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | Built-in |
-| [rapidjson-archive](docs/bitserializer_rapidjson.md) | JSON | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [RapidJson](https://github.com/Tencent/rapidjson) |
-| [pugixml-archive](docs/bitserializer_pugixml.md) | XML | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | ✅ | [PugiXml](https://github.com/zeux/pugixml) |
-| [rapidyaml-archive](docs/bitserializer_rapidyaml.md) | YAML | UTF-8 | N/A | [RapidYAML](https://github.com/biojppm/rapidyaml) |
-| [csv-archive](docs/bitserializer_csv.md) | CSV | UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE | N/A | Built-in |
-| [msgpack-archive](docs/bitserializer_msgpack.md) | MsgPack | Binary | N/A | Built-in |
-
 ### Requirements:
  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12, Clang-cl¹).
  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be²).
- - JSON, XML and YAML archives are based on third-party libraries (there are plans to reduce dependencies).
+ - The RapidJSON, PugiXml and RapidYAML archives depend on third-party libraries; the built-in JSON, CSV and MsgPack archives have no external dependencies.
 
  ¹ Versions of the RapidYaml base library less than v0.11.1 does not support Clang-cl(Windows).<br />
  ² Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture.
@@ -154,17 +157,17 @@ This chapter provides an overview of the performance characteristics of BitSeria
 
 ### Key performance insights
 - Formats implemented natively in BitSerializer (MsgPack and CSV) demonstrate excellent performance due to their DOM-free architecture. This approach eliminates intermediate object tree construction, enabling direct serialization/deserialization to/from streams.
-- Formats relying on external libraries (RapidJSON, PugiXML, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
+- Formats relying on external libraries (RapidJSON, PugiXml, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
 
 ### Comparing "Parsers" and "Serializers" library classes
-It is important to note that comparing "Serialization" classes (like BitSerializer) with "Parser" classes (such as RapidJSON, NlohmannJson, PugiXML, or RapidYAML) may not always be entirely fair. These two categories of libraries differ fundamentally in their design and purpose:
+It is important to note that comparing "Serialization" classes (like BitSerializer) with "Parser" classes (such as RapidJSON, NlohmannJson, PugiXml, or RapidYAML) may not always be entirely fair. These two categories of libraries differ fundamentally in their design and purpose:
 - **Parsers:** Typically operate on a DOM-based model, where the entire document is loaded into memory before processing. This approach is well-suited for tasks requiring extensive manipulation of the data structure but can introduce overhead during serialization and deserialization.
 - **Serializers:** Focus on streaming serialization, where data is processed incrementally without the need to build an intermediate DOM. This approach is generally faster and more memory-efficient but may lack some of the advanced manipulation features offered by parsers.
 
 It should be noted, that the historical distinction between "DOM parsers" and "stream serializers" is increasingly blurred by modern libraries offering hybrid approaches (e.g. SAX, "on demand").
 
-In this performance analysis, we have benchmarked BitSerializer against the base libraries it relies on (e.g., RapidJSON, PugiXML, and RapidYAML).
+In this performance analysis, we have benchmarked BitSerializer against the base libraries it relies on (e.g., RapidJSON, PugiXml, and RapidYAML).
 These libraries are primarily "Parser" classes, and the performance differences observed reflect the inherent trade-offs between DOM-based parsing and streaming serialization. 
 
 We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization). However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
@@ -188,7 +191,7 @@ The CSV format is the most compact among all tested formats, making it an excell
 For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
 
 ## How to install
-Some archives (JSON, XML and YAML) require third-party libraries, but you can install only the ones which you need.
+Some archives (JSON via RapidJSON, XML and YAML) require third-party libraries, while the built-in JSON, CSV and MsgPack archives have no external dependencies. You can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
 
@@ -431,7 +434,7 @@ void Serialize(TArchive& archive)
 As alternative for internal `Serialize()` method also exists approach with defining global functions, it will be useful in next cases:
 
  - Sources of serializing class cannot be modified (for example from third party library).
- - When class represents list of some values (such as `std::vector`), see [next chapter](#serializing-class-that-represent-an-array).
+ - When class represents list of some values (such as `std::vector`), see [next chapter](#serializing-a-class-that-represents-an-array).
  - When you strongly follow single responsibility principle and wouldn't like to include serialization code into class.
 
 > [!NOTE]
@@ -837,7 +840,7 @@ BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
 Since all of the most well-known text formats (such as JSON) allow only text keys, BitSerializer attempts to convert the map key to a string (except binary formats like MsgPack).
-Out of the box, the library supports all the fundamental types (e.g. `bool`, `int`, `float`) as well as some of the `std` ones (`filesystem::path`, `chrono::timepoint`, etc), but if you want to use your own type as the key, you need to implement the conversion to a string. There are several options with internal and external functions, see details [here](docs\bitserializer_convert.md). For example, you can implement two internal methods in your type:
+Out of the box, the library supports all the fundamental types (e.g. `bool`, `int`, `float`) as well as some of the `std` ones (`filesystem::path`, `chrono::timepoint`, etc), but if you want to use your own type as the key, you need to implement the conversion to a string. There are several options with internal and external functions, see details [here](docs/bitserializer_convert.md). For example, you can implement two internal methods in your type:
 ```cpp
 class YourCustomKey
 {
@@ -1003,7 +1006,7 @@ This occurs in API gateways, event routers, and integration points where your se
 BitSerializer efficiently handles these scenarios with its payload passthrough feature.
 
 > [!NOTE]
-> Currently only one archive (RapidJson) supports data passthrough.
+> Currently the data passthrough is supported by both JSON archives (built-in and RapidJSON).
 
 ```cpp
 using namespace BitSerializer;
@@ -1151,7 +1154,7 @@ int main()
 
 ## Serialization to streams and files
 All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.
-BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but last is only supported by RapidJson, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
+BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but the latter is only supported by the built-in JSON, RapidJSON, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
 The following example shows how to save/load to `std::stream`:
 ```cpp
 class CPoint
@@ -1208,7 +1211,7 @@ BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const Se
 > Note that the stream implementation must support the `seekg()` operation to load fields non-linearly.
 
 > [!NOTE]
-> Built-in archives (JSON, CSV, MsgPack) deserialize streams incrementally in chunks with bounded memory usage, so they can handle files much larger than available RAM. Third-party archives (RapidJSON, PugiXML, RapidYAML) are DOM-based and keep the whole document in memory.
+> Built-in archives (JSON, CSV, MsgPack) deserialize streams incrementally in chunks with bounded memory usage, so they can handle files much larger than available RAM. Third-party archives (RapidJSON, PugiXml, RapidYAML) are DOM-based and keep the whole document in memory.
 
 ## Error handling
 First, let's list what are considered as errors and will throw exception:
@@ -1467,7 +1470,8 @@ BitSerializer::SaveObject<CsvArchive>(testNumber, outputData);
 ```
 
 ## What else to read
-Each of the supported archives has its own page with details (installation, features, samples, etc.):
+Each of the supported archives has its own page with details (features, samples, etc.):
+- [JSON archive "bitserializer-json"](docs/bitserializer_json.md) (built-in)
 - [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
 - [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
@@ -1475,6 +1479,8 @@ Each of the supported archives has its own page with details (installation, feat
 - [MsgPack archive "bitserializer-msgpack"](docs/bitserializer_msgpack.md)
 
 Additionally, you may want to use the [string conversion submodule](docs/bitserializer_convert.md).
+
+For the full change log, see [History.md](History.md); for contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Thanks
 - Artsiom Marozau for developing an archive with support YAML.

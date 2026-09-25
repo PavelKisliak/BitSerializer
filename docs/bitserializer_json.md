@@ -11,43 +11,15 @@ Supported load/save JSON from:
 This is the built-in JSON archive implementation with no external dependencies. It is about 40% faster than the RapidJSON-based implementation and offers the same functionality.
 
 ### How to install
-The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands.
-#### VCPKG
-Add BitSerializer to manifest file (`vcpkg.json`) with `json-archive` feature:
-```json
-{
-    "dependencies": [
-        {
-            "name": "bitserializer",
-            "features": [ "json-archive" ]
-        }
-    ]
-}
-```
-The latest available version: [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer)
-
-If your project is based on VS solution you can just include next header files for start use:
+This archive is built-in and does not require any external dependencies. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/json_archive.h"
 ```
-If you are using CMake, you need to link the library:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::json-archive)
 ```
-#### Conan 2
-Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_json` option:
-```
-[requires]
-bitserializer/x.xx
-
-[options]
-bitserializer/*:with_json=True
-```
-Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
-
-No external dependencies required.
 
 ### Implementation detail
 The JSON specification allows storing not only objects and arrays in the root, but also more primitive types such as string, number, and boolean.

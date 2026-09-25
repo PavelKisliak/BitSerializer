@@ -8,44 +8,11 @@ Supported load/save JSON from:
 This implementation of JSON archive is based on [RapidJson](https://github.com/Tencent/rapidjson) which is one of fastest libraries for parse **JSON**.
 
 ### How to install
-The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands (in this case you should take care of the dependencies yourself).
-#### VCPKG
-Add BitSerializer to manifest file (`vcpkg.json`) with `rapidjson-archive` feature:
-```json
-{
-    "dependencies": [
-        {
-            "name": "bitserializer",
-            "features": [ "rapidjson-archive" ]
-        }
-    ]
-}
-```
-The latest available version: [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer)
-
-If your project is based on VS solution you can just include next header files for start use:
+This archive is based on the third-party [RapidJson](https://github.com/Tencent/rapidjson) library. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/rapidjson_archive.h"
 ```
-If you are using CMake, you need to link the library:
-```cmake
-find_package(bitserializer CONFIG REQUIRED)
-target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
-```
-#### Conan 2
-Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_rapidjson` option:
-```
-[requires]
-bitserializer/x.xx
-
-[options]
-bitserializer/*:with_rapidjson=True
-```
-Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
-
-The dependent library **RapidJson** will be automatically installed.
-Usage the library will be related to selected Conan generator, if your choice is `CMakeDeps`, than linking will be classic:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)

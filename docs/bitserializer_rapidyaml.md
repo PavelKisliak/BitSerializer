@@ -8,43 +8,11 @@ Supported load/save **YAML** from:
 This implementation of **YAML** archive is based on [RapidYAML](https://github.com/biojppm/rapidyaml), which shows good performance in comparison with **YamlCpp**.
 
 ### How to install
-The recommended way is to use one of supported package managers, but you can do it manually via Cmake install command (in this case you should take care of the dependencies yourself).
-#### VCPKG
-Add BitSerializer to manifest file (`vcpkg.json`) with `rapidyaml-archive` feature:
-```json
-{
-    "dependencies": [
-        {
-            "name": "bitserializer",
-            "features": [ "rapidyaml-archive" ]
-        }
-    ]
-}
-```
-The latest available version: [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer)
-
-If your project is based on VS solution you can just include next header files for start use:
+This archive is based on the third-party [RapidYAML](https://github.com/biojppm/rapidyaml) library. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/rapidyaml_archive.h"
 ```
-If you are using CMake, you need to link the library:
-```cmake
-find_package(bitserializer CONFIG REQUIRED)
-target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
-```
-#### Conan 2
-Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_csv` option:
-```
-[requires]
-bitserializer/x.xx
-
-[options]
-bitserializer/*:with_rapidyaml=True
-```
-Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
-
-Usage the library will be related to selected Conan generator, if your choice is `CMakeDeps`, than linking will be classic:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)

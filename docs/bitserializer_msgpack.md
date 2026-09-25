@@ -39,81 +39,18 @@ MsgPack stores numbers in the binary format, that making serialization is up to 
 [See source code](../samples/msgpack_vs_json/msgpack_vs_json.cpp)
 
 ### How to install
-The MsgPack archive does not require any third party dependencies, but since this part is not "header only", it needs to be built.
-The recommended way is to use one of supported package managers, but you can do it manually just via CMake commands.
-
-> [!IMPORTANT]
-> Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
-
-#### VCPKG
-Add BitSerializer to manifest file (`vcpkg.json`) with `msgpack-archive` feature:
-```json
-{
-    "dependencies": [
-        {
-            "name": "bitserializer",
-            "features": [ "msgpack-archive" ]
-        }
-    ]
-}
-```
-The latest available version: [![Vcpkg Version](https://img.shields.io/vcpkg/v/bitserializer?color=blue)](https://vcpkg.link/ports/bitserializer)
-
-If your project is based on VS solution you can just include next header files for start use:
+This archive is built-in and does not require any third-party dependencies, but since it is not header-only, it needs to be compiled. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:
 ```cpp
 #include "bitserializer/bit_serializer.h"
 #include "bitserializer/msgpack_archive.h"
 ```
-If you are using CMake, you need to link the library:
 ```cmake
 find_package(bitserializer CONFIG REQUIRED)
 target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
 ```
 
-#### Conan 2
-Add the BitSerializer recipe to `conanfile.txt` in your project and enable `with_msgpack` option:
-```
-[requires]
-bitserializer/x.xx
-
-[options]
-bitserializer/*:with_msgpack=True
-```
-Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
-
-Usage the library will be related to selected Conan generator, if your choice is `CMakeDeps`, than linking will be classic:
-```cmake
-find_package(bitserializer CONFIG REQUIRED)
-target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
-```
-
-#### CMake install to Unix system
-```sh
-$ git clone https://github.com/PavelKisliak/BitSerializer.git
-$ cmake bitserializer -B bitserializer/build -DBUILD_MSGPACK_ARCHIVE=ON
-$ sudo cmake --build bitserializer/build --config Debug --target install
-$ sudo cmake --build bitserializer/build --config Release --target install
-```
-By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
-
-#### CMake install to your project directory
-You can install BitSerializer to your "ThirdParty" directory in your project.
-Set correct path in `%TargetInstallDir%` (for example 'D:/MyProject/libs/bitserializer') before run.
-```shell
-> git clone https://Pavel_Kisliak@bitbucket.org/Pavel_Kisliak/bitserializer.git
-> cmake bitserializer -B bitserializer/build -DCMAKE_INSTALL_PREFIX:PATH=%TargetInstallDir% -DBUILD_MSGPACK_ARCHIVE=ON
-> sudo cmake --build bitserializer/build --config Debug --target install
-> sudo cmake --build bitserializer/build --config Release --target install
-```
-By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
-
-You will need to explicitly specify the path where to find the library:
-```cmake
-find_package(bitserializer CONFIG REQUIRED
-    PATHS ${CMAKE_CURRENT_SOURCE_DIR}/libs/bitserializer
-    NO_DEFAULT_PATH)
-target_link_libraries(main PRIVATE BitSerializer::msgpack-archive)
-```
+> [!IMPORTANT]
+> Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
 
 ### Samples
 The following two examples are designed specially to demonstrate MsgPack:

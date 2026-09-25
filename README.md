@@ -256,6 +256,67 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 ```
 
+### How to use with CMake FetchContent
+Instead of installing the library, you can download and build it as part of your own CMake project:
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(bitserializer
+    GIT_REPOSITORY https://github.com/PavelKisliak/BitSerializer.git
+    GIT_TAG <version-tag>)  # e.g. the latest release tag, or a branch/commit hash
+
+# Enable only archives which you need (by default all are disabled)
+set(BUILD_JSON_ARCHIVE    ON CACHE BOOL "" FORCE)
+set(BUILD_CSV_ARCHIVE     ON CACHE BOOL "" FORCE)
+set(BUILD_MSGPACK_ARCHIVE ON CACHE BOOL "" FORCE)
+# Third-party archives (JSON via RapidJSON, XML, YAML) are also available:
+# set(BUILD_RAPIDJSON_ARCHIVE ON CACHE BOOL "" FORCE)
+# set(BUILD_PUGIXML_ARCHIVE   ON CACHE BOOL "" FORCE)
+# set(BUILD_RAPIDYAML_ARCHIVE ON CACHE BOOL "" FORCE)
+# Keep the fetched dependency lean
+set(BUILD_TESTS      OFF CACHE BOOL "" FORCE)
+set(BUILD_SAMPLES    OFF CACHE BOOL "" FORCE)
+set(BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(bitserializer)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    BitSerializer::json-archive
+    BitSerializer::csv-archive
+    BitSerializer::msgpack-archive)
+```
+
+The built-in archives (JSON, CSV, MsgPack) require no third-party libraries and are the simplest option for `FetchContent`. Archives based on third-party libraries (`RapidJSON`, `PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
+
+> [!NOTE]
+> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is already available on `master`, but not yet published in a release — until then, set `GIT_TAG master` to use it.
+
+> [!TIP]
+> Add `GIT_SHALLOW TRUE` to `FetchContent_Declare()` for a faster clone when `GIT_TAG` is a tag or branch (it is ignored for commit hashes):
+> ```cmake
+> FetchContent_Declare(bitserializer
+>     GIT_REPOSITORY https://github.com/PavelKisliak/BitSerializer.git
+>     GIT_TAG <version-tag>
+>     GIT_SHALLOW TRUE)
+> ```
+> On CMake 3.24+ you can also prefer an already installed package and only download as a fallback via [`FIND_PACKAGE_ARGS`](https://cmake.org/cmake/help/latest/module/FetchContent.html#command:fetchcontent_declare):
+> ```cmake
+> FetchContent_Declare(bitserializer
+>     GIT_REPOSITORY https://github.com/PavelKisliak/BitSerializer.git
+>     GIT_TAG <version-tag>
+>     FIND_PACKAGE_ARGS CONFIG)
+> ```
+> The downloaded sources are cached in `${CMAKE_BINARY_DIR}/_deps` and reused on subsequent configures.
+
+If you prefer not to build the library at all, the [GitHub Releases](https://github.com/PavelKisliak/BitSerializer/releases) page provides prebuilt packages for some platforms and compilers. Each package contains headers, the `share/bitserializer` CMake config, and static libraries for all archives, but **not** their third-party dependencies (RapidJSON, PugiXml, RapidYAML) — you still need to install those yourself if you use the corresponding archives. Unpack the package and point `find_package()` at its `share/bitserializer` directory:
+```cmake
+find_package(bitserializer CONFIG REQUIRED
+    PATHS ${CMAKE_CURRENT_SOURCE_DIR}/libs/bitserializer/share/bitserializer
+    NO_DEFAULT_PATH)
+```
+> [!IMPORTANT]
+> Prebuilt packages are tied to a specific compiler, platform, C++ standard, linkage, and (on Windows) runtime library. Make sure they match your application exactly, or build from source instead.
+
 ## Unicode support
 BitSerializer provides comprehensive Unicode support by enabling serialization of any `std::basic_string` type (e.g., `std::u8string`, `std::u16string`, `std::u32string`) while automatically handling transcoding to the target output format. You can also use any string type as keys, but keep in mind that transcoding incurs additional processing overhead. For optimal performance, prefer UTF-8 strings, as they are natively supported by all archives and minimize transcoding costs. 
 

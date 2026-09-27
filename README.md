@@ -24,11 +24,13 @@
 | Format | Dependency | Encoding | Pretty format | Payload passthrough | Streaming |
 | ------ | ------ | ------ | :---: | :---: | :---: |
 | JSON | Built-in | UTF8-32 (LE/BE) | ✅ | ✅ | ✅ |
-| MsgPack | Built-in | Binary | ❌ | ❌ | ✅ |
-| CSV | Built-in | UTF8-32 (LE/BE) | ❌ | ❌ | ✅ |
+| MsgPack | Built-in | Binary | N/A | ❌ | ✅ |
+| CSV | Built-in | UTF8-32 (LE/BE) | N/A | ❌ | ✅ |
 | JSON | [RapidJSON](https://github.com/Tencent/rapidjson) | UTF8-32 (LE/BE) | ✅ | ✅ | ❌ |
 | XML | [PugiXml](https://github.com/zeux/pugixml) | UTF8-32 (LE/BE) | ✅ | ❌ | ❌ |
-| YAML | [RapidYAML](https://github.com/biojppm/rapidyaml) | UTF-8 | ❌ | ❌ | ❌ |
+| YAML | [RapidYAML](https://github.com/biojppm/rapidyaml) | UTF-8 | N/A | ❌ | ❌ |
+
+Legend: ✅ supported · ❌ not supported · N/A — not applicable to the format
 
 Streaming: incremental processing in chunks with bounded memory usage, so documents larger than available RAM can be loaded from streams. All archives support I/O via `std::stream`, but DOM-based archives (RapidJSON, PugiXml, RapidYAML) keep the whole document in memory.
 
@@ -500,7 +502,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
 #### Serialization of std::map
-BitSerializer does not add any system information when saving the map, for example serialization to JSON would look like this:
+A map is serialized as a plain object (a set of named values), BitSerializer does not add any system information, for example serialization to JSON would look like this:
 ```cpp
 std::map<std::string, int> testMap = 
     { { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };
@@ -517,32 +519,37 @@ Returns result
 }
 ```
 
-Below is a more complex example, where loading a vector of maps from JSON.
+Below is a more complex example, where loading a vector of maps from JSON. The map key here is `int`, but JSON allows only text keys, so BitSerializer converts each key from string to `int` while loading:
 ```json
 [{
-    "One": 1,
-    "Three": 3,
-    "Two": 2
+    "1": "One",
+    "2": "Two"
 }, {
-    "Five": 5,
-    "Four": 4
+    "3": "Three"
 }]
 ```
 Code:
 ```cpp
-std::vector<std::map<std::string, int>> testVectorOfMaps;
-const std::string inputJson = R"([{"One":1,"Three":3,"Two":2},{"Five":5,"Four":4}])";
+std::vector<std::map<int, std::string>> testVectorOfMaps;
+const std::string inputJson = R"([{"1":"One","2":"Two"},{"3":"Three"}])";
 BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
 ```
 
-Since all of the most well-known text formats (such as JSON) allow only text keys, BitSerializer attempts to convert the map key to a string (except binary formats like MsgPack).
-Out of the box, the library supports all the fundamental types (e.g. `bool`, `int`, `float`) as well as some of the `std` ones (`filesystem::path`, `chrono::timepoint`, etc), but if you want to use your own type as the key, you need to implement the conversion to a string. There are several options with internal and external functions, see details [here](docs/bitserializer_convert.md). For example, you can implement two internal methods in your type:
+Since all of the most well-known text formats (such as JSON) allow only text keys, BitSerializer converts the map key to a string when saving and back to the key type when loading (except binary formats like MsgPack, which store the key natively), for example:
+```cpp
+std::map<int, std::string> testMap = { { 1, "One" }, { 2, "Two" } };
+// JSON    -> { "1": "One", "2": "Two" }   (keys are strings)
+// MsgPack -> keys stay as numbers 1, 2
+```
+
+Out of the box, the library supports all the fundamental types (e.g. `bool`, `int`, `float`) as well as some of the `std` ones (`filesystem::path`, `chrono::time_point`, etc) as map keys. If you want to use your own type as the key, you need to implement the conversion to a string and vice versa (see details [here](docs/bitserializer_convert.md)). For example, you can implement two internal methods in your type:
 ```cpp
 class YourCustomKey
 {
-    std::string ToString() const { }
-    void FromString(std::string_view str)
-}
+public:
+    [[nodiscard]] std::string ToString() const;
+    void FromString(std::string_view str);
+};
 ```
 
 #### Serialization of date and time

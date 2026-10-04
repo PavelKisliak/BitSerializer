@@ -5,8 +5,8 @@
 #pragma once
 #include <memory>
 #include "bitserializer/json_archive.h"
-#include "json_string_readers.h"
-#include "json_stream_readers.h"
+#include "readers/json_string_readers.h"
+#include "readers/json_stream_readers.h"
 
 // Private header holding the `JsonReadRootScope<TFormat>` template definitions.
 // They are kept here (rather than in json_write_root_scope.cpp) so that the Json and JSONC

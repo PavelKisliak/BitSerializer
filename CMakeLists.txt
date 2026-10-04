@@ -309,14 +309,14 @@ if(BUILD_JSON_ARCHIVE)
         "src/json/json_write_root_scope.cpp"
         "src/json/json_read_root_scope.cpp" "src/json/json_read_root_scope_jsonc.cpp"
         "src/json/json_read_root_scope.h"
-        "src/json/json_reader_common.h"
-        "src/json/json_string_readers.h" "src/json/json_string_readers_defs.h"
-        "src/json/json_string_readers.cpp" "src/json/json_string_readers_jsonc.cpp"
-        "src/json/json_stream_readers.h" "src/json/json_stream_readers_defs.h"
-        "src/json/json_stream_readers.cpp" "src/json/json_stream_readers_jsonc.cpp"
-        "src/json/json_writer_common.h"
-        "src/json/json_string_writers.h" "src/json/json_string_writers.cpp"
-        "src/json/json_stream_writers.h" "src/json/json_stream_writers.cpp"
+        "src/json/readers/json_reader_common.h"
+        "src/json/readers/json_string_readers.h" "src/json/readers/json_string_readers_impl.h"
+        "src/json/readers/json_string_readers.cpp" "src/json/readers/json_string_readers_jsonc.cpp"
+        "src/json/readers/json_stream_readers.h" "src/json/readers/json_stream_readers_impl.h"
+        "src/json/readers/json_stream_readers.cpp" "src/json/readers/json_stream_readers_jsonc.cpp"
+        "src/json/writers/json_writer_common.h"
+        "src/json/writers/json_string_writers.h" "src/json/writers/json_string_writers.cpp"
+        "src/json/writers/json_stream_writers.h" "src/json/writers/json_stream_writers.cpp"
     )
     target_include_directories(json_impl PRIVATE "src/")
     if(BUILD_SHARED_LIBS)

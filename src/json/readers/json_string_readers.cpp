@@ -2,7 +2,7 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include "json_string_readers_defs.h"
+#include "json_string_readers_impl.h"
 
 // NOTE: this explicit instantiation intentionally lives in its own translation unit.
 // MSVC generates noticeably slower code for the strict-JSON reader when the larger

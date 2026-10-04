@@ -14,15 +14,12 @@
 
 namespace BitSerializer::Json::Detail
 {
-	using JsonFeatures = BitSerializer::Json::JsonFeatures;
-	using ArchiveType = BitSerializer::ArchiveType;
-
 	/**
 	 * @brief Skips a comment starting at `data[pos] == '/'`.
 	 *
 	 * Returns the position after the comment, or the original position when the
 	 * slash does not start a comment (a lone `/` at the end of the input). Kept
-* out of the hot scanning loop via `BITSERIALIZER_NOINLINE`.
+	 * out of the hot scanning loop via `BITSERIALIZER_NOINLINE`.
 	 */
 	[[maybe_unused]] static BITSERIALIZER_NOINLINE size_t SkipComment(std::string_view data, size_t pos, size_t& line)
 	{
@@ -56,7 +53,7 @@ namespace BitSerializer::Json::Detail
 				++pos;
 			}
 			if (!closed) {
-				throw BitSerializer::ParsingException("Unterminated block comment", line, pos);
+				throw ParsingException("Unterminated block comment", line, pos);
 			}
 			return pos;
 		}
@@ -99,10 +96,6 @@ namespace BitSerializer::Json::Detail
 	//-----------------------------------------------------------------------------
 	// CJsonStringReader
 	//-----------------------------------------------------------------------------
-	using namespace BitSerializer;
-	using JsonFeatures = BitSerializer::Json::JsonFeatures;
-	using ValueType = Json::Detail::ValueType;
-
 	inline ValueType ReadValueTypeImpl(std::string_view inputData, size_t pos, size_t line)
 	{
 		const size_t startPos = pos;
@@ -409,7 +402,7 @@ namespace BitSerializer::Json::Detail
 		if (SkipWhitespaceAndPeek<TFormat>(inputData, pos, line))
 		{
 			// Copy to temporary buffer for prepare null-terminated c-string
-			constexpr size_t maxBufSize = BitSerializer::Json::Detail::MaxNumberLength;
+			constexpr size_t maxBufSize = MaxNumberLength;
 			const size_t remainingSize = inputData.size() - pos;
 			char buf[maxBufSize];
 

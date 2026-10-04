@@ -5,8 +5,8 @@
 #pragma once
 #include <memory>
 #include "gtest/gtest.h"
-#include "json/json_string_readers.h"
-#include "json/json_stream_readers.h"
+#include "json/readers/json_string_readers.h"
+#include "json/readers/json_stream_readers.h"
 
 
 template <class TReader>

@@ -48,7 +48,7 @@ BitSerializer/
 │
 ├── src/                            # Implementations for built-in formats
 │   ├── csv/                        # CSV reader/writer + csv_archive.cpp
-│   ├── json/                       # JSON reader/writer + root scopes (json_write_root_scope.cpp, json_read_root_scope.h)
+│   ├── json/                       # JSON root scopes (json_read_root_scope.h, json_write_root_scope.cpp) + readers/ + writers/
 │   ├── msgpack/                    # MsgPack reader/writer + msgpack_archive.cpp
 │   ├── common/                     # Binary stream reader
 │   └── testing_tools/              # Shared test utilities (fixtures, assertions, perf)

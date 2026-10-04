@@ -3,8 +3,8 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <memory>
-#include "json_string_writers.h"
-#include "json_stream_writers.h"
+#include "writers/json_string_writers.h"
+#include "writers/json_stream_writers.h"
 #include "bitserializer/json_archive.h"
 
 

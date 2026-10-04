@@ -6,8 +6,8 @@
 #include <memory>
 #include <variant>
 #include "gtest/gtest.h"
-#include "json/json_string_writers.h"
-#include "json/json_stream_writers.h"
+#include "json/writers/json_string_writers.h"
+#include "json/writers/json_stream_writers.h"
 
 template <class TWriter>
 class JsonWriterTest : public ::testing::Test

@@ -177,7 +177,6 @@ public:
 
 	PugiXmlArrayScope(ScopeUnopened, SerializationContext& serializationContext)
 		: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
-		, mNode()
 		, mValueIt(mNode.begin())
 	{ }
 
@@ -416,7 +415,6 @@ public:
 
 	PugiXmlObjectScope(ScopeUnopened, SerializationContext& serializationContext)
 		: ArchiveScope<TMode>(serializationContext, ScopeUnopened{})
-		, mNode()
 	{ }
 
 	/**

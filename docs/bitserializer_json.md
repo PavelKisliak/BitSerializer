@@ -95,3 +95,62 @@ This code outputs to the console:
   }
 ]
 ```
+
+### JSONC (comments and trailing commas)
+In addition to the strict JSON archive, the library provides the `JsoncArchive` alias, which reads JSON with
+extensions commonly known as JSONC:
+
+- `//` line comments
+- `/* ... */` block comments
+- a single trailing comma before a closing `]` or `}`
+
+Comments are a read-only extension: `JsoncArchive` always writes plain JSON, so its output is identical to
+`JsonArchive`.
+
+```cpp
+#include <iostream>
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/json_archive.h"
+
+using namespace BitSerializer;
+using JsoncArchive = BitSerializer::Json::JsoncArchive;
+
+class CPoint
+{
+public:
+    CPoint() = default;
+    CPoint(const int x, const int y) : X(x), Y(y) { }
+
+    template <class TArchive>
+    void Serialize(TArchive& archive)
+    {
+        archive << KeyValue("x", X);
+        archive << KeyValue("y", Y);
+    }
+
+    int X = 0, Y = 0;
+};
+
+int main()
+{
+    std::string jsonc = R"({
+        // A line comment
+        "x": 10,   /* a block comment */
+        "y": 20
+    })";
+
+    CPoint point;
+    BitSerializer::LoadObject<JsoncArchive>(point, jsonc);
+
+    // The output is plain JSON
+    auto json = BitSerializer::SaveObject<JsoncArchive>(point);
+    std::cout << json << std::endl; // {"x":10,"y":20}
+
+    return EXIT_SUCCESS;
+}
+```
+
+The `JsoncArchive` alias is a JSON dialect (advertised via `ArchiveType::Jsonc`, see `ArchiveType`)
+that enables all supported extensions. Readers are instantiated per archive type rather than per feature
+combination, so adding new formats (e.g. JSON5) does not multiply the set of compiled instantiations.
+

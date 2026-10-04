@@ -9,9 +9,14 @@
 
 namespace BitSerializer::Json::Detail
 {
+	template <ArchiveType TFormat>
 	class CJsonStreamReader final : public IJsonReader
 	{
+		static_assert(TFormat == ArchiveType::Json || TFormat == ArchiveType::Jsonc,
+			"The specified archive type is not supported by the JSON reader");
 	public:
+		static constexpr bool is_stream_based = true;
+
 		CJsonStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions);
 
 		[[nodiscard]] size_t GetPosition() const noexcept override { return mEncodedStreamReader.GetPosition(); }
@@ -41,7 +46,7 @@ namespace BitSerializer::Json::Detail
 
 		bool ReadValue(std::string_view& value) override;
 
-		bool ReadValue(JsonArchiveTraits::raw_type& value) override;
+		bool ReadValue(JsonArchiveTraits<>::raw_type& value) override;
 
 		[[nodiscard]] ValueType ReadValueType() override;
 
@@ -71,4 +76,7 @@ namespace BitSerializer::Json::Detail
 		size_t mLineNumber = 1;
 		const SerializationOptions& mSerializationOptions;
 	};
+
+	extern template class BITSERIALIZER_API CJsonStreamReader<ArchiveType::Json>;
+	extern template class BITSERIALIZER_API CJsonStreamReader<ArchiveType::Jsonc>;
 }

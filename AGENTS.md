@@ -16,7 +16,7 @@ Key design principles:
 
 | Archive | Header | Namespace | Backing library | CMake option |
 |---------|--------|-----------|-----------------|--------------|
-| JSON (built-in) | `json_archive.h` | `BitSerializer::Json` | Built-in | `BUILD_JSON_ARCHIVE` |
+| JSON/JSONC (built-in) | `json_archive.h` | `BitSerializer::Json` | Built-in | `BUILD_JSON_ARCHIVE` |
 | JSON (RapidJSON) | `rapidjson_archive.h` | `BitSerializer::Json::RapidJson` | RapidJSON | `BUILD_RAPIDJSON_ARCHIVE` |
 | XML | `pugixml_archive.h` | `BitSerializer::Xml::PugiXml` | PugiXml | `BUILD_PUGIXML_ARCHIVE` |
 | YAML | `rapidyaml_archive.h` | `BitSerializer::Yaml::RapidYaml` | RapidYAML | `BUILD_RAPIDYAML_ARCHIVE` |
@@ -48,7 +48,7 @@ BitSerializer/
 │
 ├── src/                            # Implementations for built-in formats
 │   ├── csv/                        # CSV reader/writer + csv_archive.cpp
-│   ├── json/                       # JSON reader/writer + json_archive.cpp
+│   ├── json/                       # JSON reader/writer + root scopes (json_write_root_scope.cpp, json_read_root_scope.h)
 │   ├── msgpack/                    # MsgPack reader/writer + msgpack_archive.cpp
 │   ├── common/                     # Binary stream reader
 │   └── testing_tools/              # Shared test utilities (fixtures, assertions, perf)
@@ -385,7 +385,9 @@ Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::Bui
 3. **Build only the affected target**: `ninja -C build <target_name>`
 4. **Run targeted tests**: `build/bin/<test>.exe --gtest_filter="*YourTest*"` (from command-line build)
 5. **Run full test suite** before committing: `ctest --test-dir build -T test --output-on-failure`
-6. **Commit with convention**: `[Component] Short description (#issue)`
+6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions).
+7. **Offer static analysis before committing**: ask whether to run clang-tidy on the changed files (see [Static analysis](#static-analysis-clang-tidy) below). It is cheap when limited to changed files and catches what CI would flag. Honor a stated user preference (never / always without asking).
+8. **Commit with convention**: `[Component] Short description (#issue)`
 
 Components: `[Core]`, `[Json]`, `[CSV]`, `[MsgPack]`, `[RapidJson]`, `[Convert]`, `[Tests]`, `[CI]`, `[Docs]`.
 Examples:

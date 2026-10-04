@@ -24,6 +24,7 @@ namespace BitSerializer
 	enum class ArchiveType
 	{
 		Json,
+		Jsonc,
 		Xml,
 		Yaml,
 		Csv,
@@ -32,6 +33,7 @@ namespace BitSerializer
 
 	BITSERIALIZER_REGISTER_ENUM(ArchiveType, {
 		{ ArchiveType::Json, "Json" },
+		{ ArchiveType::Jsonc, "Jsonc" },
 		{ ArchiveType::Xml, "Xml" },
 		{ ArchiveType::Yaml, "Yaml" },
 		{ ArchiveType::Csv, "Csv" },

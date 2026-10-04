@@ -9,9 +9,9 @@
 #include "testing_tools/gtest_asserts.h"
 
 using JsonReadersTypes = ::testing::Types<
-	BitSerializer::Json::Detail::CJsonStringReader
-	, BitSerializer::Json::Detail::CJsonStreamReader
->;
+	BitSerializer::Json::Detail::CJsonStringReader<BitSerializer::ArchiveType::Json>
+	, BitSerializer::Json::Detail::CJsonStreamReader<BitSerializer::ArchiveType::Json>
+	>;
 
 // Tests for all implementations of IJsonReader
 TYPED_TEST_SUITE(JsonReaderTest, JsonReadersTypes, );
@@ -1069,7 +1069,7 @@ TYPED_TEST(JsonReaderTest, ReadArrayOfObjects)
 TYPED_TEST(JsonReaderTest, OpenArrayShouldThrowExceptionWhenEmptyJson)
 {
 	this->PrepareReader("");
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::OpenArray, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::OpenArray, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
@@ -1080,7 +1080,7 @@ TYPED_TEST(JsonReaderTest, OpenArrayShouldThrowExceptionWhenMismatchedTypes)
 	for (const auto *testJson : { "true", "3.14", "{ }" })
 	{
 		this->PrepareReader(testJson);
-		BitSerializer::SerializationException ex1 = GTestExpectException<BitSerializer::SerializationException>(&TypeParam::OpenArray, this->mJsonReader);
+		BitSerializer::SerializationException ex1 = GTestExpectException<BitSerializer::SerializationException>(&BitSerializer::Json::Detail::IJsonReader::OpenArray, this->mJsonReader);
 		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex1.GetErrorCode());
 		EXPECT_STREQ("Mismatched types: The type of target field does not match the value being loaded", ex1.what());
 	}
@@ -1107,7 +1107,7 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCloseBracket
 	this->PrepareReader("[");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseArray, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket ']' at end of source JSON", ex.what());
@@ -1118,7 +1118,7 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenRedundantCommaBefor
 	this->PrepareReader("[,]");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseArray, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
@@ -1132,7 +1132,7 @@ TYPED_TEST(JsonReaderTest, CloseArrayShouldThrowExceptionWhenMissingCommaBetween
 ])");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseArray, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseArray, this->mJsonReader, false);
 	EXPECT_EQ(3, ex.line);
 	EXPECT_EQ(9, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
@@ -1143,7 +1143,7 @@ TYPED_TEST(JsonReaderTest, IsArrayEndShouldThrowExceptionWhenMissingCloseBracket
 	this->PrepareReader("[");
 	ASSERT_TRUE(this->mJsonReader->OpenArray());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::IsArrayEnd, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::IsArrayEnd, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket ']' at end of array JSON", ex.what());
@@ -1156,7 +1156,7 @@ TYPED_TEST(JsonReaderTest, ReadValueSeparatorShouldThrowExceptionWhenMissingComm
 	bool value;
 	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueSeparator, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueSeparator, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(6, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
@@ -1336,7 +1336,7 @@ TYPED_TEST(JsonReaderTest, OpenObjectShouldThrowExceptionEmptyJson)
 {
 	this->PrepareReader("");
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::OpenObject, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::OpenObject, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
@@ -1347,7 +1347,7 @@ TYPED_TEST(JsonReaderTest, OpenObjectShouldThrowExceptionWhenMismatchedTypes)
 	for (const auto *testJson : { "true", "3.14", "[ ]" })
 	{
 		this->PrepareReader(testJson);
-		BitSerializer::SerializationException ex1 = GTestExpectException<BitSerializer::SerializationException>(&TypeParam::OpenObject, this->mJsonReader);
+		BitSerializer::SerializationException ex1 = GTestExpectException<BitSerializer::SerializationException>(&BitSerializer::Json::Detail::IJsonReader::OpenObject, this->mJsonReader);
 		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex1.GetErrorCode());
 		EXPECT_STREQ("Mismatched types: The type of target field does not match the value being loaded", ex1.what());
 	}
@@ -1366,7 +1366,7 @@ TYPED_TEST(JsonReaderTest, OpenObjectKeyShouldThrowExceptionWhenInvalidKey)
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 	std::string_view key;
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadKey, this->mJsonReader, key);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadKey, this->mJsonReader, key);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected string for JSON object key", ex.what());
@@ -1378,7 +1378,7 @@ TYPED_TEST(JsonReaderTest, OpenObjectKeyShouldThrowExceptionWhenMissingColon)
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 	std::string_view key;
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadKey, this->mJsonReader, key);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadKey, this->mJsonReader, key);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(8, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a colon between key and value", ex.what());
@@ -1390,7 +1390,7 @@ TYPED_TEST(JsonReaderTest, ReadObjectKeyShouldThrowExceptionWhenIsNotString)
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 	std::string_view key;
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadKey, this->mJsonReader, key);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadKey, this->mJsonReader, key);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(2, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected string for JSON object key", ex.what());
@@ -1416,7 +1416,7 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCloseBracke
 	this->PrepareReader("{");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseObject, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket '}' at end of source JSON", ex.what());
@@ -1427,7 +1427,7 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenRedundantCommaBefo
 	this->PrepareReader("{,}");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseObject, this->mJsonReader, false);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
@@ -1441,7 +1441,7 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingCommaBetwee
 })");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseObject, this->mJsonReader, false);
 	EXPECT_EQ(3, ex.line);
 	EXPECT_EQ(17, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a comma between elements", ex.what());
@@ -1454,7 +1454,7 @@ TYPED_TEST(JsonReaderTest, CloseObjectShouldThrowExceptionWhenMissingColonBetwee
 })");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::CloseObject, this->mJsonReader, false);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::CloseObject, this->mJsonReader, false);
 	EXPECT_EQ(2, ex.line);
 	EXPECT_EQ(10, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing a colon between key and value", ex.what());
@@ -1465,7 +1465,7 @@ TYPED_TEST(JsonReaderTest, IsObjectEndShouldThrowExceptionWhenMissingCloseBracke
 	this->PrepareReader("{");
 	ASSERT_TRUE(this->mJsonReader->OpenObject());
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::IsObjectEnd, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::IsObjectEnd, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(1, ex.offset);
 	EXPECT_STREQ("Parsing error: Missing closing bracket '}' at end of source JSON", ex.what());
@@ -1521,7 +1521,7 @@ TYPED_TEST(JsonReaderTest, SetPositionShouldThrowExceptionWhenInvalidPos)
 	const std::string testJson = "true";
 	this->PrepareReader(testJson);
 
-	const std::invalid_argument ex = GTestExpectException<std::invalid_argument>(&TypeParam::SetPosition, this->mJsonReader, testJson.size() + 1);
+	const std::invalid_argument ex = GTestExpectException<std::invalid_argument>(&BitSerializer::Json::Detail::IJsonReader::SetPosition, this->mJsonReader, testJson.size() + 1);
 	EXPECT_STREQ("Internal error: position is out of range of input data", ex.what());
 }
 
@@ -1613,7 +1613,7 @@ TYPED_TEST(JsonReaderTest, ReadTypeShouldThrowExceptionWhenInvalidSequence)
 {
 	this->PrepareReader("//");
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
@@ -1623,7 +1623,7 @@ TYPED_TEST(JsonReaderTest, ReadTypeShouldThrowExceptionWhenEmptyJson)
 {
 	this->PrepareReader("");
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
@@ -1633,7 +1633,7 @@ TYPED_TEST(JsonReaderTest, ReadTypeShouldThrowExceptionWhenUnexpectedEnd)
 {
 	this->PrepareReader("-");	// Minus without specifying the actual number
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: Unexpected end of input archive", ex.what());
@@ -1656,7 +1656,7 @@ TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenEmptyJson)
 {
 	this->PrepareReader("");
 
-	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
 	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
@@ -1667,7 +1667,7 @@ TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenInvalidSequence)
 	for (const auto *testJson : { "//", "()", "#", "True", "Null" })
 	{
 		this->PrepareReader(testJson);
-		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::ReadValueType, this->mJsonReader);
+		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
 		EXPECT_EQ(1, ex.line);
 		EXPECT_EQ(0, ex.offset);
 		EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
@@ -1692,7 +1692,7 @@ TYPED_TEST(JsonReaderTest, SkipStringShouldThrowExceptionWhenNoCloseQuotes)
 {
 	this->PrepareReader(R"("text)");
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(5, ex.offset);
 	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
@@ -1806,7 +1806,7 @@ TYPED_TEST(JsonReaderTest, SkipArrayShouldThrowExceptionWhenMissingComma)
 	std::string testJson = "[1 true]";
 	this->PrepareReader(testJson);
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(3, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or ']' in array", ex.what());
@@ -1817,7 +1817,7 @@ TYPED_TEST(JsonReaderTest, SkipArrayShouldThrowExceptionWhenMissingClosingBracke
 	std::string testJson = "[1, 2 ";
 	this->PrepareReader(testJson);
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(6, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or ']' in array", ex.what());
@@ -1911,7 +1911,7 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingColon)
 	std::string testJson = R"({	"key1" true })";
 	this->PrepareReader(testJson);
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(9, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ':' in object", ex.what());
@@ -1925,7 +1925,7 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingComma)
 })";
 	this->PrepareReader(testJson);
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
 	EXPECT_EQ(3, ex.line);
 	EXPECT_EQ(17, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or '}' in object", ex.what());
@@ -1936,7 +1936,7 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingClosingBrack
 	std::string testJson = R"({	"key1": true )";
 	this->PrepareReader(testJson);
 
-	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&TypeParam::SkipValue, this->mJsonReader);
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(15, ex.offset);
 	EXPECT_STREQ("Parsing error: Expected ',' or '}' in object", ex.what());
@@ -1947,7 +1947,7 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingClosingBrack
 //-----------------------------------------------------------------------------
 TYPED_TEST(JsonReaderTest, ReadFromUtf8StreamWithBom)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		std::string sourceStr = std::string(
 			BitSerializer::Convert::Utf::Utf8::bom, sizeof(BitSerializer::Convert::Utf::Utf8::bom)) + R"({"key":"value"})";
@@ -1958,7 +1958,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf8StreamWithBom)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStream)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		auto json = NativeStringToLittleEndian(u"{\"key\":\"value\"}");
 		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t)));
@@ -1968,7 +1968,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStream)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStreamWithBom)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		std::string sourceStr = std::string(BitSerializer::Convert::Utf::Utf16Le::bom, sizeof(BitSerializer::Convert::Utf::Utf16Le::bom));
 		auto json = NativeStringToLittleEndian(u"{\"key\":\"value\"}");
@@ -1980,7 +1980,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStreamWithBom)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf16BeStream)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		auto json = NativeStringToBigEndian(u"{\"key\":\"value\"}");
 		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char16_t)));
@@ -1990,7 +1990,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf16BeStream)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf32LeStream)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		auto json = NativeStringToLittleEndian(U"{\"key\":\"value\"}");
 		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char32_t)));
@@ -2000,7 +2000,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf32LeStream)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf32BeStream)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		auto json = NativeStringToBigEndian(U"{\"key\":\"value\"}");
 		this->PrepareStreamReader(std::string(reinterpret_cast<const char*>(json.data()), json.size() * sizeof(char32_t)));
@@ -2010,7 +2010,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf32BeStream)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStreamWithSurrogatePair)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		// JSON: {"msg":"Hi😀"} where 😀 = U+1F600 = surrogate pair 0xD83D, 0xDE00
 		auto json = NativeStringToLittleEndian(u"{\"msg\":\"Hi😀\"}");
@@ -2022,7 +2022,7 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf16LeStreamWithSurrogatePair)
 
 TYPED_TEST(JsonReaderTest, ReadFromUtf16BeStreamWithSurrogatePair)
 {
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Json::Detail::CJsonStreamReader>)
+	if constexpr (TypeParam::is_stream_based)
 	{
 		// JSON: {"msg":"Hi😀"} as UTF-16BE
 		auto json = NativeStringToBigEndian(u"{\"msg\":\"Hi😀\"}");
@@ -2030,6 +2030,188 @@ TYPED_TEST(JsonReaderTest, ReadFromUtf16BeStreamWithSurrogatePair)
 		this->PrepareStreamReader(std::move(sourceStr));
 		this->AssertReadKeyValue("msg", std::string("Hi\xF0\x9F\x98\x80", 6));
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Tests of reading JSONC (comments and trailing commas)
+//-----------------------------------------------------------------------------
+namespace
+{
+	using ArchiveType = BitSerializer::ArchiveType;
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueWithLineComment)
+{
+	this->PrepareReaderWithFeatures("// leading comment\n42", ArchiveType::Jsonc);
+	int32_t value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueWithBlockComment)
+{
+	this->PrepareReaderWithFeatures("/* leading\n comment */ -3.14", ArchiveType::Jsonc);
+	double value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_DOUBLE_EQ(-3.14, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueTypeWithLeadingComment)
+{
+	this->PrepareReaderWithFeatures("/* comment */ true", ArchiveType::Jsonc);
+	EXPECT_EQ(BitSerializer::Json::Detail::ValueType::Boolean, this->mJsonReader->ReadValueType());
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldNotTreatCommentMarkersInsideStringAsComments)
+{
+	this->PrepareReaderWithFeatures(R"("http://example.com/*not a comment*/")", ArchiveType::Jsonc);
+	std::string_view value;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ("http://example.com/*not a comment*/", value);
+}
+
+TYPED_TEST(JsonReaderTest, ReadArrayWithCommentsBetweenElements)
+{
+	this->PrepareReaderWithFeatures(R"([
+		1, // first
+		/* second
+		   value */ 2,
+		3 // third
+	])", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(1, value);
+	EXPECT_FALSE(this->mJsonReader->IsArrayEnd());
+	this->mJsonReader->ReadValueSeparator();
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(2, value);
+	this->mJsonReader->ReadValueSeparator();
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(3, value);
+	EXPECT_TRUE(this->mJsonReader->IsArrayEnd());
+	this->mJsonReader->CloseArray(true);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadObjectWithCommentsAroundTokens)
+{
+	this->PrepareReaderWithFeatures(R"({
+		/* key */ "key" /* colon */ : /* value */ "value"
+	})", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenObject());
+	std::string_view key, value;
+	this->mJsonReader->ReadKey(key);
+	EXPECT_EQ("key", key);
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ("value", value);
+	EXPECT_TRUE(this->mJsonReader->IsObjectEnd());
+	this->mJsonReader->CloseObject(true);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, SkipValueWithComments)
+{
+	this->PrepareReaderWithFeatures(R"({
+		// array
+		"key": [1, /* two */ 2, 3]
+	})", ArchiveType::Jsonc);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueWithTrailingBlockComment)
+{
+	this->PrepareReaderWithFeatures("42 /* trailing comment */", ArchiveType::Jsonc);
+	int32_t value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+}
+
+TYPED_TEST(JsonReaderTest, ReadShouldThrowExceptionWhenBlockCommentIsUnterminated)
+{
+	this->PrepareReaderWithFeatures("/* comment 42", ArchiveType::Jsonc);
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([this] { this->mJsonReader->SkipValue(); });
+	EXPECT_STREQ("Parsing error: Unterminated block comment", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, StrictJsonShouldRejectComments)
+{
+	this->PrepareReaderWithFeatures("/* comment */ 42", ArchiveType::Json);
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([this] { this->mJsonReader->SkipValue(); });
+	EXPECT_STREQ("Parsing error: Unexpected character while skipping value", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadArrayWithTrailingComma)
+{
+	this->PrepareReaderWithFeatures("[1, 2, ]", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(1, value);
+	this->mJsonReader->ReadValueSeparator();
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(2, value);
+	EXPECT_TRUE(this->mJsonReader->IsArrayEnd()) << "A trailing comma must be treated as the end of the array";
+	this->mJsonReader->CloseArray(true);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadObjectWithTrailingComma)
+{
+	this->PrepareReaderWithFeatures(R"({ "key1": 1, "key2": 2, })", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenObject());
+	std::string_view key;
+	int32_t value = 0;
+	this->mJsonReader->ReadKey(key);
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(1, value);
+	this->mJsonReader->ReadValueSeparator();
+	this->mJsonReader->ReadKey(key);
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(2, value);
+	EXPECT_TRUE(this->mJsonReader->IsObjectEnd()) << "A trailing comma must be treated as the end of the object";
+	this->mJsonReader->CloseObject(true);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, SkipValueWithTrailingCommas)
+{
+	this->PrepareReaderWithFeatures(R"({ "key": [1, 2, 3, ], })", ArchiveType::Jsonc);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, StrictJsonShouldRejectTrailingComma)
+{
+	this->PrepareReaderWithFeatures("[1, 2, ]", ArchiveType::Json);
+
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	this->mJsonReader->ReadValueSeparator();
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_FALSE(this->mJsonReader->IsArrayEnd());
+	this->mJsonReader->ReadValueSeparator();
+	EXPECT_THROW(this->mJsonReader->ReadValue(value), BitSerializer::SerializationException);
+}
+
+TYPED_TEST(JsonReaderTest, ReadWithCommentsAndTrailingCommas)
+{
+	this->PrepareReaderWithFeatures(R"({
+		// first element
+		"key": [ 1, /* two */ 2, ],
+	})", ArchiveType::Jsonc);
+	this->mJsonReader->SkipValue();
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
 #pragma warning(pop)

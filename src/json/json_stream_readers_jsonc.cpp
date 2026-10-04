@@ -4,12 +4,11 @@
 *******************************************************************************/
 #include "json_stream_readers_defs.h"
 
-// NOTE: this explicit instantiation intentionally lives in its own translation unit.
-// MSVC generates noticeably slower code for the strict-JSON reader when the larger
-// JSONC instantiation is compiled in the same TU, even though `if constexpr` removes
-// all JSONC handling from the strict path. Keep exactly one format per TU.
+// NOTE: the JSONC instantiation lives in its own translation unit on purpose:
+// compiling it together with the strict-JSON one makes MSVC generate slower code for
+// the strict reader (see json_stream_readers.cpp for details). Keep one format per TU.
 
 namespace BitSerializer::Json::Detail
 {
-	template class BITSERIALIZER_API CJsonStreamReader<ArchiveType::Json>;
+	template class BITSERIALIZER_API CJsonStreamReader<ArchiveType::Jsonc>;
 }

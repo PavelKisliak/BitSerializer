@@ -6,6 +6,7 @@ find_package(GTest REQUIRED)
 # Target configuration
 add_executable(${PROJECT_NAME}
     json_archive_tests.cpp
+    jsonc_archive_tests.cpp
     json_std_containers_tests.cpp
 )
 

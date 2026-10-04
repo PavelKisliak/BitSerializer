@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Artsiom Marozau, Pavel Kisliak                    *
+* Copyright (C) 2018-2026 by Artsiom Marozau, Pavel Kisliak                    *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -29,10 +29,6 @@ public:
 	}
 
 protected:
-	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
-	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF8<>>;
-	using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
-
 	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		ryml::Tree tree;

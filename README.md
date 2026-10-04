@@ -23,7 +23,7 @@
 ### Supported formats:
 | Format | Dependency | Encoding | Pretty format | Payload passthrough | Streaming |
 | ------ | ------ | ------ | :---: | :---: | :---: |
-| JSON | Built-in | UTF8-32 (LE/BE) | ✅ | ✅ | ✅ |
+| JSON/JSONC | Built-in | UTF8-32 (LE/BE) | ✅ | ✅ | ✅ |
 | MsgPack | Built-in | Binary | N/A | ❌ | ✅ |
 | CSV | Built-in | UTF8-32 (LE/BE) | N/A | ❌ | ✅ |
 | JSON | [RapidJSON](https://github.com/Tencent/rapidjson) | UTF8-32 (LE/BE) | ✅ | ✅ | ❌ |

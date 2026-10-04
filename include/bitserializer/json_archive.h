@@ -13,14 +13,89 @@
 
 
 namespace BitSerializer::Json {
+
+/**
+ * @brief Bit flags describing individual optional JSON extensions.
+ *
+ * Used to describe the feature set of a JSON dialect (see `ArchiveType` and
+ * `Detail::GetFormatFeatures`). Values can be combined with the bitwise OR
+ * operator, for example: `JsonFeatures::Comments | JsonFeatures::TrailingCommas`.
+ */
+enum class JsonFeatures : uint32_t
+{
+	/// Strict JSON without extensions.
+	None = 0,
+
+	/// Allows C-style `//` line and `/* */` block comments.
+	Comments = 1u << 0,
+
+	/// Allows a single trailing comma before a closing `]` or `}`.
+	TrailingCommas = 1u << 1,
+
+	/// Enables all supported extensions.
+	All = (1u << 0) | (1u << 1)
+};
+
+constexpr JsonFeatures operator|(JsonFeatures lhs, JsonFeatures rhs) noexcept
+{
+	return static_cast<JsonFeatures>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+}
+
+constexpr JsonFeatures operator&(JsonFeatures lhs, JsonFeatures rhs) noexcept
+{
+	return static_cast<JsonFeatures>(static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs));
+}
+
+constexpr JsonFeatures& operator|=(JsonFeatures& lhs, JsonFeatures rhs) noexcept
+{
+	lhs = lhs | rhs;
+	return lhs;
+}
+
+constexpr JsonFeatures& operator&=(JsonFeatures& lhs, JsonFeatures rhs) noexcept
+{
+	lhs = lhs & rhs;
+	return lhs;
+}
+
+/**
+ * @brief Returns `true` when all bits of `feature` are present in `features`.
+ */
+constexpr bool HasFeature(JsonFeatures features, JsonFeatures feature) noexcept
+{
+	return (features & feature) == feature;
+}
+
 namespace Detail {
 
 /**
- * @brief Json archive traits.
+ * @brief Returns the feature set enabled for the given archive type.
+ *
+ * Only JSON archive types (`ArchiveType::Json` and `ArchiveType::Jsonc`) are valid here;
+ * other types are rejected by a `static_assert` in the JSON readers.
  */
+constexpr JsonFeatures GetFormatFeatures(ArchiveType archiveType) noexcept
+{
+	switch (archiveType)
+	{
+	case ArchiveType::Json:
+		return JsonFeatures::None;
+	case ArchiveType::Jsonc:
+		return JsonFeatures::All;
+	default:
+		return JsonFeatures::None;
+	}
+}
+
+/**
+ * @brief Json archive traits.
+ *
+ * @tparam TArchiveType Archive type advertised by the archive (e.g. `ArchiveType::Jsonc`).
+ */
+template <ArchiveType TArchiveType = ArchiveType::Json>
 struct JsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
-	static constexpr ArchiveType archive_type = ArchiveType::Json;
+	static constexpr ArchiveType archive_type = TArchiveType;
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
 	using string_view_type = std::string_view;
@@ -81,7 +156,7 @@ public:
 	virtual void WriteValue(const char* value) = 0;	// For avoid conflict with overload for boolean
 	virtual void WriteValue(std::string_view value) = 0;
 
-	virtual void WriteValue(JsonArchiveTraits::raw_type& value) = 0;
+	virtual void WriteValue(JsonArchiveTraits<>::raw_type& value) = 0;
 
 	virtual void WriteValueSeparator() = 0;
 
@@ -138,7 +213,7 @@ public:
 
 	virtual bool ReadValue(std::string_view& value) = 0;
 
-	virtual bool ReadValue(JsonArchiveTraits::raw_type& value) = 0;
+	virtual bool ReadValue(JsonArchiveTraits<>::raw_type& value) = 0;
 
 	[[nodiscard]] virtual ValueType ReadValueType() = 0;
 
@@ -167,7 +242,7 @@ class CJsonWriteObjectScope;
  * @brief Json scope for writing arrays (sequential values).
  */
 template <class TWriter>
-class CJsonWriteArrayScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Save>
+class CJsonWriteArrayScope final : public JsonArchiveTraits<>, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CJsonWriteArrayScope(TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
@@ -224,7 +299,7 @@ private:
  * @brief Json scope for writing objects (key-value pairs).
  */
 template <class TWriter>
-class CJsonWriteObjectScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Save>
+class CJsonWriteObjectScope final : public JsonArchiveTraits<>, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CJsonWriteObjectScope(TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
@@ -285,7 +360,7 @@ private:
 /**
  * @brief Json root scope for writing data (can write array or object).
  */
-class BITSERIALIZER_API JsonWriteRootScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Save>
+class BITSERIALIZER_API JsonWriteRootScope final : public JsonArchiveTraits<>, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	JsonWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
@@ -339,7 +414,7 @@ private:
 template <class TReader> class CJsonReadObjectScope;
 
 
-class CJsonReadScopeBase : public JsonArchiveTraits
+class CJsonReadScopeBase : public JsonArchiveTraits<>
 {
 public:
 	CJsonReadScopeBase(CJsonReadScopeBase* parentScope = nullptr) noexcept
@@ -687,8 +762,11 @@ private:
 
 /**
  * @brief Json root scope for reading data (can read array or object).
+ *
+ * @tparam TFormat JSON archive type enabled for reading (see `ArchiveType`).
  */
-class BITSERIALIZER_API JsonReadRootScope final : public JsonArchiveTraits, public ArchiveScope<SerializeMode::Load>
+template <ArchiveType TFormat>
+class BITSERIALIZER_API JsonReadRootScope final : public JsonArchiveTraits<TFormat>, public ArchiveScope<SerializeMode::Load>
 {
 public:
 	JsonReadRootScope(std::string_view inputData, SerializationContext& serializationContext);
@@ -703,7 +781,7 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type> || std::is_same_v<T, raw_type>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::string_view_type> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::raw_type>, int> = 0>
 	bool SerializeValue(T& value) const
 	{
 		return mJsonReader->ReadValue(value);
@@ -735,16 +813,35 @@ private:
 
 
 /**
- * @brief Json archive.
+ * @brief Json archive with a configurable JSON dialect.
  *
  * Supports load/save from:
  * - `std::string`
  * - `std::istream` and `std::ostream`
+ *
+ * Readers are instantiated per archive type (see `ArchiveType`), so the set of
+ * compiled instantiations stays linear even as new formats (e.g. JSON5) are added.
+ *
+ * @tparam TFormat JSON archive type (e.g. `ArchiveType::Jsonc`).
  */
-using JsonArchive = ArchiveBase<
-	Detail::JsonArchiveTraits,
-	Detail::JsonReadRootScope,
+template <ArchiveType TFormat>
+using JsonArchiveWith = ArchiveBase<
+	Detail::JsonArchiveTraits<TFormat>,
+	Detail::JsonReadRootScope<TFormat>,
 	Detail::JsonWriteRootScope>;
+
+/**
+ * @brief Strict JSON archive.
+ */
+using JsonArchive = JsonArchiveWith<ArchiveType::Json>;
+
+/**
+ * @brief JSONC archive (JSON with comments and trailing commas).
+ *
+ * Reading supports `//` line comments, block comments and a single trailing
+ * comma before a closing `]` or `}`. Output is written as plain JSON.
+ */
+using JsoncArchive = JsonArchiveWith<ArchiveType::Jsonc>;
 
 /**
  * @brief Represents an opaque JSON subtree for efficient pass-through handling.

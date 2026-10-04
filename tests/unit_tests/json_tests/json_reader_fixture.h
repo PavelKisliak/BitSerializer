@@ -20,14 +20,14 @@ public:
 		mTestJson = std::move(testJson);
 		mSerializationOptions.overflowNumberPolicy = overflowNumberPolicy;
 		mSerializationOptions.mismatchedTypesPolicy = mismatchedTypesPolicy;
-		if constexpr (std::is_same_v<TReader, BitSerializer::Json::Detail::CJsonStringReader>)
-		{
-			mJsonReader = std::make_shared<TReader>(mTestJson, mSerializationOptions);
-		}
-		if constexpr (std::is_same_v<TReader, BitSerializer::Json::Detail::CJsonStreamReader>)
+		if constexpr (TReader::is_stream_based)
 		{
 			mInputStream = std::make_optional<std::istringstream>(mTestJson);
 			mJsonReader = std::make_shared<TReader>(mInputStream.value(), mSerializationOptions);
+		}
+		else
+		{
+			mJsonReader = std::make_shared<TReader>(mTestJson, mSerializationOptions);
 		}
 	}
 
@@ -36,6 +36,38 @@ public:
 		mSerializationOptions = options;
 		mInputStream = std::make_optional<std::istringstream>(std::move(sourceData));
 		mJsonReader = std::make_shared<TReader>(mInputStream.value(), mSerializationOptions);
+	}
+
+	template <BitSerializer::ArchiveType TFormat>
+	void PrepareReaderWithFeaturesImpl(std::string testJson)
+	{
+		mTestJson = std::move(testJson);
+		mSerializationOptions = {};
+		if constexpr (TReader::is_stream_based)
+		{
+			mInputStream = std::make_optional<std::istringstream>(mTestJson);
+			mJsonReader = std::make_shared<BitSerializer::Json::Detail::CJsonStreamReader<TFormat>>(mInputStream.value(), mSerializationOptions);
+		}
+		else
+		{
+			mJsonReader = std::make_shared<BitSerializer::Json::Detail::CJsonStringReader<TFormat>>(mTestJson, mSerializationOptions);
+		}
+	}
+
+	void PrepareReaderWithFeatures(std::string testJson, BitSerializer::ArchiveType format)
+	{
+		switch (format)
+		{
+		case BitSerializer::ArchiveType::Json:
+			PrepareReaderWithFeaturesImpl<BitSerializer::ArchiveType::Json>(std::move(testJson));
+			break;
+		case BitSerializer::ArchiveType::Jsonc:
+			PrepareReaderWithFeaturesImpl<BitSerializer::ArchiveType::Jsonc>(std::move(testJson));
+			break;
+		default:
+			GTEST_FAIL() << "Unexpected ArchiveType value";
+			break;
+		}
 	}
 
 	void AssertReadKeyValue(std::string_view expectedKey, std::string_view expectedValue)
@@ -60,6 +92,6 @@ public:
 protected:
 	std::string mTestJson;
 	BitSerializer::SerializationOptions mSerializationOptions;
-	std::shared_ptr<TReader> mJsonReader;
+	std::shared_ptr<BitSerializer::Json::Detail::IJsonReader> mJsonReader;
 	std::optional<std::istringstream> mInputStream;
 };

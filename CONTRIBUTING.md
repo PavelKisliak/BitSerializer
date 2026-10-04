@@ -283,6 +283,18 @@ In Release mode, each archive and stage runs for **30 seconds** to produce repea
 - Measures serialization speed (fields/ms) for save and load operations
 - Reports are saved as JSON files in `benchmark_results/` directory (requires RapidJSON archive to be enabled)
 
+### Why the full round-trip benchmark matters
+
+Performance changes must be validated with the **full round-trip benchmark** (save → load of a representative model), not only with microbenchmarks of individual functions. Compiler code generation can shift for reasons unrelated to the algorithm you changed:
+
+- A real case: after templating the JSON reader on the format (`ArchiveType::Json`/`Jsonc`), strict-JSON load regressed ~6% (16500 → ~15493 fields/ms) even though the strict path was unchanged — `if constexpr` removed all JSONC handling and the hot functions' assembly was byte-identical to before. The cause was purely compiler behavior: MSVC generated slower code for the strict instantiation when the larger JSONC instantiation was compiled in the same translation unit. Splitting the explicit instantiations into separate TUs restored the performance.
+
+Lessons:
+
+- **Measure the round-trip.** A change that looks neutral in isolation can still move the whole pipeline.
+- **Microbenchmarks of a single function are still useful** for profiling and hypothesis testing (e.g. whether `__forceinline`/`noinline` helps a hot loop), but they cannot detect whole-TU/binary codegen effects — never rely on them alone.
+- **Compare in a single session.** Machine state drifts between sessions; take several back-to-back runs (min-time per metric) of the configurations you are contrasting.
+
 ### Error handling: exceptions vs `Expected`
 
 Exceptions are the primary error-handling mechanism by design. An experimental migration of the

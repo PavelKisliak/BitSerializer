@@ -306,10 +306,14 @@ endif()
 if(BUILD_JSON_ARCHIVE)
     # JSON archive object files
     add_library(json_impl OBJECT
-        "src/json/json_archive.cpp"
+        "src/json/json_write_root_scope.cpp"
+        "src/json/json_read_root_scope.cpp" "src/json/json_read_root_scope_jsonc.cpp"
+        "src/json/json_read_root_scope.h"
         "src/json/json_reader_common.h"
-        "src/json/json_string_readers.h" "src/json/json_string_readers.cpp"
-        "src/json/json_stream_readers.h" "src/json/json_stream_readers.cpp"
+        "src/json/json_string_readers.h" "src/json/json_string_readers_defs.h"
+        "src/json/json_string_readers.cpp" "src/json/json_string_readers_jsonc.cpp"
+        "src/json/json_stream_readers.h" "src/json/json_stream_readers_defs.h"
+        "src/json/json_stream_readers.cpp" "src/json/json_stream_readers_jsonc.cpp"
         "src/json/json_writer_common.h"
         "src/json/json_string_writers.h" "src/json/json_string_writers.cpp"
         "src/json/json_stream_writers.h" "src/json/json_stream_writers.cpp"

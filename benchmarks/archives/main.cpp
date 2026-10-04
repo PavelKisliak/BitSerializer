@@ -52,6 +52,9 @@ int main()	// NOLINT(bugprone-exception-escape)
 #ifdef JSON_BENCHMARK
 		CBitSerializerBenchmark<BitSerializer::Json::JsonArchive> jsonBenchmark;
 		benchmarkResults.push_back(jsonBenchmark.RunBenchmark(DefaultStageTestTime));
+
+		CBitSerializerBenchmark<BitSerializer::Json::JsoncArchive> jsoncBenchmark;
+		benchmarkResults.push_back(jsoncBenchmark.RunBenchmark(DefaultStageTestTime));
 #endif
 #ifdef CSV_BENCHMARK
 		CBitSerializerBenchmark<BitSerializer::Csv::CsvArchive> csvBenchmark;

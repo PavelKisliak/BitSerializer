@@ -61,7 +61,7 @@ namespace BitSerializer::Json::Detail
 		}
 		void WriteValue(std::string_view value) override;
 
-		void WriteValue(JsonArchiveTraits::raw_type& value) override {
+		void WriteValue(JsonArchiveTraits<>::raw_type& value) override {
 			mOutputString.append(value.Get());
 		}
 
@@ -175,7 +175,7 @@ namespace BitSerializer::Json::Detail
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
 		void WriteValue(std::string_view value) override;
 
-		void WriteValue(JsonArchiveTraits::raw_type& value) override
+		void WriteValue(JsonArchiveTraits<>::raw_type& value) override
 		{
 			WriteIndent();
 			mOutputString.append(value.Get());

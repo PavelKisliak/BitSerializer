@@ -3,8 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <memory>
-#include "json_string_readers.h"
-#include "json_stream_readers.h"
 #include "json_string_writers.h"
 #include "json_stream_writers.h"
 #include "bitserializer/json_archive.h"
@@ -60,18 +58,4 @@ namespace BitSerializer::Json::Detail
 		delete mJsonWriter;
 	}
 
-	JsonReadRootScope::JsonReadRootScope(std::string_view inputData, SerializationContext& serializationContext)
-		: ArchiveScope<SerializeMode::Load>(serializationContext)
-		, mJsonReader(std::make_unique<CJsonStringReader>(inputData, serializationContext.GetOptions()).release())
-	{ }
-
-	JsonReadRootScope::JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext)
-		: ArchiveScope<SerializeMode::Load>(serializationContext)
-		, mJsonReader(std::make_unique<CJsonStreamReader>(inputStream, serializationContext.GetOptions()).release())
-	{ }
-
-	JsonReadRootScope::~JsonReadRootScope()
-	{
-		delete mJsonReader;
-	}
 }

@@ -818,8 +818,11 @@ using JsonArchive = ArchiveBase<
  *
  * This type captures a JSON subtree as a DOM fragment during deserialization, avoiding conversion to C++ objects.
  * During serialization, the fragment is directly inserted without re-parsing (cannot be used with another archive).
+ *
+ * @deprecated Use `JsonArchive::raw_type` instead. The free alias is removed in favor of the uniform
+ *             per-archive `raw_type` accessor.
  */
-using Raw = JsonArchive::raw_type;
+using Raw [[deprecated("Use JsonArchive::raw_type instead")]] = JsonArchive::raw_type;
 
 } // namespace BitSerializer::Json::RapidJson
 

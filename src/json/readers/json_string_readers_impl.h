@@ -743,15 +743,15 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStringReader<TFormat>::ReadValue(JsonArchiveTraits<>::raw_type& value)
+	bool CJsonStringReader<TFormat>::ReadRawValue(std::string& value)
 	{
 		SkipWhitespaceAndPeek<TFormat>(mInputData, mPos, mLineNumber);
 		const size_t startPos = mPos;
 
 		SkipValueImpl<TFormat>(mInputData, mPos, mLineNumber);
-		value = JsonArchiveTraits<>::raw_type(JsonArchiveTraits<>::raw_type::value_type(mInputData.substr(startPos, mPos - startPos)));
+		value.assign(mInputData.substr(startPos, mPos - startPos));
 
-		return !value.Get().empty();
+		return !value.empty();
 	}
 
 	template <ArchiveType TFormat>

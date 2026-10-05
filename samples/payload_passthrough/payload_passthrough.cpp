@@ -1,10 +1,10 @@
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/json_archive.h"
 #include "bitserializer/types/std/chrono.h"
 
 using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 
 // Incoming message structure (from external system)
 struct ExternalEvent
@@ -12,7 +12,7 @@ struct ExternalEvent
 	std::string EventId;
 	std::string EventType;
 	std::chrono::system_clock::time_point Timestamp;
-	Json::RapidJson::Raw Payload;  // Opaque payload
+	JsonArchive::raw_type Payload;  // Opaque payload
 
 	template <typename TArchive>
 	void Serialize(TArchive& archive)
@@ -28,7 +28,7 @@ struct ExternalEvent
 struct RoutingEnvelope
 {
 	std::string RouteId;
-	Json::RapidJson::Raw Payload;  // Pass-through payload
+	JsonArchive::raw_type Payload;  // Pass-through payload
 
 	template <typename TArchive>
 	void Serialize(TArchive& archive)

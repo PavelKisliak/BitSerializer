@@ -821,7 +821,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(JsonArchiveTraits<>::raw_type& value)
+	bool CJsonStreamReader<TFormat>::ReadRawValue(std::string& value)
 	{
 		SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
 		const size_t startPos = GetPosition();
@@ -832,9 +832,9 @@ namespace BitSerializer::Json::Detail
 
 		SetPosition(startPos);
 		const std::string_view view = mEncodedStreamReader.PeekChars(len);
-		value = JsonArchiveTraits<>::raw_type(JsonArchiveTraits<>::raw_type::value_type(view.substr(0, len)));
+		value.assign(view.substr(0, len));
 		mEncodedStreamReader.SkipChars(len);
-		return !value.Get().empty();
+		return !value.empty();
 	}
 
 	template <ArchiveType TFormat>

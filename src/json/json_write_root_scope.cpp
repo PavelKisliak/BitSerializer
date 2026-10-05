@@ -10,7 +10,7 @@
 
 namespace BitSerializer::Json::Detail
 {
-	JsonWriteRootScope::JsonWriteRootScope(std::string& outputData, SerializationContext& serializationContext)
+	JsonWriteRootScopeBase::JsonWriteRootScopeBase(std::string& outputData, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		const auto& formatOptions = serializationContext.GetOptions().formatOptions;
@@ -24,7 +24,7 @@ namespace BitSerializer::Json::Detail
 		}
 	}
 
-	JsonWriteRootScope::JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
+	JsonWriteRootScopeBase::JsonWriteRootScopeBase(std::ostream& outputStream, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		const auto& options = serializationContext.GetOptions();
@@ -53,7 +53,7 @@ namespace BitSerializer::Json::Detail
 		}
 	}
 
-	JsonWriteRootScope::~JsonWriteRootScope()
+	JsonWriteRootScopeBase::~JsonWriteRootScopeBase()
 	{
 		delete mJsonWriter;
 	}

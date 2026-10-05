@@ -8,7 +8,6 @@ if(BUILD_RAPIDJSON_ARCHIVE)
     add_subdirectory(serialize_custom_string)
     add_subdirectory(serialize_custom_array)
     add_subdirectory(serialize_to_stream)
-    add_subdirectory(payload_passthrough)
 endif()
 
 if(BUILD_PUGIXML_ARCHIVE)
@@ -29,6 +28,7 @@ endif()
 
 if(BUILD_JSON_ARCHIVE)
     add_subdirectory(serialize_variant)
+    add_subdirectory(payload_passthrough)
 endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_MSGPACK_ARCHIVE)

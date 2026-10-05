@@ -15,6 +15,12 @@ using BitSerializer::Json::JsoncArchive;
 static_assert(BitSerializer::Json::JsonArchive::archive_type == BitSerializer::ArchiveType::Json);
 static_assert(BitSerializer::Json::JsoncArchive::archive_type == BitSerializer::ArchiveType::Jsonc);
 
+// A raw payload of pure JSON can be embedded into JSONC, but not the other way around (JSONC may contain comments).
+static_assert(BitSerializer::Json::IsRawPayloadCompatible(BitSerializer::ArchiveType::Json, BitSerializer::ArchiveType::Json));
+static_assert(BitSerializer::Json::IsRawPayloadCompatible(BitSerializer::ArchiveType::Json, BitSerializer::ArchiveType::Jsonc));
+static_assert(BitSerializer::Json::IsRawPayloadCompatible(BitSerializer::ArchiveType::Jsonc, BitSerializer::ArchiveType::Jsonc));
+static_assert(!BitSerializer::Json::IsRawPayloadCompatible(BitSerializer::ArchiveType::Jsonc, BitSerializer::ArchiveType::Json));
+
 #pragma warning(push)
 #pragma warning(disable: 4566)
 
@@ -149,6 +155,43 @@ TEST(JsoncArchive, StrictJsonArchiveShouldRejectComments)
 	const std::string jsonc = R"({ /* comment */ "x": 1, "y": 2 })";
 	TestPointClass point;
 	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(point, jsonc), BitSerializer::ParsingException);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of raw payload passthrough for JSONC
+//-----------------------------------------------------------------------------
+TEST(JsoncArchive, SerializeRawJsonc)
+{
+	// Arrange
+	const std::string jsonc = R"({
+		// A line comment
+		"x": 10, /* a block comment */
+		"y": 20, // a trailing comma below
+	})";
+	JsoncArchive::raw_type raw;
+
+	// Act
+	BitSerializer::LoadObject<JsoncArchive>(raw, jsonc);
+	std::string actual;
+	BitSerializer::SaveObject<JsoncArchive>(raw, actual);
+
+	// Assert
+	EXPECT_EQ(jsonc, actual);
+}
+
+TEST(JsoncArchive, SerializeRawJsonIntoJsonc)
+{
+	// Arrange
+	const std::string json = R"({"x": 10, "y": 20})";
+	JsonArchive::raw_type raw;
+
+	// Act
+	BitSerializer::LoadObject<JsonArchive>(raw, json);
+	std::string actual;
+	BitSerializer::SaveObject<JsoncArchive>(raw, actual);
+
+	// Assert
+	EXPECT_EQ(json, actual);
 }
 
 #pragma warning(pop)

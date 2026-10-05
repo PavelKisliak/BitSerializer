@@ -46,7 +46,7 @@ namespace BitSerializer::Json::Detail
 
 		bool ReadValue(std::string_view& value) override;
 
-		bool ReadValue(JsonArchiveTraits<>::raw_type& value) override;
+		bool ReadRawValue(std::string& value) override;
 
 		[[nodiscard]] ValueType ReadValueType() override;
 

@@ -1102,13 +1102,13 @@ BitSerializer efficiently handles these scenarios with its payload passthrough f
 
 ```cpp
 using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 
 // Incoming message structure (from external system)
 struct ExternalEvent
 {
     std::string EventId;
-    Json::RapidJson::Raw Payload;  // Opaque payload
+    JsonArchive::raw_type Payload;  // Opaque payload
 
     template <typename TArchive>
     void Serialize(TArchive& archive)
@@ -1122,7 +1122,7 @@ struct ExternalEvent
 struct RoutingEnvelope
 {
     std::string RouteId;
-    Json::RapidJson::Raw Payload;  // Pass-through payload
+    JsonArchive::raw_type Payload;  // Pass-through payload
 
     template <typename TArchive>
     void Serialize(TArchive& archive)

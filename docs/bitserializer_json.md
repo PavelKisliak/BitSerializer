@@ -104,8 +104,9 @@ extensions commonly known as JSONC:
 - `/* ... */` block comments
 - a single trailing comma before a closing `]` or `}`
 
-Comments are a read-only extension: `JsoncArchive` always writes plain JSON, so its output is identical to
-`JsonArchive`.
+Comments are a read-only extension for typed serialization: `JsoncArchive` always writes plain JSON, so its output is
+identical to `JsonArchive`. The only exception is explicit payload passthrough — a raw JSONC block captured with
+`JsoncArchive::raw_type` is written back verbatim (comments included).
 
 ```cpp
 #include <iostream>
@@ -153,4 +154,23 @@ int main()
 The `JsoncArchive` alias is a JSON dialect (advertised via `ArchiveType::Jsonc`, see `ArchiveType`)
 that enables all supported extensions. Readers are instantiated per archive type rather than per feature
 combination, so adding new formats (e.g. JSON5) does not multiply the set of compiled instantiations.
+
+#### Raw payload passthrough and JSON dialects
+
+The raw payload type of an archive is tagged with the archive's format:
+
+- `JsonArchive::raw_type` is `RawPayload<std::string, ArchiveType::Json>`;
+- `JsoncArchive::raw_type` is `RawPayload<std::string, ArchiveType::Jsonc>`.
+
+Because strict JSON is a subset of JSONC, a raw block captured from a strict JSON document can be embedded into a
+JSONC archive, but not the other way around: a JSONC block may contain comments, which are not valid in strict JSON.
+These rules are enforced at compile time by `IsRawPayloadCompatible(source, target)`:
+
+| Raw payload format | Embedded into `JsonArchive` | Embedded into `JsoncArchive` |
+|--------------------|:---------------------------:|:----------------------------:|
+| `RawPayload<..., Json>`  | ✅ | ✅ |
+| `RawPayload<..., Jsonc>` | ❌ (compile-time error) | ✅ (comments preserved) |
+
+Reading a raw block from a JSONC document always produces a `JsoncArchive::raw_type` value, so it can never be
+accidentally written into a strict JSON document.
 

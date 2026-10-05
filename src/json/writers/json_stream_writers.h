@@ -46,8 +46,8 @@ namespace BitSerializer::Json::Detail
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
 		void WriteValue(std::string_view value) override;
 
-		void WriteValue(JsonArchiveTraits<>::raw_type& value) override {
-			mEncodedStream.Write(value.Get());
+		void WriteRawValue(std::string_view value) override {
+			mEncodedStream.Write(value);
 		}
 
 		void WriteValueSeparator() override {
@@ -172,10 +172,10 @@ namespace BitSerializer::Json::Detail
 		}
 		void WriteValue(std::string_view value) override;
 
-		void WriteValue(JsonArchiveTraits<>::raw_type& value) override
+		void WriteRawValue(std::string_view value) override
 		{
 			WriteIndent();
-			mEncodedStream.Write(value.Get());
+			mEncodedStream.Write(value);
 		}
 
 		void WriteValueSeparator() override

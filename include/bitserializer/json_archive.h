@@ -66,6 +66,17 @@ constexpr bool HasFeature(JsonFeatures features, JsonFeatures feature) noexcept
 	return (features & feature) == feature;
 }
 
+/**
+ * @brief Determines whether a raw payload of format `source` can be embedded into an archive of format `target`.
+ *
+ * Strict JSON is a subset of JSONC, therefore a raw block of pure JSON can be inserted into a JSONC document,
+ * but not the other way around (a JSONC block may contain comments which are not valid in strict JSON).
+ */
+constexpr bool IsRawPayloadCompatible(ArchiveType source, ArchiveType target) noexcept
+{
+	return source == target || (source == ArchiveType::Json && target == ArchiveType::Jsonc);
+}
+
 namespace Detail {
 
 /**
@@ -95,12 +106,15 @@ constexpr JsonFeatures GetFormatFeatures(ArchiveType archiveType) noexcept
 template <ArchiveType TArchiveType = ArchiveType::Json>
 struct JsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
+	static_assert(TArchiveType == ArchiveType::Json || TArchiveType == ArchiveType::Jsonc,
+		"BitSerializer. The specified archive type is not supported by the JSON archive");
+
 	static constexpr ArchiveType archive_type = TArchiveType;
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
 	using string_view_type = std::string_view;
 	using preferred_output_type = std::basic_string<char, std::char_traits<char>>;
-	using raw_type = RawPayload<std::string, ArchiveType::Json>;
+	using raw_type = RawPayload<std::string, TArchiveType>;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = false;
 	static constexpr bool require_array_size = false;
@@ -156,7 +170,7 @@ public:
 	virtual void WriteValue(const char* value) = 0;	// For avoid conflict with overload for boolean
 	virtual void WriteValue(std::string_view value) = 0;
 
-	virtual void WriteValue(JsonArchiveTraits<>::raw_type& value) = 0;
+	virtual void WriteRawValue(std::string_view value) = 0;
 
 	virtual void WriteValueSeparator() = 0;
 
@@ -213,7 +227,7 @@ public:
 
 	virtual bool ReadValue(std::string_view& value) = 0;
 
-	virtual bool ReadValue(JsonArchiveTraits<>::raw_type& value) = 0;
+	virtual bool ReadRawValue(std::string& value) = 0;
 
 	[[nodiscard]] virtual ValueType ReadValueType() = 0;
 
@@ -235,14 +249,14 @@ public:
 //-----------------------------------------------------------------------------
 
 // Forward declarations
-template <class TWriter>
+template <ArchiveType TFormat, class TWriter>
 class CJsonWriteObjectScope;
 
 /**
  * @brief Json scope for writing arrays (sequential values).
  */
-template <class TWriter>
-class CJsonWriteArrayScope final : public JsonArchiveTraits<>, public ArchiveScope<SerializeMode::Save>
+template <ArchiveType TFormat, class TWriter>
+class CJsonWriteArrayScope final : public JsonArchiveTraits<TFormat>, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CJsonWriteArrayScope(TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
@@ -255,7 +269,7 @@ public:
 		mJsonWriter->EndArray(mIndex);
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, std::string_view> || std::is_same_v<T, raw_type>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, std::string_view>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		if (mIndex)
@@ -267,7 +281,22 @@ public:
 		return true;
 	}
 
-	[[nodiscard]] CJsonWriteArrayScope<TWriter> OpenArrayScope(size_t)
+	template <ArchiveType FRaw>
+	bool SerializeValue(RawPayload<std::string, FRaw>& value)
+	{
+		static_assert(IsRawPayloadCompatible(FRaw, TFormat),
+			"BitSerializer. A raw JSONC payload cannot be embedded into a strict JSON document (it may contain comments).");
+
+		if (mIndex)
+		{
+			mJsonWriter->WriteValueSeparator();
+		}
+		mJsonWriter->WriteRawValue(value.Get());
+		++mIndex;
+		return true;
+	}
+
+	[[nodiscard]] CJsonWriteArrayScope<TFormat, TWriter> OpenArrayScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -278,7 +307,7 @@ public:
 		return {mJsonWriter, GetContext()};
 	}
 
-	[[nodiscard]] CJsonWriteObjectScope<TWriter> OpenObjectScope(size_t)
+	[[nodiscard]] CJsonWriteObjectScope<TFormat, TWriter> OpenObjectScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -298,8 +327,8 @@ private:
 /**
  * @brief Json scope for writing objects (key-value pairs).
  */
-template <class TWriter>
-class CJsonWriteObjectScope final : public JsonArchiveTraits<>, public ArchiveScope<SerializeMode::Save>
+template <ArchiveType TFormat, class TWriter>
+class CJsonWriteObjectScope final : public JsonArchiveTraits<TFormat>, public ArchiveScope<SerializeMode::Save>
 {
 public:
 	CJsonWriteObjectScope(TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
@@ -312,7 +341,7 @@ public:
 		mJsonWriter->EndObject(mIndex);
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type> || std::is_same_v<T, raw_type>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::string_view_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (mIndex)
@@ -325,8 +354,24 @@ public:
 		return true;
 	}
 
+	template <typename TKey, ArchiveType FRaw>
+	bool SerializeValue(TKey&& key, RawPayload<std::string, FRaw>& value)
+	{
+		static_assert(IsRawPayloadCompatible(FRaw, TFormat),
+			"BitSerializer. A raw JSONC payload cannot be embedded into a strict JSON document (it may contain comments).");
+
+		if (mIndex)
+		{
+			mJsonWriter->WriteValueSeparator();
+		}
+		mJsonWriter->WriteKey(std::string_view(key));
+		mJsonWriter->WriteRawValue(value.Get());
+		++mIndex;
+		return true;
+	}
+
 	template <typename TKey>
-	CJsonWriteArrayScope<TWriter> OpenArrayScope(TKey&& key, size_t)
+	CJsonWriteArrayScope<TFormat, TWriter> OpenArrayScope(TKey&& key, size_t)
 	{
 		if (mIndex)
 		{
@@ -339,7 +384,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] CJsonWriteObjectScope<TWriter> OpenObjectScope(TKey&& key, size_t)
+	[[nodiscard]] CJsonWriteObjectScope<TFormat, TWriter> OpenObjectScope(TKey&& key, size_t)
 	{
 		if (mIndex)
 		{
@@ -358,19 +403,37 @@ private:
 
 
 /**
- * @brief Json root scope for writing data (can write array or object).
+ * @brief Base class of the Json root scope for writing data (can write array or object).
+ *
+ * Holds the non-templated writer construction so that the format-aware
+ * `JsonWriteRootScope<TFormat>` remains a thin wrapper (see `JsonArchiveWith`).
  */
-class BITSERIALIZER_API JsonWriteRootScope final : public JsonArchiveTraits<>, public ArchiveScope<SerializeMode::Save>
+class BITSERIALIZER_API JsonWriteRootScopeBase : public ArchiveScope<SerializeMode::Save>
 {
 public:
-	JsonWriteRootScope(std::string& outputData, SerializationContext& serializationContext);
-	JsonWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext);
-	~JsonWriteRootScope();
+	JsonWriteRootScopeBase(std::string& outputData, SerializationContext& serializationContext);
+	JsonWriteRootScopeBase(std::ostream& outputStream, SerializationContext& serializationContext);
+	~JsonWriteRootScopeBase();
 
-	JsonWriteRootScope(JsonWriteRootScope&&) = delete;
-	JsonWriteRootScope& operator=(JsonWriteRootScope&&) = delete;
-	JsonWriteRootScope(const JsonWriteRootScope&) = delete;
-	JsonWriteRootScope& operator=(const JsonWriteRootScope&) = delete;
+	JsonWriteRootScopeBase(JsonWriteRootScopeBase&&) = delete;
+	JsonWriteRootScopeBase& operator=(JsonWriteRootScopeBase&&) = delete;
+	JsonWriteRootScopeBase(const JsonWriteRootScopeBase&) = delete;
+	JsonWriteRootScopeBase& operator=(const JsonWriteRootScopeBase&) = delete;
+
+protected:
+	IJsonWriter* mJsonWriter = nullptr;
+};
+
+/**
+ * @brief Json root scope for writing data (can write array or object).
+ *
+ * @tparam TFormat JSON archive type enabled for writing (see `ArchiveType`).
+ */
+template <ArchiveType TFormat>
+class JsonWriteRootScope final : public JsonArchiveTraits<TFormat>, public JsonWriteRootScopeBase
+{
+public:
+	using JsonWriteRootScopeBase::JsonWriteRootScopeBase;
 
 	/**
 	 * @brief Gets the current path in Json.
@@ -380,29 +443,36 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type> || std::is_same_v<T, raw_type>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::string_view_type>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		mJsonWriter->WriteValue(value);
 		return true;
 	}
 
-	[[nodiscard]] CJsonWriteArrayScope<IJsonWriter> OpenArrayScope(size_t) const
+	template <ArchiveType FRaw>
+	bool SerializeValue(RawPayload<std::string, FRaw>& value)
+	{
+		static_assert(IsRawPayloadCompatible(FRaw, TFormat),
+			"BitSerializer. A raw JSONC payload cannot be embedded into a strict JSON document (it may contain comments).");
+
+		mJsonWriter->WriteRawValue(value.Get());
+		return true;
+	}
+
+	[[nodiscard]] CJsonWriteArrayScope<TFormat, IJsonWriter> OpenArrayScope(size_t) const
 	{
 		mJsonWriter->BeginArray();
 		return {mJsonWriter, GetContext()};
 	}
 
-	[[nodiscard]] CJsonWriteObjectScope<IJsonWriter> OpenObjectScope(size_t) const
+	[[nodiscard]] CJsonWriteObjectScope<TFormat, IJsonWriter> OpenObjectScope(size_t) const
 	{
 		mJsonWriter->BeginObject();
 		return {mJsonWriter, GetContext()};
 	}
 
 	static constexpr void Finalize() noexcept { /* Not required */ }
-
-private:
-	IJsonWriter* mJsonWriter = nullptr;
 };
 
 
@@ -411,7 +481,7 @@ private:
 //-----------------------------------------------------------------------------
 
 // Forward declarations
-template <class TReader> class CJsonReadObjectScope;
+template <ArchiveType TFormat, class TReader> class CJsonReadObjectScope;
 
 
 class CJsonReadScopeBase : public JsonArchiveTraits<>
@@ -453,7 +523,7 @@ private:
 /**
  * @brief Json scope for reading arrays (sequential values).
  */
-template <class TReader>
+template <ArchiveType TFormat, class TReader>
 class CJsonReadArrayScope final : public CJsonReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
@@ -498,7 +568,7 @@ public:
 		return path;
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type> || std::is_same_v<T, raw_type>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		if (mIndex)
@@ -507,6 +577,24 @@ public:
 		}
 
 		if (mJsonReader->ReadValue(value))
+		{
+			++mIndex;
+			return true;
+		}
+		return false;
+	}
+
+	template <ArchiveType FRaw>
+	bool SerializeValue(RawPayload<std::string, FRaw>& value)
+	{
+		static_assert(IsRawPayloadCompatible(TFormat, FRaw),
+			"BitSerializer. A raw payload of the requested format cannot be loaded from the source format.");
+		if (mIndex)
+		{
+			mJsonReader->ReadValueSeparator();
+		}
+
+		if (mJsonReader->ReadRawValue(value.Get()))
 		{
 			++mIndex;
 			return true;
@@ -530,7 +618,7 @@ public:
 		return mJsonReader->IsArrayEnd();
 	}
 
-	CJsonReadArrayScope<TReader> OpenArrayScope(size_t)
+	CJsonReadArrayScope<TFormat, TReader> OpenArrayScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -545,7 +633,7 @@ public:
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	CJsonReadObjectScope<TReader> OpenObjectScope(size_t)
+	CJsonReadObjectScope<TFormat, TReader> OpenObjectScope(size_t)
 	{
 		if (mIndex)
 		{
@@ -568,7 +656,7 @@ private:
 /**
  * @brief Json scope for reading objects (key-value pairs).
  */
-template <class TReader>
+template <ArchiveType TFormat, class TReader>
 class CJsonReadObjectScope final : public CJsonReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
@@ -653,7 +741,7 @@ public:
 		}
 	}
 
-	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type> || std::is_same_v<T, raw_type>, int> = 0>
+	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (FindValueByKey(key))
@@ -665,8 +753,23 @@ public:
 		return false;
 	}
 
+	template <typename TKey, ArchiveType FRaw>
+	bool SerializeValue(TKey&& key, RawPayload<std::string, FRaw>& value)
+	{
+		static_assert(IsRawPayloadCompatible(TFormat, FRaw),
+			"BitSerializer. A raw payload of the requested format cannot be loaded from the source format.");
+
+		if (FindValueByKey(key))
+		{
+			++mIndex;
+			mCurrentKey = {};
+			return mJsonReader->ReadRawValue(value.Get());
+		}
+		return false;
+	}
+
 	template <typename TKey>
-	CJsonReadArrayScope<TReader> OpenArrayScope(TKey&& key, size_t)
+	CJsonReadArrayScope<TFormat, TReader> OpenArrayScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
@@ -680,7 +783,7 @@ public:
 	}
 
 	template <typename TKey>
-	CJsonReadObjectScope<TReader> OpenObjectScope(TKey&& key, size_t)
+	CJsonReadObjectScope<TFormat, TReader> OpenObjectScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
@@ -781,13 +884,22 @@ public:
 		return {};
 	}
 
-	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::string_view_type> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::raw_type>, int> = 0>
+	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::string_view_type>, int> = 0>
 	bool SerializeValue(T& value) const
 	{
 		return mJsonReader->ReadValue(value);
 	}
 
-	[[nodiscard]] CJsonReadArrayScope<IJsonReader> OpenArrayScope(size_t) const
+	template <ArchiveType FRaw>
+	bool SerializeValue(RawPayload<std::string, FRaw>& value) const
+	{
+		static_assert(IsRawPayloadCompatible(TFormat, FRaw),
+			"BitSerializer. A raw payload of the requested format cannot be loaded from the source format.");
+
+		return mJsonReader->ReadRawValue(value.Get());
+	}
+
+	[[nodiscard]] CJsonReadArrayScope<TFormat, IJsonReader> OpenArrayScope(size_t) const
 	{
 		if (mJsonReader->OpenArray()) {
 			return {mJsonReader, GetContext()};
@@ -795,7 +907,7 @@ public:
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	[[nodiscard]] CJsonReadObjectScope<IJsonReader> OpenObjectScope(size_t) const
+	[[nodiscard]] CJsonReadObjectScope<TFormat, IJsonReader> OpenObjectScope(size_t) const
 	{
 		if (mJsonReader->OpenObject()) {
 			return {mJsonReader, GetContext()};
@@ -828,7 +940,7 @@ template <ArchiveType TFormat>
 using JsonArchiveWith = ArchiveBase<
 	Detail::JsonArchiveTraits<TFormat>,
 	Detail::JsonReadRootScope<TFormat>,
-	Detail::JsonWriteRootScope>;
+	Detail::JsonWriteRootScope<TFormat>>;
 
 /**
  * @brief Strict JSON archive.
@@ -842,13 +954,5 @@ using JsonArchive = JsonArchiveWith<ArchiveType::Json>;
  * comma before a closing `]` or `}`. Output is written as plain JSON.
  */
 using JsoncArchive = JsonArchiveWith<ArchiveType::Jsonc>;
-
-/**
- * @brief Represents an opaque JSON subtree for efficient pass-through handling.
- *
- * This type captures a JSON subtree as a DOM fragment during deserialization, avoiding conversion to C++ objects.
- * During serialization, the fragment is directly inserted without re-parsing (cannot be used with another archive).
- */
-using Raw = JsonArchive::raw_type;
 
 } // namespace BitSerializer::Json

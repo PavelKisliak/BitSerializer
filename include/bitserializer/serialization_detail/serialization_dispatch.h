@@ -5,6 +5,7 @@
 #pragma once
 #include "bitserializer/key_value.h"
 #include "bitserializer/serialization_detail/archive_traits.h"
+#include "bitserializer/serialization_detail/archive_key.h"
 
 namespace BitSerializer::Detail
 {
@@ -41,16 +42,8 @@ namespace BitSerializer::Detail
 	template <class TArchive, class TKey, class TValue, class... TArgs>
 	void Dispatch(TArchive& archive, KeyValue<TKey, TValue, TArgs...>&& keyValue)
 	{
-		bool result;
-		if constexpr (BitSerializer::is_convertible_to_one_from_tuple_v<TKey, typename TArchive::supported_key_types>)
-		{
-			result = Serialize(archive, keyValue.GetKey(), keyValue.GetValue());
-		}
-		else
-		{
-			const auto key = Convert::To<typename TArchive::key_type>(keyValue.GetKey());
-			result = Serialize(archive, key, keyValue.GetValue());
-		}
+		decltype(auto) key = ToArchiveKey<TArchive>(keyValue.GetKey());
+		const bool result = Serialize(archive, key, keyValue.GetValue());
 
 		// Handle validation only during loading
 		if constexpr (TArchive::IsLoading())

@@ -6,6 +6,7 @@
 #include "bitserializer/convert.h"
 #include "bitserializer/types/std/pair.h"
 #include "bitserializer/serialization_detail/archive_traits.h"
+#include "bitserializer/serialization_detail/archive_key.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 
 namespace BitSerializer
@@ -44,8 +45,8 @@ namespace BitSerializer
 		template<typename TArchive, typename TMap>
 		static void SerializeMapImpl(TArchive& scope, TMap& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 		{
-			constexpr auto hasSupportKeyType = BitSerializer::is_convertible_to_one_from_tuple_v<typename TMap::key_type, typename TArchive::supported_key_types>;
-			constexpr auto hasSupportBinTimestamp = BitSerializer::is_convertible_to_one_from_tuple_v<CBinTimestamp, typename TArchive::supported_key_types>;
+			constexpr auto hasSupportKeyType = is_convertible_to_any_of_tuple_v<typename TMap::key_type, typename TArchive::supported_key_types>;
+			constexpr auto hasSupportBinTimestamp = is_convertible_to_any_of_tuple_v<CBinTimestamp, typename TArchive::supported_key_types>;
 			if constexpr (TArchive::IsSaving())
 			{
 				for (auto& elem : cont)

@@ -10,6 +10,7 @@
 #include "bitserializer/key_value.h"
 #include "bitserializer/serialization_options.h"
 #include "bitserializer/serialization_detail/archive_traits.h"
+#include "bitserializer/serialization_detail/archive_key.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/object_traits.h"
 #include "bitserializer/serialization_detail/type_registry.h"
@@ -95,8 +96,8 @@ namespace BitSerializer
 				static_assert((std::is_default_constructible_v<TArgs> && ...),
 					"BitSerializer. All std::variant alternatives must be default-constructible for deserialization");
 
-				const auto indexName = Convert::To<typename TArchive::key_type>(indexKey);
-				const auto valueName = Convert::To<typename TArchive::key_type>(valueKey);
+				const auto indexName = Detail::ToArchiveKey<TArchive>(indexKey);
+				const auto valueName = Detail::ToArchiveKey<TArchive>(valueKey);
 
 				index_type activeIndex = 0;
 				if (Serialize(archive, indexName, activeIndex))
@@ -134,8 +135,8 @@ namespace BitSerializer
 					"BitSerializer. All std::variant alternatives must be default-constructible for deserialization");
 
 				std::string typeName;
-				const auto typeNameKey = Convert::To<typename TArchive::key_type>(typeKey);
-				const auto valueName = Convert::To<typename TArchive::key_type>(valueKey);
+				const auto typeNameKey = Detail::ToArchiveKey<TArchive>(typeKey);
+				const auto valueName = Detail::ToArchiveKey<TArchive>(valueKey);
 
 				if (Serialize(archive, typeNameKey, typeName))
 				{
@@ -196,7 +197,7 @@ namespace BitSerializer
 					"BitSerializer. All std::variant alternatives must be default-constructible for deserialization");
 
 				std::string typeName;
-				const auto typeNameKey = Convert::To<typename TArchive::key_type>(typeKey);
+				const auto typeNameKey = Detail::ToArchiveKey<TArchive>(typeKey);
 
 				if (Serialize(archive, typeNameKey, typeName))
 				{

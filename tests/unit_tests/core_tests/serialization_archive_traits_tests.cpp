@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/serialization_detail/archive_traits.h"
+#include "bitserializer/serialization_detail/archive_key.h"
 
 using namespace BitSerializer;
 
@@ -47,6 +48,7 @@ class TestArchive_SaveMode : ArchiveScope<SerializeMode::Save>
 {
 public:
 	using key_type = std::string;
+	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
 
 	class key_const_iterator
 	{
@@ -204,44 +206,68 @@ TEST(SerializationArchiveTraits, ShouldCheckThatArchiveCanSerializeAttribute) {
 	EXPECT_FALSE(testResult3);
 }
 
-TEST(SerializationArchiveTraits, ShouldCheckThatStringTypeConvertibleToOneFromTuple) {
-	bool testResult1 = is_convertible_to_one_from_tuple_v<std::wstring, std::tuple<std::string, std::wstring>>;
+TEST(SerializationArchiveTraits, ShouldCheckThatStringTypeConvertibleToAnyOfTuple) {
+	bool testResult1 = Detail::is_convertible_to_any_of_tuple_v<std::wstring, std::tuple<std::string, std::wstring>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_convertible_to_one_from_tuple_v<const wchar_t*, std::tuple<std::string, std::wstring>>;
+	bool testResult2 = Detail::is_convertible_to_any_of_tuple_v<const wchar_t*, std::tuple<std::string, std::wstring>>;
 	EXPECT_TRUE(testResult2);
-	bool testResult3 = is_convertible_to_one_from_tuple_v<const char[], std::tuple<std::string_view>>;
+	bool testResult3 = Detail::is_convertible_to_any_of_tuple_v<const char[], std::tuple<std::string_view>>;
 	EXPECT_TRUE(testResult3);
 
-	bool testResult4 = is_convertible_to_one_from_tuple_v<std::string, std::tuple<std::wstring>>;
+	bool testResult4 = Detail::is_convertible_to_any_of_tuple_v<std::string, std::tuple<std::wstring>>;
 	EXPECT_FALSE(testResult4);
-	bool testResult5 = is_convertible_to_one_from_tuple_v<std::string, std::tuple<>>;
+	bool testResult5 = Detail::is_convertible_to_any_of_tuple_v<std::string, std::tuple<>>;
 	EXPECT_FALSE(testResult5);
 }
 
-TEST(SerializationArchiveTraits, ShouldCheckThatIntegralTypeConvertibleToOneFromTuple) {
-	bool testResult1 = is_convertible_to_one_from_tuple_v<int16_t, std::tuple<float, int64_t>>;
+TEST(SerializationArchiveTraits, ShouldCheckThatIntegralTypeConvertibleToAnyOfTuple) {
+	bool testResult1 = Detail::is_convertible_to_any_of_tuple_v<int16_t, std::tuple<float, int64_t>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_convertible_to_one_from_tuple_v<uint8_t, std::tuple<std::string, uint64_t>>;
+	bool testResult2 = Detail::is_convertible_to_any_of_tuple_v<uint8_t, std::tuple<std::string, uint64_t>>;
 	EXPECT_TRUE(testResult2);
 
-	bool testResult3 = is_convertible_to_one_from_tuple_v<bool, std::tuple<uint8_t>>;
+	bool testResult3 = Detail::is_convertible_to_any_of_tuple_v<bool, std::tuple<uint8_t>>;
 	EXPECT_FALSE(testResult3);
-	bool testResult4 = is_convertible_to_one_from_tuple_v<const bool, std::tuple<std::string, std::string_view, int64_t, uint64_t, float, double>>;
+	bool testResult4 = Detail::is_convertible_to_any_of_tuple_v<const bool, std::tuple<std::string, std::string_view, int64_t, uint64_t, float, double>>;
 	EXPECT_FALSE(testResult4);
-	bool testResult5 = is_convertible_to_one_from_tuple_v<float, std::tuple<uint64_t>>;
+	bool testResult5 = Detail::is_convertible_to_any_of_tuple_v<float, std::tuple<uint64_t>>;
 	EXPECT_FALSE(testResult5);
 }
 
-TEST(SerializationArchiveTraits, ShouldCheckThatFloatingTypeConvertibleToOneFromTuple) {
-	bool testResult1 = is_convertible_to_one_from_tuple_v<float, std::tuple<int64_t, float>>;
+TEST(SerializationArchiveTraits, ShouldCheckThatFloatingTypeConvertibleToAnyOfTuple) {
+	bool testResult1 = Detail::is_convertible_to_any_of_tuple_v<float, std::tuple<int64_t, float>>;
 	EXPECT_TRUE(testResult1);
-	bool testResult2 = is_convertible_to_one_from_tuple_v<double, std::tuple<uint64_t, double>>;
+	bool testResult2 = Detail::is_convertible_to_any_of_tuple_v<double, std::tuple<uint64_t, double>>;
 	EXPECT_TRUE(testResult2);
 
-	bool testResult3 = is_convertible_to_one_from_tuple_v<float, std::tuple<uint64_t>>;
+	bool testResult3 = Detail::is_convertible_to_any_of_tuple_v<float, std::tuple<uint64_t>>;
 	EXPECT_FALSE(testResult3);
-	bool testResult4 = is_convertible_to_one_from_tuple_v<double, std::tuple<uint64_t>>;
+	bool testResult4 = Detail::is_convertible_to_any_of_tuple_v<double, std::tuple<uint64_t>>;
 	EXPECT_FALSE(testResult4);
+}
+
+TEST(SerializationArchiveTraits, ShouldPassThroughKeyWhenArchiveSupportsIt) {
+	using Archive = TestArchive_SaveMode;
+
+	const std::string_view nameView = "name";
+	const std::string nameStr = "name";
+	static_assert(std::is_same_v<decltype(Detail::ToArchiveKey<Archive>(nameView)), const std::string_view&>);
+	static_assert(std::is_same_v<decltype(Detail::ToArchiveKey<Archive>(nameStr)), const std::string&>);
+
+	const auto key = Detail::ToArchiveKey<Archive>(nameView);
+	static_assert(std::is_same_v<std::decay_t<decltype(key)>, std::string_view>);
+	EXPECT_EQ(key, "name");
+}
+
+TEST(SerializationArchiveTraits, ShouldConvertKeyWhenArchiveDoesNotSupportIt) {
+	using Archive = TestArchive_SaveMode;
+
+	const int number = 42;
+	static_assert(std::is_same_v<decltype(Detail::ToArchiveKey<Archive>(number)), std::string>);
+
+	const auto key = Detail::ToArchiveKey<Archive>(number);
+	static_assert(std::is_same_v<decltype(key), const std::string>);
+	EXPECT_EQ(key, "42");
 }
 
 // NOLINTEND(readability-convert-member-functions-to-static)

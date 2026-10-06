@@ -297,39 +297,4 @@ namespace BitSerializer
 	template <typename TArchive>
 	constexpr bool can_serialize_attribute_v = can_serialize_attribute<TArchive>::value;
 
-	/**
-	 * @brief Determines if a type is convertible to any element within a tuple.
-	 *
-	 * Useful when validating against multiple allowed types.
-	 *
-	 * @tparam T      The source type to test for convertibility.
-	 * @tparam TTuple A tuple of target types to compare against.
-	 */
-	template <typename T, typename TTuple>
-	struct is_convertible_to_one_from_tuple
-	{
-	private:
-		template <class TElem>
-		static constexpr bool testImpl()
-		{
-			if constexpr (std::is_same_v<std::decay_t<T>, bool> || std::is_null_pointer_v<T> || std::is_floating_point_v<T>) {
-				return std::is_same_v<T, TElem>;
-			}
-			else {
-				return std::is_convertible_v<T, TElem>;
-			}
-		}
-
-		template <class TestType, size_t... Is >
-		static constexpr bool test(std::index_sequence<Is...>) {
-			return (testImpl<std::tuple_element_t<Is, TestType>>() || ...);
-		}
-
-	public:
-		constexpr static bool value = test<TTuple>(std::make_index_sequence<std::tuple_size_v<TTuple>>{});
-	};
-
-	template <typename T, typename TTuple>
-	constexpr bool is_convertible_to_one_from_tuple_v = is_convertible_to_one_from_tuple<T, TTuple>::value;
-
 }	// namespace BitSerializer

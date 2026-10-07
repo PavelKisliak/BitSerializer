@@ -168,17 +168,17 @@ namespace BitSerializer::Json::Detail
 	}
 
 	//-----------------------------------------------------------------------------
-	// CJsonStreamReader implementation
+	// JsonStreamReader implementation
 	//-----------------------------------------------------------------------------
 	template <ArchiveType TFormat>
-	CJsonStreamReader<TFormat>::CJsonStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions)
+	JsonStreamReader<TFormat>::JsonStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions)
 		: mEncodedStreamReader(inputStream)
 		, mSerializationOptions(serializationOptions)
 	{
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::SetPosition(size_t pos)
+	void JsonStreamReader<TFormat>::SetPosition(size_t pos)
 	{
 		try
 		{
@@ -191,7 +191,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	ValueType CJsonStreamReader<TFormat>::ReadValueTypeImpl()
+	ValueType JsonStreamReader<TFormat>::ReadValueTypeImpl()
 	{
 		switch (char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber))
 		{
@@ -245,7 +245,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadStringImpl(std::string& outValue)
+	bool JsonStreamReader<TFormat>::ReadStringImpl(std::string& outValue)
 	{
 		char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
 		if (ch == 0) {
@@ -397,7 +397,7 @@ namespace BitSerializer::Json::Detail
 
 	template <ArchiveType TFormat>
 	template <typename T>
-	bool CJsonStreamReader<TFormat>::ReadNumberImpl(T& outValue)
+	bool JsonStreamReader<TFormat>::ReadNumberImpl(T& outValue)
 	{
 		if (SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber))
 		{
@@ -473,7 +473,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::SkipValueImpl()
+	void JsonStreamReader<TFormat>::SkipValueImpl()
 	{
 		constexpr bool AllowTrailingCommas = HasFeature(GetFormatFeatures(TFormat), JsonFeatures::TrailingCommas);
 		char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
@@ -662,7 +662,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::HandleMismatchedTypesPolicyStream()
+	void JsonStreamReader<TFormat>::HandleMismatchedTypesPolicyStream()
 	{
 		if (mSerializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 		{
@@ -679,13 +679,13 @@ namespace BitSerializer::Json::Detail
 	//------------------------------------------------------------------------------
 
 	template <ArchiveType TFormat>
-	ValueType CJsonStreamReader<TFormat>::ReadValueType()
+	ValueType JsonStreamReader<TFormat>::ReadValueType()
 	{
 		return ReadValueTypeImpl();
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::ReadKey(std::string_view& key)
+	void JsonStreamReader<TFormat>::ReadKey(std::string_view& key)
 	{
 		if (ReadStringImpl(mKeyBuffer))
 		{
@@ -701,7 +701,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(std::nullptr_t&)
+	bool JsonStreamReader<TFormat>::ReadValue(std::nullptr_t&)
 	{
 		if (const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber); ch)
 		{
@@ -718,7 +718,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(bool& value)
+	bool JsonStreamReader<TFormat>::ReadValue(bool& value)
 	{
 		if (const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber); ch)
 		{
@@ -781,32 +781,32 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(uint8_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(uint8_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(uint16_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(uint16_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(uint32_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(uint32_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(uint64_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(uint64_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(char& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(char& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(int8_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(int8_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(int16_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(int16_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(int32_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(int32_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(int64_t& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(int64_t& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(float& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(float& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(double& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(double& value) { return ReadNumberImpl(value); }
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(long double& value) { return ReadNumberImpl(value); }
+	bool JsonStreamReader<TFormat>::ReadValue(long double& value) { return ReadNumberImpl(value); }
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadValue(std::string_view& value)
+	bool JsonStreamReader<TFormat>::ReadValue(std::string_view& value)
 	{
 		const size_t savedPos = GetPosition();
 		if (ReadStringImpl(mValueBuffer))
@@ -821,7 +821,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::ReadRawValue(std::string& value)
+	bool JsonStreamReader<TFormat>::ReadRawValue(std::string& value)
 	{
 		SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
 		const size_t startPos = GetPosition();
@@ -838,13 +838,13 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::SkipValue()
+	void JsonStreamReader<TFormat>::SkipValue()
 	{
 		SkipValueImpl();
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::ReadValueSeparator()
+	void JsonStreamReader<TFormat>::ReadValueSeparator()
 	{
 		const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
 		if (ch == ',')
@@ -858,7 +858,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::OpenArray()
+	bool JsonStreamReader<TFormat>::OpenArray()
 	{
 		const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
 		if (ch == '[')
@@ -876,7 +876,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::IsArrayEnd()
+	bool JsonStreamReader<TFormat>::IsArrayEnd()
 	{
 		constexpr bool AllowTrailingCommas = HasFeature(GetFormatFeatures(TFormat), JsonFeatures::TrailingCommas);
 		const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
@@ -900,7 +900,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::CloseArray(bool expectedComma)
+	void JsonStreamReader<TFormat>::CloseArray(bool expectedComma)
 	{
 		constexpr bool AllowTrailingCommas = HasFeature(GetFormatFeatures(TFormat), JsonFeatures::TrailingCommas);
 		while (true)
@@ -946,7 +946,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::OpenObject()
+	bool JsonStreamReader<TFormat>::OpenObject()
 	{
 		const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
 		if (ch == '{')
@@ -964,7 +964,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	bool CJsonStreamReader<TFormat>::IsObjectEnd()
+	bool JsonStreamReader<TFormat>::IsObjectEnd()
 	{
 		constexpr bool AllowTrailingCommas = HasFeature(GetFormatFeatures(TFormat), JsonFeatures::TrailingCommas);
 		const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
@@ -988,7 +988,7 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
-	void CJsonStreamReader<TFormat>::CloseObject(bool expectedComma)
+	void JsonStreamReader<TFormat>::CloseObject(bool expectedComma)
 	{
 		constexpr bool AllowTrailingCommas = HasFeature(GetFormatFeatures(TFormat), JsonFeatures::TrailingCommas);
 		while (true)

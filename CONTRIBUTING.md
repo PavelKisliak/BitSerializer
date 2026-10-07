@@ -455,7 +455,7 @@ When in doubt, follow the patterns you see in the surrounding code.
 | Namespaces | CamelCase | `BitSerializer::Json::Detail` |
 
 > [!NOTE]
-> Some existing classes use a `C` prefix (e.g., `CJsonStringReader`) — this is a legacy convention. New code should use plain CamelCase without the prefix.
+> Some existing classes use a `C` prefix (e.g., `CMsgPackStringReader`) — this is a legacy convention. New code should use plain CamelCase without the prefix.
 >
 > The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
 

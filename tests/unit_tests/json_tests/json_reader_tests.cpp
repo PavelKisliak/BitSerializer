@@ -9,8 +9,8 @@
 #include "testing_tools/gtest_asserts.h"
 
 using JsonReadersTypes = ::testing::Types<
-	BitSerializer::Json::Detail::CJsonStringReader<BitSerializer::ArchiveType::Json>
-	, BitSerializer::Json::Detail::CJsonStreamReader<BitSerializer::ArchiveType::Json>
+	BitSerializer::Json::Detail::JsonStringReader<BitSerializer::ArchiveType::Json>
+	, BitSerializer::Json::Detail::JsonStreamReader<BitSerializer::ArchiveType::Json>
 	>;
 
 // Tests for all implementations of IJsonReader

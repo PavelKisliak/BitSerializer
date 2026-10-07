@@ -11,5 +11,5 @@
 
 namespace BitSerializer::Json::Detail
 {
-	template class BITSERIALIZER_API CJsonStreamReader<ArchiveType::Json>;
+	template class JsonStreamReader<ArchiveType::Json>;
 }

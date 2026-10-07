@@ -15,24 +15,24 @@ class JsonWriterTest : public ::testing::Test
 public:
 	JsonWriterTest()
 	{
-		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::CJsonStringWriter>)
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::JsonStringWriter>)
 		{
 			mResult.emplace<std::string>();
 			mJsonWriter = std::make_shared<TWriter>(std::get<std::string>(mResult));
 		}
-		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::CJsonStringPrettyWriter>)
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::JsonStringPrettyWriter>)
 		{
 			mResult.emplace<std::string>();
 			mJsonWriter = std::make_shared<TWriter>(std::get<std::string>(mResult), mPaddingChar, mPaddingCharNum);
 		}
-		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::CJsonStreamWriter>)
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::JsonStreamWriter>)
 		{
 			mResult.emplace<std::ostringstream>();
 			BitSerializer::StreamOptions streamOptions;
 			streamOptions.writeBom = false;
 			mJsonWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult), streamOptions);
 		}
-		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::CJsonStreamPrettyWriter>)
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::JsonStreamPrettyWriter>)
 		{
 			mResult.emplace<std::ostringstream>();
 			BitSerializer::StreamOptions streamOptions;

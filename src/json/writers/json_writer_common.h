@@ -11,7 +11,7 @@ namespace BitSerializer::Json::Detail
 	inline void WriteString(std::string_view source, std::string& target)
 	{
 		size_t extra = 0;
-		bool has_escapes = false;
+		bool hasEscapes = false;
 
 		for (char c : source)
 		{
@@ -19,11 +19,11 @@ namespace BitSerializer::Json::Detail
 			if (uc == '"' || uc == '\\')
 			{
 				extra += 1;
-				has_escapes = true;
+				hasEscapes = true;
 			}
 			else if (uc <= 0x1F)
 			{
-				has_escapes = true;
+				hasEscapes = true;
 				switch (uc) {
 				case '\b': case '\f': case '\n': case '\r': case '\t':
 					extra += 1;
@@ -35,12 +35,12 @@ namespace BitSerializer::Json::Detail
 			}
 		}
 
-		const size_t orig_size = target.size();
-		target.reserve(orig_size + 2 + source.size() + extra);
+		const size_t origSize = target.size();
+		target.reserve(origSize + 2 + source.size() + extra);
 
 		target.push_back('"');
 
-		if (!has_escapes) {
+		if (!hasEscapes) {
 			target.append(source);
 			target.push_back('"');
 			return;

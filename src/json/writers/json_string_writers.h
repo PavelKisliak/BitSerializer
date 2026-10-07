@@ -7,10 +7,10 @@
 
 namespace BitSerializer::Json::Detail
 {
-	class CJsonStringWriter final : public IJsonWriter
+	class JsonStringWriter final : public IJsonWriter
 	{
 	public:
-		explicit CJsonStringWriter(std::string& outputString);
+		explicit JsonStringWriter(std::string& outputString);
 
 		void WriteValue(std::nullptr_t) override {
 			mOutputString.append("null");
@@ -92,10 +92,10 @@ namespace BitSerializer::Json::Detail
 		std::string& mOutputString;
 	};
 
-	class CJsonStringPrettyWriter final : public IJsonWriter
+	class JsonStringPrettyWriter final : public IJsonWriter
 	{
 	public:
-		explicit CJsonStringPrettyWriter(std::string& outputString, char paddingChar = '\t', uint16_t paddingCharNum = 1);
+		explicit JsonStringPrettyWriter(std::string& outputString, char paddingChar = '\t', uint16_t paddingCharNum = 1);
 
 		void WriteValue(std::nullptr_t) override
 		{

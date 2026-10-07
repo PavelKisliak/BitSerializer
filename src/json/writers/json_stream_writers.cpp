@@ -7,11 +7,11 @@
 
 namespace BitSerializer::Json::Detail
 {
-	CJsonStreamWriter::CJsonStreamWriter(std::ostream& outputStream, const StreamOptions& streamOptions, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
+	JsonStreamWriter::JsonStreamWriter(std::ostream& outputStream, const StreamOptions& streamOptions, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
 		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, encodingErrorPolicy)
 	{ }
 
-	void CJsonStreamWriter::WriteValue(std::string_view value)
+	void JsonStreamWriter::WriteValue(std::string_view value)
 	{
 		mStringBuffer.clear();
 		WriteString(value, mStringBuffer);
@@ -20,14 +20,14 @@ namespace BitSerializer::Json::Detail
 
 	//------------------------------------------------------------------------------
 
-	CJsonStreamPrettyWriter::CJsonStreamPrettyWriter(std::ostream& outputStream, const StreamOptions& streamOptions,
+	JsonStreamPrettyWriter::JsonStreamPrettyWriter(std::ostream& outputStream, const StreamOptions& streamOptions,
 		char paddingChar, uint16_t paddingCharNum, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
 		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, encodingErrorPolicy)
 		, mPaddingCharNum(paddingCharNum)
 		, mPaddingChar(paddingChar)
 	{ }
 
-	void CJsonStreamPrettyWriter::WriteValue(std::string_view value)
+	void JsonStreamPrettyWriter::WriteValue(std::string_view value)
 	{
 		WriteIndent();
 		mStringBuffer.clear();

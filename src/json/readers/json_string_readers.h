@@ -8,15 +8,17 @@
 
 namespace BitSerializer::Json::Detail
 {
+	// BITSERIALIZER_API must be on the class template, not on the explicit instantiations:
+	// GCC ignores attributes on explicit instantiations and warns (-Wattributes). MSVC exports the instantiations from here.
 	template <ArchiveType TFormat>
-	class CJsonStringReader final : public IJsonReader
+	class BITSERIALIZER_API JsonStringReader final : public IJsonReader
 	{
 		static_assert(TFormat == ArchiveType::Json || TFormat == ArchiveType::Jsonc, "BitSerializer. The specified archive type is not supported by the JSON reader");
 
 	public:
 		static constexpr bool is_stream_based = false;
 
-		CJsonStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept;
+		JsonStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept;
 
 		[[nodiscard]] size_t GetPosition() const noexcept override { return mPos; }
 		void SetPosition(size_t pos) override;
@@ -69,6 +71,6 @@ namespace BitSerializer::Json::Detail
 		const SerializationOptions& mSerializationOptions;
 	};
 
-	extern template class BITSERIALIZER_API CJsonStringReader<ArchiveType::Json>;
-	extern template class BITSERIALIZER_API CJsonStringReader<ArchiveType::Jsonc>;
+	extern template class JsonStringReader<ArchiveType::Json>;
+	extern template class JsonStringReader<ArchiveType::Jsonc>;
 }

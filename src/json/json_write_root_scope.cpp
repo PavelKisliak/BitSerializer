@@ -13,20 +13,23 @@ namespace BitSerializer::Json::Detail
 	JsonWriteRootScopeBase::JsonWriteRootScopeBase(std::string& outputData, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
+		// Created via make_unique + release and kept as a raw pointer on purpose: using std::unique_ptr
+		// caused a measurable MSVC codegen regression in this hot path (bug reproduced on the reader side).
 		const auto& formatOptions = serializationContext.GetOptions().formatOptions;
 		if (formatOptions.enableFormat)
 		{
-			mJsonWriter = std::make_unique<CJsonStringPrettyWriter>(outputData, formatOptions.paddingChar, formatOptions.paddingCharNum).release();
+			mJsonWriter = std::make_unique<JsonStringPrettyWriter>(outputData, formatOptions.paddingChar, formatOptions.paddingCharNum).release();
 		}
 		else
 		{
-			mJsonWriter = std::make_unique<CJsonStringWriter>(outputData).release();
+			mJsonWriter = std::make_unique<JsonStringWriter>(outputData).release();
 		}
 	}
 
 	JsonWriteRootScopeBase::JsonWriteRootScopeBase(std::ostream& outputStream, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
+		// raw pointer on purpose (see the note in the constructor above)
 		const auto& options = serializationContext.GetOptions();
 		switch (options.streamOptions.encoding)
 		{
@@ -42,13 +45,13 @@ namespace BitSerializer::Json::Detail
 
 		if (options.formatOptions.enableFormat)
 		{
-			mJsonWriter = std::make_unique<CJsonStreamPrettyWriter>(outputStream, options.streamOptions,
+			mJsonWriter = std::make_unique<JsonStreamPrettyWriter>(outputStream, options.streamOptions,
 				options.formatOptions.paddingChar, options.formatOptions.paddingCharNum,
 				options.utfEncodingErrorPolicy).release();
 		}
 		else
 		{
-			mJsonWriter = std::make_unique<CJsonStreamWriter>(outputStream, options.streamOptions,
+			mJsonWriter = std::make_unique<JsonStreamWriter>(outputStream, options.streamOptions,
 				options.utfEncodingErrorPolicy).release();
 		}
 	}

@@ -46,11 +46,11 @@ public:
 		if constexpr (TReader::is_stream_based)
 		{
 			mInputStream = std::make_optional<std::istringstream>(mTestJson);
-			mJsonReader = std::make_shared<BitSerializer::Json::Detail::CJsonStreamReader<TFormat>>(mInputStream.value(), mSerializationOptions);
+			mJsonReader = std::make_shared<BitSerializer::Json::Detail::JsonStreamReader<TFormat>>(mInputStream.value(), mSerializationOptions);
 		}
 		else
 		{
-			mJsonReader = std::make_shared<BitSerializer::Json::Detail::CJsonStringReader<TFormat>>(mTestJson, mSerializationOptions);
+			mJsonReader = std::make_shared<BitSerializer::Json::Detail::JsonStringReader<TFormat>>(mTestJson, mSerializationOptions);
 		}
 	}
 

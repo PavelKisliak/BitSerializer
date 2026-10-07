@@ -9,7 +9,7 @@
 #include "readers/json_stream_readers.h"
 
 // Private header holding the `JsonReadRootScope<TFormat>` template definitions.
-// They are kept here (rather than in json_write_root_scope.cpp) so that the Json and JSONC
+// They are kept here (rather than in json_read_root_scope.cpp) so that the Json and JSONC
 // instantiations can be compiled in separate translation units: compiling both in
 // one TU makes MSVC generate slower code for the strict-JSON one.
 
@@ -18,13 +18,16 @@ namespace BitSerializer::Json::Detail
 	template <ArchiveType TFormat>
 	JsonReadRootScope<TFormat>::JsonReadRootScope(std::string_view inputData, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Load>(serializationContext)
-		, mJsonReader(std::make_unique<CJsonStringReader<TFormat>>(inputData, serializationContext.GetOptions()).release())
+		// Kept as a raw pointer (make_unique + release) on purpose: the std::unique_ptr version
+		// caused a measurable MSVC codegen regression in this hot load path.
+		, mJsonReader(std::make_unique<JsonStringReader<TFormat>>(inputData, serializationContext.GetOptions()).release())
 	{ }
 
 	template <ArchiveType TFormat>
 	JsonReadRootScope<TFormat>::JsonReadRootScope(std::istream& inputStream, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Load>(serializationContext)
-		, mJsonReader(std::make_unique<CJsonStreamReader<TFormat>>(inputStream, serializationContext.GetOptions()).release())
+		// Raw pointer on purpose (see the note in the constructor above).
+		, mJsonReader(std::make_unique<JsonStreamReader<TFormat>>(inputStream, serializationContext.GetOptions()).release())
 	{ }
 
 	template <ArchiveType TFormat>

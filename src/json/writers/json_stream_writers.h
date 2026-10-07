@@ -9,10 +9,10 @@
 
 namespace BitSerializer::Json::Detail
 {
-	class CJsonStreamWriter final : public IJsonWriter
+	class JsonStreamWriter final : public IJsonWriter
 	{
 	public:
-		CJsonStreamWriter(std::ostream& outputStream, const StreamOptions& streamOptions,
+		JsonStreamWriter(std::ostream& outputStream, const StreamOptions& streamOptions,
 			Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 		void WriteValue(std::nullptr_t) override {
@@ -85,10 +85,10 @@ namespace BitSerializer::Json::Detail
 		std::string mStringBuffer;
 	};
 
-	class CJsonStreamPrettyWriter final : public IJsonWriter
+	class JsonStreamPrettyWriter final : public IJsonWriter
 	{
 	public:
-		CJsonStreamPrettyWriter(std::ostream& outputStream, const StreamOptions& streamOptions, char paddingChar = '\t',
+		JsonStreamPrettyWriter(std::ostream& outputStream, const StreamOptions& streamOptions, char paddingChar = '\t',
 			uint16_t paddingCharNum = 1, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 		void WriteValue(std::nullptr_t) override

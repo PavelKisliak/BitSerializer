@@ -10,5 +10,5 @@
 
 namespace BitSerializer::Json::Detail
 {
-	template class BITSERIALIZER_API JsonReadRootScope<ArchiveType::Json>;
+	template class JsonReadRootScope<ArchiveType::Json>;
 }

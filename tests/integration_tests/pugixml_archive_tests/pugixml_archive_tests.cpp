@@ -270,6 +270,20 @@ TEST(PugiXmlArchive, SaveWithFormatting) {
 	TestSaveFormattedXml<XmlArchive>();
 }
 
+#ifdef PUGIXML_HAS_STRING_VIEW
+//-----------------------------------------------------------------------------
+// Native `std::string_view` keys (passed through without conversion to key_type)
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SerializeWithStringViewKey)
+{
+	[[maybe_unused]] constexpr std::string_view key = "TestValue";
+	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<XmlArchive>(key)), const std::string_view&>);
+
+	TestSerializeType<XmlArchive, TestClassWithStringViewKey<int>>();
+	TestSerializeType<XmlArchive, TestClassWithStringViewKey<std::string>>();
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------

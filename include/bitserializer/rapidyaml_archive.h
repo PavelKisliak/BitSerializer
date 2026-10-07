@@ -26,8 +26,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 		public:
 			static constexpr ArchiveType archive_type = ArchiveType::Yaml;
 			using key_type = std::string;
-			using supported_key_types = TSupportedKeyTypes<const char*, key_type>;
 			using string_view_type = std::string_view;
+			using supported_key_types = TSupportedKeyTypes<const char*, key_type, string_view_type>;
 			using preferred_output_type = std::string;
 			static constexpr char path_separator = '/';
 			static constexpr bool is_binary = false;

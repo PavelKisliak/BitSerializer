@@ -43,8 +43,8 @@ struct RapidJsonArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functi
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Json;
 	using key_type = std::basic_string<typename TEncoding::Ch, std::char_traits<typename TEncoding::Ch>>;
-	using supported_key_types = TSupportedKeyTypes<const typename TEncoding::Ch*, key_type>;
 	using string_view_type = std::basic_string_view<typename TEncoding::Ch>;
+	using supported_key_types = TSupportedKeyTypes<const typename TEncoding::Ch*, key_type, string_view_type>;
 	using preferred_output_type = std::basic_string<char, std::char_traits<char>>;
 	using raw_type = rapidjson::GenericDocument<RapidJsonEncoding<char>>;
 	static constexpr char path_separator = '/';
@@ -548,6 +548,27 @@ protected:
 		assert(this->mNode->GetObject().FindMember(key) == this->mNode->GetObject().MemberEnd());
 
 		this->mNode->AddMember(RapidJsonNode(typename RapidJsonNode::StringRefType(key)), std::move(jsonValue), mAllocator);
+		return true;
+	}
+
+	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(key_type_view key) const {
+		return this->mNode->GetObject().FindMember(RapidJsonNode(rapidjson::StringRef(key.data(), static_cast<rapidjson::SizeType>(key.size()))));
+	}
+
+	[[nodiscard]] RapidJsonNode* LoadJsonValue(key_type_view key) const
+	{
+		const auto jObject = this->mNode->GetObject();
+		const auto it = jObject.FindMember(RapidJsonNode(rapidjson::StringRef(key.data(), static_cast<rapidjson::SizeType>(key.size()))));
+		return it == jObject.MemberEnd() ? nullptr : &it->value;
+	}
+
+	bool SaveJsonValue(key_type_view key, RapidJsonNode&& jsonValue) const
+	{
+		// Checks that object was not saved previously under the same key
+		assert(FindMember(key) == this->mNode->GetObject().MemberEnd());
+
+		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);
+		this->mNode->AddMember(std::move(jsonKey), std::move(jsonValue), mAllocator);
 		return true;
 	}
 

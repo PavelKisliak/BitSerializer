@@ -416,6 +416,18 @@ TEST(RapidJsonArchive, SaveWithFormatting)
 }
 
 //-----------------------------------------------------------------------------
+// Native `std::string_view` keys (passed through without conversion to key_type)
+//-----------------------------------------------------------------------------
+TEST(RapidJsonArchive, SerializeWithStringViewKey)
+{
+	[[maybe_unused]] constexpr std::string_view key = "TestValue";
+	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<JsonArchive>(key)), const std::string_view&>);
+
+	TestSerializeType<JsonArchive, TestClassWithStringViewKey<int>>();
+	TestSerializeType<JsonArchive, TestClassWithStringViewKey<std::string>>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, SerializeClassToStream) {

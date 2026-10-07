@@ -148,6 +148,18 @@ TEST_F(CsvArchiveTests, SerializeClassWithSkippingFields)
 }
 
 //-----------------------------------------------------------------------------
+// Native `std::string_view` keys (passed through without conversion to key_type)
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, SerializeWithStringViewKey)
+{
+	[[maybe_unused]] constexpr std::string_view key = "TestValue";
+	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<CsvArchive>(key)), const std::string_view&>);
+
+	TestSerializeArray<CsvArchive, TestClassWithStringViewKey<int>>();
+	TestSerializeArray<CsvArchive, TestClassWithStringViewKey<std::string>>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, SerializeArrayOfClassesToStream)

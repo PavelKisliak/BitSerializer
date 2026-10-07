@@ -265,6 +265,18 @@ TEST(RapidYamlArchive, ShouldReturnPathInArrayScopeWhenSaving)
 }
 
 //-----------------------------------------------------------------------------
+// Native `std::string_view` keys (passed through without conversion to key_type)
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, SerializeWithStringViewKey)
+{
+	[[maybe_unused]] constexpr std::string_view key = "TestValue";
+	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<YamlArchive>(key)), const std::string_view&>);
+
+	TestSerializeType<YamlArchive, TestClassWithStringViewKey<int>>();
+	TestSerializeType<YamlArchive, TestClassWithStringViewKey<std::string>>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, SerializeClassToStream) {

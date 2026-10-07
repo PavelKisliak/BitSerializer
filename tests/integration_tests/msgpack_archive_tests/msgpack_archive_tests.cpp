@@ -437,6 +437,18 @@ TEST(MsgPackArchive, ShouldReturnPathInArrayScopeWhenLoading)
 }
 
 //-----------------------------------------------------------------------------
+// Native `std::string_view` keys (passed through without conversion to key_type)
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeWithStringViewKey)
+{
+	[[maybe_unused]] constexpr std::string_view key = "TestValue";
+	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<MsgPackArchive>(key)), const std::string_view&>);
+
+	TestSerializeType<MsgPackArchive, TestClassWithStringViewKey<int>>();
+	TestSerializeType<MsgPackArchive, TestClassWithStringViewKey<std::string>>();
+}
+
+//-----------------------------------------------------------------------------
 // Tests streams / files
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassToStream) {

@@ -6,6 +6,7 @@
 #include <charconv>
 #include <cstddef>
 #include <functional>
+#include <string_view>
 #include <tuple>
 #include <utility>
 #include <gtest/gtest.h>
@@ -238,6 +239,62 @@ private:
 // Deduction guide for constructing `TestClassWithSubType` class
 template<class TValue, class... TKeyValueArgs>
 TestClassWithSubType(TValue, TKeyValueArgs...) -> TestClassWithSubType<TValue, TKeyValueArgs...>;
+
+
+/**
+ * @brief A test class that wraps a single value under a `std::string_view` key and serializes it as a named field.
+ *
+ * Mirrors `TestClassWithSubType`, but the key is a `std::string_view` so that archives which natively support
+ * view-based keys pass it through via `Detail::ToArchiveKey` without converting to `key_type`.
+ *
+ * @tparam TValue The wrapped value type.
+ */
+template <typename T>
+class TestClassWithStringViewKey
+{
+public:
+	static constexpr std::string_view KeyName = "TestValue";
+
+	TestClassWithStringViewKey()
+	{
+		::BuildFixture(mTestValue);
+	}
+
+	explicit TestClassWithStringViewKey(T&& initValue)
+		: mTestValue(std::forward<T>(initValue))
+	{
+	}
+
+	static void BuildFixture(TestClassWithStringViewKey& fixture)
+	{
+		::BuildFixture(fixture.mTestValue);
+	}
+
+	void Assert(const TestClassWithStringViewKey& actual) const
+	{
+		GTestExpectEq(mTestValue, actual.GetValue());
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::KeyValue(KeyName, mTestValue);
+	}
+
+	bool operator==(const TestClassWithStringViewKey& rhs) const
+	{
+		return mTestValue == rhs.mTestValue;
+	}
+
+	[[nodiscard]] const T& GetValue() const { return mTestValue; }
+
+private:
+	T mTestValue;
+};
+
+// Deduction guide for constructing `TestClassWithStringViewKey` class
+template<class TValue>
+TestClassWithStringViewKey(TValue) -> TestClassWithStringViewKey<TValue>;
 
 
 /**

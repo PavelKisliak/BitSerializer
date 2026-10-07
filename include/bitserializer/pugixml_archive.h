@@ -25,12 +25,20 @@ struct PugiXmlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-function
 	// Key type is related to PugiXml's definition PUGIXML_WCHAR_MODE
 #ifdef PUGIXML_WCHAR_MODE
 	using key_type = std::wstring;
-	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*>;
 	using string_view_type = std::basic_string_view<wchar_t>;
+#	ifdef PUGIXML_HAS_STRING_VIEW
+	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*, string_view_type>;
+#	else
+	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*>;
+#	endif
 #else
 	using key_type = std::string;
-	using supported_key_types = TSupportedKeyTypes<key_type, const char*>;
 	using string_view_type = std::basic_string_view<char>;
+#	ifdef PUGIXML_HAS_STRING_VIEW
+	using supported_key_types = TSupportedKeyTypes<key_type, const char*, string_view_type>;
+#	else
+	using supported_key_types = TSupportedKeyTypes<key_type, const char*>;
+#	endif
 #endif
 
 	using preferred_output_type = std::string;
@@ -74,6 +82,24 @@ namespace PugiXmlExtensions
 	inline pugi::xml_attribute GetAttribute(pugi::xml_node& node, const pugi::char_t* key) {
 		return node.attribute(key);
 	}
+
+#ifdef PUGIXML_HAS_STRING_VIEW
+	inline pugi::xml_node AppendChild(pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type key) {
+		return node.append_child(key);
+	}
+
+	inline pugi::xml_node GetChild(pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type key) {
+		return node.child(key);
+	}
+
+	inline pugi::xml_attribute AppendAttribute(pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type key) {
+		return node.append_attribute(key);
+	}
+
+	inline pugi::xml_attribute GetAttribute(pugi::xml_node& node, PugiXmlArchiveTraits::string_view_type key) {
+		return node.attribute(key);
+	}
+#endif
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 	bool LoadValue(const pugi::xml_node& node, T& value, const SerializationOptions& serializationOptions)

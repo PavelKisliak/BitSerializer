@@ -263,7 +263,7 @@ namespace BitSerializer::Json::Detail
 
 		while (true)
 		{
-			const size_t firstEscape = inputData.find_first_of("\"\\", pos);
+			const size_t firstEscape = BitSerializer::Detail::FindFirstOf<'"', '\\'>(inputData, pos);
 			if (firstEscape != std::string_view::npos)
 			{
 				// Fast path: string without escape sequences
@@ -490,7 +490,7 @@ namespace BitSerializer::Json::Detail
 			size_t pos = 1;
 			while (true)
 			{
-				const size_t firstEscape = inputData.find_first_of("\"\\", pos);
+				const size_t firstEscape = BitSerializer::Detail::FindFirstOf<'"', '\\'>(inputData, pos);
 				if (firstEscape == std::string_view::npos)
 				{
 					// No quote or escape in the buffered window: read more data

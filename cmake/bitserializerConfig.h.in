@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -20,6 +20,24 @@
 #define BITSERIALIZER_HAS_FLOAT_FROM_CHARS 1
 #else
 #define BITSERIALIZER_HAS_FLOAT_FROM_CHARS 0
+#endif
+#endif
+
+// SIMD availability of the target (compiler/target detected, not a build-system setting).
+// Used by the byte-scanning helpers shared by the built-in archives (see src/common/byte_scan.h).
+#ifndef BITSERIALIZER_HAS_SSE2
+#if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#define BITSERIALIZER_HAS_SSE2 1
+#else
+#define BITSERIALIZER_HAS_SSE2 0
+#endif
+#endif
+
+#ifndef BITSERIALIZER_HAS_NEON
+#if defined(__ARM_NEON) || defined(__ARM_NEON__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+#define BITSERIALIZER_HAS_NEON 1
+#else
+#define BITSERIALIZER_HAS_NEON 0
 #endif
 #endif
 

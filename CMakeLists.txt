@@ -153,6 +153,7 @@ endif()
 add_library(common_impl OBJECT
     "src/common/binary_stream_reader.h"
     "src/common/binary_stream_reader.cpp"
+    "src/common/byte_scan.h"
     "src/common/encoded_stream_reader.h"
     "src/common/encoded_stream_reader.cpp"
     "src/common/encoded_stream_writer.h"

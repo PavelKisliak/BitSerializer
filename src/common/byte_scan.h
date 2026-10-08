@@ -1,0 +1,116 @@
+/*******************************************************************************
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
+* This file is part of BitSerializer library, licensed under the MIT license.  *
+*******************************************************************************/
+#pragma once
+#include <cstddef>
+#include <string_view>
+#include "bitserializer/config.h"
+
+#if BITSERIALIZER_HAS_SSE2
+	#include <emmintrin.h>
+	#if defined(_MSC_VER)
+		#include <intrin.h>
+	#endif
+#elif BITSERIALIZER_HAS_NEON
+	#if defined(_M_ARM64) || defined(_M_ARM64EC)
+		#include <arm64_neon.h>
+	#else
+		#include <arm_neon.h>
+	#endif
+#endif
+
+namespace BitSerializer::Detail
+{
+	/**
+	 * @brief Returns the index of the first occurrence of `TChars` at or after `pos`,
+	 * or `std::string_view::npos` if none is found.
+	 *
+	 * On SSE2/NEON targets it scans 16 bytes per iteration and locates the exact byte within the block;
+	 * the trailing (<16) bytes are scanned scalar. On other targets it falls back to `std::string_view::find_first_of`.
+	 * Byte comparisons are performed per lane, so the result is independent of endianness.
+	 *
+	 * @note Intended for small character sets (typically 1-4). There is no hard upper bound, but each extra
+	 * character adds one vector comparison per block, so very large sets are not the target use case.
+	 *
+	 * Typical usage (JSON): `FindFirstOf<'"', '\\'>(input, pos)`.
+	 *
+	 * @tparam TChars Characters to search for (at least one).
+	 * @param data    Input buffer.
+	 * @param pos     Start position.
+	 */
+	template <char... TChars>
+	[[nodiscard]] size_t FindFirstOf(std::string_view data, size_t pos) noexcept
+	{
+		static_assert(sizeof...(TChars) > 0, "BitSerializer. At least one character must be specified");
+
+		const size_t size = data.size();
+		if (pos >= size) {
+			return std::string_view::npos;
+		}
+
+#if BITSERIALIZER_HAS_SSE2
+		const char* const base = data.data();
+		size_t i = pos;
+		for (; i + 16 <= size; i += 16)
+		{
+			const __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(base + i));
+			__m128i match = _mm_setzero_si128();
+			((match = _mm_or_si128(match, _mm_cmpeq_epi8(chunk, _mm_set1_epi8(TChars)))), ...);
+			const int mask = _mm_movemask_epi8(match);
+			if (mask != 0)
+			{
+				// The lowest set bit corresponds to the first matching byte in the block.
+				int bitIndex;
+#if defined(_MSC_VER)
+				unsigned long rawIndex;
+				_BitScanForward(&rawIndex, static_cast<unsigned long>(mask));
+				bitIndex = static_cast<int>(rawIndex);
+#else
+				bitIndex = __builtin_ctz(static_cast<unsigned int>(mask));
+#endif
+				return i + static_cast<size_t>(bitIndex);
+			}
+		}
+		for (; i < size; ++i)
+		{
+			if (((base[i] == TChars) || ...)) {
+				return i;
+			}
+		}
+		return std::string_view::npos;
+#elif BITSERIALIZER_HAS_NEON
+		const char* const base = data.data();
+		size_t i = pos;
+		for (; i + 16 <= size; i += 16)
+		{
+			const uint8x16_t chunk = vld1q_u8(reinterpret_cast<const uint8_t*>(base + i));
+			uint8x16_t match = vdupq_n_u8(0);
+			((match = vorrq_u8(match, vceqq_u8(chunk, vdupq_n_u8(static_cast<uint8_t>(TChars))))), ...);
+			const uint64x2_t bits = vreinterpretq_u64_u8(match);
+			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0)
+			{
+				// Locate the exact byte in this block (byte-wise, so independent of endianness).
+				for (size_t k = 0; k < 16; ++k)
+				{
+					if (((base[i + k] == TChars) || ...)) {
+						return i + k;
+					}
+				}
+			}
+		}
+		for (; i < size; ++i)
+		{
+			if (((base[i] == TChars) || ...)) {
+				return i;
+			}
+		}
+		return std::string_view::npos;
+#else
+		// No SIMD: a dedicated scalar loop is faster only for short inputs, while the standard
+		// search wins on longer ones and supports arbitrary set sizes.
+		static constexpr char needle[] = { TChars... };
+		return data.find_first_of(needle, pos, sizeof...(TChars));
+#endif
+	}
+}

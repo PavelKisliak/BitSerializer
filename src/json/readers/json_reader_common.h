@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include "bitserializer/serialization_detail/errors_handling.h"
+#include "common/byte_scan.h"
 
 namespace BitSerializer::Json::Detail
 {

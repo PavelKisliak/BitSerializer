@@ -24,7 +24,7 @@
 #endif
 
 // SIMD availability of the target (compiler/target detected, not a build-system setting).
-// Used by the byte-scanning helpers shared by the built-in archives (see src/common/byte_scan.h).
+// Used by the SIMD helpers shared by the built-in archives (see src/common/simd/).
 #ifndef BITSERIALIZER_HAS_SSE2
 #if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
 #define BITSERIALIZER_HAS_SSE2 1

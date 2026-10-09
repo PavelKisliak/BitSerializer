@@ -5,52 +5,50 @@
 #pragma once
 #include <string>
 #include <string_view>
+#include "common/simd/scan.h"
 
 namespace BitSerializer::Json::Detail
 {
+	/**
+	 * @brief Returns the index of the first byte in `source` at or after `pos` that must be escaped inside
+	 * a JSON string, i.e. `"`, `\` or a control byte below 0x20, or `std::string_view::npos` if there is none.
+	 */
+	[[nodiscard]] inline size_t FindFirstEscape(std::string_view source, size_t pos) noexcept
+	{
+		return BitSerializer::Detail::FindFirstOfOrLessThan<0x20, '"', '\\'>(source, pos);
+	}
+
 	inline void WriteString(std::string_view source, std::string& target)
 	{
-		size_t extra = 0;
-		bool hasEscapes = false;
-
-		for (char c : source)
-		{
-			unsigned char uc = static_cast<unsigned char>(c);
-			if (uc == '"' || uc == '\\')
-			{
-				extra += 1;
-				hasEscapes = true;
-			}
-			else if (uc <= 0x1F)
-			{
-				hasEscapes = true;
-				switch (uc) {
-				case '\b': case '\f': case '\n': case '\r': case '\t':
-					extra += 1;
-					break;
-				default:
-					extra += 5;
-					break;
-				}
-			}
-		}
-
+		static constexpr char hexChars[] = "0123456789ABCDEF";
 		const size_t origSize = target.size();
-		target.reserve(origSize + 2 + source.size() + extra);
 
-		target.push_back('"');
-
-		if (!hasEscapes) {
+		// Fast path: nothing to escape (the common case). Reserve the exact size and copy once.
+		const size_t firstEscape = FindFirstEscape(source, 0);
+		if (firstEscape == std::string_view::npos)
+		{
+			target.reserve(origSize + 2 + source.size());
+			target.push_back('"');
 			target.append(source);
 			target.push_back('"');
 			return;
 		}
 
-		static constexpr char hex[] = "0123456789ABCDEF";
-		for (char c : source)
+		// Escaped path: reserve for the worst case (every byte at or after the first escape expands
+		// to "\u00XX", i.e. 6 bytes) so that no reallocation happens while emitting.
+		target.reserve(origSize + 2 + source.size() + 5 * (source.size() - firstEscape));
+		target.push_back('"');
+
+		size_t pos = 0;
+		size_t escapePos = firstEscape;
+		do
 		{
-			unsigned char uc = static_cast<unsigned char>(c);
-			switch (uc) {
+			if (escapePos > pos) {
+				target.append(source.data() + pos, escapePos - pos);
+			}
+			const unsigned char uc = static_cast<unsigned char>(source[escapePos]);
+			switch (uc)
+			{
 			case '"':  target.append("\\\""); break;
 			case '\\': target.append("\\\\"); break;
 			case '\b': target.append("\\b"); break;
@@ -59,17 +57,20 @@ namespace BitSerializer::Json::Detail
 			case '\r': target.append("\\r"); break;
 			case '\t': target.append("\\t"); break;
 			default:
-				if (uc <= 0x1F) {
-					char buf[7] = { '\\', 'u', '0', '0', hex[uc >> 4], hex[uc & 0x0F], '\0' };
-					target.append(buf, 6);
-				}
-				else {
-					target.push_back(c);
+				{
+					const char unicodeEscape[6] = { '\\', 'u', '0', '0', hexChars[uc >> 4], hexChars[uc & 0x0F] };
+					target.append(unicodeEscape, 6);
 				}
 				break;
 			}
+			pos = escapePos + 1;
+			escapePos = FindFirstEscape(source, pos);
 		}
+		while (escapePos != std::string_view::npos);
 
+		if (pos < source.size()) {
+			target.append(source.data() + pos, source.size() - pos);
+		}
 		target.push_back('"');
 	}
 }

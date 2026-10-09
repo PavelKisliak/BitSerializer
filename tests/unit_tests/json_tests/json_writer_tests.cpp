@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <array>
+#include <cstdio>
 #include "testing_tools/auto_fixture.h"
 #include "bitserializer/json_archive.h"
 #include "json_writer_fixture.h"
@@ -125,6 +126,82 @@ TYPED_TEST(JsonWriterTest, WriteStringWithEscapingControlCharacterts)
 
 	this->mJsonWriter->WriteValue("\x1f");
 	EXPECT_EQ("\"\\u001F\"", this->TakeResult());
+}
+
+TYPED_TEST(JsonWriterTest, WriteLongStringWithoutEscapes)
+{
+	const std::string value = this->GenTestString(1000);
+	this->mJsonWriter->WriteValue(value);
+	EXPECT_EQ("\"" + value + "\"", this->TakeResult());
+}
+
+TYPED_TEST(JsonWriterTest, WriteStringWithEscapesAtBlockBoundaries)
+{
+	// Escapes at SIMD block boundaries (offsets 15, 16, 17).
+	for (const size_t offset : { size_t(15), size_t(16), size_t(17) })
+	{
+		std::string value(offset, 'x');
+		value.push_back('"');
+		value.append(20, 'y');
+
+		std::string escaped(offset, 'x');
+		escaped += "\\\"";
+		escaped.append(20, 'y');
+
+		this->mJsonWriter->WriteValue(value);
+		EXPECT_EQ("\"" + escaped + "\"", this->TakeResult()) << "offset=" << offset;
+	}
+}
+
+TYPED_TEST(JsonWriterTest, WriteStringWithAdjacentEscapes)
+{
+	this->mJsonWriter->WriteValue("\"\\\"\n\r\t\b\f");
+	EXPECT_EQ("\"\\\"\\\\\\\"\\n\\r\\t\\b\\f\"", this->TakeResult());
+}
+
+TYPED_TEST(JsonWriterTest, WriteStringWithAllControlCharacters)
+{
+	std::string input;
+	for (int i = 0; i < 0x20; ++i) {
+		input.push_back(static_cast<char>(i));
+	}
+
+	std::string expected = "\"";
+	for (int i = 0; i < 0x20; ++i)
+	{
+		switch (i)
+		{
+		case '\b': expected += "\\b"; break;
+		case '\f': expected += "\\f"; break;
+		case '\n': expected += "\\n"; break;
+		case '\r': expected += "\\r"; break;
+		case '\t': expected += "\\t"; break;
+		default:
+			{
+				char buf[7];
+				std::snprintf(buf, sizeof(buf), "\\u%04X", i);
+				expected += buf;
+			}
+			break;
+		}
+	}
+	expected += "\"";
+
+	this->mJsonWriter->WriteValue(input);
+	EXPECT_EQ(expected, this->TakeResult());
+}
+
+TYPED_TEST(JsonWriterTest, WriteStringDoesNotEscapeDelAndHighBytes)
+{
+	// 0x7F (DEL) and bytes >= 0x80 (valid UTF-8) are valid JSON string content and must pass through unchanged.
+	std::string value = "abc";
+	value.push_back(static_cast<char>(0x7f));            // DEL
+	value += "\xC3\xA9";                                 // U+00E9
+	value += "\xE4\xB8\x96\xE7\x95\x8C";                 // U+4E16 U+754C
+	value.append("def");
+
+	this->mJsonWriter->WriteValue(value);
+	EXPECT_EQ("\"" + value + "\"", this->TakeResult());
 }
 
 //-----------------------------------------------------------------------------

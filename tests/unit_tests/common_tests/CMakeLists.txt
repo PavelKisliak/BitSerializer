@@ -8,7 +8,7 @@ add_executable(${PROJECT_NAME}
     binary_stream_reader_tests.cpp
     binary_stream_reader_fixture.h
     text_tests.cpp
-    byte_scan_tests.cpp
+    simd_scan_tests.cpp
     encoded_stream_reader_fixture.h
     encoded_stream_reader_tests.cpp
     encoded_stream_writer_fixture.h

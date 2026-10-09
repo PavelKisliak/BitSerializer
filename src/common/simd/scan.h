@@ -113,4 +113,105 @@ namespace BitSerializer::Detail
 		return data.find_first_of(needle, pos, sizeof...(TChars));
 #endif
 	}
+
+	/**
+	 * @brief Returns the index of the first byte that is equal to any of `TChars` or is less than
+	 * `TLimit` (unsigned comparison), at or after `pos`, or `std::string_view::npos` if none is found.
+	 *
+	 * The `< TLimit` test is unsigned, so bytes `>= 0x80` are never matched by a small limit even where
+	 * `char` is signed. On SSE2/NEON targets it scans 16 bytes per iteration and locates the exact byte
+	 * within the block; the trailing (<16) bytes are scanned scalar. On other targets a scalar loop is used.
+	 *
+	 * @note Intended for small character sets (typically 1-4). There is no hard upper bound.
+	 *
+	 * Typical usage (JSON string escaping): `FindFirstOfOrLessThan<0x20, '"', '\\'>(input, pos)`
+	 * finds the first byte that must be escaped, i.e. `"`, `\` or a control character below 0x20.
+	 *
+	 * @tparam TLimit Upper (exclusive) limit of the unsigned byte range.
+	 * @tparam TChars Characters to search for (may be empty).
+	 * @param data    Input buffer.
+	 * @param pos     Start position.
+	 */
+	template <char TLimit, char... TChars>
+	[[nodiscard]] size_t FindFirstOfOrLessThan(std::string_view data, size_t pos) noexcept
+	{
+		const size_t size = data.size();
+		if (pos >= size) {
+			return std::string_view::npos;
+		}
+
+#if BITSERIALIZER_HAS_SSE2
+		const char* const base = data.data();
+		size_t i = pos;
+		for (; i + 16 <= size; i += 16)
+		{
+			const __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(base + i));
+			__m128i match = _mm_setzero_si128();
+			if constexpr (static_cast<unsigned char>(TLimit) > 0) {
+				// min_epu8(chunk, TLimit - 1) == chunk  <=>  (unsigned)chunk < TLimit
+				const char belowLimit = static_cast<char>(static_cast<unsigned char>(TLimit) - 1);
+				match = _mm_cmpeq_epi8(_mm_min_epu8(chunk, _mm_set1_epi8(belowLimit)), chunk);
+			}
+			((match = _mm_or_si128(match, _mm_cmpeq_epi8(chunk, _mm_set1_epi8(TChars)))), ...);
+			const int mask = _mm_movemask_epi8(match);
+			if (mask != 0)
+			{
+				int bitIndex;
+#if defined(_MSC_VER)
+				unsigned long rawIndex;
+				_BitScanForward(&rawIndex, static_cast<unsigned long>(mask));
+				bitIndex = static_cast<int>(rawIndex);
+#else
+				bitIndex = __builtin_ctz(static_cast<unsigned int>(mask));
+#endif
+				return i + static_cast<size_t>(bitIndex);
+			}
+		}
+		for (; i < size; ++i)
+		{
+			if ((static_cast<unsigned char>(base[i]) < static_cast<unsigned char>(TLimit)) || ((base[i] == TChars) || ...)) {
+				return i;
+			}
+		}
+		return std::string_view::npos;
+#elif BITSERIALIZER_HAS_NEON
+		const char* const base = data.data();
+		size_t i = pos;
+		for (; i + 16 <= size; i += 16)
+		{
+			const uint8x16_t chunk = vld1q_u8(reinterpret_cast<const uint8_t*>(base + i));
+			uint8x16_t match = vdupq_n_u8(0);
+			if constexpr (static_cast<unsigned char>(TLimit) > 0) {
+				match = vcltq_u8(chunk, vdupq_n_u8(static_cast<uint8_t>(TLimit)));
+			}
+			((match = vorrq_u8(match, vceqq_u8(chunk, vdupq_n_u8(static_cast<uint8_t>(TChars))))), ...);
+			const uint64x2_t bits = vreinterpretq_u64_u8(match);
+			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0)
+			{
+				for (size_t k = 0; k < 16; ++k)
+				{
+					if ((static_cast<unsigned char>(base[i + k]) < static_cast<unsigned char>(TLimit)) || ((base[i + k] == TChars) || ...)) {
+						return i + k;
+					}
+				}
+			}
+		}
+		for (; i < size; ++i)
+		{
+			if ((static_cast<unsigned char>(base[i]) < static_cast<unsigned char>(TLimit)) || ((base[i] == TChars) || ...)) {
+				return i;
+			}
+		}
+		return std::string_view::npos;
+#else
+		const char* const base = data.data();
+		for (size_t i = pos; i < size; ++i)
+		{
+			if ((static_cast<unsigned char>(base[i]) < static_cast<unsigned char>(TLimit)) || ((base[i] == TChars) || ...)) {
+				return i;
+			}
+		}
+		return std::string_view::npos;
+#endif
+	}
 }

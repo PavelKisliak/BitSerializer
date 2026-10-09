@@ -9,10 +9,11 @@
 
 namespace BitSerializer::Json::Detail
 {
-	// BITSERIALIZER_API must be on the class template, not on the explicit instantiations:
-	// GCC ignores attributes on explicit instantiations and warns (-Wattributes). MSVC exports the instantiations from here.
+	// This reader is an internal implementation detail, used only inside the library (unit tests
+	// compile the implementation directly), so it's deliberately not exported from the DLL.
+	// Marking the class BITSERIALIZER_API would trigger MSVC C4251/C4910 and GCC -Wattributes.
 	template <ArchiveType TFormat>
-	class BITSERIALIZER_API JsonStreamReader final : public IJsonReader
+	class JsonStreamReader final : public IJsonReader
 	{
 		static_assert(TFormat == ArchiveType::Json || TFormat == ArchiveType::Jsonc,
 			"BitSerializer. The specified archive type is not supported by the JSON reader");

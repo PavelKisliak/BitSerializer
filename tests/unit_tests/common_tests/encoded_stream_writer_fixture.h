@@ -34,7 +34,7 @@ public:
 		// Encoding string for test assert
 		if constexpr (sizeof(encoded_char_type) == 1 && sizeof(TCharType) == 1)
 		{
-			mExpectedString.assign(str);
+			mExpectedString.append(str);
 		}
 		else
 		{
@@ -58,6 +58,8 @@ public:
 
 	void Assert()
 	{
+		mEncodedStreamWriter->Flush();
+
 		constexpr auto encodedCharSize = sizeof(encoded_char_type);
 
 		const std::string streamData = mOutputStream.str();

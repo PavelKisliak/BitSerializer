@@ -182,6 +182,11 @@ public:
 	virtual void BeginObject() = 0;
 	virtual void WriteKey(std::string_view key) = 0;
 	virtual void EndObject(bool hasElements) = 0;
+
+	/**
+	 * @brief Flushes any buffered output to the underlying stream (no-op for in-memory writers).
+	 */
+	virtual void Flush() {}
 };
 
 class BITSERIALIZER_API IJsonReader
@@ -474,7 +479,7 @@ public:
 		return {mJsonWriter, GetContext()};
 	}
 
-	static constexpr void Finalize() noexcept { /* Not required */ }
+	void Finalize() { mJsonWriter->Flush(); }
 };
 
 

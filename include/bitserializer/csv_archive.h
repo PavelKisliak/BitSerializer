@@ -42,6 +42,11 @@ public:
 	virtual void WriteValue(const std::string_view& key, std::string_view value) = 0;
 	virtual void NextLine() = 0;
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
+
+	/**
+	 * @brief Flushes any buffered output to the underlying stream (no-op for in-memory writers).
+	 */
+	virtual void Flush() {}
 };
 
 class BITSERIALIZER_API ICsvReader
@@ -188,7 +193,7 @@ public:
 		return {mCsvWriter, GetContext()};
 	}
 
-	void Finalize() const noexcept { /* Not required */ }
+	void Finalize() const { mCsvWriter->Flush(); }
 
 private:
 	ICsvWriter* mCsvWriter = nullptr;

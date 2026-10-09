@@ -40,6 +40,7 @@ namespace BitSerializer::Csv::Detail
 		void WriteValue(const std::string_view& key, std::string_view value) override;
 		void NextLine() override;
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
+		void Flush() override { mEncodedStream.Flush(); }
 
 	private:
 		Convert::Utf::EncodedStreamWriter mEncodedStream;

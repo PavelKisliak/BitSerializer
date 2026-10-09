@@ -162,3 +162,15 @@ TYPED_TEST(EncodedStreamWriterTest, ShouldWriteSingleCharacter)
 	// Assert
 	this->Assert();
 }
+
+TYPED_TEST(EncodedStreamWriterTest, ShouldWriteManySmallStrings)
+{
+	// Act: exercises multiple internal buffer flushes.
+	for (int i = 0; i < 500; ++i)
+	{
+		this->TestWrite("0123456789");
+	}
+
+	// Assert
+	this->Assert();
+}

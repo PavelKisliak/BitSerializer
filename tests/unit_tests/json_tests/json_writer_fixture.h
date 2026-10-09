@@ -43,6 +43,7 @@ public:
 
 	std::string TakeResult()
 	{
+		mJsonWriter->Flush();
 		return std::visit([](auto&& arg)
 		{
 			using T = std::decay_t<decltype(arg)>;

@@ -72,13 +72,15 @@ namespace BitSerializer::Json::Detail
 			mEncodedStream.Write("}");
 		}
 
+		void Flush() override { mEncodedStream.Flush(); }
+
 	private:
 		template <typename T>
 		void WriteNumber(T value)
 		{
-			std::string buf;
-			Convert::Detail::To(value, buf);
-			mEncodedStream.Write(buf);
+			mStringBuffer.clear();
+			Convert::Detail::To(value, mStringBuffer);
+			mEncodedStream.Write(mStringBuffer);
 		}
 
 		Convert::Utf::EncodedStreamWriter mEncodedStream;
@@ -224,6 +226,8 @@ namespace BitSerializer::Json::Detail
 			mEncodedStream.Write("}");
 		}
 
+		void Flush() override { mEncodedStream.Flush(); }
+
 		void WriteKey(std::string_view key) override
 		{
 			WriteValue(key);
@@ -235,21 +239,21 @@ namespace BitSerializer::Json::Detail
 		template <typename T>
 		void WriteNumber(T value)
 		{
-			std::string buf;
-			Convert::Detail::To(value, buf);
-			mEncodedStream.Write(buf);
+			mStringBuffer.clear();
+			Convert::Detail::To(value, mStringBuffer);
+			mEncodedStream.Write(mStringBuffer);
 		}
 
 		void WriteIndent()
 		{
 			if (mPadding)
 			{
-				std::string indent;
-				indent.push_back('\n');
+				mStringBuffer.clear();
+				mStringBuffer.push_back('\n');
 				if (mCurrentPadding > 0) {
-					indent.append(mCurrentPadding, mPaddingChar);
+					mStringBuffer.append(mCurrentPadding, mPaddingChar);
 				}
-				mEncodedStream.Write(indent);
+				mEncodedStream.Write(mStringBuffer);
 			}
 		}
 

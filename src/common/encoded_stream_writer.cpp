@@ -33,30 +33,22 @@ namespace BitSerializer::Convert::Utf
 
 	EncodedStreamWriter::EncodedStreamWriter(std::ostream& outputStream, UtfType targetUtfType, bool addBom, UtfEncodingErrorPolicy encodingErrorPolicy)
 		: mOutputStream(outputStream)
+		, mTargetUtfType(targetUtfType)
 		, mEncodingErrorPolicy(encodingErrorPolicy)
 	{
-		switch (targetUtfType)
-		{
-		case UtfType::Utf8:
-			mUtfToolset.emplace<std::pair<Utf8, std::string>>();
-			break;
-		case UtfType::Utf16le:
-			mUtfToolset.emplace<std::pair<Utf16Le, std::u16string>>();
-			break;
-		case UtfType::Utf16be:
-			mUtfToolset.emplace<std::pair<Utf16Be, std::u16string>>();
-			break;
-		case UtfType::Utf32le:
-			mUtfToolset.emplace<std::pair<Utf32Le, std::u32string>>();
-			break;
-		case UtfType::Utf32be:
-			mUtfToolset.emplace<std::pair<Utf32Be, std::u32string>>();
-			break;
-		}
-
+		mByteBuffer.reserve(OutputBufferSize);
 		if (addBom)
 		{
 			WriteBom(mOutputStream, targetUtfType);
+		}
+	}
+
+	void EncodedStreamWriter::Flush()
+	{
+		if (!mByteBuffer.empty())
+		{
+			mOutputStream.write(mByteBuffer.data(), static_cast<std::streamsize>(mByteBuffer.size()));
+			mByteBuffer.clear();
 		}
 	}
 }

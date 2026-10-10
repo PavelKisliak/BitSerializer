@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <array>
 #include <cstddef>
 #include <string_view>
 #include "bitserializer/config.h"
@@ -22,6 +23,28 @@
 
 namespace BitSerializer::Detail
 {
+	namespace ScanDetail
+	{
+		/**
+		 * @brief Builds a 256-entry lookup table marking bytes that match the search criteria:
+		 * `< TLimit` (unsigned) or equal to any of `TChars`. `TLimit == 0` disables the range test.
+		 *
+		 * Used by the scalar tail of the scanners, where a single table load is cheaper than
+		 * several per-byte comparisons (JSON keys/values are usually shorter than one SIMD block).
+		 */
+		template <unsigned char TLimit, char... TChars>
+		[[nodiscard]] constexpr std::array<bool, 256> MakeByteMatchTable() noexcept
+		{
+			std::array<bool, 256> table{};
+			for (size_t c = 0; c < 256; ++c)
+			{
+				const unsigned char uc = static_cast<unsigned char>(c);
+				table[c] = (uc < TLimit) || ((uc == static_cast<unsigned char>(TChars)) || ... || false);
+			}
+			return table;
+		}
+	}
+
 	/**
 	 * @brief Returns the index of the first occurrence of `TChars` at or after `pos`,
 	 * or `std::string_view::npos` if none is found.
@@ -51,6 +74,7 @@ namespace BitSerializer::Detail
 
 #if BITSERIALIZER_HAS_SSE2
 		const char* const base = data.data();
+		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<0, TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -74,13 +98,14 @@ namespace BitSerializer::Detail
 		}
 		for (; i < size; ++i)
 		{
-			if (((base[i] == TChars) || ...)) {
+			if (matchTable[static_cast<unsigned char>(base[i])]) {
 				return i;
 			}
 		}
 		return std::string_view::npos;
 #elif BITSERIALIZER_HAS_NEON
 		const char* const base = data.data();
+		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<0, TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -101,7 +126,7 @@ namespace BitSerializer::Detail
 		}
 		for (; i < size; ++i)
 		{
-			if (((base[i] == TChars) || ...)) {
+			if (matchTable[static_cast<unsigned char>(base[i])]) {
 				return i;
 			}
 		}
@@ -142,6 +167,7 @@ namespace BitSerializer::Detail
 
 #if BITSERIALIZER_HAS_SSE2
 		const char* const base = data.data();
+		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<static_cast<unsigned char>(TLimit), TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -169,13 +195,14 @@ namespace BitSerializer::Detail
 		}
 		for (; i < size; ++i)
 		{
-			if ((static_cast<unsigned char>(base[i]) < static_cast<unsigned char>(TLimit)) || ((base[i] == TChars) || ...)) {
+			if (matchTable[static_cast<unsigned char>(base[i])]) {
 				return i;
 			}
 		}
 		return std::string_view::npos;
 #elif BITSERIALIZER_HAS_NEON
 		const char* const base = data.data();
+		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<static_cast<unsigned char>(TLimit), TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -198,16 +225,17 @@ namespace BitSerializer::Detail
 		}
 		for (; i < size; ++i)
 		{
-			if ((static_cast<unsigned char>(base[i]) < static_cast<unsigned char>(TLimit)) || ((base[i] == TChars) || ...)) {
+			if (matchTable[static_cast<unsigned char>(base[i])]) {
 				return i;
 			}
 		}
 		return std::string_view::npos;
 #else
 		const char* const base = data.data();
+		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<static_cast<unsigned char>(TLimit), TChars...>();
 		for (size_t i = pos; i < size; ++i)
 		{
-			if ((static_cast<unsigned char>(base[i]) < static_cast<unsigned char>(TLimit)) || ((base[i] == TChars) || ...)) {
+			if (matchTable[static_cast<unsigned char>(base[i])]) {
 				return i;
 			}
 		}

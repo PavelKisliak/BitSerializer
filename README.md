@@ -35,7 +35,7 @@ Legend: ✅ supported · ❌ not supported · N/A — not applicable to the form
 Streaming: incremental processing in chunks with bounded memory usage, so documents larger than available RAM can be loaded from streams. All archives support I/O via `std::stream`, but DOM-based archives (RapidJSON, PugiXml, RapidYAML) keep the whole document in memory.
 
 > [!IMPORTANT]
-> The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which requires no external dependencies. The built-in implementation is about 40% faster and offers the same functionality.
+> The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which requires no external dependencies. The built-in implementation is about 75% faster and offers the same functionality.
 >
 > Your help with testing the built-in implementation before the switch would be much appreciated — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
 

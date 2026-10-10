@@ -578,6 +578,54 @@ TYPED_TEST(EncodedStreamReaderTest, ShouldReturnIsEndFalseBeforeAnyRead)
 }
 
 //------------------------------------------------------------------------------
+// Stream EOF caching (fast path)
+//------------------------------------------------------------------------------
+
+TYPED_TEST(EncodedStreamReaderTest, ShouldSetStreamEofFlagWhenStreamExhausted)
+{
+	// Short stream is fully consumed during construction
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(U"Hello");
+	EXPECT_TRUE(ReaderAccess::GetStreamEof(*this->mEncodedStreamReader));
+
+	// Larger stream is not exhausted after the first chunk
+	constexpr size_t chunkSize = 32;
+	std::u32string source;
+	source.reserve(100);
+	for (char32_t c = U'A'; source.size() < 100; ++c) {
+		source += c;
+	}
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(source, chunkSize);
+	EXPECT_FALSE(ReaderAccess::GetStreamEof(*this->mEncodedStreamReader));
+
+	// Reading up to the end must set the cached flag
+	EXPECT_EQ(this->mExpectedString, this->ReadAll());
+	EXPECT_TRUE(ReaderAccess::GetStreamEof(*this->mEncodedStreamReader));
+}
+
+TYPED_TEST(EncodedStreamReaderTest, ShouldResetStreamEofFlagOnSeekBackward)
+{
+	constexpr size_t chunkSize = 32;
+	std::u32string source;
+	source.reserve(100);
+	for (char32_t c = U'A'; source.size() < 100; ++c) {
+		source += c;
+	}
+	this->template PrepareEncodedStreamReader<Convert::Utf::Utf8>(source, chunkSize);
+
+	EXPECT_EQ(this->mExpectedString, this->ReadAll());
+	this->mEncodedStreamReader->TrimConsumedData();
+
+	// After trim the reader is exhausted and positioned at the end of the stream
+	ASSERT_GT(ReaderAccess::GetStreamOffset(*this->mEncodedStreamReader), 5u);
+	ASSERT_TRUE(ReaderAccess::GetStreamEof(*this->mEncodedStreamReader));
+
+	// Seeking back before the buffered window forces a re-read, which must clear the cached flag
+	this->mEncodedStreamReader->SetPosition(5);
+	EXPECT_FALSE(ReaderAccess::GetStreamEof(*this->mEncodedStreamReader));
+	EXPECT_EQ(this->mExpectedString.substr(5), this->ReadAll());
+}
+
+//------------------------------------------------------------------------------
 // Error handling
 //------------------------------------------------------------------------------
 

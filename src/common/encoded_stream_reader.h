@@ -60,6 +60,7 @@ namespace BitSerializer::Convert::Utf
 		std::vector<char> mRawBytes;
 		size_t mRawBytesPos = 0;
 		bool mRawMode = true;
+		bool mStreamEof = false;
 		std::basic_string<TTargetCharType> mDecodedBuf;
 		size_t mDecodedPos = 0;
 		size_t mDecodedRawPos = 0;

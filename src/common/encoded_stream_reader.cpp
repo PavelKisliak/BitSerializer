@@ -24,6 +24,7 @@ namespace BitSerializer::Convert::Utf
 		mInputStream.read(mRawBytes.data(), static_cast<std::streamsize>(mChunkSize));
 		const auto firstReadSize = mInputStream.gcount();
 		mRawBytes.resize(static_cast<size_t>(firstReadSize));
+		mStreamEof = static_cast<size_t>(firstReadSize) < mChunkSize;
 
 		if (!mRawBytes.empty())
 		{
@@ -70,6 +71,7 @@ namespace BitSerializer::Convert::Utf
 			mInputStream.read(mRawBytes.data(), static_cast<std::streamsize>(mChunkSize));
 			const auto n = mInputStream.gcount();
 			mRawBytes.resize(static_cast<size_t>(n));
+			mStreamEof = static_cast<size_t>(n) < mChunkSize;
 
 			mDecodedBuf.clear();
 			mDecodedPos = 0;
@@ -210,9 +212,9 @@ namespace BitSerializer::Convert::Utf
 	bool EncodedStreamReader<TTargetCharType>::IsEnd() const noexcept
 	{
 		if (mRawMode) {
-			return mRawBytesPos >= mRawBytes.size() && mInputStream.eof();
+			return mRawBytesPos >= mRawBytes.size() && (mStreamEof || mInputStream.eof());
 		}
-		return mDecodedPos >= mDecodedBuf.size() && mRawBytesPos >= mRawBytes.size() && mInputStream.eof();
+		return mDecodedPos >= mDecodedBuf.size() && mRawBytesPos >= mRawBytes.size() && (mStreamEof || mInputStream.eof());
 	}
 
 	template <typename TTargetCharType>
@@ -322,19 +324,30 @@ namespace BitSerializer::Convert::Utf
 	template <typename TTargetCharType>
 	void EncodedStreamReader<TTargetCharType>::EnsureRawDataAvailable(size_t targetSize)
 	{
-		if (mInputStream.eof()) {
-			return;
-		}
 		// Keep at least one chunk of data ahead of the current position by default,
 		// or grow the buffer up to the requested size.
-		targetSize = (std::max)(mRawBytesPos + mChunkSize, targetSize);
-		while (mRawBytes.size() < targetSize && !mInputStream.eof())
+		const size_t requiredSize = (std::max)(mRawBytesPos + mChunkSize, targetSize);
+
+		// Fast path: the buffer already holds enough data, so the stream is not touched at all
+		// (this avoids a `std::istream::eof()` probe on the hot path).
+		if (mRawBytes.size() >= requiredSize) {
+			return;
+		}
+		if (mStreamEof) {
+			return;
+		}
+
+		while (mRawBytes.size() < requiredSize && !mInputStream.eof())
 		{
 			const auto oldSize = mRawBytes.size();
 			mRawBytes.resize(oldSize + mChunkSize);
 			mInputStream.read(mRawBytes.data() + oldSize, static_cast<std::streamsize>(mChunkSize));
 			const auto n = mInputStream.gcount();
 			mRawBytes.resize(oldSize + static_cast<size_t>(n));
+		}
+
+		if (mInputStream.eof()) {
+			mStreamEof = true;
 		}
 	}
 

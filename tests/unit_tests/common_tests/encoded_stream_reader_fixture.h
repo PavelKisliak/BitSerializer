@@ -24,6 +24,18 @@ namespace BitSerializer::Convert::Utf
 		{
 			return reader.mDecodedBuf.size();
 		}
+
+		template <typename T>
+		static bool GetStreamEof(const EncodedStreamReader<T>& reader) noexcept
+		{
+			return reader.mStreamEof;
+		}
+
+		template <typename T>
+		static size_t GetStreamOffset(const EncodedStreamReader<T>& reader) noexcept
+		{
+			return reader.mStreamOffset;
+		}
 	};
 }
 

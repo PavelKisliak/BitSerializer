@@ -101,6 +101,22 @@ namespace PugiXmlExtensions
 	}
 #endif
 
+	/**
+	 * @brief Adapts a key for use with PugiXml extension functions.
+	 *
+	 * When PugiXml has `std::basic_string_view` support, the key is converted to a string view up front
+	 * (avoids `strlen` for string literals); otherwise the key is passed through unchanged.
+	 */
+	template <typename TKey>
+	[[nodiscard]] inline decltype(auto) ToKeyView(TKey&& key) noexcept
+	{
+#ifdef PUGIXML_HAS_STRING_VIEW
+		return Convert::ToStringView(key);
+#else
+		return PugiXmlExtensions::ToKeyView(key);
+#endif
+	}
+
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 	bool LoadValue(const pugi::xml_node& node, T& value, const SerializationOptions& serializationOptions)
 	{
@@ -348,7 +364,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
+			auto attr = PugiXmlExtensions::GetAttribute(mNode, PugiXmlExtensions::ToKeyView(key));
 			if (attr.empty()) {
 				return std::is_null_pointer_v<T>;
 			}
@@ -384,7 +400,7 @@ public:
 		}
 		else
 		{
-			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
+			auto attr = PugiXmlExtensions::AppendAttribute(mNode, PugiXmlExtensions::ToKeyView(key));
 			if (attr.empty()) {
 				return false;
 			}
@@ -400,7 +416,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto attr = PugiXmlExtensions::GetAttribute(mNode, std::forward<TKey>(key));
+			auto attr = PugiXmlExtensions::GetAttribute(mNode, PugiXmlExtensions::ToKeyView(key));
 			if (attr.empty()) {
 				return false;
 			}
@@ -410,7 +426,7 @@ public:
 		}
 		else
 		{
-			auto attr = PugiXmlExtensions::AppendAttribute(mNode, std::forward<TKey>(key));
+			auto attr = PugiXmlExtensions::AppendAttribute(mNode, PugiXmlExtensions::ToKeyView(key));
 			if (attr.empty()) {
 				return false;
 			}
@@ -477,7 +493,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key));
+			auto child = PugiXmlExtensions::GetChild(mNode, PugiXmlExtensions::ToKeyView(key));
 			if (child.empty()) {
 				return false;
 			}
@@ -485,7 +501,7 @@ public:
 		}
 		else
 		{
-			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
+			auto child = PugiXmlExtensions::AppendChild(mNode, PugiXmlExtensions::ToKeyView(key));
 			if (child.empty()) {
 				return false;
 			}
@@ -499,7 +515,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto child = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key)))
+			if (auto child = PugiXmlExtensions::GetChild(mNode, PugiXmlExtensions::ToKeyView(key)))
 			{
 				if (child.first_child().type() == pugi::node_element)
 				{
@@ -515,7 +531,7 @@ public:
 		}
 		else
 		{
-			auto child = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
+			auto child = PugiXmlExtensions::AppendChild(mNode, PugiXmlExtensions::ToKeyView(key));
 			return child.empty()
 				? PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
 				: PugiXmlObjectScope<TMode>(child, ArchiveScope<TMode>::GetContext());
@@ -527,7 +543,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto node = PugiXmlExtensions::GetChild(mNode, std::forward<TKey>(key)))
+			if (auto node = PugiXmlExtensions::GetChild(mNode, PugiXmlExtensions::ToKeyView(key)))
 			{
 				if (node.first_child().type() == pugi::node_element)
 				{
@@ -543,7 +559,7 @@ public:
 		}
 		else
 		{
-			auto node = PugiXmlExtensions::AppendChild(mNode, std::forward<TKey>(key));
+			auto node = PugiXmlExtensions::AppendChild(mNode, PugiXmlExtensions::ToKeyView(key));
 			return node.empty()
 				? PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
 				: PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
@@ -638,7 +654,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto node = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key)))
+			if (auto node = PugiXmlExtensions::GetChild(mRootXml, PugiXmlExtensions::ToKeyView(key)))
 			{
 				if (node.type() == pugi::node_element)
 				{
@@ -650,7 +666,7 @@ public:
 		}
 		else
 		{
-			auto node = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
+			auto node = PugiXmlExtensions::AppendChild(mRootXml, PugiXmlExtensions::ToKeyView(key));
 			return node.empty()
 				? PugiXmlArrayScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
 				: PugiXmlArrayScope<TMode>(node, ArchiveScope<TMode>::GetContext());
@@ -689,7 +705,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto child = PugiXmlExtensions::GetChild(mRootXml, std::forward<TKey>(key)))
+			if (auto child = PugiXmlExtensions::GetChild(mRootXml, PugiXmlExtensions::ToKeyView(key)))
 			{
 				if (child.type() == pugi::node_element)
 				{
@@ -706,7 +722,7 @@ public:
 		}
 		else
 		{
-			auto child = PugiXmlExtensions::AppendChild(mRootXml, std::forward<TKey>(key));
+			auto child = PugiXmlExtensions::AppendChild(mRootXml, PugiXmlExtensions::ToKeyView(key));
 			return child.empty()
 				? PugiXmlObjectScope<TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext())
 				: PugiXmlObjectScope<TMode>(child, ArchiveScope<TMode>::GetContext());

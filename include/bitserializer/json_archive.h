@@ -9,6 +9,7 @@
 #include <string_view>
 #include <type_traits>
 #include "bitserializer/export.h"
+#include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/object_traits.h"
@@ -355,7 +356,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(std::string_view(key));
+		mJsonWriter->WriteKey(Convert::ToStringView(key));
 		mJsonWriter->WriteValue(value);
 		++mIndex;
 		return true;
@@ -371,7 +372,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(std::string_view(key));
+		mJsonWriter->WriteKey(Convert::ToStringView(key));
 		mJsonWriter->WriteRawValue(value.Get());
 		++mIndex;
 		return true;
@@ -384,7 +385,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(std::string_view(key));
+		mJsonWriter->WriteKey(Convert::ToStringView(key));
 		mJsonWriter->BeginArray();
 		++mIndex;
 		return {mJsonWriter, GetContext()};
@@ -397,7 +398,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(std::string_view(key));
+		mJsonWriter->WriteKey(Convert::ToStringView(key));
 		mJsonWriter->BeginObject();
 		++mIndex;
 		return {mJsonWriter, GetContext()};
@@ -751,7 +752,7 @@ public:
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
-		if (FindValueByKey(key))
+		if (FindValueByKey(Convert::ToStringView(key)))
 		{
 			++mIndex;
 			mCurrentKey = {};
@@ -766,7 +767,7 @@ public:
 		static_assert(IsRawPayloadCompatible(TFormat, FRaw),
 			"BitSerializer. A raw payload of the requested format cannot be loaded from the source format.");
 
-		if (FindValueByKey(key))
+		if (FindValueByKey(Convert::ToStringView(key)))
 		{
 			++mIndex;
 			mCurrentKey = {};
@@ -778,7 +779,7 @@ public:
 	template <typename TKey>
 	[[nodiscard]] JsonReadArrayScope<TFormat, TReader> OpenArrayScope(TKey&& key, size_t)
 	{
-		if (FindValueByKey(key))
+		if (FindValueByKey(Convert::ToStringView(key)))
 		{
 			if (mJsonReader->OpenArray())
 			{
@@ -792,7 +793,7 @@ public:
 	template <typename TKey>
 	[[nodiscard]] JsonReadObjectScope<TFormat, TReader> OpenObjectScope(TKey&& key, size_t)
 	{
-		if (FindValueByKey(key))
+		if (FindValueByKey(Convert::ToStringView(key)))
 		{
 			if (mJsonReader->OpenObject())
 			{

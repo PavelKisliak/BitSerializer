@@ -400,22 +400,22 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
+			auto* jsonValue = this->LoadJsonValue(Convert::ToStringView(key));
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else
 		{
 			if constexpr (std::is_arithmetic_v<T>) {
 				if constexpr (std::is_constructible_v<RapidJsonNode, T>) {
-					return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value));
+					return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(value));
 				}
 				else {
 					// Some integer types don't have fixed-size convertible types
-					return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(static_cast<compatible_fixed_t<T>>(value)));
+					return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(static_cast<compatible_fixed_t<T>>(value)));
 				}
 			}
 			else {
-				return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode());
+				return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode());
 			}
 		}
 	}
@@ -425,11 +425,11 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
+			auto* jsonValue = this->LoadJsonValue(Convert::ToStringView(key));
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else {
-			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
+			return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(value.data(), static_cast<rapidjson::SizeType>(value.size()), mAllocator));
 		}
 	}
 
@@ -438,7 +438,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = this->LoadJsonValue(std::forward<TKey>(key));
+			auto* jsonValue = this->LoadJsonValue(Convert::ToStringView(key));
 			if (jsonValue)
 			{
 				value.CopyFrom(*jsonValue, value.GetAllocator());
@@ -447,7 +447,7 @@ public:
 			return false;
 		}
 		else {
-			return SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(value, mAllocator));
+			return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(value, mAllocator));
 		}
 	}
 
@@ -456,11 +456,11 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto* jsonValue = LoadJsonValue(std::forward<TKey>(key)))
+			if (auto* jsonValue = LoadJsonValue(Convert::ToStringView(key)))
 			{
 				if (jsonValue->IsObject())
 				{
-					return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(jsonValue, mAllocator, this->GetContext(), this, key);
+					return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(jsonValue, mAllocator, this->GetContext(), this, Convert::ToStringView(key));
 				}
 				// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 				if (!jsonValue->IsNull())
@@ -472,9 +472,9 @@ public:
 		}
 		else
 		{
-			SaveJsonValue(std::forward<TKey>(key), RapidJsonNode(rapidjson::kObjectType));
-			auto& insertedMember = FindMember(key)->value;
-			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, key);
+			SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(rapidjson::kObjectType));
+			auto& insertedMember = FindMember(Convert::ToStringView(key))->value;
+			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, Convert::ToStringView(key));
 		}
 	}
 
@@ -483,11 +483,11 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto* jsonValue = LoadJsonValue(std::forward<TKey>(key)))
+			if (auto* jsonValue = LoadJsonValue(Convert::ToStringView(key)))
 			{
 				if (jsonValue->IsArray())
 				{
-					return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(jsonValue, mAllocator, this->GetContext(), this, key);
+					return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(jsonValue, mAllocator, this->GetContext(), this, Convert::ToStringView(key));
 				}
 				// NULL value from the source JSON is excluded from MismatchedTypesPolicy processing
 				if (!jsonValue->IsNull())
@@ -503,9 +503,9 @@ public:
 			if (arraySize) {
 				rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
 			}
-			SaveJsonValue(std::forward<TKey>(key), std::move(rapidJsonArray));
-			auto& insertedMember = FindMember(key)->value;
-			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, key);
+			SaveJsonValue(Convert::ToStringView(key), std::move(rapidJsonArray));
+			auto& insertedMember = FindMember(Convert::ToStringView(key))->value;
+			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, Convert::ToStringView(key));
 		}
 	}
 

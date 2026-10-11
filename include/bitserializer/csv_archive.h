@@ -112,21 +112,21 @@ public:
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		auto temp = Convert::ToString(value);
-		mCsvWriter->WriteValue(std::forward<TKey>(key), std::string_view(temp));
+		mCsvWriter->WriteValue(Convert::ToStringView(key), std::string_view(temp));
 		return true;
 	}
 
 	template <typename TKey>
 	bool SerializeValue(TKey&& key, string_view_type& value)
 	{
-		mCsvWriter->WriteValue(std::forward<TKey>(key), value);
+		mCsvWriter->WriteValue(Convert::ToStringView(key), value);
 		return true;
 	}
 
 	template <typename TKey>
 	bool SerializeValue(TKey&& key, std::nullptr_t&)
 	{
-		mCsvWriter->WriteValue(std::forward<TKey>(key), "");
+		mCsvWriter->WriteValue(Convert::ToStringView(key), "");
 		return true;
 	}
 

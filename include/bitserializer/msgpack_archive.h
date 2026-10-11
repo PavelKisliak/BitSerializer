@@ -109,7 +109,7 @@ public:
 	bool operator==(T(&value)[ArraySize]) const noexcept
 	{
 		const auto& ref = std::get<std::string_view>(mTuple);
-		return mLast == &ref && ref == value;
+		return mLast == &ref && ref == Convert::ToStringView(value);
 	}
 
 	template <typename T>
@@ -376,7 +376,7 @@ public:
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(key);
+		WriteKey(key);
 		mMsgPackWriter->WriteValue(value);
 		++mIndex;
 		return true;
@@ -386,7 +386,7 @@ public:
 	CMsgPackWriteArrayScope<TWriter> OpenArrayScope(TKey&& key, size_t arraySize)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(key);
+		WriteKey(key);
 		mMsgPackWriter->BeginArray(arraySize);
 		++mIndex;
 		return {arraySize, mMsgPackWriter, GetContext()};
@@ -396,7 +396,7 @@ public:
 	[[nodiscard]] CMsgPackWriteObjectScope<TWriter> OpenObjectScope(TKey&& key, size_t mapSize)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(key);
+		WriteKey(key);
 		mMsgPackWriter->BeginMap(mapSize);
 		++mIndex;
 		return {mapSize, mMsgPackWriter, GetContext()};
@@ -406,7 +406,7 @@ public:
 	[[nodiscard]] CMsgPackWriteBinaryScope<TWriter> OpenBinaryScope(TKey&& key, size_t binarySize)
 	{
 		CheckEnd();
-		mMsgPackWriter->WriteValue(key);
+		WriteKey(key);
 		mMsgPackWriter->BeginBinary(binarySize);
 		++mIndex;
 		return {binarySize, mMsgPackWriter, GetContext()};
@@ -418,6 +418,19 @@ private:
 		if (mIndex == mSize)
 		{
 			throw SerializationException(SerializationErrorCode::OutOfRange, "Attempt to write more items than was stated for that map");
+		}
+	}
+
+	template <typename TKey>
+	void WriteKey(TKey&& key)
+	{
+		// String-like keys are converted to a view up front (avoids `strlen` for string literals);
+		// other supported key types (integers, floating point, timestamp) are written as is.
+		if constexpr (Convert::Detail::is_convertible_to_string_view_v<std::remove_reference_t<TKey>>) {
+			mMsgPackWriter->WriteValue(Convert::ToStringView(key));
+		}
+		else {
+			mMsgPackWriter->WriteValue(std::forward<TKey>(key));
 		}
 	}
 

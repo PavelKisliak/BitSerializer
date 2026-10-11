@@ -100,18 +100,23 @@ namespace BitSerializer::Convert
 	/**
 	 * @brief Returns a zero-copy `std::string_view` over a string-like value.
 	 *
-	 * Works for `std::basic_string`, C-strings, and any type registered as a string-like type
-	 * via `BITSERIALIZER_DECLARE_STRING_TYPE`.
+	 * Works for `std::basic_string`, C-strings, character arrays (string literals), `std::basic_string_view`,
+	 * and any type registered as a string-like type via `BITSERIALIZER_DECLARE_STRING_TYPE`.
 	 *
 	 * @tparam T Source type.
 	 * @param[in] value Input string-like value.
 	 * @return String view pointing to the contents of the input value.
 	 */
 	template <typename T>
-	auto ToStringView(const T& value) noexcept
+	constexpr auto ToStringView(const T& value) noexcept
 	{
 		using namespace Detail;
-		return StringViewOf(value);
+		if constexpr (is_basic_string_view_v<std::remove_cv_t<T>>) {
+			return value;
+		}
+		else {
+			return StringViewOf(value);
+		}
 	}
 
 	/**

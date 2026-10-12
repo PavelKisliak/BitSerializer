@@ -440,7 +440,7 @@ When in doubt, follow the patterns you see in the surrounding code.
 
 | Element | Convention | Examples |
 |---------|-----------|----------|
-| Classes / Structs (incl. class templates) | CamelCase, no `T` prefix | `ArchiveScope`, `SerializationOptions`, `CValueMeta` |
+| Classes / Structs (incl. class templates) | CamelCase, no `T` prefix | `ArchiveScope`, `SerializationOptions`, `JsonWriteObjectScope` |
 | Interfaces | `I` + CamelCase | `IJsonReader`, `ICsvReader` |
 | Public/protected methods | CamelCase | `ReadValue()`, `OpenArray()`, `GetPosition()` |
 | Private methods | CamelCase | `ParseNextLine()`, `UnescapeValue()` |
@@ -455,7 +455,7 @@ When in doubt, follow the patterns you see in the surrounding code.
 | Namespaces | CamelCase | `BitSerializer::Json::Detail` |
 
 > [!NOTE]
-> Some existing classes use a `C` prefix (e.g., `CMsgPackStringReader`) — this is a legacy convention. New code should use plain CamelCase without the prefix.
+> Some existing classes (e.g. in the CSV archive) still use a legacy `C` prefix. New code should use plain CamelCase without the prefix.
 >
 > The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
 

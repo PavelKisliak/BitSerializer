@@ -8,7 +8,7 @@
 
 
 using testing::Types;
-typedef Types<BitSerializer::MsgPack::Detail::CMsgPackStringReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader> Implementations;
+typedef Types<BitSerializer::MsgPack::Detail::MsgPackStringReader, BitSerializer::MsgPack::Detail::MsgPackStreamReader> Implementations;
 
 // Tests for all implementations of IMsgPackWriter
 TYPED_TEST_SUITE(MsgPackReaderTest, Implementations, );
@@ -845,7 +845,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp32)
 		'\xD6', '\xFF', '\x10', '\x20', '\x30', '\x40',
 		'\xD6', '\xFF', '\x80', '\x90', '\xA0', '\xB0'
 		});
-	BitSerializer::Detail::CBinTimestamp timestamp;
+	BitSerializer::Detail::BinTimestamp timestamp;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
 	EXPECT_EQ(0x10203040, timestamp.seconds);
@@ -862,7 +862,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp64)
 		'\xD7', '\xFF', '\x04', '\x08', '\x0C', '\x10', '\x10', '\x20', '\x30', '\x40',
 		'\xD7', '\xFF', '\x05', '\x09', '\x0D', '\x20', '\x20', '\x30', '\x40', '\x50'
 		});
-	BitSerializer::Detail::CBinTimestamp timestamp;
+	BitSerializer::Detail::BinTimestamp timestamp;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
 	EXPECT_EQ(0x10203040, timestamp.seconds);
@@ -879,7 +879,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp96)
 		'\xC7', '\x0C', '\xFF', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', '\x08', '\x09', '\x0A', '\x0B', '\x0C',
 		'\xC7', '\x0C', '\xFF', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', '\x18', '\x19', '\x1A', '\x1B', '\x1C'
 		});
-	BitSerializer::Detail::CBinTimestamp timestamp;
+	BitSerializer::Detail::BinTimestamp timestamp;
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadValue(timestamp));
 	EXPECT_EQ(0x0102030405060708, timestamp.seconds);
@@ -892,7 +892,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTimestamp96)
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp32)
 {
-	BitSerializer::Detail::CBinTimestamp timestamp;
+	BitSerializer::Detail::BinTimestamp timestamp;
 
 	this->PrepareReader(std::string({ '\xD6',  }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
@@ -906,7 +906,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp32
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp64)
 {
-	BitSerializer::Detail::CBinTimestamp timestamp;
+	BitSerializer::Detail::BinTimestamp timestamp;
 
 	this->PrepareReader(std::string({ '\xD7', }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
@@ -920,7 +920,7 @@ TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp64
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenUnexpectedEndOfTimestamp96)
 {
-	BitSerializer::Detail::CBinTimestamp timestamp;
+	BitSerializer::Detail::BinTimestamp timestamp;
 
 	this->PrepareReader(std::string({ '\xC7', }));
 	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);

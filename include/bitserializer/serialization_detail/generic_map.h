@@ -46,7 +46,7 @@ namespace BitSerializer
 		static void SerializeMapImpl(TArchive& scope, TMap& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
 		{
 			constexpr auto hasSupportKeyType = is_convertible_to_any_of_tuple_v<typename TMap::key_type, typename TArchive::supported_key_types>;
-			constexpr auto hasSupportBinTimestamp = is_convertible_to_any_of_tuple_v<CBinTimestamp, typename TArchive::supported_key_types>;
+			constexpr auto hasSupportBinTimestamp = is_convertible_to_any_of_tuple_v<BinTimestamp, typename TArchive::supported_key_types>;
 			if constexpr (TArchive::IsSaving())
 			{
 				for (auto& elem : cont)
@@ -56,10 +56,10 @@ namespace BitSerializer
 					{
 						Serialize(scope, elem.first, elem.second);
 					}
-					// If the key can be converted to CBinTimestamp and the archive supports it
-					else if constexpr (hasSupportBinTimestamp && Convert::IsConvertible<typename TMap::key_type, CBinTimestamp>())
+					// If the key can be converted to BinTimestamp and the archive supports it
+					else if constexpr (hasSupportBinTimestamp && Convert::IsConvertible<typename TMap::key_type, BinTimestamp>())
 					{
-						const auto timestamp = Convert::To<CBinTimestamp>(elem.first);
+						const auto timestamp = Convert::To<BinTimestamp>(elem.first);
 						Serialize(scope, timestamp, elem.second);
 					}
 					else

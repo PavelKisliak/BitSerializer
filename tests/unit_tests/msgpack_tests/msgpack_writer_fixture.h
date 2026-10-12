@@ -14,12 +14,12 @@ class MsgPackWriterTest : public ::testing::Test
 public:
 	MsgPackWriterTest()
 	{
-		if constexpr (std::is_same_v<TWriter, BitSerializer::MsgPack::Detail::CMsgPackStringWriter>)
+		if constexpr (std::is_same_v<TWriter, BitSerializer::MsgPack::Detail::MsgPackStringWriter>)
 		{
 			mResult = std::string();
 			mMsgPackWriter = std::make_shared<TWriter>(std::get<std::string>(mResult));
 		}
-		else if constexpr (std::is_same_v<TWriter, BitSerializer::MsgPack::Detail::CMsgPackStreamWriter>)
+		else if constexpr (std::is_same_v<TWriter, BitSerializer::MsgPack::Detail::MsgPackStreamWriter>)
 		{
 			mResult = std::ostringstream();
 			mMsgPackWriter = std::make_shared<TWriter>(std::get<std::ostringstream>(mResult));

@@ -7,10 +7,10 @@
 
 namespace BitSerializer::MsgPack::Detail
 {
-	class CMsgPackStringWriter final : public IMsgPackWriter
+	class MsgPackStringWriter final : public IMsgPackWriter
 	{
 	public:
-		CMsgPackStringWriter(std::string& outputString);
+		MsgPackStringWriter(std::string& outputString);
 
 		void WriteValue(std::nullptr_t) override;
 
@@ -32,7 +32,7 @@ namespace BitSerializer::MsgPack::Detail
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
 		void WriteValue(std::string_view value) override;
 
-		void WriteValue(const CBinTimestamp& timestamp) override;
+		void WriteValue(const BinTimestamp& timestamp) override;
 
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;
@@ -44,10 +44,10 @@ namespace BitSerializer::MsgPack::Detail
 		std::string& mOutputString;
 	};
 
-	class CMsgPackStreamWriter final : public IMsgPackWriter
+	class MsgPackStreamWriter final : public IMsgPackWriter
 	{
 	public:
-		CMsgPackStreamWriter(std::ostream& outputStream);
+		MsgPackStreamWriter(std::ostream& outputStream);
 
 		void WriteValue(std::nullptr_t) override;
 
@@ -69,7 +69,7 @@ namespace BitSerializer::MsgPack::Detail
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
 		void WriteValue(std::string_view value) override;
 
-		void WriteValue(const CBinTimestamp& timestamp) override;
+		void WriteValue(const BinTimestamp& timestamp) override;
 
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;

@@ -9,10 +9,10 @@
 
 namespace BitSerializer::MsgPack::Detail
 {
-	class CMsgPackStringReader final : public IMsgPackReader
+	class MsgPackStringReader final : public IMsgPackReader
 	{
 	public:
-		CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept;
+		MsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept;
 
 		[[nodiscard]] size_t GetPosition() const noexcept override { return mPos; }
 		void SetPosition(size_t pos) override;
@@ -38,7 +38,7 @@ namespace BitSerializer::MsgPack::Detail
 
 		bool ReadValue(std::string_view& value) override;
 
-		bool ReadValue(CBinTimestamp& timestamp) override;
+		bool ReadValue(BinTimestamp& timestamp) override;
 
 		bool ReadArraySize(size_t& arraySize) override;
 		bool ReadMapSize(size_t& mapSize) override;
@@ -54,10 +54,10 @@ namespace BitSerializer::MsgPack::Detail
 		const SerializationOptions& mSerializationOptions;
 	};
 
-	class CMsgPackStreamReader final : public IMsgPackReader
+	class MsgPackStreamReader final : public IMsgPackReader
 	{
 	public:
-		CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions) noexcept;
+		MsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions) noexcept;
 
 		[[nodiscard]] size_t GetPosition() const noexcept override {
 			return mBinaryStreamReader.GetPosition();
@@ -90,7 +90,7 @@ namespace BitSerializer::MsgPack::Detail
 
 		bool ReadValue(std::string_view& value) override;
 
-		bool ReadValue(CBinTimestamp& timestamp) override;
+		bool ReadValue(BinTimestamp& timestamp) override;
 
 		bool ReadArraySize(size_t& arraySize) override;
 		bool ReadMapSize(size_t& mapSize) override;
@@ -101,7 +101,7 @@ namespace BitSerializer::MsgPack::Detail
 		void SkipValue() override;
 
 	private:
-		BitSerializer::Detail::CBinaryStreamReader mBinaryStreamReader;
+		BitSerializer::Detail::BinaryStreamReader mBinaryStreamReader;
 		const SerializationOptions& mSerializationOptions;
 		std::string mBuffer;
 	};

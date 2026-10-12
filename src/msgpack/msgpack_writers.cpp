@@ -58,21 +58,21 @@ namespace
 
 namespace BitSerializer::MsgPack::Detail
 {
-	CMsgPackStringWriter::CMsgPackStringWriter(std::string& outputString)
+	MsgPackStringWriter::MsgPackStringWriter(std::string& outputString)
 		: mOutputString(outputString)
 	{ }
 
-	void CMsgPackStringWriter::WriteValue(std::nullptr_t)
+	void MsgPackStringWriter::WriteValue(std::nullptr_t)
 	{
 		mOutputString.push_back('\xC0');
 	}
 
-	void CMsgPackStringWriter::WriteValue(bool value)
+	void MsgPackStringWriter::WriteValue(bool value)
 	{
 		mOutputString.push_back(value ? '\xC3' : '\xC2');
 	}
 
-	void CMsgPackStringWriter::WriteValue(uint8_t value)
+	void MsgPackStringWriter::WriteValue(uint8_t value)
 	{
 		if (value >= 128u) {
 			mOutputString.push_back('\xCC');
@@ -80,7 +80,7 @@ namespace BitSerializer::MsgPack::Detail
 		mOutputString.push_back(static_cast<char>(value));
 	}
 
-	void CMsgPackStringWriter::WriteValue(uint16_t value)
+	void MsgPackStringWriter::WriteValue(uint16_t value)
 	{
 		if (value > std::numeric_limits<uint8_t>::max()) {
 			PushValue(mOutputString, '\xCD', value);
@@ -90,7 +90,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(uint32_t value)
+	void MsgPackStringWriter::WriteValue(uint32_t value)
 	{
 		if (value > std::numeric_limits<uint16_t>::max()) {
 			PushValue(mOutputString, '\xCE', value);
@@ -100,7 +100,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(uint64_t value)
+	void MsgPackStringWriter::WriteValue(uint64_t value)
 	{
 		if (value > std::numeric_limits<uint32_t>::max()) {
 			PushValue(mOutputString, '\xCF', value);
@@ -110,7 +110,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(int8_t value)
+	void MsgPackStringWriter::WriteValue(int8_t value)
 	{
 		if (value >= -32) {
 			mOutputString.push_back(value);
@@ -120,7 +120,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(int16_t value)
+	void MsgPackStringWriter::WriteValue(int16_t value)
 	{
 		if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) {
 			PushValue(mOutputString, '\xD1', value);
@@ -130,7 +130,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(int32_t value)
+	void MsgPackStringWriter::WriteValue(int32_t value)
 	{
 		if (value < std::numeric_limits<int16_t>::min() || value > std::numeric_limits<int16_t>::max()) {
 			PushValue(mOutputString, '\xD2', value);
@@ -140,7 +140,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(int64_t value)
+	void MsgPackStringWriter::WriteValue(int64_t value)
 	{
 		if (value < std::numeric_limits<int32_t>::min() || value > std::numeric_limits<int32_t>::max()) {
 			PushValue(mOutputString, '\xD3', value);
@@ -150,21 +150,21 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::WriteValue(float value)
+	void MsgPackStringWriter::WriteValue(float value)
 	{
 		uint32_t buf;
 		std::memcpy(&buf, &value, sizeof(uint32_t));
 		PushValue(mOutputString, '\xCA', buf);
 	}
 
-	void CMsgPackStringWriter::WriteValue(double value)
+	void MsgPackStringWriter::WriteValue(double value)
 	{
 		uint64_t buf;
 		std::memcpy(&buf, &value, sizeof(uint64_t));
 		PushValue(mOutputString, '\xCB', buf);
 	}
 
-	void CMsgPackStringWriter::WriteValue(std::string_view value)
+	void MsgPackStringWriter::WriteValue(std::string_view value)
 	{
 		if (value.size() < 32u) {
 			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000u));
@@ -187,7 +187,7 @@ namespace BitSerializer::MsgPack::Detail
 		mOutputString.append(value);
 	}
 
-	void CMsgPackStringWriter::WriteValue(const CBinTimestamp& timestamp)
+	void MsgPackStringWriter::WriteValue(const BinTimestamp& timestamp)
 	{
 		if (static_cast<uint64_t>(timestamp.seconds) >> 34u == 0u)
 		{
@@ -215,7 +215,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::BeginArray(size_t arraySize)
+	void MsgPackStringWriter::BeginArray(size_t arraySize)
 	{
 		if (arraySize < 16u) {
 			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000u));
@@ -234,7 +234,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::BeginMap(size_t mapSize)
+	void MsgPackStringWriter::BeginMap(size_t mapSize)
 	{
 		if (mapSize < 16u) {
 			mOutputString.push_back(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000u));
@@ -253,7 +253,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStringWriter::BeginBinary(size_t binarySize)
+	void MsgPackStringWriter::BeginBinary(size_t binarySize)
 	{
 		if (binarySize <= std::numeric_limits<uint8_t>::max()) {
 			PushValue(mOutputString, '\xC4', static_cast<uint8_t>(binarySize));
@@ -271,21 +271,21 @@ namespace BitSerializer::MsgPack::Detail
 
 	//------------------------------------------------------------------------------
 
-	CMsgPackStreamWriter::CMsgPackStreamWriter(std::ostream& outputStream)
+	MsgPackStreamWriter::MsgPackStreamWriter(std::ostream& outputStream)
 		: mOutputStream(outputStream)
 	{ }
 
-	void CMsgPackStreamWriter::WriteValue(std::nullptr_t)
+	void MsgPackStreamWriter::WriteValue(std::nullptr_t)
 	{
 		mOutputStream.put('\xC0');
 	}
 
-	void CMsgPackStreamWriter::WriteValue(bool value)
+	void MsgPackStreamWriter::WriteValue(bool value)
 	{
 		mOutputStream.put(value ? '\xC3' : '\xC2');
 	}
 
-	void CMsgPackStreamWriter::WriteValue(uint8_t value)
+	void MsgPackStreamWriter::WriteValue(uint8_t value)
 	{
 		if (value >= 128u) {
 			mOutputStream.put('\xCC');
@@ -293,7 +293,7 @@ namespace BitSerializer::MsgPack::Detail
 		mOutputStream.put(static_cast<char>(value));
 	}
 
-	void CMsgPackStreamWriter::WriteValue(uint16_t value)
+	void MsgPackStreamWriter::WriteValue(uint16_t value)
 	{
 		if (value > std::numeric_limits<uint8_t>::max()) {
 			PushValue(mOutputStream, '\xCD', value);
@@ -303,7 +303,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(uint32_t value)
+	void MsgPackStreamWriter::WriteValue(uint32_t value)
 	{
 		if (value > std::numeric_limits<uint16_t>::max()) {
 			PushValue(mOutputStream, '\xCE', value);
@@ -313,7 +313,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(uint64_t value)
+	void MsgPackStreamWriter::WriteValue(uint64_t value)
 	{
 		if (value > std::numeric_limits<uint32_t>::max()) {
 			PushValue(mOutputStream, '\xCF', value);
@@ -323,7 +323,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(int8_t value)
+	void MsgPackStreamWriter::WriteValue(int8_t value)
 	{
 		if (value >= -32) {
 			mOutputStream.put(value);
@@ -333,7 +333,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(int16_t value)
+	void MsgPackStreamWriter::WriteValue(int16_t value)
 	{
 		if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) {
 			PushValue(mOutputStream, '\xD1', value);
@@ -343,7 +343,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(int32_t value)
+	void MsgPackStreamWriter::WriteValue(int32_t value)
 	{
 		if (value < std::numeric_limits<int16_t>::min() || value > std::numeric_limits<int16_t>::max()) {
 			PushValue(mOutputStream, '\xD2', value);
@@ -353,7 +353,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(int64_t value)
+	void MsgPackStreamWriter::WriteValue(int64_t value)
 	{
 		if (value < std::numeric_limits<int32_t>::min() || value > std::numeric_limits<int32_t>::max()) {
 			PushValue(mOutputStream, '\xD3', value);
@@ -363,21 +363,21 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteValue(float value)
+	void MsgPackStreamWriter::WriteValue(float value)
 	{
 		uint32_t buf;
 		std::memcpy(&buf, &value, sizeof(uint32_t));
 		PushValue(mOutputStream, '\xCA', buf);
 	}
 
-	void CMsgPackStreamWriter::WriteValue(double value)
+	void MsgPackStreamWriter::WriteValue(double value)
 	{
 		uint64_t buf;
 		std::memcpy(&buf, &value, sizeof(uint64_t));
 		PushValue(mOutputStream, '\xCB', buf);
 	}
 
-	void CMsgPackStreamWriter::WriteValue(std::string_view value)
+	void MsgPackStreamWriter::WriteValue(std::string_view value)
 	{
 		if (value.size() < 32u) {
 			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(value.size()) | 0b10100000u));
@@ -400,7 +400,7 @@ namespace BitSerializer::MsgPack::Detail
 		mOutputStream.write(value.data(), static_cast<std::streamsize>(value.size()));
 	}
 
-	void CMsgPackStreamWriter::WriteValue(const CBinTimestamp& timestamp)
+	void MsgPackStreamWriter::WriteValue(const BinTimestamp& timestamp)
 	{
 		if (static_cast<uint64_t>(timestamp.seconds) >> 34u == 0u)
 		{
@@ -428,7 +428,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::BeginArray(size_t arraySize)
+	void MsgPackStreamWriter::BeginArray(size_t arraySize)
 	{
 		if (arraySize < 16u) {
 			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(arraySize) | 0b10010000u));
@@ -447,7 +447,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::BeginMap(size_t mapSize)
+	void MsgPackStreamWriter::BeginMap(size_t mapSize)
 	{
 		if (mapSize < 16u) {
 			mOutputStream.put(static_cast<char>(static_cast<uint8_t>(mapSize) | 0b10000000u));
@@ -466,7 +466,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::BeginBinary(size_t binarySize)
+	void MsgPackStreamWriter::BeginBinary(size_t binarySize)
 	{
 		if (binarySize <= std::numeric_limits<uint8_t>::max()) {
 			PushValue(mOutputStream, '\xC4', static_cast<uint8_t>(binarySize));
@@ -482,7 +482,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	void CMsgPackStreamWriter::WriteBinary(char byte)
+	void MsgPackStreamWriter::WriteBinary(char byte)
 	{
 		mOutputStream.put(byte);
 	}

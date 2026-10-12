@@ -9,28 +9,28 @@
 
 namespace BitSerializer::Detail
 {
-	CBinaryStreamReader::CBinaryStreamReader(std::istream& inputStream)
+	BinaryStreamReader::BinaryStreamReader(std::istream& inputStream)
 		: mStream(inputStream)
 	{
 		ReadNextChunk();
 	}
 
-	bool CBinaryStreamReader::IsEnd() const noexcept
+	bool BinaryStreamReader::IsEnd() const noexcept
 	{
 		return mStartDataPtr == mEndDataPtr && mStream.eof();
 	}
 
-	bool CBinaryStreamReader::IsFailed() const noexcept
+	bool BinaryStreamReader::IsFailed() const noexcept
 	{
 		return mStream.fail();
 	}
 
-	size_t CBinaryStreamReader::GetPosition() const noexcept
+	size_t BinaryStreamReader::GetPosition() const noexcept
 	{
 		return mStreamPos - (mEndDataPtr - mStartDataPtr);
 	}
 
-	bool CBinaryStreamReader::SetPosition(size_t pos)
+	bool BinaryStreamReader::SetPosition(size_t pos)
 	{
 		const std::streamsize cachedSize = mEndDataPtr - mBuffer;
 		if (pos >= mStreamPos - cachedSize && pos < mStreamPos)
@@ -52,7 +52,7 @@ namespace BitSerializer::Detail
 		return false;
 	}
 
-	std::optional<char> CBinaryStreamReader::PeekByte()
+	std::optional<char> BinaryStreamReader::PeekByte()
 	{
 		if (mStartDataPtr != mEndDataPtr || ReadNextChunk()) {
 			return std::make_optional<char>(*mStartDataPtr);
@@ -60,7 +60,7 @@ namespace BitSerializer::Detail
 		return std::nullopt;
 	}
 
-	void CBinaryStreamReader::GotoNextByte()
+	void BinaryStreamReader::GotoNextByte()
 	{
 		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
 		{
@@ -70,7 +70,7 @@ namespace BitSerializer::Detail
 		}
 	}
 
-	std::optional<char> CBinaryStreamReader::ReadByte()
+	std::optional<char> BinaryStreamReader::ReadByte()
 	{
 		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
 		{
@@ -83,7 +83,7 @@ namespace BitSerializer::Detail
 		return std::nullopt;
 	}
 
-	std::string_view CBinaryStreamReader::ReadExactly(size_t blockSize)
+	std::string_view BinaryStreamReader::ReadExactly(size_t blockSize)
 	{
 		assert(blockSize <= chunk_size);
 		if (blockSize > chunk_size) {
@@ -108,7 +108,7 @@ namespace BitSerializer::Detail
 		return block;
 	}
 
-	std::string_view CBinaryStreamReader::ReadUpTo(size_t maxBytesToRead)
+	std::string_view BinaryStreamReader::ReadUpTo(size_t maxBytesToRead)
 	{
 		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
 		{
@@ -125,7 +125,7 @@ namespace BitSerializer::Detail
 		return {};
 	}
 
-	bool CBinaryStreamReader::ReadNextChunk()
+	bool BinaryStreamReader::ReadNextChunk()
 	{
 		if (IsEnd())
 		{

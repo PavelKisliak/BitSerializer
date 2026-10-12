@@ -79,7 +79,7 @@ namespace BitSerializer
 		 */
 		template <typename TConfig>
 		using TestIoDataVariant = std::conditional_t<TConfig::has_timestamp,
-			std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, typename TConfig::key_type, CBinTimestamp, TestIoDataObjectPtr<TConfig>, TestIoDataArrayPtr<TConfig>>,
+			std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, typename TConfig::key_type, BinTimestamp, TestIoDataObjectPtr<TConfig>, TestIoDataArrayPtr<TConfig>>,
 			std::variant<std::nullptr_t, bool, int64_t, uint64_t, double, typename TConfig::key_type, TestIoDataObjectPtr<TConfig>, TestIoDataArrayPtr<TConfig>>>;
 
 		template <typename TConfig>
@@ -352,23 +352,23 @@ namespace BitSerializer
 			/**
 			 * @brief Serializes a timestamp value at the current array position.
 			 */
-			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, CBinTimestamp>, int> = 0>
+			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
 			bool SerializeValue(T& value)
 			{
 				if (TestIoDataPtr<TConfig> ioData = LoadNextItem())
 				{
 					if constexpr (TMode == SerializeMode::Load)
 					{
-						if (std::holds_alternative<CBinTimestamp>(*ioData))
+						if (std::holds_alternative<BinTimestamp>(*ioData))
 						{
-							value = std::get<CBinTimestamp>(*ioData);
+							value = std::get<BinTimestamp>(*ioData);
 							return true;
 						}
 						return false;
 					}
 					else
 					{
-						ioData->template emplace<CBinTimestamp>(value);
+						ioData->template emplace<BinTimestamp>(value);
 						return true;
 					}
 				}
@@ -526,21 +526,21 @@ namespace BitSerializer
 			/**
 			 * @brief Serializes a timestamp value associated with the given key.
 			 */
-			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, CBinTimestamp>, int> = 0>
+			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
 			bool SerializeValue(const key_type& key, T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
 					if (const auto archiveValue = LoadArchiveValueByKey(key))
 					{
-						value = std::get<CBinTimestamp>(*archiveValue);
+						value = std::get<BinTimestamp>(*archiveValue);
 						return true;
 					}
 					return false;
 				}
 				else
 				{
-					AddArchiveValue(key)->template emplace<CBinTimestamp>(value);
+					AddArchiveValue(key)->template emplace<BinTimestamp>(value);
 					return true;
 				}
 			}
@@ -678,21 +678,21 @@ namespace BitSerializer
 			/**
 			 * @brief Serializes a timestamp value at the root level.
 			 */
-			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, CBinTimestamp>, int> = 0>
+			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
 			bool SerializeValue(T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					if (std::holds_alternative<CBinTimestamp>(*mInputData->data))
+					if (std::holds_alternative<BinTimestamp>(*mInputData->data))
 					{
-						value = std::get<CBinTimestamp>(*mInputData->data);
+						value = std::get<BinTimestamp>(*mInputData->data);
 						return true;
 					}
 					return false;
 				}
 				else
 				{
-					mOutputData->data->template emplace<CBinTimestamp>(value);
+					mOutputData->data->template emplace<BinTimestamp>(value);
 					return true;
 				}
 			}

@@ -12,12 +12,12 @@ namespace BitSerializer::MsgPack::Detail
 {
 	MsgPackWriteRootScope::MsgPackWriteRootScope(std::string& outputData, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
-		, mMsgPackWriter(std::make_unique<CMsgPackStringWriter>(outputData).release())
+		, mMsgPackWriter(std::make_unique<MsgPackStringWriter>(outputData).release())
 	{ }
 
 	MsgPackWriteRootScope::MsgPackWriteRootScope(std::ostream& outputStream, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
-		, mMsgPackWriter(std::make_unique<CMsgPackStreamWriter>(outputStream).release())
+		, mMsgPackWriter(std::make_unique<MsgPackStreamWriter>(outputStream).release())
 	{ }
 
 	MsgPackWriteRootScope::~MsgPackWriteRootScope()
@@ -27,12 +27,12 @@ namespace BitSerializer::MsgPack::Detail
 
 	MsgPackReadRootScope::MsgPackReadRootScope(std::string_view inputData, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Load>(serializationContext)
-		, mMsgPackReader(std::make_unique<CMsgPackStringReader>(inputData, serializationContext.GetOptions()).release())
+		, mMsgPackReader(std::make_unique<MsgPackStringReader>(inputData, serializationContext.GetOptions()).release())
 	{ }
 
 	MsgPackReadRootScope::MsgPackReadRootScope(std::istream& inputStream, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Load>(serializationContext)
-		, mMsgPackReader(std::make_unique<CMsgPackStreamReader>(inputStream, serializationContext.GetOptions()).release())
+		, mMsgPackReader(std::make_unique<MsgPackStreamReader>(inputStream, serializationContext.GetOptions()).release())
 	{ }
 
 	MsgPackReadRootScope::~MsgPackReadRootScope()

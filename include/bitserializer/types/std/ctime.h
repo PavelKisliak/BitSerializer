@@ -68,12 +68,12 @@ namespace BitSerializer
 	template <typename TArchive, typename TKey>
 	bool Serialize(TArchive& archive, TKey&& key, CTimeRef timeRef)
 	{
-		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
+		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::BinTimestamp, TKey>)
 		{
 			// Serialize as binary timestamp
 			if constexpr (TArchive::IsLoading())
 			{
-				Detail::CBinTimestamp timestamp;
+				Detail::BinTimestamp timestamp;
 				if (archive.SerializeValue(std::forward<TKey>(key), timestamp))
 				{
 					// Ignore nanoseconds
@@ -84,7 +84,7 @@ namespace BitSerializer
 			}
 			else
 			{
-				Detail::CBinTimestamp timestamp(timeRef.time);
+				Detail::BinTimestamp timestamp(timeRef.time);
 				return archive.SerializeValue(std::forward<TKey>(key), timestamp);
 			}
 		}
@@ -113,12 +113,12 @@ namespace BitSerializer
 	template<typename TArchive>
 	bool Serialize(TArchive& archive, CTimeRef timeRef)
 	{
-		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)
+		if constexpr (can_serialize_value_v<TArchive, Detail::BinTimestamp>)
 		{
 			// Serialize as binary timestamp
 			if constexpr (TArchive::IsLoading())
 			{
-				Detail::CBinTimestamp timestamp;
+				Detail::BinTimestamp timestamp;
 				if (archive.SerializeValue(timestamp))
 				{
 					// Ignore nanoseconds
@@ -129,7 +129,7 @@ namespace BitSerializer
 			}
 			else
 			{
-				Detail::CBinTimestamp timestamp(timeRef.time);
+				Detail::BinTimestamp timestamp(timeRef.time);
 				return archive.SerializeValue(timestamp);
 			}
 		}

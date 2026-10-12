@@ -420,7 +420,7 @@ TEST(MsgPackArchive, SerializeClassWithFloatAsKey)
 
 TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::CBinTimestamp>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::BinTimestamp>>());
 }
 
 //-----------------------------------------------------------------------------

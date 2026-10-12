@@ -16,10 +16,10 @@ namespace BitSerializer
 	template <typename TArchive, typename TKey, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
-		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
+		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::BinTimestamp, TKey>)
 		{
 			// Serialize as binary timestamp
-			Detail::CBinTimestamp timestamp;
+			Detail::BinTimestamp timestamp;
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
@@ -56,10 +56,10 @@ namespace BitSerializer
 	template<typename TArchive, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	bool Serialize(TArchive& archive, std::chrono::time_point<TClock, TDuration>& tpValue)
 	{
-		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)
+		if constexpr (can_serialize_value_v<TArchive, Detail::BinTimestamp>)
 		{
 			// Serialize as binary timestamp
-			Detail::CBinTimestamp timestamp;
+			Detail::BinTimestamp timestamp;
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(timestamp)
@@ -96,10 +96,10 @@ namespace BitSerializer
 	template <typename TArchive, typename TKey, typename TRep, typename TPeriod>
 	bool Serialize(TArchive& archive, TKey&& key, std::chrono::duration<TRep, TPeriod>& value)
 	{
-		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::CBinTimestamp, TKey>)
+		if constexpr (can_serialize_value_with_key_v<TArchive, Detail::BinTimestamp, TKey>)
 		{
 			// Serialize as binary timestamp
-			Detail::CBinTimestamp timestamp;
+			Detail::BinTimestamp timestamp;
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(std::forward<TKey>(key), timestamp)
@@ -136,10 +136,10 @@ namespace BitSerializer
 	template<typename TArchive, typename TRep, typename TPeriod>
 	bool Serialize(TArchive& archive, std::chrono::duration<TRep, TPeriod>& value)
 	{
-		if constexpr (can_serialize_value_v<TArchive, Detail::CBinTimestamp>)
+		if constexpr (can_serialize_value_v<TArchive, Detail::BinTimestamp>)
 		{
 			// Serialize as binary timestamp
-			Detail::CBinTimestamp timestamp;
+			Detail::BinTimestamp timestamp;
 			if constexpr (TArchive::IsLoading())
 			{
 				return archive.SerializeValue(timestamp)

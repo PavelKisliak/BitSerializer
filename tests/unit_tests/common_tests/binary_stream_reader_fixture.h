@@ -11,7 +11,7 @@ class BinaryStreamReaderTest : public ::testing::Test
 {
 public:
 	// Use minimal chunk size for simplify testing all streaming cases
-	using reader_type = BitSerializer::Detail::CBinaryStreamReader;
+	using reader_type = BitSerializer::Detail::BinaryStreamReader;
 
 	void PrepareStreamReader(size_t testSize)
 	{

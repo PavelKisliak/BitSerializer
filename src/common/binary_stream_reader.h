@@ -15,7 +15,7 @@ namespace BitSerializer::Detail
 	 * This class provides buffered access to an input stream, allowing efficient reading of bytes, peeking,
 	 * and random access within the current buffer. It's used internally when working with binary archives.
 	 */
-	class CBinaryStreamReader
+	class BinaryStreamReader
 	{
 	public:
 		/// @brief Size of the internal read buffer in bytes.
@@ -26,14 +26,14 @@ namespace BitSerializer::Detail
 		 *
 		 * @param inputStream Reference to the input stream to read from.
 		 */
-		explicit CBinaryStreamReader(std::istream& inputStream);
+		explicit BinaryStreamReader(std::istream& inputStream);
 
 		// Disable copy and move operations
-		CBinaryStreamReader(const CBinaryStreamReader&) = delete;
-		CBinaryStreamReader(CBinaryStreamReader&&) = delete;
-		CBinaryStreamReader& operator=(const CBinaryStreamReader&) = delete;
-		CBinaryStreamReader& operator=(CBinaryStreamReader&&) = delete;
-		~CBinaryStreamReader() = default;
+		BinaryStreamReader(const BinaryStreamReader&) = delete;
+		BinaryStreamReader(BinaryStreamReader&&) = delete;
+		BinaryStreamReader& operator=(const BinaryStreamReader&) = delete;
+		BinaryStreamReader& operator=(BinaryStreamReader&&) = delete;
+		~BinaryStreamReader() = default;
 
 		/**
 		 * @brief Checks if the end of the stream has been reached.

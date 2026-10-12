@@ -156,9 +156,9 @@ TEST(STD_CtimeAsBin, SerializeTimeType)
 TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 {
 	// Arrange
-	Detail::CBinTimestamp timestamp(59, 999999999);
+	Detail::BinTimestamp timestamp(59, 999999999);
 	BinArchiveStub::preferred_output_type binArchive;
-	binArchive.data->emplace<Detail::CBinTimestamp>(timestamp);
+	binArchive.data->emplace<Detail::BinTimestamp>(timestamp);
 
 	time_t actual = 0;
 	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
@@ -185,10 +185,10 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
 {
 	// Arrange
 	BinArchiveStub::preferred_output_type binArchive;
-	Detail::CBinTimestamp timestamp(59, 999999999);
+	Detail::BinTimestamp timestamp(59, 999999999);
 	auto& binObjRef = binArchive.data->emplace<Detail::ArchiveStubBinaryIoDataObjectPtr>(std::make_shared<Detail::TestIoDataObject<Detail::ArchiveStubBinaryConfig>>());
 	Detail::ArchiveStubBinaryIoDataPtr timestampIoData = std::make_shared<Detail::TestIoData<Detail::ArchiveStubBinaryConfig>>();
-	timestampIoData->emplace<Detail::CBinTimestamp>(timestamp);
+	timestampIoData->emplace<Detail::BinTimestamp>(timestamp);
 	binObjRef->emplace(std::string("Time"), std::move(timestampIoData));
 
 	// Act

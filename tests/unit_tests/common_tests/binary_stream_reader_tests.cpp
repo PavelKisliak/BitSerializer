@@ -8,7 +8,7 @@
 
 using namespace BitSerializer::Detail;
 
-static_assert((CBinaryStreamReader::chunk_size % 8) == 0, "Chunk size must be a multiple of 8");
+static_assert((BinaryStreamReader::chunk_size % 8) == 0, "Chunk size must be a multiple of 8");
 
 //-----------------------------------------------------------------------------
 TEST_F(BinaryStreamReaderTest, ShouldCheckIsEndWhenEmptyInputStream)

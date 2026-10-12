@@ -15,9 +15,9 @@ namespace BitSerializer::Detail
 	 *
 	 * If the value is too large, a `SerializationException` with code `Overflow` may be thrown during serialization.
 	 */
-	struct CBinTimestamp
+	struct BinTimestamp
 	{
-		CBinTimestamp() = default;
+		BinTimestamp() = default;
 
 		/**
 		 * @brief Constructs a timestamp from seconds and optional nanoseconds.
@@ -25,7 +25,7 @@ namespace BitSerializer::Detail
 		 * @param[in] inSeconds     Number of seconds since epoch.
 		 * @param[in] inNanoseconds Nanoseconds fraction (must be between 0 and 999,999,999).
 		 */
-		explicit CBinTimestamp(int64_t inSeconds, int32_t inNanoseconds = 0)
+		explicit BinTimestamp(int64_t inSeconds, int32_t inNanoseconds = 0)
 			: seconds(inSeconds)
 			, nanoseconds(inNanoseconds)
 		{
@@ -34,7 +34,7 @@ namespace BitSerializer::Detail
 		/**
 		 * @brief Equality comparison operator.
 		 */
-		bool operator==(const CBinTimestamp& rhs) const
+		bool operator==(const BinTimestamp& rhs) const
 		{
 			return seconds == rhs.seconds && nanoseconds == rhs.nanoseconds;
 		}
@@ -54,14 +54,14 @@ namespace BitSerializer::Detail
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * @brief Converts a `std::chrono::time_point` to a `CBinTimestamp`.
+	 * @brief Converts a `std::chrono::time_point` to a `BinTimestamp`.
 	 *
 	 * @param timePoint    Input time point to convert.
 	 * @param outTimestamp Output timestamp to populate.
      * @throws std::out_of_range if overflow occurs during conversion.
 	 */
 	template <typename TClock, typename TDuration>
-	void To(const std::chrono::time_point<TClock, TDuration>& timePoint, CBinTimestamp& outTimestamp)
+	void To(const std::chrono::time_point<TClock, TDuration>& timePoint, BinTimestamp& outTimestamp)
 	{
 		const auto epochTime = timePoint.time_since_epoch();
 		if constexpr (std::ratio_greater_equal_v<typename TDuration::period, std::chrono::seconds::period>)
@@ -80,14 +80,14 @@ namespace BitSerializer::Detail
 	}
 
 	/**
-	 * @brief Converts a `CBinTimestamp` to a `std::chrono::time_point`.
+	 * @brief Converts a `BinTimestamp` to a `std::chrono::time_point`.
 	 *
 	 * @param timestamp    Input binary timestamp.
 	 * @param outTimePoint Output time point to populate.
 	 * @throws std::out_of_range if overflow occurs during conversion.
 	 */
 	template <typename TClock, typename TDuration>
-	void To(const CBinTimestamp& timestamp, std::chrono::time_point<TClock, TDuration>& outTimePoint)
+	void To(const BinTimestamp& timestamp, std::chrono::time_point<TClock, TDuration>& outTimePoint)
 	{
 		outTimePoint = std::chrono::time_point<TClock, TDuration>(
 			Convert::Detail::SafeDurationCast<TDuration>(std::chrono::seconds(timestamp.seconds)));
@@ -110,14 +110,14 @@ namespace BitSerializer::Detail
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * @brief Converts a `std::chrono::duration` to a `CBinTimestamp`.
+	 * @brief Converts a `std::chrono::duration` to a `BinTimestamp`.
 	 *
 	 * @param duration     Input duration to convert.
 	 * @param outTimestamp Output timestamp to populate.
 	 * @throws std::out_of_range if overflow occurs during conversion.
 	 */
 	template <class TRep, class TPeriod>
-	void To(const std::chrono::duration<TRep, TPeriod>& duration, CBinTimestamp& outTimestamp)
+	void To(const std::chrono::duration<TRep, TPeriod>& duration, BinTimestamp& outTimestamp)
 	{
 		// When duration period is equal or greater than seconds
 		if constexpr (std::ratio_greater_equal_v<TPeriod, std::chrono::seconds::period>)
@@ -134,14 +134,14 @@ namespace BitSerializer::Detail
 	}
 
 	/**
-	 * @brief Converts a `CBinTimestamp` to a `std::chrono::duration`.
+	 * @brief Converts a `BinTimestamp` to a `std::chrono::duration`.
 	 *
 	 * @param timestamp   Input binary timestamp.
 	 * @param outDuration Output duration to populate.
 	 * @throws std::out_of_range if overflow occurs during conversion.
 	 */
 	template <class TRep, class TPeriod>
-	void To(const CBinTimestamp& timestamp, std::chrono::duration<TRep, TPeriod>& outDuration)
+	void To(const BinTimestamp& timestamp, std::chrono::duration<TRep, TPeriod>& outDuration)
 	{
 		using TDuration = std::chrono::duration<TRep, TPeriod>;
 

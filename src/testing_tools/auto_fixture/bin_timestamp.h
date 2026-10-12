@@ -9,20 +9,20 @@
 namespace std
 {
 	/**
-	 * @brief Specialization of `std::numeric_limits<T>` for `CBinTimestamp`.
+	 * @brief Specialization of `std::numeric_limits<T>` for `BinTimestamp`.
 	 */
 	template<>
-	class numeric_limits<BitSerializer::Detail::CBinTimestamp>
+	class numeric_limits<BitSerializer::Detail::BinTimestamp>
 	{
 	public:
-		static BitSerializer::Detail::CBinTimestamp (min)()
+		static BitSerializer::Detail::BinTimestamp (min)()
 		{
-			return BitSerializer::Detail::CBinTimestamp((std::numeric_limits<int64_t>::min)(), (std::numeric_limits<int32_t>::min)());
+			return BitSerializer::Detail::BinTimestamp((std::numeric_limits<int64_t>::min)(), (std::numeric_limits<int32_t>::min)());
 		}
 
-		static BitSerializer::Detail::CBinTimestamp (max)()
+		static BitSerializer::Detail::BinTimestamp (max)()
 		{
-			return BitSerializer::Detail::CBinTimestamp((std::numeric_limits<int64_t>::max)(), (std::numeric_limits<int32_t>::max)());
+			return BitSerializer::Detail::BinTimestamp((std::numeric_limits<int64_t>::max)(), (std::numeric_limits<int32_t>::max)());
 		}
 	};
 }
@@ -30,12 +30,12 @@ namespace std
 namespace AutoFixture
 {
 	/**
-	 * @brief Builds a test fixture for `CBinTimestamp`.
+	 * @brief Builds a test fixture for `BinTimestamp`.
 	 *
 	 * @param fixture The fixture instance (propagated to nested fields).
-	 * @param timestamp Reference to the `CBinTimestamp`.
+	 * @param timestamp Reference to the `BinTimestamp`.
 	 */
-	inline void BuildFixture(Fixture& fixture, BitSerializer::Detail::CBinTimestamp& timestamp)
+	inline void BuildFixture(Fixture& fixture, BitSerializer::Detail::BinTimestamp& timestamp)
 	{
 		BuildFixture(fixture, timestamp.seconds);
 		BuildFixture(fixture, timestamp.nanoseconds);

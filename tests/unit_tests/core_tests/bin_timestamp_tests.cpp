@@ -9,49 +9,49 @@
 
 using namespace std::chrono;
 using namespace BitSerializer;
-using CBinTimestamp = BitSerializer::Detail::CBinTimestamp;
+using BinTimestamp = BitSerializer::Detail::BinTimestamp;
 
 //-----------------------------------------------------------------------------
-// Tests CBinTimestamp
+// Tests BinTimestamp
 //-----------------------------------------------------------------------------
 TEST(BinTimestamp, ShouldConstruct)
 {
-	const CBinTimestamp timestamp(std::numeric_limits<int64_t>::max(), std::numeric_limits<int32_t>::max());
+	const BinTimestamp timestamp(std::numeric_limits<int64_t>::max(), std::numeric_limits<int32_t>::max());
 	EXPECT_EQ(std::numeric_limits<int64_t>::max(), timestamp.seconds);
 	EXPECT_EQ(std::numeric_limits<int32_t>::max(), timestamp.nanoseconds);
 }
 
 TEST(BinTimestamp, ShouldComparableViaEqualOperator)
 {
-	const CBinTimestamp timestamp1(10, 20);
-	const CBinTimestamp timestamp2(10, 20);
-	const CBinTimestamp timestamp3(10, 21);
+	const BinTimestamp timestamp1(10, 20);
+	const BinTimestamp timestamp2(10, 20);
+	const BinTimestamp timestamp3(10, 21);
 	EXPECT_TRUE(timestamp1 == timestamp2);
 	EXPECT_FALSE(timestamp1 == timestamp3);
 }
 
 //-----------------------------------------------------------------------------
-// Tests conversion CBinTimestamp from/to std::chrono::timepoint
+// Tests conversion BinTimestamp from/to std::chrono::timepoint
 //-----------------------------------------------------------------------------
 TEST(BinTimestamp, ConvertFromChronoTimepoint)
 {
 	constexpr auto tpSec = time_point<system_clock, milliseconds>(100s);
-	const auto timepoint1 = Convert::To<CBinTimestamp>(tpSec);
+	const auto timepoint1 = Convert::To<BinTimestamp>(tpSec);
 	EXPECT_EQ(100, timepoint1.seconds);
 	EXPECT_EQ(0, timepoint1.nanoseconds);
 
 	constexpr auto tpMs = time_point<system_clock, milliseconds>(1999ms);
-	const auto timepoint2 = Convert::To<CBinTimestamp>(tpMs);
+	const auto timepoint2 = Convert::To<BinTimestamp>(tpMs);
 	EXPECT_EQ(1, timepoint2.seconds);
 	EXPECT_EQ(999000000, timepoint2.nanoseconds);
 
 	constexpr auto tpUs = time_point<system_clock, microseconds>(1999999us);
-	const auto timepoint3 = Convert::To<CBinTimestamp>(tpUs);
+	const auto timepoint3 = Convert::To<BinTimestamp>(tpUs);
 	EXPECT_EQ(1, timepoint3.seconds);
 	EXPECT_EQ(999999000, timepoint3.nanoseconds);
 
 	constexpr auto tpNs = time_point<system_clock, nanoseconds>(1999999999ns);
-	const auto timepoint4 = Convert::To<CBinTimestamp>(tpNs);
+	const auto timepoint4 = Convert::To<BinTimestamp>(tpNs);
 	EXPECT_EQ(1, timepoint4.seconds);
 	EXPECT_EQ(999999999, timepoint4.nanoseconds);
 }
@@ -59,32 +59,32 @@ TEST(BinTimestamp, ConvertFromChronoTimepoint)
 TEST(BinTimestamp, ConvertFromChronoTimepointThrowExceptionWhenOverflow)
 {
 	using TimePointMinutes = time_point<system_clock, duration<int64_t, std::ratio<60>>>;
-	// Maximum timepoint with minutes duration can't be represented in the CBinTimestamp
-	EXPECT_THROW(Convert::To<CBinTimestamp>(TimePointMinutes::max()), std::out_of_range);
+	// Maximum timepoint with minutes duration can't be represented in the BinTimestamp
+	EXPECT_THROW(Convert::To<BinTimestamp>(TimePointMinutes::max()), std::out_of_range);
 }
 
 TEST(BinTimestamp, ConvertToChronoTimepoint)
 {
 	using TimePointSec = time_point<system_clock, seconds>;
-	const auto tpSec = Convert::To<TimePointSec>(CBinTimestamp(100, 0));
+	const auto tpSec = Convert::To<TimePointSec>(BinTimestamp(100, 0));
 	EXPECT_EQ(100, tpSec.time_since_epoch().count());
 
 	using TimePointMs = time_point<system_clock, milliseconds>;
-	const auto tpMs = Convert::To<TimePointMs>(CBinTimestamp(1, 999000000));
+	const auto tpMs = Convert::To<TimePointMs>(BinTimestamp(1, 999000000));
 	EXPECT_EQ(1999, tpMs.time_since_epoch().count());
 
 	using TimePointUs = time_point<system_clock, microseconds>;
-	const auto tpUs = Convert::To<TimePointUs>(CBinTimestamp(1, 999999000));
+	const auto tpUs = Convert::To<TimePointUs>(BinTimestamp(1, 999999000));
 	EXPECT_EQ(1999999, tpUs.time_since_epoch().count());
 
 	using TimePointNs = time_point<system_clock, nanoseconds>;
-	const auto tpNs = Convert::To<TimePointNs>(CBinTimestamp(1, 999999999));
+	const auto tpNs = Convert::To<TimePointNs>(BinTimestamp(1, 999999999));
 	EXPECT_EQ(1999999999, tpNs.time_since_epoch().count());
 }
 
 TEST(BinTimestamp, ConvertToChronoTimepointThrowExceptionWhenOverflow)
 {
-	CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
+	BinTimestamp timestamp(std::numeric_limits<int64_t>::max());
 	using TimePointNs = time_point<system_clock, nanoseconds>;
 	// Max timestamp can't be converted to TimePoint with nanoseconds as duration
 	EXPECT_THROW(Convert::To<TimePointNs>(timestamp), std::out_of_range);
@@ -93,78 +93,78 @@ TEST(BinTimestamp, ConvertToChronoTimepointThrowExceptionWhenOverflow)
 TEST(BinTimestamp, ConvertToChronoTimepointWithAllowedRounding)
 {
 	using TimePointSec = time_point<system_clock, seconds>;
-	const auto tpSec = Convert::To<TimePointSec>(CBinTimestamp(100, 555555555));
+	const auto tpSec = Convert::To<TimePointSec>(BinTimestamp(100, 555555555));
 	EXPECT_EQ(101, tpSec.time_since_epoch().count());
 
 	using TimePointMs = time_point<system_clock, milliseconds>;
-	const auto tpMs = Convert::To<TimePointMs>(CBinTimestamp(1, 555444444));
+	const auto tpMs = Convert::To<TimePointMs>(BinTimestamp(1, 555444444));
 	EXPECT_EQ(1555, tpMs.time_since_epoch().count());
 
 	using TimePointUs = time_point<system_clock, microseconds>;
-	const auto tpUs = Convert::To<TimePointUs>(CBinTimestamp(1, 555555555));
+	const auto tpUs = Convert::To<TimePointUs>(BinTimestamp(1, 555555555));
 	EXPECT_EQ(1555556, tpUs.time_since_epoch().count());
 }
 
 //-----------------------------------------------------------------------------
-// Tests conversion CBinTimestamp from/to std::chrono::duration
+// Tests conversion BinTimestamp from/to std::chrono::duration
 //-----------------------------------------------------------------------------
 
 TEST(BinTimestamp, ConvertFromChronoDuration)
 {
-	const auto timepoint1 = Convert::To<CBinTimestamp>(100s);
+	const auto timepoint1 = Convert::To<BinTimestamp>(100s);
 	EXPECT_EQ(100, timepoint1.seconds);
 	EXPECT_EQ(0, timepoint1.nanoseconds);
 
-	const auto timepoint2 = Convert::To<CBinTimestamp>(1999ms);
+	const auto timepoint2 = Convert::To<BinTimestamp>(1999ms);
 	EXPECT_EQ(1, timepoint2.seconds);
 	EXPECT_EQ(999000000, timepoint2.nanoseconds);
 
-	const auto timepoint3 = Convert::To<CBinTimestamp>(1999999us);
+	const auto timepoint3 = Convert::To<BinTimestamp>(1999999us);
 	EXPECT_EQ(1, timepoint3.seconds);
 	EXPECT_EQ(999999000, timepoint3.nanoseconds);
 
-	const auto timepoint4 = Convert::To<CBinTimestamp>(1999999999ns);
+	const auto timepoint4 = Convert::To<BinTimestamp>(1999999999ns);
 	EXPECT_EQ(1, timepoint4.seconds);
 	EXPECT_EQ(999999999, timepoint4.nanoseconds);
 }
 
 TEST(BinTimestamp, ConvertFromChronoDurationThrowExceptionWhenOverflow)
 {
-	CBinTimestamp timestamp(std::numeric_limits<int64_t>::max());
+	BinTimestamp timestamp(std::numeric_limits<int64_t>::max());
 	// Max timestamp can't be converted to duration with nanoseconds as duration
 	EXPECT_THROW(Convert::To<nanoseconds>(timestamp), std::out_of_range);
 }
 
 TEST(BinTimestamp, ConvertToChronoDuration)
 {
-	const auto sec = Convert::To<seconds>(CBinTimestamp(100, 0));
+	const auto sec = Convert::To<seconds>(BinTimestamp(100, 0));
 	EXPECT_EQ(100, sec.count());
 
-	const auto ms = Convert::To<milliseconds>(CBinTimestamp(1, 999000000));
+	const auto ms = Convert::To<milliseconds>(BinTimestamp(1, 999000000));
 	EXPECT_EQ(1999, ms.count());
 
-	const auto us = Convert::To<microseconds>(CBinTimestamp(1, 999999000));
+	const auto us = Convert::To<microseconds>(BinTimestamp(1, 999999000));
 	EXPECT_EQ(1999999, us.count());
 
-	const auto ns = Convert::To<nanoseconds>(CBinTimestamp(1, 999999999));
+	const auto ns = Convert::To<nanoseconds>(BinTimestamp(1, 999999999));
 	EXPECT_EQ(1999999999, ns.count());
 }
 
 TEST(BinTimestamp, ConvertToChronoDurationThrowExceptionWhenOverflow)
 {
 	using Minutes = duration<int64_t, std::ratio<60>>;
-	// Maximum minutes can't be represented in the CBinTimestamp
-	EXPECT_THROW(Convert::To<CBinTimestamp>(Minutes::max()), std::out_of_range);
+	// Maximum minutes can't be represented in the BinTimestamp
+	EXPECT_THROW(Convert::To<BinTimestamp>(Minutes::max()), std::out_of_range);
 }
 
 TEST(BinTimestamp, ConvertToChronoDurationWithAllowedRounding)
 {
-	const auto sec = Convert::To<seconds>(CBinTimestamp(100, 555555555));
+	const auto sec = Convert::To<seconds>(BinTimestamp(100, 555555555));
 	EXPECT_EQ(101, sec.count());
 
-	const auto ms = Convert::To<milliseconds>(CBinTimestamp(1, 555444444));
+	const auto ms = Convert::To<milliseconds>(BinTimestamp(1, 555444444));
 	EXPECT_EQ(1555, ms.count());
 
-	const auto us = Convert::To<microseconds>(CBinTimestamp(1, 555555555));
+	const auto us = Convert::To<microseconds>(BinTimestamp(1, 555555555));
 	EXPECT_EQ(1555556, us.count());
 }

@@ -201,7 +201,7 @@ namespace
 
 
 //-----------------------------------------------------------------------------
-// CMsgPackStringReader
+// MsgPackStringReader
 //-----------------------------------------------------------------------------
 namespace
 {
@@ -451,12 +451,12 @@ namespace
 
 namespace BitSerializer::MsgPack::Detail
 {
-	CMsgPackStringReader::CMsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept
+	MsgPackStringReader::MsgPackStringReader(std::string_view inputData, const SerializationOptions& serializationOptions) noexcept
 		: mInputData(inputData)
 		, mSerializationOptions(serializationOptions)
 	{ }
 
-	void CMsgPackStringReader::SetPosition(size_t pos)
+	void MsgPackStringReader::SetPosition(size_t pos)
 	{
 		if (pos <= mInputData.size()) {
 			mPos = pos;
@@ -466,7 +466,7 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
-	ValueType CMsgPackStringReader::ReadValueType()
+	ValueType MsgPackStringReader::ReadValueType()
 	{
 		if (mPos < mInputData.size())
 		{
@@ -483,7 +483,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadValue(std::nullptr_t&)
+	bool MsgPackStringReader::ReadValue(std::nullptr_t&)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -500,57 +500,57 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadValue(bool& value)
+	bool MsgPackStringReader::ReadValue(bool& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(uint8_t& value)
+	bool MsgPackStringReader::ReadValue(uint8_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(uint16_t& value)
+	bool MsgPackStringReader::ReadValue(uint16_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(uint32_t& value)
+	bool MsgPackStringReader::ReadValue(uint32_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(uint64_t& value)
+	bool MsgPackStringReader::ReadValue(uint64_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(char& value)
+	bool MsgPackStringReader::ReadValue(char& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(int8_t& value)
+	bool MsgPackStringReader::ReadValue(int8_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(int16_t& value)
+	bool MsgPackStringReader::ReadValue(int16_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(int32_t& value)
+	bool MsgPackStringReader::ReadValue(int32_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(int64_t& value)
+	bool MsgPackStringReader::ReadValue(int64_t& value)
 	{
 		return ReadInteger(mInputData, mPos, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStringReader::ReadValue(float& value)
+	bool MsgPackStringReader::ReadValue(float& value)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -579,7 +579,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadValue(double& value)
+	bool MsgPackStringReader::ReadValue(double& value)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -609,7 +609,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadValue(std::string_view& value)
+	bool MsgPackStringReader::ReadValue(std::string_view& value)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -658,7 +658,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadValue(CBinTimestamp& timestamp)
+	bool MsgPackStringReader::ReadValue(BinTimestamp& timestamp)
 	{
 		ExtTypeInfo extTypeInfo;
 		if (ReadExtFamilyType(mInputData, mPos, extTypeInfo) && extTypeInfo.ExtTypeCode == '\xFF')
@@ -693,7 +693,7 @@ namespace BitSerializer::MsgPack::Detail
 		return false;
 	}
 
-	bool CMsgPackStringReader::ReadArraySize(size_t& arraySize)
+	bool MsgPackStringReader::ReadArraySize(size_t& arraySize)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -727,7 +727,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadMapSize(size_t& mapSize)
+	bool MsgPackStringReader::ReadMapSize(size_t& mapSize)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -761,7 +761,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	bool CMsgPackStringReader::ReadBinarySize(size_t& binarySize)
+	bool MsgPackStringReader::ReadBinarySize(size_t& binarySize)
 	{
 		if (mPos < mInputData.size())
 		{
@@ -796,7 +796,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	char CMsgPackStringReader::ReadBinary()
+	char MsgPackStringReader::ReadBinary()
 	{
 		if (mPos < mInputData.size())
 		{
@@ -805,7 +805,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mPos);
 	}
 
-	void CMsgPackStringReader::SkipValue()
+	void MsgPackStringReader::SkipValue()
 	{
 		SkipValueImpl(mInputData, mPos);
 	}
@@ -813,12 +813,12 @@ namespace BitSerializer::MsgPack::Detail
 
 
 //-----------------------------------------------------------------------------
-// CMsgPackStreamReader
+// MsgPackStreamReader
 //-----------------------------------------------------------------------------
 namespace
 {
 	template <typename T, std::enable_if_t<sizeof(T) == 1 && std::is_integral_v<T>, int> = 0>
-	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
+	void GetValue(Detail::BinaryStreamReader& binaryStreamReader, T& outValue)
 	{
 		if (const auto value = binaryStreamReader.ReadByte())
 		{
@@ -830,7 +830,7 @@ namespace
 	}
 
 	template <typename T, std::enable_if_t<sizeof(T) >= 2 && std::is_integral_v<T>, int> = 0>
-	void GetValue(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue)
+	void GetValue(Detail::BinaryStreamReader& binaryStreamReader, T& outValue)
 	{
 		if (const auto data = binaryStreamReader.ReadExactly(sizeof(T)); !data.empty())
 		{
@@ -841,7 +841,7 @@ namespace
 		}
 	}
 
-	uint32_t ReadExtSize(Detail::CBinaryStreamReader& binaryStreamReader, uint_fast8_t extSizeBytesNum)
+	uint32_t ReadExtSize(Detail::BinaryStreamReader& binaryStreamReader, uint_fast8_t extSizeBytesNum)
 	{
 		if (extSizeBytesNum == 1)
 		{
@@ -864,7 +864,7 @@ namespace
 		throw std::invalid_argument("Internal error: invalid range of 'extSizeBytesNum'");
 	}
 
-	void SkipValueImpl(Detail::CBinaryStreamReader& binaryStreamReader)
+	void SkipValueImpl(Detail::BinaryStreamReader& binaryStreamReader)
 	{
 		if (const auto byteCode = binaryStreamReader.ReadByte())
 		{
@@ -914,7 +914,7 @@ namespace
 		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
 	}
 
-	void HandleMismatchedTypesPolicy(Detail::CBinaryStreamReader& binaryStreamReader, ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
+	void HandleMismatchedTypesPolicy(Detail::BinaryStreamReader& binaryStreamReader, ValueType actualType, MismatchedTypesPolicy mismatchedTypesPolicy)
 	{
 		// Null value is excluded from MismatchedTypesPolicy processing
 		if (actualType != ValueType::Nil && mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
@@ -926,7 +926,7 @@ namespace
 	}
 
 	template <typename T>
-	bool ReadInteger(Detail::CBinaryStreamReader& binaryStreamReader, T& outValue, const SerializationOptions& serializationOptions)
+	bool ReadInteger(Detail::BinaryStreamReader& binaryStreamReader, T& outValue, const SerializationOptions& serializationOptions)
 	{
 		if (const auto optByteCode = binaryStreamReader.PeekByte())
 		{
@@ -1009,7 +1009,7 @@ namespace
 		throw ParsingException("No more values to read", 0, binaryStreamReader.GetPosition());
 	}
 
-	bool ReadExtFamilyType(Detail::CBinaryStreamReader& binaryStreamReader, ExtTypeInfo& extTypeInfo)
+	bool ReadExtFamilyType(Detail::BinaryStreamReader& binaryStreamReader, ExtTypeInfo& extTypeInfo)
 	{
 		if (const auto byteCode = binaryStreamReader.PeekByte())
 		{
@@ -1064,12 +1064,12 @@ namespace
 
 namespace BitSerializer::MsgPack::Detail
 {
-	CMsgPackStreamReader::CMsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions) noexcept
+	MsgPackStreamReader::MsgPackStreamReader(std::istream& inputStream, const SerializationOptions& serializationOptions) noexcept
 		: mBinaryStreamReader(inputStream)
 		, mSerializationOptions(serializationOptions)
 	{ }
 
-	ValueType CMsgPackStreamReader::ReadValueType()
+	ValueType MsgPackStreamReader::ReadValueType()
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1085,7 +1085,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadValue(std::nullptr_t&)
+	bool MsgPackStreamReader::ReadValue(std::nullptr_t&)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1099,57 +1099,57 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadValue(bool& value)
+	bool MsgPackStreamReader::ReadValue(bool& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(uint8_t& value)
+	bool MsgPackStreamReader::ReadValue(uint8_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(uint16_t& value)
+	bool MsgPackStreamReader::ReadValue(uint16_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(uint32_t& value)
+	bool MsgPackStreamReader::ReadValue(uint32_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(uint64_t& value)
+	bool MsgPackStreamReader::ReadValue(uint64_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(char& value)
+	bool MsgPackStreamReader::ReadValue(char& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(int8_t& value)
+	bool MsgPackStreamReader::ReadValue(int8_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(int16_t& value)
+	bool MsgPackStreamReader::ReadValue(int16_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(int32_t& value)
+	bool MsgPackStreamReader::ReadValue(int32_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(int64_t& value)
+	bool MsgPackStreamReader::ReadValue(int64_t& value)
 	{
 		return ReadInteger(mBinaryStreamReader, value, mSerializationOptions);
 	}
 
-	bool CMsgPackStreamReader::ReadValue(float& value)
+	bool MsgPackStreamReader::ReadValue(float& value)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1177,7 +1177,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadValue(double& value)
+	bool MsgPackStreamReader::ReadValue(double& value)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1206,7 +1206,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadValue(std::string_view& value)
+	bool MsgPackStreamReader::ReadValue(std::string_view& value)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1263,7 +1263,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadValue(CBinTimestamp& timestamp)
+	bool MsgPackStreamReader::ReadValue(BinTimestamp& timestamp)
 	{
 		ExtTypeInfo extTypeInfo;
 		if (ReadExtFamilyType(mBinaryStreamReader, extTypeInfo) && extTypeInfo.ExtTypeCode == '\xFF')
@@ -1298,7 +1298,7 @@ namespace BitSerializer::MsgPack::Detail
 		return false;
 	}
 
-	bool CMsgPackStreamReader::ReadArraySize(size_t& arraySize)
+	bool MsgPackStreamReader::ReadArraySize(size_t& arraySize)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1331,7 +1331,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadMapSize(size_t& mapSize)
+	bool MsgPackStreamReader::ReadMapSize(size_t& mapSize)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1364,7 +1364,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	bool CMsgPackStreamReader::ReadBinarySize(size_t& binarySize)
+	bool MsgPackStreamReader::ReadBinarySize(size_t& binarySize)
 	{
 		if (const auto byteCode = mBinaryStreamReader.PeekByte())
 		{
@@ -1396,7 +1396,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	char CMsgPackStreamReader::ReadBinary()
+	char MsgPackStreamReader::ReadBinary()
 	{
 		if (const auto byteCode = mBinaryStreamReader.ReadByte())
 		{
@@ -1405,7 +1405,7 @@ namespace BitSerializer::MsgPack::Detail
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
 
-	void CMsgPackStreamReader::SkipValue()
+	void MsgPackStreamReader::SkipValue()
 	{
 		SkipValueImpl(mBinaryStreamReader);
 	}

@@ -19,11 +19,11 @@ public:
 		mTestMsgPack = std::move(testMsgPack);
 		mSerializationOptions.overflowNumberPolicy = overflowNumberPolicy;
 		mSerializationOptions.mismatchedTypesPolicy = mismatchedTypesPolicy;
-		if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStringReader>)
+		if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::MsgPackStringReader>)
 		{
 			mMsgPackReader = std::make_shared<TReader>(mTestMsgPack, mSerializationOptions);
 		}
-		else if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::CMsgPackStreamReader>)
+		else if constexpr (std::is_same_v<TReader, BitSerializer::MsgPack::Detail::MsgPackStreamReader>)
 		{
 			mInputStream = std::make_optional<std::istringstream>(mTestMsgPack);
 			mMsgPackReader = std::make_shared<TReader>(mInputStream.value(), mSerializationOptions);

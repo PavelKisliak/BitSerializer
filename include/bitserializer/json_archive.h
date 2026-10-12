@@ -11,6 +11,7 @@
 #include "bitserializer/export.h"
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/archive_base.h"
+#include "bitserializer/serialization_detail/archive_key.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "bitserializer/serialization_detail/object_traits.h"
 
@@ -182,6 +183,11 @@ public:
 
 	virtual void BeginObject() = 0;
 	virtual void WriteKey(std::string_view key) = 0;
+	/**
+	 * @brief Writes a key that is known to require no escaping (e.g. a validated string literal),
+	 * skipping the runtime escape scan performed by `WriteKey()`.
+	 */
+	virtual void WriteRawKey(std::string_view key) = 0;
 	virtual void EndObject(bool hasElements) = 0;
 
 	/**
@@ -356,7 +362,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(Convert::ToStringView(key));
+		WriteFieldKey(std::forward<TKey>(key));
 		mJsonWriter->WriteValue(value);
 		++mIndex;
 		return true;
@@ -372,7 +378,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(Convert::ToStringView(key));
+		WriteFieldKey(std::forward<TKey>(key));
 		mJsonWriter->WriteRawValue(value.Get());
 		++mIndex;
 		return true;
@@ -385,7 +391,7 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(Convert::ToStringView(key));
+		WriteFieldKey(std::forward<TKey>(key));
 		mJsonWriter->BeginArray();
 		++mIndex;
 		return {mJsonWriter, GetContext()};
@@ -398,13 +404,52 @@ public:
 		{
 			mJsonWriter->WriteValueSeparator();
 		}
-		mJsonWriter->WriteKey(Convert::ToStringView(key));
+		WriteFieldKey(std::forward<TKey>(key));
 		mJsonWriter->BeginObject();
 		++mIndex;
 		return {mJsonWriter, GetContext()};
 	}
 
 private:
+	/**
+	 * @brief Returns `true` when the string literal key contains no characters that require escaping in JSON
+	 * (`"`, `\` or a control character). Only JSON rules are checked here, since the key reaches the archive
+	 * already bound to this format.
+	 */
+	template <typename CharT, std::size_t N>
+	static constexpr bool IsRawKey(const CharT(&key)[N]) noexcept
+	{
+		using UCharT = std::make_unsigned_t<std::remove_cv_t<CharT>>;
+		for (std::size_t i = 0; i < N - 1; ++i)
+		{
+			const auto c = key[i];
+			if (c == static_cast<CharT>('"') || c == static_cast<CharT>('\\') || static_cast<UCharT>(c) <= static_cast<UCharT>(0x1F)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @brief Writes an object key.
+	 *
+	 * When the key is a string literal known at compile time to need no escaping, the runtime escape
+	 * scan is skipped by routing through `WriteRawKey()`.
+	 */
+	template <typename TKey>
+	void WriteFieldKey(TKey&& key)
+	{
+		if constexpr (BitSerializer::Detail::is_char_array_key_v<TKey>)
+		{
+			if (IsRawKey(key))
+			{
+				mJsonWriter->WriteRawKey(Convert::ToStringView(key));
+				return;
+			}
+		}
+		mJsonWriter->WriteKey(Convert::ToStringView(key));
+	}
+
 	TWriter* mJsonWriter;
 	size_t mIndex = 0;
 };

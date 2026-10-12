@@ -68,6 +68,11 @@ namespace BitSerializer::Json::Detail
 			WriteValue(key);
 			mEncodedStream.Write(":");
 		}
+		void WriteRawKey(std::string_view key) override {
+			mEncodedStream.Write("\"");
+			mEncodedStream.Write(key);
+			mEncodedStream.Write("\":");
+		}
 		void EndObject(bool /*hasElements*/) override {
 			mEncodedStream.Write("}");
 		}
@@ -232,6 +237,14 @@ namespace BitSerializer::Json::Detail
 		{
 			WriteValue(key);
 			mEncodedStream.Write(": ");
+			mPadding = false;
+		}
+		void WriteRawKey(std::string_view key) override
+		{
+			WriteIndent();
+			mEncodedStream.Write("\"");
+			mEncodedStream.Write(key);
+			mEncodedStream.Write("\": ");
 			mPadding = false;
 		}
 

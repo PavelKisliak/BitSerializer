@@ -186,7 +186,7 @@ BITSERIALIZER_DECLARE_STRING_TYPE_EXPLICIT(CustomStringType, &CustomStringType::
  * The default constructor fills `mTestValue` via `BuildFixture`; the `explicit` constructor accepts an
  * initial value and optional `KeyValue` modifiers (e.g. `Required()`, validators, refiners).
  *
- * @tparam TValue The wrapped value type.
+ * @tparam T The wrapped value type.
  * @tparam TKeyValueArgs Additional arguments forwarded to the `BitSerializer::KeyValue` wrapper.
  */
 template <typename T, class... TKeyValueArgs>
@@ -247,7 +247,7 @@ TestClassWithSubType(TValue, TKeyValueArgs...) -> TestClassWithSubType<TValue, T
  * Mirrors `TestClassWithSubType`, but the key is a `std::string_view` so that archives which natively support
  * view-based keys pass it through via `Detail::ToArchiveKey` without converting to `key_type`.
  *
- * @tparam TValue The wrapped value type.
+ * @tparam T The wrapped value type.
  */
 template <typename T>
 class TestClassWithStringViewKey

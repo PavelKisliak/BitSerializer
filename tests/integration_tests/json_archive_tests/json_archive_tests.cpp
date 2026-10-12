@@ -109,6 +109,47 @@ TEST(JsonArchive, SerializeNullptr)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of compile-time key handling (string literal keys)
+//-----------------------------------------------------------------------------
+namespace
+{
+	struct TestClassWithEscapedKey
+	{
+		std::string Value = "test";
+
+		template <class TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << BitSerializer::KeyValue("Key\"With\\Escapes", Value);
+		}
+	};
+
+	struct TestClassWithControlCharKey
+	{
+		std::string Value = "test";
+
+		template <class TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << BitSerializer::KeyValue("Key\tTab", Value);
+		}
+	};
+}
+
+TEST(JsonArchive, ShouldEscapeLiteralKeyWithSpecialCharacters)
+{
+	// A string literal key containing escapable characters must still be escaped (not routed via the raw path).
+	const auto result = BitSerializer::SaveObject<JsonArchive>(TestClassWithEscapedKey{});
+	EXPECT_EQ("{\"Key\\\"With\\\\Escapes\":\"test\"}", result);
+}
+
+TEST(JsonArchive, ShouldEscapeLiteralKeyWithControlCharacter)
+{
+	const auto result = BitSerializer::SaveObject<JsonArchive>(TestClassWithControlCharKey{});
+	EXPECT_EQ("{\"Key\\tTab\":\"test\"}", result);
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization any of std::string (at root scope of archive)
 //-----------------------------------------------------------------------------
 TEST(JsonArchive, SerializeAnsiSting)

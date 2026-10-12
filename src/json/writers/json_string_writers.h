@@ -84,6 +84,13 @@ namespace BitSerializer::Json::Detail
 			WriteValue(key);
 			mOutputString.push_back(':');
 		}
+		void WriteRawKey(std::string_view key) override
+		{
+			mOutputString.reserve(mOutputString.size() + key.size() + 3);
+			mOutputString.push_back('"');
+			mOutputString.append(key);
+			mOutputString.append("\":");
+		}
 		void EndObject(bool /*hasElements*/) override {
 			mOutputString.push_back('}');
 		}
@@ -231,6 +238,15 @@ namespace BitSerializer::Json::Detail
 		{
 			WriteValue(key);
 			mOutputString.append(": ");
+			mPadding = false;
+		}
+		void WriteRawKey(std::string_view key) override
+		{
+			WriteIndent();
+			mOutputString.reserve(mOutputString.size() + key.size() + 4);
+			mOutputString.push_back('"');
+			mOutputString.append(key);
+			mOutputString.append("\": ");
 			mPadding = false;
 		}
 

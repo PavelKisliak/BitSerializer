@@ -291,3 +291,29 @@ TYPED_TEST(JsonWriterTest, WriteObjectElements)
 })", this->TakeResult());
 	}
 }
+
+TYPED_TEST(JsonWriterTest, WriteRawKey)
+{
+	this->mJsonWriter->BeginObject();
+	this->mJsonWriter->WriteRawKey("Key1");
+	this->mJsonWriter->WriteValue(1);
+	this->mJsonWriter->WriteValueSeparator();
+	this->mJsonWriter->WriteRawKey("Key2");
+	this->mJsonWriter->WriteValue(true);
+	this->mJsonWriter->EndObject(true);
+
+	constexpr bool isCompact = std::is_same_v<TypeParam, BitSerializer::Json::Detail::JsonStringWriter>
+		|| std::is_same_v<TypeParam, BitSerializer::Json::Detail::JsonStreamWriter>;
+	if constexpr (isCompact)
+	{
+		EXPECT_EQ(R"({"Key1":1,"Key2":true})", this->TakeResult());
+	}
+	else
+	{
+		// For pretty writer
+		EXPECT_EQ(R"({
+	"Key1": 1,
+	"Key2": true
+})", this->TakeResult());
+	}
+}

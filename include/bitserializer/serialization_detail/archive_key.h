@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cstddef>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -11,6 +12,20 @@
 
 namespace BitSerializer::Detail
 {
+	/**
+	 * @brief Detects a compile-time string literal key, i.e. an array of characters (`const char(&)[N]`).
+	 *
+	 * @note Intended to be used with `std::remove_reference_t<TKey>`.
+	 */
+	template <typename T>
+	struct is_char_array_key : std::false_type {};
+
+	template <typename CharT, std::size_t N>
+	struct is_char_array_key<CharT[N]> : std::true_type {};
+
+	template <typename TKey>
+	constexpr bool is_char_array_key_v = is_char_array_key<std::remove_reference_t<TKey>>::value;
+
 	/**
 	 * @brief Determines if a type is convertible to any element within a tuple.
 	 *

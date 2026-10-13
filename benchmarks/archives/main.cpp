@@ -2,9 +2,15 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include <iostream>
 #include <chrono>
+#include <cstdint>
+#include <filesystem>
+#include <iostream>
+#include <string>
 #include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "testing_tools/perf_utils.h"
 #include "bitserializer/types/std/unordered_map.h"
@@ -23,15 +29,15 @@
 
 #if defined(_DEBUG) || (!defined(NDEBUG) && !defined(RELEASE))
 // In the debug configuration using minimal testing time
-static constexpr std::chrono::seconds DefaultStageTestTime = std::chrono::seconds(1);
+static constexpr std::chrono::seconds defaultStageTestTime = std::chrono::seconds(1);
 #else
 // Need enough time to produce repeatable results
-static constexpr std::chrono::seconds DefaultStageTestTime = std::chrono::seconds(30);
+static constexpr std::chrono::seconds defaultStageTestTime = std::chrono::seconds(30);
 #endif
 
 int main()	// NOLINT(bugprone-exception-escape)
 {
-	std::vector<CLibraryTestResults> benchmarkResults;
+	std::vector<LibraryTestResults> benchmarkResults;
 	std::cout << "Testing, please do not touch mouse and keyboard." << std::endl;
 
 	// Set the highest priority for the process to minimize fluctuations in results
@@ -50,45 +56,46 @@ int main()	// NOLINT(bugprone-exception-escape)
 	try
 	{
 #ifdef JSON_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::Json::JsonArchive> jsonBenchmark;
-		benchmarkResults.push_back(jsonBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::Json::JsonArchive> jsonBenchmark;
+		benchmarkResults.push_back(jsonBenchmark.RunBenchmark(defaultStageTestTime));
 
-		CBitSerializerBenchmark<BitSerializer::Json::JsoncArchive> jsoncBenchmark;
-		benchmarkResults.push_back(jsoncBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::Json::JsoncArchive> jsoncBenchmark;
+		benchmarkResults.push_back(jsoncBenchmark.RunBenchmark(defaultStageTestTime));
 #endif
 #ifdef CSV_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::Csv::CsvArchive> csvBenchmark;
-		benchmarkResults.push_back(csvBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::Csv::CsvArchive> csvBenchmark;
+		benchmarkResults.push_back(csvBenchmark.RunBenchmark(defaultStageTestTime));
 #endif
 #ifdef MSGPACK_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive> msgPackBenchmark;
-		benchmarkResults.push_back(msgPackBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive> msgPackBenchmark;
+		benchmarkResults.push_back(msgPackBenchmark.RunBenchmark(defaultStageTestTime));
 #endif
 #ifdef RAPIDJSON_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive> bitSerializerRapidJsonBenchmark;
-		benchmarkResults.push_back(bitSerializerRapidJsonBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive> bitSerializerRapidJsonBenchmark;
+		benchmarkResults.push_back(bitSerializerRapidJsonBenchmark.RunBenchmark(defaultStageTestTime));
 
-		CRapidJsonBenchmark rapidJsonBenchmark;
-		benchmarkResults.push_back(rapidJsonBenchmark.RunBenchmark(DefaultStageTestTime));
+		RapidJsonBenchmark rapidJsonBenchmark;
+		benchmarkResults.push_back(rapidJsonBenchmark.RunBenchmark(defaultStageTestTime));
 #endif
 #ifdef PUGIXML_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive> bitSerializerPugiXmlBenchmark;
-		benchmarkResults.push_back(bitSerializerPugiXmlBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive> bitSerializerPugiXmlBenchmark;
+		benchmarkResults.push_back(bitSerializerPugiXmlBenchmark.RunBenchmark(defaultStageTestTime));
 
-		CPugiXmlBenchmark pugiXmlBenchmark;
-		benchmarkResults.push_back(pugiXmlBenchmark.RunBenchmark(DefaultStageTestTime));
+		PugiXmlBenchmark pugiXmlBenchmark;
+		benchmarkResults.push_back(pugiXmlBenchmark.RunBenchmark(defaultStageTestTime));
 #endif
 #ifdef RAPIDYAML_BENCHMARK
-		CBitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive> bitSerializerRapidYamlBenchmark;
-		benchmarkResults.push_back(bitSerializerRapidYamlBenchmark.RunBenchmark(DefaultStageTestTime));
+		BitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive> bitSerializerRapidYamlBenchmark;
+		benchmarkResults.push_back(bitSerializerRapidYamlBenchmark.RunBenchmark(defaultStageTestTime));
 
-		CRapidYamlBenchmark rapidYamlBenchmark;
-		benchmarkResults.push_back(rapidYamlBenchmark.RunBenchmark(DefaultStageTestTime));
+		RapidYamlBenchmark rapidYamlBenchmark;
+		benchmarkResults.push_back(rapidYamlBenchmark.RunBenchmark(defaultStageTestTime));
 #endif
-		CNlohmannMsgPackBenchmark nlohmannMsgPackBenchmark;
-		benchmarkResults.push_back(nlohmannMsgPackBenchmark.RunBenchmark(DefaultStageTestTime));
+		NlohmannMsgPackBenchmark nlohmannMsgPackBenchmark;
+		benchmarkResults.push_back(nlohmannMsgPackBenchmark.RunBenchmark(defaultStageTestTime));
 	}
-	catch (const std::exception& ex) {
+	catch (const std::exception& ex)
+	{
 		std::cerr << std::endl << ex.what() << std::endl;
 		return 1;
 	}
@@ -102,18 +109,18 @@ int main()	// NOLINT(bugprone-exception-escape)
 		std::unordered_map<std::string, std::unordered_map<TestStage, uint64_t>> serializationSpeedReport;
 		std::unordered_map<std::string, size_t> serializationOutputSizeReport;
 
-		for (const CLibraryTestResults& benchmarkResult : benchmarkResults)
+		for (const LibraryTestResults& benchmarkResult : benchmarkResults)
 		{
 			std::unordered_map<TestStage, uint64_t> stagesTest;
-			for (const auto& stageTestResults : benchmarkResult.StagesTestResults)
+			for (const auto& stageTestResults : benchmarkResult.stagesTestResults)
 			{
-				stagesTest.emplace(stageTestResults.first, stageTestResults.second.SerializationSpeed);
+				stagesTest.emplace(stageTestResults.first, stageTestResults.second.serializationSpeed);
 			}
-			serializationSpeedReport.emplace(benchmarkResult.LibraryName, std::move(stagesTest));
+			serializationSpeedReport.emplace(benchmarkResult.libraryName, std::move(stagesTest));
 			// Filter results from base libraries (doesn't make sense since they are equal)
-			if (benchmarkResult.LibraryName != "RapidJson" && benchmarkResult.LibraryName != "PugiXml" && benchmarkResult.LibraryName != "RapidYaml")
+			if (benchmarkResult.libraryName != "RapidJson" && benchmarkResult.libraryName != "PugiXml" && benchmarkResult.libraryName != "RapidYaml")
 			{
-				serializationOutputSizeReport.emplace(benchmarkResult.LibraryName, benchmarkResult.SerializedDataSize);
+				serializationOutputSizeReport.emplace(benchmarkResult.libraryName, benchmarkResult.serializedDataSize);
 			}
 		}
 
@@ -132,7 +139,8 @@ int main()	// NOLINT(bugprone-exception-escape)
 			outputFile = outputDir / "serialization_output_size_report.json";
 			BitSerializer::SaveObjectToFile<BitSerializer::Json::RapidJson::JsonArchive>(serializationOutputSizeReport, outputFile, options, true);
 		}
-		catch (const std::exception& ex) {
+		catch (const std::exception& ex)
+		{
 			std::cerr << "Unable to save benchmark results: " << ex.what() << std::endl;
 			return 1;
 		}

@@ -10,46 +10,46 @@
 #include "nlohmann/json.hpp"
 
 /**
- * @brief Serializes the `CBasicTestModel` using NlohmannJson.
+ * @brief Serializes the `BasicTestModel` using NlohmannJson.
  */
 template<>
-struct nlohmann::adl_serializer<CBasicTestModel>
+struct nlohmann::adl_serializer<BasicTestModel>
 {
-	static void to_json(json& j, const CBasicTestModel& model)
+	static void to_json(json& j, const BasicTestModel& model)
 	{
 		j = {
-			{"BooleanValue", model.BooleanValue},
-			{"SignedIntValue", model.SignedIntValue},
-			{"UnsignedIntValue", model.UnsignedIntValue},
-			{"FloatValue", model.FloatValue},
-			{"DoubleValue", model.DoubleValue},
-			{"ShortString", model.ShortString},
-			{"StringWithLongKeyAndValue", model.StringWithLongKeyAndValue},
-			{"UnicodeString", model.UnicodeString},
-			{"StringWithEscapedChars", model.StringWithEscapedChars},
-			{"MultiLineString", model.MultiLineString}
+			{"BooleanValue", model.booleanValue},
+			{"SignedIntValue", model.signedIntValue},
+			{"UnsignedIntValue", model.unsignedIntValue},
+			{"FloatValue", model.floatValue},
+			{"DoubleValue", model.doubleValue},
+			{"ShortString", model.shortString},
+			{"StringWithLongKeyAndValue", model.stringWithLongKeyAndValue},
+			{"UnicodeString", model.unicodeString},
+			{"StringWithEscapedChars", model.stringWithEscapedChars},
+			{"MultiLineString", model.multiLineString}
 		};
 	}
 
-	static void from_json(const json& j, CBasicTestModel& model)
+	static void from_json(const json& j, BasicTestModel& model)
 	{
-		j.at("BooleanValue").get_to(model.BooleanValue);
-		j.at("SignedIntValue").get_to(model.SignedIntValue);
-		j.at("UnsignedIntValue").get_to(model.UnsignedIntValue);
-		j.at("FloatValue").get_to(model.FloatValue);
-		j.at("DoubleValue").get_to(model.DoubleValue);
-		j.at("ShortString").get_to(model.ShortString);
-		j.at("StringWithLongKeyAndValue").get_to(model.StringWithLongKeyAndValue);
-		j.at("UnicodeString").get_to(model.UnicodeString);
-		j.at("StringWithEscapedChars").get_to(model.StringWithEscapedChars);
-		j.at("MultiLineString").get_to(model.MultiLineString);
+		j.at("BooleanValue").get_to(model.booleanValue);
+		j.at("SignedIntValue").get_to(model.signedIntValue);
+		j.at("UnsignedIntValue").get_to(model.unsignedIntValue);
+		j.at("FloatValue").get_to(model.floatValue);
+		j.at("DoubleValue").get_to(model.doubleValue);
+		j.at("ShortString").get_to(model.shortString);
+		j.at("StringWithLongKeyAndValue").get_to(model.stringWithLongKeyAndValue);
+		j.at("UnicodeString").get_to(model.unicodeString);
+		j.at("StringWithEscapedChars").get_to(model.stringWithEscapedChars);
+		j.at("MultiLineString").get_to(model.multiLineString);
 	}
 };
 
 /**
  * @brief Benchmark implementation for the NlohmannJson library.
  */
-class CNlohmannJsonBenchmark : public CBenchmarkBase
+class NlohmannJsonBenchmark : public BenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -64,13 +64,13 @@ public:
 	}
 
 protected:
-	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		nlohmann::json json = sourceTestModel;
 		outputData = json.dump();
 	}
 
-	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		auto json = nlohmann::json::parse(sourceData);
 		if (json.is_discarded() || !json.is_array()) {
@@ -83,7 +83,7 @@ protected:
 /**
  * @brief Benchmark implementation for the NlohmannJson library (MsgPack).
  */
-class CNlohmannMsgPackBenchmark : public CBenchmarkBase
+class NlohmannMsgPackBenchmark : public BenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -98,14 +98,14 @@ public:
 	}
 
 protected:
-	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		nlohmann::json json = sourceTestModel;
 		auto msgPackData = nlohmann::json::to_msgpack(json);
 		outputData.assign(reinterpret_cast<const char*>(msgPackData.data()), msgPackData.size());
 	}
 
-	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		auto json = nlohmann::json::from_msgpack(sourceData);
 		if (json.is_discarded() || !json.is_array()) {

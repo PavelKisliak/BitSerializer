@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -26,7 +26,7 @@
 /**
  * @brief Benchmark implementation for the RapidJson library.
  */
-class CRapidJsonBenchmark final : public CBenchmarkBase
+class RapidJsonBenchmark final : public BenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -39,7 +39,7 @@ protected:
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF8<>>;
 	using StringBuffer = rapidjson::GenericStringBuffer<rapidjson::UTF8<>>;
 
-	void LoadFromJsonDocument(CCommonTestModel& targetTestModel, RapidJsonDocument& jsonDoc)	// NOLINT(readability-convert-member-functions-to-static)
+	void LoadFromJsonDocument(CommonTestModel& targetTestModel, RapidJsonDocument& jsonDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		const auto& jArray = jsonDoc.GetArray();
 
@@ -49,21 +49,21 @@ protected:
 		{
 			auto& obj = targetTestModel[i];
 			const auto& jObj = jItem->GetObject();
-			obj.BooleanValue = jObj.FindMember("BooleanValue")->value.GetBool();
-			obj.SignedIntValue = static_cast<char>(jObj.FindMember("SignedIntValue")->value.GetInt());
-			obj.UnsignedIntValue = jObj.FindMember("UnsignedIntValue")->value.GetInt64();
-			obj.FloatValue = jObj.FindMember("FloatValue")->value.GetFloat();
-			obj.DoubleValue = jObj.FindMember("DoubleValue")->value.GetDouble();
-			obj.ShortString = jObj.FindMember("ShortString")->value.GetString();
-			obj.StringWithLongKeyAndValue = jObj.FindMember("StringWithLongKeyAndValue")->value.GetString();
-			obj.UnicodeString = jObj.FindMember("UnicodeString")->value.GetString();
-			obj.StringWithEscapedChars = jObj.FindMember("StringWithEscapedChars")->value.GetString();
-			obj.MultiLineString = jObj.FindMember("MultiLineString")->value.GetString();
+			obj.booleanValue = jObj.FindMember("BooleanValue")->value.GetBool();
+			obj.signedIntValue = static_cast<char>(jObj.FindMember("SignedIntValue")->value.GetInt());
+			obj.unsignedIntValue = jObj.FindMember("UnsignedIntValue")->value.GetInt64();
+			obj.floatValue = jObj.FindMember("FloatValue")->value.GetFloat();
+			obj.doubleValue = jObj.FindMember("DoubleValue")->value.GetDouble();
+			obj.shortString = jObj.FindMember("ShortString")->value.GetString();
+			obj.stringWithLongKeyAndValue = jObj.FindMember("StringWithLongKeyAndValue")->value.GetString();
+			obj.unicodeString = jObj.FindMember("UnicodeString")->value.GetString();
+			obj.stringWithEscapedChars = jObj.FindMember("StringWithEscapedChars")->value.GetString();
+			obj.multiLineString = jObj.FindMember("MultiLineString")->value.GetString();
 			++i;
 		}
 	}
 
-	void SaveToJsonDocument(const CCommonTestModel& sourceTestModel, RapidJsonDocument& jsonDoc)	// NOLINT(readability-convert-member-functions-to-static)
+	void SaveToJsonDocument(const CommonTestModel& sourceTestModel, RapidJsonDocument& jsonDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		auto& allocator = jsonDoc.GetAllocator();
 		jsonDoc.SetArray();
@@ -73,27 +73,27 @@ protected:
 		for (const auto& item : sourceTestModel)
 		{
 			RapidJsonNode jsonObject(rapidjson::kObjectType);
-			jsonObject.AddMember("BooleanValue", item.BooleanValue, allocator);
-			jsonObject.AddMember("SignedIntValue", item.SignedIntValue, allocator);
-			jsonObject.AddMember("UnsignedIntValue", item.UnsignedIntValue, allocator);
-			jsonObject.AddMember("FloatValue", item.FloatValue, allocator);
-			jsonObject.AddMember("DoubleValue", item.DoubleValue, allocator);
+			jsonObject.AddMember("BooleanValue", item.booleanValue, allocator);
+			jsonObject.AddMember("SignedIntValue", item.signedIntValue, allocator);
+			jsonObject.AddMember("UnsignedIntValue", item.unsignedIntValue, allocator);
+			jsonObject.AddMember("FloatValue", item.floatValue, allocator);
+			jsonObject.AddMember("DoubleValue", item.doubleValue, allocator);
 			jsonObject.AddMember("ShortString", RapidJsonNode::StringRefType(
-				item.ShortString.data(), static_cast<rapidjson::SizeType>(item.ShortString.size())), allocator);
+				item.shortString.data(), static_cast<rapidjson::SizeType>(item.shortString.size())), allocator);
 			jsonObject.AddMember("StringWithLongKeyAndValue", RapidJsonNode::StringRefType(
-				item.StringWithLongKeyAndValue.data(), static_cast<rapidjson::SizeType>(item.StringWithLongKeyAndValue.size())), allocator);
+				item.stringWithLongKeyAndValue.data(), static_cast<rapidjson::SizeType>(item.stringWithLongKeyAndValue.size())), allocator);
 			jsonObject.AddMember("UnicodeString", RapidJsonNode::StringRefType(
-				item.UnicodeString.data(), static_cast<rapidjson::SizeType>(item.UnicodeString.size())), allocator);
+				item.unicodeString.data(), static_cast<rapidjson::SizeType>(item.unicodeString.size())), allocator);
 			jsonObject.AddMember("StringWithEscapedChars", RapidJsonNode::StringRefType(
-				item.StringWithEscapedChars.data(), static_cast<rapidjson::SizeType>(item.StringWithEscapedChars.size())), allocator);
+				item.stringWithEscapedChars.data(), static_cast<rapidjson::SizeType>(item.stringWithEscapedChars.size())), allocator);
 			jsonObject.AddMember("MultiLineString", RapidJsonNode::StringRefType(
-				item.MultiLineString.data(), static_cast<rapidjson::SizeType>(item.MultiLineString.size())), allocator);
+				item.multiLineString.data(), static_cast<rapidjson::SizeType>(item.multiLineString.size())), allocator);
 
 			jsonDoc.PushBack(std::move(jsonObject), allocator);
 		}
 	}
 
-	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		RapidJsonDocument jsonDoc;
 		SaveToJsonDocument(sourceTestModel, jsonDoc);
@@ -105,7 +105,7 @@ protected:
 		outputData.assign(buffer.GetString(), buffer.GetSize());
 	}
 
-	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		RapidJsonDocument jsonDoc;
 		if (jsonDoc.Parse(sourceData.data(), sourceData.size()).HasParseError()) {
@@ -114,7 +114,7 @@ protected:
 		LoadFromJsonDocument(targetTestModel, jsonDoc);
 	}
 
-	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
+	void BenchmarkSaveToStream(const CommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
 		RapidJsonDocument jsonDoc;
 		SaveToJsonDocument(sourceTestModel, jsonDoc);
@@ -127,7 +127,7 @@ protected:
 		jsonDoc.Accept(writer);
 	}
 
-	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
+	void BenchmarkLoadFromStream(CommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
 		rapidjson::IStreamWrapper isw(inputStream);
 		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);

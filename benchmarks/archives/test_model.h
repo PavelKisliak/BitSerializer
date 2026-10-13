@@ -1,16 +1,21 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <string>
+#include <array>
 #include <cstdint>
+#include <limits>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+
 #include "testing_tools/common_test_methods.h"
 
 /**
  * @brief A test model containing a set of basic data types.
  */
-class CBasicTestModel
+class BasicTestModel
 {
 public:
 	/**
@@ -18,43 +23,43 @@ public:
 	 *
 	 * Pre-allocates internal buffers for strings to minimize memory allocation overhead during tests.
 	 */
-	CBasicTestModel()
+	BasicTestModel()
 	{
-		ShortString.reserve(32);
-		StringWithLongKeyAndValue.reserve(128);
-		UnicodeString.reserve(128);
-		StringWithEscapedChars.reserve(32);
-		MultiLineString.reserve(32);
+		shortString.reserve(32);
+		stringWithLongKeyAndValue.reserve(128);
+		unicodeString.reserve(128);
+		stringWithEscapedChars.reserve(32);
+		multiLineString.reserve(32);
 	}
 
-	bool BooleanValue = false;
-	int8_t SignedIntValue = 0;
-	uint64_t UnsignedIntValue = 0;
-	float FloatValue = 0.f;
-	double DoubleValue = 0.0;
-	std::string ShortString;
-	std::string StringWithLongKeyAndValue;
-	std::string UnicodeString;
-	std::string StringWithEscapedChars;
-	std::string MultiLineString;
+	bool booleanValue = false;
+	int8_t signedIntValue = 0;
+	uint64_t unsignedIntValue = 0;
+	float floatValue = 0.f;
+	double doubleValue = 0.0;
+	std::string shortString;
+	std::string stringWithLongKeyAndValue;
+	std::string unicodeString;
+	std::string stringWithEscapedChars;
+	std::string multiLineString;
 
 	/**
 	 * @brief Initializes the test fixture with known values.
 	 *
 	 * @param fixture Reference to the model object to populate.
 	 */
-	static void BuildFixture(CBasicTestModel& fixture)
+	static void BuildFixture(BasicTestModel& fixture)
 	{
-		fixture.BooleanValue = true;
-		fixture.SignedIntValue = -100;
-		fixture.UnsignedIntValue = 123456789;
-		fixture.FloatValue = 3.141592f;
-		fixture.DoubleValue = -3.141592654;
-		fixture.ShortString = "Short string";
-		fixture.StringWithLongKeyAndValue = "A string whose purpose is to test the performance of working with a long key and value";
-		fixture.UnicodeString = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
-		fixture.StringWithEscapedChars = "Test \"escaped\" chars";
-		fixture.MultiLineString = "Test\nmulti\nline\nstring";
+		fixture.booleanValue = true;
+		fixture.signedIntValue = -100;
+		fixture.unsignedIntValue = 123456789;
+		fixture.floatValue = 3.141592f;
+		fixture.doubleValue = -3.141592654;
+		fixture.shortString = "Short string";
+		fixture.stringWithLongKeyAndValue = "A string whose purpose is to test the performance of working with a long key and value";
+		fixture.unicodeString = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
+		fixture.stringWithEscapedChars = "Test \"escaped\" chars";
+		fixture.multiLineString = "Test\nmulti\nline\nstring";
 	}
 
 	/**
@@ -108,20 +113,20 @@ public:
 	 *
 	 * @param rhs The object to compare against.
 	 */
-	void Assert(const CBasicTestModel& rhs) const
+	void Assert(const BasicTestModel& rhs) const
 	{
-		Assert("BooleanValue", BooleanValue, rhs.BooleanValue);
-		Assert("SignedIntValue", SignedIntValue, rhs.SignedIntValue);
-		Assert("UnsignedIntValue", UnsignedIntValue, rhs.UnsignedIntValue);
-		Assert("FloatValue", FloatValue, rhs.FloatValue);
-		Assert("DoubleValue", DoubleValue, rhs.DoubleValue);
-		Assert("ShortString", ShortString, rhs.ShortString);
-		Assert("StringWithLongKeyAndValue", StringWithLongKeyAndValue, rhs.StringWithLongKeyAndValue);
-		Assert("UnicodeString", UnicodeString, rhs.UnicodeString);
-		Assert("StringWithEscapedChars", StringWithEscapedChars, rhs.StringWithEscapedChars);
-		Assert("MultiLineString", MultiLineString, rhs.MultiLineString);
+		Assert("BooleanValue", booleanValue, rhs.booleanValue);
+		Assert("SignedIntValue", signedIntValue, rhs.signedIntValue);
+		Assert("UnsignedIntValue", unsignedIntValue, rhs.unsignedIntValue);
+		Assert("FloatValue", floatValue, rhs.floatValue);
+		Assert("DoubleValue", doubleValue, rhs.doubleValue);
+		Assert("ShortString", shortString, rhs.shortString);
+		Assert("StringWithLongKeyAndValue", stringWithLongKeyAndValue, rhs.stringWithLongKeyAndValue);
+		Assert("UnicodeString", unicodeString, rhs.unicodeString);
+		Assert("StringWithEscapedChars", stringWithEscapedChars, rhs.stringWithEscapedChars);
+		Assert("MultiLineString", multiLineString, rhs.multiLineString);
 	}
 };
 
 // Common test model representing an array of basic models for archive testing
-using CCommonTestModel = std::array<CBasicTestModel, 30>;
+using CommonTestModel = std::array<BasicTestModel, 30>;

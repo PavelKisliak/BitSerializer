@@ -1,8 +1,13 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <iostream>
+#include <string>
+#include <type_traits>
+#include <vector>
+
 // Benchmark headers
 #include "benchmark_base.h"
 
@@ -34,25 +39,25 @@
 #pragma warning(disable: 4702)
 
 /**
- * @brief Serializes the `CBasicTestModel` using BitSerializer.
+ * @brief Serializes the `BasicTestModel` using BitSerializer.
  *
  * @tparam TArchive The archive type used for serialization.
  * @param archive Reference to the archive object.
  * @param testModel Reference to the model to serialize.
  */
 template<typename TArchive>
-void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
+void SerializeObject(TArchive& archive, BasicTestModel& testModel)
 {
-	archive << BitSerializer::KeyValue("BooleanValue", testModel.BooleanValue);
-	archive << BitSerializer::KeyValue("SignedIntValue", testModel.SignedIntValue);
-	archive << BitSerializer::KeyValue("UnsignedIntValue", testModel.UnsignedIntValue);
-	archive << BitSerializer::KeyValue("FloatValue", testModel.FloatValue);
-	archive << BitSerializer::KeyValue("DoubleValue", testModel.DoubleValue);
-	archive << BitSerializer::KeyValue("ShortString", testModel.ShortString);
-	archive << BitSerializer::KeyValue("StringWithLongKeyAndValue", testModel.StringWithLongKeyAndValue);
-	archive << BitSerializer::KeyValue("UnicodeString", testModel.UnicodeString);
-	archive << BitSerializer::KeyValue("StringWithEscapedChars", testModel.StringWithEscapedChars);
-	archive << BitSerializer::KeyValue("MultiLineString", testModel.MultiLineString);
+	archive << BitSerializer::KeyValue("BooleanValue", testModel.booleanValue);
+	archive << BitSerializer::KeyValue("SignedIntValue", testModel.signedIntValue);
+	archive << BitSerializer::KeyValue("UnsignedIntValue", testModel.unsignedIntValue);
+	archive << BitSerializer::KeyValue("FloatValue", testModel.floatValue);
+	archive << BitSerializer::KeyValue("DoubleValue", testModel.doubleValue);
+	archive << BitSerializer::KeyValue("ShortString", testModel.shortString);
+	archive << BitSerializer::KeyValue("StringWithLongKeyAndValue", testModel.stringWithLongKeyAndValue);
+	archive << BitSerializer::KeyValue("UnicodeString", testModel.unicodeString);
+	archive << BitSerializer::KeyValue("StringWithEscapedChars", testModel.stringWithEscapedChars);
+	archive << BitSerializer::KeyValue("MultiLineString", testModel.multiLineString);
 }
 
 /**
@@ -61,10 +66,10 @@ void SerializeObject(TArchive& archive, CBasicTestModel& testModel)
  * @tparam TArchive The specific archive type to benchmark.
  */
 template <class TArchive>
-class CBitSerializerBenchmark final : public CBenchmarkBase
+class BitSerializerBenchmark final : public BenchmarkBase
 {
 public:
-	CBitSerializerBenchmark()
+	BitSerializerBenchmark()
 	{
 		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::string>)
 		{
@@ -105,13 +110,13 @@ public:
 		return "BitSerializer-" + BitSerializer::Convert::ToString(TArchive::archive_type);
 	}
 
-	std::vector<TestStage> GetStagesList() const override
+	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
 	{
 		return mSupportedStagesList;
 	}
 
 protected:
-	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::string>)
 		{
@@ -123,7 +128,7 @@ protected:
 		}
 	}
 
-	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		if constexpr (BitSerializer::is_archive_support_input_data_type_v<typename TArchive::input_archive_type, std::string_view>)
 		{
@@ -135,7 +140,7 @@ protected:
 		}
 	}
 
-	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
+	void BenchmarkSaveToStream(const CommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
 		if constexpr (BitSerializer::is_archive_support_output_data_type_v<typename TArchive::output_archive_type, std::ostream>)
 		{
@@ -147,7 +152,7 @@ protected:
 		}
 	}
 
-	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
+	void BenchmarkLoadFromStream(CommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
 		if constexpr (BitSerializer::is_archive_support_input_data_type_v<typename TArchive::input_archive_type, std::istream>)
 		{

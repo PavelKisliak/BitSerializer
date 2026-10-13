@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -13,7 +13,7 @@
 /**
  * @brief Benchmark implementation for the PugiXml library.
  */
-class CPugiXmlBenchmark final : public CBenchmarkBase
+class PugiXmlBenchmark final : public BenchmarkBase
 {
 public:
 	[[nodiscard]] std::string GetLibraryName() const override
@@ -22,7 +22,7 @@ public:
 	}
 
 protected:
-	void SaveToXmlDocument(const CCommonTestModel& sourceTestModel, pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
+	void SaveToXmlDocument(const CommonTestModel& sourceTestModel, pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		auto rootNode = xmlDoc.append_child(PUGIXML_TEXT("array"));
 
@@ -30,20 +30,20 @@ protected:
 		for (const auto& item : sourceTestModel)
 		{
 			auto objectNode = rootNode.append_child(PUGIXML_TEXT("object"));
-			objectNode.append_child(PUGIXML_TEXT("BooleanValue")).text().set(item.BooleanValue);
-			objectNode.append_child(PUGIXML_TEXT("SignedIntValue")).text().set(item.SignedIntValue);
-			objectNode.append_child(PUGIXML_TEXT("UnsignedIntValue")).text().set(item.UnsignedIntValue);
-			objectNode.append_child(PUGIXML_TEXT("FloatValue")).text().set(item.FloatValue);
-			objectNode.append_child(PUGIXML_TEXT("DoubleValue")).text().set(item.DoubleValue);
-			objectNode.append_child(PUGIXML_TEXT("ShortString")).text().set(item.ShortString.c_str());
-			objectNode.append_child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().set(item.StringWithLongKeyAndValue.c_str());
-			objectNode.append_child(PUGIXML_TEXT("UnicodeString")).text().set(item.UnicodeString.c_str());
-			objectNode.append_child(PUGIXML_TEXT("StringWithEscapedChars")).text().set(item.StringWithEscapedChars.c_str());
-			objectNode.append_child(PUGIXML_TEXT("MultiLineString")).text().set(item.MultiLineString.c_str());
+			objectNode.append_child(PUGIXML_TEXT("BooleanValue")).text().set(item.booleanValue);
+			objectNode.append_child(PUGIXML_TEXT("SignedIntValue")).text().set(item.signedIntValue);
+			objectNode.append_child(PUGIXML_TEXT("UnsignedIntValue")).text().set(item.unsignedIntValue);
+			objectNode.append_child(PUGIXML_TEXT("FloatValue")).text().set(item.floatValue);
+			objectNode.append_child(PUGIXML_TEXT("DoubleValue")).text().set(item.doubleValue);
+			objectNode.append_child(PUGIXML_TEXT("ShortString")).text().set(item.shortString.c_str());
+			objectNode.append_child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().set(item.stringWithLongKeyAndValue.c_str());
+			objectNode.append_child(PUGIXML_TEXT("UnicodeString")).text().set(item.unicodeString.c_str());
+			objectNode.append_child(PUGIXML_TEXT("StringWithEscapedChars")).text().set(item.stringWithEscapedChars.c_str());
+			objectNode.append_child(PUGIXML_TEXT("MultiLineString")).text().set(item.multiLineString.c_str());
 		}
 	}
 
-	void LoadFromXmlDocument(CCommonTestModel& targetTestModel, const pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
+	void LoadFromXmlDocument(CommonTestModel& targetTestModel, const pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{
 		const auto rootNode = xmlDoc.child(PUGIXML_TEXT("array"));
 
@@ -52,31 +52,31 @@ protected:
 		for (auto& it : rootNode)
 		{
 			auto& obj = targetTestModel[i];
-			obj.BooleanValue = it.child(PUGIXML_TEXT("BooleanValue")).text().as_bool();
-			obj.SignedIntValue = static_cast<int8_t>(it.child(PUGIXML_TEXT("SignedIntValue")).text().as_int());
-			obj.UnsignedIntValue = it.child(PUGIXML_TEXT("UnsignedIntValue")).text().as_llong();
-			obj.FloatValue = it.child(PUGIXML_TEXT("FloatValue")).text().as_float();
-			obj.DoubleValue = it.child(PUGIXML_TEXT("DoubleValue")).text().as_double();
-			obj.ShortString = it.child(PUGIXML_TEXT("ShortString")).text().as_string();
-			obj.StringWithLongKeyAndValue = it.child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().as_string();
-			obj.UnicodeString = it.child(PUGIXML_TEXT("UnicodeString")).text().as_string();
-			obj.StringWithEscapedChars = it.child(PUGIXML_TEXT("StringWithEscapedChars")).text().as_string();
-			obj.MultiLineString = it.child(PUGIXML_TEXT("MultiLineString")).text().as_string();
+			obj.booleanValue = it.child(PUGIXML_TEXT("BooleanValue")).text().as_bool();
+			obj.signedIntValue = static_cast<int8_t>(it.child(PUGIXML_TEXT("SignedIntValue")).text().as_int());
+			obj.unsignedIntValue = it.child(PUGIXML_TEXT("UnsignedIntValue")).text().as_llong();
+			obj.floatValue = it.child(PUGIXML_TEXT("FloatValue")).text().as_float();
+			obj.doubleValue = it.child(PUGIXML_TEXT("DoubleValue")).text().as_double();
+			obj.shortString = it.child(PUGIXML_TEXT("ShortString")).text().as_string();
+			obj.stringWithLongKeyAndValue = it.child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().as_string();
+			obj.unicodeString = it.child(PUGIXML_TEXT("UnicodeString")).text().as_string();
+			obj.stringWithEscapedChars = it.child(PUGIXML_TEXT("StringWithEscapedChars")).text().as_string();
+			obj.multiLineString = it.child(PUGIXML_TEXT("MultiLineString")).text().as_string();
 			++i;
 		}
 	}
 
-	void BenchmarkSaveToMemory(const CCommonTestModel& sourceTestModel, std::string& outputData) override
+	void BenchmarkSaveToMemory(const CommonTestModel& sourceTestModel, std::string& outputData) override
 	{
 		pugi::xml_document xmlDoc;
 		SaveToXmlDocument(sourceTestModel, xmlDoc);
 
 		// Build XML
-		CXmlStringWriter xmlStringWriter(outputData);
+		XmlStringWriter xmlStringWriter(outputData);
 		xmlDoc.save(xmlStringWriter, PUGIXML_TEXT("\t"), pugi::format_raw, pugi::encoding_utf8);
 	}
 
-	void BenchmarkLoadFromMemory(CCommonTestModel& targetTestModel, const std::string& sourceData) override
+	void BenchmarkLoadFromMemory(CommonTestModel& targetTestModel, const std::string& sourceData) override
 	{
 		pugi::xml_document xmlDoc;
 		const auto result = xmlDoc.load_buffer(sourceData.data(), sourceData.size(), pugi::parse_default, pugi::encoding_utf8);
@@ -87,7 +87,7 @@ protected:
 		LoadFromXmlDocument(targetTestModel, xmlDoc);
 	}
 
-	void BenchmarkSaveToStream(const CCommonTestModel& sourceTestModel, std::ostream& outputStream) override
+	void BenchmarkSaveToStream(const CommonTestModel& sourceTestModel, std::ostream& outputStream) override
 	{
 		pugi::xml_document xmlDoc;
 		SaveToXmlDocument(sourceTestModel, xmlDoc);
@@ -97,7 +97,7 @@ protected:
 		xmlDoc.save(outputStream, PUGIXML_TEXT("\t"), flags, pugi::xml_encoding::encoding_utf8);
 	}
 
-	void BenchmarkLoadFromStream(CCommonTestModel& targetTestModel, std::istream& inputStream) override
+	void BenchmarkLoadFromStream(CommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
 		rapidjson::IStreamWrapper isw(inputStream);
 		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);
@@ -111,10 +111,10 @@ protected:
 	}
 
 private:
-	class CXmlStringWriter : public pugi::xml_writer
+	class XmlStringWriter : public pugi::xml_writer
 	{
 	public:
-		CXmlStringWriter(std::string& outputStr)
+		XmlStringWriter(std::string& outputStr)
 			: mOutputString(outputStr)
 		{
 		}

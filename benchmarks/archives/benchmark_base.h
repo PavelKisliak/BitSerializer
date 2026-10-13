@@ -3,11 +3,14 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <vector>
+#include <cassert>
+#include <chrono>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
-#include <chrono>
+#include <vector>
+
 #include "test_model.h"
 
 /**
@@ -31,27 +34,27 @@ BITSERIALIZER_REGISTER_ENUM(TestStage, {
 /**
  * @brief Stores test results for a serialization library.
  */
-struct CLibraryTestResults
+struct LibraryTestResults
 {
 	/// Name of the tested serialization library.
-	std::string LibraryName;
+	std::string libraryName;
 
 	/// Total number of fields in the test model.
-	size_t TestModelFieldsCount = 0;
+	size_t testModelFieldsCount = 0;
 
 	/// Size of serialized data in bytes.
-	size_t SerializedDataSize = 0;
+	size_t serializedDataSize = 0;
 
 	/**
 	 * @brief Metrics collected per test stage.
 	 */
-	struct CTestMetrics
+	struct TestMetrics
 	{
-		int64_t SerializationSpeed = 0; ///< Number of fields processed per millisecond.
+		int64_t serializationSpeed = 0; ///< Number of fields processed per millisecond.
 	};
 
 	/// Mapping of test stages to their respective metrics.
-	std::unordered_map<TestStage, CTestMetrics> StagesTestResults;
+	std::unordered_map<TestStage, TestMetrics> stagesTestResults;
 };
 
 
@@ -66,13 +69,13 @@ struct CLibraryTestResults
  *
  * Derived classes must implement the actual serialization logic using the target library.
  */
-class CBenchmarkBase
+class BenchmarkBase
 {
 public:
 	using Timer = std::chrono::high_resolution_clock;
 
-	CBenchmarkBase();
-	virtual ~CBenchmarkBase() = default;
+	BenchmarkBase();
+	virtual ~BenchmarkBase() = default;
 
 	/**
 	 * @brief Gets the name of the serialization library being tested.
@@ -99,7 +102,7 @@ public:
 	 * @param testTime Duration of each stage in seconds.
 	 * @return A structure containing the collected test results.
 	 */
-	CLibraryTestResults RunBenchmark(std::chrono::seconds testTime);
+	LibraryTestResults RunBenchmark(std::chrono::seconds testTime);
 
 protected:
 	// Benchmark implementation methods — derived classes should override these
@@ -109,7 +112,7 @@ protected:
 	 * @param sourceTestModel Reference to the source model.
 	 * @param outputData Output buffer for serialized data.
 	 */
-	virtual void BenchmarkSaveToMemory(const CCommonTestModel& /*sourceTestModel*/, std::string& /*outputData*/) {
+	virtual void BenchmarkSaveToMemory(const CommonTestModel& /*sourceTestModel*/, std::string& /*outputData*/) {
 		throw std::runtime_error("Benchmark SaveToMemory is not implemented!");
 	}
 
@@ -118,7 +121,7 @@ protected:
 	 * @param targetTestModel Reference to the target model.
 	 * @param sourceData Input buffer with serialized data.
 	 */
-	virtual void BenchmarkLoadFromMemory(CCommonTestModel& /*targetTestModel*/, const std::string& /*sourceData*/) {
+	virtual void BenchmarkLoadFromMemory(CommonTestModel& /*targetTestModel*/, const std::string& /*sourceData*/) {
 		throw std::runtime_error("Benchmark LoadFromMemory is not implemented!");
 	}
 
@@ -127,7 +130,7 @@ protected:
 	 * @param targetTestModel Reference to the source model.
 	 * @param outputStream Output stream to write to.
 	 */
-	virtual void BenchmarkSaveToStream(const CCommonTestModel& /*targetTestModel*/, std::ostream& /*outputStream*/) {
+	virtual void BenchmarkSaveToStream(const CommonTestModel& /*targetTestModel*/, std::ostream& /*outputStream*/) {
 		throw std::runtime_error("Benchmark SaveToStream is not implemented!");
 	}
 
@@ -136,7 +139,7 @@ protected:
 	 * @param targetTestModel Reference to the target model.
 	 * @param inputStream Input stream with serialized data.
 	 */
-	virtual void BenchmarkLoadFromStream(CCommonTestModel& /*targetTestModel*/, std::istream& /*inputStream*/) {
+	virtual void BenchmarkLoadFromStream(CommonTestModel& /*targetTestModel*/, std::istream& /*inputStream*/) {
 		throw std::runtime_error("Benchmark LoadFromStream is not implemented!");
 	}
 
@@ -236,8 +239,8 @@ private:
 
 	TestStage mTestStage = TestStage::SaveToMemory;
 	bool mInProgress = false;
-	CCommonTestModel mSourceTestModel;
-	CCommonTestModel mTargetModel;
+	CommonTestModel mSourceTestModel;
+	CommonTestModel mTargetModel;
 	std::string mSerializedData;
 	std::stringstream mStringStream;
 };

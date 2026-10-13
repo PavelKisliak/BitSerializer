@@ -1,10 +1,12 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "benchmark_base.h"
+#include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <iostream>
 
 #if defined(_WIN32)
 	#include <io.h>
@@ -33,28 +35,28 @@ namespace
 }
 
 
-CBenchmarkBase::CBenchmarkBase()
+BenchmarkBase::BenchmarkBase()
 {
 	BuildFixture(mSourceTestModel);
 	// Reserve buffers to minimize the impact of memory allocation on test results
 	mSerializedData.reserve(16384);
 }
 
-size_t CBenchmarkBase::GetTotalFieldsCount() const noexcept
+size_t BenchmarkBase::GetTotalFieldsCount() const noexcept
 {
 	// Total size of all fields (each element of array also counting as field)
-	return mSourceTestModel.size() * CCommonTestModel::value_type::GetTotalFieldsCount() + mSourceTestModel.size();
+	return mSourceTestModel.size() * CommonTestModel::value_type::GetTotalFieldsCount() + mSourceTestModel.size();
 }
 
-CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds testTime)
+LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTime)
 {
-	constexpr auto NanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
+	constexpr auto nanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
 
 	const bool isConsoleOutput = IsConsoleOutput();
 	int progressPercent = -1;
-	CLibraryTestResults libTestResults;
-	libTestResults.LibraryName = GetLibraryName();
-	libTestResults.TestModelFieldsCount = GetTotalFieldsCount();
+	LibraryTestResults libTestResults;
+	libTestResults.libraryName = GetLibraryName();
+	libTestResults.testModelFieldsCount = GetTotalFieldsCount();
 
 	do
 	{
@@ -64,7 +66,7 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 		std::chrono::nanoseconds minTime{};
 
 		PrepareStage();
-		CLibraryTestResults::CTestMetrics testMetrics;
+		LibraryTestResults::TestMetrics testMetrics;
 		for (auto time = beginTime; time < endTime; time = Timer::now())
 		{
 			// Print progress (only when the output is a console)
@@ -88,11 +90,11 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 			}
 
 			// Record serialized data size
-			if (mTestStage == TestStage::SaveToMemory && libTestResults.SerializedDataSize != mSerializedData.size())
+			if (mTestStage == TestStage::SaveToMemory && libTestResults.serializedDataSize != mSerializedData.size())
 			{
-				if (libTestResults.SerializedDataSize == 0)
+				if (libTestResults.serializedDataSize == 0)
 				{
-					libTestResults.SerializedDataSize = mSerializedData.size();
+					libTestResults.serializedDataSize = mSerializedData.size();
 				}
 				else
 				{
@@ -106,19 +108,19 @@ CLibraryTestResults CBenchmarkBase::RunBenchmark(const std::chrono::seconds test
 		}
 
 		// Calculate serialization speed (fields/ms)
-		testMetrics.SerializationSpeed = std::llround(
-			NanosecondsInMs / static_cast<double>(minTime.count()) * static_cast<double>(libTestResults.TestModelFieldsCount));
-		libTestResults.StagesTestResults.emplace(mTestStage, testMetrics);
+		testMetrics.serializationSpeed = std::llround(
+			nanosecondsInMs / static_cast<double>(minTime.count()) * static_cast<double>(libTestResults.testModelFieldsCount));
+		libTestResults.stagesTestResults.emplace(mTestStage, testMetrics);
 
 		// Display result
-		std::cout << GetLibraryName() << " | " << GetCurrentStageName() << ": " << testMetrics.SerializationSpeed << " (fields/ms)" << std::endl;
+		std::cout << GetLibraryName() << " | " << GetCurrentStageName() << ": " << testMetrics.serializationSpeed << " (fields/ms)" << std::endl;
 
 	} while (NextStage());
 
 	return libTestResults;
 }
 
-void CBenchmarkBase::PrepareStage()
+void BenchmarkBase::PrepareStage()
 {
 	if (!mInProgress)
 	{
@@ -132,12 +134,12 @@ void CBenchmarkBase::PrepareStage()
 	OnBeginStage(mTestStage);
 }
 
-std::string CBenchmarkBase::GetCurrentStageName() const
+std::string BenchmarkBase::GetCurrentStageName() const
 {
 	return BitSerializer::Convert::ToString(mTestStage);
 }
 
-bool CBenchmarkBase::NextStage()
+bool BenchmarkBase::NextStage()
 {
 	assert(mInProgress);
 
@@ -166,7 +168,7 @@ bool CBenchmarkBase::NextStage()
 	return false;
 }
 
-void CBenchmarkBase::ValidateTargetModel() const
+void BenchmarkBase::ValidateTargetModel() const
 {
 	// Compare loaded model with original
 	size_t targetIdx = 0;

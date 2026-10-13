@@ -34,9 +34,11 @@
 #endif
 
 
+#if defined(_MSC_VER)
 // Suppress C4702 - unreachable code
 #pragma warning(push)
 #pragma warning(disable: 4702)
+#endif
 
 /**
  * @brief Serializes the `BasicTestModel` using BitSerializer.
@@ -168,4 +170,6 @@ private:
 	std::vector<TestStage> mSupportedStagesList;
 };
 
+#if defined(_MSC_VER)
 #pragma warning(pop)
+#endif

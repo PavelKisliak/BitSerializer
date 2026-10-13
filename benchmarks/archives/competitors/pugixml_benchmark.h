@@ -99,9 +99,6 @@ protected:
 
 	void BenchmarkLoadFromStream(CommonTestModel& targetTestModel, std::istream& inputStream) override
 	{
-		rapidjson::IStreamWrapper isw(inputStream);
-		rapidjson::AutoUTFInputStream<uint32_t, rapidjson::IStreamWrapper> eis(isw);
-
 		pugi::xml_document xmlDoc;
 		const auto result = xmlDoc.load(inputStream);
 		if (!result) {

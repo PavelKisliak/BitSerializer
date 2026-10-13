@@ -151,7 +151,7 @@ bool BenchmarkBase::NextStage()
 
 	OnFinishedStage(mTestStage);
 
-	// Find next tage
+	// Find next stage
 	std::vector<TestStage> stagesList = GetStagesList();
 	auto currentStageIt = std::find(stagesList.cbegin(), stagesList.cend(), mTestStage);
 	assert(currentStageIt != stagesList.cend());

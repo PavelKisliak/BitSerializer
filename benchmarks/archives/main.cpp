@@ -28,12 +28,13 @@
 #include "competitors/nlohmannjson_benchmark.h"
 
 #if defined(_DEBUG) || (!defined(NDEBUG) && !defined(RELEASE))
-// In the debug configuration using minimal testing time
-static constexpr std::chrono::seconds defaultStageTestTime = std::chrono::seconds(1);
+static constexpr bool isDebugBuild = true;
 #else
-// Need enough time to produce repeatable results
-static constexpr std::chrono::seconds defaultStageTestTime = std::chrono::seconds(30);
+static constexpr bool isDebugBuild = false;
 #endif
+
+// In the debug configuration using minimal testing time, otherwise take enough time to produce repeatable results
+static constexpr std::chrono::seconds defaultStageTestTime = std::chrono::seconds(isDebugBuild ? 1 : 30);
 
 int main()	// NOLINT(bugprone-exception-escape)
 {
@@ -44,13 +45,16 @@ int main()	// NOLINT(bugprone-exception-escape)
 	PerfUtils::SetMaxPriority();
 
 	// Pin current thread to fixed core
-	const uint32_t coreId = (std::thread::hardware_concurrency() - 1) >> 1;
-	PerfUtils::SetCurrentThreadAffinity(coreId);
+	if (const uint32_t hardwareThreads = std::thread::hardware_concurrency(); hardwareThreads > 0)
+	{
+		PerfUtils::SetCurrentThreadAffinity((hardwareThreads - 1) >> 1);
+	}
 
-#if !defined(_DEBUG) || (!defined(NDEBUG) && defined(RELEASE))
-	std::cout << "Warm up the CPU" << std::endl;
-	PerfUtils::PreheatCPU(std::chrono::seconds(10));
-#endif
+	if constexpr (!isDebugBuild)
+	{
+		std::cout << "Warm up the CPU" << std::endl;
+		PerfUtils::PreheatCPU(std::chrono::seconds(10));
+	}
 
 	// Benchmarking libraries
 	try

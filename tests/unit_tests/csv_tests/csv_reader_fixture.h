@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2023 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -20,11 +20,11 @@ public:
 	void PrepareCsvReader(std::string testCsv, bool withHeader, char separator, BitSerializer::Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
 	{
 		mTestCsv = std::move(testCsv);
-		if constexpr (std::is_same_v<TReader, BitSerializer::Csv::Detail::CCsvStringReader>)
+		if constexpr (std::is_same_v<TReader, BitSerializer::Csv::Detail::CsvStringReader>)
 		{
 			mCsvReader = std::make_shared<TReader>(mTestCsv, withHeader, separator);
 		}
-		else if constexpr (std::is_same_v<TReader, BitSerializer::Csv::Detail::CCsvStreamReader>)
+		else if constexpr (std::is_same_v<TReader, BitSerializer::Csv::Detail::CsvStreamReader>)
 		{
 			mInputStream = std::make_optional<std::istringstream>(mTestCsv);
 			mCsvReader = std::make_shared<TReader>(mInputStream.value(), withHeader, separator, encodingErrorPolicy);

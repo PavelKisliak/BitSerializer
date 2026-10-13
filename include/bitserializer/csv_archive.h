@@ -3,8 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cstddef>
 #include <iosfwd>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include "bitserializer/export.h"
 #include "bitserializer/serialization_detail/archive_base.h"
@@ -23,7 +25,7 @@ struct CsvArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 	using key_type = std::string;
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
 	using string_view_type = std::string_view;
-	using preferred_output_type = std::basic_string<char, std::char_traits<char>>;
+	using preferred_output_type = std::string;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = false;
 
@@ -69,20 +71,20 @@ public:
 /**
  * @brief CSV scope for writing objects (key-value pairs).
  */
-class CCsvWriteObjectScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Save>
+class CsvWriteObjectScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
-	CCsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
+	CsvWriteObjectScope(ICsvWriter* csvWriter, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mCsvWriter(csvWriter)
 	{ }
 
-	CCsvWriteObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
+	CsvWriteObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Save>(serializationContext, ScopeUnopened{})
 		, mCsvWriter(nullptr)
 	{ }
 
-	~CCsvWriteObjectScope() noexcept(false)
+	~CsvWriteObjectScope() noexcept(false)
 	{
 		if (IsOpened())
 		{
@@ -154,7 +156,7 @@ public:
 		return path_separator + Convert::ToString(mCsvWriter->GetCurrentIndex());
 	}
 
-	[[nodiscard]] CCsvWriteObjectScope OpenObjectScope(size_t) const noexcept
+	[[nodiscard]] CsvWriteObjectScope OpenObjectScope(size_t) const noexcept
 	{
 		return {mCsvWriter, GetContext()};
 	}
@@ -203,15 +205,15 @@ private:
 /**
  * @brief CSV scope for reading objects (key-value pairs).
  */
-class CCsvReadObjectScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Load>
+class CsvReadObjectScope final : public CsvArchiveTraits, public ArchiveScope<SerializeMode::Load>
 {
 public:
-	CCsvReadObjectScope(ICsvReader* csvReader, SerializationContext& serializationContext) noexcept
+	CsvReadObjectScope(ICsvReader* csvReader, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mCsvReader(csvReader)
 	{ }
 
-	CCsvReadObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
+	CsvReadObjectScope(ScopeUnopened, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Load>(serializationContext, ScopeUnopened{})
 		, mCsvReader(nullptr)
 	{ }
@@ -362,7 +364,7 @@ public:
 		return mCsvReader->IsEnd();
 	}
 
-	CCsvReadObjectScope OpenObjectScope(size_t)
+	[[nodiscard]] CsvReadObjectScope OpenObjectScope(size_t)
 	{
 		if (mCsvReader->ParseNextRow())
 		{
@@ -399,7 +401,7 @@ public:
 		return {};
 	}
 
-	CsvReadArrayScope OpenArrayScope(size_t) noexcept
+	[[nodiscard]] CsvReadArrayScope OpenArrayScope(size_t) noexcept
 	{
 		return {mCsvReader, GetContext()};
 	}

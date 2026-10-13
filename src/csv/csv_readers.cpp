@@ -7,7 +7,7 @@
 
 namespace BitSerializer::Csv::Detail
 {
-	CCsvStringReader::CCsvStringReader(std::string_view inputString, bool withHeader, char separator)
+	CsvStringReader::CsvStringReader(std::string_view inputString, bool withHeader, char separator)
 		: mSourceString(inputString)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
@@ -31,7 +31,7 @@ namespace BitSerializer::Csv::Detail
 		}
 	}
 
-	bool CCsvStringReader::SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept
+	bool CsvStringReader::SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept
 	{
 		if (mWithHeader)
 		{
@@ -45,7 +45,7 @@ namespace BitSerializer::Csv::Detail
 		return false;
 	}
 
-	bool CCsvStringReader::ReadValue(std::string_view key, std::string_view& out_value) noexcept
+	bool CsvStringReader::ReadValue(std::string_view key, std::string_view& out_value) noexcept
 	{
 		if (!mWithHeader) {
 			return false;
@@ -74,7 +74,7 @@ namespace BitSerializer::Csv::Detail
 		return true;
 	}
 
-	void CCsvStringReader::ReadValue(std::string_view& out_value)
+	void CsvStringReader::ReadValue(std::string_view& out_value)
 	{
 		if (mValueIndex < mRowValuesMeta.size())
 		{
@@ -86,7 +86,7 @@ namespace BitSerializer::Csv::Detail
 		throw SerializationException(SerializationErrorCode::OutOfRange, "There are no more values in the row");
 	}
 
-	bool CCsvStringReader::ParseNextRow()
+	bool CsvStringReader::ParseNextRow()
 	{
 		if (ParseNextLine())
 		{
@@ -116,7 +116,7 @@ namespace BitSerializer::Csv::Detail
 		return false;
 	}
 
-	bool CCsvStringReader::ParseNextLine()
+	bool CsvStringReader::ParseNextLine()
 	{
 		const auto totalSize = mSourceString.size();
 		if (mCurrentPos >= totalSize)
@@ -196,7 +196,7 @@ namespace BitSerializer::Csv::Detail
 		return !mRowValuesMeta.empty();
 	}
 
-	void CCsvStringReader::UnescapeValue(std::string_view value)
+	void CsvStringReader::UnescapeValue(std::string_view value)
 	{
 		// Validate first and end double quotes
 		if (value.front() != '"')
@@ -251,7 +251,7 @@ namespace BitSerializer::Csv::Detail
 
 	//------------------------------------------------------------------------------
 
-	CCsvStreamReader::CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
+	CsvStreamReader::CsvStreamReader(std::istream& inputStream, bool withHeader, char separator, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
 		: mEncodedStreamReader(inputStream, encodingErrorPolicy)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
@@ -275,7 +275,7 @@ namespace BitSerializer::Csv::Detail
 		}
 	}
 
-	bool CCsvStreamReader::SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept
+	bool CsvStreamReader::SeekToHeader(size_t headerIndex, std::string_view& out_header) noexcept
 	{
 		if (mWithHeader)
 		{
@@ -289,7 +289,7 @@ namespace BitSerializer::Csv::Detail
 		return false;
 	}
 
-	bool CCsvStreamReader::ReadValue(std::string_view key, std::string_view& out_value) noexcept
+	bool CsvStreamReader::ReadValue(std::string_view key, std::string_view& out_value) noexcept
 	{
 		if (!mWithHeader) {
 			return false;
@@ -318,7 +318,7 @@ namespace BitSerializer::Csv::Detail
 		return true;
 	}
 
-	void CCsvStreamReader::ReadValue(std::string_view& out_value)
+	void CsvStreamReader::ReadValue(std::string_view& out_value)
 	{
 		if (mValueIndex < mRowValuesMeta.size())
 		{
@@ -331,7 +331,7 @@ namespace BitSerializer::Csv::Detail
 		throw SerializationException(SerializationErrorCode::OutOfRange, "There are no more values in the row");
 	}
 
-	bool CCsvStreamReader::ParseNextRow()
+	bool CsvStreamReader::ParseNextRow()
 	{
 		if (ParseNextLine())
 		{
@@ -361,7 +361,7 @@ namespace BitSerializer::Csv::Detail
 		return false;
 	}
 
-	bool CCsvStreamReader::ParseNextLine()
+	bool CsvStreamReader::ParseNextLine()
 	{
 		if (IsEnd())
 		{
@@ -505,7 +505,7 @@ namespace BitSerializer::Csv::Detail
 		return !mRowValuesMeta.empty();
 	}
 
-	void CCsvStreamReader::UnescapeValue(const char* beginIt, const char* endIt)
+	void CsvStreamReader::UnescapeValue(const char* beginIt, const char* endIt)
 	{
 		// Validate first and end double quotes
 		if (*beginIt != '"')

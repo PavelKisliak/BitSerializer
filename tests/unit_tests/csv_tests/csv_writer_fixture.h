@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -15,12 +15,12 @@ public:
 	void PrepareCsvReader(bool withHeader, char separator = ',', BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy = BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::Skip,
 		bool writeBom = false, BitSerializer::Convert::Utf::UtfType utfType = BitSerializer::Convert::Utf::UtfType::Utf8)
 	{
-		if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CCsvStringWriter>)
+		if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CsvStringWriter>)
 		{
 			mResult = std::string();
 			mCsvWriter = std::make_shared<TWriter>(std::get<std::string>(mResult), withHeader, separator);
 		}
-		else if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CCsvStreamWriter>)
+		else if constexpr (std::is_same_v<TWriter, BitSerializer::Csv::Detail::CsvStreamWriter>)
 		{
 			BitSerializer::StreamOptions streamOptions;
 			streamOptions.writeBom = writeBom;

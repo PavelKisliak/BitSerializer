@@ -50,7 +50,7 @@ namespace
 
 namespace BitSerializer::Csv::Detail
 {
-	CCsvStringWriter::CCsvStringWriter(std::string& outputString, bool withHeader, char separator)
+	CsvStringWriter::CsvStringWriter(std::string& outputString, bool withHeader, char separator)
 		: mOutputString(outputString)
 		, mWithHeader(withHeader)
 		, mSeparator(separator)
@@ -59,7 +59,7 @@ namespace BitSerializer::Csv::Detail
 		mOutputString.reserve(256);
 	}
 
-	void CCsvStringWriter::WriteValue(const std::string_view& key, std::string_view value)
+	void CsvStringWriter::WriteValue(const std::string_view& key, std::string_view value)
 	{
 		// Write keys only when it's first row
 		if (mRowIndex == 0 && mWithHeader)
@@ -79,7 +79,7 @@ namespace BitSerializer::Csv::Detail
 		++mValueIndex;
 	}
 
-	void CCsvStringWriter::NextLine()
+	void CsvStringWriter::NextLine()
 	{
 		if (mRowIndex == 0)
 		{
@@ -120,7 +120,7 @@ namespace BitSerializer::Csv::Detail
 
 	//------------------------------------------------------------------------------
 
-	CCsvStreamWriter::CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator,
+	CsvStreamWriter::CsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator,
 		Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy, const StreamOptions& streamOptions)
 		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, utfEncodingErrorPolicy)
 		, mWithHeader(withHeader)
@@ -130,7 +130,7 @@ namespace BitSerializer::Csv::Detail
 		mCurrentRow.reserve(256);
 	}
 
-	void CCsvStreamWriter::WriteValue(const std::string_view& key, std::string_view value)
+	void CsvStreamWriter::WriteValue(const std::string_view& key, std::string_view value)
 	{
 		// Write keys only when it's first row
 		if (mRowIndex == 0 && mWithHeader)
@@ -150,7 +150,7 @@ namespace BitSerializer::Csv::Detail
 		++mValueIndex;
 	}
 
-	void CCsvStreamWriter::NextLine()
+	void CsvStreamWriter::NextLine()
 	{
 		if (mRowIndex == 0)
 		{

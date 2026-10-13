@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -744,7 +744,7 @@ public:
 
 				if constexpr (std::is_same_v<T, std::string*>)
 				{
-					CXmlStringWriter xmlStringWriter(*arg);
+					XmlStringWriter xmlStringWriter(*arg);
 					mRootXml.save(xmlStringWriter, indent.c_str(), flags, pugi::encoding_utf8);
 				}
 				else if constexpr (std::is_same_v<T, std::ostream*>)
@@ -780,10 +780,10 @@ private:
 		}
 	}
 
-	class CXmlStringWriter : public pugi::xml_writer
+	class XmlStringWriter : public pugi::xml_writer
 	{
 	public:
-		CXmlStringWriter(std::string& outputStr)
+		XmlStringWriter(std::string& outputStr)
 			: mOutputString(outputStr)
 		{ }
 

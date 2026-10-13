@@ -8,10 +8,10 @@
 
 namespace BitSerializer::Csv::Detail
 {
-	class CCsvStringWriter final : public ICsvWriter
+	class CsvStringWriter final : public ICsvWriter
 	{
 	public:
-		CCsvStringWriter(std::string& outputString, bool withHeader, char separator = ',');
+		CsvStringWriter(std::string& outputString, bool withHeader, char separator = ',');
 
 		void SetEstimatedSize(size_t size) noexcept override { mEstimatedSize = size; }
 		void WriteValue(const std::string_view& key, std::string_view value) override;
@@ -30,10 +30,10 @@ namespace BitSerializer::Csv::Detail
 		size_t mPrevValuesCount = 0;
 	};
 
-	class CCsvStreamWriter final : public ICsvWriter
+	class CsvStreamWriter final : public ICsvWriter
 	{
 	public:
-		CCsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator = ',',
+		CsvStreamWriter(std::ostream& outputStream, bool withHeader, char separator = ',',
 			Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::Skip, const StreamOptions& streamOptions = {});
 
 		void SetEstimatedSize(size_t) noexcept override { /* Not required for stream */ }

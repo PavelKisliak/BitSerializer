@@ -44,10 +44,10 @@ namespace BitSerializer::Convert::Detail
 
 	template <class TFractions = std::chrono::nanoseconds,
 		std::enable_if_t<TFractions::period::num == 1 && std::chrono::seconds::period::den < TFractions::period::den, int> = 0>
-		struct CDateTimeParts
+		struct DateTimeParts
 	{
-		CDateTimeParts() = default;
-		CDateTimeParts(const tm& tm, std::optional<TFractions> inSecFractions = std::nullopt)
+		DateTimeParts() = default;
+		DateTimeParts(const tm& tm, std::optional<TFractions> inSecFractions = std::nullopt)
 			: year(tm.tm_year), month(tm.tm_mon), day(tm.tm_mday), hour(tm.tm_hour)
 			, min(tm.tm_min), sec(tm.tm_sec), secFractions(inSecFractions)
 		{ }
@@ -324,7 +324,7 @@ namespace BitSerializer::Convert::Detail
 	 * @return DateTime parts parsed from the string.
 	 */
 	template <typename TSym>
-	static CDateTimeParts<> ParseIsoUtc(std::basic_string_view<TSym> in)
+	static DateTimeParts<> ParseIsoUtc(std::basic_string_view<TSym> in)
 	{
 		auto parseDatetime = [](const char* pos, const char* end)
 		{
@@ -358,7 +358,7 @@ namespace BitSerializer::Convert::Detail
 				throw std::invalid_argument("Input string is not a valid ISO datetime: YYYY-MM-DDThh:mm:ss[.SSS]Z");
 			};
 
-			CDateTimeParts utc{};
+			DateTimeParts utc{};
 			pos = parseDatetimePart(pos, end, utc.year, std::nullopt, std::nullopt, '-', true);
 			pos = parseDatetimePart(pos, end, utc.month, 1, 12, '-');
 			pos = parseDatetimePart(pos, end, utc.day, 1, DaysInMonth[utc.month - 1], 'T');
@@ -402,7 +402,7 @@ namespace BitSerializer::Convert::Detail
 	 * @throw std::runtime_error If the passed buffer is not enough.
 	 */
 	template <class TFractions>
-	char* PrintIsoUtc(const CDateTimeParts<TFractions>& utc, char* pos, char* endPos)
+	char* PrintIsoUtc(const DateTimeParts<TFractions>& utc, char* pos, char* endPos)
 	{
 		if (pos != endPos)
 		{
@@ -435,7 +435,7 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym, typename TAllocator>
 	void To(const tm& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		const CDateTimeParts<> utc(in);
+		const DateTimeParts<> utc(in);
 		char buf[UtcBufSize];
 		char* pos = PrintIsoUtc(utc, buf, buf + sizeof(buf));
 		out.append(buf, pos);
@@ -450,7 +450,7 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym>
 	void To(std::basic_string_view<TSym> in, tm& out)
 	{
-		const CDateTimeParts<> utc = ParseIsoUtc(in);
+		const DateTimeParts<> utc = ParseIsoUtc(in);
 		if (utc.year > (std::numeric_limits<int>::max)() || utc.year < (std::numeric_limits<int>::min)()) {
 			throw std::out_of_range("The target range of years in the `tm` structure is not sufficient");
 		}
@@ -492,7 +492,7 @@ namespace BitSerializer::Convert::Detail
 		auto const d = doy - (153 * mp + 2) / 5 + 1;							// [1, 31]
 		auto const m = mp < 10 ? mp + 3 : mp - 9;								// [1, 12]
 
-		CDateTimeParts<std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
+		DateTimeParts<std::common_type_t<std::chrono::milliseconds, TDuration>> utc;
 		utc.year = y + (m <= 2);
 		utc.month = static_cast<int>(m);
 		utc.day = static_cast<int>(d);
@@ -523,7 +523,7 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym, typename TClock, typename TDuration, std::enable_if_t<!TClock::is_steady, int> = 0>
 	static void To(std::basic_string_view<TSym> in, std::chrono::time_point<TClock, TDuration>& out)
 	{
-		const CDateTimeParts<> utc = ParseIsoUtc(in);
+		const DateTimeParts<> utc = ParseIsoUtc(in);
 
 		// Based on Howard Hinnant's algorithm
 		static_assert(sizeof(int) >= 4, "This algorithm has not been ported to a 16 bit integers");

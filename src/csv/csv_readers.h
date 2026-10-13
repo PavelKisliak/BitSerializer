@@ -9,11 +9,11 @@
 
 namespace BitSerializer::Csv::Detail
 {
-	class CCsvStringReader final : public ICsvReader
+	class CsvStringReader final : public ICsvReader
 	{
-		struct CValueMeta
+		struct ValueMeta
 		{
-			CValueMeta(size_t offset, size_t size, bool inOriginalData) noexcept
+			ValueMeta(size_t offset, size_t size, bool inOriginalData) noexcept
 				: Offset(offset), Size(size), InOriginalData(inOriginalData)
 			{
 			}
@@ -25,7 +25,7 @@ namespace BitSerializer::Csv::Detail
 		};
 
 	public:
-		CCsvStringReader(std::string_view inputString, bool withHeader, char separator = ',');
+		CsvStringReader(std::string_view inputString, bool withHeader, char separator = ',');
 
 		[[nodiscard]] size_t GetCurrentLine() const noexcept override { return mLineNumber; }
 		[[nodiscard]] size_t GetCurrentIndex() const noexcept override { return mRowIndex; }
@@ -47,7 +47,7 @@ namespace BitSerializer::Csv::Detail
 		const char mSeparator;
 
 		std::vector<std::string_view> mHeaders;
-		std::vector<CValueMeta> mRowValuesMeta;
+		std::vector<ValueMeta> mRowValuesMeta;
 		std::vector<std::string::value_type> mTempValueBuffer;
 		size_t mLockedBufferSize = 0;
 		size_t mCurrentPos = 0;
@@ -57,11 +57,11 @@ namespace BitSerializer::Csv::Detail
 		size_t mPrevValuesCount = 0;
 	};
 
-	class CCsvStreamReader final : public ICsvReader
+	class CsvStreamReader final : public ICsvReader
 	{
-		struct CValueMeta
+		struct ValueMeta
 		{
-			CValueMeta(size_t offset, size_t size, bool inOriginalData) noexcept
+			ValueMeta(size_t offset, size_t size, bool inOriginalData) noexcept
 				: Offset(offset), Size(size), InOriginalData(inOriginalData)
 			{
 			}
@@ -73,7 +73,7 @@ namespace BitSerializer::Csv::Detail
 		};
 
 	public:
-		CCsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',',
+		CsvStreamReader(std::istream& inputStream, bool withHeader, char separator = ',',
 			Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::Skip);
 
 		[[nodiscard]] size_t GetCurrentLine() const noexcept override { return mLineNumber; }
@@ -96,7 +96,7 @@ namespace BitSerializer::Csv::Detail
 		const char mSeparator;
 
 		std::vector<std::string> mHeaders;
-		std::vector<CValueMeta> mRowValuesMeta;
+		std::vector<ValueMeta> mRowValuesMeta;
 		// Buffer for unescaped (quoted) values; unquoted values are views into the stream reader buffer
 		std::string mTempValueBuffer;
 		// Pointer to the start of the current row data in the stream reader buffer, valid until the next ParseNextLine

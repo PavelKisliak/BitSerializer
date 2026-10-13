@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "bitserializer/csv_archive.h"
@@ -7,7 +7,7 @@
 
 
 using testing::Types;
-typedef Types<BitSerializer::Csv::Detail::CCsvStringReader, BitSerializer::Csv::Detail::CCsvStreamReader> Implementations;
+typedef Types<BitSerializer::Csv::Detail::CsvStringReader, BitSerializer::Csv::Detail::CsvStreamReader> Implementations;
 
 // Tests for all implementations of ICsvReader
 TYPED_TEST_SUITE(CsvReaderTest, Implementations, );
@@ -410,8 +410,8 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWithOnlyCrCode)
 
 TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenCrAtTheEndOfChunk)
 {
-	// This test is for CCsvStreamReader only
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
+	// This test is for CsvStreamReader only
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CsvStreamReader>)
 	{
 		// Arrange
 		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
@@ -433,8 +433,8 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenCrAtTheEndOfChunk)
 
 TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenCrLfInSeparateChunks)
 {
-	// This test is for CCsvStreamReader only
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
+	// This test is for CsvStreamReader only
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CsvStreamReader>)
 	{
 		// Arrange
 		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
@@ -456,8 +456,8 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenCrLfInSeparateChunks)
 
 TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenFileEndsWithCrAndSizeEqualToChunk)
 {
-	// This test is for CCsvStreamReader only
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
+	// This test is for CsvStreamReader only
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CsvStreamReader>)
 	{
 		// Arrange
 		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
@@ -476,8 +476,8 @@ TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenFileEndsWithCrAndSizeEqualToChunk)
 
 TYPED_TEST(CsvReaderTest, ShouldParseRowsWhenValuesInSeparateChunks)
 {
-	// This test is for CCsvStreamReader only
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
+	// This test is for CsvStreamReader only
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CsvStreamReader>)
 	{
 		// Arrange
 		constexpr size_t chunkSize = BitSerializer::Convert::Utf::EncodedStreamReader<char>::DefaultChunkSize;
@@ -692,8 +692,8 @@ Value1,Value2,Value3,Value4
 
 TYPED_TEST(CsvReaderTest, ShouldThrowParsingExceptionOnInvalidUtfWhenPolicyThrowError)
 {
-	// This test is for CCsvStreamReader only (CCsvStringReader doesn't decode UTF)
-	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CCsvStreamReader>)
+	// This test is for CsvStreamReader only (CsvStringReader doesn't decode UTF)
+	if constexpr (std::is_same_v<TypeParam, BitSerializer::Csv::Detail::CsvStreamReader>)
 	{
 		// Arrange: UTF-16LE (triggers non-raw mode) with lone high surrogate
 		const char utf16Data[] = {
@@ -708,7 +708,7 @@ TYPED_TEST(CsvReaderTest, ShouldThrowParsingExceptionOnInvalidUtfWhenPolicyThrow
 		try
 		{
 			std::istringstream s(inputData);
-			BitSerializer::Csv::Detail::CCsvStreamReader(s, true, ',',
+			BitSerializer::Csv::Detail::CsvStreamReader(s, true, ',',
 				BitSerializer::Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
 		}
 		catch (const BitSerializer::ParsingException&)

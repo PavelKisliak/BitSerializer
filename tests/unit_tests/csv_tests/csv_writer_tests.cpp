@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "bitserializer/csv_archive.h"
@@ -7,7 +7,7 @@
 
 
 using testing::Types;
-typedef Types<BitSerializer::Csv::Detail::CCsvStringWriter, BitSerializer::Csv::Detail::CCsvStreamWriter> Implementations;
+typedef Types<BitSerializer::Csv::Detail::CsvStringWriter, BitSerializer::Csv::Detail::CsvStreamWriter> Implementations;
 
 // Tests for all implementations of ICsvWriter
 TYPED_TEST_SUITE(CsvWriterTest, Implementations, );

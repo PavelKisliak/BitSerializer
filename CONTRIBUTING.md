@@ -294,6 +294,7 @@ Lessons:
 - **Measure the round-trip.** A change that looks neutral in isolation can still move the whole pipeline.
 - **Microbenchmarks of a single function are still useful** for profiling and hypothesis testing (e.g. whether `__forceinline`/`noinline` helps a hot loop), but they cannot detect whole-TU/binary codegen effects — never rely on them alone.
 - **Compare in a single session.** Machine state drifts between sessions; take several back-to-back runs (min-time per metric) of the configurations you are contrasting.
+- **Don't shorten the run.** Keep the default stage time (30 s per stage). Cutting it to a few seconds sharply increases run-to-run variance on a busy machine, so the min-time results become unreliable and can even flip the sign of a small (few %) difference.
 
 ### Error handling: exceptions vs `Expected`
 

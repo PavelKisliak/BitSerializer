@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
+#include "common/simd/scan.h"
 
 
 namespace BitSerializer::Csv::Detail
@@ -132,52 +133,48 @@ namespace BitSerializer::Csv::Detail
 		for (auto isEndLine = false; !isEndLine;)
 		{
 			const size_t startValuePos = mCurrentPos;
-			uint_fast32_t doubleQuotesCount = 0u;
+			bool hasDoubleQuotes = false;
 			bool inDoubleQuotes = false;
 			size_t endValuePos = totalSize;
 
 			while (mCurrentPos < totalSize)
 			{
-				const char sym = mSourceString[mCurrentPos];
-				if (sym == '"')
+				// Skip the run of ordinary bytes: inside quotes only '"' is special,
+				// otherwise '"', the separator, CR and LF.
+				const size_t foundPos = inDoubleQuotes
+					? BitSerializer::Simd::FindFirstOf<'"'>(mSourceString, mCurrentPos)
+					: BitSerializer::Simd::FindFirstOf<'"', '\r', '\n'>(mSourceString, mCurrentPos, mSeparator);
+				if (foundPos == std::string_view::npos)
 				{
-					++doubleQuotesCount;
-					inDoubleQuotes = doubleQuotesCount & 1u;
+					mCurrentPos = totalSize;
+					break;
 				}
 
-				if (!inDoubleQuotes)
+				const char sym = mSourceString[foundPos];
+				if (sym == '"')
 				{
-					// Handle delimiter
-					if (sym == mSeparator)
-					{
-						endValuePos = mCurrentPos;
-						++mCurrentPos;
-						break;
-					}
-					if (sym == '\r')
-					{
-						// Check for CRLF
-						endValuePos = mCurrentPos;
-						++mCurrentPos;
-						if (mCurrentPos < totalSize && mSourceString[mCurrentPos] == '\n') {
-							++mCurrentPos;
-						}
-						isEndLine = true;
-						break;
-					}
-					if (sym == '\n')
-					{
-						endValuePos = mCurrentPos;
-						++mCurrentPos;
-						isEndLine = true;
-						break;
-					}
+					hasDoubleQuotes = true;
+					inDoubleQuotes = !inDoubleQuotes;
+					mCurrentPos = foundPos + 1;
+					continue;
 				}
-				++mCurrentPos;
+
+				// Outside quotes only a separator or a line break can reach this point.
+				endValuePos = foundPos;
+				mCurrentPos = foundPos + 1;
+				if (sym == mSeparator)
+				{
+					break;
+				}
+				if (sym == '\r' && mCurrentPos < totalSize && mSourceString[mCurrentPos] == '\n') {
+					++mCurrentPos;
+				}
+				isEndLine = true;
+				break;
 			}
 
 			// Extract values even line is empty (CSV can consist only one column, some values can be empty)
-			if (doubleQuotesCount == 0u)
+			if (!hasDoubleQuotes)
 			{
 				mRowValuesMeta.emplace_back(startValuePos, endValuePos - startValuePos, true);
 			}
@@ -433,52 +430,60 @@ namespace BitSerializer::Csv::Detail
 					}
 				}
 
-				const char sym = window[pos];
+				// Skip the run of ordinary bytes within the currently peeked window:
+				// inside quotes only '"' is special, otherwise '"', the separator, CR and LF are.
+				const size_t foundPos = inDoubleQuotes
+					? BitSerializer::Simd::FindFirstOf<'"'>(window, pos)
+					: BitSerializer::Simd::FindFirstOf<'"', '\r', '\n'>(window, pos, mSeparator);
+				if (foundPos == std::string_view::npos)
+				{
+					// No special byte in the remaining window - grow it and rescan
+					pos = window.size();
+					continue;
+				}
+
+				const char sym = window[foundPos];
 				if (sym == '"')
 				{
 					++doubleQuotesCount;
 					inDoubleQuotes = (doubleQuotesCount & 1u) == 1u;
+					pos = foundPos + 1;
+					continue;
 				}
 
-				if (!inDoubleQuotes)
+				// Outside quotes only a separator or a line break can reach this point.
+				if (sym == mSeparator)
 				{
-					// Handle delimiter
-					if (sym == mSeparator)
-					{
-						endValuePos = pos;
-						++pos;
-						break;
-					}
-					if (sym == '\r')
-					{
-						if (pos == window.size() - 1)
-						{
-							// At the end of the window - defer
-							pendingCR = true;
-							++pos;
-							continue;
-						}
-						if (window[pos + 1] == '\n')
-						{
-							endValuePos = pos;
-							pos += 2;
-							isEndLine = true;
-							break;
-						}
-						endValuePos = pos;
-						++pos;
-						isEndLine = true;
-						break;
-					}
-					if (sym == '\n')
-					{
-						endValuePos = pos;
-						++pos;
-						isEndLine = true;
-						break;
-					}
+					endValuePos = foundPos;
+					pos = foundPos + 1;
+					break;
 				}
-				++pos;
+				if (sym == '\r')
+				{
+					if (foundPos == window.size() - 1)
+					{
+						// At the end of the window - defer to know whether the next byte is '\n'
+						pendingCR = true;
+						pos = foundPos + 1;
+						continue;
+					}
+					if (window[foundPos + 1] == '\n')
+					{
+						endValuePos = foundPos;
+						pos = foundPos + 2;
+						isEndLine = true;
+						break;
+					}
+					endValuePos = foundPos;
+					pos = foundPos + 1;
+					isEndLine = true;
+					break;
+				}
+				// sym == '\n'
+				endValuePos = foundPos;
+				pos = foundPos + 1;
+				isEndLine = true;
+				break;
 			}
 
 			// Extract values even when the line is empty (CSV can consist of one column with some empty values)

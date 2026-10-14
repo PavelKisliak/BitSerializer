@@ -15,7 +15,7 @@ namespace BitSerializer::Json::Detail
 	 */
 	[[nodiscard]] inline size_t FindFirstEscape(std::string_view source, size_t pos) noexcept
 	{
-		return BitSerializer::Detail::FindFirstOfOrLessThan<0x20, '"', '\\'>(source, pos);
+		return BitSerializer::Simd::FindFirstOfOrLessThan<0x20, '"', '\\'>(source, pos);
 	}
 
 	inline void WriteString(std::string_view source, std::string& target)

@@ -448,7 +448,7 @@ namespace BitSerializer::Json::Detail
 
 		++pos; // Skip opening quote
 		const size_t start = pos;
-		const size_t firstEscape = BitSerializer::Detail::FindFirstOf<'"', '\\'>(inputData, pos);
+		const size_t firstEscape = BitSerializer::Simd::FindFirstOf<'"', '\\'>(inputData, pos);
 		if (firstEscape == std::string_view::npos) {
 			throw ParsingException("Unterminated string literal", line, inputData.size());
 		}

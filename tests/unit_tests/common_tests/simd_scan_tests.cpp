@@ -8,8 +8,8 @@
 #include <string_view>
 #include "common/simd/scan.h"
 
-using BitSerializer::Detail::FindFirstOf;
-using BitSerializer::Detail::FindFirstOfOrLessThan;
+using BitSerializer::Simd::FindFirstOf;
+using BitSerializer::Simd::FindFirstOfOrLessThan;
 
 namespace
 {
@@ -167,6 +167,76 @@ TEST(SimdScan, Randomized)
 		const std::string_view v(s);
 		EXPECT_EQ(v.find_first_of("\"\\", pos), (FindFirstOf<'"', '\\'>(v, pos)));
 		EXPECT_EQ(v.find_first_of(",\"\r\n", pos), (FindFirstOf<',', '"', '\r', '\n'>(v, pos)));
+	}
+}
+
+// Runtime character combined with a compile-time set (CSV reader/writer use case: a configurable separator).
+TEST(SimdScan, RuntimeCharCombinedWithSet)
+{
+	const char separators[] = { ',', ';', '\t', ' ', '|' };
+	for (const char sep : separators)
+	{
+		const std::string needle = std::string("\"\r\n") + sep;
+		for (const auto& input : TestInputs)
+		{
+			const std::string_view s(input);
+			ExpectMatches(s, needle, [sep](std::string_view v, size_t p) {
+				return FindFirstOf<'"', '\r', '\n'>(v, p, sep);
+			});
+		}
+	}
+}
+
+// Empty compile-time set: only the runtime character can match.
+TEST(SimdScan, RuntimeCharOnly)
+{
+	const std::string_view s = "abc,def";
+	EXPECT_EQ(3u, (FindFirstOf<>(s, 0, ',')));
+	EXPECT_EQ(npos, (FindFirstOf<>(s, 0, 'z')));
+}
+
+// Empty range and positions at/after the end must return npos.
+TEST(SimdScan, RuntimeCharEdgeCases)
+{
+	EXPECT_EQ(npos, (FindFirstOf<'"'>(std::string_view{}, 0, ',')));
+	EXPECT_EQ(npos, (FindFirstOf<'"'>(std::string_view("abc"), 3, ',')));
+	EXPECT_EQ(npos, (FindFirstOf<'"'>(std::string_view("abc"), 100, ',')));
+	EXPECT_EQ(0u, (FindFirstOf<'"'>(std::string_view(",abc"), 0, ',')));
+	EXPECT_EQ(2u, (FindFirstOf<'"'>(std::string_view("ab,c"), 0, ',')));
+}
+
+// Pseudo-random inputs mixing the runtime separator with the fixed set.
+TEST(SimdScan, RuntimeCharRandomized)
+{
+	uint32_t state = 0xC0FFEEu;
+	auto rnd = [&state]() { state = state * 1664525u + 1013904223u; return state; };
+	for (int iter = 0; iter < 20000; ++iter)
+	{
+		const size_t len = rnd() % 200;
+		std::string s;
+		s.reserve(len);
+		for (size_t i = 0; i < len; ++i)
+		{
+			const uint32_t r = rnd() % 100;
+			if (r < 5) {
+				s.push_back(',');
+			}
+			else if (r < 10) {
+				s.push_back('"');
+			}
+			else if (r < 15) {
+				s.push_back('\n');
+			}
+			else if (r < 20) {
+				s.push_back('\r');
+			}
+			else {
+				s.push_back(static_cast<char>('a' + (r % 26)));
+			}
+		}
+		const size_t pos = len ? (rnd() % (len + 1)) : 0;
+		const std::string_view v(s);
+		EXPECT_EQ(v.find_first_of(",\"\r\n", pos), (FindFirstOf<'"', '\r', '\n'>(v, pos, ',')));
 	}
 }
 

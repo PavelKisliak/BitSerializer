@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_writers.h"
+#include "common/simd/scan.h"
 
 
 namespace
@@ -11,39 +12,40 @@ namespace
 
 	void WriteEscapedValue(const std::string_view& value, std::string& outputString, const char separator)
 	{
-		const char* it = value.data();
-		const char* endIt = it + value.size();
-		for (; it != endIt; ++it)
+		// Fast path: the value has no character that requires escaping (the common case).
+		// The scan is SIMD-accelerated and the whole value is appended in a single call.
+		const size_t firstEscape = BitSerializer::Simd::FindFirstOf<'"', '\n', '\r'>(value, 0, separator);
+		if (firstEscape == std::string_view::npos)
 		{
-			const char sym = *it;
-			if (sym == '"' || sym == separator || sym == '\n' || sym == '\r')
-			{
-				break;
-			}
-		}
-
-		if (it == endIt)
-		{
-			// There are no characters that need to be escaped
 			outputString.append(value);
+			return;
 		}
-		else
-		{
-			// RFC: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes
-			outputString.push_back('"');
-			outputString.append(value.data(), it);	// NOLINT(bugprone-suspicious-stringview-data-usage)
 
-			for (; it != endIt; ++it)
+		// RFC: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes
+		outputString.push_back('"');
+		size_t pos = 0;
+		size_t escapePos = firstEscape;
+		do
+		{
+			outputString.append(value.data() + pos, escapePos - pos);
+			const char sym = value[escapePos];
+			if (sym == '"')
 			{
-				if (*it == '"')
-				{
-					// RFC: Double-quote appearing inside a field must be escaped by preceding it with another double quote
-					outputString.push_back('"');
-				}
-				outputString.push_back(*it);
+				// RFC: Double-quote appearing inside a field must be escaped by preceding it with another double quote
+				outputString.push_back('"');
 			}
-			outputString.push_back('"');
+			outputString.push_back(sym);
+			pos = escapePos + 1;
+			// Inside the quoted field only a double quote still needs escaping.
+			escapePos = BitSerializer::Simd::FindFirstOf<'"'>(value, pos);
 		}
+		while (escapePos != std::string_view::npos);
+
+		if (pos < value.size())
+		{
+			outputString.append(value.data() + pos, value.size() - pos);
+		}
+		outputString.push_back('"');
 	}
 }
 

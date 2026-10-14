@@ -5,6 +5,8 @@
 #pragma once
 #include <array>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <string_view>
 #include "bitserializer/config.h"
 
@@ -21,9 +23,9 @@
 	#endif
 #endif
 
-namespace BitSerializer::Detail
+namespace BitSerializer::Simd
 {
-	namespace ScanDetail
+	namespace Detail
 	{
 		/**
 		 * @brief Builds a 256-entry lookup table marking bytes that match the search criteria:
@@ -43,6 +45,122 @@ namespace BitSerializer::Detail
 			}
 			return table;
 		}
+
+		/**
+		 * @brief SWAR word type: 64-bit on 64-bit targets, 32-bit otherwise. On 32-bit x86 a `uint64_t`
+		 * is emulated with two 32-bit ops, which makes an 8-byte SWAR slower than the 4-byte one.
+		 */
+		using swar_word_t = uintptr_t;
+
+		/**
+		 * @brief Returns a mask whose high bit is set for every byte of `word` equal to any of `TChars`
+		 * (SWAR, no SIMD). Used as a cheap pre-check for short inputs before the scalar tail.
+		 */
+		template <typename TWord, char... TChars>
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE TWord SwarMatch(TWord word) noexcept
+		{
+			constexpr TWord ones = static_cast<TWord>(~static_cast<TWord>(0) / 0xFFu);
+			constexpr TWord high = static_cast<TWord>(ones * 0x80u);
+			TWord match = 0;
+			((match |= ((word ^ (ones * static_cast<TWord>(static_cast<unsigned char>(TChars)))) - ones)
+						& ~(word ^ (ones * static_cast<TWord>(static_cast<unsigned char>(TChars))))
+						& high), ...);
+			return match;
+		}
+
+		/**
+		 * @brief Same as above, but also matches a character supplied at runtime.
+		 */
+		template <typename TWord, char... TChars>
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE TWord SwarMatch(TWord word, char extraChar) noexcept
+		{
+			constexpr TWord ones = static_cast<TWord>(~static_cast<TWord>(0) / 0xFFu);
+			constexpr TWord high = static_cast<TWord>(ones * 0x80u);
+			const TWord xe = word ^ (ones * static_cast<TWord>(static_cast<unsigned char>(extraChar)));
+			TWord match = (xe - ones) & ~xe & high;
+			((match |= ((word ^ (ones * static_cast<TWord>(static_cast<unsigned char>(TChars)))) - ones)
+						& ~(word ^ (ones * static_cast<TWord>(static_cast<unsigned char>(TChars))))
+						& high), ...);
+			return match;
+		}
+
+		/**
+		 * @brief Scalar scan of the trailing bytes for a byte set defined by a match table
+		 * (`< TLimit` unsigned, or equal to any of `TChars`), starting at `pos`.
+		 *
+		 * Shared by the SSE2/NEON/scalar branches of the scanners and by the NEON block locator.
+		 */
+		template <unsigned char TLimit, char... TChars>
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE size_t ScanScalar(std::string_view data, size_t pos) noexcept
+		{
+			static constexpr std::array<bool, 256> matchTable = MakeByteMatchTable<TLimit, TChars...>();
+			const char* const base = data.data();
+			const size_t size = data.size();
+			size_t i = pos;
+			if constexpr (TLimit == 0)
+			{
+				// SWAR pre-check (word-sized) for short inputs that never reach the SIMD block.
+				for (; i + sizeof(swar_word_t) <= size; i += sizeof(swar_word_t))
+				{
+					swar_word_t word;
+					std::memcpy(&word, base + i, sizeof(word));
+					if (SwarMatch<swar_word_t, TChars...>(word) != 0) {
+						break;
+					}
+				}
+			}
+			for (; i < size; ++i)
+			{
+				if (matchTable[static_cast<unsigned char>(base[i])]) {
+					return i;
+				}
+			}
+			return std::string_view::npos;
+		}
+
+		/**
+		 * @brief Scalar scan of the trailing bytes for a byte set defined by a match table plus one
+		 * character supplied at runtime (e.g. a configurable CSV separator).
+		 */
+		template <char... TChars>
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE size_t ScanScalar(std::string_view data, size_t pos, char extraChar) noexcept
+		{
+			static constexpr std::array<bool, 256> matchTable = MakeByteMatchTable<0, TChars...>();
+			const char* const base = data.data();
+			const size_t size = data.size();
+			size_t i = pos;
+			for (; i + sizeof(swar_word_t) <= size; i += sizeof(swar_word_t))
+			{
+				swar_word_t word;
+				std::memcpy(&word, base + i, sizeof(word));
+				if (SwarMatch<swar_word_t, TChars...>(word, extraChar) != 0) {
+					break;
+				}
+			}
+			for (; i < size; ++i)
+			{
+				if (base[i] == extraChar || matchTable[static_cast<unsigned char>(base[i])]) {
+					return i;
+				}
+			}
+			return std::string_view::npos;
+		}
+
+#if BITSERIALIZER_HAS_SSE2
+		/**
+		 * @brief Returns the index of the lowest set bit in a 16-lane mask produced by `_mm_movemask_epi8`.
+		 */
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE size_t FirstSetBit(int mask) noexcept
+		{
+#if defined(_MSC_VER)
+			unsigned long rawIndex;
+			_BitScanForward(&rawIndex, static_cast<unsigned long>(mask));
+			return static_cast<size_t>(rawIndex);
+#else
+			return static_cast<size_t>(__builtin_ctz(static_cast<unsigned int>(mask)));
+#endif
+		}
+#endif
 	}
 
 	/**
@@ -63,7 +181,7 @@ namespace BitSerializer::Detail
 	 * @param pos     Start position.
 	 */
 	template <char... TChars>
-	[[nodiscard]] size_t FindFirstOf(std::string_view data, size_t pos) noexcept
+	[[nodiscard]] BITSERIALIZER_FORCEINLINE size_t FindFirstOf(std::string_view data, size_t pos) noexcept
 	{
 		static_assert(sizeof...(TChars) > 0, "BitSerializer. At least one character must be specified");
 
@@ -74,7 +192,6 @@ namespace BitSerializer::Detail
 
 #if BITSERIALIZER_HAS_SSE2
 		const char* const base = data.data();
-		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<0, TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -82,30 +199,14 @@ namespace BitSerializer::Detail
 			__m128i match = _mm_setzero_si128();
 			((match = _mm_or_si128(match, _mm_cmpeq_epi8(chunk, _mm_set1_epi8(TChars)))), ...);
 			const int mask = _mm_movemask_epi8(match);
-			if (mask != 0)
-			{
+			if (mask != 0) {
 				// The lowest set bit corresponds to the first matching byte in the block.
-				int bitIndex;
-#if defined(_MSC_VER)
-				unsigned long rawIndex;
-				_BitScanForward(&rawIndex, static_cast<unsigned long>(mask));
-				bitIndex = static_cast<int>(rawIndex);
-#else
-				bitIndex = __builtin_ctz(static_cast<unsigned int>(mask));
-#endif
-				return i + static_cast<size_t>(bitIndex);
+				return i + Detail::FirstSetBit(mask);
 			}
 		}
-		for (; i < size; ++i)
-		{
-			if (matchTable[static_cast<unsigned char>(base[i])]) {
-				return i;
-			}
-		}
-		return std::string_view::npos;
+		return Detail::ScanScalar<0, TChars...>(data, i);
 #elif BITSERIALIZER_HAS_NEON
 		const char* const base = data.data();
-		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<0, TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -113,29 +214,74 @@ namespace BitSerializer::Detail
 			uint8x16_t match = vdupq_n_u8(0);
 			((match = vorrq_u8(match, vceqq_u8(chunk, vdupq_n_u8(static_cast<uint8_t>(TChars))))), ...);
 			const uint64x2_t bits = vreinterpretq_u64_u8(match);
-			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0)
-			{
-				// Locate the exact byte in this block (byte-wise, so independent of endianness).
-				for (size_t k = 0; k < 16; ++k)
-				{
-					if (((base[i + k] == TChars) || ...)) {
-						return i + k;
-					}
-				}
+			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0) {
+				// A match exists in this block - locate it with the scalar matcher (same byte set).
+				return Detail::ScanScalar<0, TChars...>(data, i);
 			}
 		}
-		for (; i < size; ++i)
-		{
-			if (matchTable[static_cast<unsigned char>(base[i])]) {
-				return i;
-			}
-		}
-		return std::string_view::npos;
+		return Detail::ScanScalar<0, TChars...>(data, i);
 #else
 		// No SIMD: a dedicated scalar loop is faster only for short inputs, while the standard
 		// search wins on longer ones and supports arbitrary set sizes.
 		static constexpr char needle[] = { TChars... };
 		return data.find_first_of(needle, pos, sizeof...(TChars));
+#endif
+	}
+
+	/**
+	 * @brief Returns the index of the first byte equal to any of `TChars` or to `extraChar` at or after `pos`,
+	 * or `std::string_view::npos` if none is found.
+	 *
+	 * Runtime-character counterpart of `FindFirstOf`, for a character that is not known at compile time
+	 * (e.g. a configurable CSV separator) combined with a fixed compile-time set. On SSE2/NEON targets it
+	 * scans 16 bytes per iteration and locates the exact byte within the block; the trailing (<16) bytes
+	 * are scanned scalar. On other targets a scalar loop is used.
+	 *
+	 * @tparam TChars Compile-time characters to search for (may be empty).
+	 * @param data      Input buffer.
+	 * @param pos       Start position.
+	 * @param extraChar Additional character supplied at runtime.
+	 */
+	template <char... TChars>
+	[[nodiscard]] BITSERIALIZER_FORCEINLINE size_t FindFirstOf(std::string_view data, size_t pos, char extraChar) noexcept
+	{
+		const size_t size = data.size();
+		if (pos >= size) {
+			return std::string_view::npos;
+		}
+
+#if BITSERIALIZER_HAS_SSE2
+		const char* const base = data.data();
+		const __m128i extra = _mm_set1_epi8(extraChar);
+		size_t i = pos;
+		for (; i + 16 <= size; i += 16)
+		{
+			const __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(base + i));
+			__m128i match = _mm_cmpeq_epi8(chunk, extra);
+			((match = _mm_or_si128(match, _mm_cmpeq_epi8(chunk, _mm_set1_epi8(TChars)))), ...);
+			const int mask = _mm_movemask_epi8(match);
+			if (mask != 0) {
+				return i + Detail::FirstSetBit(mask);
+			}
+		}
+		return Detail::ScanScalar<TChars...>(data, i, extraChar);
+#elif BITSERIALIZER_HAS_NEON
+		const char* const base = data.data();
+		const uint8x16_t vextra = vdupq_n_u8(static_cast<uint8_t>(extraChar));
+		size_t i = pos;
+		for (; i + 16 <= size; i += 16)
+		{
+			const uint8x16_t chunk = vld1q_u8(reinterpret_cast<const uint8_t*>(base + i));
+			uint8x16_t match = vceqq_u8(chunk, vextra);
+			((match = vorrq_u8(match, vceqq_u8(chunk, vdupq_n_u8(static_cast<uint8_t>(TChars))))), ...);
+			const uint64x2_t bits = vreinterpretq_u64_u8(match);
+			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0) {
+				return Detail::ScanScalar<TChars...>(data, i, extraChar);
+			}
+		}
+		return Detail::ScanScalar<TChars...>(data, i, extraChar);
+#else
+		return Detail::ScanScalar<TChars...>(data, pos, extraChar);
 #endif
 	}
 
@@ -158,7 +304,7 @@ namespace BitSerializer::Detail
 	 * @param pos     Start position.
 	 */
 	template <char TLimit, char... TChars>
-	[[nodiscard]] size_t FindFirstOfOrLessThan(std::string_view data, size_t pos) noexcept
+	[[nodiscard]] BITSERIALIZER_FORCEINLINE size_t FindFirstOfOrLessThan(std::string_view data, size_t pos) noexcept
 	{
 		const size_t size = data.size();
 		if (pos >= size) {
@@ -167,7 +313,6 @@ namespace BitSerializer::Detail
 
 #if BITSERIALIZER_HAS_SSE2
 		const char* const base = data.data();
-		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<static_cast<unsigned char>(TLimit), TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -180,29 +325,13 @@ namespace BitSerializer::Detail
 			}
 			((match = _mm_or_si128(match, _mm_cmpeq_epi8(chunk, _mm_set1_epi8(TChars)))), ...);
 			const int mask = _mm_movemask_epi8(match);
-			if (mask != 0)
-			{
-				int bitIndex;
-#if defined(_MSC_VER)
-				unsigned long rawIndex;
-				_BitScanForward(&rawIndex, static_cast<unsigned long>(mask));
-				bitIndex = static_cast<int>(rawIndex);
-#else
-				bitIndex = __builtin_ctz(static_cast<unsigned int>(mask));
-#endif
-				return i + static_cast<size_t>(bitIndex);
+			if (mask != 0) {
+				return i + Detail::FirstSetBit(mask);
 			}
 		}
-		for (; i < size; ++i)
-		{
-			if (matchTable[static_cast<unsigned char>(base[i])]) {
-				return i;
-			}
-		}
-		return std::string_view::npos;
+		return Detail::ScanScalar<static_cast<unsigned char>(TLimit), TChars...>(data, i);
 #elif BITSERIALIZER_HAS_NEON
 		const char* const base = data.data();
-		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<static_cast<unsigned char>(TLimit), TChars...>();
 		size_t i = pos;
 		for (; i + 16 <= size; i += 16)
 		{
@@ -213,33 +342,13 @@ namespace BitSerializer::Detail
 			}
 			((match = vorrq_u8(match, vceqq_u8(chunk, vdupq_n_u8(static_cast<uint8_t>(TChars))))), ...);
 			const uint64x2_t bits = vreinterpretq_u64_u8(match);
-			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0)
-			{
-				for (size_t k = 0; k < 16; ++k)
-				{
-					if ((static_cast<unsigned char>(base[i + k]) < static_cast<unsigned char>(TLimit)) || ((base[i + k] == TChars) || ...)) {
-						return i + k;
-					}
-				}
+			if ((vgetq_lane_u64(bits, 0) | vgetq_lane_u64(bits, 1)) != 0) {
+				return Detail::ScanScalar<static_cast<unsigned char>(TLimit), TChars...>(data, i);
 			}
 		}
-		for (; i < size; ++i)
-		{
-			if (matchTable[static_cast<unsigned char>(base[i])]) {
-				return i;
-			}
-		}
-		return std::string_view::npos;
+		return Detail::ScanScalar<static_cast<unsigned char>(TLimit), TChars...>(data, i);
 #else
-		const char* const base = data.data();
-		static constexpr std::array<bool, 256> matchTable = ScanDetail::MakeByteMatchTable<static_cast<unsigned char>(TLimit), TChars...>();
-		for (size_t i = pos; i < size; ++i)
-		{
-			if (matchTable[static_cast<unsigned char>(base[i])]) {
-				return i;
-			}
-		}
-		return std::string_view::npos;
+		return Detail::ScanScalar<static_cast<unsigned char>(TLimit), TChars...>(data, pos);
 #endif
 	}
 }

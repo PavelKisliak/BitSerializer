@@ -385,7 +385,7 @@ Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::Bui
 3. **Build only the affected target**: `ninja -C build <target_name>`
 4. **Run targeted tests**: `build/bin/<test>.exe --gtest_filter="*YourTest*"` (from command-line build)
 5. **Run full test suite** before committing: `ctest --test-dir build -T test --output-on-failure`
-6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions).
+6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions). **Keep the default stage time (30 s) — do not shorten it for A/B comparisons**: short runs (a few seconds) have large run-to-run variance on a busy machine and produce misleading results.
 7. **Offer static analysis before committing**: ask whether to run clang-tidy on the changed files (see [Static analysis](#static-analysis-clang-tidy) below). It is cheap when limited to changed files and catches what CI would flag. Honor a stated user preference (never / always without asking).
 8. **Commit with convention**: `[Component] Short description (#issue)`
 
@@ -397,6 +397,8 @@ Examples:
 [Convert] Improve float-to-string precision
 [RapidJson, PugiXml, RapidYaml] Fix loading optional object from Null (#11)
 ```
+
+Keep the subject to a **single line with only the main point** — don't enumerate minor details (refactors, renames, doc tweaks, …) that happen to be part of the same change.
 
 **Working-branch commits:** on a feature branch, commit only meaningful changes. When a commit still needs fixes or refinements (review feedback, CI failures, static-analysis errors, etc.), fold them into that commit with `git commit --amend` (or `git rebase -i` to squash a follow-up) — do **not** create separate "fix" commits. This keeps history clean; the PR ends up with one commit per logical change. Only make a new commit for a genuinely new piece of work. If the branch is already pushed, force-push after amending (`git push --force-with-lease`) — but only push when the user explicitly asks.
 

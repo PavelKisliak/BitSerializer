@@ -296,6 +296,18 @@ Lessons:
 - **Compare in a single session.** Machine state drifts between sessions; take several back-to-back runs (min-time per metric) of the configurations you are contrasting.
 - **Don't shorten the run.** Keep the default stage time (30 s per stage). Cutting it to a few seconds sharply increases run-to-run variance on a busy machine, so the min-time results become unreliable and can even flip the sign of a small (few %) difference.
 
+### Code-layout sensitivity and the toolchain rule
+
+The benchmark reports the **minimum** time over millions of single-call samples. The minimum is an extreme-value statistic, so it is very sensitive to the *alignment* of the hot functions: a benign code change anywhere in the linked image — even code that never runs in the timed region — can shift them by one cache line and move the reported speed by ~5-10%. This is a "layout lottery", not a real regression. It can be reproduced by adding a dummy function to a hot translation unit and rebuilding: the unchanged algorithm then reports a different `min`.
+
+To keep builds comparable, the benchmark target aligns its functions to 64 bytes (`-mllvm -align-all-functions=6` on Clang, `-falign-functions=64 -falign-loops=32` on GCC), which collapses the spread to ~1-2%. This is applied to the benchmark target only; the library build is untouched (function alignment has no ABI impact, so it stays compatible with any DLL/static build).
+
+**Rule: run authoritative A/B benchmarks with Clang or GCC.**
+- Clang/GCC can freeze function alignment; MSVC (`cl.exe`) cannot (no per-function alignment attribute or flag), so its spread stays at ~7% and small deltas are masked by layout noise.
+- On Windows, `clang-cl` (ships with Visual Studio) is enough — no separate toolchain needed: add `-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl` to the CMake command.
+- Absolute numbers differ between compilers — only compare deltas measured with the same compiler and flags.
+- MSVC runs remain useful as a smoke check, but treat deltas below ~7% as noise.
+
 ### Error handling: exceptions vs `Expected`
 
 Exceptions are the primary error-handling mechanism by design. An experimental migration of the

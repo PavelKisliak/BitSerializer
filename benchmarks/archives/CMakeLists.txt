@@ -41,3 +41,41 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_MSGPACK_ARCHIVE}>:BitSerializer::msgpack-archive>
     $<$<BOOL:${BUILD_JSON_ARCHIVE}>:BitSerializer::json-archive>
 )
+
+# Stabilize results against build-to-build code-layout shifts.
+#
+# The benchmark reports `min` time over millions of single-call samples, an
+# extreme-value statistic that is very sensitive to the alignment of the hot
+# functions: a benign code change anywhere in the linked image can shift them by
+# a cache line and move the reported speed by ~5-10% (a "layout lottery") even
+# when the algorithm is unchanged. Forcing function alignment to 64 bytes (one
+# cache line) freezes that alignment and collapses the spread to ~1-2%, so small
+# optimizations can be measured reliably.
+#
+# The hot serialization code lives in the archive libraries, so both the benchmark
+# target and the archive libraries must be aligned: aligning only the benchmark's
+# own translation units still leaves a ~7-13% artifact on stages whose library
+# code merely moved. This applies to benchmark builds only; the shipped library is
+# built without the flag. Function alignment has no ABI impact, so this stays
+# compatible with any DLL/static build.
+#
+# MSVC (cl.exe) has no equivalent knob (no per-function alignment attribute or
+# flag; /ALIGN aligns sections, not functions), so its runs remain indicative
+# only - use Clang or GCC for authoritative A/B comparisons.
+option(BENCHMARK_ALIGN_FUNCTIONS "Freeze function alignment to stabilize benchmark results (Clang/GCC)" ON)
+
+set(BENCHMARK_ALIGN_OPTIONS "")
+if(BENCHMARK_ALIGN_FUNCTIONS AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(BENCHMARK_ALIGN_OPTIONS -mllvm -align-all-functions=6)
+elseif(BENCHMARK_ALIGN_FUNCTIONS AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(BENCHMARK_ALIGN_OPTIONS -falign-functions=64 -falign-loops=32)
+endif()
+
+if(BENCHMARK_ALIGN_OPTIONS)
+    target_compile_options(${PROJECT_NAME} PRIVATE ${BENCHMARK_ALIGN_OPTIONS})
+    foreach(_benchmarkArchiveLib common_impl csv_impl msgpack_impl json_impl)
+        if(TARGET ${_benchmarkArchiveLib})
+            target_compile_options(${_benchmarkArchiveLib} PRIVATE ${BENCHMARK_ALIGN_OPTIONS})
+        endif()
+    endforeach()
+endif()

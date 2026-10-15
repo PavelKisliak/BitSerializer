@@ -29,6 +29,23 @@ TYPED_TEST(CsvWriterTest, ShouldWriteHeaderWithValues)
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
+TYPED_TEST(CsvWriterTest, ShouldWriteArithmeticValues)
+{
+	// Arrange
+	this->PrepareCsvReader(true);
+
+	// Act
+	this->mCsvWriter->WriteValue("IntValue", int32_t(-42));
+	this->mCsvWriter->WriteValue("DoubleValue", 3.5);
+	this->mCsvWriter->WriteValue("BoolValue", true);
+	this->mCsvWriter->WriteValue("NullValue", nullptr);
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = "IntValue,DoubleValue,BoolValue,NullValue\r\n-42,3.5,true,\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
+}
+
 TYPED_TEST(CsvWriterTest, ShouldSkipHeaderWhenItDisabled)
 {
 	// Arrange

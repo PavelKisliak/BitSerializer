@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <cstddef>
+#include <cstdint>
 #include <iosfwd>
 #include <string>
 #include <string_view>
@@ -11,6 +12,7 @@
 #include "bitserializer/export.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
+#include "bitserializer/serialization_detail/object_traits.h"
 
 
 namespace BitSerializer::Csv {
@@ -41,7 +43,39 @@ public:
 	virtual ~ICsvWriter() = default;
 
 	virtual void SetEstimatedSize(size_t size) noexcept = 0;
-	virtual void WriteValue(const std::string_view& key, std::string_view value) = 0;
+
+	virtual void WriteValue(std::string_view key, std::nullptr_t) = 0;
+	virtual void WriteValue(std::string_view key, bool value) = 0;
+
+	virtual void WriteValue(std::string_view key, uint8_t value) = 0;
+	virtual void WriteValue(std::string_view key, uint16_t value) = 0;
+	virtual void WriteValue(std::string_view key, uint32_t value) = 0;
+	virtual void WriteValue(std::string_view key, uint64_t value) = 0;
+
+	virtual void WriteValue(std::string_view key, int8_t value) = 0;
+	virtual void WriteValue(std::string_view key, int16_t value) = 0;
+	virtual void WriteValue(std::string_view key, int32_t value) = 0;
+	virtual void WriteValue(std::string_view key, int64_t value) = 0;
+
+	virtual void WriteValue(std::string_view key, float value) = 0;
+	virtual void WriteValue(std::string_view key, double value) = 0;
+	virtual void WriteValue(std::string_view key, long double value) = 0;
+
+	virtual void WriteValue(std::string_view key, const char* value) = 0;	// To avoid conflict with the boolean overload
+	virtual void WriteValue(std::string_view key, std::string_view value) = 0;
+
+	/**
+	 * @brief Writes an integral value, mapping its type to the matching fixed-size overload
+	 * (e.g. `int` -> `int32_t`, `char` -> `int8_t`/`uint8_t`). Needed because some integer
+	 * types (`char`, `wchar_t`, `long long` vs `int64_t` on LP64) have no exact overload.
+	 */
+	template <typename T>
+	void WriteValue(std::string_view key, T value)
+	{
+		static_assert(!std::is_same_v<compatible_fixed_t<T>, void>);
+		WriteValue(key, static_cast<compatible_fixed_t<T>>(value));
+	}
+
 	virtual void NextLine() = 0;
 	[[nodiscard]] virtual size_t GetCurrentIndex() const noexcept = 0;
 
@@ -113,8 +147,7 @@ public:
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
-		auto temp = Convert::ToString(value);
-		mCsvWriter->WriteValue(Convert::ToStringView(key), std::string_view(temp));
+		mCsvWriter->WriteValue(Convert::ToStringView(key), value);
 		return true;
 	}
 
@@ -128,7 +161,7 @@ public:
 	template <typename TKey>
 	bool SerializeValue(TKey&& key, std::nullptr_t&)
 	{
-		mCsvWriter->WriteValue(Convert::ToStringView(key), "");
+		mCsvWriter->WriteValue(Convert::ToStringView(key), nullptr);
 		return true;
 	}
 

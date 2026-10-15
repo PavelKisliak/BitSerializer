@@ -61,7 +61,20 @@ namespace BitSerializer::Csv::Detail
 		mOutputString.reserve(256);
 	}
 
-	void CsvStringWriter::WriteValue(const std::string_view& key, std::string_view value)
+	void CsvStringWriter::WriteValue(std::string_view key, std::string_view value)
+	{
+		BeginValue(key);
+		WriteEscapedValue(value, mCurrentRow, mSeparator);
+		EndValue();
+	}
+
+	void CsvStringWriter::WriteValue(std::string_view key, std::nullptr_t)
+	{
+		BeginValue(key);
+		EndValue();
+	}
+
+	void CsvStringWriter::BeginValue(std::string_view key)
 	{
 		// Write keys only when it's first row
 		if (mRowIndex == 0 && mWithHeader)
@@ -77,8 +90,6 @@ namespace BitSerializer::Csv::Detail
 		{
 			mCurrentRow.push_back(mSeparator);
 		}
-		WriteEscapedValue(value, mCurrentRow, mSeparator);
-		++mValueIndex;
 	}
 
 	void CsvStringWriter::NextLine()
@@ -132,7 +143,20 @@ namespace BitSerializer::Csv::Detail
 		mCurrentRow.reserve(256);
 	}
 
-	void CsvStreamWriter::WriteValue(const std::string_view& key, std::string_view value)
+	void CsvStreamWriter::WriteValue(std::string_view key, std::string_view value)
+	{
+		BeginValue(key);
+		WriteEscapedValue(value, mCurrentRow, mSeparator);
+		EndValue();
+	}
+
+	void CsvStreamWriter::WriteValue(std::string_view key, std::nullptr_t)
+	{
+		BeginValue(key);
+		EndValue();
+	}
+
+	void CsvStreamWriter::BeginValue(std::string_view key)
 	{
 		// Write keys only when it's first row
 		if (mRowIndex == 0 && mWithHeader)
@@ -148,8 +172,6 @@ namespace BitSerializer::Csv::Detail
 		{
 			mCurrentRow.push_back(mSeparator);
 		}
-		WriteEscapedValue(value, mCurrentRow, mSeparator);
-		++mValueIndex;
 	}
 
 	void CsvStreamWriter::NextLine()

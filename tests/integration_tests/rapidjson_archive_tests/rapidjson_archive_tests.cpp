@@ -384,6 +384,63 @@ TEST(RapidJsonArchive, SerializeRawJsonAsArrayElement)
 	EXPECT_EQ(json, buffer.GetString());
 }
 
+namespace
+{
+	struct TypedPayloadMessage
+	{
+		std::string Id;
+		std::vector<int> Payload;
+
+		template <typename TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << BitSerializer::KeyValue("id", Id);
+			archive << BitSerializer::KeyValue("payload", Payload);
+		}
+	};
+
+	struct RawPayloadMessage
+	{
+		std::string Id;
+		JsonArchive::raw_type Payload;
+
+		template <typename TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << BitSerializer::KeyValue("id", Id);
+			archive << BitSerializer::KeyValue("payload", Payload);
+		}
+	};
+}
+
+TEST(RapidJsonArchive, SerializeRawJsonPassthrough)
+{
+	// Arrange
+	TypedPayloadMessage producer;
+	producer.Id = "msg-1";
+	producer.Payload = { 1, 2, 3, 4, 5 };
+	std::string incoming;
+	BitSerializer::SaveObject<JsonArchive>(producer, incoming);
+
+	// Act: read the message keeping the payload opaque, then forward it under a new id
+	RawPayloadMessage consumer;
+	BitSerializer::LoadObject<JsonArchive>(consumer, incoming);
+	// Change the source JSON to ensure that the deserialized raw JSON does not reference it
+	incoming.assign(incoming.size(), '-');
+
+	consumer.Id = "fwd-1";
+	std::string outgoing;
+	BitSerializer::SaveObject<JsonArchive>(consumer, outgoing);
+
+	// Assert
+	TypedPayloadMessage expected;
+	expected.Id = "fwd-1";
+	expected.Payload = { 1, 2, 3, 4, 5 };
+	std::string expectedData;
+	BitSerializer::SaveObject<JsonArchive>(expected, expectedData);
+	EXPECT_EQ(expectedData, outgoing);
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------

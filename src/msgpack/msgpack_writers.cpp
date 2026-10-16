@@ -215,6 +215,12 @@ namespace BitSerializer::MsgPack::Detail
 		}
 	}
 
+	void MsgPackStringWriter::WriteValue(MsgPackArchiveTraits::raw_type& value)
+	{
+		const auto& bytes = value.Get();
+		mOutputString.append(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+	}
+
 	void MsgPackStringWriter::BeginArray(size_t arraySize)
 	{
 		if (arraySize < 16u) {
@@ -426,6 +432,12 @@ namespace BitSerializer::MsgPack::Detail
 			PushValue(mOutputStream, -1, timestamp.seconds);
 			PushValue(mOutputStream, timestamp.nanoseconds);
 		}
+	}
+
+	void MsgPackStreamWriter::WriteValue(MsgPackArchiveTraits::raw_type& value)
+	{
+		const auto& bytes = value.Get();
+		mOutputStream.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
 	}
 
 	void MsgPackStreamWriter::BeginArray(size_t arraySize)

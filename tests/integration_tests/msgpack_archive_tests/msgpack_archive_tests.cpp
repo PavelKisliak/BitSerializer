@@ -6,6 +6,8 @@
 #include "testing_tools/common_json_test_methods.h"
 #include "bitserializer/msgpack_archive.h"
 
+#include <sstream>
+
 // STD types
 #include "bitserializer/types/std/atomic.h"
 #include "bitserializer/types/std/chrono.h"
@@ -734,6 +736,151 @@ TEST(MsgPackArchive, SerializeStdOptionalAsObjectMember)
 	// Array as member of object
 	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::vector<int>>>>();
 	TestSerializeType<MsgPackArchive, TestClassWithSubType<std::optional<std::vector<int>>>>(TestClassWithSubType(std::optional<std::vector<int>>(std::nullopt)));
+}
+
+//-----------------------------------------------------------------------------
+// Tests of raw MsgPack payload passthrough
+//-----------------------------------------------------------------------------
+namespace
+{
+	struct TypedPayloadMessage
+	{
+		std::string Id;
+		std::vector<int> Payload;
+
+		template <typename TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << KeyValue("id", Id);
+			archive << KeyValue("payload", Payload);
+		}
+	};
+
+	struct RawPayloadMessage
+	{
+		std::string Id;
+		MsgPackArchive::raw_type Payload;
+
+		template <typename TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << KeyValue("id", Id);
+			archive << KeyValue("payload", Payload);
+		}
+	};
+}
+
+TEST(MsgPackArchive, SerializeRawMsgPack)
+{
+	// Arrange
+	const std::vector<int> testValue{ 1, 2, 3, 4, 5 };
+	std::string testData;
+	SaveObject<MsgPackArchive>(testValue, testData);
+
+	// Act
+	MsgPackArchive::raw_type raw;
+	LoadObject<MsgPackArchive>(raw, testData);
+	// Change the source data to ensure that the deserialized raw does not reference it
+	testData.assign(testData.size(), '\0');
+	std::string actual;
+	SaveObject<MsgPackArchive>(raw, actual);
+
+	// Assert
+	std::string expected;
+	SaveObject<MsgPackArchive>(testValue, expected);
+	EXPECT_EQ(expected, actual);
+}
+
+TEST(MsgPackArchive, SerializeRawMsgPackAsObjectMember)
+{
+	// Arrange
+	TestClassWithSubType<std::vector<std::string>> srcObj;
+	std::string testData;
+	SaveObject<MsgPackArchive>(srcObj, testData);
+
+	// Act
+	TestClassWithSubType<MsgPackArchive::raw_type> rawObj{ MsgPackArchive::raw_type() };
+	LoadObject<MsgPackArchive>(rawObj, testData);
+	testData.assign(testData.size(), '\0');
+	std::string actual;
+	SaveObject<MsgPackArchive>(rawObj.GetValue(), actual);
+
+	// Assert
+	std::string expected;
+	SaveObject<MsgPackArchive>(srcObj.GetValue(), expected);
+	EXPECT_EQ(expected, actual);
+}
+
+TEST(MsgPackArchive, SerializeRawMsgPackAsArrayElement)
+{
+	// Arrange
+	std::string testData1, testData2;
+	SaveObject<MsgPackArchive>(std::vector<int>{ 1, 2, 3 }, testData1);
+	SaveObject<MsgPackArchive>(std::string("Text"), testData2);
+
+	std::string input;
+	input.push_back('\x92');	// Array with two elements
+	input += testData1;
+	input += testData2;
+
+	MsgPackArchive::raw_type rawItems[2];
+
+	// Act
+	LoadObject<MsgPackArchive>(rawItems, input);
+	input.assign(input.size(), '\0');
+	std::string actual1, actual2;
+	SaveObject<MsgPackArchive>(rawItems[0], actual1);
+	SaveObject<MsgPackArchive>(rawItems[1], actual2);
+
+	// Assert
+	EXPECT_EQ(testData1, actual1);
+	EXPECT_EQ(testData2, actual2);
+}
+
+TEST(MsgPackArchive, SerializeRawMsgPackToStream)
+{
+	// Arrange
+	const std::vector<int> testValue{ 1, 2, 3, 4, 5 };
+	std::string testData;
+	SaveObject<MsgPackArchive>(testValue, testData);
+
+	std::istringstream inputStream(testData);
+	MsgPackArchive::raw_type raw;
+
+	// Act
+	LoadObject<MsgPackArchive>(raw, inputStream);
+	std::ostringstream outputStream;
+	SaveObject<MsgPackArchive>(raw, outputStream);
+
+	// Assert
+	EXPECT_EQ(testData, outputStream.str());
+}
+
+TEST(MsgPackArchive, SerializeRawMsgPackPassthrough)
+{
+	// Arrange
+	TypedPayloadMessage producer;
+	producer.Id = "msg-1";
+	producer.Payload = { 1, 2, 3, 4, 5 };
+	std::string incoming;
+	SaveObject<MsgPackArchive>(producer, incoming);
+
+	// Act: read the message keeping the payload opaque, then forward it under a new id
+	RawPayloadMessage consumer;
+	LoadObject<MsgPackArchive>(consumer, incoming);
+	incoming.assign(incoming.size(), '\0');
+
+	consumer.Id = "fwd-1";
+	std::string outgoing;
+	SaveObject<MsgPackArchive>(consumer, outgoing);
+
+	// Assert
+	TypedPayloadMessage expected;
+	expected.Id = "fwd-1";
+	expected.Payload = { 1, 2, 3, 4, 5 };
+	std::string expectedData;
+	SaveObject<MsgPackArchive>(expected, expectedData);
+	EXPECT_EQ(expectedData, outgoing);
 }
 
 //-----------------------------------------------------------------------------

@@ -693,6 +693,17 @@ namespace BitSerializer::MsgPack::Detail
 		return false;
 	}
 
+	bool MsgPackStringReader::ReadValue(MsgPackArchiveTraits::raw_type& value)
+	{
+		const size_t startPos = mPos;
+		SkipValueImpl(mInputData, mPos);
+		const size_t size = mPos - startPos;
+		auto& bytes = value.Get();
+		bytes.resize(size);
+		std::memcpy(bytes.data(), mInputData.data() + startPos, size);
+		return true;
+	}
+
 	bool MsgPackStringReader::ReadArraySize(size_t& arraySize)
 	{
 		if (mPos < mInputData.size())
@@ -1296,6 +1307,39 @@ namespace BitSerializer::MsgPack::Detail
 		}
 		HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
 		return false;
+	}
+
+	bool MsgPackStreamReader::ReadValue(MsgPackArchiveTraits::raw_type& value)
+	{
+		const size_t startPos = mBinaryStreamReader.GetPosition();
+		SkipValueImpl(mBinaryStreamReader);
+		const size_t size = mBinaryStreamReader.GetPosition() - startPos;
+
+		auto& bytes = value.Get();
+		bytes.clear();
+		bytes.reserve(size);
+
+		// Rewind to the start of the value and copy its raw bytes
+		if (!mBinaryStreamReader.SetPosition(startPos))
+		{
+			throw ParsingException("Cannot read raw value: the input stream is not seekable", 0, startPos);
+		}
+
+		size_t remainingSize = size;
+		while (remainingSize != 0)
+		{
+			if (const std::string_view chunk = mBinaryStreamReader.ReadUpTo(remainingSize); !chunk.empty())
+			{
+				const auto* chunkBegin = reinterpret_cast<const uint8_t*>(chunk.data());
+				bytes.insert(bytes.end(), chunkBegin, chunkBegin + chunk.size());
+				remainingSize -= chunk.size();
+			}
+			else
+			{
+				throw ParsingException("Unexpected end of input archive", 0, mBinaryStreamReader.GetPosition());
+			}
+		}
+		return true;
 	}
 
 	bool MsgPackStreamReader::ReadArraySize(size_t& arraySize)

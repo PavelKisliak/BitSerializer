@@ -18,13 +18,13 @@
 - Built-in string conversion for enums, classes, chrono types and UTF encoding.
 
  ¹ Non-intrusive — serialization logic is defined outside user classes, so their source code stays unchanged.<br />
- ² Payload passthrough is currently only supported by the JSON archives (built-in and RapidJSON).
+ ² Payload passthrough is currently supported by the JSON and MsgPack archives.
 
 ### Supported formats:
 | Format | Dependency | Encoding | Pretty format | Payload passthrough | Streaming |
 | ------ | ------ | ------ | :---: | :---: | :---: |
 | JSON/JSONC | Built-in | UTF8-32 (LE/BE) | ✅ | ✅ | ✅ |
-| MsgPack | Built-in | Binary | N/A | ❌ | ✅ |
+| MsgPack | Built-in | Binary | N/A | ✅ | ✅ |
 | CSV | Built-in | UTF8-32 (LE/BE) | N/A | ❌ | ✅ |
 | JSON | [RapidJSON](https://github.com/Tencent/rapidjson) | UTF8-32 (LE/BE) | ✅ | ✅ | ❌ |
 | XML | [PugiXml](https://github.com/zeux/pugixml) | UTF8-32 (LE/BE) | ✅ | ❌ | ❌ |
@@ -1098,7 +1098,7 @@ This occurs in API gateways, event routers, and integration points where your se
 BitSerializer efficiently handles these scenarios with its payload passthrough feature.
 
 > [!NOTE]
-> Currently the data passthrough is supported by both JSON archives (built-in and RapidJSON).
+> Currently the data passthrough is supported by the JSON and MsgPack archives.
 
 ```cpp
 using namespace BitSerializer;
@@ -1143,10 +1143,8 @@ BitSerializer::SaveObject<JsonArchive>(envelope, routedMessage);
 ```
 [See full sample](samples/payload_passthrough/payload_passthrough.cpp)
 
-> [!IMPORTANT]
-> The passthrough data maintains its logical structure but follows standard formatting rules during serialization (whitespace/indentation may differ from original).
-
 This approach minimizes processing overhead for pass-through fields while maintaining container-level validation (e.g., ensuring required fields exist).
+The passthrough payload is re-emitted verbatim: the built-in JSON and MsgPack archives preserve the captured bytes exactly, without re-parsing or re-formatting.
 
 ### Conditional loading and versioning
 The functional style of serialization used in BitSerializer has one advantage over the declarative one - you can write branches depending on the data.

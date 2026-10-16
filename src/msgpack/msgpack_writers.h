@@ -34,6 +34,8 @@ namespace BitSerializer::MsgPack::Detail
 
 		void WriteValue(const BinTimestamp& timestamp) override;
 
+		void WriteValue(MsgPackArchiveTraits::raw_type& value) override;
+
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;
 
@@ -70,6 +72,8 @@ namespace BitSerializer::MsgPack::Detail
 		void WriteValue(std::string_view value) override;
 
 		void WriteValue(const BinTimestamp& timestamp) override;
+
+		void WriteValue(MsgPackArchiveTraits::raw_type& value) override;
 
 		void BeginArray(size_t arraySize) override;
 		void BeginMap(size_t mapSize) override;

@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 #include "bitserializer/export.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
@@ -31,6 +32,7 @@ struct MsgPackArchiveTraits  // NOLINT(cppcoreguidelines-special-member-function
 	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view, int64_t, uint64_t, float, double, BinTimestamp>;
 	using string_view_type = std::string_view;
 	using preferred_output_type = std::string;
+	using raw_type = RawPayload<std::vector<uint8_t>, ArchiveType::MsgPack>;
 	static constexpr char path_separator = '/';
 	static constexpr bool is_binary = true;
 	static constexpr bool require_array_size = false;
@@ -198,6 +200,8 @@ public:
 
 	virtual void WriteValue(const BinTimestamp& timestamp) = 0;
 
+	virtual void WriteValue(MsgPackArchiveTraits::raw_type& value) = 0;
+
 	virtual void BeginArray(size_t arraySize) = 0;
 	virtual void BeginMap(size_t mapSize) = 0;
 
@@ -249,6 +253,8 @@ public:
 	virtual bool ReadValue(std::string_view& value) = 0;
 
 	virtual bool ReadValue(BinTimestamp& timestamp) = 0;
+
+	virtual bool ReadValue(MsgPackArchiveTraits::raw_type& value) = 0;
 
 	virtual bool ReadArraySize(size_t& arraySize) = 0;
 	virtual bool ReadMapSize(size_t& mapSize) = 0;
@@ -314,7 +320,7 @@ public:
 	{ }
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, BinTimestamp>, int> = 0>
+		|| std::is_same_v<T, std::string_view> || std::is_same_v<T, BinTimestamp> || std::is_same_v<T, raw_type>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
@@ -376,7 +382,7 @@ public:
 	{ }
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp> || std::is_same_v<T, raw_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		CheckEnd();
@@ -468,7 +474,7 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp> || std::is_same_v<T, raw_type>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		mMsgPackWriter->WriteValue(value);
@@ -648,7 +654,7 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp> || std::is_same_v<T, raw_type>, int> = 0>
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
@@ -809,7 +815,7 @@ public:
 	}
 
 	template <typename TKey, typename T, std::enable_if_t<std::is_fundamental_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp> || std::is_same_v<T, raw_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
 		if (FindValueByKey(key))
@@ -973,7 +979,7 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T>
-		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp>, int> = 0>
+		|| std::is_same_v<T, string_view_type> || std::is_same_v<T, BinTimestamp> || std::is_same_v<T, raw_type>, int> = 0>
 	bool SerializeValue(T& value) const
 	{
 		return mMsgPackReader->ReadValue(value);

@@ -707,13 +707,13 @@ namespace BitSerializer
 					if (std::holds_alternative<TestIoDataObjectPtr<TConfig>>(*mInputData->data)) {
 						return ArchiveStubObjectScope<TConfig, TMode>(mInputData->data, ArchiveScope<TMode>::GetContext());
 					}
+					return ArchiveStubObjectScope<TConfig, TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					mOutputData->data->template emplace<TestIoDataObjectPtr<TConfig>>(std::make_shared<TestIoDataObject<TConfig>>());
 					return ArchiveStubObjectScope<TConfig, TMode>(mOutputData->data, ArchiveScope<TMode>::GetContext());
 				}
-				return ArchiveStubObjectScope<TConfig, TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			}
 
 			/**
@@ -726,13 +726,13 @@ namespace BitSerializer
 					if (std::holds_alternative<TestIoDataArrayPtr<TConfig>>(*mInputData->data)) {
 						return ArchiveStubArrayScope<TConfig, TMode>(mInputData->data, ArchiveScope<TMode>::GetContext());
 					}
+					return ArchiveStubArrayScope<TConfig, TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 				}
 				else
 				{
 					mOutputData->data->template emplace<TestIoDataArrayPtr<TConfig>>(std::make_shared<TestIoDataArray<TConfig>>(arraySize));
 					return ArchiveStubArrayScope<TConfig, TMode>(mOutputData->data, ArchiveScope<TMode>::GetContext());
 				}
-				return ArchiveStubArrayScope<TConfig, TMode>(ScopeUnopened{}, ArchiveScope<TMode>::GetContext());
 			}
 
 		private:

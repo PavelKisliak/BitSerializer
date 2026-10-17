@@ -75,7 +75,7 @@ if(MSVC)
       else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
       endif()
-    add_compile_options(/permissive-)
+    add_compile_options(/permissive- /bigobj)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-Wall -Wextra -pedantic -Wno-psabi
         -Wno-unknown-pragmas -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-maybe-uninitialized)

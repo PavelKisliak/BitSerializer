@@ -103,3 +103,24 @@ TEST(MsgPackArchive, SerializeStdContainers)
 	TestSerializeType<MsgPackArchive, std::unordered_multimap<int, int>>();
 	TestSerializeType<MsgPackArchive, std::valarray<int>>();
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::map as a dictionary (MapAsDictionary)
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeMapAsDictionary)
+{
+	const std::map<std::string, int> srcMap{ {"a", 1}, {"b", 2}, {"c", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<MsgPackArchive>(BitSerializer::MapAsDictionary(srcMap));
+	std::map<std::string, int> actualMap;
+	BitSerializer::LoadObject<MsgPackArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(MsgPackArchive, SerializeMultimapAsDictionaryKeepsDuplicateKeys)
+{
+	const std::multimap<std::string, int> srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<MsgPackArchive>(BitSerializer::MapAsDictionary(srcMap));
+	std::multimap<std::string, int> actualMap;
+	BitSerializer::LoadObject<MsgPackArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}

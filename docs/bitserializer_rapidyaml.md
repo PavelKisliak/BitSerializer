@@ -22,13 +22,21 @@ target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
 One of unique features in **YAML** is **dictionaries**, they are a little more advanced than **JSON**, they allow to make a sequence with named objects, for example:
 ```yaml
 - shape1: { type: square, width: 100, height: 100 }
-- shape2: { type: circle, rarius: 50 }
+- shape2: { type: circle, radius: 50 }
 ```
-Currently `BitSerializer` does not support loading such data, it is only possible to serialize dictionaries only as object:
-```yaml
-shape1: { type: square, width: 100, height: 100 }
-shape2: { type: circle, rarius: 50 }
+Such data cannot be represented with a plain object (a mapping), because it preserves the order of elements and allows duplicate keys. Use the `MapAsDictionary` wrapper to load/save associative containers in this form:
+```cpp
+#include "bitserializer/types/std/map.h"
+
+std::map<std::string, CShape> shapes;
+BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsDictionary(shapes), sourceYaml);
+BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsDictionary(shapes), outputYaml);
 ```
+The default representation of a map (a plain mapping of key-value fields) is available as well, and can be loaded with an explicit mode via `MapAsObject`:
+```cpp
+BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsObject(shapes, BitSerializer::MapLoadMode::UpdateExisting), sourceYaml);
+```
+The load mode can also be configured globally via `SerializationOptions::mapOptions` (available values: `Replace`, `UpdateExisting` or `InsertOrUpdate`). `MapAsDictionary` is supported by all archives except CSV.
 
 In addition, there are several limitations related to the implementation of the underlying library:
 
@@ -94,4 +102,4 @@ Laptop:
     return 0;
 }
 ```
-[See full sample](../samples/serialize_map_to_yaml/serialize_map_to_yaml.cpp)
+[See full sample](../samples/serialize_map/serialize_map.cpp)

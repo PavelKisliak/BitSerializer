@@ -12,9 +12,9 @@ namespace BitSerializer
 	 * @brief Serializes `std::unordered_map`.
 	 */
 	template<typename TArchive, typename TMapKey, typename TValue, typename THasher, typename TKeyEq, typename TAllocator>
-	void SerializeObject(TArchive& archive, std::unordered_map<TMapKey, TValue, THasher, TKeyEq, TAllocator>& cont, MapLoadMode mapLoadMode = MapLoadMode::Clean)
+	void SerializeObject(TArchive& archive, std::unordered_map<TMapKey, TValue, THasher, TKeyEq, TAllocator>& cont)
 	{
-		Detail::SerializeMapImpl(archive, cont, mapLoadMode);
+		Detail::SerializeMapImpl(archive, cont, archive.GetOptions().mapOptions.loadMode);
 	}
 
 	/**

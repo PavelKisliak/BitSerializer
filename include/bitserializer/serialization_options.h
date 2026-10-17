@@ -148,6 +148,50 @@ namespace BitSerializer
 	};
 
 	/**
+	 * @brief Defines how a map (or multimap) is loaded over the existing content.
+	 *
+	 * Applies to `std::map`, `std::unordered_map`, `std::multimap` and `std::unordered_multimap`
+	 * while loading. For unique-key containers an entry updates the value of an existing key,
+	 * whereas for multi-key (multimap) containers an entry adds a new value to the existing key
+	 * (duplicates are preserved in both cases).
+	 */
+	enum class MapLoadMode
+	{
+		/**
+		 * @brief Clears the container, then loads every entry from the archive (default).
+		 *
+		 * If the loaded data contains duplicate keys, the value of the last entry wins.
+		 */
+		Replace,
+
+		/**
+		 * @brief Loads an entry only if its key already exists in the container; new keys are ignored.
+		 *
+		 * Existing values are reused (updated in place); for multimaps a value is appended to the
+		 * existing key.
+		 */
+		UpdateExisting,
+
+		/**
+		 * @brief Loads every entry, updating existing keys and inserting new ones as needed.
+		 *
+		 * For multimaps every entry is appended (duplicates are preserved).
+		 */
+		InsertOrUpdate
+	};
+
+	/**
+	 * @brief Configuration options for serialization of maps (`std::map`, `std::multimap`, etc.).
+	 */
+	struct MapOptions
+	{
+		/**
+		 * @brief Default load mode for maps that are not wrapped with `MapAsObject` / `MapAsDictionary`.
+		 */
+		MapLoadMode loadMode = MapLoadMode::Replace;
+	};
+
+	/**
 	 * @brief Serialization options.
 	 */
 	struct SerializationOptions
@@ -210,5 +254,10 @@ namespace BitSerializer
 		 * @brief Options controlling serialization of `std::variant`.
 		 */
 		VariantOptions variantOptions;
+
+		/**
+		 * @brief Options controlling serialization of maps.
+		 */
+		MapOptions mapOptions;
 	};
 }

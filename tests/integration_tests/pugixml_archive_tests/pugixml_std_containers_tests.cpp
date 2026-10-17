@@ -57,3 +57,15 @@ TEST(PugiXmlArchive, SerializeStdContainers)
 	});
 	TestSerializeType<XmlArchive, std::valarray<int>>();
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::map as a dictionary (MapAsDictionary)
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SerializeMapAsDictionary)
+{
+	const std::map<std::string, int> srcMap{ {"a", 1}, {"b", 2}, {"c", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<XmlArchive>(BitSerializer::MapAsDictionary(srcMap));
+	std::map<std::string, int> actualMap;
+	BitSerializer::LoadObject<XmlArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}

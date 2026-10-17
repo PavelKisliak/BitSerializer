@@ -504,6 +504,136 @@ TEST(STD_Containers, ShouldClearTargetMultimapMapWhenLoadFromEmpty) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for maps via MapAsObject / MapAsDictionary wrappers
+//-----------------------------------------------------------------------------
+namespace
+{
+	using TestStringIntMap = std::map<std::string, int>;
+	using TestStringIntMultiMap = std::multimap<std::string, int>;
+}
+
+TEST(STD_Containers, SerializeMapAsObjectRoundtrip)
+{
+	const TestStringIntMap srcMap{ {"a", 1}, {"b", 2}, {"c", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsObject(srcMap));
+	TestStringIntMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsObject(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeUnorderedMapAsObjectRoundtrip)
+{
+	const std::unordered_map<std::string, int> srcMap{ {"a", 1}, {"b", 2} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsObject(srcMap));
+	std::unordered_map<std::string, int> actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsObject(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeMapAsDictionaryRoundtrip)
+{
+	const TestStringIntMap srcMap{ {"a", 1}, {"b", 2}, {"c", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	TestStringIntMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeMapAsDictionaryWithNonStringKey)
+{
+	const std::map<int, std::string> srcMap{ {1, "one"}, {2, "two"} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	std::map<int, std::string> actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeMultimapAsDictionaryKeepsDuplicateKeys)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	TestStringIntMultiMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, LoadMapAsObjectWithReplaceMode)
+{
+	const TestStringIntMap srcMap{ {"b", 20}, {"c", 30} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsObject(srcMap));
+	TestStringIntMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsObject(actualMap, MapLoadMode::Replace), outputArchive);
+	EXPECT_EQ(TestStringIntMap({ {"b", 20}, {"c", 30} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMapAsObjectWithUpdateExistingMode)
+{
+	const TestStringIntMap srcMap{ {"b", 20}, {"c", 30} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsObject(srcMap));
+	TestStringIntMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsObject(actualMap, MapLoadMode::UpdateExisting), outputArchive);
+	EXPECT_EQ(TestStringIntMap({ {"a", 1}, {"b", 20} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMapAsObjectWithInsertOrUpdateMode)
+{
+	const TestStringIntMap srcMap{ {"b", 20}, {"c", 30} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsObject(srcMap));
+	TestStringIntMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsObject(actualMap, MapLoadMode::InsertOrUpdate), outputArchive);
+	EXPECT_EQ(TestStringIntMap({ {"a", 1}, {"b", 20}, {"c", 30} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMapAsDictionaryWithUpdateExistingMode)
+{
+	const TestStringIntMap srcMap{ {"b", 20}, {"c", 30} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	TestStringIntMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap, MapLoadMode::UpdateExisting), outputArchive);
+	EXPECT_EQ(TestStringIntMap({ {"a", 1}, {"b", 20} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMapAsDictionaryWithInsertOrUpdateMode)
+{
+	const TestStringIntMap srcMap{ {"b", 20}, {"c", 30} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	TestStringIntMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap, MapLoadMode::InsertOrUpdate), outputArchive);
+	EXPECT_EQ(TestStringIntMap({ {"a", 1}, {"b", 20}, {"c", 30} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMultimapAsDictionaryWithInsertOrUpdateModeKeepsDuplicates)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	TestStringIntMultiMap actualMap{ {"b", 9} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap, MapLoadMode::InsertOrUpdate), outputArchive);
+	EXPECT_EQ(TestStringIntMultiMap({ {"a", 1}, {"a", 2}, {"b", 9}, {"b", 3} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMultimapAsDictionaryWithUpdateExistingMode)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 10}, {"x", 99} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsDictionary(srcMap));
+	TestStringIntMultiMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap, MapLoadMode::UpdateExisting), outputArchive);
+	EXPECT_EQ(TestStringIntMultiMap({ {"a", 1}, {"a", 10}, {"b", 2} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMapUsesGlobalMapLoadModeFromOptions)
+{
+	const TestStringIntMap srcMap{ {"b", 20}, {"c", 30} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(srcMap);
+
+	SerializationOptions options;
+	options.mapOptions.loadMode = MapLoadMode::InsertOrUpdate;
+
+	TestStringIntMap actualMap{ {"a", 1} };
+	BitSerializer::LoadObject<ArchiveStub>(actualMap, outputArchive, options);
+	EXPECT_EQ(TestStringIntMap({ {"a", 1}, {"b", 20}, {"c", 30} }), actualMap);
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for std::valarray
 //-----------------------------------------------------------------------------
 TEST(STD_Containers, SerializeValarrayWithIntAsKey) {

@@ -18,8 +18,8 @@ if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE)
     add_subdirectory(multiformat_customization)
 endif()
 
-if(BUILD_RAPIDYAML_ARCHIVE)
-    add_subdirectory(serialize_map_to_yaml)
+if(BUILD_JSON_ARCHIVE AND BUILD_RAPIDYAML_ARCHIVE)
+    add_subdirectory(serialize_map)
 endif()
 
 if(BUILD_CSV_ARCHIVE)

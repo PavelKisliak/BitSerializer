@@ -48,3 +48,15 @@ TEST(JsonArchive, SerializeStdContainers)
 	TestSerializeType<JsonArchive, std::unordered_multimap<size_t, size_t>>();
 	TestSerializeType<JsonArchive, std::valarray<int>>();
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::map as a dictionary (MapAsDictionary)
+//-----------------------------------------------------------------------------
+TEST(JsonArchive, SerializeMapAsDictionary)
+{
+	const std::map<std::string, int> srcMap{ {"a", 1}, {"b", 2}, {"c", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<JsonArchive>(BitSerializer::MapAsDictionary(srcMap));
+	std::map<std::string, int> actualMap;
+	BitSerializer::LoadObject<JsonArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}

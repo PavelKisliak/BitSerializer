@@ -48,3 +48,29 @@ TEST(RapidYamlArchive, SerializeStdContainers)
 	TestSerializeType<YamlArchive, std::unordered_multimap<size_t, size_t>>();
 	TestSerializeType<YamlArchive, std::valarray<int>>();
 }
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::map as a YAML dictionary (MapAsDictionary)
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, SerializeMapAsDictionary)
+{
+	const std::map<std::string, int> srcMap{ {"a", 1}, {"b", 2}, {"c", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsDictionary(srcMap));
+
+	// A dictionary is emitted as a sequence of single-key objects
+	EXPECT_NE(std::string::npos, outputArchive.find("- a: 1"));
+	EXPECT_NE(std::string::npos, outputArchive.find("- b: 2"));
+
+	std::map<std::string, int> actualMap;
+	BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(RapidYamlArchive, SerializeMultimapAsDictionaryKeepsDuplicateKeys)
+{
+	const std::multimap<std::string, int> srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsDictionary(srcMap));
+	std::multimap<std::string, int> actualMap;
+	BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}

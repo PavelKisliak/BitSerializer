@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -81,7 +81,20 @@ namespace BitSerializer::MsgPack::Detail
 		void BeginBinary(size_t binarySize) override;
 		void WriteBinary(char byte) override;
 
+		void Flush() override;
+
 	private:
+		static constexpr size_t OutputBufferSize = 1024;
+
+		void FlushIfFull()
+		{
+			if (mByteBuffer.size() >= OutputBufferSize) {
+				Flush();
+			}
+		}
+
 		std::ostream& mOutputStream;
+		std::string mByteBuffer;
+		MsgPackStringWriter mStringWriter;
 	};
 }

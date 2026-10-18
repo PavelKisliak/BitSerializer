@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
@@ -207,6 +207,8 @@ public:
 
 	virtual void BeginBinary(size_t binarySize) = 0;
 	virtual void WriteBinary(char byte) = 0;
+
+	virtual void Flush() {}
 };
 
 class BITSERIALIZER_API IMsgPackReader
@@ -499,7 +501,7 @@ public:
 		return {binarySize, mMsgPackWriter, GetContext()};
 	}
 
-	static constexpr void Finalize() noexcept { /* Not required */ }
+	void Finalize() { mMsgPackWriter->Flush(); }
 
 private:
 	IMsgPackWriter* mMsgPackWriter = nullptr;

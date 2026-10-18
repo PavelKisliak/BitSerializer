@@ -44,10 +44,10 @@ namespace BitSerializer::Detail
 		/**
 		 * @brief Loads a single key-value entry into an associative container, honoring the load mode.
 		 *
-		 * Uses the common associative-container interface (`find` and `emplace_hint`), so it behaves
-		 * uniformly for unique-key maps and multimaps:
-		 * - `Replace` / `InsertOrUpdate` insert the entry; `emplace_hint` updates an existing key in a
-		 *   unique-key map, but always appends a new element in a multimap;
+		 * Uses the common associative-container interface (`find`, and either `try_emplace` for
+		 * unique-key maps or `emplace_hint` for multimaps):
+		 * - `Replace` / `InsertOrUpdate` insert the entry; `try_emplace` updates an existing key of a
+		 *   unique-key map, while `emplace_hint` always appends a new element to a multimap;
 		 * - `UpdateExisting` skips the entry when its key is absent.
 		 *
 		 * For ordered multimaps the element is inserted at the upper bound of the key, so that the
@@ -73,7 +73,13 @@ namespace BitSerializer::Detail
 			}
 
 			typename TMap::iterator it = hint;
-			if constexpr (has_upper_bound_v<TMap> && !has_try_emplace_v<TMap>)
+			if constexpr (has_try_emplace_v<TMap>)
+			{
+				// Unique-key map (std::map / std::unordered_map): try_emplace avoids constructing
+				// the mapped value when the key already exists
+				it = cont.try_emplace(hint, std::forward<TKey>(key));
+			}
+			else if constexpr (has_upper_bound_v<TMap>)
 			{
 				// Ordered multimap: insert at the upper bound to preserve the order of duplicate keys
 				const auto insertPos = cont.upper_bound(key);
@@ -81,7 +87,7 @@ namespace BitSerializer::Detail
 			}
 			else
 			{
-				// Unique-key map or unordered multimap
+				// Unordered multimap: the order of duplicate keys is not defined
 				it = cont.emplace_hint(hint, std::forward<TKey>(key), typename TMap::mapped_type{});
 			}
 

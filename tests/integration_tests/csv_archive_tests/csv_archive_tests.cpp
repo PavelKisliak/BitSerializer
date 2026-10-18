@@ -14,6 +14,7 @@
 #include "bitserializer/types/std/memory.h"
 #include "bitserializer/types/std/filesystem.h"
 #include "bitserializer/types/std/variant.h"
+#include "bitserializer/types/std/map.h"
 
 // STD types (test fixtures)
 #include "testing_tools/auto_fixture/std/atomic.h"
@@ -441,4 +442,31 @@ TEST_F(CsvArchiveTests, SerializeStdTypes)
 
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::chrono::seconds>>();
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for maps in the flat (pair) representation (MapAsPairs)
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, SerializeMultimapAsPairs)
+{
+	const std::multimap<std::string, int> srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	std::string outputStr;
+	BitSerializer::SaveObject<CsvArchive>(MapAsPairs(srcMap), outputStr);
+
+	std::multimap<std::string, int> actualMap;
+	BitSerializer::LoadObject<CsvArchive>(MapAsPairs(actualMap), outputStr);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST_F(CsvArchiveTests, SerializeMapAsPairsWithCustomFieldNames)
+{
+	const std::map<std::string, int> srcMap{ {"a", 1}, {"b", 2} };
+	std::string outputStr;
+	BitSerializer::SaveObject<CsvArchive>(MapAsPairs(srcMap, std::nullopt, "name", "count"), outputStr);
+	EXPECT_NE(std::string::npos, outputStr.find("name"));
+	EXPECT_NE(std::string::npos, outputStr.find("count"));
+
+	std::map<std::string, int> actualMap;
+	BitSerializer::LoadObject<CsvArchive>(MapAsPairs(actualMap, std::nullopt, "name", "count"), outputStr);
+	EXPECT_EQ(srcMap, actualMap);
 }

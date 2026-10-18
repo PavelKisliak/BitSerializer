@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -631,6 +631,65 @@ TEST(STD_Containers, LoadMapUsesGlobalMapLoadModeFromOptions)
 	TestStringIntMap actualMap{ {"a", 1} };
 	BitSerializer::LoadObject<ArchiveStub>(actualMap, outputArchive, options);
 	EXPECT_EQ(TestStringIntMap({ {"a", 1}, {"b", 20}, {"c", 30} }), actualMap);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for maps via the MapAsPairs wrapper
+//-----------------------------------------------------------------------------
+TEST(STD_Containers, MultimapDefaultAndMapAsDictionaryShareRepresentation)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	// The default multimap representation is a dictionary...
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(srcMap);
+	// ...so it can be loaded via the MapAsDictionary wrapper.
+	TestStringIntMultiMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeMultimapAsPairsRoundtrip)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsPairs(srcMap));
+	TestStringIntMultiMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsPairs(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeMapAsPairsRoundtrip)
+{
+	const TestStringIntMap srcMap{ {"a", 1}, {"b", 2} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsPairs(srcMap));
+	TestStringIntMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsPairs(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, SerializeMultimapAsPairsWithCustomFieldNames)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 1}, {"b", 2} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsPairs(srcMap, std::nullopt, "name", "count"));
+	TestStringIntMultiMap actualMap;
+	BitSerializer::LoadObject<ArchiveStub>(MapAsPairs(actualMap, std::nullopt, "name", "count"), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(STD_Containers, LoadMultimapAsPairsWithInsertOrUpdateMode)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsPairs(srcMap));
+	TestStringIntMultiMap actualMap{ {"b", 9} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsPairs(actualMap, MapLoadMode::InsertOrUpdate), outputArchive);
+	EXPECT_EQ(TestStringIntMultiMap({ {"a", 1}, {"a", 2}, {"b", 9}, {"b", 3} }), actualMap);
+}
+
+TEST(STD_Containers, LoadMultimapAsPairsWithUpdateExistingMode)
+{
+	const TestStringIntMultiMap srcMap{ {"a", 10}, {"x", 99} };
+	const auto outputArchive = BitSerializer::SaveObject<ArchiveStub>(MapAsPairs(srcMap));
+	TestStringIntMultiMap actualMap{ {"a", 1}, {"b", 2} };
+	BitSerializer::LoadObject<ArchiveStub>(MapAsPairs(actualMap, MapLoadMode::UpdateExisting), outputArchive);
+	EXPECT_EQ(TestStringIntMultiMap({ {"a", 1}, {"a", 10}, {"b", 2} }), actualMap);
 }
 
 //-----------------------------------------------------------------------------

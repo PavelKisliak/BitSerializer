@@ -27,6 +27,16 @@ options.valuesSeparator = '\t';
 BitSerializer::LoadObject<CsvArchive>(targetList, sourceCsv, options);
 ```
 
+### Serializing maps
+Since **CSV** is a flat (tabular) format, dynamic keys cannot be represented as columns. To serialize an associative container (`std::map` / `std::multimap`) with fixed columns, use the `MapAsPairs` wrapper (field names are customizable):
+```cpp
+#include "bitserializer/types/std/map.h"
+
+std::multimap<std::string, std::string> tags;
+BitSerializer::SaveObject<CsvArchive>(BitSerializer::MapAsPairs(tags), outputCsv);
+BitSerializer::LoadObject<CsvArchive>(BitSerializer::MapAsPairs(tags), sourceCsv);
+```
+
 ### Example
 Below example shows how to save and load list of entities from **CSV**.
 ```cpp

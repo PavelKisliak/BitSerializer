@@ -24,7 +24,7 @@ One of unique features in **YAML** is **dictionaries**, they are a little more a
 - shape1: { type: square, width: 100, height: 100 }
 - shape2: { type: circle, radius: 50 }
 ```
-Such data cannot be represented with a plain object (a mapping), because it preserves the order of elements and allows duplicate keys. Use the `MapAsDictionary` wrapper to load/save associative containers in this form:
+Such data cannot be represented with a plain object (a mapping), because it preserves the order of elements and allows duplicate keys. This is also the default representation for `std::multimap` / `std::unordered_multimap`, and it can be applied to any associative container via the `MapAsDictionary` wrapper:
 ```cpp
 #include "bitserializer/types/std/map.h"
 
@@ -36,14 +36,14 @@ The default representation of a map (a plain mapping of key-value fields) is ava
 ```cpp
 BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsObject(shapes, BitSerializer::MapLoadMode::UpdateExisting), sourceYaml);
 ```
-The load mode can also be configured globally via `SerializationOptions::mapOptions` (available values: `Replace`, `UpdateExisting` or `InsertOrUpdate`). `MapAsDictionary` is supported by all archives except CSV.
+The load mode can also be configured globally via `SerializationOptions::mapOptions` (available values: `Replace`, `UpdateExisting` or `InsertOrUpdate`).
 
 In addition, there are several limitations related to the implementation of the underlying library:
 
 - **Rapid YAML** does not support streams, BitSerializer handle this, but with memory overhead.
 
 ### Example
-Below example shows how to load and save `std::map` from/to **YAML**.
+Below is a short example of loading a YAML dictionary into a `std::map` and saving it back:
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
@@ -53,7 +53,7 @@ Below example shows how to load and save `std::map` from/to **YAML**.
 using namespace BitSerializer;
 using YamlArchive = BitSerializer::Yaml::RapidYaml::YamlArchive;
 
-class СDevice
+class Device
 {
 public:
     template <class TArchive>
@@ -69,35 +69,19 @@ public:
 
 int main()
 {
-    const char* srcStr = R"(
-Tablet:
-   IP: 192.168.0.1
-   Owner: Artsiom
-Desktop:
-   IP: 192.168.0.2
-   Owner: Pavel
-Laptop:
-   IP: 192.168.0.3
-   Owner: Alex
+    const char* srcYaml = R"(
+- Tablet:  { IP: 192.168.0.1, Owner: Artsiom }
+- Desktop: { IP: 192.168.0.2, Owner: Pavel }
 )";
 
-    // Loading from YAML
-    std::map<std::string, СDevice> devices;
-    BitSerializer::LoadObject<YamlArchive>(devices, srcStr);
+    // Loading a dictionary (a sequence of single-key objects)
+    std::map<std::string, Device> devices;
+    BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsDictionary(devices), srcYaml);
 
-    std::cout << "Loaded devices list from YAML: " << std::endl;
-    for (const auto& device : devices)
-    {
-        std::cout << "Type: " << device.first
-            << "\tIP: " << device.second.mIp
-            << "\tOwner: " << device.second.mOwner
-            << std::endl;
-    }
-
-    // Save back to YAML
-    std::string outputStr;
-    BitSerializer::SaveObject<YamlArchive>(devices, outputStr);
-    std::cout << std::endl << "Saved result in YAML:" << std::endl << outputStr << std::endl;
+    // Save back to the same representation
+    std::string outputYaml;
+    BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsDictionary(devices), outputYaml);
+    std::cout << outputYaml << std::endl;
 
     return 0;
 }

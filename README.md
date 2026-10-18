@@ -502,55 +502,118 @@ BitSerializer has built-in serialization for all STD containers and most other c
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
 
 #### Serialization of std::map
-A map is serialized as a plain object (a set of named values), BitSerializer does not add any system information, for example serialization to JSON would look like this:
+
+Serialization of map-like containers (`std::map`, `std::multimap` and their `unordered` variants) has its own specifics, which deserve a separate chapter. By default a `std::map` is stored as a plain object and a `std::multimap` as a dictionary, but you are not limited to that: you can choose the representation explicitly (`MapAsObject`, `MapAsDictionary`, `MapAsPairs`), control how loaded entries are merged into an existing container (`MapLoadMode`), and use almost any type as a key. This chapter covers all of it.
+
+Let's save a simple map to JSON:
 ```cpp
-std::map<std::string, int> testMap = 
-    { { "One", 1 }, { "Two", 2 }, { "Three", 3 }, { "Four", 4 }, { "Five", 5 } };
-auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testMap);
+std::map<std::string, int> scores = { { "Alice", 90 }, { "Bob", 75 }, { "Carol", 82 } };
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(scores);
 ```
 Returns result
 ```json
 {
-    "Five": 5,
-    "Four": 4,
-    "One": 1,
-    "Three": 3,
-    "Two": 2
+    "Alice": 90,
+    "Bob": 75,
+    "Carol": 82
 }
 ```
-
-Below is a more complex example, where loading a vector of maps from JSON. The map key here is `int`, but JSON allows only text keys, so BitSerializer converts each key from string to `int` while loading:
-```json
-[{
-    "1": "One",
-    "2": "Two"
-}, {
-    "3": "Three"
-}]
-```
-Code:
+Loading is symmetric:
 ```cpp
-std::vector<std::map<int, std::string>> testVectorOfMaps;
-const std::string inputJson = R"([{"1":"One","2":"Two"},{"3":"Three"}])";
-BitSerializer::LoadObject<JsonArchive>(testVectorOfMaps, inputJson);
+std::map<std::string, int> loadedScores;
+BitSerializer::LoadObject<JsonArchive>(loadedScores, jsonResult);
 ```
 
-Since all of the most well-known text formats (such as JSON) allow only text keys, BitSerializer converts the map key to a string when saving and back to the key type when loading (except binary formats like MsgPack, which store the key natively), for example:
+##### Keys are stored as text
+
+All text formats (JSON, XML, YAML, CSV) use text keys, so BitSerializer converts a map key to a string when saving and back to the key type when loading. Binary formats such as MsgPack store the key natively:
 ```cpp
 std::map<int, std::string> testMap = { { 1, "One" }, { 2, "Two" } };
-// JSON    -> { "1": "One", "2": "Two" }   (keys are strings)
+// JSON    -> { "1": "One", "2": "Two" }   (keys become strings)
 // MsgPack -> keys stay as numbers 1, 2
 ```
+Out of the box, all the fundamental types (`bool`, `int`, `float`, ...) and many `std` types (`filesystem::path`, `chrono::time_point`, ...) can be used as map keys. To use your own type as a key, make it convertible to and from a string in one of the supported ways:
+- implement the internal `ToString()` / `FromString()` methods;
+- provide the external `To(in, out)` functions;
+- for a string-like type (one that wraps a character buffer), register it with the `BITSERIALIZER_DECLARE_STRING_TYPE` macro - this exposes a zero-copy view and also makes the type usable as a map key.
 
-Out of the box, the library supports all the fundamental types (e.g. `bool`, `int`, `float`) as well as some of the `std` ones (`filesystem::path`, `chrono::time_point`, etc) as map keys. If you want to use your own type as the key, you need to implement the conversion to a string and vice versa (see details [here](docs/bitserializer_convert.md)). For example, you can implement two internal methods in your type:
+See [String conversions](docs/bitserializer_convert.md) for details and examples.
+
+##### Choosing a representation
+
+Not every map fits a plain object. A `std::multimap` (and `std::unordered_multimap`) may hold duplicate keys, which a single object cannot represent - so it is stored as a **dictionary** by default. In total, an associative container can be written in one of three representations, each enabled by a small wrapper:
+
+> [!IMPORTANT]
+> The way a `std::multimap` is saved was changed and **is not compatible with version 0.85** - it is now serialized as a dictionary (a sequence of single-key objects) instead of a sequence of `{ key, value }` objects. If you need the previous representation (for example, to read data written by an older version), wrap the container with `MapAsPairs`:
+> ```cpp
+> BitSerializer::SaveObject<JsonArchive>(BitSerializer::MapAsPairs(testMap), output);
+> ```
+> The `MapAsObject` and `MapAsDictionary` wrappers are also new and are not available in the previous version 0.85.
+
+| Representation | Wrapper | Default for | YAML example |
+| --- | --- | --- | --- |
+| Object (mapping) | `MapAsObject` | `std::map`, `std::unordered_map` | `One: 1` |
+| Dictionary | `MapAsDictionary` | `std::multimap`, `std::unordered_multimap` | `- One: 1` |
+| Pairs | `MapAsPairs` | - | `- key: One`<br>`  value: 1` |
+
+- **Object** (the default for `std::map`) - a set of named values; the order of keys is not defined.
+- **Dictionary** (the default for `std::multimap`) - a sequence of single-key objects; it preserves the order of elements and allows duplicate keys.
+- **Pairs** - a sequence of `{ key, value }` objects with fixed (customizable) field names; it is the only representation that also works in flat formats such as CSV.
+
+A wrapper simply overrides the default representation. For example, a `std::map` can be saved as a dictionary:
 ```cpp
-class YourCustomKey
-{
-public:
-    [[nodiscard]] std::string ToString() const;
-    void FromString(std::string_view str);
-};
+std::map<std::string, int> testMap = { { "One", 1 }, { "Two", 2 } };
+auto yamlResult = BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsDictionary(testMap));
 ```
+Returns result
+```yaml
+- One: 1
+- Two: 2
+```
+A `std::multimap` is saved as a dictionary by default, which keeps duplicate keys:
+```cpp
+std::multimap<std::string, std::string> tags = { { "color", "red" }, { "color", "blue" } };
+auto yamlResult = BitSerializer::SaveObject<YamlArchive>(tags);
+```
+Returns result
+```yaml
+- color: red
+- color: blue
+```
+And when a sequence of `{ key, value }` objects fits better - or the target is a flat format such as CSV - use `MapAsPairs`. Its field names are customizable (the defaults are `key` and `value`):
+```cpp
+BitSerializer::SaveObject<CsvArchive>(BitSerializer::MapAsPairs(tags), outputCsv);
+// key,value
+// color,red
+// color,blue
+```
+
+##### Load modes
+
+By default, loading **replaces** the existing content of the container. Sometimes it is more useful to merge the loaded entries into what is already there - this is controlled by `MapLoadMode`:
+- `Replace` - clears the container, then loads every entry (default).
+- `UpdateExisting` - applies an entry only if its key already exists; new keys are ignored.
+- `InsertOrUpdate` - applies every entry, updating existing keys and inserting new ones.
+
+Set the mode for a whole serialization call through `SerializationOptions::mapOptions`, or per value through any wrapper:
+```cpp
+std::map<std::string, int> testMap = { { "One", 1 } };
+const std::string inputJson = R"({"One":10,"Two":2})";
+
+BitSerializer::SerializationOptions options;
+options.mapOptions.loadMode = BitSerializer::MapLoadMode::InsertOrUpdate;
+BitSerializer::LoadObject<JsonArchive>(testMap, inputJson, options); // testMap becomes { "One": 10, "Two": 2 }
+
+BitSerializer::LoadObject<JsonArchive>(
+    BitSerializer::MapAsObject(testMap, BitSerializer::MapLoadMode::UpdateExisting), inputJson);
+```
+For a unique-key map an existing value is updated in place; for a multimap an entry is appended to the existing key, so duplicate keys are preserved.
+
+##### CSV compatibility
+
+CSV is flat and cannot represent an object with dynamic keys, so the object and dictionary representations are unavailable for a standalone map - use `MapAsPairs`, which stores each entry as a `key`/`value` row.
+
+[See full sample](samples/serialize_map/serialize_map.cpp)
 
 #### Serialization of date and time
 The ISO 8601 standard was chosen as the representation for the date, time and duration for text type of archives (JSON, XML, YAML, CSV). The MsgPack archive has its own compact time format. For enable serialization of the `std::chrono` and `time_t`,  just include these headers:

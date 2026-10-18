@@ -1,5 +1,5 @@
 ﻿/*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
@@ -72,5 +72,30 @@ TEST(RapidYamlArchive, SerializeMultimapAsDictionaryKeepsDuplicateKeys)
 	const auto outputArchive = BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsDictionary(srcMap));
 	std::multimap<std::string, int> actualMap;
 	BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsDictionary(actualMap), outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(RapidYamlArchive, SerializeMultimapAsDictionaryByDefault)
+{
+	const std::multimap<std::string, int> srcMap{ {"a", 1}, {"a", 2}, {"b", 3} };
+	// The default multimap representation is a dictionary (a sequence of single-key objects)
+	const auto outputArchive = BitSerializer::SaveObject<YamlArchive>(srcMap);
+	EXPECT_NE(std::string::npos, outputArchive.find("- a: 1"));
+	EXPECT_NE(std::string::npos, outputArchive.find("- a: 2"));
+
+	std::multimap<std::string, int> actualMap;
+	BitSerializer::LoadObject<YamlArchive>(actualMap, outputArchive);
+	EXPECT_EQ(srcMap, actualMap);
+}
+
+TEST(RapidYamlArchive, SerializeMultimapAsPairs)
+{
+	const std::multimap<std::string, int> srcMap{ {"a", 1}, {"b", 2} };
+	const auto outputArchive = BitSerializer::SaveObject<YamlArchive>(BitSerializer::MapAsPairs(srcMap));
+	EXPECT_NE(std::string::npos, outputArchive.find("- key: a"));
+	EXPECT_NE(std::string::npos, outputArchive.find("value: 1"));
+
+	std::multimap<std::string, int> actualMap;
+	BitSerializer::LoadObject<YamlArchive>(BitSerializer::MapAsPairs(actualMap), outputArchive);
 	EXPECT_EQ(srcMap, actualMap);
 }

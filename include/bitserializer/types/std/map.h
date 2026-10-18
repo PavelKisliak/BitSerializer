@@ -3,7 +3,6 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cstddef>
 #include <map>
 #include <optional>
 #include "bitserializer/serialization_detail/generic_map.h"
@@ -11,7 +10,7 @@
 namespace BitSerializer
 {
 	/**
-	 * @brief Serializes `std::map`.
+	 * @brief Serializes `std::map` (as an object by default).
 	 */
 	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
 	void SerializeObject(TArchive& archive, std::map<TMapKey, TValue, TComparer, TAllocator>& cont)
@@ -20,143 +19,111 @@ namespace BitSerializer
 	}
 
 	/**
-	 * @brief Serializes `std::multimap`.
+	 * @brief Serializes `std::multimap` as a dictionary (a sequence of single-key objects).
+	 *
+	 * Use `MapAsPairs` to serialize it as a sequence of `{key, value}` objects instead.
 	 */
 	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
 	void SerializeArray(TArchive& arrayScope, std::multimap<TMapKey, TValue, TComparer, TAllocator>& cont)
 	{
-		Detail::SerializeMultiMapImpl(arrayScope, cont);
+		Detail::SerializeMapAsDictionaryImpl(arrayScope, cont, std::nullopt);
+	}
+
+	//-----------------------------------------------------------------------------
+	// Serialization of wrappers (MapAsObject / MapAsDictionary / MapAsPairs).
+	//
+	// Each wrapper is supported only for the known containers, so third-party map
+	// types (e.g. Qt's QMap) can provide their own overloads without ambiguity.
+	// The `const` overloads enable saving const containers.
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * @brief Serializes `std::map` wrapped with `MapAsObject`.
+	 */
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeObject(TArchive& archive, MapAsObject<std::map<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapImpl(archive, wrappedMap.map, wrappedMap.mapLoadMode.value_or(archive.GetOptions().mapOptions.loadMode));
+	}
+
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeObject(TArchive& archive, MapAsObject<const std::map<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapImpl(archive, wrappedMap.map, wrappedMap.mapLoadMode.value_or(archive.GetOptions().mapOptions.loadMode));
 	}
 
 	/**
-	 * @brief A wrapper that serializes an associative container as an object, optionally overriding the load mode.
-	 *
-	 * This is the default representation of `std::map` / `std::unordered_map` (a set of key-value fields).
-	 * The wrapper exists to pass an explicit `MapLoadMode`, overriding `SerializationOptions::mapOptions`.
-	 *
-	 * @par Example:
-	 * @code
-	 * std::map<std::string, int> data;
-	 * archive << KeyValue("data", MapAsObject(data, MapLoadMode::UpdateExisting));
-	 * @endcode
+	 * @brief Serializes `std::multimap` wrapped with `MapAsObject`.
 	 */
-	template <typename T>
-	struct MapAsObject
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeObject(TArchive& archive, MapAsObject<std::multimap<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
 	{
-		explicit MapAsObject(T& mapValue, std::optional<MapLoadMode> mapLoadMode = std::nullopt) noexcept
-			: map(mapValue)
-			, mapLoadMode(mapLoadMode)
-		{ }
+		Detail::SerializeMapImpl(archive, wrappedMap.map, wrappedMap.mapLoadMode.value_or(archive.GetOptions().mapOptions.loadMode));
+	}
 
-		T& map;
-		std::optional<MapLoadMode> mapLoadMode;
-	};
-
-	/**
-	 * @brief Serializes `MapAsObject<...>` as an object (the default map representation).
-	 */
-	template <typename TArchive, typename TMap>
-	void SerializeObject(TArchive& archive, MapAsObject<TMap> wrappedMap)
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeObject(TArchive& archive, MapAsObject<const std::multimap<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
 	{
-		const auto mapLoadMode = wrappedMap.mapLoadMode.value_or(archive.GetOptions().mapOptions.loadMode);
-		Detail::SerializeMapImpl(archive, wrappedMap.map, mapLoadMode);
+		Detail::SerializeMapImpl(archive, wrappedMap.map, wrappedMap.mapLoadMode.value_or(archive.GetOptions().mapOptions.loadMode));
 	}
 
 	/**
-	 * @brief A wrapper that serializes an associative container as a "dictionary".
-	 *
-	 * A dictionary is a sequence where every item is an object with a single key, which (unlike a
-	 * plain object) preserves the order of elements and allows duplicate keys. For example, in YAML:
-	 * @code
-	 * - shape1: { type: square, width: 100, height: 100 }
-	 * - shape2: { type: circle, radius: 50 }
-	 * @endcode
-	 * The same data in JSON (compact output is used by default):
-	 * @code
-	 * [{"shape1":{"type":"square","width":100,"height":100}},{"shape2":{"type":"circle","radius":50}}]
-	 * @endcode
-	 * Supported by all archives except CSV.
-	 *
-	 * @par Example:
-	 * @code
-	 * std::map<std::string, CShape> shapes;
-	 * archive << KeyValue("shapes", MapAsDictionary(shapes));
-	 * @endcode
+	 * @brief Serializes `std::map` wrapped with `MapAsDictionary`.
 	 */
-	template <typename T>
-	struct MapAsDictionary
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsDictionary<std::map<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
 	{
-		explicit MapAsDictionary(T& mapValue, std::optional<MapLoadMode> mapLoadMode = std::nullopt) noexcept
-			: map(mapValue)
-			, mapLoadMode(mapLoadMode)
-		{ }
+		Detail::SerializeMapAsDictionaryImpl(arrayScope, wrappedMap.map, wrappedMap.mapLoadMode);
+	}
 
-		/**
-		 * @brief Returns the number of entries (required by binary archives that need a known size upfront).
-		 */
-		[[nodiscard]] size_t size() const { return map.size(); }
-
-		T& map;
-		std::optional<MapLoadMode> mapLoadMode;
-	};
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsDictionary<const std::map<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapAsDictionaryImpl(arrayScope, wrappedMap.map, wrappedMap.mapLoadMode);
+	}
 
 	/**
-	 * @brief Serializes `MapAsDictionary<...>` as a sequence of single-key objects.
+	 * @brief Serializes `std::multimap` wrapped with `MapAsDictionary`.
 	 */
-	template <typename TArchive, typename TMap>
-	void SerializeArray(TArchive& arrayScope, MapAsDictionary<TMap> wrappedMap)
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsDictionary<std::multimap<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
 	{
-		static_assert(TArchive::archive_type != ArchiveType::Csv,
-			"BitSerializer. MapAsDictionary is not supported by the CSV archive (dynamic keys cannot be represented as fixed columns).");
+		Detail::SerializeMapAsDictionaryImpl(arrayScope, wrappedMap.map, wrappedMap.mapLoadMode);
+	}
 
-		using TKey = typename TMap::key_type;
-		auto& targetMap = wrappedMap.map;
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsDictionary<const std::multimap<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapAsDictionaryImpl(arrayScope, wrappedMap.map, wrappedMap.mapLoadMode);
+	}
 
-		if constexpr (TArchive::IsLoading())
-		{
-			const auto mapLoadMode = wrappedMap.mapLoadMode.value_or(arrayScope.GetOptions().mapOptions.loadMode);
-			if (mapLoadMode == MapLoadMode::Replace)
-			{
-				targetMap.clear();
-			}
+	/**
+	 * @brief Serializes `std::map` wrapped with `MapAsPairs`.
+	 */
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsPairs<std::map<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapAsPairsImpl(arrayScope, wrappedMap.map, wrappedMap.keyField, wrappedMap.valueField, wrappedMap.mapLoadMode);
+	}
 
-			if constexpr (has_reserve_v<TMap>)
-			{
-				// Reserve capacity when approximate size is known
-				if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::UpdateExisting)
-				{
-					targetMap.reserve(estimatedSize);
-				}
-			}
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsPairs<const std::map<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapAsPairsImpl(arrayScope, wrappedMap.map, wrappedMap.keyField, wrappedMap.valueField, wrappedMap.mapLoadMode);
+	}
 
-			auto hint = targetMap.begin();
-			while (!arrayScope.IsEnd())
-			{
-				auto objectScope = arrayScope.OpenObjectScope(1);
-				if (objectScope)
-				{
-					objectScope.VisitKeys([&](auto&& archiveKey)
-					{
-						TKey key;
-						if (Detail::ConvertByPolicy(archiveKey, key, objectScope.GetOptions().mismatchedTypesPolicy, objectScope.GetOptions().overflowNumberPolicy))
-						{
-							hint = Detail::LoadMapEntry(targetMap, std::move(key), mapLoadMode, hint,
-								[&objectScope, &archiveKey](auto& value) { Serialize(objectScope, archiveKey, value); });
-						}
-					});
-				}
-			}
-		}
-		else
-		{
-			for (auto& elem : targetMap)
-			{
-				auto objectScope = arrayScope.OpenObjectScope(1);
-				if (objectScope)
-				{
-					Detail::SaveMapEntry(objectScope, elem.first, elem.second);
-				}
-			}
-		}
+	/**
+	 * @brief Serializes `std::multimap` wrapped with `MapAsPairs`.
+	 */
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsPairs<std::multimap<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapAsPairsImpl(arrayScope, wrappedMap.map, wrappedMap.keyField, wrappedMap.valueField, wrappedMap.mapLoadMode);
+	}
+
+	template<typename TArchive, typename TMapKey, typename TValue, typename TComparer, typename TAllocator>
+	void SerializeArray(TArchive& arrayScope, MapAsPairs<const std::multimap<TMapKey, TValue, TComparer, TAllocator>> wrappedMap)
+	{
+		Detail::SerializeMapAsPairsImpl(arrayScope, wrappedMap.map, wrappedMap.keyField, wrappedMap.valueField, wrappedMap.mapLoadMode);
 	}
 }

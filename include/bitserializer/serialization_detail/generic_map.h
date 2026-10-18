@@ -3,6 +3,9 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cstddef>
+#include <optional>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include "bitserializer/convert.h"
@@ -184,38 +187,248 @@ namespace BitSerializer::Detail
 		}
 
 		/**
-		 * @brief Generic function for serializing multimap-like containers.
+		 * @brief Serializes an associative container as a "dictionary" - a sequence of single-key objects.
 		 *
-		 * Multimaps may contain duplicate keys, so they are serialized as an array of pairs
-		 * to ensure compatibility with archives that do not support duplicate keys.
+		 * Unlike a plain object, this preserves the order of elements and allows duplicate keys. Supported
+		 * by all archives except CSV (dynamic keys cannot be represented as fixed columns; use `MapAsPairs`).
 		 *
-		 * @tparam TArchive   The archive type used for serialization.
-		 * @tparam TMultiMap  Type of the multimap container.
-		 * @param arrayScope  Archive scope object used for serializing array content.
-		 * @param cont        Reference to the multimap being serialized.
+		 * @tparam TArchive     Archive type used for serialization.
+		 * @tparam TMap         Type of the associative container.
+		 * @param arrayScope    Archive scope object used for serializing array content.
+		 * @param targetMap     Reference to the map being serialized.
+		 * @param explicitMode  Optional load mode; when not set, `SerializationOptions::mapOptions.loadMode` is used.
 		 */
-		template<typename TArchive, typename TMultiMap>
-		void SerializeMultiMapImpl(TArchive& arrayScope, TMultiMap& cont)
+		template<typename TArchive, typename TMap>
+		void SerializeMapAsDictionaryImpl(TArchive& arrayScope, TMap& targetMap, std::optional<MapLoadMode> explicitMode)
 		{
+			static_assert(TArchive::archive_type != ArchiveType::Csv,
+				"BitSerializer. The CSV archive does not support the dictionary representation (dynamic keys cannot be represented as fixed columns); use 'MapAsPairs' instead.");
+
+			using TKey = typename TMap::key_type;
+
 			if constexpr (TArchive::IsLoading())
 			{
-				cont.clear();
-				auto hint = cont.begin();
+				const auto mapLoadMode = explicitMode.value_or(arrayScope.GetOptions().mapOptions.loadMode);
+				if (mapLoadMode == MapLoadMode::Replace)
+				{
+					targetMap.clear();
+				}
+
+				if constexpr (has_reserve_v<TMap>)
+				{
+					// Reserve capacity when approximate size is known
+					if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::UpdateExisting)
+					{
+						targetMap.reserve(estimatedSize);
+					}
+				}
+
+				auto hint = targetMap.begin();
 				while (!arrayScope.IsEnd())
 				{
-					typename TMultiMap::value_type pair;
-					if (Serialize(arrayScope, pair))
+					auto objectScope = arrayScope.OpenObjectScope(1);
+					if (objectScope)
 					{
-						hint = cont.emplace_hint(hint, std::move(pair));
+						objectScope.VisitKeys([&](auto&& archiveKey)
+						{
+							// Convert archive key to target map's key type
+							TKey key;
+							if (ConvertByPolicy(archiveKey, key, objectScope.GetOptions().mismatchedTypesPolicy, objectScope.GetOptions().overflowNumberPolicy))
+							{
+								hint = LoadMapEntry(targetMap, std::move(key), mapLoadMode, hint,
+									[&objectScope, &archiveKey](auto& value) { Serialize(objectScope, archiveKey, value); });
+							}
+						});
 					}
 				}
 			}
 			else
 			{
-				for (auto& elem : cont)
+				for (auto& elem : targetMap)
 				{
-					Serialize(arrayScope, elem);
+					auto objectScope = arrayScope.OpenObjectScope(1);
+					if (objectScope)
+					{
+						SaveMapEntry(objectScope, elem.first, elem.second);
+					}
+				}
+			}
+		}
+
+		/**
+		 * @brief Serializes an associative container as a sequence of `{key, value}` objects.
+		 *
+		 * Unlike the dictionary representation, this form works with flat (tabular) archives such as CSV,
+		 * because the key and value field names are fixed.
+		 *
+		 * @tparam TArchive       Archive type used for serialization.
+		 * @tparam TMap           Type of the associative container.
+		 * @param arrayScope      Archive scope object used for serializing array content.
+		 * @param targetMap       Reference to the map being serialized.
+		 * @param keyFieldName    Name of the field that stores the key.
+		 * @param valueFieldName  Name of the field that stores the value.
+		 * @param explicitMode    Optional load mode; when not set, `SerializationOptions::mapOptions.loadMode` is used.
+		 */
+		template<typename TArchive, typename TMap>
+		void SerializeMapAsPairsImpl(TArchive& arrayScope, TMap& targetMap,
+			std::string_view keyFieldName, std::string_view valueFieldName, std::optional<MapLoadMode> explicitMode)
+		{
+			using TKey = typename TMap::key_type;
+			const auto keyField = Convert::To<typename TArchive::key_type>(keyFieldName);
+			const auto valueField = Convert::To<typename TArchive::key_type>(valueFieldName);
+
+			if constexpr (TArchive::IsLoading())
+			{
+				const auto mapLoadMode = explicitMode.value_or(arrayScope.GetOptions().mapOptions.loadMode);
+				if (mapLoadMode == MapLoadMode::Replace)
+				{
+					targetMap.clear();
+				}
+
+				if constexpr (has_reserve_v<TMap>)
+				{
+					// Reserve capacity when approximate size is known
+					if (const auto estimatedSize = arrayScope.GetEstimatedSize(); estimatedSize != 0 && mapLoadMode != MapLoadMode::UpdateExisting)
+					{
+						targetMap.reserve(estimatedSize);
+					}
+				}
+
+				auto hint = targetMap.begin();
+				while (!arrayScope.IsEnd())
+				{
+					auto objectScope = arrayScope.OpenObjectScope(2);
+					if (objectScope)
+					{
+						TKey key;
+						if (Serialize(objectScope, keyField, key))
+						{
+							hint = LoadMapEntry(targetMap, std::move(key), mapLoadMode, hint,
+								[&objectScope, &valueField](auto& value) { Serialize(objectScope, valueField, value); });
+						}
+					}
+				}
+			}
+			else
+			{
+				for (auto& elem : targetMap)
+				{
+					auto objectScope = arrayScope.OpenObjectScope(2);
+					if (objectScope)
+					{
+						Serialize(objectScope, keyField, const_cast<std::remove_const_t<TKey>&>(elem.first));
+						Serialize(objectScope, valueField, elem.second);
+					}
 				}
 			}
 		}
 } // namespace BitSerializer::Detail
+
+namespace BitSerializer
+{
+	/**
+	 * @brief A wrapper that serializes an associative container as an object, optionally overriding the load mode.
+	 *
+	 * This is the default representation of `std::map` / `std::unordered_map` (a set of key-value fields).
+	 * The wrapper exists to pass an explicit `MapLoadMode`, overriding `SerializationOptions::mapOptions`.
+	 *
+	 * @par Example:
+	 * @code
+	 * std::map<std::string, int> data;
+	 * archive << KeyValue("data", MapAsObject(data, MapLoadMode::UpdateExisting));
+	 * @endcode
+	 */
+	template <typename T>
+	struct MapAsObject
+	{
+		explicit MapAsObject(T& mapValue, std::optional<MapLoadMode> mapLoadMode = std::nullopt) noexcept
+			: map(mapValue)
+			, mapLoadMode(mapLoadMode)
+		{ }
+
+		T& map;
+		std::optional<MapLoadMode> mapLoadMode;
+	};
+
+	/**
+	 * @brief A wrapper that serializes an associative container as a "dictionary".
+	 *
+	 * A dictionary is a sequence where every item is an object with a single key, which (unlike a
+	 * plain object) preserves the order of elements and allows duplicate keys. For example, in YAML:
+	 * @code
+	 * - shape1: { type: square, width: 100, height: 100 }
+	 * - shape2: { type: circle, radius: 50 }
+	 * @endcode
+	 * The same data in JSON (compact output is used by default):
+	 * @code
+	 * [{"shape1":{"type":"square","width":100,"height":100}},{"shape2":{"type":"circle","radius":50}}]
+	 * @endcode
+	 * This is the default representation of multimap-like containers (e.g. `std::multimap`).
+	 * Supported by all archives except CSV (use `MapAsPairs` there instead).
+	 *
+	 * @par Example:
+	 * @code
+	 * std::map<std::string, CShape> shapes;
+	 * archive << KeyValue("shapes", MapAsDictionary(shapes));
+	 * @endcode
+	 */
+	template <typename T>
+	struct MapAsDictionary
+	{
+		explicit MapAsDictionary(T& mapValue, std::optional<MapLoadMode> mapLoadMode = std::nullopt) noexcept
+			: map(mapValue)
+			, mapLoadMode(mapLoadMode)
+		{ }
+
+		/**
+		 * @brief Returns the number of entries (required by binary archives that need a known size upfront).
+		 */
+		[[nodiscard]] size_t size() const { return map.size(); }
+
+		T& map;
+		std::optional<MapLoadMode> mapLoadMode;
+	};
+
+	/**
+	 * @brief A wrapper that serializes an associative container as a sequence of `{key, value}` objects.
+	 *
+	 * Unlike `MapAsDictionary`, this representation uses fixed field names, so it also works with flat
+	 * (tabular) archives such as CSV:
+	 * @code
+	 * - key: color
+	 *   value: red
+	 * - key: color
+	 *   value: blue
+	 * @endcode
+	 * The field names are customizable, and the load mode can be passed explicitly, overriding
+	 * `SerializationOptions::mapOptions`.
+	 *
+	 * @par Example:
+	 * @code
+	 * std::multimap<std::string, int> data;
+	 * archive << KeyValue("data", MapAsPairs(data));
+	 * archive << KeyValue("data", MapAsPairs(data, MapLoadMode::InsertOrUpdate, "name", "count"));
+	 * @endcode
+	 */
+	template <typename T>
+	struct MapAsPairs
+	{
+		explicit MapAsPairs(T& mapValue, std::optional<MapLoadMode> mapLoadMode = std::nullopt,
+			std::string_view keyField = "key", std::string_view valueField = "value") noexcept
+			: map(mapValue)
+			, keyField(keyField)
+			, valueField(valueField)
+			, mapLoadMode(mapLoadMode)
+		{ }
+
+		/**
+		 * @brief Returns the number of entries (required by binary archives that need a known size upfront).
+		 */
+		[[nodiscard]] size_t size() const { return map.size(); }
+
+		T& map;
+		std::string_view keyField;
+		std::string_view valueField;
+		std::optional<MapLoadMode> mapLoadMode;
+	};
+} // namespace BitSerializer

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "binary_stream_reader.h"
@@ -50,37 +50,6 @@ namespace BitSerializer::Detail
 		}
 
 		return false;
-	}
-
-	std::optional<char> BinaryStreamReader::PeekByte()
-	{
-		if (mStartDataPtr != mEndDataPtr || ReadNextChunk()) {
-			return std::make_optional<char>(*mStartDataPtr);
-		}
-		return std::nullopt;
-	}
-
-	void BinaryStreamReader::GotoNextByte()
-	{
-		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
-		{
-			if (++mStartDataPtr == mEndDataPtr) {
-				ReadNextChunk();
-			}
-		}
-	}
-
-	std::optional<char> BinaryStreamReader::ReadByte()
-	{
-		if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
-		{
-			const auto result = std::make_optional<char>(*mStartDataPtr++);
-			if (mStartDataPtr == mEndDataPtr) {
-				ReadNextChunk();
-			}
-			return result;
-		}
-		return std::nullopt;
 	}
 
 	std::string_view BinaryStreamReader::ReadExactly(size_t blockSize)

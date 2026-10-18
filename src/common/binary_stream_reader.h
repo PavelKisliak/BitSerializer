@@ -7,6 +7,8 @@
 #include <optional>
 #include <string_view>
 
+#include "bitserializer/config.h"
+
 namespace BitSerializer::Detail
 {
 	/**
@@ -19,7 +21,7 @@ namespace BitSerializer::Detail
 	{
 	public:
 		/// @brief Size of the internal read buffer in bytes.
-		static constexpr size_t chunk_size = 256u;
+		static constexpr size_t chunk_size = 1024u;
 
 		/**
 		 * @brief Constructs a new binary stream reader for the specified input stream.
@@ -68,19 +70,44 @@ namespace BitSerializer::Detail
 		 *
 		 * @return An optional containing the byte if available; `std::nullopt` if EOF or failure.
 		 */
-		[[nodiscard]] std::optional<char> PeekByte();
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE std::optional<char> PeekByte()
+		{
+			if (mStartDataPtr != mEndDataPtr || ReadNextChunk()) {
+				return std::make_optional<char>(*mStartDataPtr);
+			}
+			return std::nullopt;
+		}
 
 		/**
 		 * @brief Increments the current position by one byte.
 		 */
-		void GotoNextByte();
+		BITSERIALIZER_FORCEINLINE void GotoNextByte()
+		{
+			if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
+			{
+				if (++mStartDataPtr == mEndDataPtr) {
+					ReadNextChunk();
+				}
+			}
+		}
 
 		/**
 		 * @brief Reads the next byte and increments the current position.
 		 *
 		 * @return An optional containing the byte if available; `std::nullopt` if EOF or failure.
 		 */
-		[[nodiscard]] std::optional<char> ReadByte();
+		[[nodiscard]] BITSERIALIZER_FORCEINLINE std::optional<char> ReadByte()
+		{
+			if (mStartDataPtr != mEndDataPtr || ReadNextChunk())
+			{
+				const auto result = std::make_optional<char>(*mStartDataPtr++);
+				if (mStartDataPtr == mEndDataPtr) {
+					ReadNextChunk();
+				}
+				return result;
+			}
+			return std::nullopt;
+		}
 
 		/**
 		 * @brief Attempts to read exactly specified number of bytes as a contiguous block.

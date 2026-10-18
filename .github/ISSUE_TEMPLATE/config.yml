@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or usage help
+    url: https://github.com/PavelKisliak/BitSerializer/discussions
+    about: Ask questions and get help from the community.
+  - name: Propose a new archive format or a significant change (ADR)
+    url: https://github.com/PavelKisliak/BitSerializer/discussions
+    about: Please open a discussion before implementing new formats or architectural changes.

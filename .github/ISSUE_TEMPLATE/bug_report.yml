@@ -1,0 +1,87 @@
+name: Bug report
+description: Report a bug or unexpected behavior in BitSerializer
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report!
+        Please fill in as much detail as possible — a minimal reproduction dramatically speeds up the fix.
+        For questions or usage help, please use [Discussions](https://github.com/PavelKisliak/BitSerializer/discussions) instead.
+
+  - type: input
+    id: version
+    attributes:
+      label: BitSerializer version
+      description: "See `include/bitserializer/config.h` (or the release tag)."
+      placeholder: "e.g. 0.85.0"
+    validations:
+      required: true
+
+  - type: input
+    id: compiler
+    attributes:
+      label: Compiler and version
+      placeholder: "e.g. MSVC 19.4x / GCC 14.2 / Clang 18.1"
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+      placeholder: "e.g. Windows 11 x64 / Ubuntu 24.04 arm64"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: archive
+    attributes:
+      label: Affected archive(s)
+      description: Select all that apply.
+      multiple: true
+      options:
+        - Core / Convert
+        - JSON (built-in)
+        - JSONC (built-in)
+        - JSON (RapidJSON)
+        - XML (PugiXml)
+        - YAML (RapidYAML)
+        - CSV
+        - MsgPack
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: A minimal, self-contained code snippet (and input data) that reproduces the issue.
+      render: cpp
+      placeholder: |
+        #include "bitserializer/bit_serializer.h"
+        // ... minimal code that reproduces the problem
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the full error message or stack trace if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant (build options, SerializationOptions, related issues, etc.).
+    validations:
+      required: false

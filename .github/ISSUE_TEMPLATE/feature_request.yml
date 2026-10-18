@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest an improvement or a new capability for BitSerializer
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea!
+        For **significant changes** (new features, architectural refactoring, public API changes) the project
+        prefers an [ADR](https://github.com/PavelKisliak/BitSerializer/blob/master/CONTRIBUTING.md#architecture-decision-records-adr)
+        discussed before implementation. A clear, concise issue is a good starting point.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work? A rough API sketch is welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, workarounds, or existing libraries you evaluated.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, references, related issues, etc.
+    validations:
+      required: false

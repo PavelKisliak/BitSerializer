@@ -345,6 +345,7 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 - `TestClassWithMismatchedField` — saves as `"id"`, loads as `"guid"`.
 - `TestClassWithVersioning` — adds extra fields when saving (versioning).
 - `TestClassForCheckValidation<T>` / `TestClassForCheckCompatibleTypes<T>` — a `Required()` field plus a deliberately-absent field.
+- `TestStringLikeType` / `TestStdStringLikeType` / `TestWStringLikeType` — string-like types registered via `BITSERIALIZER_DECLARE_STRING_TYPE(_EXPLICIT)`; defined in `string_like_test_types.h` (include it explicitly). `TestStringLikeType` uses the explicit macro (`Data()`/`Size()`/`FromString()`), `TestStdStringLikeType` the short form (`data()`/`size()`/`assign()`), `TestWStringLikeType` covers `wchar_t`. Use these instead of declaring local string wrappers in tests.
 - `TestPointClass` (2 ints), `TestUnion` (int+float), `TestEnum` — simple fixtures.
 
 **`auto_fixture.h`** — random test-data generator. Core type is `AutoFixture::Fixture` (seeded `std::mt19937`, `GetContainerSize()`), used via:
@@ -386,7 +387,7 @@ Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::Bui
 4. **Run targeted tests**: `build/bin/<test>.exe --gtest_filter="*YourTest*"` (from command-line build)
 5. **Run full test suite** before committing: `ctest --test-dir build -T test --output-on-failure`
 6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions). **Keep the default stage time (30 s) — do not shorten it for A/B comparisons**: short runs (a few seconds) have large run-to-run variance on a busy machine and produce misleading results.
-7. **Offer static analysis before committing**: ask whether to run clang-tidy on the changed files (see [Static analysis](#static-analysis-clang-tidy) below). It is cheap when limited to changed files and catches what CI would flag. Honor a stated user preference (never / always without asking).
+7. **Offer static analysis before committing**: ask whether to run clang-tidy on the changed files (see [Static analysis](#static-analysis-clang-tidy) below). Limit it to affected translation units (a changed header can pull in many), and run it in parallel via `run-clang-tidy.py`. Honor a stated user preference (never / always without asking).
 8. **Commit with convention**: `[Component] Short description (#issue)`
 
 Components: `[Core]`, `[Json]`, `[CSV]`, `[MsgPack]`, `[RapidJson]`, `[Convert]`, `[Tests]`, `[CI]`, `[Docs]`.
@@ -441,7 +442,12 @@ cmake -GNinja -B build-tidy -DCMAKE_BUILD_TYPE=Release `
 ninja -C build-tidy json_tests
 ```
 
-Requires the MSVC environment (see Windows build above). Single file: `clang-tidy -p=build-tidy --config-file=.clang-tidy --extra-arg=/EHsc <file.cpp>`.
+Requires the MSVC environment (see Windows build above).
+
+- **Preferred**: `python tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p build-tidy -j <N> <path-regex>` — runs the analysis in parallel (CI uses the same script). A full run is slow (the CI job allows 90 minutes), so limit it to the affected files.
+- **Single file**: `clang-tidy -p=build-tidy --config-file=.clang-tidy --extra-arg=/EHsc <file.cpp>`.
+- Headers have no compile command of their own — analyze them through a `.cpp` that includes them. To mirror CI's "changed files only" check, use `tools/static_analysis/find_affected_files.py`, which maps changed headers to the affected translation units via `ninja -t deps`.
+- Configure `build-tidy` with every archive whose sources/tests you intend to analyze (`-DBUILD_*_ARCHIVE=ON`); otherwise those translation units are absent from `compile_commands.json`. Re-run the configure step after changing CMake options or adding/removing test targets — a stale `compile_commands.json` silently analyzes the wrong file set.
 
 **Deprecated members:** the *implicit* copy/move constructor reads members one by one, so a class with `[[deprecated]]` members fails clang-tidy as soon as it's copied (e.g. `return e;`) even if your code never reads them. Fix by declaring an explicit copy constructor that initializes deprecated members from their non-deprecated counterparts — *not* with `#pragma`/`NOLINT` (and a `#pragma` inside a member initializer list is ill-formed). See `ParsingException` in `serialization_detail/errors_handling.h`.
 

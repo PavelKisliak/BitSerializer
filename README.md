@@ -866,6 +866,12 @@ BITSERIALIZER_DECLARE_STRING_TYPE(MyString)
 
 The macro relies on the [convert sub-module](docs/bitserializer_convert.md) so that string types can also be used as keys, for example it allows serialization of `std::map<MyString, int>` where `MyString` is used as a key.
 
+Registered string-like types are also supported by the string validators (`Email`, `PhoneNumber`, `Uuid`, `MinSize`, `MaxSize`) and refiners (`TrimWhitespace`, `ToLowerCase`, `ToUpperCase`), so you can validate and normalize them directly:
+```cpp
+archive << KeyValue("PhoneNumber", mPhoneNumber, Refine::TrimWhitespace(), Validate::PhoneNumber());
+archive << KeyValue("Id", mId, Validate::Uuid());
+```
+
 > [!NOTE]
 > `BITSERIALIZER_DECLARE_STRING_TYPE` is not available in the previous version 0.85.
 

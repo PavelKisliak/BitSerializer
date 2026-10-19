@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/common_json_test_methods.h"
 #include "testing_tools/common_yaml_test_methods.h"
 #include "bitserializer/rapidyaml_archive.h"
@@ -518,4 +519,18 @@ TEST(RapidYamlArchive, SerializeStdTypes)
 
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
 	TestSerializeType<YamlArchive, TestClassWithSubType<std::chrono::seconds>>();
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of serialization for custom string-like types
+// (declared via BITSERIALIZER_DECLARE_STRING_TYPE)
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, SerializeStringLikeTypes)
+{
+	TestSerializeArray<YamlArchive, TestStringLikeType>();
+	TestSerializeArray<YamlArchive, TestStdStringLikeType>();
+	TestSerializeArray<YamlArchive, TestWStringLikeType>();
+
+	TestSerializeType<YamlArchive>(TestClassWithSubType<TestStringLikeType>(TestStringLikeType("Custom string")));
+	TestSerializeType<YamlArchive>(TestClassWithSubType<TestWStringLikeType>(TestWStringLikeType(L"Custom wide string")));
 }

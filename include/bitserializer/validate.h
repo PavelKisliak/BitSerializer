@@ -223,7 +223,8 @@ namespace BitSerializer::Validate
 	/**
 	 * @brief Validates that the container or string size is not less than the specified minimum.
 	 *
-	 * The target type must have a `size()` method.
+	 * The target type must either have a `size()` method or be registered as a string-like
+	 * type via `BITSERIALIZER_DECLARE_STRING_TYPE`.
 	 */
 	class MinSize
 	{
@@ -240,25 +241,32 @@ namespace BitSerializer::Validate
 		template <class TValue>
 		std::optional<std::string> operator()(const TValue& value, bool isLoaded) const
 		{
+			constexpr auto isStringLike = Convert::Detail::is_convertible_to_string_view_v<TValue>;
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
-			static_assert(hasSizeMethod, "BitSerializer. 'MinSize' validator can only be used for types with a size() method.");
+			static_assert(isStringLike || hasSizeMethod,
+				"BitSerializer. 'MinSize' validator can only be used for string-like types or types with a size() method.");
 
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
 				return std::nullopt;
 			}
 
-			if constexpr (hasSizeMethod)
-			{
-				if (value.size() >= mMinSize) {
-					return std::nullopt;
-				}
-
-				if (mErrorMessage) {
-					return mErrorMessage;
-				}
-				return "Size must be less than " + Convert::ToString(mMinSize);
+			size_t valueSize;
+			if constexpr (isStringLike) {
+				valueSize = Convert::ToStringView(value).size();
 			}
+			else {
+				valueSize = value.size();
+			}
+
+			if (valueSize >= mMinSize) {
+				return std::nullopt;
+			}
+
+			if (mErrorMessage) {
+				return mErrorMessage;
+			}
+			return "Size must be less than " + Convert::ToString(mMinSize);
 		}
 
 	private:
@@ -269,7 +277,8 @@ namespace BitSerializer::Validate
 	/**
 	 * @brief Validates that the size of a container or string does not exceed the specified maximum.
 	 *
-	 * The target type must have a `size()` method.
+	 * The target type must either have a `size()` method or be registered as a string-like
+	 * type via `BITSERIALIZER_DECLARE_STRING_TYPE`.
 	 */
 	class MaxSize
 	{
@@ -286,25 +295,32 @@ namespace BitSerializer::Validate
 		template <class TValue>
 		std::optional<std::string> operator()(const TValue& value, bool isLoaded) const
 		{
+			constexpr auto isStringLike = Convert::Detail::is_convertible_to_string_view_v<TValue>;
 			constexpr auto hasSizeMethod = has_size_v<TValue>;
-			static_assert(hasSizeMethod, "BitSerializer. 'MaxSize' validator can only be used for types with a size() method.");
+			static_assert(isStringLike || hasSizeMethod,
+				"BitSerializer. 'MaxSize' validator can only be used for string-like types or types with a size() method.");
 
 			// Automatically pass if value is not loaded. "Required" validator should be used to check this case.
 			if (!isLoaded) {
 				return std::nullopt;
 			}
 
-			if constexpr (hasSizeMethod)
-			{
-				if (value.size() <= mMaxSize) {
-					return std::nullopt;
-				}
-
-				if (mErrorMessage) {
-					return mErrorMessage;
-				}
-				return "Size must not exceed " + Convert::ToString(mMaxSize);
+			size_t valueSize;
+			if constexpr (isStringLike) {
+				valueSize = Convert::ToStringView(value).size();
 			}
+			else {
+				valueSize = value.size();
+			}
+
+			if (valueSize <= mMaxSize) {
+				return std::nullopt;
+			}
+
+			if (mErrorMessage) {
+				return mErrorMessage;
+			}
+			return "Size must not exceed " + Convert::ToString(mMaxSize);
 		}
 
 	private:
@@ -553,15 +569,20 @@ namespace BitSerializer::Validate
 				return std::nullopt;
 			}
 
-			// UUID must be exactly 36 characters: 8-4-4-4-12 + 4 hyphens
-			size_t length;
-			if constexpr (std::is_array_v<std::remove_reference_t<TContainer>>) {
-				length = std::size(value) - 1;
+			if constexpr (Convert::Detail::is_convertible_to_string_view_v<TContainer>) {
+				return ValidateString(Convert::ToStringView(value));
 			}
 			else {
-				length = value.size();
+				return ValidateString(value);
 			}
-			if (length != 36) {
+		}
+
+	private:
+		template <typename TString>
+		[[nodiscard]] std::optional<std::string> ValidateString(const TString& str) const
+		{
+			// UUID must be exactly 36 characters: 8-4-4-4-12 + 4 hyphens
+			if (str.size() != 36) {
 				return mErrorMessage;
 			}
 
@@ -569,18 +590,17 @@ namespace BitSerializer::Validate
 			{
 				if (i == 8 || i == 13 || i == 18 || i == 23)
 				{
-					if (!IsHyphen(value[i])) {
+					if (!IsHyphen(str[i])) {
 						return mErrorMessage;
 					}
 				}
-				else if (!IsHexDigit(value[i])) {
+				else if (!IsHexDigit(str[i])) {
 					return mErrorMessage;
 				}
 			}
 			return std::nullopt;
 		}
 
-	private:
 		template <typename TChar>
 		static constexpr bool IsHyphen(TChar c) noexcept {
 			return c == static_cast<TChar>('-');

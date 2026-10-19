@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/refine.h"
+#include "testing_tools/string_like_test_types.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4566)
@@ -267,6 +268,61 @@ TEST(RefineToUpperCase, ShouldIgnoreUnicodeCharaters)
 
 	// Assert
 	EXPECT_EQ(U"HELLO WORLD! привет мир!", testValue);
+}
+
+//-----------------------------------------------------------------------------
+// Tests for refiners with custom string-like types (BITSERIALIZER_DECLARE_STRING_TYPE)
+//-----------------------------------------------------------------------------
+TEST(RefineTrimWhitespace, ShouldTrimStringLikeType)
+{
+	// Arrange
+	constexpr auto trimWhitespace = Refine::TrimWhitespace();
+	TestStringLikeType testValue(" \t test \t\n");
+
+	// Act
+	trimWhitespace(testValue, true);
+
+	// Assert
+	EXPECT_EQ("test", testValue.GetValue());
+}
+
+TEST(RefineTrimWhitespace, ShouldNotChangeStringLikeTypeWhenNotDeserialized)
+{
+	// Arrange
+	constexpr auto trimWhitespace = Refine::TrimWhitespace();
+	TestStringLikeType testValue(" test ");
+
+	// Act
+	trimWhitespace(testValue, false);
+
+	// Assert
+	EXPECT_EQ(" test ", testValue.GetValue());
+}
+
+TEST(RefineToLowerCase, ShouldConvertStringLikeType)
+{
+	// Arrange
+	constexpr auto toLowerCase = Refine::ToLowerCase();
+	TestStringLikeType testValue(" A B C ");
+
+	// Act
+	toLowerCase(testValue, true);
+
+	// Assert
+	EXPECT_EQ(" a b c ", testValue.GetValue());
+}
+
+TEST(RefineToUpperCase, ShouldConvertStringLikeType)
+{
+	// Arrange
+	constexpr auto toUpperCase = Refine::ToUpperCase();
+	TestStringLikeType testValue(" a b c ");
+
+	// Act
+	toUpperCase(testValue, true);
+
+	// Assert
+	EXPECT_EQ(" A B C ", testValue.GetValue());
 }
 
 #pragma warning(pop)

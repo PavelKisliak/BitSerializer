@@ -4,6 +4,7 @@
 *******************************************************************************/
 #include <gtest/gtest.h>
 #include "bitserializer/validate.h"
+#include "testing_tools/string_like_test_types.h"
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
 
@@ -514,6 +515,19 @@ TEST(ValidatorMinSize, ShouldReturnCustomErrorMessage)
 	EXPECT_EQ("Custom error message", result.value());
 }
 
+TEST(ValidatorMinSize, ShouldSupportStringLikeTypes)
+{
+	// Arrange
+	const auto validator = Validate::MinSize(10);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(TestStringLikeType(std::string(10, '#')), true).has_value());
+	EXPECT_TRUE(validator(TestStringLikeType(std::string(9, '#')), true).has_value());
+
+	EXPECT_FALSE(validator(TestStdStringLikeType(std::string(10, '#')), true).has_value());
+	EXPECT_TRUE(validator(TestStdStringLikeType(std::string(9, '#')), true).has_value());
+}
+
 //-----------------------------------------------------------------------------
 // Tests for 'MaxSize' validator
 //-----------------------------------------------------------------------------
@@ -583,6 +597,19 @@ TEST(ValidatorMaxSize, ShouldReturnCustomErrorMessage)
 	EXPECT_EQ("Custom error message", result.value());
 }
 
+TEST(ValidatorMaxSize, ShouldSupportStringLikeTypes)
+{
+	// Arrange
+	const auto validator = Validate::MaxSize(10);
+
+	// Act / Assert
+	EXPECT_FALSE(validator(TestStringLikeType(std::string(10, '#')), true).has_value());
+	EXPECT_TRUE(validator(TestStringLikeType(std::string(11, '#')), true).has_value());
+
+	EXPECT_FALSE(validator(TestStdStringLikeType(std::string(10, '#')), true).has_value());
+	EXPECT_TRUE(validator(TestStdStringLikeType(std::string(11, '#')), true).has_value());
+}
+
 //-----------------------------------------------------------------------------
 // Tests for 'Email' validator
 //-----------------------------------------------------------------------------
@@ -597,6 +624,10 @@ TEST(ValidatorEmail, TestDifferentStringTypes)
 	EXPECT_FALSE(validator(std::u16string(u"simple@example.com"), true).has_value());
 	EXPECT_FALSE(validator(std::u32string(U"simple@example.com"), true).has_value());
 	EXPECT_FALSE(validator(std::wstring(L"simple@example.com"), true).has_value());
+	EXPECT_FALSE(validator(TestStringLikeType("simple@example.com"), true).has_value());
+	EXPECT_TRUE(validator(TestStringLikeType("invalid@"), true).has_value());
+	EXPECT_FALSE(validator(TestStdStringLikeType("simple@example.com"), true).has_value());
+	EXPECT_FALSE(validator(TestWStringLikeType(L"simple@example.com"), true).has_value());
 }
 
 TEST(ValidatorEmail, TestValidEmails)
@@ -695,6 +726,10 @@ TEST(ValidatorPhoneNumber, TestDifferentStringTypes)
 	EXPECT_FALSE(validator(std::u16string(u"+123 (555) 555-55-55"), true).has_value());
 	EXPECT_FALSE(validator(std::u32string(U"+123 (555) 555-55-55"), true).has_value());
 	EXPECT_FALSE(validator(std::wstring(L"+123 (555) 555-55-55"), true).has_value());
+	EXPECT_FALSE(validator(TestStringLikeType("+123 (555) 555-55-55"), true).has_value());
+	EXPECT_TRUE(validator(TestStringLikeType("not a phone"), true).has_value());
+	EXPECT_FALSE(validator(TestStdStringLikeType("+123 (555) 555-55-55"), true).has_value());
+	EXPECT_FALSE(validator(TestWStringLikeType(L"+123 (555) 555-55-55"), true).has_value());
 }
 
 TEST(ValidatorPhoneNumber, TestValidPhones)
@@ -826,6 +861,34 @@ TEST(ValidatorUuid, ShouldReturnCustomErrorMessage)
 	// Assert
 	ASSERT_TRUE(result.has_value());
 	EXPECT_EQ("ID must be a valid UUID v4", result.value());
+}
+
+TEST(ValidatorUuid, TestDifferentStringTypes)
+{
+	// Arrange
+	const auto validator = Validate::Uuid();
+
+	// Act / Assert
+	EXPECT_FALSE(validator("550e8400-e29b-41d4-a716-446655440000", true).has_value());
+	EXPECT_FALSE(validator(std::string("550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_FALSE(validator(std::string_view("550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_FALSE(validator(std::u16string(u"550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_FALSE(validator(std::u32string(U"550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_FALSE(validator(std::wstring(L"550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+}
+
+TEST(ValidatorUuid, ShouldSupportStringLikeTypes)
+{
+	// Arrange
+	const auto validator = Validate::Uuid();
+
+	// Act / Assert
+	EXPECT_FALSE(validator(TestStringLikeType("550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_TRUE(validator(TestStringLikeType("550e8400-e29b-41d4-a716-44665544000-"), true).has_value());
+
+	EXPECT_FALSE(validator(TestStdStringLikeType("550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_FALSE(validator(TestWStringLikeType(L"550e8400-e29b-41d4-a716-446655440000"), true).has_value());
+	EXPECT_TRUE(validator(TestWStringLikeType(L"550e8400-e29b-41d4-a716-44665544000-"), true).has_value());
 }
 
 // NOLINTEND(bugprone-unchecked-optional-access)

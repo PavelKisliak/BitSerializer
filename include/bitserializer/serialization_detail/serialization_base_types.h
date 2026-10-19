@@ -486,10 +486,11 @@ namespace BitSerializer
 					}
 				}
 
-				// Try to serialize as binary first
+				// Try to serialize as binary first. The key is passed as an lvalue here so that it
+				// remains intact for the array-scope fallback below.
 				if constexpr (hasBinaryWithKeySupport && isBinaryContainer)
 				{
-					auto binaryScope = archive.OpenBinaryScope(std::forward<TKey>(key), arraySize);
+					auto binaryScope = archive.OpenBinaryScope(key, arraySize);
 					if (binaryScope)
 					{
 						SerializeArray(binaryScope, value);
@@ -690,10 +691,11 @@ namespace BitSerializer
 		constexpr auto isBinaryArray = std::is_same_v<TValue, char> || std::is_same_v<TValue, signed char> || std::is_same_v<TValue, unsigned char>;
 		static_assert(hasArrayWithKeySupport, "BitSerializer. The archive doesn't support serialize array with key on this level.");
 
-		// Try to serialize as binary first
+		// Try to serialize as binary first. The key is passed as an lvalue here so that it
+		// remains intact for the array-scope fallback below.
 		if constexpr (hasBinaryWithKeySupport && isBinaryArray)
 		{
-			if (auto arrayScope = archive.OpenBinaryScope(std::forward<TKey>(key), ArraySize))
+			if (auto arrayScope = archive.OpenBinaryScope(key, ArraySize))
 			{
 				return Detail::SerializeFixedSizeArray(arrayScope, std::begin(cont), std::end(cont));
 			}

@@ -94,15 +94,19 @@ void TestSerializeType(BitSerializer::KeyValue<TKey, TValue, TArgs...>&& keyValu
 {
 	// Arrange
 	typename TArchive::preferred_output_type outputArchive{};
-	std::remove_reference_t<TValue> expected{ keyValue.GetValue() };
+	decltype(auto) value = keyValue.GetValue();
+	std::remove_reference_t<TValue> expected{ value };
 
 	// Act
 	BitSerializer::SaveObject<TArchive>(std::forward<BitSerializer::KeyValue<TKey, TValue, TArgs...>>(keyValue), outputArchive);
-	::BuildFixture(keyValue.GetValue());
+	::BuildFixture(value);
+	// SaveObject/LoadObject accept the wrapper by rvalue reference but do not move from it,
+	// so reusing the same instance for the save/load round-trip is intentional.
+	// NOLINTNEXTLINE(bugprone-use-after-move)
 	BitSerializer::LoadObject<TArchive>(std::forward<BitSerializer::KeyValue<TKey, TValue, TArgs...>>(keyValue), outputArchive);
 
 	// Assert
-	GTestExpectEq(expected, keyValue.GetValue());
+	GTestExpectEq(expected, value);
 }
 
 #if defined(__cpp_lib_memory_resource)

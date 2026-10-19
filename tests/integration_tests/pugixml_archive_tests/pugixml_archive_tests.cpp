@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/common_xml_test_methods.h"
 #include "bitserializer/pugixml_archive.h"
 
@@ -598,4 +599,18 @@ TEST(PugiXmlArchive, SerializeStdTypes)
 
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::chrono::seconds>>();
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of serialization for custom string-like types
+// (declared via BITSERIALIZER_DECLARE_STRING_TYPE)
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, SerializeStringLikeTypes)
+{
+	TestSerializeArray<XmlArchive, TestStringLikeType>();
+	TestSerializeArray<XmlArchive, TestStdStringLikeType>();
+	TestSerializeArray<XmlArchive, TestWStringLikeType>();
+
+	TestSerializeType<XmlArchive>(TestClassWithSubType<TestStringLikeType>(TestStringLikeType("Custom string")));
+	TestSerializeType<XmlArchive>(TestClassWithSubType<TestWStringLikeType>(TestWStringLikeType(L"Custom wide string")));
 }

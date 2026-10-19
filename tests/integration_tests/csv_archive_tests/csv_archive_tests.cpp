@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "csv_archive_fixture.h"
 
 // STD types
@@ -442,6 +443,17 @@ TEST_F(CsvArchiveTests, SerializeStdTypes)
 
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::chrono::system_clock::time_point>>();
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::chrono::seconds>>();
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of serialization for custom string-like types
+// (declared via BITSERIALIZER_DECLARE_STRING_TYPE)
+//-----------------------------------------------------------------------------
+TEST_F(CsvArchiveTests, SerializeStringLikeTypes)
+{
+	TestSerializeArray<CsvArchive, TestClassWithSubType<TestStringLikeType>>();
+	TestSerializeArray<CsvArchive, TestClassWithSubType<TestStdStringLikeType>>();
+	TestSerializeArray<CsvArchive, TestClassWithSubType<TestWStringLikeType>>();
 }
 
 //-----------------------------------------------------------------------------

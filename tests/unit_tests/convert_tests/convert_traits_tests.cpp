@@ -11,7 +11,7 @@
 #if defined(__cpp_lib_memory_resource)
 #include <memory_resource>
 #endif
-#include "testing_tools/common_test_entities.h"
+#include "testing_tools/string_like_test_types.h"
 
 using namespace BitSerializer;
 
@@ -112,7 +112,9 @@ TEST(ConvertTraits, ShouldDetectConversibilityToStringView) {
 //-----------------------------------------------------------------------------
 TEST(ConvertTraits, ShouldDetectStringLikeTypesRegisteredViaMacro)
 {
-	EXPECT_TRUE(Convert::Detail::is_string_type_v<CustomStringType>);
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<TestStringLikeType>);
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<TestStdStringLikeType>);
+	EXPECT_TRUE(Convert::Detail::is_string_type_v<TestWStringLikeType>);
 	EXPECT_TRUE(Convert::Detail::is_string_type_v<std::string>);
 	EXPECT_TRUE(Convert::Detail::is_string_type_v<std::u16string>);
 #if defined(__cpp_lib_memory_resource)
@@ -124,15 +126,25 @@ TEST(ConvertTraits, ShouldDetectStringLikeTypesRegisteredViaMacro)
 
 TEST(ConvertTraits, ShouldConvertStringLikeTypeToStringView)
 {
-	EXPECT_TRUE(Convert::Detail::is_convertible_to_string_view_v<CustomStringType>);
+	EXPECT_TRUE(Convert::Detail::is_convertible_to_string_view_v<TestStringLikeType>);
+	EXPECT_TRUE(Convert::Detail::is_convertible_to_string_view_v<TestStdStringLikeType>);
+	EXPECT_TRUE(Convert::Detail::is_convertible_to_string_view_v<TestWStringLikeType>);
 
-	const CustomStringType value("Hello view");
+	const TestStringLikeType value("Hello view");
 	EXPECT_EQ(std::string_view("Hello view"), Convert::ToStringView(value));
+
+	const TestStdStringLikeType stdValue("Hello std view");
+	EXPECT_EQ(std::string_view("Hello std view"), Convert::ToStringView(stdValue));
+
+	const TestWStringLikeType wValue(L"Hello wide view");
+	EXPECT_EQ(std::wstring_view(L"Hello wide view"), Convert::ToStringView(wValue));
 }
 
 TEST(ConvertTraits, ShouldConvertStringLikeTypeToString)
 {
-	EXPECT_EQ("Hello convert", Convert::To<std::string>(CustomStringType("Hello convert")));
+	EXPECT_EQ("Hello convert", Convert::To<std::string>(TestStringLikeType("Hello convert")));
+	EXPECT_EQ("Hello convert", Convert::To<std::string>(TestStdStringLikeType("Hello convert")));
+	EXPECT_EQ("Hello convert", Convert::To<std::string>(TestWStringLikeType(L"Hello convert")));
 }
 
 //-----------------------------------------------------------------------------

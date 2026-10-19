@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/common_json_test_methods.h"
 #include "bitserializer/msgpack_archive.h"
 
@@ -900,4 +901,17 @@ TEST(MsgPackArchive, SerializeStdTypes)
 
 	TestSerializeType<MsgPackArchive, std::chrono::system_clock::time_point>();
 	TestSerializeType<MsgPackArchive, std::chrono::seconds>();
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of serialization for custom string-like types
+// (declared via BITSERIALIZER_DECLARE_STRING_TYPE)
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeStringLikeTypes)
+{
+	TestSerializeType<MsgPackArchive>(TestStringLikeType("Custom string"));
+	TestSerializeType<MsgPackArchive>(TestStdStringLikeType("Custom std string"));
+	TestSerializeType<MsgPackArchive>(TestWStringLikeType(L"Custom wide string"));
+
+	TestSerializeArray<MsgPackArchive, TestStringLikeType>();
 }

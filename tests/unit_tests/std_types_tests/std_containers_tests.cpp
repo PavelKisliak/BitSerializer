@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/archive_stub.h"
 
 #include "bitserializer/types/std/array.h"
@@ -339,6 +340,7 @@ TEST(STD_Containers, SerializeMapWithChronoDurationAsKey) {
 TEST(STD_Containers, SerializeMapWithStringAsKey) {
 	TestSerializeType<ArchiveStub, std::map<std::string, int>>();
 	TestSerializeType<ArchiveStub, std::map<std::wstring, int>>();
+	TestSerializeType<ArchiveStub, std::map<TestStringLikeType, int>>();
 }
 
 TEST(STD_Containers, SerializeMapWithEnumAsKey) {

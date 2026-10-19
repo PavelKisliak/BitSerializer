@@ -264,6 +264,8 @@ private:
 BITSERIALIZER_DECLARE_STRING_TYPE_EXPLICIT(MyString, &MyString::Data, &MyString::Size, &MyString::FromString)
 ```
 This allows `Convert::ToStringView(value)` to return a view without copying, and makes the type usable as a map key.
+Registered types are also recognized by the string validators (`Email`, `PhoneNumber`, `Uuid`, `MinSize`, `MaxSize`)
+and refiners (`TrimWhitespace`, `ToLowerCase`, `ToUpperCase`).
 
 > [!NOTE]
 > `BITSERIALIZER_DECLARE_STRING_TYPE` is not available in the previous version 0.85.

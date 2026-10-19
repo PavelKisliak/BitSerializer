@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/common_json_test_methods.h"
 #include "bitserializer/json_archive.h"
 
@@ -955,6 +956,19 @@ TEST(JsonArchive, SerializeStdTypes)
 
 	TestSerializeType<JsonArchive, std::chrono::system_clock::time_point>();
 	TestSerializeType<JsonArchive, std::chrono::seconds>();
+}
+
+//-----------------------------------------------------------------------------
+// Smoke tests of serialization for custom string-like types
+// (declared via BITSERIALIZER_DECLARE_STRING_TYPE)
+//-----------------------------------------------------------------------------
+TEST(JsonArchive, SerializeStringLikeTypes)
+{
+	TestSerializeType<JsonArchive>(TestStringLikeType("Custom string"));
+	TestSerializeType<JsonArchive>(TestStdStringLikeType("Custom std string"));
+	TestSerializeType<JsonArchive>(TestWStringLikeType(L"Custom wide string"));
+
+	TestSerializeArray<JsonArchive, TestStringLikeType>();
 }
 
 #pragma warning(pop)

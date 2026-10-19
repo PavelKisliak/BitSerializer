@@ -3,9 +3,12 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <string>
+#include <string_view>
 #include <utility>
 #include <cctype>
 #include "bitserializer/common/text.h"
+#include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/object_traits.h"
 
 namespace BitSerializer::Refine
@@ -44,6 +47,43 @@ namespace BitSerializer::Refine
 	template<class T>
 	Fallback(T&&) -> Fallback<T>;
 
+	namespace Detail
+	{
+		/**
+		 * @brief Applies a character transformation to a mutable string-like value.
+		 *
+		 * Enumerable types are transformed in-place. Types registered via
+		 * `BITSERIALIZER_DECLARE_STRING_TYPE` are copied into a temporary buffer, transformed,
+		 * and assigned back (their view is read-only).
+		 */
+		template <typename TString, typename TFunc>
+		void TransformChars(TString& str, TFunc&& func)
+		{
+			constexpr auto isEnumerable = is_enumerable_v<TString>;
+			constexpr auto isStringLike = Convert::Detail::is_string_type_v<TString>;
+			static_assert(isEnumerable || isStringLike,
+				"BitSerializer. Target string must support iterators or be registered as a string-like type.");
+
+			if constexpr (isEnumerable)
+			{
+				for (auto& c : str) {
+					func(c);
+				}
+			}
+			else
+			{
+				using namespace Convert::Detail;
+				const auto view = Convert::ToStringView(str);
+				using char_type = typename decltype(view)::value_type;
+				std::basic_string<char_type> buffer(view);
+				for (auto& c : buffer) {
+					func(c);
+				}
+				AssignString(str, std::basic_string_view<char_type>(buffer));
+			}
+		}
+	}
+
 	/**
 	 * @brief Trims leading and trailing whitespace from string-like types.
 	 */
@@ -53,10 +93,26 @@ namespace BitSerializer::Refine
 		template <typename TString>
 		void operator()(TString& str, bool isLoaded) const
 		{
-			static_assert(is_enumerable_v<TString>, "BitSerializer. Target string must support iterators.");
+			constexpr auto isEnumerable = is_enumerable_v<TString>;
+			constexpr auto isStringLike = Convert::Detail::is_string_type_v<TString>;
+			static_assert(isEnumerable || isStringLike,
+				"BitSerializer. Target string must support iterators or be registered as a string-like type.");
 
-			if (isLoaded) {
+			if (!isLoaded) {
+				return;
+			}
+
+			if constexpr (isEnumerable) {
 				Text::TrimWhitespace(str);
+			}
+			else
+			{
+				using namespace Convert::Detail;
+				const auto view = Convert::ToStringView(str);
+				using char_type = typename decltype(view)::value_type;
+				std::basic_string<char_type> buffer(view);
+				Text::TrimWhitespace(buffer);
+				AssignString(str, std::basic_string_view<char_type>(buffer));
 			}
 		}
 	};
@@ -68,18 +124,17 @@ namespace BitSerializer::Refine
 	{
 	public:
 		template <typename TString>
-		void operator()(TString& str, bool isLoaded) const noexcept
+		void operator()(TString& str, bool isLoaded) const noexcept(is_enumerable_v<TString>)
 		{
-			static_assert(is_enumerable_v<TString>, "BitSerializer. Target string must support iterators.");
-
 			if (isLoaded)
 			{
-				for (auto& c : str)
+				Detail::TransformChars(str, [](auto& c)
 				{
+					using char_type = std::remove_reference_t<decltype(c)>;
 					if (c < 128) {
-						c = static_cast<typename TString::value_type>(std::tolower(static_cast<int>(c)));
+						c = static_cast<char_type>(std::tolower(static_cast<int>(c)));
 					}
-				}
+				});
 			}
 		}
 	};
@@ -91,18 +146,17 @@ namespace BitSerializer::Refine
 	{
 	public:
 		template <typename TString>
-		void operator()(TString& str, bool isLoaded) const noexcept
+		void operator()(TString& str, bool isLoaded) const noexcept(is_enumerable_v<TString>)
 		{
-			static_assert(is_enumerable_v<TString>, "BitSerializer. Target string must support iterators.");
-
 			if (isLoaded)
 			{
-				for (auto& c : str)
+				Detail::TransformChars(str, [](auto& c)
 				{
+					using char_type = std::remove_reference_t<decltype(c)>;
 					if (c < 128) {
-						c = static_cast<typename TString::value_type>(std::toupper(static_cast<int>(c)));
+						c = static_cast<char_type>(std::toupper(static_cast<int>(c)));
 					}
-				}
+				});
 			}
 		}
 	};

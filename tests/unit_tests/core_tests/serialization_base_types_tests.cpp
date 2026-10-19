@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include "testing_tools/archive_stub.h"
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/common_json_test_methods.h"
 
 //-----------------------------------------------------------------------------
@@ -90,22 +91,32 @@ TEST(BaseTypes, SerializeUnicodeString)
 
 //-----------------------------------------------------------------------------
 // Tests of serialization for custom string-like types (declared via BITSERIALIZER_DECLARE_STRING_TYPE).
-// `CustomStringType` itself is defined in the shared "common_test_entities.h" header (see `project(testing_tools)`),
+// The test types themselves are defined in the shared "string_like_test_types.h" header (see `project(testing_tools)`),
 // so this also verifies that the macro-based registration works correctly across translation units.
 //-----------------------------------------------------------------------------
-TEST(BaseTypes, SerializeCustomStringType)
+TEST(BaseTypes, SerializeStringLikeType)
 {
-	TestSerializeType<ArchiveStub>(CustomStringType("Test custom string"));
+	TestSerializeType<ArchiveStub>(TestStringLikeType("Test custom string"));
 }
 
-TEST(BaseTypes, SerializeCustomStringTypeAsClassMember)
+TEST(BaseTypes, SerializeStringLikeTypeAsClassMember)
 {
-	TestSerializeType<ArchiveStub>(TestClassWithSubType<CustomStringType>(CustomStringType("Class member string")));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType<TestStringLikeType>(TestStringLikeType("Class member string")));
 }
 
-TEST(BaseTypes, SerializeArrayOfCustomStringType)
+TEST(BaseTypes, SerializeArrayOfStringLikeType)
 {
-	TestSerializeArray<ArchiveStub, CustomStringType>();
+	TestSerializeArray<ArchiveStub, TestStringLikeType>();
+}
+
+TEST(BaseTypes, SerializeStdStringLikeType)
+{
+	TestSerializeType<ArchiveStub>(TestStdStringLikeType("Test custom string"));
+}
+
+TEST(BaseTypes, SerializeWStringLikeType)
+{
+	TestSerializeType<ArchiveStub>(TestWStringLikeType(L"Test custom wide string"));
 }
 
 //-----------------------------------------------------------------------------

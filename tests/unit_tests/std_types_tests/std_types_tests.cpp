@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "testing_tools/common_test_methods.h"
+#include "testing_tools/string_like_test_types.h"
 #include "testing_tools/archive_stub.h"
 
 #include "bitserializer/types/std/pair.h"
@@ -130,7 +131,7 @@ TEST(STD_Types, SerializeVariantWithStringAlternative) {
 TEST(STD_Types, SerializeVariantWithCustomStringAlternative) {
 	// Custom string-like types (declared via BITSERIALIZER_DECLARE_STRING_TYPE) are
 	// detected by the variant alternative capability check via the string path.
-	TestSerializeType<ArchiveStub>(std::variant<int, CustomStringType, float>(CustomStringType("custom string")));
+	TestSerializeType<ArchiveStub>(std::variant<int, TestStringLikeType, float>(TestStringLikeType("custom string")));
 }
 
 TEST(STD_Types, SerializeVariantWithObjectAlternative) {

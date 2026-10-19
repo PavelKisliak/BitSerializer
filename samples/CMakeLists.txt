@@ -1,8 +1,8 @@
-if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_CSV_ARCHIVE)
+if(BUILD_JSON_ARCHIVE AND BUILD_CSV_ARCHIVE)
     add_subdirectory(hello_world)
 endif()
 
-if(BUILD_RAPIDJSON_ARCHIVE)
+if(BUILD_JSON_ARCHIVE)
     add_subdirectory(validation)
     add_subdirectory(serialize_third_party_class)
     add_subdirectory(serialize_custom_string)
@@ -14,7 +14,7 @@ if(BUILD_PUGIXML_ARCHIVE)
     add_subdirectory(serialize_xml_attributes)
 endif()
 
-if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE)
+if(BUILD_JSON_ARCHIVE AND BUILD_PUGIXML_ARCHIVE)
     add_subdirectory(multiformat_customization)
 endif()
 
@@ -31,7 +31,7 @@ if(BUILD_JSON_ARCHIVE)
     add_subdirectory(payload_passthrough)
 endif()
 
-if(BUILD_RAPIDJSON_ARCHIVE AND BUILD_MSGPACK_ARCHIVE)
+if(BUILD_JSON_ARCHIVE AND BUILD_MSGPACK_ARCHIVE)
     add_subdirectory(msgpack_vs_json)
 endif()
 

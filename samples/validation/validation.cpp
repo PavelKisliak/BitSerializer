@@ -1,9 +1,9 @@
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/json_archive.h"
 
 using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 
 class UserModel
 {

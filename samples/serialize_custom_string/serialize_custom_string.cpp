@@ -1,11 +1,11 @@
 ﻿#include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/json_archive.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/map.h"
 
 using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 
 // Some custom string type
 class MyString

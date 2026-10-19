@@ -96,13 +96,13 @@ The example highlights the flexibility of the library in handling different data
 ```cpp
 #include <iostream>
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/json_archive.h"
 #include "bitserializer/csv_archive.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/chrono.h"
 
 using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 using CsvArchive = BitSerializer::Csv::CsvArchive;
 
 struct CUser
@@ -343,9 +343,9 @@ There are two ways to serialize a class:
 Below example demonstrates how to implement internal serialization method:
 ```cpp
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/json_archive.h"
 
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 
 class TestSimpleClass
 {
@@ -1432,7 +1432,7 @@ Custom validators receive the deserialized value and a boolean indicating whethe
 #### Complete example
 ```cpp
 using namespace BitSerializer;
-using JsonArchive = BitSerializer::Json::RapidJson::JsonArchive;
+using JsonArchive = BitSerializer::Json::JsonArchive;
 
 class UserModel
 {

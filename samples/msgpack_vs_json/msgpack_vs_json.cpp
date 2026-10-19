@@ -2,7 +2,7 @@
 #include <iomanip>
 
 #include "bitserializer/bit_serializer.h"
-#include "bitserializer/rapidjson_archive.h"
+#include "bitserializer/json_archive.h"
 #include "bitserializer/msgpack_archive.h"
 #include "bitserializer/types/std/vector.h"
 #include "bitserializer/types/std/map.h"
@@ -10,7 +10,7 @@
 
 using namespace std::chrono;
 using namespace BitSerializer;
-using JsonArchive = Json::RapidJson::JsonArchive;
+using JsonArchive = Json::JsonArchive;
 using MsgPackArchive = MsgPack::MsgPackArchive;
 
 // Columns width

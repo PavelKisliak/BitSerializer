@@ -426,7 +426,7 @@ Keep the subject to a **single line with only the main point** — don't enumera
 > [!NOTE]
 > The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
 
-- **Braces**: Allman style (opening brace on separate line), always use braces
+- **Braces**: Allman style (opening brace on separate line) is preferred; K&R style (opening brace on the same line) is acceptable only for a block with a single statement that fits on one line. Always use braces, even for single-statement blocks.
 - **Comments**: Doxygen-style (`/** @brief ... */`) in English
 
 ### Static analysis (clang-tidy)

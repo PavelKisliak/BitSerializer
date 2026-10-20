@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cmath>
 #include "bitserializer/json_archive.h"
 #include "bitserializer/conversion_detail/convert_utf.h"
 #include "common/encoded_stream_writer.h"
@@ -83,6 +84,14 @@ namespace BitSerializer::Json::Detail
 		template <typename T>
 		void WriteNumber(T value)
 		{
+			if constexpr (std::is_floating_point_v<T>)
+			{
+				if (!std::isfinite(value))
+				{
+					throw SerializationException(SerializationErrorCode::OutOfRange,
+						"JSON does not support non-finite numbers (NaN or Infinity)");
+				}
+			}
 			mStringBuffer.clear();
 			Convert::Detail::To(value, mStringBuffer);
 			mEncodedStream.Write(mStringBuffer);
@@ -252,6 +261,14 @@ namespace BitSerializer::Json::Detail
 		template <typename T>
 		void WriteNumber(T value)
 		{
+			if constexpr (std::is_floating_point_v<T>)
+			{
+				if (!std::isfinite(value))
+				{
+					throw SerializationException(SerializationErrorCode::OutOfRange,
+						"JSON does not support non-finite numbers (NaN or Infinity)");
+				}
+			}
 			mStringBuffer.clear();
 			Convert::Detail::To(value, mStringBuffer);
 			mEncodedStream.Write(mStringBuffer);

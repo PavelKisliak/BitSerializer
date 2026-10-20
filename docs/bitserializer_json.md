@@ -40,6 +40,11 @@ int main()
 }
 ```
 
+### Non-finite numbers
+JSON has no representation for `NaN` and `Infinity`. Saving such a value throws a
+`SerializationException` with the error code `SerializationErrorCode::OutOfRange`.
+If a non-finite value must be preserved, encode it explicitly (for example, as a string field).
+
 ### Pretty format
 The built-in JSON archive supports output to human readable format:
 ```cpp

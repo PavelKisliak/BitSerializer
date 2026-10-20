@@ -123,7 +123,7 @@ TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenValueInUpperCase)
 
 TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenMismatchedTypes)
 {
-	for (const auto *testJson : { "\"true\"", "3.14", "{ }", "[ 123 ]" })
+	for (const auto *testJson : { "\"true\"", "3.14", "1e0", "{ }", "[ 123 ]" })
 	{
 		this->PrepareReader(testJson);
 		bool value{};
@@ -580,6 +580,83 @@ TYPED_TEST(JsonReaderTest, ReadDoubleShouldThrowExceptionWhenEmptyJson)
 	});
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of the strict JSON number grammar (RFC 8259)
+//-----------------------------------------------------------------------------
+TYPED_TEST(JsonReaderTest, ReadNumber)
+{
+	this->PrepareReader("1e5");
+	double doubleValue{};
+	EXPECT_TRUE(this->mJsonReader->ReadValue(doubleValue));
+	EXPECT_DOUBLE_EQ(100000.0, doubleValue);
+
+	this->PrepareReader("-1.5E-2");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(doubleValue));
+	EXPECT_DOUBLE_EQ(-0.015, doubleValue);
+
+	this->PrepareReader("-0");
+	int32_t intValue{};
+	EXPECT_TRUE(this->mJsonReader->ReadValue(intValue));
+	EXPECT_EQ(0, intValue);
+
+	this->PrepareReader("2147483647");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(intValue));
+	EXPECT_EQ(std::numeric_limits<int32_t>::max(), intValue);
+}
+
+TYPED_TEST(JsonReaderTest, ReadIntegerShouldThrowExceptionWhenNumberIsFloat)
+{
+	for (const auto *testJson : { "1e5", "1E5", "1.0" })
+	{
+		this->PrepareReader(testJson);
+		int32_t value{};
+		BitSerializer::SerializationException ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+			this->mJsonReader->ReadValue(value);
+		});
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+		EXPECT_STREQ("Mismatched types: The type of target field does not match the value being loaded", ex.what());
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadNumberShouldThrowExceptionWhenMalformed)
+{
+	const auto expectParsingError = [this](const char* testJson, size_t expectedOffset, auto& value)
+	{
+		this->PrepareReader(testJson);
+		const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+			this->mJsonReader->ReadValue(value);
+		});
+		EXPECT_EQ(1U, ex.line);
+		EXPECT_EQ(expectedOffset, ex.offset);
+	};
+
+	int32_t intValue{};
+	expectParsingError("0x10", 1, intValue);
+	expectParsingError("007", 1, intValue);
+	expectParsingError("12abc", 2, intValue);
+	expectParsingError("-", 1, intValue);
+	expectParsingError("+5", 0, intValue);
+
+	double doubleValue{};
+	expectParsingError(".5", 0, doubleValue);
+	expectParsingError("Infinity", 0, doubleValue);
+	expectParsingError("NaN", 0, doubleValue);
+	expectParsingError("+5.0", 0, doubleValue);
+	expectParsingError("1.", 2, doubleValue);
+	expectParsingError("1e", 2, doubleValue);
+	expectParsingError("1e+", 3, doubleValue);
+}
+
+TYPED_TEST(JsonReaderTest, ReadNumberAtChunkBoundary)
+{
+	// The stream reader internally reads in 1024-byte chunks; make the number straddle the boundary.
+	const std::string testJson = std::string(1022, ' ') + "12345";
+	this->PrepareReader(testJson);
+	int32_t value{};
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(12345, value);
 }
 
 //-----------------------------------------------------------------------------

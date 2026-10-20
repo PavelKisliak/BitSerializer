@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cmath>
 #include "bitserializer/json_archive.h"
 
 namespace BitSerializer::Json::Detail
@@ -21,39 +22,39 @@ namespace BitSerializer::Json::Detail
 		}
 
 		void WriteValue(uint8_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(uint16_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(uint32_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(uint64_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(int8_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(int16_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(int32_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(int64_t value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(float value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(double value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(long double value) override {
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(const char* value) override {
@@ -96,6 +97,20 @@ namespace BitSerializer::Json::Detail
 		}
 
 	private:
+		template <typename T>
+		void WriteNumber(T value)
+		{
+			if constexpr (std::is_floating_point_v<T>)
+			{
+				if (!std::isfinite(value))
+				{
+					throw SerializationException(SerializationErrorCode::OutOfRange,
+						"JSON does not support non-finite numbers (NaN or Infinity)");
+				}
+			}
+			Convert::Detail::To(value, mOutputString);
+		}
+
 		std::string& mOutputString;
 	};
 
@@ -119,64 +134,64 @@ namespace BitSerializer::Json::Detail
 		void WriteValue(uint8_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(uint16_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(uint32_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 		void WriteValue(uint64_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(int8_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(int16_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(int32_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(int64_t value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(float value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(double value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(long double value) override
 		{
 			WriteIndent();
-			Convert::Detail::To(value, mOutputString);
+			WriteNumber(value);
 		}
 
 		void WriteValue(const char* value) override { WriteValue(std::string_view(value)); }
@@ -251,6 +266,20 @@ namespace BitSerializer::Json::Detail
 		}
 
 	private:
+		template <typename T>
+		void WriteNumber(T value)
+		{
+			if constexpr (std::is_floating_point_v<T>)
+			{
+				if (!std::isfinite(value))
+				{
+					throw SerializationException(SerializationErrorCode::OutOfRange,
+						"JSON does not support non-finite numbers (NaN or Infinity)");
+				}
+			}
+			Convert::Detail::To(value, mOutputString);
+		}
+
 		void WriteIndent() const
 		{
 			if (mPadding)

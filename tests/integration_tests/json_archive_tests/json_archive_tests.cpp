@@ -90,6 +90,27 @@ TEST(JsonArchive, SerializeDouble)
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
 }
 
+TEST(JsonArchive, SaveNonFiniteNumberShouldThrow)
+{
+	const auto expectOutOfRange = [](auto value)
+	{
+		const BitSerializer::SerializationException ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+			BitSerializer::SaveObject<JsonArchive>(value);
+		});
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::OutOfRange, ex.GetErrorCode());
+	};
+
+	expectOutOfRange(std::numeric_limits<float>::infinity());
+	expectOutOfRange(-std::numeric_limits<float>::infinity());
+	expectOutOfRange(std::numeric_limits<float>::quiet_NaN());
+	expectOutOfRange(std::numeric_limits<double>::infinity());
+	expectOutOfRange(-std::numeric_limits<double>::infinity());
+	expectOutOfRange(std::numeric_limits<double>::quiet_NaN());
+	expectOutOfRange(std::numeric_limits<long double>::infinity());
+	expectOutOfRange(-std::numeric_limits<long double>::infinity());
+	expectOutOfRange(std::numeric_limits<long double>::quiet_NaN());
+}
+
 TEST(JsonArchive, ShouldAllowToLoadBooleanFromInteger)
 {
 	bool actual = false;

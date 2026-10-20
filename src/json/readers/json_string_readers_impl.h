@@ -361,73 +361,158 @@ namespace BitSerializer::Json::Detail
 		), int> = 0>
 	bool ReadNumber(std::string_view inputData, size_t& pos, T& outValue, size_t& line, const SerializationOptions& serializationOptions)
 	{
-		if (SkipWhitespaceAndPeek<TFormat>(inputData, pos, line))
+		const char firstChar = SkipWhitespaceAndPeek<TFormat>(inputData, pos, line);
+		if (!firstChar)
 		{
-			const auto* const start = inputData.data() + pos;
-			T parsedNumber;
-			const std::from_chars_result rc = std::from_chars(start, start + inputData.size(), parsedNumber);
-			if (rc.ec == std::errc())
+			throw ParsingException("No more values to read", line, pos);
+		}
+
+		const char* const tokenStart = inputData.data() + pos;
+		const size_t available = inputData.size() - pos;
+		T parsedNumber;
+		const std::from_chars_result rc = std::from_chars(tokenStart, tokenStart + available, parsedNumber);
+
+		if (rc.ec == std::errc())
+		{
+			const size_t length = static_cast<size_t>(rc.ptr - tokenStart);
+
+			if constexpr (std::is_integral_v<T>)
 			{
-				if constexpr (std::is_integral_v<T>)
+				// Strict JSON integer grammar: no leading zeros. `from_chars` would not consume
+				// a non-digit, so a multi-character integer starting with '0' is always a leading zero.
+				const size_t digitStart = tokenStart[0] == '-' ? 1 : 0;
+				if (length > digitStart + 1 && tokenStart[digitStart] == '0')
 				{
-					if (*rc.ptr == '.')
+					throw ParsingException("Invalid JSON number", line, pos + digitStart + 1);
+				}
+
+				// The char after the token must be a terminator; `.`/`e`/`E` mean a float token,
+				// which is a type mismatch for an integral target.
+				if (length < available)
+				{
+					const char next = tokenStart[length];
+					if (!IsJsonNumberTerminator(next))
 					{
+						if (!IsJsonFloatStart(next))
+						{
+							throw ParsingException("Invalid JSON number", line, pos + length);
+						}
+
+						JsonNumberInfo numberInfo;
+						if (ScanJsonNumber(inputData.substr(pos), true, numberInfo) != JsonNumberScanResult::Valid)
+						{
+							throw ParsingException("Invalid JSON number", line, pos + numberInfo.errorOffset);
+						}
 						HandleMismatchedTypesPolicy<TFormat>(inputData, pos, line, serializationOptions.mismatchedTypesPolicy);
 						return false;
 					}
 				}
-				outValue = parsedNumber;
-				pos += rc.ptr - start;
-				return true;
 			}
-			pos += rc.ptr - start;
-			if (rc.ec == std::errc::result_out_of_range)
+			else
 			{
-				if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				size_t errorOffset = 0;
+				if (!IsValidParsedNumber<true>(tokenStart, available, length, errorOffset))
 				{
-					throw SerializationException(SerializationErrorCode::Overflow, "The target field range is insufficient for the value being loaded");
+					// Use the scanner for the error position, it is consistent with the `strtod` fallback path.
+					JsonNumberInfo numberInfo;
+					if (ScanJsonNumber(std::string_view(tokenStart, available), true, numberInfo) == JsonNumberScanResult::Invalid)
+					{
+						errorOffset = numberInfo.errorOffset;
+					}
+					throw ParsingException("Invalid JSON number", line, pos + errorOffset);
 				}
-				return false;
 			}
+
+			outValue = parsedNumber;
+			pos += length;
+			return true;
+		}
+
+		// Any non-numeric value is a type mismatch, not a malformed number.
+		// A leading '+' is still treated as a malformed number (JSON does not allow it).
+		if (!IsJsonDigit(firstChar) && firstChar != '-' && firstChar != '+')
+		{
 			HandleMismatchedTypesPolicy<TFormat>(inputData, pos, line, serializationOptions.mismatchedTypesPolicy);
 			return false;
 		}
-		throw ParsingException("No more values to read", line, pos);
+
+		// Overflow, or a value that cannot be converted (e.g. a negative value into an unsigned type).
+		// Re-scan the token to tell these cases apart and to know how much to skip.
+		JsonNumberInfo numberInfo;
+		if (ScanJsonNumber(inputData.substr(pos), true, numberInfo) != JsonNumberScanResult::Valid)
+		{
+			throw ParsingException("Invalid JSON number", line, pos + numberInfo.errorOffset);
+		}
+
+		if (rc.ec == std::errc::result_out_of_range)
+		{
+			if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+			{
+				throw SerializationException(SerializationErrorCode::Overflow, "The target field range is insufficient for the value being loaded");
+			}
+			pos += numberInfo.length;
+			return false;
+		}
+
+		// A valid JSON number that cannot be represented by the target type is a type mismatch.
+		HandleMismatchedTypesPolicy<TFormat>(inputData, pos, line, serializationOptions.mismatchedTypesPolicy);
+		return false;
 	}
 
 #if (BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0)
 	template <ArchiveType TFormat, typename T, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
 	bool ReadNumber(std::string_view inputData, size_t& pos, T& outValue, size_t& line, const SerializationOptions& serializationOptions)
 	{
-		if (SkipWhitespaceAndPeek<TFormat>(inputData, pos, line))
+		const char firstChar = SkipWhitespaceAndPeek<TFormat>(inputData, pos, line);
+		if (firstChar)
 		{
-			// Copy to temporary buffer for prepare null-terminated c-string
-			constexpr size_t maxBufSize = MaxNumberLength;
-			const size_t remainingSize = inputData.size() - pos;
-			char buf[maxBufSize];
+			// Any non-numeric value is a type mismatch, not a malformed number.
+			// A leading '+' is still treated as a malformed number (JSON does not allow it).
+			if (!IsJsonDigit(firstChar) && firstChar != '-' && firstChar != '+')
+			{
+				HandleMismatchedTypesPolicy<TFormat>(inputData, pos, line, serializationOptions.mismatchedTypesPolicy);
+				return false;
+			}
 
-			const size_t copySize = (remainingSize < maxBufSize - 1) ? remainingSize : maxBufSize - 1;
-			std::memcpy(buf, inputData.data() + pos, copySize);
-			buf[copySize] = '\0';
+			JsonNumberInfo numberInfo;
+			if (ScanJsonNumber(inputData.substr(pos), true, numberInfo) != JsonNumberScanResult::Valid)
+			{
+				throw ParsingException("Invalid JSON number", line, pos + numberInfo.errorOffset);
+			}
+
+			constexpr size_t maxBufSize = MaxNumberLength;
+			if (numberInfo.length >= maxBufSize)
+			{
+				if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::Overflow, "The target field range is insufficient for the value being loaded");
+				}
+				pos += numberInfo.length;
+				return false;
+			}
+
+			// Copy to temporary buffer for prepare null-terminated c-string
+			char buf[maxBufSize];
+			std::memcpy(buf, inputData.data() + pos, numberInfo.length);
+			buf[numberInfo.length] = '\0';
 
 			errno = 0;
 			char* endPos = nullptr;
-			T result = Convert::Detail::_stdWrappers::_fromStr<T>(buf, &endPos);
+			const T result = Convert::Detail::_stdWrappers::_fromStr<T>(buf, &endPos);
 			if (errno == ERANGE)
 			{
 				if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 				{
 					throw SerializationException(SerializationErrorCode::Overflow, "The target field range is insufficient for the value being loaded");
 				}
-				pos += endPos - buf;
+				pos += numberInfo.length;
 				return false;
 			}
 			if (endPos == buf)
 			{
-				HandleMismatchedTypesPolicy<TFormat>(inputData, pos, line, serializationOptions.mismatchedTypesPolicy);
-				return false;
+				throw ParsingException("Invalid JSON number", line, pos);
 			}
-			pos += endPos - buf;
+			pos += numberInfo.length;
 			outValue = result;
 			return true;
 		}
@@ -633,9 +718,9 @@ namespace BitSerializer::Json::Detail
 				}
 				break;
 
-			// Allow to read unsigned to boolean
+			// Allow to read 0/1 to boolean (as RapidJSON does), but not larger numbers or floats
 			case '1':
-				if (mPos + 1 == mInputData.size() || (mInputData[mPos + 1] != '.' && !std::isdigit(mInputData[mPos + 1])))
+				if (mPos + 1 == mInputData.size() || IsJsonNumberTerminator(mInputData[mPos + 1]))
 				{
 					value = true;
 					++mPos;
@@ -643,7 +728,7 @@ namespace BitSerializer::Json::Detail
 				}
 				break;
 			case '0':
-				if (mPos + 1 == mInputData.size() || (mInputData[mPos + 1] != '.' && !std::isdigit(mInputData[mPos + 1])))
+				if (mPos + 1 == mInputData.size() || IsJsonNumberTerminator(mInputData[mPos + 1]))
 				{
 					value = false;
 					++mPos;

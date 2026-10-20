@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdio>
 #include "testing_tools/auto_fixture.h"
+#include "testing_tools/gtest_asserts.h"
 #include "bitserializer/json_archive.h"
 #include "json_writer_fixture.h"
 
@@ -87,6 +88,27 @@ TYPED_TEST(JsonWriterTest, WriteDouble)
 {
 	this->mJsonWriter->WriteValue(-0.0625);
 	EXPECT_EQ("-0.0625", this->TakeResult());
+}
+
+TYPED_TEST(JsonWriterTest, WriteNonFiniteNumberShouldThrow)
+{
+	const auto expectOutOfRange = [this](auto value)
+	{
+		const BitSerializer::SerializationException ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+			this->mJsonWriter->WriteValue(value);
+		});
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::OutOfRange, ex.GetErrorCode());
+	};
+
+	expectOutOfRange(std::numeric_limits<float>::infinity());
+	expectOutOfRange(-std::numeric_limits<float>::infinity());
+	expectOutOfRange(std::numeric_limits<float>::quiet_NaN());
+	expectOutOfRange(std::numeric_limits<double>::infinity());
+	expectOutOfRange(-std::numeric_limits<double>::infinity());
+	expectOutOfRange(std::numeric_limits<double>::quiet_NaN());
+	expectOutOfRange(std::numeric_limits<long double>::infinity());
+	expectOutOfRange(-std::numeric_limits<long double>::infinity());
+	expectOutOfRange(std::numeric_limits<long double>::quiet_NaN());
 }
 
 //-----------------------------------------------------------------------------

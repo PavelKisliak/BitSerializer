@@ -352,7 +352,7 @@ namespace BitSerializer
 			/**
 			 * @brief Serializes a timestamp value at the current array position.
 			 */
-			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
+			template <typename T, std::enable_if_t<(sizeof(T) > 0) && TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
 			bool SerializeValue(T& value)
 			{
 				if (TestIoDataPtr<TConfig> ioData = LoadNextItem())
@@ -526,7 +526,7 @@ namespace BitSerializer
 			/**
 			 * @brief Serializes a timestamp value associated with the given key.
 			 */
-			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
+			template <typename T, std::enable_if_t<(sizeof(T) > 0) && TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
 			bool SerializeValue(const key_type& key, T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)
@@ -678,7 +678,7 @@ namespace BitSerializer
 			/**
 			 * @brief Serializes a timestamp value at the root level.
 			 */
-			template <typename T, std::enable_if_t<TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
+			template <typename T, std::enable_if_t<(sizeof(T) > 0) && TConfig::has_timestamp && std::is_same_v<T, BinTimestamp>, int> = 0>
 			bool SerializeValue(T& value)
 			{
 				if constexpr (TMode == SerializeMode::Load)

@@ -27,6 +27,9 @@ message(STATUS "[Option] BUILD_CSV_ARCHIVE: ${BUILD_CSV_ARCHIVE}")
 option(BUILD_MSGPACK_ARCHIVE "Build MsgPack archive" OFF)
 message(STATUS "[Option] BUILD_MSGPACK_ARCHIVE: ${BUILD_MSGPACK_ARCHIVE}")
 
+option(BUILD_JSON_ARCHIVE "Build JSON archive" OFF)
+message(STATUS "[Option] BUILD_JSON_ARCHIVE: ${BUILD_JSON_ARCHIVE}")
+
 # Unused parameters (keep them only for avoid warnings when use the same set of parameters as for the main project)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_TESTS "Build tests" OFF)
@@ -73,6 +76,10 @@ set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)
 
 # Reuse integration tests as acceptance tests
 add_subdirectory(../integration_tests/convert_api_tests ${CMAKE_CURRENT_BINARY_DIR}/convert_api_tests)
+
+if(BUILD_JSON_ARCHIVE)
+    add_subdirectory(../integration_tests/json_archive_tests ${CMAKE_CURRENT_BINARY_DIR}/json_archive_tests)
+endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
     add_subdirectory(../integration_tests/rapidjson_archive_tests ${CMAKE_CURRENT_BINARY_DIR}/rapidjson_archive_tests)

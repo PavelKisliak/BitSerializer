@@ -338,6 +338,10 @@ if(BUILD_JSON_ARCHIVE)
         PROPERTIES
             OUTPUT_NAME "bitserializer-json"
     )
+
+    target_link_libraries(${JSON_ARCHIVE_NAME} INTERFACE
+        ${BITSERIALIZER_NAMESPACE}::${BITSERIALIZER_CORE_NAME}
+    )
 endif()
 
 #################################################################################
@@ -410,6 +414,11 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE)
+
+if(BUILD_JSON_ARCHIVE)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/json_archive.h
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bitserializer)
+endif()
 
 if(BUILD_RAPIDJSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/rapidjson_archive.h

@@ -102,6 +102,18 @@ inline void GTestExpectEq(const double& expected, const double& actual)
 	}
 }
 
+inline void GTestExpectEq(const long double& expected, const long double& actual)
+{
+	if (std::isnan(expected))
+	{
+		EXPECT_TRUE(std::isnan(actual));
+	}
+	else
+	{
+		EXPECT_EQ(expected, actual);
+	}
+}
+
 inline void GTestExpectEq(const std::nullptr_t&, const std::nullptr_t&)
 {
 	// Ignore comparing nullptr types (gtest fails such comparison)

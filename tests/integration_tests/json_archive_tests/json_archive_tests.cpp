@@ -100,15 +100,33 @@ TEST(JsonArchive, SaveNonFiniteNumberShouldThrow)
 		EXPECT_EQ(BitSerializer::SerializationErrorCode::OutOfRange, ex.GetErrorCode());
 	};
 
-	expectOutOfRange(std::numeric_limits<float>::infinity());
-	expectOutOfRange(-std::numeric_limits<float>::infinity());
-	expectOutOfRange(std::numeric_limits<float>::quiet_NaN());
-	expectOutOfRange(std::numeric_limits<double>::infinity());
-	expectOutOfRange(-std::numeric_limits<double>::infinity());
-	expectOutOfRange(std::numeric_limits<double>::quiet_NaN());
-	expectOutOfRange(std::numeric_limits<long double>::infinity());
-	expectOutOfRange(-std::numeric_limits<long double>::infinity());
-	expectOutOfRange(std::numeric_limits<long double>::quiet_NaN());
+	if constexpr (std::numeric_limits<float>::has_infinity)
+	{
+		expectOutOfRange(std::numeric_limits<float>::infinity());
+		expectOutOfRange(-std::numeric_limits<float>::infinity());
+	}
+	if constexpr (std::numeric_limits<float>::has_quiet_NaN)
+	{
+		expectOutOfRange(std::numeric_limits<float>::quiet_NaN());
+	}
+	if constexpr (std::numeric_limits<double>::has_infinity)
+	{
+		expectOutOfRange(std::numeric_limits<double>::infinity());
+		expectOutOfRange(-std::numeric_limits<double>::infinity());
+	}
+	if constexpr (std::numeric_limits<double>::has_quiet_NaN)
+	{
+		expectOutOfRange(std::numeric_limits<double>::quiet_NaN());
+	}
+	if constexpr (std::numeric_limits<long double>::has_infinity)
+	{
+		expectOutOfRange(std::numeric_limits<long double>::infinity());
+		expectOutOfRange(-std::numeric_limits<long double>::infinity());
+	}
+	if constexpr (std::numeric_limits<long double>::has_quiet_NaN)
+	{
+		expectOutOfRange(std::numeric_limits<long double>::quiet_NaN());
+	}
 }
 
 TEST(JsonArchive, ShouldAllowToLoadBooleanFromInteger)

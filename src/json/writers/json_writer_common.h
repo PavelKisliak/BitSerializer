@@ -3,12 +3,38 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cmath>
+#include <limits>
 #include <string>
 #include <string_view>
 #include "common/simd/scan.h"
 
 namespace BitSerializer::Json::Detail
 {
+	/**
+	 * @brief Returns `true` for NaN and positive/negative infinity.
+	 *
+	 * Uses comparisons for infinity instead of `std::isfinite()` because Valgrind 3.18
+	 * misclassifies `long double` infinity on x87.
+	 */
+	template <typename T>
+	[[nodiscard]] bool IsNonFinite(T value) noexcept
+	{
+		if constexpr (std::numeric_limits<T>::has_quiet_NaN)
+		{
+			if (std::isnan(value)) {
+				return true;
+			}
+		}
+		if constexpr (std::numeric_limits<T>::has_infinity)
+		{
+			if (value == std::numeric_limits<T>::infinity() || value == -std::numeric_limits<T>::infinity()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @brief Returns the index of the first byte in `source` at or after `pos` that must be escaped inside
 	 * a JSON string, i.e. `"`, `\` or a control byte below 0x20, or `std::string_view::npos` if there is none.

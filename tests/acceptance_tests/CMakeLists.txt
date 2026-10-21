@@ -57,7 +57,32 @@ endif()
 #################################################################################
 # Find testing library
 #################################################################################
-find_package(bitserializer CONFIG REQUIRED)
+# Request only enabled archives so their optional dependencies are discovered.
+set(_bitserializer_components)
+if(BUILD_JSON_ARCHIVE)
+    list(APPEND _bitserializer_components json)
+endif()
+if(BUILD_CSV_ARCHIVE)
+    list(APPEND _bitserializer_components csv)
+endif()
+if(BUILD_MSGPACK_ARCHIVE)
+    list(APPEND _bitserializer_components msgpack)
+endif()
+if(BUILD_RAPIDJSON_ARCHIVE)
+    list(APPEND _bitserializer_components rapidjson)
+endif()
+if(BUILD_PUGIXML_ARCHIVE)
+    list(APPEND _bitserializer_components pugixml)
+endif()
+if(BUILD_RAPIDYAML_ARCHIVE)
+    list(APPEND _bitserializer_components rapidyaml)
+endif()
+
+if(_bitserializer_components)
+    find_package(bitserializer CONFIG REQUIRED COMPONENTS ${_bitserializer_components})
+else()
+    find_package(bitserializer CONFIG REQUIRED)
+endif()
 
 #################################################################################
 # Testing tools

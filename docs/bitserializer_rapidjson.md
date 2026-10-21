@@ -14,7 +14,7 @@ This archive is based on the third-party [RapidJson](https://github.com/Tencent/
 #include "bitserializer/rapidjson_archive.h"
 ```
 ```cmake
-find_package(bitserializer CONFIG REQUIRED)
+find_package(bitserializer CONFIG REQUIRED COMPONENTS rapidjson)
 target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 ```
 

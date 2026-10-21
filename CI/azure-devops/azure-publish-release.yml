@@ -57,15 +57,6 @@ stages:
 
       - template: templates/windows-msvc-publish-release-template.yml
         parameters:
-          name: 'Windows_VS2022_x86_dynamic'
-          image: 'windows-2022'
-          platform: 'x86'
-          vcpkgTriplet: "x86-windows"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
-          packageSuffix: '_x86_windows_msvc17_dynamic'
-
-      - template: templates/windows-msvc-publish-release-template.yml
-        parameters:
           name: 'Windows_VS2022_x64_dynamic'
           image: 'windows-2022'
           platform: 'x64'
@@ -75,37 +66,29 @@ stages:
 
       - template: templates/unix-publish-release-template.yml
         parameters:
-          name: 'Ubuntu_GCC9_static'
-          image: 'ubuntu-22.04'
-          installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
+          name: 'Linux_x64_GCC8_glibc228_static'
+          image: 'ubuntu-latest'
+          container: 'almalinux:8'
+          containerOptions: '--user root'
+          installToolsCmd: 'bash $(Build.SourcesDirectory)/CI/azure-devops/scripts/install-almalinux8-build-tools.sh'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
-          packageSuffix: '_x64_ubuntu_gcc9_static'
-
-      - template: templates/unix-publish-release-template.yml
-        parameters:
-          name: 'MacOS14_Clang14_static'
-          image: 'macOS-latest'
-          installToolsCmd: 'brew install ninja'
-          vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
-          packageSuffix: '_x64_macos_clang14_static'
+          packageSuffix: '_x64_linux_glibc228_gcc8_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
-          name: 'Ubuntu_GCC13_Arm32_static'
-          image: 'ubuntu-22.04'
-          installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
-          compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
-          vcpkgTriplet: "bitserializer-arm32-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm32-linux-toolchain.cmake'
-          packageSuffix: '_arm32_linux_gcc13_static'
+          name: 'MacOS15_x64_static'
+          image: 'macOS-15'
+          installToolsCmd: 'brew install ninja'
+          vcpkgTriplet: "x64-osx"
+          cmakeGenArgs: '$(CmakeGenOptions)'
+          packageSuffix: '_x64_macos15_clang_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:
-          name: 'Ubuntu_GCC13_Arm64_static'
+          name: 'Linux_ARM64_GCC13_static'
           image: 'ubuntu-22.04'
-          installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
+          installToolsCmd: 'sudo apt-get update && sudo apt-get install -y ninja-build qemu-user'
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
@@ -113,9 +96,9 @@ stages:
 
       - template: templates/unix-publish-release-template.yml
         parameters:
-          name: 'Ubuntu_GCC13_Arm64be_static'
+          name: 'Linux_ARM64BE_GCC13_static'
           image: 'ubuntu-22.04'
-          installToolsCmd: 'sudo apt-get update && sudo apt-get install ninja-build qemu-user'
+          installToolsCmd: 'sudo apt-get update && sudo apt-get install -y ninja-build qemu-user'
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'

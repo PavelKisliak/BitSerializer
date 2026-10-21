@@ -14,7 +14,7 @@ This archive is based on the third-party [RapidYAML](https://github.com/biojppm/
 #include "bitserializer/rapidyaml_archive.h"
 ```
 ```cmake
-find_package(bitserializer CONFIG REQUIRED)
+find_package(bitserializer CONFIG REQUIRED COMPONENTS rapidyaml)
 target_link_libraries(main PRIVATE BitSerializer::rapidyaml-archive)
 ```
 

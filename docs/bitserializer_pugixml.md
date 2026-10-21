@@ -14,7 +14,7 @@ This archive is based on the third-party [PugiXml](https://github.com/zeux/pugix
 #include "bitserializer/pugixml_archive.h"
 ```
 ```cmake
-find_package(bitserializer CONFIG REQUIRED)
+find_package(bitserializer CONFIG REQUIRED COMPONENTS pugixml)
 target_link_libraries(main PRIVATE BitSerializer::pugixml-archive)
 ```
 

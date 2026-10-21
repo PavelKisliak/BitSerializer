@@ -149,6 +149,17 @@ else()
     configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
 endif()
 
+# Keep compiler-generated debug symbols for the prebuilt Debug packages.
+if(MSVC)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/pdb")
+
+    function(bitserializer_set_compile_pdb inTarget inPdbName)
+        set_target_properties(${inTarget} PROPERTIES
+            COMPILE_PDB_NAME "${inPdbName}"
+            COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb")
+    endfunction()
+endif()
+
 # Private implementation of common code (object files)
 add_library(common_impl OBJECT
     "src/common/binary_stream_reader.h"
@@ -159,6 +170,9 @@ add_library(common_impl OBJECT
     "src/common/encoded_stream_writer.h"
     "src/common/encoded_stream_writer.cpp"
 )
+if(MSVC)
+    bitserializer_set_compile_pdb(common_impl "bitserializer-common")
+endif()
 
 # BitSerializer core
 set(BITSERIALIZER_CORE_NAME "core")
@@ -245,6 +259,9 @@ if(BUILD_CSV_ARCHIVE)
         "src/csv/csv_readers.h" "src/csv/csv_readers.cpp"
         "src/csv/csv_writers.h" "src/csv/csv_writers.cpp"
     )
+    if(MSVC)
+        bitserializer_set_compile_pdb(csv_impl "bitserializer-csv")
+    endif()
     target_include_directories(csv_impl PRIVATE "src/")
     if(BUILD_SHARED_LIBS)
         target_compile_definitions(csv_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
@@ -254,6 +271,9 @@ if(BUILD_CSV_ARCHIVE)
     set(CSV_ARCHIVE_NAME "csv-archive")
     if(BUILD_SHARED_LIBS)
         add_library(${CSV_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:csv_impl> $<TARGET_OBJECTS:common_impl>)
+        if(MSVC)
+            set_target_properties(${CSV_ARCHIVE_NAME} PROPERTIES PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb")
+        endif()
     else()
         add_library(${CSV_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:csv_impl> $<TARGET_OBJECTS:common_impl>)
     endif()
@@ -278,6 +298,9 @@ if(BUILD_MSGPACK_ARCHIVE)
         "src/msgpack/msgpack_readers.h" "src/msgpack/msgpack_readers.cpp"
         "src/msgpack/msgpack_writers.h" "src/msgpack/msgpack_writers.cpp"
     )
+    if(MSVC)
+        bitserializer_set_compile_pdb(msgpack_impl "bitserializer-msgpack")
+    endif()
     target_include_directories(msgpack_impl PRIVATE "src/")
     if(BUILD_SHARED_LIBS)
         target_compile_definitions(msgpack_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
@@ -287,6 +310,9 @@ if(BUILD_MSGPACK_ARCHIVE)
     set(MSGPACK_ARCHIVE_NAME "msgpack-archive")
     if(BUILD_SHARED_LIBS)
         add_library(${MSGPACK_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:msgpack_impl> $<TARGET_OBJECTS:common_impl>)
+        if(MSVC)
+            set_target_properties(${MSGPACK_ARCHIVE_NAME} PROPERTIES PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb")
+        endif()
     else()
         add_library(${MSGPACK_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:msgpack_impl> $<TARGET_OBJECTS:common_impl>)
     endif()
@@ -319,6 +345,9 @@ if(BUILD_JSON_ARCHIVE)
         "src/json/writers/json_string_writers.h" "src/json/writers/json_string_writers.cpp"
         "src/json/writers/json_stream_writers.h" "src/json/writers/json_stream_writers.cpp"
     )
+    if(MSVC)
+        bitserializer_set_compile_pdb(json_impl "bitserializer-json")
+    endif()
     target_include_directories(json_impl PRIVATE "src/")
     if(BUILD_SHARED_LIBS)
         target_compile_definitions(json_impl PRIVATE BITSERIALIZER_BUILDING_DLL)
@@ -328,6 +357,9 @@ if(BUILD_JSON_ARCHIVE)
     set(JSON_ARCHIVE_NAME "json-archive")
     if(BUILD_SHARED_LIBS)
         add_library(${JSON_ARCHIVE_NAME} SHARED $<TARGET_OBJECTS:json_impl> $<TARGET_OBJECTS:common_impl>)
+        if(MSVC)
+            set_target_properties(${JSON_ARCHIVE_NAME} PROPERTIES PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb")
+        endif()
     else()
         add_library(${JSON_ARCHIVE_NAME} STATIC $<TARGET_OBJECTS:json_impl> $<TARGET_OBJECTS:common_impl>)
     endif()
@@ -392,6 +424,18 @@ install(TARGETS ${BITSERIALIZER_TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+if(MSVC)
+    if(BUILD_SHARED_LIBS)
+        set(_bitserializer_pdb_install_dir ${CMAKE_INSTALL_BINDIR})
+    else()
+        set(_bitserializer_pdb_install_dir ${CMAKE_INSTALL_LIBDIR})
+    endif()
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/pdb/"
+        DESTINATION ${_bitserializer_pdb_install_dir}
+        CONFIGURATIONS Debug
+        FILES_MATCHING PATTERN "*.pdb")
+endif()
 
 write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
                                  VERSION ${PROJECT_VERSION}

@@ -259,7 +259,9 @@ You will also need to install dev-packages of base libraries (CSV and MsgPack ar
 
 #### How to use with CMake
 ```cmake
-find_package(bitserializer CONFIG REQUIRED)
+# Built-in archives require no components. Third-party archives are enabled explicitly.
+find_package(bitserializer CONFIG REQUIRED
+    COMPONENTS rapidjson pugixml rapidyaml)
 # Link only archives which you need
 target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::rapidjson-archive
@@ -303,7 +305,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 The built-in archives (JSON, CSV, MsgPack) require no third-party libraries and are the simplest option for `FetchContent`. Archives based on third-party libraries (`RapidJSON`, `PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
 
 > [!NOTE]
-> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is already available on `master`, but not yet published in a release — until then, set `GIT_TAG master` to use it.
+> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available on `master`; if it is not yet available via your package manager, use `GIT_TAG master` or a prebuilt package.
 
 > [!TIP]
 > Add `GIT_SHALLOW TRUE` to `FetchContent_Declare()` for a faster clone when `GIT_TAG` is a tag or branch (it is ignored for commit hashes):
@@ -322,12 +324,16 @@ The built-in archives (JSON, CSV, MsgPack) require no third-party libraries and 
 > ```
 > The downloaded sources are cached in `${CMAKE_BINARY_DIR}/_deps` and reused on subsequent configures.
 
-If you prefer not to build the library at all, the [GitHub Releases](https://github.com/PavelKisliak/BitSerializer/releases) page provides prebuilt packages for some platforms and compilers. Each package contains headers, the `share/bitserializer` CMake config, and static libraries for all archives, but **not** their third-party dependencies (RapidJSON, PugiXml, RapidYAML) — you still need to install those yourself if you use the corresponding archives. Unpack the package and point `find_package()` at its `share/bitserializer` directory:
+If you prefer not to build the library at all, the [GitHub Releases](https://github.com/PavelKisliak/BitSerializer/releases) page provides prebuilt packages for some platforms and compilers. Each package contains headers, the `share/bitserializer` CMake config, and libraries for all archives, but **not** their third-party dependencies (RapidJSON, PugiXml, RapidYAML) — you still need to install those yourself if you use the corresponding archives. Unpack the package and point `find_package()` at its `share/bitserializer` directory:
 ```cmake
+# By default only the core package is required.
+# Add COMPONENTS rapidjson pugixml rapidyaml (or any subset) for third-party archives.
 find_package(bitserializer CONFIG REQUIRED
     PATHS ${CMAKE_CURRENT_SOURCE_DIR}/libs/bitserializer/share/bitserializer
     NO_DEFAULT_PATH)
 ```
+Each package contains both Debug and Release libraries; Windows packages also include PDB files for Debug builds. Debug libraries require the matching Debug runtime/toolset.
+
 > [!IMPORTANT]
 > Prebuilt packages are tied to a specific compiler, platform, C++ standard, linkage, and (on Windows) runtime library. Make sure they match your application exactly, or build from source instead.
 

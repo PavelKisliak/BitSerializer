@@ -3,6 +3,10 @@ parameters:
   name: ''
 # [Required] Build agent name
   image: ''
+# [Optional] Container image (for building against an older glibc)
+  container: ''
+# [Optional] Container startup options
+  containerOptions: '--user root'
 # [Required] VCPKG triplet
   vcpkgTriplet: ''
 # [Optional] Install additional tools command line
@@ -11,8 +15,6 @@ parameters:
   compilerUrl: ''
 # [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
-# [Optional] Enable run tests
-  enableRunTests: true
 # [Optional] Package suffix
   packageSuffix: ''
 
@@ -20,6 +22,10 @@ jobs:
 - job: ${{ parameters.name }}
   pool:
     vmImage: ${{ parameters.image }}
+  ${{ if ne(parameters.container, '') }}:
+    container:
+      image: ${{ parameters.container }}
+      options: ${{ parameters.containerOptions }}
   variables:
     vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
     installDir: '$(Build.ArtifactStagingDirectory)/install/bitserializer-$(Build.SourceBranchName)'
@@ -49,6 +55,7 @@ jobs:
     condition: ne('${{ parameters.compilerUrl }}', '')
 
   - script: |
+      set -e
       echo ------------------------------------------------------------------------------
       echo -- Clone latest VCPKG
       echo ------------------------------------------------------------------------------
@@ -60,19 +67,21 @@ jobs:
       ${{ variables.vcpkgDir }}/bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
 
-  - task: CMake@1
-    inputs:
-      workingDirectory: 'build-debug'
-      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
-    displayName: 'CMake - generate debug'
-
-  - task: CMake@1
-    inputs:
-      workingDirectory: 'build-release'
-      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
-    displayName: 'CMake - generate release'
+  - script: |
+      set -e
+      echo ------------------------------------------------------------------------------
+      echo -- CMake: generate [Debug]
+      echo ------------------------------------------------------------------------------
+      cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      echo
+      echo ------------------------------------------------------------------------------
+      echo -- CMake: generate [Release]
+      echo ------------------------------------------------------------------------------
+      cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+    displayName: 'CMake - generate'
 
   - script: |
+      set -e
       echo ------------------------------------------------------------------------------
       echo -- Build and install library [Debug]
       echo ------------------------------------------------------------------------------
@@ -86,45 +95,50 @@ jobs:
 
   - script: |
       set -e
+      cmake -S "$(Build.SourcesDirectory)/tests/acceptance_tests/package_config_tests" -B "$(Build.ArtifactStagingDirectory)/package-check" -DCMAKE_PREFIX_PATH="${{ variables.installDir }}"
+    displayName: 'Verify default package components'
+
+  - script: |
+      set -e
       echo ------------------------------------------------------------------------------
-      echo -- CMake: generate acceptance tests [debug]
+      echo -- CMake: generate acceptance tests [Debug]
       echo ------------------------------------------------------------------------------
       cd ${{ variables.acceptanceTestsDir }}
       cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       echo
       echo ------------------------------------------------------------------------------
-      echo -- CMake: build acceptance tests [debug]
+      echo -- CMake: build acceptance tests [Debug]
       echo ------------------------------------------------------------------------------
       ninja -C build-debug
     displayName: 'Build acceptance tests [Debug]'
-    condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
 
   - script: |
-      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-debug --output-on-failure -j$(nproc)
+      set -e
+      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-debug --output-on-failure -j2
     displayName: 'Run acceptance tests [Debug]'
-    condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
-    
+
   - script: |
       set -e
       echo ------------------------------------------------------------------------------
-      echo -- CMake: generate acceptance tests [release]
+      echo -- CMake: generate acceptance tests [Release]
       echo ------------------------------------------------------------------------------
       cd ${{ variables.acceptanceTestsDir }}
       cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       echo
       echo ------------------------------------------------------------------------------
-      echo -- CMake: build acceptance tests [release]
+      echo -- CMake: build acceptance tests [Release]
       echo ------------------------------------------------------------------------------
       ninja -C build-release
     displayName: 'Build acceptance tests [Release]'
-    condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
 
   - script: |
-      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-release --output-on-failure -j$(nproc)
+      set -e
+      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-release --output-on-failure -j2
     displayName: 'Run acceptance tests [Release]'
-    condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
 
   - task: ArchiveFiles@2
+    ${{ if ne(parameters.container, '') }}:
+      target: host
     displayName: Zip package
     inputs:
       rootFolderOrFile: '${{ variables.installDir }}'
@@ -134,6 +148,8 @@ jobs:
       replaceExistingArchive: true
 
   - task: GitHubRelease@1
+    ${{ if ne(parameters.container, '') }}:
+      target: host
     displayName: 'Publish package to GitHub'
     inputs:
       gitHubConnection: 'PavelKisliak'

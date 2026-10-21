@@ -9,8 +9,6 @@ parameters:
   vcpkgTriplet: ''
 # [Optional] CMake additional arguments for CMake generate mode
   cmakeGenArgs: ''
-# [Optional] Enable run tests
-  enableRunTests: true
 # [Optional] Package suffix
   packageSuffix: ''
 
@@ -48,17 +46,16 @@ jobs:
       if not "%VSINSTALLDIR:~-1%"=="\" set "VSINSTALLDIR=%VSINSTALLDIR%\"
       if not exist "%VSINSTALLDIR%" (
         echo Visual Studio installation not found!
-        exit 1
+        exit /b 1
       )
       echo.
       echo ------------------------------------------------------------------------------
       echo -- Setting up ${{ parameters.platform }} build environment...
       echo ------------------------------------------------------------------------------
-      echo "Setting up ${{ parameters.platform }} build environment..."
       call "%VSINSTALLDIR%VC\Auxiliary\Build\vcvarsall.bat" ${{ parameters.platform }}
       if %ERRORLEVEL% neq 0 (
         echo "Failed to configure MSVC environment. Exiting..."
-        exit 1
+        exit /b 1
       )
       echo MSVC environment configured successfully.
       echo.
@@ -68,7 +65,7 @@ jobs:
       cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (
         echo CMake configuration failed. Exiting...
-        exit 1
+        exit /b 1
       )
       echo.
       echo ------------------------------------------------------------------------------
@@ -77,7 +74,7 @@ jobs:
       cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DCMAKE_INSTALL_PREFIX:PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (
         echo CMake configuration failed. Exiting...
-        exit 1
+        exit /b 1
       )
       echo.
       echo ------------------------------------------------------------------------------
@@ -86,7 +83,7 @@ jobs:
       ninja install -C build-debug
       if %ERRORLEVEL% neq 0 (
         echo Install failed. Exiting...
-        exit 1
+        exit /b 1
       )
       echo.
       echo ------------------------------------------------------------------------------
@@ -95,7 +92,7 @@ jobs:
       ninja install -C build-release
       if %ERRORLEVEL% neq 0 (
         echo Install failed. Exiting...
-        exit 1
+        exit /b 1
       )
       echo.
       echo ------------------------------------------------------------------------------
@@ -103,21 +100,42 @@ jobs:
       echo ------------------------------------------------------------------------------
       cd ${{ variables.acceptanceTestsDir }}
       cmake -GNinja -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      if %ERRORLEVEL% neq 0 (
+        echo CMake configuration of acceptance tests failed. Exiting...
+        exit /b 1
+      )
       ninja -C build-debug
+      if %ERRORLEVEL% neq 0 (
+        echo Build of acceptance tests failed. Exiting...
+        exit /b 1
+      )
       echo.
       echo ------------------------------------------------------------------------------
       echo -- Build acceptance tests [Release]
       echo ------------------------------------------------------------------------------
       cmake -GNinja -B build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }}
+      if %ERRORLEVEL% neq 0 (
+        echo CMake configuration of acceptance tests failed. Exiting...
+        exit /b 1
+      )
       ninja -C build-release
-    displayName: 'Build and install [${{ parameters.platform }}]'
+      if %ERRORLEVEL% neq 0 (
+        echo Build of acceptance tests failed. Exiting...
+        exit /b 1
+      )
+    displayName: 'Build, install and build acceptance tests [${{ parameters.platform }}]'
 
   - script: |
-      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-debug
+      cmake -S $(Build.SourcesDirectory)/tests/acceptance_tests/package_config_tests -B $(Build.ArtifactStagingDirectory)/package-check -DCMAKE_PREFIX_PATH=${{ variables.installDir }}
+      if %ERRORLEVEL% neq 0 exit /b 1
+    displayName: 'Verify default package components'
+
+  - script: |
+      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-debug --output-on-failure
     displayName: 'Run acceptance tests [Debug]'
 
   - script: |
-      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-release
+      ctest --test-dir ${{ variables.acceptanceTestsDir }}/build-release --output-on-failure
     displayName: 'Run acceptance tests [Release]'
 
   - task: ArchiveFiles@2

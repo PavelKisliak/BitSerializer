@@ -1,7 +1,7 @@
 ### [BitSerializer](../README.md) / JSON (built-in)
 
-> [!WARNING]
-> The built-in JSON archive is available starting from the next release. The `json-archive` VCPKG feature and `with_json` Conan option are not yet published in package managers. For now, use CMake directly (see below).
+> [!NOTE]
+> The built-in JSON archive is included in prebuilt packages. The `json-archive` VCPKG feature and `with_json` Conan option may not be available in package managers yet; if they are not, use CMake directly (see below).
 
 Supported load/save JSON from:
 

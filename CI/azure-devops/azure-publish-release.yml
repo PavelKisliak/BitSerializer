@@ -77,12 +77,12 @@ stages:
 
       - template: templates/unix-publish-release-template.yml
         parameters:
-          name: 'MacOS15_x64_static'
+          name: 'MacOS_x64_static'
           image: 'macOS-15'
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx"
-          cmakeGenArgs: '$(CmakeGenOptions)'
-          packageSuffix: '_x64_macos15_clang_static'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DVCPKG_OVERLAY_TRIPLETS=$(Build.SourcesDirectory)/cmake/vcpkg/triplets'
+          packageSuffix: '_x64_macos1015_clang_static'
 
       - template: templates/unix-publish-release-template.yml
         parameters:

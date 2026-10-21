@@ -34,6 +34,18 @@ jobs:
 
   steps:
   - script: |
+      set -e
+      container_id=$(docker ps --filter "ancestor=${{ parameters.container }}" --format "{{.ID}}" | head -n 1)
+      if [ -z "$container_id" ]; then
+        echo "Container for image '${{ parameters.container }}' was not found." >&2
+        exit 1
+      fi
+      docker exec "$container_id" dnf install -y sudo
+    displayName: 'Install sudo in container'
+    condition: ne('${{ parameters.container }}', '')
+    target: host
+
+  - script: |
       echo ------------------------------------------------------------------------------
       echo -- Install build tools
       echo ------------------------------------------------------------------------------

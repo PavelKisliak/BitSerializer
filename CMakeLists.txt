@@ -92,10 +92,13 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/include"
 )
 
+# Build position-independent code even for static libraries: Linux executables
+# are PIE by default and cannot link non-PIC static archives.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Configuration the linkage type of the library (shared or static)
 if(BUILD_SHARED_LIBS)
     set(BITSERIALIZER_LINK_TYPE "BITSERIALIZER_SHARED_LINK")
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 else()
     set(BITSERIALIZER_LINK_TYPE "BITSERIALIZER_STATIC_LINK")
 endif()
@@ -424,6 +427,9 @@ install(TARGETS ${BITSERIALIZER_TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(FILES "${PROJECT_SOURCE_DIR}/license.txt"
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME})
 
 if(MSVC)
     if(BUILD_SHARED_LIBS)

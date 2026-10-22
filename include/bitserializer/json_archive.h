@@ -9,6 +9,7 @@
 #include <string_view>
 #include <type_traits>
 #include "bitserializer/export.h"
+#include "bitserializer/common/text.h"
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/archive_key.h"
@@ -417,7 +418,7 @@ private:
 	 * already bound to this format.
 	 */
 	template <typename CharT, std::size_t N>
-	static constexpr bool IsRawKey(const CharT(&key)[N]) noexcept
+	static BITSERIALIZER_FORCEINLINE constexpr bool IsRawKey(const CharT(&key)[N]) noexcept
 	{
 		using UCharT = std::make_unsigned_t<std::remove_cv_t<CharT>>;
 		for (std::size_t i = 0; i < N - 1; ++i)
@@ -437,7 +438,7 @@ private:
 	 * scan is skipped by routing through `WriteRawKey()`.
 	 */
 	template <typename TKey>
-	void WriteFieldKey(TKey&& key)
+	BITSERIALIZER_FORCEINLINE void WriteFieldKey(TKey&& key)
 	{
 		if constexpr (BitSerializer::Detail::is_char_array_key_v<TKey>)
 		{
@@ -797,7 +798,7 @@ public:
 	template <typename TKey, typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, string_view_type>, int> = 0>
 	bool SerializeValue(TKey&& key, T& value)
 	{
-		if (FindValueByKey(Convert::ToStringView(key)))
+		if (FindValueByKey(std::forward<TKey>(key)))
 		{
 			++mIndex;
 			mCurrentKey = {};
@@ -812,7 +813,7 @@ public:
 		static_assert(IsRawPayloadCompatible(TFormat, FRaw),
 			"BitSerializer. A raw payload of the requested format cannot be loaded from the source format.");
 
-		if (FindValueByKey(Convert::ToStringView(key)))
+		if (FindValueByKey(std::forward<TKey>(key)))
 		{
 			++mIndex;
 			mCurrentKey = {};
@@ -824,7 +825,7 @@ public:
 	template <typename TKey>
 	[[nodiscard]] JsonReadArrayScope<TFormat, TReader> OpenArrayScope(TKey&& key, size_t)
 	{
-		if (FindValueByKey(Convert::ToStringView(key)))
+		if (FindValueByKey(std::forward<TKey>(key)))
 		{
 			if (mJsonReader->OpenArray())
 			{
@@ -838,7 +839,7 @@ public:
 	template <typename TKey>
 	[[nodiscard]] JsonReadObjectScope<TFormat, TReader> OpenObjectScope(TKey&& key, size_t)
 	{
-		if (FindValueByKey(Convert::ToStringView(key)))
+		if (FindValueByKey(std::forward<TKey>(key)))
 		{
 			if (mJsonReader->OpenObject())
 			{
@@ -865,11 +866,33 @@ private:
 		mJsonReader->ReadKey(mCurrentKey);
 	}
 
-	bool FindValueByKey(std::string_view key)
+	/**
+	 * @brief Compares the current key with an archive key, keeping string literals as arrays.
+	 *
+	 * A `char[N]` key is compared through the compile-time-sized overload, which avoids the runtime
+	 * length checks; any other key type is converted to `std::string_view` as before.
+	 */
+	template <typename TKey>
+	[[nodiscard]] static bool AreKeysEqual(std::string_view currentKey, TKey&& key) noexcept
+	{
+		using TKeyType = std::remove_reference_t<TKey>;
+		if constexpr (std::is_array_v<TKeyType> &&
+			std::is_same_v<std::remove_cv_t<std::remove_extent_t<TKeyType>>, char>)
+		{
+			return Text::Equal(currentKey, key);
+		}
+		else
+		{
+			return Text::Equal(currentKey, Convert::ToStringView(key));
+		}
+	}
+
+	template <typename TKey>
+	bool FindValueByKey(TKey&& key)
 	{
 		if (!mCurrentKey.empty())
 		{
-			if (mCurrentKey == key) {
+			if (AreKeysEqual(mCurrentKey, std::forward<TKey>(key))) {
 				return true;
 			}
 			SkipCurrentKeyValue();
@@ -892,8 +915,7 @@ private:
 			}
 
 			ReadKey();
-			// NOLINTNEXTLINE(readability-string-compare)
-			if (mCurrentKey.compare(key) == 0) {
+			if (AreKeysEqual(mCurrentKey, key)) {
 				return true;
 			}
 			SkipCurrentKeyValue();

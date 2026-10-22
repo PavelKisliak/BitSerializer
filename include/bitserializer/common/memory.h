@@ -1,8 +1,11 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <iterator>
 #include <type_traits>
 #if defined __has_include && __has_include(<version>)
@@ -243,5 +246,131 @@ namespace BitSerializer::Memory
 		{
 			return ReverseEndianIterator(std::move(it));
 		}
+	}
+
+	namespace Detail
+	{
+		/**
+		 * @brief Compares exactly `Count` bytes, with the count known at compile time.
+		 *
+		 * The recursion is fully unrolled by the compiler into a fixed sequence of integer loads, so
+		 * no runtime loop, length test or overlapping tail is needed. Every load stays inside the
+		 * `[data, data + Count)` range; the caller guarantees `Count` readable bytes on both sides.
+		 */
+		template <std::size_t Count>
+		[[nodiscard]] inline bool EqualBytesFixed(const char* lhs, const char* rhs) noexcept
+		{
+			if constexpr (Count >= 8)
+			{
+				std::uint64_t l, r;
+				std::memcpy(&l, lhs, 8);
+				std::memcpy(&r, rhs, 8);
+				if (l != r) {
+					return false;
+				}
+				return EqualBytesFixed<Count - 8>(lhs + 8, rhs + 8);
+			}
+			else if constexpr (Count >= 4)
+			{
+				std::uint32_t l, r;
+				std::memcpy(&l, lhs, 4);
+				std::memcpy(&r, rhs, 4);
+				if (l != r) {
+					return false;
+				}
+				return EqualBytesFixed<Count - 4>(lhs + 4, rhs + 4);
+			}
+			else if constexpr (Count >= 2)
+			{
+				std::uint16_t l, r;
+				std::memcpy(&l, lhs, 2);
+				std::memcpy(&r, rhs, 2);
+				if (l != r) {
+					return false;
+				}
+				return EqualBytesFixed<Count - 2>(lhs + 2, rhs + 2);
+			}
+			else if constexpr (Count == 1) {
+				return *lhs == *rhs;
+			}
+			else {
+				return true;
+			}
+		}
+	}
+
+	/**
+	 * @brief Compares exactly `Count` bytes, with the count known at compile time.
+	 *
+	 * Dispatches to `Detail::EqualBytesFixed`, which the compiler unrolls into a fixed sequence of
+	 * integer loads. Both buffers must contain at least `Count` readable bytes.
+	 */
+	template <std::size_t Count>
+	[[nodiscard]] inline bool EqualBytes(const void* lhs, const void* rhs) noexcept
+	{
+		return Detail::EqualBytesFixed<Count>(static_cast<const char*>(lhs), static_cast<const char*>(rhs));
+	}
+
+	/**
+	 * @brief Compares two byte ranges word-at-a-time, without going through `std::memcmp`.
+	 *
+	 * Cheaper than `std::memcmp` for the short ranges that dominate (keys are usually 8-32 bytes):
+	 * it avoids a library call and the per-call setup, comparing 8 bytes per step and finishing with
+	 * a single overlapping 8-byte load. The trailing load overlaps bytes already compared rather than
+	 * reading past the end, so no caller-provided padding is required.
+	 */
+	[[nodiscard]] inline bool EqualBytes(const void* lhs, const void* rhs, std::size_t count) noexcept
+	{
+		const char* l = static_cast<const char*>(lhs);
+		const char* r = static_cast<const char*>(rhs);
+
+		if (count > 7)
+		{
+			std::uint64_t words[2];
+			while (count > 8)
+			{
+				std::memcpy(words, l, 8);
+				std::memcpy(words + 1, r, 8);
+				if (words[0] != words[1]) {
+					return false;
+				}
+				count -= 8;
+				l += 8;
+				r += 8;
+			}
+			l -= 8 - count;
+			r -= 8 - count;
+			std::memcpy(words, l, 8);
+			std::memcpy(words + 1, r, 8);
+			return words[0] == words[1];
+		}
+
+		std::uint32_t word32[2];
+		if (count >= 4)
+		{
+			std::memcpy(word32, l, 4);
+			std::memcpy(word32 + 1, r, 4);
+			if (word32[0] != word32[1]) {
+				return false;
+			}
+			count -= 4;
+			l += 4;
+			r += 4;
+		}
+
+		std::uint16_t word16[2];
+		if (count >= 2)
+		{
+			std::memcpy(word16, l, 2);
+			std::memcpy(word16 + 1, r, 2);
+			if (word16[0] != word16[1]) {
+				return false;
+			}
+			count -= 2;
+			l += 2;
+			r += 2;
+		}
+
+		return count == 0 || *l == *r;
 	}
 }

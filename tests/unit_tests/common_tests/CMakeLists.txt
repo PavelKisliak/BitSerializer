@@ -7,6 +7,7 @@ find_package(GTest REQUIRED)
 add_executable(${PROJECT_NAME}
     binary_stream_reader_tests.cpp
     binary_stream_reader_fixture.h
+    memory_tests.cpp
     text_tests.cpp
     simd_scan_tests.cpp
     encoded_stream_reader_fixture.h

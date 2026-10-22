@@ -146,17 +146,8 @@ jobs:
       archiveFile: '${{ variables.archiveFilePath }}'
       replaceExistingArchive: true
 
-  - task: GitHubRelease@1
-    displayName: 'Publish package to GitHub'
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish package artifact'
     inputs:
-      gitHubConnection: 'PavelKisliak'
-      repositoryName: '$(Build.Repository.Name)'
-      action: 'edit'
-      isDraft: true
-      target: '$(Build.SourceVersion)'
-      tag: $(Build.SourceBranchName)
-      tagSource: 'userSpecifiedTag'
-      title: '$(Build.SourceBranchName)'
-      addChangeLog: false
-      assets: '${{ variables.archiveFilePath }}'
-      assetUploadMode: 'replace'
+      targetPath: '${{ variables.archiveFilePath }}'
+      artifact: '${{ parameters.name }}'

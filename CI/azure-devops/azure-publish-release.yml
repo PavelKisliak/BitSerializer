@@ -14,28 +14,8 @@ variables:
   readonly: true
 
 stages:
-  - stage: PrepareRelease
-    displayName: 'Prepare release'
-    jobs:
-    - job: PrepareRelease
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-      - task: GitHubRelease@1
-        displayName: 'Create GitHub release'
-        inputs:
-          gitHubConnection: 'PavelKisliak'
-          repositoryName: '$(Build.Repository.Name)'
-          action: 'create'
-          isDraft: true
-          target: '$(Build.SourceVersion)'
-          tag: $(Build.SourceBranchName)
-          tagSource: 'userSpecifiedTag'
-          title: '$(Build.SourceBranchName)'
-
-  - stage: BuildAndPublish
-    displayName: 'Build and publish release'
-    dependsOn: PrepareRelease
+  - stage: BuildPackages
+    displayName: 'Build packages'
     jobs:
       - template: templates/windows-msvc-publish-release-template.yml
         parameters:
@@ -103,3 +83,35 @@ stages:
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
           packageSuffix: '_arm64be_linux_gcc13_static'
+
+  - stage: PublishRelease
+    displayName: 'Publish release'
+    dependsOn: BuildPackages
+    condition: succeeded()
+    jobs:
+    - job: PublishRelease
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Download packages'
+        inputs:
+          buildType: 'current'
+          targetPath: '$(Pipeline.Workspace)/packages'
+
+      - task: GitHubRelease@1
+        displayName: 'Create or update GitHub release'
+        inputs:
+          gitHubConnection: 'PavelKisliak'
+          repositoryName: '$(Build.Repository.Name)'
+          action: 'edit'
+          isDraft: true
+          target: '$(Build.SourceVersion)'
+          tag: $(Build.SourceBranchName)
+          tagSource: 'userSpecifiedTag'
+          title: '$(Build.SourceBranchName)'
+          addChangeLog: false
+          assets: |
+            $(Pipeline.Workspace)/packages/**/*.zip
+            $(Pipeline.Workspace)/packages/**/*.tar.gz
+          assetUploadMode: 'delete'

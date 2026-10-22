@@ -99,6 +99,10 @@ stages:
           buildType: 'current'
           targetPath: '$(Pipeline.Workspace)/packages'
 
+      - script: |
+          bash "$(Build.SourcesDirectory)/CI/azure-devops/scripts/validate-release-assets.sh" "$(Pipeline.Workspace)/packages" "$(Build.SourceBranchName)"
+        displayName: 'Validate release packages'
+
       - task: GitHubRelease@1
         displayName: 'Create or update GitHub release'
         inputs:

@@ -92,12 +92,11 @@ jobs:
   - script: |
       ctest --test-dir ${{ variables.buildDirectory }} -T test --output-on-failure -j2
     displayName: 'Run tests'
-    continueOnError: true
     condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
 
   - task: PublishTestResults@2
     displayName: 'Publish Test results'
-    condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
+    condition: and(not(canceled()), eq('${{ parameters.enableRunTests }}', true))
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Testing/**/Test.xml'

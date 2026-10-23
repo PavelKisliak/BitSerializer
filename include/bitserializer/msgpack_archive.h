@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <vector>
 #include "bitserializer/export.h"
+#include "bitserializer/common/text.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/bin_timestamp.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
@@ -98,6 +99,11 @@ public:
 			}
 			return false;
 		}
+		else if constexpr (std::is_same_v<std::remove_cv_t<T>, std::string_view>)
+		{
+			auto& ref = std::get<std::string_view>(mTuple);
+			return mLast == &ref && Text::Equal(ref, value);
+		}
 		else
 		{
 			auto& ref = std::get<T>(mTuple);
@@ -108,14 +114,22 @@ public:
 	bool operator==(const std::string& value) const noexcept
 	{
 		auto& ref = std::get<std::string_view>(mTuple);
-		return mLast == &ref && ref == value;
+		return mLast == &ref && Text::Equal(ref, value);
 	}
 
 	template <typename T, size_t ArraySize>
 	bool operator==(T(&value)[ArraySize]) const noexcept
 	{
 		const auto& ref = std::get<std::string_view>(mTuple);
-		return mLast == &ref && ref == Convert::ToStringView(value);
+		if (mLast != &ref) {
+			return false;
+		}
+		if constexpr (std::is_same_v<std::remove_cv_t<T>, char>) {
+			return Text::Equal(ref, value);
+		}
+		else {
+			return ref == Convert::ToStringView(value);
+		}
 	}
 
 	template <typename T>

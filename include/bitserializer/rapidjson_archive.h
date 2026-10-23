@@ -7,6 +7,7 @@
 #include <iosfwd>
 #include <type_traits>
 #include <variant>
+#include "bitserializer/common/text.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 
@@ -400,7 +401,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = this->LoadJsonValue(Convert::ToStringView(key));
+			auto* jsonValue = this->LoadJsonValue(key);
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else
@@ -425,7 +426,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = this->LoadJsonValue(Convert::ToStringView(key));
+			auto* jsonValue = this->LoadJsonValue(key);
 			return jsonValue == nullptr ? false : this->LoadValue(*jsonValue, value, this->GetOptions());
 		}
 		else {
@@ -438,7 +439,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			auto* jsonValue = this->LoadJsonValue(Convert::ToStringView(key));
+			auto* jsonValue = this->LoadJsonValue(key);
 			if (jsonValue)
 			{
 				value.CopyFrom(*jsonValue, value.GetAllocator());
@@ -456,7 +457,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto* jsonValue = LoadJsonValue(Convert::ToStringView(key)))
+			if (auto* jsonValue = LoadJsonValue(key))
 			{
 				if (jsonValue->IsObject())
 				{
@@ -473,7 +474,7 @@ public:
 		else
 		{
 			SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(rapidjson::kObjectType));
-			auto& insertedMember = FindMember(Convert::ToStringView(key))->value;
+			auto& insertedMember = FindMember(key)->value;
 			return RapidJsonObjectScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, Convert::ToStringView(key));
 		}
 	}
@@ -483,7 +484,7 @@ public:
 	{
 		if constexpr (TMode == SerializeMode::Load)
 		{
-			if (auto* jsonValue = LoadJsonValue(Convert::ToStringView(key)))
+			if (auto* jsonValue = LoadJsonValue(key))
 			{
 				if (jsonValue->IsArray())
 				{
@@ -504,31 +505,57 @@ public:
 				rapidJsonArray.Reserve(static_cast<rapidjson::SizeType>(arraySize), mAllocator);
 			}
 			SaveJsonValue(Convert::ToStringView(key), std::move(rapidJsonArray));
-			auto& insertedMember = FindMember(Convert::ToStringView(key))->value;
+			auto& insertedMember = FindMember(key)->value;
 			return RapidJsonArrayScope<TMode, TEncoding, TAllocator>(&insertedMember, mAllocator, this->GetContext(), this, Convert::ToStringView(key));
 		}
 	}
 
 protected:
-	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(const key_type& key) const {
-		return this->mNode->GetObject().FindMember(key.c_str());
-	}
-
-	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(key_raw_ptr key) const {
-		return this->mNode->GetObject().FindMember(key);
-	}
-
-	[[nodiscard]] RapidJsonNode* LoadJsonValue(const key_type& key) const
+	template <typename TKey>
+	[[nodiscard]] static bool AreKeysEqual(std::string_view currentKey, TKey&& key) noexcept
 	{
-		const auto jObject = this->mNode->GetObject();
-		auto it = jObject.FindMember(key.c_str());
-		return it == jObject.MemberEnd() ? nullptr : &it->value;
+		using TKeyType = std::remove_reference_t<TKey>;
+		if constexpr (std::is_array_v<TKeyType> &&
+			std::is_same_v<std::remove_cv_t<std::remove_extent_t<TKeyType>>, char>)
+		{
+			return Text::Equal(currentKey, key);
+		}
+		else
+		{
+			return Text::Equal(currentKey, Convert::ToStringView(key));
+		}
 	}
 
-	[[nodiscard]] RapidJsonNode* LoadJsonValue(key_raw_ptr key) const
+	template <typename TKey>
+	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(TKey&& key) const
 	{
-		const auto jObject = this->mNode->GetObject();
-		const auto it = jObject.FindMember(key);
+		if constexpr (std::is_same_v<typename TEncoding::Ch, char>)
+		{
+			const auto keyView = Convert::ToStringView(key);
+			auto jObject = this->mNode->GetObject();
+			for (auto it = jObject.MemberBegin(); it != jObject.MemberEnd(); ++it)
+			{
+				const auto& name = it->name;
+				if (name.GetStringLength() == keyView.size() &&
+					AreKeysEqual(std::string_view(name.GetString(), name.GetStringLength()), key)) {
+					return it;
+				}
+			}
+			return jObject.MemberEnd();
+		}
+		else
+		{
+			const auto keyView = Convert::ToStringView(key);
+			return this->mNode->GetObject().FindMember(
+				RapidJsonNode(rapidjson::StringRef(keyView.data(), static_cast<rapidjson::SizeType>(keyView.size()))));
+		}
+	}
+
+	template <typename TKey>
+	[[nodiscard]] RapidJsonNode* LoadJsonValue(TKey&& key) const
+	{
+		auto jObject = this->mNode->GetObject();
+		const auto it = FindMember(key);
 		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
@@ -549,17 +576,6 @@ protected:
 
 		this->mNode->AddMember(RapidJsonNode(typename RapidJsonNode::StringRefType(key)), std::move(jsonValue), mAllocator);
 		return true;
-	}
-
-	[[nodiscard]] typename RapidJsonNode::MemberIterator FindMember(key_type_view key) const {
-		return this->mNode->GetObject().FindMember(RapidJsonNode(rapidjson::StringRef(key.data(), static_cast<rapidjson::SizeType>(key.size()))));
-	}
-
-	[[nodiscard]] RapidJsonNode* LoadJsonValue(key_type_view key) const
-	{
-		const auto jObject = this->mNode->GetObject();
-		const auto it = jObject.FindMember(RapidJsonNode(rapidjson::StringRef(key.data(), static_cast<rapidjson::SizeType>(key.size()))));
-		return it == jObject.MemberEnd() ? nullptr : &it->value;
 	}
 
 	bool SaveJsonValue(key_type_view key, RapidJsonNode&& jsonValue) const

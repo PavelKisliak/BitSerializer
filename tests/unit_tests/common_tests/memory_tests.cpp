@@ -2,7 +2,9 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <array>
 #include <string>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 #include "bitserializer/common/memory.h"
@@ -57,4 +59,42 @@ TEST(MemoryEqualBytesTest, ShouldCompareFixedSizeRanges)
 
 	EXPECT_TRUE(Memory::EqualBytes<26>("StringWithLongKeyAndValue", "StringWithLongKeyAndValue"));
 	EXPECT_FALSE(Memory::EqualBytes<26>("StringWithLongKeyAndValue", "StringWithLongKeyAndValuE"));
+}
+
+TEST(MemoryEqualBytesTest, ShouldCompareSseAndMemcmpBoundaries)
+{
+	std::array<char, 300> lhs{};
+	std::array<char, 300> rhs{};
+	lhs.fill('a');
+	rhs = lhs;
+
+	auto check = [&](auto countTag)
+	{
+		constexpr size_t Count = decltype(countTag)::value;
+		EXPECT_TRUE(Memory::EqualBytes<Count>(lhs.data(), rhs.data())) << "count " << Count;
+
+		for (const size_t pos : { size_t(0), Count / 2, Count - 1 })
+		{
+			rhs[pos] = 'b';
+			EXPECT_FALSE(Memory::EqualBytes<Count>(lhs.data(), rhs.data()))
+				<< "count " << Count << ", pos " << pos;
+			rhs = lhs;
+		}
+	};
+
+	// Clang-specific `memcmp` range and the scalar/SSE2 boundaries.
+	check(std::integral_constant<size_t, 17>{});
+	check(std::integral_constant<size_t, 31>{});
+
+	// SSE2 path, including non-multiple-of-16 tails.
+	check(std::integral_constant<size_t, 32>{});
+	check(std::integral_constant<size_t, 33>{});
+	check(std::integral_constant<size_t, 63>{});
+	check(std::integral_constant<size_t, 64>{});
+	check(std::integral_constant<size_t, 255>{});
+	check(std::integral_constant<size_t, 256>{});
+
+	// `memcmp` fallback for very long ranges.
+	check(std::integral_constant<size_t, 257>{});
+	check(std::integral_constant<size_t, 300>{});
 }

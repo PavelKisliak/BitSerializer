@@ -8,11 +8,15 @@
 #include <cstring>
 #include <iterator>
 #include <type_traits>
+#include "bitserializer/config.h"
 #if defined __has_include && __has_include(<version>)
 #include <version>
 #endif
 #if defined(__cpp_lib_endian)
 #include <bit>
+#endif
+#if BITSERIALIZER_HAS_SSE2
+#include <emmintrin.h>
 #endif
 
 
@@ -253,13 +257,56 @@ namespace BitSerializer::Memory
 		/**
 		 * @brief Compares exactly `Count` bytes, with the count known at compile time.
 		 *
-		 * The recursion is fully unrolled by the compiler into a fixed sequence of integer loads, so
-		 * no runtime loop, length test or overlapping tail is needed. Every load stays inside the
-		 * `[data, data + Count)` range; the caller guarantees `Count` readable bytes on both sides.
+		 * For short ranges the recursion is fully unrolled into a fixed sequence of integer loads,
+		 * so no runtime loop, length test or overlapping tail is needed. From 32 bytes SSE2 loads
+		 * are used (the tail overlaps bytes already compared), and very long ranges fall back to
+		 * `std::memcmp` to avoid excessive code expansion. Clang's `memcmp` is faster than the
+		 * scalar path for 17-31 bytes, so that narrow range is delegated to it (MSVC is the
+		 * opposite). Every load stays inside the `[data, data + Count)` range; the caller
+		 * guarantees `Count` readable bytes on both sides.
 		 */
 		template <std::size_t Count>
 		[[nodiscard]] inline bool EqualBytesFixed(const char* lhs, const char* rhs) noexcept
 		{
+#if defined(__clang__) && (defined(_M_X64) || defined(__x86_64__))
+			if constexpr ((Count >= 17 && Count <= 31) || Count > 256)
+			{
+				return std::memcmp(lhs, rhs, Count) == 0;
+			}
+			else
+#else
+			if constexpr (Count > 256)
+			{
+				return std::memcmp(lhs, rhs, Count) == 0;
+			}
+			else
+#endif
+#if BITSERIALIZER_HAS_SSE2
+			if constexpr (Count >= 32 && Count <= 256)
+			{
+				std::size_t i = 0;
+				for (; i + 16 <= Count; i += 16)
+				{
+					const __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(lhs + i));
+					const __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(rhs + i));
+					if (_mm_movemask_epi8(_mm_cmpeq_epi8(a, b)) != 0xFFFF) {
+						return false;
+					}
+				}
+				if constexpr (Count % 16 != 0)
+				{
+					// The tail overlaps the previous block; Count >= 16 guarantees it is in bounds.
+					constexpr std::size_t tail = Count - 16;
+					const __m128i a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(lhs + tail));
+					const __m128i b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(rhs + tail));
+					return _mm_movemask_epi8(_mm_cmpeq_epi8(a, b)) == 0xFFFF;
+				}
+				else {
+					return true;
+				}
+			}
+			else
+#endif
 			if constexpr (Count >= 8)
 			{
 				std::uint64_t l, r;
@@ -302,8 +349,8 @@ namespace BitSerializer::Memory
 	/**
 	 * @brief Compares exactly `Count` bytes, with the count known at compile time.
 	 *
-	 * Dispatches to `Detail::EqualBytesFixed`, which the compiler unrolls into a fixed sequence of
-	 * integer loads. Both buffers must contain at least `Count` readable bytes.
+	 * Dispatches to `Detail::EqualBytesFixed` (scalar unrolled loads, SSE2 or `memcmp` depending
+	 * on `Count`). Both buffers must contain at least `Count` readable bytes.
 	 */
 	template <std::size_t Count>
 	[[nodiscard]] inline bool EqualBytes(const void* lhs, const void* rhs) noexcept

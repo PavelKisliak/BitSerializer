@@ -6,6 +6,7 @@
 #include <cassert>
 #include <type_traits>
 
+#include "bitserializer/common/text.h"
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 
@@ -49,6 +50,12 @@ namespace BitSerializer::Yaml::RapidYaml {
 		inline c4::csubstr to_csubstr(std::string_view str)
 		{
 			return { str.data(), str.size() };
+		}
+
+		template <std::size_t N>
+		inline c4::csubstr to_csubstr(const char (&str)[N])
+		{
+			return { str, N - 1 };
 		}
 
 		/**
@@ -346,6 +353,37 @@ namespace BitSerializer::Yaml::RapidYaml {
 				return mNode.num_children();
 			}
 
+			template <typename TKey>
+			[[nodiscard]] static bool AreKeysEqual(c4::csubstr currentKey, TKey&& key) noexcept
+			{
+				const auto current = std::string_view(currentKey.data(), currentKey.size());
+				using TKeyType = std::remove_reference_t<TKey>;
+				if constexpr (std::is_array_v<TKeyType> &&
+					std::is_same_v<std::remove_cv_t<std::remove_extent_t<TKeyType>>, char>)
+				{
+					return Text::Equal(current, key);
+				}
+				else
+				{
+					return Text::Equal(current, Convert::ToStringView(key));
+				}
+			}
+
+			template <typename TKey>
+			[[nodiscard]] RapidYamlNode FindChild(TKey&& key)
+			{
+				const auto keyView = to_csubstr(key);
+				for (const auto& child : mNode)
+				{
+					const auto childKey = child.key();
+					if (childKey.size() == keyView.size() &&
+						AreKeysEqual(childKey, key)) {
+						return child;
+					}
+				}
+				return {};
+			}
+
 			/**
 			 * @brief Enumerates all keys in the current object.
 			 *
@@ -367,7 +405,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(to_csubstr(key));
+					const auto yamlValue = FindChild(key);
 #if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
 					return yamlValue.invalid() ? false : LoadValue(yamlValue, value, this->GetOptions());
 #else
@@ -388,7 +426,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(to_csubstr(key));
+					const auto yamlValue = FindChild(key);
 #if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
 					return yamlValue.invalid() ? false : LoadValue(yamlValue, value);
 #else
@@ -412,7 +450,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(to_csubstr(key));
+					const auto yamlValue = FindChild(key);
 #if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
 					if (!yamlValue.invalid())
 #else
@@ -447,7 +485,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 			{
 				if constexpr (TMode == SerializeMode::Load)
 				{
-					const auto yamlValue = mNode.find_child(to_csubstr(key));
+					const auto yamlValue = FindChild(key);
 #if defined RYML_VERSION_MAJOR && RYML_VERSION_MAJOR >= 0 && RYML_VERSION_MINOR >= 7
 					if (!yamlValue.invalid())
 #else

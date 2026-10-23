@@ -3,6 +3,7 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include "csv_readers.h"
+#include "bitserializer/common/text.h"
 #include "common/simd/scan.h"
 
 
@@ -52,12 +53,12 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		if (mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
+		if (mValueIndex >= mHeaders.size() || !Text::Equal(mHeaders[mValueIndex], key))
 		{
 			// If next column doesn't match, try to find across all headers
 			for (mValueIndex = 0; mValueIndex < mHeaders.size(); ++mValueIndex)
 			{
-				if (mHeaders[mValueIndex] == key)
+				if (Text::Equal(mHeaders[mValueIndex], key))
 				{
 					break;
 				}
@@ -292,12 +293,12 @@ namespace BitSerializer::Csv::Detail
 			return false;
 		}
 
-		if (mValueIndex >= mHeaders.size() || mHeaders[mValueIndex] != key)
+		if (mValueIndex >= mHeaders.size() || !Text::Equal(mHeaders[mValueIndex], key))
 		{
 			// If next column doesn't match, try to find across all headers
 			for (mValueIndex = 0; mValueIndex < mHeaders.size(); ++mValueIndex)
 			{
-				if (mHeaders[mValueIndex] == key)
+				if (Text::Equal(mHeaders[mValueIndex], key))
 				{
 					break;
 				}

@@ -25,6 +25,7 @@ namespace BitSerializer::Json::Detail
 		void SetPosition(size_t pos) override;
 		[[nodiscard]] size_t GetLineNumber() const noexcept override { return mLineNumber; }
 		[[nodiscard]] bool IsEnd() const override { return mPos == mInputData.size(); }
+		void VerifyEnd() override;
 
 		void ReadKey(std::string_view& key) override;
 

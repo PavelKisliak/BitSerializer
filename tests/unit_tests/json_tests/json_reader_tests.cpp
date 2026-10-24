@@ -2291,4 +2291,50 @@ TYPED_TEST(JsonReaderTest, ReadWithCommentsAndTrailingCommas)
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
+//-----------------------------------------------------------------------------
+// Tests of verifying the end of the root value
+//-----------------------------------------------------------------------------
+TYPED_TEST(JsonReaderTest, VerifyEndShouldAllowTrailingWhitespace)
+{
+	this->PrepareReader("42 \n\t ");
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_NO_THROW(this->mJsonReader->VerifyEnd());
+}
+
+TYPED_TEST(JsonReaderTest, VerifyEndShouldThrowExceptionOnTrailingGarbage)
+{
+	this->PrepareReader("42 1");
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([this] {
+		this->mJsonReader->VerifyEnd();
+	});
+	EXPECT_EQ(1U, ex.line);
+	EXPECT_EQ(3U, ex.offset);
+	EXPECT_STREQ("Parsing error: Unexpected trailing characters after the root value", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, VerifyEndShouldAllowTrailingCommentsForJsonc)
+{
+	this->PrepareReaderWithFeatures("42 /* block */ // line", ArchiveType::Jsonc);
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_NO_THROW(this->mJsonReader->VerifyEnd());
+}
+
+TYPED_TEST(JsonReaderTest, VerifyEndShouldRejectTrailingCommentForStrictJson)
+{
+	this->PrepareReaderWithFeatures("42 /* block */", ArchiveType::Json);
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([this] {
+		this->mJsonReader->VerifyEnd();
+	});
+	EXPECT_EQ(1U, ex.line);
+	EXPECT_EQ(3U, ex.offset);
+}
+
 #pragma warning(pop)

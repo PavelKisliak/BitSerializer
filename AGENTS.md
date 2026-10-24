@@ -360,6 +360,28 @@ Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::Bui
 - `key_type` is `std::wstring`; root scope supports only values/arrays, **not keyed objects** — wrap objects via `TestClassWithSubType`
 - `preferred_output_type` is `TestIoDataRoot` (internal IOData tree), not a string — roundtrip works without any text parsing
 
+### Unit vs integration tests
+
+Prefer unit tests for behavior and edge cases; keep integration tests to the minimum needed to
+prove the public archive surface and its wiring.
+
+- **Unit tests** (`tests/unit_tests/`) cover the main functionality and edge cases of a component:
+  readers/writers, `ArchiveStub`, conversion, validators, options and error policies. Cover every
+  relevant variant there (e.g. string vs stream reader, JSON vs JSONC) with typed or parameterized
+  tests.
+- **Integration tests** (`tests/integration_tests/`) only verify what a unit test cannot:
+  `LoadObject`/`SaveObject` wiring, archive aliases and format selection, stream/file overloads,
+  installation/acceptance checks, and one small smoke test per archive.
+- **Do not duplicate** the same behavior in both layers. If a unit test already covers the cases,
+  the integration test should assert only the wiring, with one representative input per path
+  (e.g. string and stream), instead of repeating the whole case matrix.
+- **Decision rule**: if a test can be written against a `Detail::` class or `ArchiveStub`, it
+  belongs to unit tests; if it only makes sense through `LoadObject`/`SaveObject` or a public
+  archive type, it belongs to integration tests.
+- **Example**: strict trailing-garbage validation is covered by typed unit tests for both readers
+  and both JSON/JSONC dialects; the integration suite only checks that `LoadObject` reaches
+  `Finalize()` for string, stream and object input.
+
 ### Testing patterns
 
 - **STL types unit tests** (`std_types_tests`) run against `ArchiveStub` only — base serialization logic is shared, so per-archive coverage is done by smoke tests (`SerializeStdTypes`) in each archive's integration tests.

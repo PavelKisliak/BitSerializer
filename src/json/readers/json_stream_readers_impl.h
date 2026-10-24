@@ -191,6 +191,16 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
+	void JsonStreamReader<TFormat>::VerifyEnd()
+	{
+		SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);
+		if (!mEncodedStreamReader.IsEnd())
+		{
+			throw ParsingException("Unexpected trailing characters after the root value", mLineNumber, GetPosition());
+		}
+	}
+
+	template <ArchiveType TFormat>
 	ValueType JsonStreamReader<TFormat>::ReadValueTypeImpl()
 	{
 		switch (char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber))

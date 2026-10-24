@@ -207,6 +207,10 @@ public:
 	[[nodiscard]] virtual size_t GetLineNumber() const noexcept = 0;
 	[[nodiscard]] virtual bool IsEnd() const = 0;
 
+	/// @brief Throws a `ParsingException` when anything other than whitespace (or, for JSONC, comments)
+	/// remains after the root value.
+	virtual void VerifyEnd() = 0;
+
 	virtual void ReadKey(std::string_view& key) = 0;
 
 	template <typename T>
@@ -892,7 +896,7 @@ private:
 	{
 		if (!mCurrentKey.empty())
 		{
-			if (AreKeysEqual(mCurrentKey, std::forward<TKey>(key))) {
+			if (AreKeysEqual(mCurrentKey, key)) {
 				return true;
 			}
 			SkipCurrentKeyValue();
@@ -990,7 +994,7 @@ public:
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	static constexpr void Finalize() noexcept { /* Not required */ }
+	void Finalize() { mJsonReader->VerifyEnd(); }
 
 private:
 	IJsonReader* mJsonReader = nullptr;

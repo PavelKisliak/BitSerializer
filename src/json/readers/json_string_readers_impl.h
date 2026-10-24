@@ -659,6 +659,16 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
+	void JsonStringReader<TFormat>::VerifyEnd()
+	{
+		SkipWhitespaceAndPeek<TFormat>(mInputData, mPos, mLineNumber);
+		if (mPos < mInputData.size())
+		{
+			throw ParsingException("Unexpected trailing characters after the root value", mLineNumber, mPos);
+		}
+	}
+
+	template <ArchiveType TFormat>
 	ValueType JsonStringReader<TFormat>::ReadValueType()
 	{
 		SkipWhitespaceAndPeek<TFormat>(mInputData, mPos, mLineNumber);

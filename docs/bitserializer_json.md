@@ -40,6 +40,11 @@ int main()
 }
 ```
 
+### Strict input
+The whole input must contain exactly one JSON value. Trailing non-whitespace content is rejected
+with a `ParsingException` (for `JsoncArchive`, trailing comments are allowed). This applies to both
+string and stream input.
+
 ### Non-finite numbers
 JSON has no representation for `NaN` and `Infinity`. Saving such a value throws a
 `SerializationException` with the error code `SerializationErrorCode::OutOfRange`.

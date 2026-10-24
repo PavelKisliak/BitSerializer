@@ -129,6 +129,31 @@ TEST(JsonArchive, SaveNonFiniteNumberShouldThrow)
 	}
 }
 
+TEST(JsonArchive, ShouldRejectTrailingGarbage)
+{
+	// The reader-level behavior (whitespace, garbage, JSONC comments) is covered by unit tests;
+	// here we only verify that `LoadObject` reaches `Finalize()` for both input types.
+	const auto expectParsingError = [](auto& value, const char* json)
+	{
+		const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+			BitSerializer::LoadObject<JsonArchive>(value, json);
+		});
+		EXPECT_EQ(1U, ex.line);
+	};
+
+	int intValue{};
+	expectParsingError(intValue, "1 2");
+	TestPointClass pointValue{};
+	expectParsingError(pointValue, "{}x");
+
+	std::istringstream stream("1 2");
+	int streamValue{};
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		BitSerializer::LoadObject<JsonArchive>(streamValue, stream);
+	});
+	EXPECT_EQ(1U, ex.line);
+}
+
 TEST(JsonArchive, ShouldAllowToLoadBooleanFromInteger)
 {
 	bool actual = false;

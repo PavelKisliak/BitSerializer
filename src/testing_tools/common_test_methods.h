@@ -723,7 +723,8 @@ void TestVisitKeysInObjectScope(bool skipValues = false)
 	{
 		using T = std::decay_t<decltype(key)>;
 		ASSERT_TRUE(index < expectedValues.size());
-		if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>)
+		if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>
+			|| std::is_same_v<T, const char*> || std::is_same_v<T, const wchar_t*>)
 		{
 			auto it = expectedValues.find(key);
 			ASSERT_TRUE(it != expectedValues.cend());

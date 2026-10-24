@@ -277,8 +277,9 @@ TEST(PugiXmlArchive, SaveWithFormatting) {
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, SerializeWithStringViewKey)
 {
-	[[maybe_unused]] constexpr std::string_view key = "TestValue";
-	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<XmlArchive>(key)), const std::string_view&>);
+	using string_view_type = XmlArchive::string_view_type;
+	constexpr string_view_type key = PUGIXML_TEXT("TestValue");
+	static_assert(std::is_same_v<decltype(BitSerializer::Detail::ToArchiveKey<XmlArchive>(key)), const string_view_type&>);
 
 	TestSerializeType<XmlArchive, TestClassWithStringViewKey<int>>();
 	TestSerializeType<XmlArchive, TestClassWithStringViewKey<std::string>>();
@@ -397,7 +398,7 @@ TEST(PugiXmlArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowExceptionWhenBadSyntaxInSource) {
 	auto fixture = BuildFixture<TestClassWithSubTypes<std::string>>();
-	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, PUGIXML_TEXT("<root>Hello")), BitSerializer::ParsingException);
+	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, "<root>Hello"), BitSerializer::ParsingException);
 }
 
 TEST(PugiXmlArchive, ThrowParsingExceptionWithCorrectPosition)

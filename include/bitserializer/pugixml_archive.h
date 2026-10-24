@@ -5,6 +5,7 @@
 #pragma once
 #include <cassert>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include "bitserializer/serialization_detail/archive_base.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
@@ -113,8 +114,24 @@ namespace PugiXmlExtensions
 #ifdef PUGIXML_HAS_STRING_VIEW
 		return Convert::ToStringView(key);
 #else
-		return PugiXmlExtensions::ToKeyView(key);
+		return std::forward<TKey>(key);
 #endif
+	}
+
+	/**
+	 * @brief Converts a PugiXml text to `std::string` for use in error messages.
+	 *
+	 * Never throws on malformed input, invalid UTF sequences are replaced with an error mark.
+	 */
+	[[nodiscard]] inline std::string ToNarrowString(const pugi::char_t* text)
+	{
+		if (text == nullptr) {
+			return {};
+		}
+		std::string result;
+		Convert::Utf::Transcode(std::basic_string_view<pugi::char_t>(text), result,
+			Convert::Utf::UtfEncodingErrorPolicy::Skip);
+		return result;
 	}
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
@@ -135,7 +152,7 @@ namespace PugiXmlExtensions
 			if (serializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 			{
 				throw SerializationException(SerializationErrorCode::Overflow,
-					std::string("The size of target field is not sufficient to deserialize number: ") + node.text().as_string());
+					std::string("The size of target field is not sufficient to deserialize number: ") + PugiXmlExtensions::ToNarrowString(node.text().as_string()));
 			}
 		}
 		catch (...)
@@ -143,7 +160,7 @@ namespace PugiXmlExtensions
 			if (serializationOptions.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 			{
 				throw SerializationException(SerializationErrorCode::MismatchedTypes,
-					std::string("The type of target field does not match the value being loaded: ") + node.text().as_string());
+					std::string("The type of target field does not match the value being loaded: ") + PugiXmlExtensions::ToNarrowString(node.text().as_string()));
 			}
 		}
 		return false;
@@ -256,7 +273,7 @@ public:
 		}
 		else
 		{
-			auto child = mNode.append_child("value");
+			auto child = mNode.append_child(PUGIXML_TEXT("value"));
 			if (!child.empty())
 			{
 				PugiXmlExtensions::SaveValue(child, value);
@@ -789,7 +806,9 @@ private:
 
 		void write(const void* data, size_t size) override
 		{
-			mOutputString.append(static_cast<const PUGIXML_CHAR*>(data), size);
+			// The document is always saved to a string with UTF-8 encoding, so the writer receives char data
+			// even when PugiXml is compiled in wide-character mode
+			mOutputString.append(static_cast<const char*>(data), size);
 		}
 
 	private:

@@ -209,7 +209,9 @@ namespace BitSerializer
 	template <typename TArchive, typename TValue, typename TPath>
 	static void LoadObjectFromFile(TValue&& object, const TPath& path, const SerializationOptions& options = DefaultOptions)
 	{
-		std::basic_ifstream<typename TArchive::string_view_type::value_type> stream;
+		// File I/O always uses the preferred output character type (UTF-8 char streams for all built-in archives),
+		// while the archive's string_view_type may use a wider character type (e.g. PugiXml in PUGIXML_WCHAR_MODE)
+		std::basic_ifstream<typename TArchive::preferred_output_type::value_type> stream;
 		stream.open(path, std::ifstream::in | std::ifstream::binary);
 		if (stream.is_open()) {
 			LoadObject<TArchive>(std::forward<TValue>(object), stream, options);
@@ -242,7 +244,7 @@ namespace BitSerializer
 			}
 		}
 
-		std::basic_ofstream<typename TArchive::string_view_type::value_type> stream;
+		std::basic_ofstream<typename TArchive::preferred_output_type::value_type> stream;
 		stream.open(path, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
 		if (stream.is_open()) {
 			SaveObject<TArchive>(std::forward<TValue>(object), stream, options);

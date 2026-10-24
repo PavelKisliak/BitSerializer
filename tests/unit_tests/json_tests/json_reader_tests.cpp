@@ -736,6 +736,53 @@ TYPED_TEST(JsonReaderTest, ReadStringWithUnicodeEscape)
 	EXPECT_EQ(UTF8("αβγ"), actualStr);
 }
 
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenUnescapedControlCharacter)
+{
+	for (int code = 0; code < 0x20; ++code)
+	{
+		std::string json = "\"a";
+		json.push_back(static_cast<char>(code));
+		json += "b\"";
+		this->PrepareReader(json);
+
+		std::string_view actualStr;
+		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+			this->mJsonReader->ReadValue(actualStr);
+		});
+		// A raw NUL makes the stream encoding detector choose UTF-16/32 (it sees zero bytes),
+		// so stream input is rejected earlier with a different error; it must still be rejected.
+		if (code != 0)
+		{
+			EXPECT_EQ(1, ex.line) << "control code: " << code;
+			EXPECT_EQ(2, ex.offset) << "control code: " << code;
+			EXPECT_STREQ("Parsing error: Unescaped control character in string literal", ex.what());
+		}
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenUnescapedControlCharacterAfterEscape)
+{
+	for (int code = 0; code < 0x20; ++code)
+	{
+		std::string json = R"("a\n)";
+		json.push_back(static_cast<char>(code));
+		json += R"(b")";
+		this->PrepareReader(json);
+
+		std::string_view actualStr;
+		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+			this->mJsonReader->ReadValue(actualStr);
+		});
+		// See the comment in the previous test about a raw NUL byte.
+		if (code != 0)
+		{
+			EXPECT_EQ(1, ex.line) << "control code: " << code;
+			EXPECT_EQ(4, ex.offset) << "control code: " << code;
+			EXPECT_STREQ("Parsing error: Unescaped control character in string literal", ex.what());
+		}
+	}
+}
+
 TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenUnexpectedEndInEscapeSequence)
 {
 	this->PrepareReader(R"("\)");

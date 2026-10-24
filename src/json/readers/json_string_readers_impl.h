@@ -533,9 +533,12 @@ namespace BitSerializer::Json::Detail
 
 		++pos; // Skip opening quote
 		const size_t start = pos;
-		const size_t firstEscape = BitSerializer::Simd::FindFirstOf<'"', '\\'>(inputData, pos);
+		const size_t firstEscape = BitSerializer::Simd::FindFirstOfOrLessThan<0x20, '"', '\\'>(inputData, pos);
 		if (firstEscape == std::string_view::npos) {
 			throw ParsingException("Unterminated string literal", line, inputData.size());
+		}
+		if (inputData[firstEscape] != '"' && inputData[firstEscape] != '\\') {
+			throw ParsingException("Unescaped control character in string literal", line, firstEscape);
 		}
 
 		// Fast path: string without escape sequences
@@ -619,6 +622,9 @@ namespace BitSerializer::Json::Detail
 			}
 			else
 			{
+				if (static_cast<unsigned char>(ch) < 0x20) {
+					throw ParsingException("Unescaped control character in string literal", line, pos - 1);
+				}
 				buffer.push_back(ch);
 			}
 		} while (pos < size);

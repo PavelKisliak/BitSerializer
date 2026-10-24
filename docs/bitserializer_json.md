@@ -44,6 +44,8 @@ int main()
 The whole input must contain exactly one JSON value. Trailing non-whitespace content is rejected
 with a `ParsingException` (for `JsoncArchive`, trailing comments are allowed). This applies to both
 string and stream input.
+Unescaped control characters (U+0000-U+001F) inside strings are also rejected with a
+`ParsingException`; they must be escaped (`\n`, `\u0000`, etc.).
 
 ### Non-finite numbers
 JSON has no representation for `NaN` and `Infinity`. Saving such a value throws a

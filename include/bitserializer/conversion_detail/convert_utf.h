@@ -418,7 +418,7 @@ namespace BitSerializer::Convert::Utf
 		}
 
 		/**
-		 * @brief Encodes to UTF-16 from UTF-32, UTF-16 (copies 'as is') or UTF-8.
+		 * @brief Encodes to UTF-16 from UTF-32, UTF-16 or UTF-8.
 		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -433,25 +433,66 @@ namespace BitSerializer::Convert::Utf
 			}
 			else if constexpr (sizeof(TInCharType) == sizeof(char16_t))
 			{
+				size_t invalidSequencesCount = 0;
 				while (in != end)
 				{
-					TInIt startTailPos = in;
-					TOutChar sym = *in;
+					const TInIt startTailPos = in;
+					const uint32_t sym = static_cast<uint16_t>(*in);
 					++in;
-					// Do not copy only first part of surrogate pair
-					if (in == end && (sym >= UnicodeTraits::HighSurrogatesStart && sym < UnicodeTraits::HighSurrogatesEnd)) {
-						return UtfEncodingResult(UtfEncodingErrorCode::UnexpectedEnd, startTailPos, 0);
+
+					if (sym >= UnicodeTraits::HighSurrogatesStart && sym <= UnicodeTraits::HighSurrogatesEnd)
+					{
+						// A high surrogate must be immediately followed by a low surrogate
+						if (in == end) {
+							return UtfEncodingResult(UtfEncodingErrorCode::UnexpectedEnd, startTailPos, invalidSequencesCount);
+						}
+						const uint32_t lowSym = static_cast<uint16_t>(*in);
+						if (lowSym < UnicodeTraits::LowSurrogatesStart || lowSym > UnicodeTraits::LowSurrogatesEnd)
+						{
+							++invalidSequencesCount;
+							if (!Detail::HandleEncodingError(outStr, errorPolicy, errorMark)) {
+								return UtfEncodingResult(UtfEncodingErrorCode::InvalidSequence, startTailPos, invalidSequencesCount);
+							}
+							continue;
+						}
+						outStr.push_back(static_cast<TOutChar>(sym));
+						outStr.push_back(static_cast<TOutChar>(lowSym));
+						++in;
+						continue;
 					}
-					outStr.push_back(sym);
+
+					// A low surrogate cannot start a valid sequence
+					if (sym >= UnicodeTraits::LowSurrogatesStart && sym <= UnicodeTraits::LowSurrogatesEnd)
+					{
+						++invalidSequencesCount;
+						if (!Detail::HandleEncodingError(outStr, errorPolicy, errorMark)) {
+							return UtfEncodingResult(UtfEncodingErrorCode::InvalidSequence, startTailPos, invalidSequencesCount);
+						}
+						continue;
+					}
+
+					outStr.push_back(static_cast<TOutChar>(sym));
 				}
-				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, invalidSequencesCount);
 			}
 			else if constexpr (sizeof(TInCharType) == sizeof(char32_t))
 			{
+				size_t invalidSequencesCount = 0;
 				while (in != end)
 				{
-					uint32_t sym = *in;
+					const TInIt startTailPos = in;
+					uint32_t sym = static_cast<uint32_t>(*in);
 					++in;
+
+					if (sym > 0x10FFFF || UnicodeTraits::IsInSurrogatesRange(static_cast<char32_t>(sym)))
+					{
+						++invalidSequencesCount;
+						if (!Detail::HandleEncodingError(outStr, errorPolicy, errorMark)) {
+							return UtfEncodingResult(UtfEncodingErrorCode::InvalidSequence, startTailPos, invalidSequencesCount);
+						}
+						continue;
+					}
+
 					if (sym < 0x10000)
 					{
 						outStr.push_back(static_cast<TOutChar>(sym));
@@ -464,7 +505,7 @@ namespace BitSerializer::Convert::Utf
 						outStr.push_back(static_cast<TOutChar>(UnicodeTraits::LowSurrogatesStart | (sym & 0x3FF)));
 					}
 				}
-				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, invalidSequencesCount);
 			}
 			else
 			{
@@ -593,7 +634,7 @@ namespace BitSerializer::Convert::Utf
 		}
 
 		/**
-		 * @brief Encodes UTF-32 from UTF-32 (copies 'as is'), UTF-16 or UTF-8.
+		 * @brief Encodes UTF-32 from UTF-32, UTF-16 or UTF-8.
 		 */
 		template<typename TInIt, typename TOutChar, typename TAllocator>
 		static UtfEncodingResult<TInIt> Encode(TInIt in, const TInIt& end, std::basic_string<TOutChar, std::char_traits<TOutChar>, TAllocator>& outStr,
@@ -604,10 +645,25 @@ namespace BitSerializer::Convert::Utf
 			using TInCharType = typename std::iterator_traits<TInIt>::value_type;
 			if constexpr (sizeof(TInCharType) == sizeof(char_type))
 			{
-				for (; in != end; ++in) {
-					outStr.push_back(static_cast<TOutChar>(*in));
+				size_t invalidSequencesCount = 0;
+				while (in != end)
+				{
+					const TInIt startTailPos = in;
+					const uint32_t sym = static_cast<uint32_t>(*in);
+					++in;
+
+					if (sym > 0x10FFFF || UnicodeTraits::IsInSurrogatesRange(static_cast<char32_t>(sym)))
+					{
+						++invalidSequencesCount;
+						if (!Detail::HandleEncodingError(outStr, errorPolicy, errorMark)) {
+							return UtfEncodingResult(UtfEncodingErrorCode::InvalidSequence, startTailPos, invalidSequencesCount);
+						}
+						continue;
+					}
+
+					outStr.push_back(static_cast<TOutChar>(sym));
 				}
-				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, 0);
+				return UtfEncodingResult(UtfEncodingErrorCode::Success, in, invalidSequencesCount);
 			}
 			else if constexpr (sizeof(TInCharType) == sizeof(Utf16Le::char_type))
 			{
@@ -707,7 +763,10 @@ namespace BitSerializer::Convert::Utf
 		UtfEncodingErrorPolicy errorPolicy = UtfEncodingErrorPolicy::Skip, const TOutChar* errorMark = Detail::GetDefaultErrorMark<TOutChar>())
 	{
 		using TInCharType = typename std::iterator_traits<TInIt>::value_type;
-		if constexpr (sizeof(TInCharType) == sizeof(TOutChar))
+		// A direct copy is possible only when both strings use the same character type.
+		// Same-width but different types (e.g. char16_t and wchar_t on Windows) still require
+		// validation of the UTF sequences according to the selected error policy.
+		if constexpr (std::is_same_v<std::remove_cv_t<TInCharType>, std::remove_cv_t<TOutChar>>)
 		{
 			outStr.append(in, end);
 			return UtfEncodingResult(UtfEncodingErrorCode::Success, end, 0);

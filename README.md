@@ -1106,6 +1106,7 @@ void Serialize(TArchive& archive)
 ### Serialization to streams and files
 All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.
 BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but the latter is only supported by the built-in JSON, RapidJSON, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
+Input passed directly as `std::string`/`std::string_view` is expected to be UTF-8 without a BOM, and string output is always UTF-8 without a BOM. Use the stream/file overloads when the data may contain a BOM or is encoded differently.
 The following example shows how to save/load to `std::stream`:
 ```cpp
 class CPoint

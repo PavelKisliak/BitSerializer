@@ -124,4 +124,93 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToUtf16)
 	EXPECT_EQ(0U, result.InvalidSequencesCount);
 }
 
+//-----------------------------------------------------------------------------
+// Tests of transcoding between same-width but different character types
+// (e.g. char16_t and wchar_t on Windows, char32_t and wchar_t on Linux)
+//-----------------------------------------------------------------------------
+TEST(UtfTranscodeTest, TransocodeUtf16ToWide)
+{
+	// Arrange
+	const std::u16string_view source = u"Привет 😀";
+	std::wstring outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(source, outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(L"Привет 😀", outString);
+	EXPECT_EQ(0U, result.InvalidSequencesCount);
+}
+
+TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndSkipPolicy)
+{
+	// Arrange
+	const std::u16string wrongUtf16({ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string source = wrongUtf16 + u"test_value" + wrongUtf16;
+	const std::u16string_view sourceView = source;
+	std::wstring outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(sourceView, outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(L"☐☐test_value☐☐", outString);
+	EXPECT_EQ(sourceView.size(), static_cast<size_t>(std::distance(sourceView.begin(), result.Iterator)));
+	EXPECT_EQ(4U, result.InvalidSequencesCount);
+}
+
+TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndThrowPolicy)
+{
+	// Arrange
+	const std::u16string wrongUtf16({ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string source = wrongUtf16 + u"test_value" + wrongUtf16;
+	std::wstring outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(std::u16string_view(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.ErrorCode);
+}
+
+TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndSkipPolicy)
+{
+	// Arrange
+	std::u32string wrongUtf32;
+	wrongUtf32.push_back(0xD800);		// Surrogate code point
+	wrongUtf32.push_back(0x110000);		// Out of Unicode range
+	const std::u32string source = wrongUtf32 + U"test_value";
+	const std::u32string_view sourceView = source;
+	std::wstring outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(sourceView, outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(L"☐☐test_value", outString);
+	EXPECT_EQ(sourceView.size(), static_cast<size_t>(std::distance(sourceView.begin(), result.Iterator)));
+	EXPECT_EQ(2U, result.InvalidSequencesCount);
+}
+
+TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndThrowPolicy)
+{
+	// Arrange
+	std::u32string wrongUtf32;
+	wrongUtf32.push_back(0xD800);		// Surrogate code point
+	wrongUtf32.push_back(0x110000);		// Out of Unicode range
+	const std::u32string source = wrongUtf32 + U"test_value";
+	std::wstring outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(std::u32string_view(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.ErrorCode);
+}
+
 #pragma warning(pop)

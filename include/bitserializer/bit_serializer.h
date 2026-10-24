@@ -28,7 +28,8 @@ namespace BitSerializer
 	 * @tparam TValue     The type of the object to be deserialized.
 	 * @tparam TInput     The type of the input data (`std::string` or `std::string_view`).
 	 * @param[in] object  The object to be deserialized from the input data.
-	 * @param[in] input   The input data.
+	 * @param[in] input   The input data (UTF-8, expected without a byte order mark (BOM)).
+	 *                    Use the stream overloads to load data with a BOM or another UTF encoding.
 	 * @param[in] options The serialization options.
 	 */
 	template <typename TArchive, typename TValue, typename TInput, std::enable_if_t<!is_input_stream_v<TInput>, int> = 0>
@@ -108,7 +109,8 @@ namespace BitSerializer
 	 * @tparam TValue     The type of the object to be serialized.
 	 * @tparam TOutput    The type of the output data (currently supported only `std::string`).
 	 * @param[in] object  The object to be serialized.
-	 * @param[out] output The destination for the serialized data.
+	 * @param[out] output The destination for the serialized data (UTF-8, no BOM is written).
+	 *                    Use the stream overloads to write a BOM or another UTF encoding.
 	 * @param[in] options The serialization options.
 	 */
 	template <typename TArchive, typename TValue, typename TOutput, std::enable_if_t<!is_output_stream_v<TOutput>, int> = 0>

@@ -2,8 +2,11 @@
 
 Supported load/save **YAML** from:
 
-- std::string: UTF-8
+- std::string: UTF-8 (without BOM)
 - std::stream: UTF-8 (with/without BOM)
+
+String input is treated as already-decoded text; use streams for BOM/other encodings
+(see [Input and output data types](../README.md#input-and-output-data-types)).
 
 This implementation of **YAML** archive is based on [RapidYAML](https://github.com/biojppm/rapidyaml), which shows good performance in comparison with **YamlCpp**.
 

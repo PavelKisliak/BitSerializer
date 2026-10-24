@@ -2,8 +2,11 @@
 
 Supported load/save XML from:
 
-- std::string: UTF-8
+- std::string: UTF-8 (without BOM)
 - std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (with/without BOM)
+
+String input is treated as already-decoded text; use streams for BOM/other encodings
+(see [Input and output data types](../README.md#input-and-output-data-types)).
 
 The BitSerializer uses as low level library [PugiXml](https://github.com/zeux/pugixml) - one of fastest libraries for parse **XML**.
 

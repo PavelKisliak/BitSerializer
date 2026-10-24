@@ -2,8 +2,11 @@
 
 Supported load/save **CSV** from:
 
-- std::string: UTF-8
+- std::string: UTF-8 (without BOM)
 - std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (auto-detection encoding with/without BOM)
+
+String input is treated as already-decoded text; use streams for BOM/other encodings
+(see [Input and output data types](../README.md#input-and-output-data-types)).
 
 ### How to install
 This archive is built-in and does not require any third-party dependencies, but since it is not header-only, it needs to be compiled. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:

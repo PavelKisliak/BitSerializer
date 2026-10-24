@@ -2067,8 +2067,24 @@ TYPED_TEST(JsonReaderTest, SkipObjectShouldThrowExceptionWhenMissingClosingBrack
 }
 
 //-----------------------------------------------------------------------------
-// Tests of reading from UTF encoded streams (stream reader only)
+// Tests of reading from UTF encoded strings/streams
 //-----------------------------------------------------------------------------
+TYPED_TEST(JsonReaderTest, ReadFromStringWithBomShouldThrowException)
+{
+	if constexpr (!TypeParam::is_stream_based)
+	{
+		std::string sourceStr = std::string(
+			BitSerializer::Convert::Utf::Utf8::bom, sizeof(BitSerializer::Convert::Utf::Utf8::bom)) + R"({"key":"value"})";
+		this->PrepareReader(std::move(sourceStr));
+		BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+			this->mJsonReader->OpenObject();
+		});
+		EXPECT_EQ(1, ex.line);
+		EXPECT_EQ(0, ex.offset);
+		EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
+	}
+}
+
 TYPED_TEST(JsonReaderTest, ReadFromUtf8StreamWithBom)
 {
 	if constexpr (TypeParam::is_stream_based)

@@ -72,6 +72,7 @@ ___
   - [Serializing a class that represents an array](#serializing-a-class-that-represents-an-array)
 - [Formats and I/O](#formats-and-io)
   - [Serializing to multiple formats](#serializing-to-multiple-formats)
+  - [Input and output data types](#input-and-output-data-types)
   - [Serialization to streams and files](#serialization-to-streams-and-files)
 - [Advanced loading](#advanced-loading)
   - [Payload passthrough of unprocessed data structures](#payload-passthrough-of-unprocessed-data-structures)
@@ -160,6 +161,12 @@ Id,Birthday,Name,Email,PhoneNumber,NickName,Language
 2,1993-08-20T00:00:00.0000000Z,Alice Smith,alice.smith@example.com,+(098) 765-43-21,Ali,en
 3,2001-03-10T00:00:00.0000000Z,Ivan Petrov,ivan.petrov@example.com,,,ru
 ```
+
+> [!NOTE]
+> String input (`std::string`, `std::string_view`, or another string type accepted by the archive) is
+> treated as already-decoded text and must not contain a BOM. Use the stream/file overloads when the
+> source may contain a BOM or another encoding; see [Input and output data types](#input-and-output-data-types).
+
 BitSerializer treats missing fields as optional by default, but you can enforce mandatory fields using the `Required()` validator. This approach eliminates the need for workarounds like using `std::optional`, simplifying your business logic by avoiding repetitive checks for value existence. The library's robust validation system collects all invalid fields during deserialization, enabling comprehensive error reporting (with localization support if needed). Additionally, BitSerializer ensures type safety by throwing exceptions for type mismatches or overflow errors, such as when deserializing values that exceed the capacity of the target type.
 
 ### Performance overview
@@ -1103,10 +1110,25 @@ void Serialize(TArchive& archive)
 
 [See full sample](samples/multiformat_customization/multiformat_customization.cpp)
 
+### Input and output data types
+
+`LoadObject`/`SaveObject` accept two families of data:
+
+| Data | Encoding | BOM |
+| ---- | -------- | --- |
+| `std::string` / `std::string_view` (or another string type accepted by the archive) | Already decoded text in the archive's native encoding (UTF-8 for most text formats) | Not expected and not stripped; a BOM is treated as text |
+| `std::istream` / `std::ostream` | Auto-detected on input, selected via `SerializationOptions` on output | Detected and skipped on input, configurable on output |
+| File overloads (`LoadObjectFromFile` / `SaveObjectToFile`) | Same as streams | Same as streams |
+
+String input is not a byte stream: the caller is responsible for decoding. If you read a file
+into a string yourself, strip the BOM (for example with `Convert::Utf::DetectEncoding()`) or use
+the stream/file overload. Binary formats (MsgPack) use binary buffers and have no BOM.
+
 ### Serialization to streams and files
-All archives in the BitSerializer support streams as well as serialization to files. In comparison to serialization to `std::string`, streams/files also supports UTF encodings.
+All archives in the BitSerializer support streams as well as serialization to files.
+Streams/files support multiple UTF encodings and BOM handling; see
+[Input and output data types](#input-and-output-data-types) for the general contract.
 BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but the latter is only supported by the built-in JSON, RapidJSON, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
-Input passed directly as `std::string`/`std::string_view` is expected to be UTF-8 without a BOM, and string output is always UTF-8 without a BOM. Use the stream/file overloads when the data may contain a BOM or is encoded differently.
 The following example shows how to save/load to `std::stream`:
 ```cpp
 class CPoint

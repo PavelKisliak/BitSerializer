@@ -72,6 +72,12 @@ jobs:
       echo -- Clone latest VCPKG
       echo ------------------------------------------------------------------------------
       git clone -v "https://github.com/microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
+      VCPKG_COMMIT=$(python3 "$(Build.SourcesDirectory)/CI/azure-devops/scripts/get_vcpkg_baseline.py")
+      if [ -z "$VCPKG_COMMIT" ]; then
+        echo "Failed to read VCPKG baseline from vcpkg.json"
+        exit 1
+      fi
+      git -C "${{ variables.vcpkgDir }}" checkout "$VCPKG_COMMIT"
       echo
       echo ------------------------------------------------------------------------------
       echo -- Bootstrap VCPKG

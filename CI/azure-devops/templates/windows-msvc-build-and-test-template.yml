@@ -30,6 +30,13 @@ jobs:
       echo -- Clone latest VCPKG
       echo ------------------------------------------------------------------------------
       git clone -v "https://$(GITHUB_TOKEN)@github.com/microsoft/vcpkg.git" "${{ variables.vcpkgDir }}"
+      for /f "usebackq delims=" %%i in (`python "$(Build.SourcesDirectory)\CI\azure-devops\scripts\get_vcpkg_baseline.py"`) do set "VCPKG_COMMIT=%%i"
+      if not defined VCPKG_COMMIT (
+        echo Failed to read VCPKG baseline from vcpkg.json
+        exit 1
+      )
+      echo ##vso[task.setvariable variable=vcpkgCommit]%VCPKG_COMMIT%
+      git -C "${{ variables.vcpkgDir }}" checkout %VCPKG_COMMIT%
       echo.
       echo ------------------------------------------------------------------------------
       echo -- Bootstrap VCPKG
@@ -43,9 +50,9 @@ jobs:
     displayName: Configure cache of VCPKG packages
     inputs:
       key: |
-        vcpkg | v10 | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v11 | $(vcpkgCommit) | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v10 | ${{ parameters.name }}
+        vcpkg | v11 | $(vcpkgCommit) | ${{ parameters.name }}
       path: ${{ variables.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
 

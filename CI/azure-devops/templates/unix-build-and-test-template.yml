@@ -84,20 +84,36 @@ jobs:
     displayName: 'Run tests'
     condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
 
-  - task: PublishTestResults@2
-    displayName: 'Publish Test results'
-    condition: and(
-      not(canceled()),
-      eq('${{ parameters.enableRunTests }}', true),
-      or(
-        eq('${{ parameters.publishTestResults }}', 'always'),
-        and(eq('${{ parameters.publishTestResults }}', 'onFailure'), failed())
-      ))
-    inputs:
-      testResultsFormat: 'cTest'
-      testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(Build.SourcesDirectory)/${{ variables.buildDirectory }}'
-      testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
-      buildPlatform: 'x64'
-      buildConfiguration: '${{ parameters.buildConfiguration }}'
-      failTaskOnMissingResultsFile: false
+  - ${{ if eq(parameters.publishTestResults, 'onFailure') }}:
+    - script: |
+        python3 "$(Build.SourcesDirectory)/CI/azure-devops/scripts/filter_failed_test_results.py" --build-dir "${{ variables.buildDirectory }}"
+      displayName: 'Filter failed test results'
+      condition: and(not(canceled()), eq('${{ parameters.enableRunTests }}', true), failed())
+
+  - ${{ if eq(parameters.publishTestResults, 'always') }}:
+    - task: PublishTestResults@2
+      displayName: 'Publish Test results'
+      condition: and(not(canceled()), eq('${{ parameters.enableRunTests }}', true))
+      continueOnError: true
+      inputs:
+        testResultsFormat: 'cTest'
+        testResultsFiles: '**/Testing/**/Test.xml'
+        searchFolder: '$(Build.SourcesDirectory)/${{ variables.buildDirectory }}'
+        testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
+        buildPlatform: 'x64'
+        buildConfiguration: '${{ parameters.buildConfiguration }}'
+        failTaskOnMissingResultsFile: false
+
+  - ${{ if eq(parameters.publishTestResults, 'onFailure') }}:
+    - task: PublishTestResults@2
+      displayName: 'Publish failed Test results'
+      condition: and(not(canceled()), eq('${{ parameters.enableRunTests }}', true), failed())
+      continueOnError: true
+      inputs:
+        testResultsFormat: 'cTest'
+        testResultsFiles: '**/Testing/failed/Test.xml'
+        searchFolder: '$(Build.SourcesDirectory)/${{ variables.buildDirectory }}'
+        testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}] (failed only)'
+        buildPlatform: 'x64'
+        buildConfiguration: '${{ parameters.buildConfiguration }}'
+        failTaskOnMissingResultsFile: false

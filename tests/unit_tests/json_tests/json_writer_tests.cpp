@@ -6,6 +6,7 @@
 #include <cstdio>
 #include "testing_tools/auto_fixture.h"
 #include "testing_tools/gtest_asserts.h"
+#include "testing_tools/scoped_locale.h"
 #include "bitserializer/json_archive.h"
 #include "json_writer_fixture.h"
 
@@ -89,6 +90,19 @@ TYPED_TEST(JsonWriterTest, WriteDouble)
 	this->mJsonWriter->WriteValue(-0.0625);
 	EXPECT_EQ("-0.0625", this->TakeResult());
 }
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
+TYPED_TEST(JsonWriterTest, WriteDoubleShouldUseDotInCommaLocale)
+{
+	ScopedLocale locale;
+	if (!ScopedLocale::TrySetComma()) {
+		GTEST_SKIP() << "No locale with a comma decimal separator is available";
+	}
+
+	this->mJsonWriter->WriteValue(-0.0625);
+	EXPECT_EQ("-0.0625", this->TakeResult());
+}
+#endif
 
 TYPED_TEST(JsonWriterTest, WriteNonFiniteNumberShouldThrow)
 {

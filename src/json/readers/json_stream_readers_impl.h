@@ -7,6 +7,7 @@
 #include "json_stream_readers.h"
 #include "json_reader_common.h"
 #include <charconv>
+#include <climits>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 #include "bitserializer/conversion_detail/convert_compatibility.h"
 #endif
@@ -458,8 +459,7 @@ namespace BitSerializer::Json::Detail
 				throw ParsingException("Invalid JSON number", mLineNumber, GetPosition() + numberInfo.errorOffset);
 			}
 
-			constexpr size_t maxBufSize = MaxNumberLength;
-			if (numberInfo.length >= maxBufSize)
+			if (numberInfo.length >= MaxNumberLength)
 			{
 				if (mSerializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
 				{
@@ -471,13 +471,16 @@ namespace BitSerializer::Json::Detail
 
 			// Copy to temporary buffer for prepare null-terminated c-string
 			const std::string_view data = mEncodedStreamReader.PeekChars(numberInfo.length);
-			char buf[maxBufSize];
+			char buf[MaxNumberLength + MB_LEN_MAX];
 			std::memcpy(buf, data.data(), numberInfo.length);
 			buf[numberInfo.length] = '\0';
 
+			const Convert::Detail::NormalizedNumber normalized = Convert::Detail::NormalizeDecimalPoint(
+				buf, numberInfo.length, sizeof(buf));
+
 			errno = 0;
 			char* endPos = nullptr;
-			const T result = Convert::Detail::_stdWrappers::_fromStr<T>(buf, &endPos);
+			const T result = Convert::Detail::ParseFloat<T>(normalized.data, &endPos);
 			if (errno == ERANGE)
 			{
 				if (mSerializationOptions.overflowNumberPolicy == OverflowNumberPolicy::ThrowError)
@@ -487,9 +490,9 @@ namespace BitSerializer::Json::Detail
 				mEncodedStreamReader.SkipChars(numberInfo.length);
 				return false;
 			}
-			if (endPos == buf)
+			if (endPos != normalized.data + normalized.size)
 			{
-				throw ParsingException("Invalid JSON number", mLineNumber, GetPosition());
+				throw ParsingException("Invalid JSON number", mLineNumber, GetPosition() + static_cast<size_t>(endPos - normalized.data));
 			}
 			mEncodedStreamReader.SkipChars(numberInfo.length);
 			outValue = result;

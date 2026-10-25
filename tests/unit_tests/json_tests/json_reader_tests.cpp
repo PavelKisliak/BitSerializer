@@ -7,6 +7,7 @@
 #include "bitserializer/json_archive.h"
 #include "json_reader_fixture.h"
 #include "testing_tools/gtest_asserts.h"
+#include "testing_tools/scoped_locale.h"
 
 using JsonReadersTypes = ::testing::Types<
 	BitSerializer::Json::Detail::JsonStringReader<BitSerializer::ArchiveType::Json>
@@ -547,6 +548,21 @@ TYPED_TEST(JsonReaderTest, ReadDouble)
 	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
 	EXPECT_DOUBLE_EQ(3.141592654, value);
 }
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
+TYPED_TEST(JsonReaderTest, ReadDoubleShouldUseDotInCommaLocale)
+{
+	ScopedLocale locale;
+	if (!ScopedLocale::TrySetComma()) {
+		GTEST_SKIP() << "No locale with a comma decimal separator is available";
+	}
+
+	double value{};
+	this->PrepareReader("1.5");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_DOUBLE_EQ(1.5, value);
+}
+#endif
 
 TYPED_TEST(JsonReaderTest, ReadDoubleShouldThrowExceptionWhenMismatchedTypes)
 {

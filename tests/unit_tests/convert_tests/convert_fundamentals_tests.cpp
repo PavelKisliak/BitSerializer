@@ -5,6 +5,7 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
+#include "testing_tools/scoped_locale.h"
 
 using namespace BitSerializer;
 
@@ -371,6 +372,25 @@ TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(-123.4567f, Convert::To<float>(U"  -123.4567  "));
 	EXPECT_EQ(1.0f, Convert::To<float>(L"1.0 .............................. following text should be ignored "));
 }
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
+TEST(ConvertFundamentals, FloatFromStringShouldUseDotInCommaLocale) {
+	ScopedLocale locale;
+	if (!ScopedLocale::TrySetComma()) {
+		GTEST_SKIP() << "No locale with a comma decimal separator is available";
+	}
+
+	EXPECT_EQ(1.5, Convert::To<double>("1.5"));
+	EXPECT_EQ(1500.0, Convert::To<double>("1.5e3"));
+	EXPECT_EQ(1.5, Convert::To<double>(L"1.5"));
+	EXPECT_EQ(1.5, Convert::To<double>(u"1.5"));
+	EXPECT_EQ(1.0, Convert::To<double>("1,5")) << "The locale's own separator must not be accepted";
+
+	EXPECT_EQ("1.5", Convert::To<std::string>(1.5));
+	EXPECT_EQ(L"1.5", Convert::To<std::wstring>(1.5));
+	EXPECT_EQ(u"1.5", Convert::To<std::u16string>(1.5));
+}
+#endif
 
 TEST(ConvertFundamentals, FloatSpecialFromString) {
 	if constexpr (std::numeric_limits<float>::has_infinity)

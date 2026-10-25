@@ -60,14 +60,14 @@ stages:
           name: 'MemoryCheck_Valgrind_static'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF'
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF'
 
       - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_dynamic'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_SHARED_LIBS=ON'
+          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:

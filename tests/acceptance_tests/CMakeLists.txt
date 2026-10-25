@@ -30,6 +30,11 @@ message(STATUS "[Option] BUILD_MSGPACK_ARCHIVE: ${BUILD_MSGPACK_ARCHIVE}")
 option(BUILD_JSON_ARCHIVE "Build JSON archive" OFF)
 message(STATUS "[Option] BUILD_JSON_ARCHIVE: ${BUILD_JSON_ARCHIVE}")
 
+# Register one aggregated CTest entry per test executable (whole gtest binary as a single test).
+# Used by the Valgrind CI job to avoid paying the Valgrind process startup cost for every gtest case.
+option(BUILD_MEMCHECK_AGGREGATE_TESTS "Register aggregated tests for memory checking" OFF)
+message(STATUS "[Option] BUILD_MEMCHECK_AGGREGATE_TESTS: ${BUILD_MEMCHECK_AGGREGATE_TESTS}")
+
 # Unused parameters (keep them only for avoid warnings when use the same set of parameters as for the main project)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(BUILD_TESTS "Build tests" OFF)
@@ -124,4 +129,40 @@ endif()
 
 if(BUILD_MSGPACK_ARCHIVE)
     add_subdirectory(../integration_tests/msgpack_archive_tests ${CMAKE_CURRENT_BINARY_DIR}/msgpack_archive_tests)
+endif()
+
+#################################################################################
+# Aggregated tests for memory checking
+#################################################################################
+# Running a whole test executable as a single CTest test lets Valgrind analyze it in one
+# process instead of starting a new Valgrind instance for every gtest case (per-case startup
+# dominates the memory check time with a Debug build).
+if(BUILD_MEMCHECK_AGGREGATE_TESTS)
+    set(_memcheck_targets convert_api_tests)
+    if(BUILD_JSON_ARCHIVE)
+        list(APPEND _memcheck_targets json_archive_tests)
+    endif()
+    if(BUILD_RAPIDJSON_ARCHIVE)
+        list(APPEND _memcheck_targets rapidjson_archive_tests)
+    endif()
+    if(BUILD_PUGIXML_ARCHIVE)
+        list(APPEND _memcheck_targets pugixml_archive_tests)
+    endif()
+    if(BUILD_RAPIDYAML_ARCHIVE)
+        list(APPEND _memcheck_targets rapidyaml_archive_tests)
+    endif()
+    if(BUILD_CSV_ARCHIVE)
+        list(APPEND _memcheck_targets csv_archive_tests)
+    endif()
+    if(BUILD_MSGPACK_ARCHIVE)
+        list(APPEND _memcheck_targets msgpack_archive_tests)
+    endif()
+
+    foreach(_target IN LISTS _memcheck_targets)
+        add_test(NAME "${_target}_aggregate" COMMAND ${_target} --gtest_color=no)
+        set_tests_properties("${_target}_aggregate" PROPERTIES
+            LABELS "memcheck_aggregate"
+            TIMEOUT 1800
+        )
+    endforeach()
 endif()

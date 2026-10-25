@@ -79,7 +79,11 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: ${{ variables.acceptanceTestsDir }}/build-debug
-      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DCMAKE_PREFIX_PATH=${{ variables.installDir }} ${{ parameters.cmakeGenArgs }} ..'
+      # Reuse the VCPKG packages restored by the cache (the default location would be this build dir
+      # and would force VCPKG to rebuild all dependencies on every run).
+      # Aggregated tests run a whole test executable as a single CTest test, so Valgrind starts once
+      # per executable instead of once per gtest case.
+      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} -DVCPKG_MANIFEST_DIR=$(Build.SourcesDirectory) -DVCPKG_INSTALLED_DIR=$(Build.SourcesDirectory)/${{ parameters.buildDirectory }}/vcpkg_installed -DCMAKE_PREFIX_PATH=${{ variables.installDir }} -DBUILD_MEMCHECK_AGGREGATE_TESTS=ON ${{ parameters.cmakeGenArgs }} ..'
     displayName: 'CMake - generate acceptance tests'
 
   - script: |
@@ -88,7 +92,7 @@ jobs:
 
   - script: |
       cd ${{ variables.acceptanceTestsDir }}/build-debug
-      ctest -T memcheck -L integration_tests --output-on-failure -j$(nproc) --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=1"
+      ctest -T memcheck -L memcheck_aggregate --output-on-failure -j$(nproc) --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=1"
       exit_code=$?
       echo "CTest exited with code: $exit_code"
       echo

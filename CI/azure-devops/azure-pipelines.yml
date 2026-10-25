@@ -97,6 +97,7 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
+          publishTestResults: 'always'
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:

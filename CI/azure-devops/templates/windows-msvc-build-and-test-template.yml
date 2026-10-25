@@ -13,6 +13,8 @@ parameters:
   buildConfiguration: 'Release'
 # [Optional] Enable run tests
   enableRunTests: true
+# [Optional] When to publish test results: always | onFailure | never
+  publishTestResults: 'onFailure'
 
 jobs:
 - job: ${{ parameters.name }}
@@ -96,11 +98,18 @@ jobs:
 
   - task: PublishTestResults@2
     displayName: 'Publish Test results'
-    condition: and(not(canceled()), eq('${{ parameters.enableRunTests }}', true))
+    condition: and(
+      not(canceled()),
+      eq('${{ parameters.enableRunTests }}', true),
+      or(
+        eq('${{ parameters.publishTestResults }}', 'always'),
+        and(eq('${{ parameters.publishTestResults }}', 'onFailure'), failed())
+      ))
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Testing/**/Test.xml'
-      searchFolder: '$(Build.SourcesDirectory)/${{ parameters.buildDirectory }}'
+      searchFolder: '$(Build.SourcesDirectory)/${{ variables.buildDirectory }}'
       testRunTitle: '${{ parameters.name }} [${{ parameters.buildConfiguration }}]'
       buildPlatform: '${{ parameters.platform }}'
       buildConfiguration: '${{ parameters.buildConfiguration }}'
+      failTaskOnMissingResultsFile: false

@@ -2214,6 +2214,37 @@ TYPED_TEST(JsonReaderTest, ReadValueWithBlockComment)
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }
 
+TYPED_TEST(JsonReaderTest, ReadValueWithLongLineComment)
+{
+	const std::string comment(chunkSize * 2, 'x');
+	this->PrepareReaderWithFeatures("//" + comment + "\n42", ArchiveType::Jsonc);
+	int32_t value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueWithLongBlockComment)
+{
+	const std::string comment(chunkSize * 2, 'x');
+	this->PrepareReaderWithFeatures("/*" + comment + "*/ 42", ArchiveType::Jsonc);
+	int32_t value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueWithBlockCommentClosingAtChunkBoundary)
+{
+	// The '*' is the last byte of the initial buffer window, '/' lands in the next chunk
+	const std::string comment(chunkSize - 3, 'x');
+	this->PrepareReaderWithFeatures("/*" + comment + "*/ 42", ArchiveType::Jsonc);
+	int32_t value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
 TYPED_TEST(JsonReaderTest, ReadValueTypeWithLeadingComment)
 {
 	this->PrepareReaderWithFeatures("/* comment */ true", ArchiveType::Jsonc);

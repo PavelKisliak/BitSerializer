@@ -7,11 +7,25 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include "bitserializer/common/memory.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "common/simd/scan.h"
 
 namespace BitSerializer::Json::Detail
 {
+	/**
+	 * @brief Compares a string literal with the bytes at `pos` without creating a substring.
+	 *
+	 * Bounds are checked first, then `Memory::EqualBytes` unrolls the fixed-size literal
+	 * into word-sized loads. No `std::string_view` is constructed on this path.
+	 */
+	template <size_t N>
+	[[nodiscard]] BITSERIALIZER_FORCEINLINE bool EqualAt(std::string_view data, size_t pos, const char (&literal)[N]) noexcept
+	{
+		static_assert(N > 1, "BitSerializer. The literal must not be empty");
+		return pos + (N - 1) <= data.size() && Memory::EqualBytes<N - 1>(data.data() + pos, literal);
+	}
+
 	/// Maximum number of characters required to parse any valid JSON number
 	/// (including sign, decimal point and exponent). Used as the scanning window
 	/// in both string and stream readers to keep number handling consistent.
@@ -22,7 +36,8 @@ namespace BitSerializer::Json::Detail
 	{
 		JsonCharDigit = 1u << 0,
 		JsonCharTerminator = 1u << 1,
-		JsonCharFloatStart = 1u << 2
+		JsonCharFloatStart = 1u << 2,
+		JsonCharAlpha = 1u << 3
 	};
 
 	/// Single 256-byte lookup table shared by the hot validation path (cheaper than chains of compares).
@@ -32,6 +47,14 @@ namespace BitSerializer::Json::Detail
 		for (int c = '0'; c <= '9'; ++c)
 		{
 			table[static_cast<size_t>(c)] |= JsonCharDigit;
+		}
+		for (int c = 'a'; c <= 'z'; ++c)
+		{
+			table[static_cast<size_t>(c)] |= JsonCharAlpha;
+		}
+		for (int c = 'A'; c <= 'Z'; ++c)
+		{
+			table[static_cast<size_t>(c)] |= JsonCharAlpha;
 		}
 		table[static_cast<size_t>(' ')] |= JsonCharTerminator;
 		table[static_cast<size_t>('\t')] |= JsonCharTerminator;
@@ -64,6 +87,12 @@ namespace BitSerializer::Json::Detail
 	[[nodiscard]] constexpr bool IsJsonFloatStart(char c) noexcept
 	{
 		return (JsonCharClasses[static_cast<uint8_t>(c)] & JsonCharFloatStart) != 0;
+	}
+
+	/// Returns `true` for ASCII letters, i.e. the characters that can start `true`, `false` or `null`.
+	[[nodiscard]] constexpr bool IsJsonAlpha(char c) noexcept
+	{
+		return (JsonCharClasses[static_cast<uint8_t>(c)] & JsonCharAlpha) != 0;
 	}
 
 	/// Result of a JSON number scan, see `ScanJsonNumber()`.

@@ -35,43 +35,71 @@ namespace BitSerializer::Json::Detail
 		{
 			// Line comment: skip up to (but not including) the new-line character
 			index += 2;
-			while (index < data.size() && data[index] != '\n') {
-				++index;
+			while (true)
+			{
+				const size_t newLine = BitSerializer::Simd::FindFirstOf<'\n'>(data, index);
+				if (newLine != std::string_view::npos)
+				{
+					index = newLine;
+					return true;
+				}
+				const size_t oldSize = data.size();
+				data = encodedStreamReader.PeekChars(oldSize + 64);
+				if (data.size() == oldSize)
+				{
+					index = oldSize; // A line comment may end at the end of the input
+					return true;
+				}
+				index = oldSize;
 			}
-			return true;
 		}
 		if (data[index + 1] == '*')
 		{
 			// Block comment: skip up to and including the closing "*/"
 			index += 2;
-			bool closed = false;
 			while (true)
 			{
-				// Need at least two characters to detect the closing "*/"
-				if (index + 1 >= data.size())
+				const size_t stop = BitSerializer::Simd::FindFirstOf<'*', '\n'>(data, index);
+				if (stop == std::string_view::npos)
 				{
-					data = encodedStreamReader.PeekChars(index + 64);
-					if (index + 1 >= data.size()) {
+					// No '*' or new-line in the buffered window - read more data
+					const size_t oldSize = data.size();
+					data = encodedStreamReader.PeekChars(oldSize + 64);
+					if (data.size() == oldSize) {
 						break; // No more data available
 					}
+					index = oldSize;
+					continue;
 				}
-				if (data[index] == '*' && data[index + 1] == '/')
+				if (data[stop] == '\n')
 				{
-					index += 2;
-					closed = true;
-					break;
+					++lineNumber;
+					index = stop + 1;
+					continue;
 				}
-				lineNumber += static_cast<size_t>(data[index] == '\n');
-				++index;
-			}
-			if (!closed)
-			{
-				if (index) {
-					encodedStreamReader.SkipChars(index);
+				// `stop` points at '*' - it closes the comment only when followed by '/'
+				if (stop + 1 < data.size())
+				{
+					if (data[stop + 1] == '/')
+					{
+						index = stop + 2;
+						return true;
+					}
+					index = stop + 1;
+					continue;
 				}
-				throw ParsingException("Unterminated block comment", lineNumber, encodedStreamReader.GetPosition());
+				// The '*' is the last buffered character - need the next one
+				const size_t oldSize = data.size();
+				data = encodedStreamReader.PeekChars(oldSize + 64);
+				if (data.size() == oldSize) {
+					break; // No more data available
+				}
+				index = stop; // Re-check the same '*' with the new data
 			}
-			return true;
+			if (index) {
+				encodedStreamReader.SkipChars(index);
+			}
+			throw ParsingException("Unterminated block comment", lineNumber, encodedStreamReader.GetPosition());
 		}
 		return false; // Not a comment
 	}
@@ -744,19 +772,19 @@ namespace BitSerializer::Json::Detail
 		}
 
 		// Skip boolean or null types
-		if (std::isalpha(static_cast<unsigned char>(ch)))
+		if (IsJsonAlpha(ch))
 		{
-			if (inputData.compare(0, 4, "true") == 0)
+			if (EqualAt(inputData, 0, "true"))
 			{
 				mEncodedStreamReader.SkipChars(4);
 				return;
 			}
-			if (inputData.compare(0, 5, "false") == 0)
+			if (EqualAt(inputData, 0, "false"))
 			{
 				mEncodedStreamReader.SkipChars(5);
 				return;
 			}
-			if (inputData.compare(0, 4, "null") == 0)
+			if (EqualAt(inputData, 0, "null"))
 			{
 				mEncodedStreamReader.SkipChars(4);
 				return;
@@ -765,7 +793,7 @@ namespace BitSerializer::Json::Detail
 		}
 
 		// Skip number (including scientific notation)
-		if (std::isdigit(static_cast<unsigned char>(ch)) || ch == '-')
+		if (IsJsonDigit(ch) || ch == '-')
 		{
 			size_t pos = 1;
 			while (true)
@@ -782,7 +810,7 @@ namespace BitSerializer::Json::Detail
 				}
 
 				ch = inputData[pos];
-				if (std::isdigit(static_cast<unsigned char>(ch)) ||
+				if (IsJsonDigit(ch) ||
 					ch == '.' || ch == 'e' || ch == 'E' || ch == '+' || ch == '-')
 				{
 					++pos;
@@ -842,7 +870,7 @@ namespace BitSerializer::Json::Detail
 		if (const char ch = SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber); ch)
 		{
 			std::string_view data = mEncodedStreamReader.PeekChars(4);
-			if (ch == 'n' && data.compare(1, 3, "ull", 3) == 0)
+			if (ch == 'n' && EqualAt(data, 0, "null"))
 			{
 				mEncodedStreamReader.SkipChars(4);
 				return true;
@@ -862,8 +890,9 @@ namespace BitSerializer::Json::Detail
 			{
 			case 't':
 			{
+				// A 4-byte literal is a single load; a 3-byte tail costs two loads
 				std::string_view data = mEncodedStreamReader.PeekChars(4);
-				if (data.compare(1, 3, "rue", 3) == 0)
+				if (EqualAt(data, 0, "true"))
 				{
 					value = true;
 					mEncodedStreamReader.SkipChars(4);
@@ -873,8 +902,9 @@ namespace BitSerializer::Json::Detail
 			}
 			case 'f':
 			{
+				// A 5-byte literal would cost 4+1 loads; the switch already matched 'f'
 				std::string_view data = mEncodedStreamReader.PeekChars(5);
-				if (data.compare(1, 4, "alse", 4) == 0)
+				if (EqualAt(data, 1, "alse"))
 				{
 					value = false;
 					mEncodedStreamReader.SkipChars(5);

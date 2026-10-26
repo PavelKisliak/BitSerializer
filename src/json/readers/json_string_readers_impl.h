@@ -31,32 +31,31 @@ namespace BitSerializer::Json::Detail
 		if (data[pos + 1] == '/')
 		{
 			// Line comment: skip up to (but not including) the new-line character
-			pos += 2;
-			while (pos < data.size() && data[pos] != '\n') {
-				++pos;
-			}
-			return pos;
+			const size_t newLine = BitSerializer::Simd::FindFirstOf<'\n'>(data, pos + 2);
+			return newLine == std::string_view::npos ? data.size() : newLine;
 		}
 		if (data[pos + 1] == '*')
 		{
 			// Block comment: skip up to and including the closing "*/"
 			pos += 2;
-			bool closed = false;
-			while (pos < data.size())
+			while (true)
 			{
-				if (data[pos] == '*' && pos + 1 < data.size() && data[pos + 1] == '/')
-				{
-					pos += 2;
-					closed = true;
-					break;
+				const size_t stop = BitSerializer::Simd::FindFirstOf<'*', '\n'>(data, pos);
+				if (stop == std::string_view::npos) {
+					throw ParsingException("Unterminated block comment", line, data.size());
 				}
-				line += static_cast<size_t>(data[pos] == '\n');
-				++pos;
+				if (data[stop] == '\n')
+				{
+					++line;
+					pos = stop + 1;
+					continue;
+				}
+				// `stop` points at '*' - it closes the comment only when followed by '/'
+				if (stop + 1 < data.size() && data[stop + 1] == '/') {
+					return stop + 2;
+				}
+				pos = stop + 1;
 			}
-			if (!closed) {
-				throw ParsingException("Unterminated block comment", line, pos);
-			}
-			return pos;
 		}
 		return pos; // Not a comment
 	}
@@ -181,22 +180,24 @@ namespace BitSerializer::Json::Detail
 		if (ch == '"')
 		{
 			++pos;
-			while (pos < size)
+			while (true)
 			{
-				ch = inputData[pos];
-				++pos;
-				if (ch == '"') {
+				const size_t stop = BitSerializer::Simd::FindFirstOf<'"', '\\'>(inputData, pos);
+				if (stop == std::string_view::npos) {
+					throw ParsingException("Unterminated string literal", line, size);
+				}
+				if (inputData[stop] == '"')
+				{
+					pos = stop + 1;
 					return; // End of string
 				}
-				if (ch == '\\')
-				{
-					if (pos >= size) {
-						throw ParsingException("Unexpected end of input in string escape", line, pos);
-					}
-					++pos; // Skip escaped character (including \uXXXX, but we don't validate)
+				// Skip the escape character (including \uXXXX, but we don't validate)
+				pos = stop + 1;
+				if (pos >= size) {
+					throw ParsingException("Unexpected end of input in string escape", line, pos);
 				}
+				++pos;
 			}
-			throw ParsingException("Unterminated string literal", line, pos);
 		}
 
 		// Skip object type
@@ -296,19 +297,19 @@ namespace BitSerializer::Json::Detail
 		}
 
 		// Skip boolean or null types
-		if (std::isalpha(static_cast<unsigned char>(ch)))
+		if (IsJsonAlpha(ch))
 		{
-			if (inputData.compare(pos, 4, "true") == 0)
+			if (EqualAt(inputData, pos, "true"))
 			{
 				pos += 4;
 				return;
 			}
-			if (inputData.compare(pos, 5, "false") == 0)
+			if (EqualAt(inputData, pos, "false"))
 			{
 				pos += 5;
 				return;
 			}
-			if (inputData.compare(pos, 4, "null") == 0)
+			if (EqualAt(inputData, pos, "null"))
 			{
 				pos += 4;
 				return;
@@ -317,13 +318,13 @@ namespace BitSerializer::Json::Detail
 		}
 
 		// Skip number (including scientific notation)
-		if (std::isdigit(static_cast<unsigned char>(ch)) || ch == '-' )
+		if (IsJsonDigit(ch) || ch == '-' )
 		{
 			++pos;
 			while (pos < size)
 			{
 				ch = inputData[pos];
-				if (std::isdigit(static_cast<unsigned char>(ch)) ||
+				if (IsJsonDigit(ch) ||
 					ch == '.' || ch == 'e' || ch == 'E' || ch == '+' || ch == '-')
 				{
 					++pos;
@@ -702,7 +703,7 @@ namespace BitSerializer::Json::Detail
 	{
 		if (const char ch = SkipWhitespaceAndPeek<TFormat>(mInputData, mPos, mLineNumber); ch)
 		{
-			if (ch == 'n' && mInputData.compare(mPos + 1, 3, "ull", 3) == 0)
+			if (ch == 'n' && EqualAt(mInputData, mPos, "null"))
 			{
 				mPos += 4;
 				return true;
@@ -721,7 +722,8 @@ namespace BitSerializer::Json::Detail
 			switch (ch)
 			{
 			case 't':
-				if (mInputData.compare(mPos + 1, 3, "rue", 3) == 0)
+				// A 4-byte literal is a single load; a 3-byte tail costs two loads
+				if (EqualAt(mInputData, mPos, "true"))
 				{
 					value = true;
 					mPos += 4;
@@ -729,7 +731,8 @@ namespace BitSerializer::Json::Detail
 				}
 				break;
 			case 'f':
-				if (mInputData.compare(mPos + 1, 4, "alse", 4) == 0)
+				// A 5-byte literal would cost 4+1 loads; the switch already matched 'f'
+				if (EqualAt(mInputData, mPos + 1, "alse"))
 				{
 					value = false;
 					mPos += 5;

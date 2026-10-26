@@ -3,6 +3,8 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <cmath>
+#include <string>
+#include <string_view>
 #include <gtest/gtest.h>
 #include "bitserializer/convert.h"
 #include "testing_tools/scoped_locale.h"
@@ -177,6 +179,87 @@ TEST(ConvertFundamentals, BoolFromStringWithTrueFalse) {
 TEST(ConvertFundamentals, BoolFromStringWithWrongTextShouldThrowException) {
 	EXPECT_THROW(Convert::To<bool>("test"), std::invalid_argument);
 	EXPECT_THROW(Convert::To<bool>(",true"), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithEmptyOrWhitespaceShouldThrowException) {
+	EXPECT_THROW(Convert::To<bool>(""), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>("   "), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>("\t"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>(" \t "), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithLeadingSpacesAndTabs) {
+	EXPECT_EQ(true, Convert::To<bool>("\tTrue"));
+	EXPECT_EQ(false, Convert::To<bool>(" \t False"));
+	EXPECT_EQ(true, Convert::To<bool>("\t1"));
+	EXPECT_EQ(false, Convert::To<bool>("\t0"));
+
+	// Only spaces and tabs are skipped by the conversion
+	EXPECT_THROW(Convert::To<bool>("\ntrue"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<bool>("\rtrue"), std::invalid_argument);
+}
+
+TEST(ConvertFundamentals, BoolFromStringUppercase) {
+	EXPECT_EQ(true, Convert::To<bool>("TRUE"));
+	EXPECT_EQ(false, Convert::To<bool>("FALSE"));
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithIncompleteLiteralShouldThrowException) {
+	for (const auto* value : { "t", "f", "tru", "fals", "TRU", "FALS" }) {
+		EXPECT_THROW(Convert::To<bool>(value), std::invalid_argument) << value;
+	}
+}
+
+TEST(ConvertFundamentals, BoolFromStringIgnoresTrailingCharacters) {
+	EXPECT_EQ(true, Convert::To<bool>("true "));
+	EXPECT_EQ(true, Convert::To<bool>("trueX"));
+	EXPECT_EQ(false, Convert::To<bool>("falseX"));
+	EXPECT_EQ(true, Convert::To<bool>("true1"));
+	EXPECT_EQ(false, Convert::To<bool>("false1"));
+
+	EXPECT_EQ(true, Convert::To<bool>("1a"));
+	EXPECT_EQ(false, Convert::To<bool>("0a"));
+	EXPECT_EQ(true, Convert::To<bool>("1+"));
+	EXPECT_EQ(false, Convert::To<bool>("0-"));
+	EXPECT_EQ(true, Convert::To<bool>("1e0"));
+	EXPECT_EQ(false, Convert::To<bool>("0e0"));
+	EXPECT_EQ(true, Convert::To<bool>("1\t"));
+	EXPECT_EQ(false, Convert::To<bool>("0\n"));
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithNumericTailShouldThrowException) {
+	for (const auto* value : { "1.", "0.", "10", "01", "00", "11", "1.5", "0.0" }) {
+		EXPECT_THROW(Convert::To<bool>(value), std::invalid_argument) << value;
+	}
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithSignShouldThrowException) {
+	for (const auto* value : { "+1", " +1", "-1", "-0" }) {
+		EXPECT_THROW(Convert::To<bool>(value), std::invalid_argument) << value;
+	}
+}
+
+TEST(ConvertFundamentals, BoolFromWideString) {
+	EXPECT_EQ(true, Convert::To<bool>(L"  True"));
+	EXPECT_EQ(false, Convert::To<bool>(L"FALSE"));
+	EXPECT_EQ(true, Convert::To<bool>(L"\t1"));
+	EXPECT_EQ(false, Convert::To<bool>(std::wstring(L"0")));
+}
+
+TEST(ConvertFundamentals, BoolFromStringLikeTypes) {
+	EXPECT_EQ(true, Convert::To<bool>(std::string("true")));
+	EXPECT_EQ(false, Convert::To<bool>(std::string_view("false")));
+	EXPECT_EQ(true, Convert::To<bool>(std::u16string(u"TRUE")));
+	EXPECT_EQ(false, Convert::To<bool>(std::u32string(U"false")));
+	EXPECT_EQ(true, Convert::To<bool>(std::wstring_view(L"1")));
+}
+
+TEST(ConvertFundamentals, BoolFromStringWithNonAsciiShouldThrowException) {
+	const std::string highBit(1, static_cast<char>(0x80));
+	EXPECT_THROW(Convert::To<bool>(highBit), std::invalid_argument);
+
+	const std::wstring wideHighBit(1, static_cast<wchar_t>(0x80));
+	EXPECT_THROW(Convert::To<bool>(wideHighBit), std::invalid_argument);
 }
 
 TEST(ConvertFundamentals, BoolToString) {

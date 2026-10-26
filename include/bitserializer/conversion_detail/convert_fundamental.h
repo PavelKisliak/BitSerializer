@@ -7,6 +7,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <type_traits>
 #include "bitserializer/config.h"
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 #include "bitserializer/conversion_detail/convert_compatibility.h"
@@ -153,20 +154,22 @@ namespace BitSerializer::Convert::Detail
 	 * - "false", "False", "FALSE", etc.
 	 * - "1" or "0"
 	 *
-	 * Leading whitespace is ignored. Any additional characters after the recognized value cause failure.
+	 * Leading spaces and tabs are ignored. The recognized prefix is matched and trailing characters
+	 * are ignored, except that `1`/`0` followed by a digit or `.` is rejected.
 	 *
 	 * @param[in] in Input string to parse.
 	 * @param[out] ret_Val Resulting boolean value.
 	 * @throws std::invalid_argument If input is not a valid boolean representation.
 	 */
 	template <typename TSym>
-	void To(std::basic_string_view<TSym> in, bool& ret_Val)
+	BITSERIALIZER_FORCEINLINE void To(std::basic_string_view<TSym> in, bool& ret_Val)
 	{
 		const auto* startIt = in.data();
 		const auto* endIt = startIt + in.size();
 
 		// Skip leading spaces
-		for (; (startIt != endIt) && (*startIt == 0x20 || *startIt == 0x09); ++startIt) {}
+		for (; (startIt != endIt) &&
+			(*startIt == static_cast<TSym>(' ') || *startIt == static_cast<TSym>('\t')); ++startIt) {}
 
 		const auto size = endIt - startIt;
 		if (size >= 1)
@@ -193,15 +196,18 @@ namespace BitSerializer::Convert::Detail
 			}
 
 			// Allow to read unsigned to boolean
-			if (std::isdigit(*startIt))
+			if (static_cast<unsigned>(startIt[0] - static_cast<TSym>('0')) <= 9u)
 			{
-				if (*startIt == '1' && (size == 1 || !(std::isdigit(startIt[1]) || startIt[1] == '.')))
+				if (startIt[0] == '1' && (size == 1 ||
+					!(static_cast<unsigned>(startIt[1] - static_cast<TSym>('0')) <= 9u ||
+						startIt[1] == static_cast<TSym>('.'))))
 				{
 					ret_Val = true;
 					return;
 				}
-
-				if (*startIt == '0' && (size == 1 || !(std::isdigit(startIt[1]) || startIt[1] == '.')))
+				if (startIt[0] == '0' && (size == 1 ||
+					!(static_cast<unsigned>(startIt[1] - static_cast<TSym>('0')) <= 9u ||
+						startIt[1] == static_cast<TSym>('.'))))
 				{
 					ret_Val = false;
 					return;

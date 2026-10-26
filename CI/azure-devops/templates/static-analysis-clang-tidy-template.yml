@@ -25,9 +25,32 @@ jobs:
     fetchDepth: 2
 
   - script: |
+      echo ------------------------------------------------------------------------------
+      echo -- Detecting C/C++ changes
+      echo ------------------------------------------------------------------------------
+      # Skip the whole job (configure, build, analysis) when the last commit doesn't touch C/C++.
+      # The build is only needed for the dependency graph used to map changed headers to translation units.
+      if changed_files=$(git diff HEAD HEAD~ --name-only 2>/dev/null); then
+        cpp_files=$(echo "$changed_files" | grep -E '\.(h|hpp|cpp|cc)$' || true)
+        if [ -n "$cpp_files" ]; then
+          echo "##vso[task.setvariable variable=hasCppChanges]true"
+          echo "C/C++ files changed:"
+          echo "$cpp_files"
+        else
+          echo "##vso[task.setvariable variable=hasCppChanges]false"
+          echo "No C/C++ files changed, static analysis will be skipped."
+        fi
+      else
+        echo "##vso[task.setvariable variable=hasCppChanges]true"
+        echo "Failed to determine changed files, static analysis will run."
+      fi
+    displayName: 'Detect C/C++ changes'
+
+  - script: |
       echo --- Install build tools ---
       sudo apt-get install ninja-build
     displayName: 'Install build tools'
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -37,6 +60,7 @@ jobs:
       ninja --version
       clang-tidy --version
     displayName: 'Tools version info'
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -56,6 +80,7 @@ jobs:
       echo ------------------------------------------------------------------------------
       ${{ variables.vcpkgDir }}/bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
 
@@ -68,18 +93,20 @@ jobs:
       path: ${{ parameters.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
 
   - task: CMake@1
     inputs:
       workingDirectory: ${{ parameters.buildDirectory }}
       cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
     displayName: 'CMake - generate'
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
 
   - script: |
       ninja -C ${{ parameters.buildDirectory }}
       ninja -C ${{ parameters.buildDirectory }} -t deps > ${{ parameters.buildDirectory }}/deps.txt
     displayName: 'Build'
-    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false))
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasCppChanges, 'true'))
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -100,7 +127,7 @@ jobs:
           echo "No affected source files found. Skipping clang-tidy analysis."
       fi
     displayName: 'Static analysis [latest changes]'
-    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false))
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasCppChanges, 'true'))
 
   - script: |
       python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }}

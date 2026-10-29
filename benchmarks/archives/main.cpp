@@ -7,12 +7,11 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "testing_tools/perf_utils.h"
+#include "perf_utils.h"
 #include "bitserializer/types/std/unordered_map.h"
 
 #include "competitors/bitserializer_benchmark.h"
@@ -41,20 +40,13 @@ int main()	// NOLINT(bugprone-exception-escape)
 	std::vector<LibraryTestResults> benchmarkResults;
 	std::cout << "Testing, please do not touch mouse and keyboard." << std::endl;
 
-	// Set the highest priority for the process to minimize fluctuations in results
-	PerfUtils::SetMaxPriority();
-
-	// Pin current thread to fixed core
-	if (const uint32_t hardwareThreads = std::thread::hardware_concurrency(); hardwareThreads > 0)
-	{
-		PerfUtils::SetCurrentThreadAffinity((hardwareThreads - 1) >> 1);
-	}
-
+	// Raise priority, pin the current thread to a fixed core, and warm up the CPU
+	// (skip the warm-up in debug builds to keep them fast).
 	if constexpr (!isDebugBuild)
 	{
 		std::cout << "Warm up the CPU" << std::endl;
-		PerfUtils::PreheatCPU(std::chrono::seconds(10));
 	}
+	BenchHarness::PrepareEnvironment(isDebugBuild ? std::chrono::steady_clock::duration::zero() : std::chrono::seconds(10));
 
 	// Benchmarking libraries
 	try

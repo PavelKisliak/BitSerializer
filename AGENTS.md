@@ -51,7 +51,7 @@ BitSerializer/
 │   ├── json/                       # JSON root scopes (json_read_root_scope.h, json_write_root_scope.cpp) + readers/ + writers/
 │   ├── msgpack/                    # MsgPack reader/writer + msgpack_archive.cpp
 │   ├── common/                     # Binary stream reader
-│   └── testing_tools/              # Shared test utilities (fixtures, assertions, perf)
+│   └── testing_tools/              # Shared test utilities (fixtures, assertions; GTest-based)
 │
 ├── tests/
 │   ├── unit_tests/                 # Per-module unit tests
@@ -73,7 +73,7 @@ BitSerializer/
 │   └── acceptance_tests/           # Installed-library tests (reuses integration tests, CI Valgrind checks)
 │
 ├── samples/                        # 15 example projects (hello_world, validation, versioning, etc.)
-├── benchmarks/                     # Performance benchmarks vs nlohmann-json, RapidJSON, PugiXml, RapidYAML
+├── benchmarks/                     # archives/ (round-trip) + harness/ (perf utils, A/B harness) + microbenchmarks/
 ├── docs/                           # Per-format documentation (markdown)
 ├── cmake/
 │   ├── vcpkg/triplets/             # Custom triplets for ARM Linux
@@ -112,6 +112,7 @@ BitSerializer/
 | Modify build config | `CMakeLists.txt`, `CMakeSettings.json` |
 | Manage dependencies | `vcpkg.json`, `cmake/vcpkg/triplets/` |
 | Run performance benchmarks | `benchmarks/archives/` — machine-readable results in `benchmark_results/serialization_speed_report.json` (written when the RapidJSON archive is enabled) |
+| Benchmark a single function (A/B) | `benchmarks/microbenchmarks/` — intra-binary A/B harness (`benchmarks/harness/bench_harness.h`), see its `README.md` |
 
 ---
 
@@ -183,6 +184,7 @@ All archive options are **OFF by default** — you must explicitly enable what y
 | `BUILD_TESTS` | OFF | Build test executables |
 | `BUILD_SAMPLES` | OFF | Build sample projects |
 | `BUILD_BENCHMARKS` | OFF | Build benchmarks |
+| `BUILD_MICROBENCHMARKS` | OFF | Build intra-binary A/B microbenchmarks |
 | `BUILD_JSON_ARCHIVE` | OFF | Built-in JSON archive |
 | `BUILD_CSV_ARCHIVE` | OFF | Built-in CSV archive |
 | `BUILD_MSGPACK_ARCHIVE` | OFF | Built-in MsgPack archive |
@@ -408,7 +410,7 @@ prove the public archive surface and its wiring.
 3. **Build only the affected target**: `ninja -C build <target_name>`
 4. **Run targeted tests**: `build/bin/<test>.exe --gtest_filter="*YourTest*"` (from command-line build)
 5. **Run full test suite** before committing: `ctest --test-dir build -T test --output-on-failure`
-6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions). **Keep the default stage time (30 s) — do not shorten it for A/B comparisons**: short runs (a few seconds) have large run-to-run variance on a busy machine and produce misleading results.
+6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions). **Keep the default stage time (30 s) — do not shorten it for A/B comparisons**: short runs (a few seconds) have large run-to-run variance on a busy machine and produce misleading results. For **function-level A/B** use the intra-binary harness in [benchmarks/microbenchmarks](benchmarks/microbenchmarks/README.md) (layout-robust, reliable even on MSVC).
 7. **Offer static analysis before committing**: ask whether to run clang-tidy on the changed files (see [Static analysis](#static-analysis-clang-tidy) below). Limit it to affected translation units (a changed header can pull in many), and run it in parallel via `run-clang-tidy.py`. Honor a stated user preference (never / always without asking).
 8. **Commit with convention**: `[Component] Short description (#issue)`
 

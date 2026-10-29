@@ -1616,6 +1616,7 @@ Additionally, you may want to use the [string conversion submodule](docs/bitseri
 For the full change log, see [History.md](History.md); for contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Thanks
+- [@Cyberex](https://github.com/Cyberex) for testing on different native Linux distributions and BSD variants, and on real ARM hardware.
 - Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.

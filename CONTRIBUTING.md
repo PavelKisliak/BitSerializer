@@ -242,6 +242,7 @@ ninja -C build
 | `BUILD_TESTS` | OFF | Build test executables |
 | `BUILD_SAMPLES` | OFF | Build sample projects |
 | `BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
+| `BUILD_MICROBENCHMARKS` | OFF | Build intra-binary A/B microbenchmarks |
 | `BUILD_JSON_ARCHIVE` | OFF | Built-in JSON archive (no external dependency) |
 | `BUILD_CSV_ARCHIVE` | OFF | Built-in CSV archive (no external dependency) |
 | `BUILD_MSGPACK_ARCHIVE` | OFF | Built-in MsgPack archive (no external dependency) |
@@ -296,6 +297,25 @@ Lessons:
 - **Compare in a single session.** Machine state drifts between sessions; take several back-to-back runs (min-time per metric) of the configurations you are contrasting.
 - **Don't shorten the run.** Keep the default stage time (30 s per stage). Cutting it to a few seconds sharply increases run-to-run variance on a busy machine, so the min-time results become unreliable and can even flip the sign of a small (few %) difference.
 
+### Microbenchmarks (intra-binary A/B)
+
+For **function-level** questions — "is `std::to_chars` faster than `std::to_string` here?", "does `__forceinline` help this loop?" — use the intra-binary A/B harness in [`benchmarks/microbenchmarks/`](benchmarks/microbenchmarks/README.md).
+
+It compiles the **base and variant implementations into the same binary** and measures them alternately in one process. Because both share the build's code layout, the measured *difference* is not affected by the layout lottery — this makes it reliable even on MSVC, where function alignment is unavailable. A conservative noise band (block-to-block spread of the delta) is reported next to each delta, and a delta is only flagged as significant when it exceeds that band.
+
+```cmd
+cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_MICROBENCHMARKS=ON -DBUILD_JSON_ARCHIVE=ON ^
+      -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
+ninja -C build microbenchmark
+build\bin\microbenchmark.exe
+```
+
+Microbenchmarks answer "which implementation of this function is faster", not "is the whole pipeline faster" — still validate final changes with the round-trip benchmark above. See the [harness README](benchmarks/microbenchmarks/README.md) for the API and recommendations.
+
+The harness also covers the **full archive Save/Load pipeline on a small model** (see the [archive A/B section](benchmarks/microbenchmarks/README.md#archive-saveload-ab)) — useful for A/B of two archives or two implementations without the heavy round-trip run.
+
+For the recommended optimization protocol (function-level A/B → archive-level A/B → round-trip validation), see the [A/B workflow](benchmarks/microbenchmarks/README.md#optimizing-an-archive-ab-workflow).
+
 ### Code-layout sensitivity and the toolchain rule
 
 The benchmark reports the **minimum** time over millions of single-call samples. The minimum is an extreme-value statistic, so it is very sensitive to the *alignment* of the hot functions: a benign code change anywhere in the linked image — even code that never runs in the timed region — can shift them by one cache line and move the reported speed by ~5-10%. This is a "layout lottery", not a real regression. It can be reproduced by adding a dummy function to a hot translation unit and rebuilding: the unchanged algorithm then reports a different `min`.
@@ -327,6 +347,9 @@ Key directories:
 - `tests/integration_tests/` — per-archive end-to-end tests
 - `samples/` — 15 example projects
 - `docs/` — per-format documentation
+- `benchmarks/archives/` — round-trip serialization benchmarks vs competing libraries
+- `benchmarks/harness/` — shared benchmark infrastructure (perf utils, A/B harness, process runner)
+- `benchmarks/microbenchmarks/` — intra-binary A/B microbenchmark harness (see its `README.md`)
 
 ## Architecture Overview
 

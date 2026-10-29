@@ -48,6 +48,9 @@ message(STATUS "[Option] BUILD_TESTS: ${BUILD_TESTS}")
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 message(STATUS "[Option] BUILD_BENCHMARKS: ${BUILD_BENCHMARKS}")
 
+option(BUILD_MICROBENCHMARKS "Build intra-binary A/B microbenchmarks" OFF)
+message(STATUS "[Option] BUILD_MICROBENCHMARKS: ${BUILD_MICROBENCHMARKS}")
+
 option(BUILD_SAMPLES "Build samples" OFF)
 message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 
@@ -406,8 +409,16 @@ endif()
 #################################################################################
 # Benchmarks (optional)
 #################################################################################
+if(BUILD_BENCHMARKS OR BUILD_MICROBENCHMARKS)
+    add_subdirectory(benchmarks/harness)
+endif()
+
 if(BUILD_BENCHMARKS)
     add_subdirectory(benchmarks/archives)
+endif()
+
+if(BUILD_MICROBENCHMARKS)
+    add_subdirectory(benchmarks/microbenchmarks)
 endif()
 
 #################################################################################

@@ -42,7 +42,7 @@ The library aims to support the most widely used serialization formats, not ever
 
 ### Windows
 
-- **Visual Studio 2022** (Community, Professional, or Enterprise)
+- **Visual Studio 2022 or 2026** (Community, Professional, or Enterprise)
   - Install the "Desktop development with C++" workload
   - This includes MSVC, CMake, and Ninja
   - Optionally, install the **C++ Clang Compiler for Windows** component for Clang-cl support
@@ -106,7 +106,7 @@ export VCPKG_ROOT=/path/to/vcpkg
 
 The easiest way on Windows is to use Visual Studio's built-in CMake support:
 
-1. Open Visual Studio 2022
+1. Open Visual Studio (2022 or 2026)
 2. Select **File > Open > Folder...** and choose the BitSerializer repository root
 3. Visual Studio will automatically detect `CMakeSettings.json` and configure the project
 4. Select a configuration from the dropdown (e.g., `Win-MSVC-x64-Debug`)
@@ -151,9 +151,9 @@ Available configurations in `CMakeSettings.json`:
 Use the **pre-configured VS developer environment** — open one of these from the Start Menu:
 
 ```
-Visual Studio 2022 > Visual Studio Tools > VC >
-    x64 Native Tools Command Prompt for VS 2022    (build for x64)
-    x64_x86 Cross Tools Command Prompt for VS 2022 (build for x86 from x64 host)
+Visual Studio (2022/2026) > Visual Studio Tools > VC >
+    x64 Native Tools Command Prompt for VS    (build for x64)
+    x64_x86 Cross Tools Command Prompt for VS (build for x86 from x64 host)
 ```
 
 These prompts have MSVC, CMake, and Ninja already in PATH. Then:

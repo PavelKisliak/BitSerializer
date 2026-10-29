@@ -110,11 +110,11 @@ stages:
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
-          name: 'Windows_VS2022_x64_dynamic'
-          image: 'windows-2022'
+          name: 'Windows_VS2026_x64_static'
+          image: 'windows-2025-vs2026'
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SHARED_LIBS=ON'
+          cmakeGenArgs: '$(CmakeGenOptions)'
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:

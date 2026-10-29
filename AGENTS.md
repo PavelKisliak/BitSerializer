@@ -199,17 +199,20 @@ Build output goes to `build/` in the project root (already in `.gitignore`).
 
 ### Windows Build (from PowerShell)
 
-The MSVC compiler requires calling `vcvarsall.bat` to set up environment variables. This snippet auto-detects VS 2022, captures the environment, configures, builds, and runs tests:
+The MSVC compiler requires calling `vcvarsall.bat` to set up environment variables. This snippet auto-detects the newest installed VS 2022/2026, captures the environment, configures, builds, and runs tests:
 
 ```powershell
-# 1. Auto-detect VS 2022 installation
+# 1. Auto-detect the newest VS installation (2026 is checked first)
 $vsPaths = @(
+    "C:\Program Files\Microsoft Visual Studio\18\Enterprise",
+    "C:\Program Files\Microsoft Visual Studio\18\Professional",
+    "C:\Program Files\Microsoft Visual Studio\18\Community",
     "C:\Program Files\Microsoft Visual Studio\2022\Enterprise",
     "C:\Program Files\Microsoft Visual Studio\2022\Professional",
     "C:\Program Files\Microsoft Visual Studio\2022\Community"
 )
 $vsPath = $vsPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $vsPath) { throw "VS 2022 not found; set `$vsPath manually" }
+if (-not $vsPath) { throw "VS 2022/2026 not found; set `$vsPath manually" }
 $ninja = "$vsPath\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
 
 # 2. Capture vcvarsall environment to temp dir (avoids polluting repo)
@@ -247,7 +250,7 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release `
 ctest --test-dir build -T test --output-on-failure -j2
 ```
 
-**Clang-cl variant** (also ships with VS 2022): add to the CMake command:
+**Clang-cl variant** (ships with both VS 2022 and VS 2026): add to the CMake command:
 ```powershell
 -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 ```

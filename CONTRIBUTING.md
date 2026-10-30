@@ -230,6 +230,25 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Debug \
 ninja -C build
 ```
 
+### Code coverage (Linux)
+
+Add `-DENABLE_COVERAGE=ON` to a Debug build (GCC/Clang only; rejected on MSVC/clang-cl) to
+instrument with `--coverage`, then run the tests and generate the report with the `coverage`
+target (requires `gcovr`):
+
+```bash
+cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON \
+    -DBUILD_TESTS=ON -DBUILD_JSON_ARCHIVE=ON \
+    -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+ninja -C build
+ctest --test-dir build --output-on-failure
+ninja -C build coverage   # writes build/coverage/coverage.xml and build/coverage/html/
+```
+
+The report is limited to library code (`include/bitserializer/` and `src/`); tests, samples,
+benchmarks and VCPKG dependencies are excluded. CI publishes it from the `Ubuntu_GCC_Coverage`
+Preflight job.
+
 ---
 
 ## CMake Options Reference
@@ -251,6 +270,7 @@ ninja -C build
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | YAML archive via RapidYAML |
 | `BUILD_SHARED_LIBS` | OFF | Build as shared/DLL library |
 | `STATIC_ANALYSIS_CLANG_TIDY` | OFF | Enable clang-tidy during build |
+| `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only) |
 | `CMAKE_CXX_STANDARD` | 17 | C++ standard (17, 20, or 23) |
 
 ---
@@ -579,11 +599,11 @@ The project uses Azure DevOps for CI. The pipeline runs automatically on all pus
 
 ### What CI checks
 
-1. **Static analysis** — Clang-tidy and Valgrind memory checks (run first)
-2. **Build and test** — 14 configurations across Windows, Linux, macOS, and ARM
+1. **Preflight** — Clang-tidy, Valgrind memory checks, and the GCC Debug build that publishes test results and code coverage (runs first)
+2. **Build and test** — 15 configurations across Windows, Linux, macOS, and ARM
 
 The CI matrix covers:
-- Windows: MSVC (x86/x64, static/dynamic), Clang-cl (x64)
+- Windows: MSVC (x86/x64, static/dynamic), Clang-cl (x64, Release and Debug)
 - Linux: GCC 9, GCC 14 (C++23), Clang 11, Clang 15
 - macOS: Clang 14 (C++17, C++20)
 - ARM: arm32, arm64, arm64be (cross-compiled, tested with QEMU)

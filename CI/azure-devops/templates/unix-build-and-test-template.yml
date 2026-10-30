@@ -17,6 +17,8 @@ parameters:
   enableRunTests: true
 # [Optional] When to publish test results: always | onFailure | never
   publishTestResults: 'onFailure'
+# [Optional] Enable code coverage (requires gcovr, GNU gcov)
+  enableCoverage: false
 
 jobs:
 - job: ${{ parameters.name }}
@@ -31,6 +33,15 @@ jobs:
       ${{ parameters.installToolsCmd }}
     displayName: 'Install build tools'
     condition: ne('${{ parameters.installToolsCmd }}', '')
+
+  - ${{ if eq(parameters.enableCoverage, true) }}:
+    - script: |
+        echo --- Install coverage tools ---
+        sudo apt-get update
+        sudo apt-get install -y gcovr
+        gcovr --version
+        gcov --version
+      displayName: 'Install coverage tools'
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -91,6 +102,12 @@ jobs:
     displayName: 'Run tests'
     condition: and(succeeded(), eq('${{ parameters.enableRunTests }}', true))
 
+  - ${{ if eq(parameters.enableCoverage, true) }}:
+    - script: |
+        ninja -C ${{ variables.buildDirectory }} coverage
+      displayName: 'Generate code coverage report'
+      condition: and(succeededOrFailed(), eq('${{ parameters.enableRunTests }}', true))
+
   - ${{ if eq(parameters.publishTestResults, 'onFailure') }}:
     - script: |
         python3 "$(Build.SourcesDirectory)/CI/azure-devops/scripts/filter_failed_test_results.py" --build-dir "${{ variables.buildDirectory }}"
@@ -124,3 +141,13 @@ jobs:
         buildPlatform: 'x64'
         buildConfiguration: '${{ parameters.buildConfiguration }}'
         failTaskOnMissingResultsFile: false
+
+  - ${{ if eq(parameters.enableCoverage, true) }}:
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publish code coverage'
+      condition: and(not(canceled()), eq('${{ parameters.enableRunTests }}', true))
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(Build.SourcesDirectory)/${{ variables.buildDirectory }}/coverage/coverage.xml'
+        pathToSources: '$(Build.SourcesDirectory)'
+        failIfCoverageEmpty: true

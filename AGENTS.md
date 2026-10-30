@@ -192,6 +192,7 @@ All archive options are **OFF by default** — you must explicitly enable what y
 | `BUILD_PUGIXML_ARCHIVE` | OFF | PugiXml-based XML archive |
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | RapidYAML-based YAML archive |
 | `BUILD_SHARED_LIBS` | OFF | Build as DLL/shared library |
+| `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only, not MSVC) |
 
 ### Build directory
 
@@ -307,6 +308,25 @@ ctest -T test --output-on-failure -j2      # Run all
 ```bash
 ninja -C build convert_tests    # Rebuild only one test target
 ```
+
+### Code coverage (Linux only)
+
+Instrumentation is opt-in via `ENABLE_COVERAGE` (adds `--coverage` for GCC/Clang); it is rejected
+on MSVC/clang-cl. The `coverage` target runs `gcovr` (must be installed) and writes
+`build/coverage/coverage.xml` (Cobertura, used by Azure DevOps) and `build/coverage/html/index.html`.
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -DBUILD_TESTS=ON \
+    -DBUILD_JSON_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON \
+    -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON
+ninja -C build
+ctest --test-dir build --output-on-failure
+ninja -C build coverage
+```
+
+The report covers only library code (`include/bitserializer/` and `src/`, excluding
+`src/testing_tools/`); tests, samples, benchmarks and VCPKG dependencies are filtered out.
+CI collects and publishes it in the `Ubuntu_GCC_Coverage` Preflight job.
 
 ### Test helpers
 

@@ -57,6 +57,9 @@ message(STATUS "[Option] BUILD_SAMPLES: ${BUILD_SAMPLES}")
 option(STATIC_ANALYSIS_CLANG_TIDY "Static analysis (Clang-tidy)" OFF)
 message(STATUS "[Option] STATIC_ANALYSIS_CLANG_TIDY: ${STATIC_ANALYSIS_CLANG_TIDY}")
 
+option(ENABLE_COVERAGE "Enable code coverage instrumentation (GCC/Clang only)" OFF)
+message(STATUS "[Option] ENABLE_COVERAGE: ${ENABLE_COVERAGE}")
+
 #################################################################################
 # Global compiler configuration
 #################################################################################
@@ -89,6 +92,18 @@ endif()
 # For debug libs, add "d" postfix
 if(NOT DEFINED CMAKE_DEBUG_POSTFIX)
     set(CMAKE_DEBUG_POSTFIX "d")
+endif()
+
+# Code coverage instrumentation (gcov). Not supported on Windows (MSVC/clang-cl),
+# where the "coverage" target and a report cannot be produced.
+if(ENABLE_COVERAGE)
+    if(MSVC)
+        message(FATAL_ERROR "ENABLE_COVERAGE is not supported on Windows (MSVC/clang-cl), use GCC or Clang on Linux")
+    endif()
+    add_compile_options(--coverage)
+    # add_link_options() requires CMake 3.13, keep compatibility with the declared minimum (3.10)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
 endif()
 
 include_directories(
@@ -404,6 +419,55 @@ if(BUILD_TESTS)
     set_tests_properties(${myTests_targets} PROPERTIES TIMEOUT 10)
     add_subdirectory(tests/unit_tests)
     add_subdirectory(tests/integration_tests)
+endif()
+
+#################################################################################
+# Code coverage report (optional)
+#################################################################################
+if(ENABLE_COVERAGE)
+    find_program(GCOVR_EXECUTABLE gcovr)
+    if(NOT GCOVR_EXECUTABLE)
+        message(WARNING "gcovr not found, the 'coverage' target is unavailable")
+    else()
+        if(NOT BUILD_TESTS)
+            message(WARNING "ENABLE_COVERAGE is set but BUILD_TESTS is OFF, the coverage report will be empty")
+        endif()
+
+        # Gcovr >= 8.3 no longer merges line counters from different template instances by default,
+        # which duplicates lines in the report. Use --merge-lines when the installed version supports it.
+        set(_gcovr_extra_args)
+        execute_process(COMMAND "${GCOVR_EXECUTABLE}" --help
+            OUTPUT_VARIABLE _gcovr_help
+            ERROR_QUIET)
+        if(_gcovr_help MATCHES "--merge-lines")
+            list(APPEND _gcovr_extra_args --merge-lines)
+        endif()
+
+        set(_coverage_dir "${CMAKE_BINARY_DIR}/coverage")
+        add_custom_target(coverage
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${_coverage_dir}" "${_coverage_dir}/html"
+            COMMAND "${GCOVR_EXECUTABLE}"
+                ${_gcovr_extra_args}
+                --root "${PROJECT_SOURCE_DIR}"
+                -x "${_coverage_dir}/coverage.xml"
+                --xml-pretty
+                --html-details
+                -o "${_coverage_dir}/html/index.html"
+                --filter "${PROJECT_SOURCE_DIR}/include/bitserializer/"
+                --filter "${PROJECT_SOURCE_DIR}/src/"
+                --exclude "${PROJECT_SOURCE_DIR}/src/testing_tools/"
+                --exclude ".*/include/bitserializer/config\\.h"
+                --exclude ".*vcpkg_installed.*"
+                --print-summary
+                "${CMAKE_BINARY_DIR}"
+            COMMAND ${CMAKE_COMMAND}
+                -DCOVERAGE_FILE=${_coverage_dir}/coverage.xml
+                -DSOURCE_ROOT=${PROJECT_SOURCE_DIR}
+                -P "${PROJECT_SOURCE_DIR}/cmake/fix_cobertura_paths.cmake"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+            COMMENT "Generating code coverage report (gcovr)"
+            VERBATIM)
+    endif()
 endif()
 
 #################################################################################

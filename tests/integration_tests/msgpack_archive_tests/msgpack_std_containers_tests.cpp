@@ -105,6 +105,20 @@ TEST(MsgPackArchive, SerializeStdContainers)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of serialization for nested binary containers
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, SerializeArrayOfBinaryContainers)
+{
+	TestSerializeType<MsgPackArchive>(std::vector<std::vector<char>>{
+		{ 'a', 'b', 'c' }, {}, { 'x', 'y' }
+	});
+
+	TestSerializeType<MsgPackArchive>(std::array<std::vector<unsigned char>, 2>{
+		std::vector<unsigned char>{ 1, 2, 3 }, std::vector<unsigned char>{}
+	});
+}
+
+//-----------------------------------------------------------------------------
 // Tests of serialization for std::map as a dictionary (MapAsDictionary)
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeMapAsDictionary)

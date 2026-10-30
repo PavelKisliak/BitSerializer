@@ -674,12 +674,8 @@ public:
 	bool SerializeValue(T& value)
 	{
 		CheckEnd();
-		if (mMsgPackReader->ReadValue(value))
-		{
-			++mIndex;
-			return true;
-		}
-		return false;
+		++mIndex;
+		return mMsgPackReader->ReadValue(value);
 	}
 
 	/**
@@ -706,6 +702,7 @@ public:
 			++mIndex;
 			return {sz, mMsgPackReader, GetContext(), this};
 		}
+		++mIndex;
 		return {ScopeUnopened{}, GetContext()};
 	}
 
@@ -717,13 +714,21 @@ public:
 			++mIndex;
 			return {sz, mMsgPackReader, GetContext(), this};
 		}
+		++mIndex;
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackReadBinaryScope<TReader> OpenBinaryScope(size_t) const
+	[[nodiscard]] MsgPackReadBinaryScope<TReader> OpenBinaryScope(size_t)
 	{
-		if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
-			return {sz, mMsgPackReader, GetContext()};
+		CheckEnd();
+		// Probe the type first: the value is not consumed when it isn't a binary array,
+		// so the caller can still fall back to reading it as an array of chars.
+		if (mMsgPackReader->ReadValueType() == ValueType::BinaryArray)
+		{
+			if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
+				++mIndex;
+				return {sz, mMsgPackReader, GetContext(), this};
+			}
 		}
 		return {ScopeUnopened{}, GetContext()};
 	}
@@ -874,10 +879,15 @@ public:
 	{
 		if (FindValueByKey(key))
 		{
-			if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
-				return {sz, mMsgPackReader, GetContext(), this};
+			// Probe the type first: when the value isn't a binary array it is left unconsumed,
+			// so the caller can still fall back to reading it as an array of chars.
+			if (mMsgPackReader->ReadValueType() == ValueType::BinaryArray)
+			{
+				if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
+					return {sz, mMsgPackReader, GetContext(), this};
+				}
+				OnFinishChildScope();
 			}
-			OnFinishChildScope();
 		}
 		return {ScopeUnopened{}, GetContext()};
 	}
@@ -1019,8 +1029,13 @@ public:
 
 	[[nodiscard]] MsgPackReadBinaryScope<IMsgPackReader> OpenBinaryScope(size_t) const
 	{
-		if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
-			return {sz, mMsgPackReader, GetContext()};
+		// Probe the type first: the value is not consumed when it isn't a binary array,
+		// so the caller can still fall back to reading it as an array of chars.
+		if (mMsgPackReader->ReadValueType() == ValueType::BinaryArray)
+		{
+			if (size_t sz = 0; mMsgPackReader->ReadBinarySize(sz)) {
+				return {sz, mMsgPackReader, GetContext()};
+			}
 		}
 		return {ScopeUnopened{}, GetContext()};
 	}

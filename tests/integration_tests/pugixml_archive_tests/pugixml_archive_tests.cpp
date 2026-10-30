@@ -508,6 +508,22 @@ TEST(PugiXmlArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of skipped array values
+//-----------------------------------------------------------------------------
+TEST(PugiXmlArchive, ShouldConsumeArraySlotForSkippedValue)
+{
+	TestSkippedArrayValues<XmlArchive>();
+}
+
+TEST(PugiXmlArchive, ShouldConsumeArraySlotForMismatchedValue)
+{
+	const std::vector<std::string> source{ "not a number", "5" };
+	std::string input;
+	BitSerializer::SaveObject<XmlArchive>(source, input);
+	TestMismatchedArrayValue<XmlArchive>(input);
+}
+
+//-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(PugiXmlArchive, ThrowSerializationExceptionWhenOverflowInt8) {

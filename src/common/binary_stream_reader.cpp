@@ -40,16 +40,20 @@ namespace BitSerializer::Detail
 			return true;
 		}
 
-		if (pos == mStreamPos || !mStream.seekg(static_cast<std::streamoff>(pos)).fail())
+		if (pos != mStreamPos)
 		{
-			mStreamPos = pos;
-			// Invalidate cache
-			mStartDataPtr = mEndDataPtr = mBuffer;
-			ReadNextChunk();
-			return true;
+			// The stream may be in the eof/fail state after reading up to the end,
+			// which would make seekg() a no-op, so reset the state before seeking.
+			mStream.clear();
+			if (mStream.seekg(static_cast<std::streamoff>(pos)).fail()) {
+				return false;
+			}
 		}
-
-		return false;
+		mStreamPos = pos;
+		// Invalidate cache
+		mStartDataPtr = mEndDataPtr = mBuffer;
+		ReadNextChunk();
+		return true;
 	}
 
 	std::string_view BinaryStreamReader::ReadExactly(size_t blockSize)

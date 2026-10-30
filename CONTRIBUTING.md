@@ -462,6 +462,41 @@ A **scope** is a short-lived RAII object responsible for serializing the current
 
 All scopes, including root, implement the same contract — the combination of methods (`SerializeValue`, `OpenArrayScope`, `OpenObjectScope`) which enables **compile-time format validation**. For example, CSV root only has `OpenArrayScope()` (no `SerializeValue()`), so serializing a primitive at root level is a compile error. See `serialization_detail/serialization_dispatch.h` and the respective archive headers for details.
 
+### Loading semantics: arrays and objects
+
+These rules are part of the archive contract and are locked by the shared test helpers
+(`TestSkippedArrayValues`, `TestMismatchedArrayValue`, `TestMismatchedTypesPolicy` in
+`src/testing_tools/common_test_methods.h`).
+
+**Array scopes** (sequences) map **one archive slot to one target slot**, regardless of whether the
+value was successfully converted:
+
+- `SerializeValue()` / `Open*Scope()` consume the current slot even when the value is *skipped* —
+  a `null` value or a value rejected by `MismatchedTypesPolicy::Skip` / `OverflowNumberPolicy::Skip`.
+- The slot counter used by `IsEnd()` (and, for text formats, the read of the next value separator)
+  is advanced for every consumed slot, so a skipped value never shifts the following values.
+- The target slot is left untouched: an element of a fixed C-array or of a pre-filled container keeps
+  its previous value; a newly created element of a dynamic container stays default-constructed.
+  `Skip` means "ignore the value", not "remove/compact the container element" (arity is preserved).
+- A fixed-size array must consume exactly `N` slots; a mismatch between the number of slots in the
+  archive and the target size is reported as `SerializationException(OutOfRange)`.
+- Nested scopes follow the same rule: a skipped nested array/object consumes one parent slot.
+
+Example: loading `[null, 5]` into `int[2]` (or `std::vector<int>`) leaves the first element unchanged
+(or default-initialized) and loads `5` into the second one.
+
+**Object scopes** (key-value maps) are key-driven:
+
+- `SerializeValue(key, value)` / `Open*Scope(key, ...)` look up the key by name; the order of keys in
+  the archive is irrelevant. Unknown keys are skipped.
+- If the key is missing, the target is left unchanged and the call returns `false`; use
+  `KeyValue(..., Required())` to report a validation error instead.
+- A value with a mismatched type follows `MismatchedTypesPolicy`: `ThrowError` (the default) throws,
+  `Skip` leaves the target unchanged and consumes the key-value pair.
+- Null values are excluded from `MismatchedTypesPolicy` and are simply skipped (same as in arrays).
+- Remaining key-value pairs are skipped when the object scope is destroyed, so a partially loaded
+  object does not desynchronize the archive.
+
 ### Archive type alias
 
 The top-level archive (e.g., `MsgPackArchive`) is a type alias that specializes `ArchiveBase` with the archive's traits and root scope classes:

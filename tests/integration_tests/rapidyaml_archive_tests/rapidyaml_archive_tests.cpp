@@ -427,6 +427,22 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of skipped array values
+//-----------------------------------------------------------------------------
+TEST(RapidYamlArchive, ShouldConsumeArraySlotForSkippedValue)
+{
+	TestSkippedArrayValues<YamlArchive>();
+}
+
+TEST(RapidYamlArchive, ShouldConsumeArraySlotForMismatchedValue)
+{
+	const std::vector<std::string> source{ "not a number", "5" };
+	std::string input;
+	BitSerializer::SaveObject<YamlArchive>(source, input);
+	TestMismatchedArrayValue<YamlArchive>(input);
+}
+
+//-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowSerializationExceptionWhenOverflowInt8) {

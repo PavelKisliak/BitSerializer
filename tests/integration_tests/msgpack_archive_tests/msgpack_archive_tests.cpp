@@ -552,6 +552,28 @@ TEST(MsgPackArchive, ThrowExceptionWhenNoMoreValuesToRead)
 	}
 }
 
+TEST(MsgPackArchive, ThrowExceptionWhenObjectKeyHasUnsupportedType)
+{
+	// Map with a boolean key (only string and numeric keys are supported)
+	TestPointClass point;
+	EXPECT_THROW(BitSerializer::LoadObject<MsgPackArchive>(point, "\x81\xC3\x01"),
+		BitSerializer::ParsingException);
+}
+
+TEST(MsgPackArchive, ThrowExceptionWhenArrayDeclaresFewerItemsThanTarget)
+{
+	int32_t target[3]{};
+	EXPECT_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, "\x92\x01\x02"),
+		SerializationException);
+}
+
+TEST(MsgPackArchive, ThrowExceptionWhenBinaryArrayDeclaresFewerBytesThanTarget)
+{
+	char target[5]{};
+	EXPECT_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, std::string{ '\xC4', '\x03', 'a', 'b', 'c' }),
+		SerializationException);
+}
+
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 	TestValidationForNamedValues<MsgPackArchive, TestClassForCheckValidation<bool>>();
@@ -637,6 +659,107 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToBinArray) {
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
 	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of skipped array values
+//-----------------------------------------------------------------------------
+TEST(MsgPackArchive, ShouldConsumeArraySlotForSkippedValue)
+{
+	TestSkippedArrayValues<MsgPackArchive>();
+}
+
+TEST(MsgPackArchive, ShouldConsumeArraySlotForMismatchedValue)
+{
+	// ["not a number", 5]
+	std::string input{ '\x92', '\xAC' };
+	input.append("not a number");
+	input.push_back('\x05');
+	TestMismatchedArrayValue<MsgPackArchive>(input);
+}
+
+TEST(MsgPackArchive, ShouldSkipNullValuesInArray)
+{
+	int32_t target[2]{ 7, 8 };
+	BitSerializer::LoadObject<MsgPackArchive>(target, "\x92\xC0\x05");
+	EXPECT_EQ(7, target[0]);
+	EXPECT_EQ(5, target[1]);
+
+	// A skipped element still occupies a slot: the target keeps its value (or stays default)
+	std::vector<int32_t> prefilled{ 7, 8 };
+	BitSerializer::LoadObject<MsgPackArchive>(prefilled, "\x92\xC0\x05");
+	EXPECT_EQ((std::vector<int32_t>{ 7, 5 }), prefilled);
+
+	std::vector<int32_t> empty;
+	BitSerializer::LoadObject<MsgPackArchive>(empty, "\x92\xC0\x05");
+	EXPECT_EQ((std::vector<int32_t>{ 0, 5 }), empty);
+}
+
+TEST(MsgPackArchive, ShouldSkipMismatchedBinaryArrayAtRootWhenPolicyIsSkip)
+{
+	char target[3]{ 'a', 'b', 'c' };
+
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	EXPECT_NO_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, "\x05", options));
+
+	EXPECT_EQ('a', target[0]);
+	EXPECT_EQ('b', target[1]);
+	EXPECT_EQ('c', target[2]);
+}
+
+TEST(MsgPackArchive, ShouldSkipMismatchedNestedStructuresWhenPolicyIsSkip)
+{
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+
+	// Nested array
+	{
+		std::vector<std::vector<int>> target{ { 1, 2 } };
+		EXPECT_NO_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, "\x91\x05", options));
+		ASSERT_EQ(1U, target.size());
+		EXPECT_EQ((std::vector<int>{ 1, 2 }), target[0]);
+	}
+
+	// Nested object
+	{
+		std::vector<TestClassWithSubType<std::vector<int>>> target;
+		target.emplace_back(std::vector<int>{});
+		EXPECT_NO_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, "\x91\x05", options));
+		ASSERT_EQ(1U, target.size());
+		EXPECT_TRUE(target[0].GetValue().empty());
+	}
+
+	// Nested binary array
+	{
+		std::vector<std::vector<char>> target{ { 'a' } };
+		EXPECT_NO_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, "\x91\x05", options));
+		ASSERT_EQ(1U, target.size());
+		EXPECT_EQ((std::vector<char>{ 'a' }), target[0]);
+	}
+}
+
+TEST(MsgPackArchive, ShouldApplyMismatchedTypesPolicyToBinaryArrayFromStream)
+{
+	std::stringstream stream;
+	BitSerializer::SaveObject<MsgPackArchive>(TestClassWithSubType<int32_t>(0x12345678), stream);
+
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::ThrowError;
+
+	const std::array<char, 3> initial{ 'a', 'b', 'c' };
+	TestClassWithSubType<std::array<char, 3>> target{ std::array<char, 3>{ initial } };
+
+	stream.seekg(0);
+	EXPECT_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, stream, options),
+		BitSerializer::SerializationException);
+	EXPECT_EQ(initial, target.GetValue());
+
+	stream.clear();
+	stream.seekg(0);
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	EXPECT_NO_THROW(BitSerializer::LoadObject<MsgPackArchive>(target, stream, options));
+	EXPECT_EQ(initial, target.GetValue());
 }
 
 //-----------------------------------------------------------------------------

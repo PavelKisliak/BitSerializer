@@ -5,6 +5,7 @@
 #include "testing_tools/auto_fixture.h"
 #include "bitserializer/msgpack_archive.h"
 #include "msgpack_reader_fixture.h"
+#include <streambuf>
 
 
 using testing::Types;
@@ -38,11 +39,27 @@ namespace
 }
 
 
+//-----------------------------------------------------------------------------
+// Tests of reading nil
+//-----------------------------------------------------------------------------
 TYPED_TEST(MsgPackReaderTest, ShouldReadNil)
 {
 	this->PrepareReader("\xC0");
 	std::nullptr_t value{};
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadNonNilToNull)
+{
+	std::nullptr_t nilValue{};
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(nilValue), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(nilValue));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldReadBoolean)
@@ -457,6 +474,16 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadDoubleFromFloat)
 	EXPECT_FLOAT_EQ(3.14f, static_cast<float>(value));		// Cast back to float for able to compare
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldReadFloatFromDouble)
+{
+	constexpr uint64_t doubleBits = 0x400C000000000000ull; // 3.5
+	this->PrepareReader(EncodeIntegralValue('\xCB', doubleBits));
+
+	float value = 0.f;
+	ASSERT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_FLOAT_EQ(3.5f, value);
+}
+
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFloatToWrongType)
 {
 	this->PrepareReader("\xCA\x40\x48\xF5\xC3");
@@ -489,6 +516,32 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipDoubleWhenPolicyIsSkip)
 	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
 	EXPECT_TRUE(wrongType.empty());
 	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadNonFloatValueAsFloat)
+{
+	float value = 0.f;
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(value), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadNonDoubleValueAsDouble)
+{
+	double value = 0.0;
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(value), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
 }
 
 //-----------------------------------------------------------------------------
@@ -640,6 +693,19 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadArrayWhenSizeFitToUint32)
 	EXPECT_EQ(0x40302010U, size);
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadArraySizeFromNonArray)
+{
+	size_t size = 0;
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadArraySize(size), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadArraySize(size));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
+}
+
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedArrayToWrongType)
 {
 	this->PrepareReader(MakeStringFromSequence(0b10010010, '\xC2', '\xC3'));
@@ -743,6 +809,19 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadBinaryArrayWhenUnexpectedEnd)
 	EXPECT_THROW(this->mMsgPackReader->ReadBinary(), BitSerializer::ParsingException);
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadBinarySizeFromNonBinary)
+{
+	size_t size = 0;
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadBinarySize(size), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadBinarySize(size));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
+}
+
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadBinaryArrayToWrongType)
 {
 	this->PrepareReader({ '\xC4', '\x03', '\x01', '\x02', '\x03' });
@@ -758,6 +837,47 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipBinaryArrayWhenPolicyIsSkip)
 	EXPECT_FALSE(this->mMsgPackReader->ReadValue(wrongType));
 	EXPECT_EQ(0x70605040, wrongType);
 	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
+}
+
+//-----------------------------------------------------------------------------
+// Tests of reading raw values from non-seekable streams
+//-----------------------------------------------------------------------------
+namespace
+{
+	class NonSeekableStreamBuf final : public std::streambuf
+	{
+	public:
+		explicit NonSeekableStreamBuf(std::string data)
+			: mData(std::move(data))
+		{
+			setg(mData.data(), mData.data(), mData.data() + mData.size());
+		}
+
+	protected:
+		pos_type seekoff(off_type, std::ios_base::seekdir, std::ios_base::openmode) override
+		{
+			return { -1 };
+		}
+
+	private:
+		std::string mData;
+	};
+}
+
+TEST(MsgPackStreamReaderTest, ShouldThrowExceptionWhenReadRawValueFromNonSeekableStream)
+{
+	// An array of 2000 fixints: skipping it advances past the internal 1024-byte buffer,
+	// so rewinding to the value start requires a seek, which this stream does not support.
+	std::string data{ '\xDC', '\x07', '\xD0' };
+	data.append(2000, '\x01');
+
+	NonSeekableStreamBuf streamBuf(std::move(data));
+	std::istream inputStream(&streamBuf);
+	BitSerializer::SerializationOptions options;
+	BitSerializer::MsgPack::Detail::MsgPackStreamReader reader(inputStream, options);
+
+	BitSerializer::MsgPack::MsgPackArchive::raw_type rawValue;
+	EXPECT_THROW(reader.ReadValue(rawValue), BitSerializer::ParsingException);
 }
 
 //-----------------------------------------------------------------------------
@@ -817,6 +937,19 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadMapWhenSizeFitToUint32)
 
 	ASSERT_TRUE(this->mMsgPackReader->ReadMapSize(size));
 	EXPECT_EQ(0x40302010U, size);
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadMapSizeFromNonMap)
+{
+	size_t size = 0;
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadMapSize(size), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadMapSize(size));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
 }
 
 TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFixedMapToWrongType)
@@ -949,6 +1082,45 @@ TYPED_TEST(MsgPackReaderTest, ShouldSkipTimestampWhenPolicyIsSkip)
 	EXPECT_TRUE(this->mMsgPackReader->IsEnd()) << "Value should be skipped";
 }
 
+TYPED_TEST(MsgPackReaderTest, ShouldApplyMismatchedTypesPolicyWhenReadNonTimestampValueAsTimestamp)
+{
+	BitSerializer::Detail::BinTimestamp timestamp;
+
+	this->PrepareReader("\x01");
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::SerializationException);
+
+	this->PrepareReader("\x01", BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
+
+	// Extension type family with a non-timestamp type code
+	this->PrepareReader(std::string({ '\xD4', '\x01', '\x42' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::SerializationException);
+
+	this->PrepareReader(std::string({ '\xD4', '\x01', '\x42' }), BitSerializer::OverflowNumberPolicy::ThrowError,
+		BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mMsgPackReader->ReadValue(timestamp));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
+}
+
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenTimestampHasInvalidSize)
+{
+	BitSerializer::Detail::BinTimestamp timestamp;
+
+	// Valid timestamp sizes are 4, 8 and 12 bytes
+	this->PrepareReader(std::string({ '\xD4', '\xFF', '\x01' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::SerializationException);
+
+	this->PrepareReader(std::string({ '\xD5', '\xFF', '\x01', '\x02' }));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::SerializationException);
+
+	std::string ext16{ '\xD8', '\xFF' };
+	ext16.append(16, '\x00');
+	this->PrepareReader(std::move(ext16));
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::SerializationException);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of get/set positions
 //-----------------------------------------------------------------------------
@@ -975,6 +1147,15 @@ TYPED_TEST(MsgPackReaderTest, ShouldSetPosition)
 	EXPECT_EQ(false, value);
 }
 
+TEST(MsgPackStringReaderTest, ShouldThrowExceptionWhenSetPositionOutOfRange)
+{
+	BitSerializer::SerializationOptions options;
+	BitSerializer::MsgPack::Detail::MsgPackStringReader reader("\xC0", options);
+
+	EXPECT_NO_THROW(reader.SetPosition(1));
+	EXPECT_THROW(reader.SetPosition(2), std::invalid_argument);
+}
+
 TYPED_TEST(MsgPackReaderTest, ShouldCheckIsEnd)
 {
 	this->PrepareReader("\xC2\xC3");
@@ -982,6 +1163,38 @@ TYPED_TEST(MsgPackReaderTest, ShouldCheckIsEnd)
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
 	EXPECT_FALSE(this->mMsgPackReader->IsEnd());
 	EXPECT_TRUE(this->mMsgPackReader->ReadValue(value));
+	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
+}
+
+//-----------------------------------------------------------------------------
+// Tests of an empty archive
+//-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenReadFromEmptyArchive)
+{
+	std::nullptr_t nilValue{};
+	bool boolValue{};
+	int64_t intValue{};
+	float floatValue{};
+	double doubleValue{};
+	std::string_view stringValue;
+	BitSerializer::Detail::BinTimestamp timestamp;
+	size_t size = 0;
+
+	this->PrepareReader("");
+
+	EXPECT_THROW((void)this->mMsgPackReader->ReadValueType(), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(nilValue), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(boolValue), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(intValue), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(floatValue), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(doubleValue), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(stringValue), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadValue(timestamp), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadArraySize(size), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadMapSize(size), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadBinarySize(size), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->ReadBinary(), BitSerializer::ParsingException);
+	EXPECT_THROW(this->mMsgPackReader->SkipValue(), BitSerializer::ParsingException);
 	EXPECT_TRUE(this->mMsgPackReader->IsEnd());
 }
 
@@ -1140,6 +1353,15 @@ TYPED_TEST(MsgPackReaderTest, ShouldReadTypeOfTimestamp96)
 //-----------------------------------------------------------------------------
 // Tests for skip values
 //-----------------------------------------------------------------------------
+TYPED_TEST(MsgPackReaderTest, ShouldThrowExceptionWhenSkipValueWithUnexpectedEnd)
+{
+	this->PrepareReader(std::string({ '\xA3', 'a' }));
+	EXPECT_THROW(this->mMsgPackReader->SkipValue(), BitSerializer::ParsingException);
+
+	this->PrepareReader(std::string({ '\x93', '\xC2' }));
+	EXPECT_THROW(this->mMsgPackReader->SkipValue(), BitSerializer::ParsingException);
+}
+
 TYPED_TEST(MsgPackReaderTest, ShouldSkipFixInt)
 {
 	for (int i = -32; i < 128; ++i)

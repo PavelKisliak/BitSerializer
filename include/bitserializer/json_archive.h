@@ -634,12 +634,11 @@ public:
 			mJsonReader->ReadValueSeparator();
 		}
 
-		if (mJsonReader->ReadValue(value))
-		{
-			++mIndex;
-			return true;
-		}
-		return false;
+		const bool result = mJsonReader->ReadValue(value);
+		// The array slot is consumed even when the value is skipped by the policy,
+		// so the next value still has to read its separator.
+		++mIndex;
+		return result;
 	}
 
 	template <ArchiveType FRaw>
@@ -652,12 +651,10 @@ public:
 			mJsonReader->ReadValueSeparator();
 		}
 
-		if (mJsonReader->ReadRawValue(value.Get()))
-		{
-			++mIndex;
-			return true;
-		}
-		return false;
+		const bool result = mJsonReader->ReadRawValue(value.Get());
+		// The array slot is consumed even when the value is skipped by the policy.
+		++mIndex;
+		return result;
 	}
 
 	/**
@@ -683,9 +680,10 @@ public:
 			mJsonReader->ReadValueSeparator();
 		}
 
-		if (mJsonReader->OpenArray())
-		{
-			++mIndex;
+		const bool opened = mJsonReader->OpenArray();
+		// The array slot is consumed in both cases (on mismatch the value was skipped by the policy).
+		++mIndex;
+		if (opened) {
 			return {mJsonReader, GetContext(), this};
 		}
 		return {ScopeUnopened{}, GetContext()};
@@ -698,9 +696,10 @@ public:
 			mJsonReader->ReadValueSeparator();
 		}
 
-		if (mJsonReader->OpenObject())
-		{
-			++mIndex;
+		const bool opened = mJsonReader->OpenObject();
+		// The array slot is consumed in both cases (on mismatch the value was skipped by the policy).
+		++mIndex;
+		if (opened) {
 			return {mJsonReader, GetContext(), this};
 		}
 		return {ScopeUnopened{}, GetContext()};

@@ -15,6 +15,7 @@
 
 #include "common_test_entities.h"
 #include "bitserializer/types/std/array.h"
+#include "bitserializer/types/std/optional.h"
 #include "bitserializer/types/std/vector.h"
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
@@ -686,6 +687,95 @@ void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfE
 		}
 		break;
 	}
+}
+
+/**
+ * @brief Tests that skipped array elements still consume an array slot.
+ *
+ * Null values and values rejected by `OverflowNumberPolicy::Skip` are skipped, but they must not
+ * shift the following values or break the fixed-size array validation. The target slot keeps its
+ * value (or stays default for a newly created container element).
+ *
+ * @tparam TArchive The archive type used for serialization.
+ */
+template <typename TArchive>
+void TestSkippedArrayValues()
+{
+	using OutputFormat = typename TArchive::preferred_output_type;
+
+	// Null values are excluded from MismatchedTypesPolicy processing and just skipped
+	{
+		const std::vector<std::optional<int>> source{ std::nullopt, 5 };
+		OutputFormat outputData;
+		BitSerializer::SaveObject<TArchive>(source, outputData);
+
+		int fixedTarget[2]{ 7, 8 };
+		BitSerializer::LoadObject<TArchive>(fixedTarget, outputData);
+		EXPECT_EQ(7, fixedTarget[0]);
+		EXPECT_EQ(5, fixedTarget[1]);
+
+		std::vector<int> prefilledTarget{ 7, 8 };
+		BitSerializer::LoadObject<TArchive>(prefilledTarget, outputData);
+		EXPECT_EQ((std::vector<int>{ 7, 5 }), prefilledTarget);
+
+		std::vector<int> emptyTarget;
+		BitSerializer::LoadObject<TArchive>(emptyTarget, outputData);
+		EXPECT_EQ((std::vector<int>{ 0, 5 }), emptyTarget);
+	}
+
+	// Values rejected by OverflowNumberPolicy::Skip
+	{
+		const std::vector<int32_t> source{ 1000, 5 };
+		OutputFormat outputData;
+		BitSerializer::SaveObject<TArchive>(source, outputData);
+
+		BitSerializer::SerializationOptions options;
+		options.overflowNumberPolicy = BitSerializer::OverflowNumberPolicy::Skip;
+
+		int8_t fixedTarget[2]{ 7, 8 };
+		BitSerializer::LoadObject<TArchive>(fixedTarget, outputData, options);
+		EXPECT_EQ(7, static_cast<int>(fixedTarget[0]));
+		EXPECT_EQ(5, static_cast<int>(fixedTarget[1]));
+
+		std::vector<int8_t> prefilledTarget{ 7, 8 };
+		BitSerializer::LoadObject<TArchive>(prefilledTarget, outputData, options);
+		EXPECT_EQ((std::vector<int8_t>{ 7, 5 }), prefilledTarget);
+	}
+
+	// A skipped nested array
+	{
+		const std::vector<std::optional<std::vector<int>>> source{ std::nullopt, std::vector<int>{ 5 } };
+		OutputFormat outputData;
+		BitSerializer::SaveObject<TArchive>(source, outputData);
+
+		std::vector<std::vector<int>> target;
+		BitSerializer::LoadObject<TArchive>(target, outputData);
+		ASSERT_EQ(2U, target.size());
+		EXPECT_TRUE(target[0].empty());
+		EXPECT_EQ((std::vector<int>{ 5 }), target[1]);
+	}
+}
+
+/**
+ * @brief Tests that a value rejected by `MismatchedTypesPolicy::Skip` still consumes an array slot.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @param input Serialized array with a mismatched first value and a loadable second value.
+ */
+template <typename TArchive>
+void TestMismatchedArrayValue(const typename TArchive::preferred_output_type& input)
+{
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = BitSerializer::MismatchedTypesPolicy::Skip;
+
+	int fixedTarget[2]{ 7, 8 };
+	BitSerializer::LoadObject<TArchive>(fixedTarget, input, options);
+	EXPECT_EQ(7, fixedTarget[0]);
+	EXPECT_EQ(5, fixedTarget[1]);
+
+	std::vector<int> prefilledTarget{ 7, 8 };
+	BitSerializer::LoadObject<TArchive>(prefilledTarget, input, options);
+	EXPECT_EQ((std::vector<int>{ 7, 5 }), prefilledTarget);
 }
 
 /**

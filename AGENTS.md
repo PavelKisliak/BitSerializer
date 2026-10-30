@@ -350,6 +350,8 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 | `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into a pre-filled container (must be cleared) |
 | `TestLoadingEmptyContainer<TArchive, TContainer>()` | Loading an empty array must clear a non-empty container |
 | `TestMismatchedTypesPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
+| `TestSkippedArrayValues<TArchive>()` | Null/overflow-skipped array elements still consume a slot (fixed array, pre-filled/empty containers, nested array) |
+| `TestMismatchedArrayValue<TArchive>(input)` | A type-mismatched (`Skip`) array element still consumes a slot; `input` is the archive-specific serialized array |
 | `TestOverflowNumberPolicy<TArchive, Source, Target>(policy)` | Serialize a value near type limits, load into narrower type, verify `OverflowNumberPolicy` |
 | `TestValidationForNamedValues<TArchive, T>()` | Validators (`Required()` etc.) on named fields |
 | `TestEncodingPolicy<TArchive>(policy)` | UTF encoding error policy on invalid sequences |

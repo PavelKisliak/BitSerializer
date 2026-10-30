@@ -1106,6 +1106,7 @@ namespace BitSerializer::MsgPack::Detail
 				return true;
 			}
 			HandleMismatchedTypesPolicy(mBinaryStreamReader, ByteCodeTable[static_cast<uint8_t>(*byteCode)].Type, mSerializationOptions.mismatchedTypesPolicy);
+			return false;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}
@@ -1436,6 +1437,9 @@ namespace BitSerializer::MsgPack::Detail
 				binarySize = sz32;
 				return true;
 			}
+
+			HandleMismatchedTypesPolicy(mBinaryStreamReader, ReadValueType(), mSerializationOptions.mismatchedTypesPolicy);
+			return false;
 		}
 		throw ParsingException("No more values to read", 0, mBinaryStreamReader.GetPosition());
 	}

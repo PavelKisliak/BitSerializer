@@ -127,6 +127,19 @@ TEST(JsoncArchive, LoadFromFile)
 }
 
 //-----------------------------------------------------------------------------
+// Tests of skipped array values
+//-----------------------------------------------------------------------------
+TEST(JsoncArchive, ShouldConsumeArraySlotForSkippedValue)
+{
+	TestSkippedArrayValues<JsoncArchive>();
+}
+
+TEST(JsoncArchive, ShouldConsumeArraySlotForMismatchedValue)
+{
+	TestMismatchedArrayValue<JsoncArchive>(R"(["not a number", 5])");
+}
+
+//-----------------------------------------------------------------------------
 // Tests of writing JSONC (comments are not preserved, output is plain JSON)
 //-----------------------------------------------------------------------------
 TEST(JsoncArchive, SaveProducesPlainJson)

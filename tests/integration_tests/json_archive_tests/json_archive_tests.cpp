@@ -864,6 +864,19 @@ TEST(JsonArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
 }
 
 //-----------------------------------------------------------------------------
+// Tests of skipped array values
+//-----------------------------------------------------------------------------
+TEST(JsonArchive, ShouldConsumeArraySlotForSkippedValue)
+{
+	TestSkippedArrayValues<JsonArchive>();
+}
+
+TEST(JsonArchive, ShouldConsumeArraySlotForMismatchedValue)
+{
+	TestMismatchedArrayValue<JsonArchive>(R"(["not a number", 5])");
+}
+
+//-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(JsonArchive, ThrowSerializationExceptionWhenOverflowInt8) {

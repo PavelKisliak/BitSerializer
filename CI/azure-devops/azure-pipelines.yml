@@ -152,6 +152,14 @@ stages:
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
+          name: 'Ubuntu_GCC_14_CXX26_static'
+          image: 'ubuntu-24.04'
+          installToolsCmd: 'sudo apt-get install gcc-14 g++-14 ninja-build'
+          vcpkgTriplet: "x64-linux-release"
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=26'
+
+      - template: templates/unix-build-and-test-template.yml
+        parameters:
           name: 'Ubuntu_Clang_11_static'
           image: 'ubuntu-22.04'
           installToolsCmd: 'sudo apt-get install clang-11 ninja-build --install-suggests'

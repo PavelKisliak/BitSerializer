@@ -271,7 +271,10 @@ Preflight job.
 | `BUILD_SHARED_LIBS` | OFF | Build as shared/DLL library |
 | `STATIC_ANALYSIS_CLANG_TIDY` | OFF | Enable clang-tidy during build |
 | `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only) |
-| `CMAKE_CXX_STANDARD` | 17 | C++ standard (17, 20, or 23) |
+| `CMAKE_CXX_STANDARD` | 17 | C++ standard (17, 20, 23, or 26) |
+
+> [!NOTE]
+> Selecting `CMAKE_CXX_STANDARD=26` requires CMake 3.30 or newer. MSVC has no C++26 mode: with MSVC, `23` maps to `/std:c++latest`, which is the closest available mode.
 
 ---
 
@@ -635,11 +638,11 @@ The project uses Azure DevOps for CI. The pipeline runs automatically on all pus
 ### What CI checks
 
 1. **Preflight** — Clang-tidy, Valgrind memory checks, and the GCC Debug build that publishes test results and code coverage (runs first)
-2. **Build and test** — 15 configurations across Windows, Linux, macOS, and ARM
+2. **Build and test** — 16 configurations across Windows, Linux, macOS, and ARM
 
 The CI matrix covers:
 - Windows: MSVC (x86/x64, static/dynamic), Clang-cl (x64, Release and Debug)
-- Linux: GCC 9, GCC 14 (C++23), Clang 11, Clang 15
+- Linux: GCC 9, GCC 14 (C++23, C++26), Clang 11, Clang 18
 - macOS: Clang 14 (C++17, C++20)
 - ARM: arm32, arm64, arm64be (cross-compiled, tested with QEMU)
 

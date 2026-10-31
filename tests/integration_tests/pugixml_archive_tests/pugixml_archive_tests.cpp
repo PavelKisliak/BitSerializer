@@ -608,6 +608,8 @@ TEST(PugiXmlArchive, SerializeStdTypes)
 	TestSerializeType<XmlArchive, std::pair<std::string, int>>();
 	TestSerializeType<XmlArchive, std::tuple<std::string, int, float, bool>>();
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::variant<int, std::string, TestPointClass, std::vector<int>>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::variant<std::monostate, int, TestPointClass>>>();
+	TestSerializeType<XmlArchive, TestClassWithSubType<std::variant<std::monostate, int, TestPointClass>>>(TestClassWithSubType(std::variant<std::monostate, int, TestPointClass>(std::monostate{})));
 
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::unique_ptr<std::string>>>(TestClassWithSubType(std::make_unique<std::string>("test")));
 	TestSerializeType<XmlArchive, TestClassWithSubType<std::shared_ptr<std::string>>>(TestClassWithSubType(std::make_shared<std::string>("test")));

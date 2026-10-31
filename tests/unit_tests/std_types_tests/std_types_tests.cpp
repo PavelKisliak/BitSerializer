@@ -63,6 +63,7 @@ BITSERIALIZER_REGISTER_TYPE(std::string, "String")
 BITSERIALIZER_REGISTER_TYPE(float, "Float")
 BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
 BITSERIALIZER_REGISTER_TYPE(TestClassWithSubType<int>, "TestClassWithSubTypeInt")
+BITSERIALIZER_REGISTER_TYPE(std::monostate, "Monostate")
 
 //-----------------------------------------------------------------------------
 TEST(STD_Types, SerializePair) {
@@ -146,6 +147,82 @@ TEST(STD_Types, SerializeVariantAsClassMember) {
 	using VariantType = std::variant<int, std::string, TestPointClass, std::vector<int>>;
 	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(TestPointClass(7, 11))));
 	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(std::vector<int>{ 3, 1, 4 })));
+}
+
+//-----------------------------------------------------------------------------
+// Tests of serialization for std::monostate (represented as `null`)
+//-----------------------------------------------------------------------------
+TEST(STD_Types, SerializeVariantWithMonostate) {
+	using VariantType = std::variant<std::monostate, int, std::string>;
+	TestSerializeType<ArchiveStub>(VariantType(std::monostate{}));
+	TestSerializeType<ArchiveStub>(VariantType(123));
+	TestSerializeType<ArchiveStub>(VariantType(std::string("test")));
+}
+
+TEST(STD_Types, SerializeVariantWithOnlyMonostate) {
+	TestSerializeType<ArchiveStub>(std::variant<std::monostate>(std::monostate{}));
+}
+
+TEST(STD_Types, SerializeVariantWithRandomMonostateAlternative) {
+	using VariantType = std::variant<std::monostate, int, std::string, TestPointClass>;
+	TestSerializeType<ArchiveStub, VariantType>();
+}
+
+TEST(STD_Types, SerializeVariantWithMonostateAsClassMember) {
+	using VariantType = std::variant<std::monostate, TestPointClass>;
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(std::monostate{})));
+	TestSerializeType<ArchiveStub>(TestClassWithSubType(VariantType(TestPointClass(7, 11))));
+}
+
+TEST(STD_Types, SerializeVariantAsNamedWithMonostate) {
+	using VariantType = std::variant<std::monostate, int, TestPointClass>;
+	VariantType testValue(std::monostate{}), actual(123);
+
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsNamed(testValue), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsNamed(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantAsDiscriminatedWithMonostate) {
+	using VariantType = std::variant<std::monostate, TestPointClass, TestClassWithSubType<int>>;
+
+	VariantType testValue(std::monostate{}), actual(TestPointClass(1, 2));
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsDiscriminated(testValue), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsDiscriminated(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
+
+	// A non-empty alternative is still serialized as before.
+	VariantType testValue2(TestClassWithSubType<int>(7)), actual2(std::monostate{});
+	outputArchive = {};
+	BitSerializer::SaveObject<ArchiveStub>(VariantAsDiscriminated(testValue2), outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(VariantAsDiscriminated(actual2), outputArchive);
+	GTestExpectEq(testValue2, actual2);
+}
+
+TEST(STD_Types, SerializeVariantWithDefaultNamedModeAndMonostate) {
+	using VariantType = std::variant<std::monostate, int, TestPointClass>;
+	VariantType testValue(std::monostate{}), actual(123);
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Named;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
+}
+
+TEST(STD_Types, SerializeVariantWithDefaultDiscriminatedModeAndMonostate) {
+	using VariantType = std::variant<std::monostate, TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(std::monostate{}), actual(TestPointClass(1, 2));
+
+	SerializationOptions options;
+	options.variantOptions.mode = VariantSerializationMode::Discriminated;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(testValue, outputArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+	GTestExpectEq(testValue, actual);
 }
 
 TEST(STD_Types, SkipVariantWhenIndexOutOfRange) {

@@ -3,8 +3,10 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <variant>
+#include <cstddef>
 #include <type_traits>
+#include <utility>
+#include <variant>
 
 #include "bitserializer/convert.h"
 #include "bitserializer/key_value.h"
@@ -20,12 +22,19 @@ namespace BitSerializer
 	namespace Detail
 	{
 		/**
+		 * @brief Checks whether a type is `std::monostate`.
+		 */
+		template <typename T>
+		inline constexpr bool is_monostate_v = std::is_same_v<std::decay_t<T>, std::monostate>;
+
+		/**
 		 * @brief Checks whether a variant alternative can be serialized as a value under a key
 		 * in the current archive (needed by the `Indexed` and `Named` representations).
 		 */
 		template <typename TArchive, typename TValue>
 		inline constexpr bool can_serialize_alternative_with_key_v =
 			can_serialize_value_with_key_v<TArchive, TValue, typename TArchive::key_type>
+			|| (is_monostate_v<TValue> && can_serialize_value_with_key_v<TArchive, std::nullptr_t, typename TArchive::key_type>)
 			|| (Convert::Detail::is_string_type_v<TValue> && can_serialize_value_with_key_v<TArchive, typename TArchive::string_view_type, typename TArchive::key_type>)
 			|| ((has_serialize_method_v<TValue> || has_global_serialize_object_v<TValue>) && can_serialize_object_with_key_v<TArchive, typename TArchive::key_type>)
 			|| (has_global_serialize_array_v<TValue> && can_serialize_array_with_key_v<TArchive, typename TArchive::key_type>);
@@ -64,16 +73,22 @@ namespace BitSerializer
 		 *
 		 * @note Requires the alternative to be an object type (has `Serialize()` method or
 		 * a global `SerializeObject()`), since a scalar or array cannot be flattened.
+		 * `std::monostate` is also allowed and contributes no fields.
 		 */
 		template <typename TArchive, typename TValue>
 		void SerializeVariantAlternativeFields(TArchive& archive, TValue& value)
 		{
+			constexpr auto isMonostate = is_monostate_v<TValue>;
 			constexpr auto hasSerializeMethod = has_serialize_method_v<TValue>;
 			constexpr auto hasGlobalSerializeObject = has_global_serialize_object_v<TValue>;
-			static_assert(hasSerializeMethod || hasGlobalSerializeObject,
-				"BitSerializer. Discriminated variant representation (VariantAsDiscriminated) requires every alternative to be an object type with a Serialize() method or a global SerializeObject().");
+			static_assert(isMonostate || hasSerializeMethod || hasGlobalSerializeObject,
+				"BitSerializer. Discriminated variant representation (VariantAsDiscriminated) requires every alternative to be an object type with a Serialize() method or a global SerializeObject(). std::monostate is allowed and contributes no fields.");
 
-			if constexpr (hasSerializeMethod)
+			if constexpr (isMonostate)
+			{
+				// std::monostate has no fields - only the discriminator is written.
+			}
+			else if constexpr (hasSerializeMethod)
 			{
 				value.Serialize(archive);
 			}
@@ -242,6 +257,29 @@ namespace BitSerializer
 	}
 
 	/**
+	 * @brief Serializes `std::monostate` with a key as `null`.
+	 *
+	 * `std::monostate` models the empty state of a `std::variant`, so it is represented
+	 * by the same `null` value as `std::nullopt` and empty pointers.
+	 */
+	template <typename TArchive, typename TKey>
+	bool Serialize(TArchive& archive, TKey&& key, std::monostate&)
+	{
+		std::nullptr_t nullValue = nullptr;
+		return Serialize(archive, std::forward<TKey>(key), nullValue);
+	}
+
+	/**
+	 * @brief Serializes `std::monostate` without a key as `null`.
+	 */
+	template <typename TArchive>
+	bool Serialize(TArchive& archive, std::monostate&)
+	{
+		std::nullptr_t nullValue = nullptr;
+		return Serialize(archive, nullValue);
+	}
+
+	/**
 	 * @brief A wrapper that explicitly requests indexed serialization of `std::variant`.
 	 *
 	 * Serializes the variant as an object with `index` and `value` fields,
@@ -360,15 +398,16 @@ namespace BitSerializer
 	 *
 	 * The object contains the discriminator (`typeKey`) followed by the active alternative's
 	 * fields flattened at the same level. Requires every alternative to be registered via
-	 * `BITSERIALIZER_REGISTER_TYPE` and to be an object type.
+	 * `BITSERIALIZER_REGISTER_TYPE` and to be an object type (`std::monostate` is allowed
+	 * and contributes no fields, so only the discriminator is written).
 	 */
 	template <typename TArchive, typename... TArgs>
 	void SerializeObject(TArchive& archive, VariantAsDiscriminated<std::variant<TArgs...>> taggedVariant)
 	{
-		constexpr bool allObjectAlternatives = ((has_serialize_method_v<TArgs> || has_global_serialize_object_v<TArgs>) && ...);
+		constexpr bool allObjectAlternatives = ((has_serialize_method_v<TArgs> || has_global_serialize_object_v<TArgs> || Detail::is_monostate_v<TArgs>) && ...);
 		constexpr bool allRegistered = (Detail::is_type_registered_v<TArgs> && ...);
 		static_assert(allObjectAlternatives,
-			"BitSerializer. VariantAsDiscriminated requires every alternative to be an object type with a Serialize() method or a global SerializeObject(); primitive types (e.g. int, float, bool, std::string) are not supported.");
+			"BitSerializer. VariantAsDiscriminated requires every alternative to be an object type with a Serialize() method or a global SerializeObject(); primitive types (e.g. int, float, bool, std::string) are not supported. std::monostate is allowed and contributes no fields.");
 		static_assert(allRegistered,
 			"BitSerializer. VariantAsDiscriminated requires every alternative to be registered with BITSERIALIZER_REGISTER_TYPE.");
 		if constexpr (allObjectAlternatives && allRegistered)
@@ -387,7 +426,7 @@ namespace BitSerializer
 	 *
 	 * The `Named` and `Discriminated` modes require every alternative to be registered via
 	 * `BITSERIALIZER_REGISTER_TYPE`; the `Discriminated` mode also requires every alternative to be
-	 * an object type. These requirements are enforced at compile time when possible - if a selected
+	 * an object type (`std::monostate` is allowed and contributes no fields). These requirements are enforced at compile time when possible - if a selected
 	 * mode is not available for the given alternatives, a `SerializationException` is thrown at runtime.
 	 *
 	 * @note This representation requires object support in the target archive.
@@ -398,7 +437,7 @@ namespace BitSerializer
 	{
 		const auto& variantOptions = archive.GetOptions().variantOptions;
 		constexpr bool allRegistered = (Detail::is_type_registered_v<TArgs> && ...);
-		constexpr bool allObjectAlternatives = ((has_serialize_method_v<TArgs> || has_global_serialize_object_v<TArgs>) && ...);
+		constexpr bool allObjectAlternatives = ((has_serialize_method_v<TArgs> || has_global_serialize_object_v<TArgs> || Detail::is_monostate_v<TArgs>) && ...);
 		constexpr bool canSerializeWithKey = (Detail::can_serialize_alternative_with_key_v<TArchive, TArgs> && ...);
 
 		switch (variantOptions.mode)
@@ -430,7 +469,7 @@ namespace BitSerializer
 			else
 			{
 				throw SerializationException(SerializationErrorCode::MismatchedTypes,
-					"BitSerializer. VariantSerializationMode::Discriminated requires every alternative to be an object type; primitive types (e.g. int, float, bool, std::string) are not supported.");
+					"BitSerializer. VariantSerializationMode::Discriminated requires every alternative to be an object type; primitive types (e.g. int, float, bool, std::string) are not supported. std::monostate is allowed and contributes no fields.");
 			}
 			break;
 		case VariantSerializationMode::Indexed:

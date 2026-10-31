@@ -179,6 +179,7 @@ This chapter provides an overview of the performance characteristics of BitSeria
 - Formats implemented natively in BitSerializer (MsgPack and CSV) demonstrate excellent performance due to their DOM-free architecture. This approach eliminates intermediate object tree construction, enabling direct serialization/deserialization to/from streams.
 - Formats relying on external libraries (RapidJSON, PugiXml, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
+- Low-level byte scanning and comparison in the built-in archives are SIMD-accelerated (SSE2/NEON) where available, with a portable scalar fallback.
 
 #### Comparing "Parsers" and "Serializers" library classes
 It is important to note that comparing "Serialization" classes (like BitSerializer) with "Parser" classes (such as RapidJSON, NlohmannJson, PugiXml, or RapidYAML) may not always be entirely fair. These two categories of libraries differ fundamentally in their design and purpose:
@@ -509,6 +510,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::tuple | #include "bitserializer/types/std/tuple.h" |
 | std::optional | #include "bitserializer/types/std/optional.h" |
 | std::variant | #include "bitserializer/types/std/variant.h" |
+| std::monostate | #include "bitserializer/types/std/variant.h" |
 | std::unique_ptr, std::shared_ptr | #include "bitserializer/types/std/memory.h" |
 | std::chrono::time_point, chrono::duration | #include "bitserializer/types/std/chrono.h" |
 | std::time_t | #include "bitserializer/types/std/ctime.h" |
@@ -768,6 +770,21 @@ Every alternative must be an **object type** (has `Serialize()` method or a glob
 auto jsonResult = BitSerializer::SaveObject<JsonArchive>(VariantAsDiscriminated(testValue, "kind"));
 ```
 
+`std::monostate` can be used as an alternative to model the variant's empty state. It is serialized as `null` in the indexed and name-based representations, and contributes no fields to the discriminated one (only the discriminator is written):
+```cpp
+using VariantType = std::variant<std::monostate, User, Product>;
+VariantType testValue; // holds std::monostate
+auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testValue);
+```
+Returns result:
+```json
+{ "index": 0, "value": null }
+```
+For `VariantAsNamed` / `VariantAsDiscriminated`, register `std::monostate` like any other alternative:
+```cpp
+BITSERIALIZER_REGISTER_TYPE(std::monostate, "Monostate")
+```
+
 ##### CSV compatibility
 CSV is flat and cannot represent nested objects or arrays, so the representation determines what works:
 
@@ -776,6 +793,8 @@ CSV is flat and cannot represent nested objects or arrays, so the representation
 | Index-based | Only scalar alternatives (flattened into `index`, `value` columns). |
 | Name-based | Only scalar alternatives. |
 | Discriminated | Object alternatives (fields become columns); scalar/array alternatives cannot be flattened. |
+
+Since `std::monostate` contributes no fields, a discriminated variant that mixes it with non-empty alternatives cannot be represented in CSV: the rows would have different numbers of columns.
 
 Loading a `VariantAsNamed` / `VariantAsDiscriminated` value that contains an unknown type name respects the `MismatchedTypesPolicy` - with `ThrowError` it throws a `SerializationException`, otherwise the field is skipped.
 
@@ -1619,6 +1638,7 @@ For the full change log, see [History.md](History.md); for contribution guidelin
 
 ### Thanks
 - [@Cyberex](https://github.com/Cyberex) for testing on different native Linux distributions and BSD variants, and on real ARM hardware.
+- [@hoshinohikari](https://github.com/hoshinohikari) for the payload passthrough and the `std::variant` serialization initiatives.
 - Artsiom Marozau for developing an archive with support YAML.
 - Andrey Mazhyrau for help with cmake scripts, fix GCC and Linux related issues.
 - Alexander Stepaniuk for support and participation in technical discussions.

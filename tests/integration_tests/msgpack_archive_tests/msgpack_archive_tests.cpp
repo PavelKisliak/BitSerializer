@@ -36,6 +36,8 @@
 using namespace BitSerializer;
 using BitSerializer::MsgPack::MsgPackArchive;
 
+BITSERIALIZER_REGISTER_TYPE(std::monostate, "Monostate")
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for fundamental types (at root scope of archive)
 //-----------------------------------------------------------------------------
@@ -1024,6 +1026,24 @@ TEST(MsgPackArchive, SerializeStdTypes)
 
 	TestSerializeType<MsgPackArchive, std::chrono::system_clock::time_point>();
 	TestSerializeType<MsgPackArchive, std::chrono::seconds>();
+}
+
+TEST(MsgPackArchive, SerializeVariantWithMonostate)
+{
+	using VariantType = std::variant<std::monostate, int, TestPointClass>;
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<VariantType>>();
+	TestSerializeType<MsgPackArchive, TestClassWithSubType<VariantType>>(TestClassWithSubType(VariantType(std::monostate{})));
+}
+
+TEST(MsgPackArchive, SerializeVariantAsDiscriminatedWithMonostate)
+{
+	using VariantType = std::variant<std::monostate, TestPointClass>;
+	VariantType testValue(std::monostate{}), actual(TestPointClass(1, 2));
+
+	std::string outputArchive;
+	SaveObject<MsgPackArchive>(VariantAsDiscriminated(testValue), outputArchive);
+	LoadObject<MsgPackArchive>(VariantAsDiscriminated(actual), outputArchive);
+	GTestExpectEq(testValue, actual);
 }
 
 //-----------------------------------------------------------------------------

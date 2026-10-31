@@ -9,6 +9,11 @@
 
 namespace AutoFixture
 {
+	/**
+	 * @brief Builds a test fixture for `std::monostate` (has no state, nothing to generate).
+	 */
+	inline void BuildFixture(Fixture&, std::monostate&) { }
+
 	namespace Detail
 	{
 		template <size_t TIndex = 0, typename... TArgs>

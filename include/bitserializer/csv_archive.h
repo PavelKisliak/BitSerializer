@@ -348,9 +348,13 @@ public:
 			}
 			if (GetOptions().mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
 			{
-				throw SerializationException(SerializationErrorCode::MismatchedTypes,
-					"Failed to deserialize field '" + key + "' - type mismatch. Value: " +
-					std::string(strValue) + ", line: " + Convert::ToString(mCsvReader->GetCurrentLine()));
+				std::string errMsg = "Failed to deserialize field '";
+				errMsg.append(key);
+				errMsg.append("' - type mismatch. Value: ");
+				errMsg.append(strValue);
+				errMsg.append(", line: ");
+				errMsg.append(Convert::ToString(mCsvReader->GetCurrentLine()));
+				throw SerializationException(SerializationErrorCode::MismatchedTypes, errMsg);
 			}
 			return false;
 		}

@@ -436,6 +436,9 @@ TEST_F(CsvArchiveTests, SerializeStdTypes)
 	options.variantOptions.mode = VariantSerializationMode::Discriminated;
 	TestSerializeArray<CsvArchive, std::variant<TestPointClass>>(options);
 
+	// `std::monostate` is represented by an empty cell in the indexed representation.
+	TestSerializeArray<CsvArchive, std::variant<std::monostate, int>>();
+
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::unique_ptr<std::string>>>();
 	TestSerializeArray<CsvArchive, TestClassWithSubType<std::shared_ptr<std::string>>>();
 

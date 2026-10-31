@@ -983,6 +983,7 @@ BITSERIALIZER_REGISTER_TYPE(int, "Int")
 BITSERIALIZER_REGISTER_TYPE(std::string, "String")
 BITSERIALIZER_REGISTER_TYPE(std::vector<int>, "IntVector")
 BITSERIALIZER_REGISTER_TYPE(TestClassWithSubType<int>, "TestClassWithSubTypeInt")
+BITSERIALIZER_REGISTER_TYPE(std::monostate, "Monostate")
 
 TEST(JsonArchive, SerializeVariantAsDiscriminatedProducesFlattenedObject)
 {
@@ -1014,6 +1015,23 @@ TEST(JsonArchive, SerializeVariantWithDefaultNamedModeProducesNamedObject)
 	std::string jsonResult;
 	BitSerializer::SaveObject<JsonArchive>(testValue, jsonResult, options);
 	EXPECT_EQ(jsonResult, R"({"type":"TestPointClass","value":{"x":5,"y":8}})");
+}
+
+TEST(JsonArchive, SerializeVariantWithMonostateProducesNull)
+{
+	using VariantType = std::variant<std::monostate, int, std::string>;
+	VariantType testValue(std::monostate{});
+
+	EXPECT_EQ(BitSerializer::SaveObject<JsonArchive>(testValue), R"({"index":0,"value":null})");
+	EXPECT_EQ(BitSerializer::SaveObject<JsonArchive>(BitSerializer::VariantAsNamed(testValue)), R"({"type":"Monostate","value":null})");
+}
+
+TEST(JsonArchive, SerializeVariantAsDiscriminatedWithMonostateProducesOnlyDiscriminator)
+{
+	using VariantType = std::variant<std::monostate, TestPointClass, TestClassWithSubType<int>>;
+	VariantType testValue(std::monostate{});
+
+	EXPECT_EQ(BitSerializer::SaveObject<JsonArchive>(BitSerializer::VariantAsDiscriminated(testValue)), R"({"type":"Monostate"})");
 }
 
 //-----------------------------------------------------------------------------

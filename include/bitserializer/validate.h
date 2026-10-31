@@ -402,7 +402,7 @@ namespace BitSerializer::Validate
 						if (ch == '-')
 						{
 							// Label can't start or end with hyphen
-							if (currentLabelSize == 1 || i + 1 == strSize || str[i + 1] == '.')
+							if (currentLabelSize == 1 || i + 1 == strSize || str.substr(static_cast<size_t>(i + 1), 1).front() == '.')
 							{
 								isValid = false;
 							}

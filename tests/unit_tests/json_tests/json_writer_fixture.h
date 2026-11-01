@@ -15,6 +15,11 @@ class JsonWriterTest : public ::testing::Test
 public:
 	JsonWriterTest()
 	{
+		CreateWriter();
+	}
+
+	void CreateWriter()
+	{
 		if constexpr (std::is_same_v<TWriter, BitSerializer::Json::Detail::JsonStringWriter>)
 		{
 			mResult.emplace<std::string>();
@@ -44,7 +49,7 @@ public:
 	std::string TakeResult()
 	{
 		mJsonWriter->Flush();
-		return std::visit([](auto&& arg)
+		std::string result = std::visit([](auto&& arg)
 		{
 			using T = std::decay_t<decltype(arg)>;
 			if constexpr (std::is_same_v<T, std::string>)
@@ -60,6 +65,10 @@ public:
 				return s;
 			}
 		}, mResult);
+
+		// JsonStringWriter is one-shot; recreate it for the next TakeResult().
+		CreateWriter();
+		return result;
 	}
 
 	[[nodiscard]] bool IsStreamWriter() const

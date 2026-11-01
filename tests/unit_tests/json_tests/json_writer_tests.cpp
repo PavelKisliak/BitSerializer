@@ -371,3 +371,48 @@ TYPED_TEST(JsonWriterTest, WriteRawKey)
 })", this->TakeResult());
 	}
 }
+
+//------------------------------------------------------------------------------
+
+TEST(JsonStringWriterBufferTest, FlushFinalizesOutput)
+{
+	std::string output;
+	BitSerializer::Json::Detail::JsonStringWriter writer(output);
+	writer.WriteValue(std::string_view("value"));
+	writer.Flush();
+
+	EXPECT_EQ(R"("value")", output);
+}
+
+TEST(JsonStringWriterBufferTest, DestructorFinalizesOutput)
+{
+	std::string output;
+	{
+		BitSerializer::Json::Detail::JsonStringWriter writer(output);
+		writer.WriteValue(int32_t{42});
+	}
+
+	EXPECT_EQ("42", output);
+}
+
+TEST(JsonStringWriterBufferTest, PreservesExistingOutputPrefix)
+{
+	std::string output = "prefix";
+	{
+		BitSerializer::Json::Detail::JsonStringWriter writer(output);
+		writer.WriteValue(true);
+	}
+
+	EXPECT_EQ("prefixtrue", output);
+}
+
+TEST(JsonStringPrettyWriterBufferTest, DestructorFinalizesOutput)
+{
+	std::string output;
+	{
+		BitSerializer::Json::Detail::JsonStringPrettyWriter writer(output);
+		writer.WriteValue(int32_t{7});
+	}
+
+	EXPECT_EQ("7", output);
+}

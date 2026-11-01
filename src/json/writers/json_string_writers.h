@@ -8,17 +8,30 @@
 
 namespace BitSerializer::Json::Detail
 {
+	/**
+	 * @brief JSON writer that serializes into a caller-provided string.
+	 *
+	 * This is a one-shot writer: it owns the output segment until Flush(). Call Flush()
+	 * (or destroy the writer) once; do not reuse the instance for another document.
+	 * The destructor finalizes the output if Flush() was not called.
+	 */
 	class JsonStringWriter final : public IJsonWriter
 	{
 	public:
 		explicit JsonStringWriter(std::string& outputString);
+		~JsonStringWriter() override;
 
 		void WriteValue(std::nullptr_t) override {
-			mOutputString.append("null");
+			mBuffer.AppendLiteral("null");
 		}
 
 		void WriteValue(bool value) override {
-			mOutputString.append(value ? "true" : "false");
+			if (value) {
+				mBuffer.AppendLiteral("true");
+			}
+			else {
+				mBuffer.AppendLiteral("false");
+			}
 		}
 
 		void WriteValue(uint8_t value) override {
@@ -63,37 +76,50 @@ namespace BitSerializer::Json::Detail
 		void WriteValue(std::string_view value) override;
 
 		void WriteRawValue(std::string_view value) override {
-			mOutputString.append(value);
+			mBuffer.Append(value);
 		}
 
 		void WriteValueSeparator() override {
-			mOutputString.push_back(',');
+			mBuffer.PushUnsafe(',');
 		}
 
 		void BeginArray() override {
-			mOutputString.push_back('[');
+			mBuffer.Push('[');
 		}
 		void EndArray(bool /*hasElements*/) override {
-			mOutputString.push_back(']');
+			mBuffer.Push(']');
 		}
 
 		void BeginObject() override {
-			mOutputString.push_back('{');
+			mBuffer.Push('{');
 		}
 		void WriteKey(std::string_view key) override
 		{
 			WriteValue(key);
-			mOutputString.push_back(':');
+			mBuffer.PushUnsafe(':');
 		}
 		void WriteRawKey(std::string_view key) override
 		{
-			mOutputString.reserve(mOutputString.size() + key.size() + 3);
-			mOutputString.push_back('"');
-			mOutputString.append(key);
-			mOutputString.append("\":");
+			const size_t size = key.size() + 3;
+			mBuffer.Ensure(size);
+			char* out = mBuffer.Tail();
+			*out++ = '"';
+			if (!key.empty()) {
+				std::memcpy(out, key.data(), key.size());
+			}
+			out += key.size();
+			*out++ = '"';
+			*out++ = ':';
+			mBuffer.Commit(size);
 		}
 		void EndObject(bool /*hasElements*/) override {
-			mOutputString.push_back('}');
+			mBuffer.Push('}');
+		}
+
+		void Flush() override
+		{
+			mBuffer.Finalize();
+			mFlushed = true;
 		}
 
 	private:
@@ -108,27 +134,42 @@ namespace BitSerializer::Json::Detail
 						"JSON does not support non-finite numbers (NaN or Infinity)");
 				}
 			}
-			Convert::Detail::To(value, mOutputString);
+
+			WriteNumberTo(mBuffer, value);
 		}
 
-		std::string& mOutputString;
+		StringBuffer mBuffer;
+		bool mFlushed = false;
 	};
 
+	/**
+	 * @brief Pretty-printing JSON writer that serializes into a caller-provided string.
+	 *
+	 * Like JsonStringWriter, this is a one-shot writer. Flush() finalizes the output;
+	 * the destructor does it if Flush() was not called. Recreate the writer for the next
+	 * document.
+	 */
 	class JsonStringPrettyWriter final : public IJsonWriter
 	{
 	public:
 		explicit JsonStringPrettyWriter(std::string& outputString, char paddingChar = '\t', uint16_t paddingCharNum = 1);
+		~JsonStringPrettyWriter() override;
 
 		void WriteValue(std::nullptr_t) override
 		{
 			WriteIndent();
-			mOutputString.append("null");
+			mBuffer.AppendLiteral("null");
 		}
 
 		void WriteValue(bool value) override
 		{
 			WriteIndent();
-			mOutputString.append(value ? "true" : "false");
+			if (value) {
+				mBuffer.AppendLiteral("true");
+			}
+			else {
+				mBuffer.AppendLiteral("false");
+			}
 		}
 
 		void WriteValue(uint8_t value) override
@@ -200,19 +241,19 @@ namespace BitSerializer::Json::Detail
 		void WriteRawValue(std::string_view value) override
 		{
 			WriteIndent();
-			mOutputString.append(value);
+			mBuffer.Append(value);
 		}
 
 		void WriteValueSeparator() override
 		{
-			mOutputString.push_back(',');
+			mBuffer.Push(',');
 			mPadding = true;
 		}
 
 		void BeginArray() override
 		{
 			WriteIndent();
-			mOutputString.push_back('[');
+			mBuffer.Push('[');
 			mCurrentPadding += mPaddingCharNum;
 			mPadding = true;
 		}
@@ -226,13 +267,13 @@ namespace BitSerializer::Json::Detail
 				mPadding = true;
 				WriteIndent();
 			}
-			mOutputString.push_back(']');
+			mBuffer.Push(']');
 		}
 
 		void BeginObject() override
 		{
 			WriteIndent();
-			mOutputString.append("{");
+			mBuffer.Push('{');
 			mCurrentPadding += mPaddingCharNum;
 			mPadding = true;
 		}
@@ -246,23 +287,27 @@ namespace BitSerializer::Json::Detail
 				mPadding = true;
 				WriteIndent();
 			}
-			mOutputString.push_back('}');
+			mBuffer.Push('}');
 		}
 
 		void WriteKey(std::string_view key) override
 		{
 			WriteValue(key);
-			mOutputString.append(": ");
+			mBuffer.AppendLiteral(": ");
 			mPadding = false;
 		}
 		void WriteRawKey(std::string_view key) override
 		{
 			WriteIndent();
-			mOutputString.reserve(mOutputString.size() + key.size() + 4);
-			mOutputString.push_back('"');
-			mOutputString.append(key);
-			mOutputString.append("\": ");
+			mBuffer.AppendLiteral("\"");
+			mBuffer.Append(key);
+			mBuffer.AppendLiteral("\": ");
 			mPadding = false;
+		}
+
+		void Flush() override {
+			mBuffer.Finalize();
+			mFlushed = true;
 		}
 
 	private:
@@ -277,22 +322,23 @@ namespace BitSerializer::Json::Detail
 						"JSON does not support non-finite numbers (NaN or Infinity)");
 				}
 			}
-			Convert::Detail::To(value, mOutputString);
+
+			WriteNumberTo(mBuffer, value);
 		}
 
-		void WriteIndent() const
+		void WriteIndent()
 		{
 			if (mPadding)
 			{
-				mOutputString.push_back('\n');
-				if (mCurrentPadding > 0)
-				{
-					mOutputString.append(mCurrentPadding, mPaddingChar);
+				mBuffer.Push('\n');
+				if (mCurrentPadding > 0) {
+					mBuffer.Append(mPaddingChar, mCurrentPadding);
 				}
 			}
 		}
 
-		std::string& mOutputString;
+		StringBuffer mBuffer;
+		bool mFlushed = false;
 		uint32_t mCurrentPadding = 0;
 		uint16_t mPaddingCharNum;
 		char mPaddingChar;

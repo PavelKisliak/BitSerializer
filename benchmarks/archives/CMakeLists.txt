@@ -12,11 +12,22 @@ add_executable(${PROJECT_NAME}
     test_model.h
     benchmark_base.h
     benchmark_base.cpp
+    benchmark_cli.h
+    benchmark_cli.cpp
     competitors/bitserializer_benchmark.h
     competitors/rapidjson_benchmark.h
     competitors/pugixml_benchmark.h
     competitors/rapidyaml_benchmark.h
     competitors/nlohmannjson_benchmark.h
+)
+
+# Copy the repeated-run helper next to the executable, so it can find the benchmark in the current directory.
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_LIST_DIR}/run_repeated.py"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    COMMENT "Copying run_repeated.py to the benchmark output directory"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)

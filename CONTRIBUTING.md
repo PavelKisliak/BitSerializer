@@ -288,14 +288,15 @@ Build the benchmark executable in Release mode (benchmarks in Debug mode use min
 
 ```cmd
 :: Windows (from VS Developer Command Prompt)
-cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON ...
+cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON -DBUILD_JSON_ARCHIVE=ON ...
 ninja -C build archives_benchmarks
 
 :: Run (from command-line build)
-build/bin/archives_benchmarks.exe
+build/bin/archives_benchmarks.exe --list
+build/bin/archives_benchmarks.exe --bench bs-json,rapidjson --stages save,load --stage-time 10
 ```
 
-In Release mode, each archive and stage runs for **30 seconds** to produce repeatable results. The benchmark also warms up the CPU for 10 seconds before starting.
+In Release mode, each archive and stage runs for **30 seconds** to produce repeatable results. The benchmark also warms up the CPU for 10 seconds before starting. Use `--bench`, `--stages`, `--stage-time` and `--warmup` to run a subset without rebuilding; see [benchmarks/archives/README.md](benchmarks/archives/README.md) for the full CLI and the `run_repeated.py` helper for repeated runs.
 
 > [!IMPORTANT]
 > Avoid using the system during the test for accurate results. Close other applications and background processes that may cause fluctuations.
@@ -305,7 +306,8 @@ In Release mode, each archive and stage runs for **30 seconds** to produce repea
 - Pins the process to a single CPU core and sets maximum priority to minimize fluctuations
 - Compares BitSerializer archives against raw usage of underlying libraries (RapidJSON, PugiXml, RapidYAML, nlohmann-json)
 - Measures serialization speed (fields/ms) for save and load operations
-- Reports are saved as JSON files in `benchmark_results/` directory (requires RapidJSON archive to be enabled)
+- Uses a representative flat model (5 numeric and 5 string fields); see [Test model](benchmarks/archives/README.md#test-model) for the intent and balance
+- Reports are saved as JSON files in `benchmark_results/` directory (requires the built-in JSON archive, `BUILD_JSON_ARCHIVE=ON`)
 
 ### Why the full round-trip benchmark matters
 

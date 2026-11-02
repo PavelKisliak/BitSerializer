@@ -2,11 +2,16 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
-#include <chrono>
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -14,6 +19,8 @@
 #include "perf_utils.h"
 #include "bitserializer/types/std/unordered_map.h"
 
+#include "benchmark_cli.h"
+#include "benchmark_base.h"
 #include "competitors/bitserializer_benchmark.h"
 #ifdef RAPIDJSON_BENCHMARK
 #include "competitors/rapidjson_benchmark.h"
@@ -26,69 +33,215 @@
 #endif
 #include "competitors/nlohmannjson_benchmark.h"
 
-#if defined(_DEBUG) || (!defined(NDEBUG) && !defined(RELEASE))
-static constexpr bool isDebugBuild = true;
-#else
-static constexpr bool isDebugBuild = false;
+#ifdef JSON_BENCHMARK
+#include "bitserializer/bit_serializer.h"
+#include "bitserializer/json_archive.h"
 #endif
 
-// In the debug configuration using minimal testing time, otherwise take enough time to produce repeatable results
-static constexpr std::chrono::seconds defaultStageTestTime = std::chrono::seconds(isDebugBuild ? 1 : 30);
-
-int main()	// NOLINT(bugprone-exception-escape)
+namespace
 {
+	using BenchmarkFactory = std::function<std::unique_ptr<BenchmarkBase>()>;
+
+	struct BenchmarkEntry
+	{
+		std::string key;
+		BenchmarkFactory create;
+	};
+
+	bool IsBitSerializerKey(std::string_view key)
+	{
+		return key.rfind("bs-", 0) == 0;
+	}
+
+	std::vector<BenchmarkEntry> BuildBenchmarkRegistry()
+	{
+		std::vector<BenchmarkEntry> entries;
+#ifdef JSON_BENCHMARK
+		entries.push_back({ "bs-json", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Json::JsonArchive>>(); } });
+		entries.push_back({ "bs-jsonc", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Json::JsoncArchive>>(); } });
+#endif
+#ifdef CSV_BENCHMARK
+		entries.push_back({ "bs-csv", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Csv::CsvArchive>>(); } });
+#endif
+#ifdef MSGPACK_BENCHMARK
+		entries.push_back({ "bs-msgpack", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive>>(); } });
+#endif
+#ifdef RAPIDJSON_BENCHMARK
+		entries.push_back({ "bs-rapidjson", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive>>(); } });
+		entries.push_back({ "rapidjson", [] { return std::make_unique<RapidJsonBenchmark>(); } });
+#endif
+#ifdef PUGIXML_BENCHMARK
+		entries.push_back({ "bs-pugixml", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive>>(); } });
+		entries.push_back({ "pugixml", [] { return std::make_unique<PugiXmlBenchmark>(); } });
+#endif
+#ifdef RAPIDYAML_BENCHMARK
+		entries.push_back({ "bs-rapidyaml", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive>>(); } });
+		entries.push_back({ "rapidyaml", [] { return std::make_unique<RapidYamlBenchmark>(); } });
+#endif
+		entries.push_back({ "nlohmann-msgpack", [] { return std::make_unique<NlohmannMsgPackBenchmark>(); } });
+		return entries;
+	}
+
+	std::vector<BenchmarkEntry> SelectBenchmarks(const std::vector<BenchmarkEntry>& registry, const std::vector<std::string>& keys)
+	{
+		if (keys.empty())
+		{
+			return registry;
+		}
+
+		std::vector<bool> selected(registry.size(), false);
+		for (const std::string& key : keys)
+		{
+			if (key == "all")
+			{
+				std::fill(selected.begin(), selected.end(), true);
+			}
+			else if (key == "bitserializer" || key == "competitors")
+			{
+				const bool wantBitSerializer = key == "bitserializer";
+				for (std::size_t i = 0; i < registry.size(); ++i)
+				{
+					if (IsBitSerializerKey(registry[i].key) == wantBitSerializer)
+					{
+						selected[i] = true;
+					}
+				}
+			}
+			else
+			{
+				bool found = false;
+				for (std::size_t i = 0; i < registry.size(); ++i)
+				{
+					if (registry[i].key == key)
+					{
+						selected[i] = true;
+						found = true;
+					}
+				}
+				if (!found)
+				{
+					throw std::runtime_error("Unknown benchmark: " + key);
+				}
+			}
+		}
+
+		std::vector<BenchmarkEntry> result;
+		for (std::size_t i = 0; i < registry.size(); ++i)
+		{
+			if (selected[i])
+			{
+				result.push_back(registry[i]);
+			}
+		}
+		return result;
+	}
+
+	std::string JoinStageNames(const std::vector<TestStage>& stages)
+	{
+		std::string result;
+		for (const TestStage stage : stages)
+		{
+			if (!result.empty())
+			{
+				result += ", ";
+			}
+			result += BitSerializer::Convert::ToString(stage);
+		}
+		return result;
+	}
+
+	void PrintBenchmarkList(const std::vector<BenchmarkEntry>& registry)
+	{
+		std::cout << "Available benchmarks (compiled in this binary):\n";
+		auto printGroup = [](const char* title, const std::vector<BenchmarkEntry>& entries, bool bitSerializerGroup)
+		{
+			std::cout << "\n  " << title << ":\n";
+			for (const BenchmarkEntry& entry : entries)
+			{
+				if (IsBitSerializerKey(entry.key) != bitSerializerGroup)
+				{
+					continue;
+				}
+				const std::unique_ptr<BenchmarkBase> benchmark = entry.create();
+				constexpr std::size_t keyWidth = 20;
+				std::cout << "    " << entry.key
+					<< std::string(keyWidth > entry.key.size() ? keyWidth - entry.key.size() : 0, ' ')
+					<< benchmark->GetLibraryName() << ": " << JoinStageNames(benchmark->GetStagesList()) << '\n';
+			}
+		};
+		printGroup("BitSerializer", registry, true);
+		printGroup("Competitors", registry, false);
+	}
+} // namespace
+
+int main(int argc, char* argv[])	// NOLINT(bugprone-exception-escape)
+{
+	BenchmarkCli::Options options;
+	try
+	{
+		options = BenchmarkCli::ParseOptions(argc, argv);
+	}
+	catch (const std::exception& ex)
+	{
+		std::cerr << ex.what() << "\n\n";
+		BenchmarkCli::PrintUsage();
+		return 1;
+	}
+
+	if (options.showHelp)
+	{
+		BenchmarkCli::PrintUsage();
+		return 0;
+	}
+
+	const std::vector<BenchmarkEntry> registry = BuildBenchmarkRegistry();
+	if (options.listOnly)
+	{
+		PrintBenchmarkList(registry);
+		return 0;
+	}
+
+	std::vector<BenchmarkEntry> selected;
+	try
+	{
+		selected = SelectBenchmarks(registry, options.benchKeys);
+	}
+	catch (const std::exception& ex)
+	{
+		std::cerr << ex.what() << "\n\n";
+		BenchmarkCli::PrintUsage();
+		return 1;
+	}
+
+	if (selected.empty())
+	{
+		std::cerr << "No benchmarks selected." << std::endl;
+		return 1;
+	}
+
 	std::vector<LibraryTestResults> benchmarkResults;
 	std::cout << "Testing, please do not touch mouse and keyboard." << std::endl;
 
-	// Raise priority, pin the current thread to a fixed core, and warm up the CPU
-	// (skip the warm-up in debug builds to keep them fast).
-	if constexpr (!isDebugBuild)
+	if (options.warmup.count() > 0)
 	{
 		std::cout << "Warm up the CPU" << std::endl;
 	}
-	BenchHarness::PrepareEnvironment(isDebugBuild ? std::chrono::steady_clock::duration::zero() : std::chrono::seconds(10));
+	BenchHarness::PrepareEnvironment(options.warmup);
 
-	// Benchmarking libraries
 	try
 	{
-#ifdef JSON_BENCHMARK
-		BitSerializerBenchmark<BitSerializer::Json::JsonArchive> jsonBenchmark;
-		benchmarkResults.push_back(jsonBenchmark.RunBenchmark(defaultStageTestTime));
-
-		BitSerializerBenchmark<BitSerializer::Json::JsoncArchive> jsoncBenchmark;
-		benchmarkResults.push_back(jsoncBenchmark.RunBenchmark(defaultStageTestTime));
-#endif
-#ifdef CSV_BENCHMARK
-		BitSerializerBenchmark<BitSerializer::Csv::CsvArchive> csvBenchmark;
-		benchmarkResults.push_back(csvBenchmark.RunBenchmark(defaultStageTestTime));
-#endif
-#ifdef MSGPACK_BENCHMARK
-		BitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive> msgPackBenchmark;
-		benchmarkResults.push_back(msgPackBenchmark.RunBenchmark(defaultStageTestTime));
-#endif
-#ifdef RAPIDJSON_BENCHMARK
-		BitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive> bitSerializerRapidJsonBenchmark;
-		benchmarkResults.push_back(bitSerializerRapidJsonBenchmark.RunBenchmark(defaultStageTestTime));
-
-		RapidJsonBenchmark rapidJsonBenchmark;
-		benchmarkResults.push_back(rapidJsonBenchmark.RunBenchmark(defaultStageTestTime));
-#endif
-#ifdef PUGIXML_BENCHMARK
-		BitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive> bitSerializerPugiXmlBenchmark;
-		benchmarkResults.push_back(bitSerializerPugiXmlBenchmark.RunBenchmark(defaultStageTestTime));
-
-		PugiXmlBenchmark pugiXmlBenchmark;
-		benchmarkResults.push_back(pugiXmlBenchmark.RunBenchmark(defaultStageTestTime));
-#endif
-#ifdef RAPIDYAML_BENCHMARK
-		BitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive> bitSerializerRapidYamlBenchmark;
-		benchmarkResults.push_back(bitSerializerRapidYamlBenchmark.RunBenchmark(defaultStageTestTime));
-
-		RapidYamlBenchmark rapidYamlBenchmark;
-		benchmarkResults.push_back(rapidYamlBenchmark.RunBenchmark(defaultStageTestTime));
-#endif
-		NlohmannMsgPackBenchmark nlohmannMsgPackBenchmark;
-		benchmarkResults.push_back(nlohmannMsgPackBenchmark.RunBenchmark(defaultStageTestTime));
+		for (const BenchmarkEntry& entry : selected)
+		{
+			const std::unique_ptr<BenchmarkBase> benchmark = entry.create();
+			benchmark->SetStageFilter(options.stages);
+			if (benchmark->GetSelectedStages().empty())
+			{
+				std::cout << entry.key << " | " << benchmark->GetLibraryName()
+					<< ": skipped (no selected stages are supported)" << std::endl;
+				continue;
+			}
+			benchmarkResults.push_back(benchmark->RunBenchmark(options.stageTime));
+		}
 	}
 	catch (const std::exception& ex)
 	{
@@ -96,57 +249,62 @@ int main()	// NOLINT(bugprone-exception-escape)
 		return 1;
 	}
 
-	// Serializes the results of the libraries tests (requires the BitSerializer RapidJson archive build to be enabled)
-#ifdef RAPIDJSON_BENCHMARK
-	auto outputDir = std::filesystem::current_path() / "benchmark_results";
-	if (exists(outputDir) || create_directories(outputDir))
+	if (!options.noReport)
 	{
-		// Prepare reports
-		std::unordered_map<std::string, std::unordered_map<TestStage, uint64_t>> serializationSpeedReport;
-		std::unordered_map<std::string, size_t> serializationOutputSizeReport;
-
-		for (const LibraryTestResults& benchmarkResult : benchmarkResults)
+#ifdef JSON_BENCHMARK
+		const std::filesystem::path outputDir = options.outputDir;
+		if (std::filesystem::exists(outputDir) || std::filesystem::create_directories(outputDir))
 		{
-			std::unordered_map<TestStage, uint64_t> stagesTest;
-			for (const auto& stageTestResults : benchmarkResult.stagesTestResults)
+			// Prepare reports
+			std::unordered_map<std::string, std::unordered_map<TestStage, uint64_t>> serializationSpeedReport;
+			std::unordered_map<std::string, size_t> serializationOutputSizeReport;
+
+			for (const LibraryTestResults& benchmarkResult : benchmarkResults)
 			{
-				stagesTest.emplace(stageTestResults.first, stageTestResults.second.serializationSpeed);
+				std::unordered_map<TestStage, uint64_t> stagesTest;
+				for (const auto& stageTestResults : benchmarkResult.stagesTestResults)
+				{
+					stagesTest.emplace(stageTestResults.first, stageTestResults.second.serializationSpeed);
+				}
+				serializationSpeedReport.emplace(benchmarkResult.libraryName, std::move(stagesTest));
+				// Filter results from base libraries (doesn't make sense since they are equal)
+				if (benchmarkResult.libraryName != "RapidJson" && benchmarkResult.libraryName != "PugiXml" && benchmarkResult.libraryName != "RapidYaml")
+				{
+					serializationOutputSizeReport.emplace(benchmarkResult.libraryName, benchmarkResult.serializedDataSize);
+				}
 			}
-			serializationSpeedReport.emplace(benchmarkResult.libraryName, std::move(stagesTest));
-			// Filter results from base libraries (doesn't make sense since they are equal)
-			if (benchmarkResult.libraryName != "RapidJson" && benchmarkResult.libraryName != "PugiXml" && benchmarkResult.libraryName != "RapidYaml")
+
+			// Save reports
+			try
 			{
-				serializationOutputSizeReport.emplace(benchmarkResult.libraryName, benchmarkResult.serializedDataSize);
+				BitSerializer::SerializationOptions reportOptions;
+				reportOptions.streamOptions.writeBom = false;
+				reportOptions.formatOptions.enableFormat = true;
+
+				// Save serialization speed report
+				auto outputFile = outputDir / "serialization_speed_report.json";
+				BitSerializer::SaveObjectToFile<BitSerializer::Json::JsonArchive>(serializationSpeedReport, outputFile, reportOptions, true);
+
+				// Save serialization output size report
+				outputFile = outputDir / "serialization_output_size_report.json";
+				BitSerializer::SaveObjectToFile<BitSerializer::Json::JsonArchive>(serializationOutputSizeReport, outputFile, reportOptions, true);
 			}
+			catch (const std::exception& ex)
+			{
+				std::cerr << "Unable to save benchmark results: " << ex.what() << std::endl;
+				return 1;
+			}
+			std::cout << std::endl << "Benchmark results has been saved to directory: " << outputDir << std::endl;
 		}
-
-		// Save reports
-		try
+		else
 		{
-			BitSerializer::SerializationOptions options;
-			options.streamOptions.writeBom = false;
-			options.formatOptions.enableFormat = true;
-
-			// Save serialization speed report
-			auto outputFile = outputDir / "serialization_speed_report.json";
-			BitSerializer::SaveObjectToFile<BitSerializer::Json::RapidJson::JsonArchive>(serializationSpeedReport, outputFile, options, true);
-
-			// Save serialization output size report
-			outputFile = outputDir / "serialization_output_size_report.json";
-			BitSerializer::SaveObjectToFile<BitSerializer::Json::RapidJson::JsonArchive>(serializationOutputSizeReport, outputFile, options, true);
+			std::cerr << "Unable to create output directory: " << outputDir << std::endl;
 		}
-		catch (const std::exception& ex)
-		{
-			std::cerr << "Unable to save benchmark results: " << ex.what() << std::endl;
-			return 1;
-		}
-		std::cout << std::endl << "Benchmark results has been saved to directory:" << outputDir << std::endl;
-	}
-	else
-	{
-		std::cerr << "Unable to create output directory: " << outputDir << std::endl;
-	}
+#else
+		std::cerr << "Warning: JSON reports are disabled because BUILD_JSON_ARCHIVE is OFF; "
+			"configure with -DBUILD_JSON_ARCHIVE=ON or pass --no-report." << std::endl;
 #endif
+	}
 
 	return 0;
 }

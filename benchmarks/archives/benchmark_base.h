@@ -72,7 +72,7 @@ struct LibraryTestResults
 class BenchmarkBase
 {
 public:
-	using Timer = std::chrono::high_resolution_clock;
+	using Timer = std::chrono::steady_clock;
 
 	BenchmarkBase();
 	virtual ~BenchmarkBase() = default;
@@ -103,6 +103,24 @@ public:
 	 * @return A structure containing the collected test results.
 	 */
 	LibraryTestResults RunBenchmark(std::chrono::seconds testTime);
+
+	/**
+	 * @brief Restricts the benchmark to the given stages.
+	 *
+	 * The filter is intersected with GetStagesList(); an empty filter means all
+	 * supported stages. Call before RunBenchmark().
+	 *
+	 * @param stages Requested stages (order does not matter).
+	 */
+	void SetStageFilter(std::vector<TestStage> stages);
+
+	/**
+	 * @brief Returns the effective stage list after filtering.
+	 */
+	[[nodiscard]] const std::vector<TestStage>& GetSelectedStages() const noexcept
+	{
+		return mStagesList;
+	}
 
 protected:
 	// Benchmark implementation methods — derived classes should override these
@@ -170,6 +188,7 @@ protected:
 
 private:
 	size_t GetTotalFieldsCount() const noexcept;
+	void PrepareStagesList();
 	void PrepareStage();
 	std::string GetCurrentStageName() const;
 
@@ -237,6 +256,8 @@ private:
 	bool NextStage();
 	void ValidateTargetModel() const;
 
+	std::vector<TestStage> mStageFilter;
+	std::vector<TestStage> mStagesList;
 	TestStage mTestStage = TestStage::SaveToMemory;
 	bool mInProgress = false;
 	CommonTestModel mSourceTestModel;

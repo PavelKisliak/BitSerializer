@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cmath>
 #include <iostream>
+#include <utility>
 
 #if defined(_WIN32)
 	#include <io.h>
@@ -50,6 +51,8 @@ size_t BenchmarkBase::GetTotalFieldsCount() const noexcept
 
 LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTime)
 {
+	PrepareStagesList();
+
 	constexpr auto nanosecondsInMs = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(1)).count();
 
 	const bool isConsoleOutput = IsConsoleOutput();
@@ -57,6 +60,11 @@ LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTi
 	LibraryTestResults libTestResults;
 	libTestResults.libraryName = GetLibraryName();
 	libTestResults.testModelFieldsCount = GetTotalFieldsCount();
+
+	if (mStagesList.empty())
+	{
+		return libTestResults;
+	}
 
 	do
 	{
@@ -120,14 +128,38 @@ LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTi
 	return libTestResults;
 }
 
+void BenchmarkBase::SetStageFilter(std::vector<TestStage> stages)
+{
+	mStageFilter = std::move(stages);
+	PrepareStagesList();
+}
+
+void BenchmarkBase::PrepareStagesList()
+{
+	const std::vector<TestStage> supportedStages = GetStagesList();
+	if (mStageFilter.empty())
+	{
+		mStagesList = supportedStages;
+		return;
+	}
+
+	mStagesList.clear();
+	for (const TestStage stage : supportedStages)
+	{
+		if (std::find(mStageFilter.cbegin(), mStageFilter.cend(), stage) != mStageFilter.cend())
+		{
+			mStagesList.push_back(stage);
+		}
+	}
+}
+
 void BenchmarkBase::PrepareStage()
 {
 	if (!mInProgress)
 	{
 		// Initialize first stage
-		std::vector<TestStage> stagesList = GetStagesList();
-		assert(!stagesList.empty());
-		mTestStage = stagesList.front();
+		assert(!mStagesList.empty());
+		mTestStage = mStagesList.front();
 		mInProgress = true;
 	}
 
@@ -152,11 +184,10 @@ bool BenchmarkBase::NextStage()
 	OnFinishedStage(mTestStage);
 
 	// Find next stage
-	std::vector<TestStage> stagesList = GetStagesList();
-	auto currentStageIt = std::find(stagesList.cbegin(), stagesList.cend(), mTestStage);
-	assert(currentStageIt != stagesList.cend());
+	auto currentStageIt = std::find(mStagesList.cbegin(), mStagesList.cend(), mTestStage);
+	assert(currentStageIt != mStagesList.cend());
 
-	if (++currentStageIt != stagesList.cend())
+	if (++currentStageIt != mStagesList.cend())
 	{
 		mTestStage = *currentStageIt;
 		OnNextStage(mTestStage);

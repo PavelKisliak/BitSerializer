@@ -111,7 +111,7 @@ BitSerializer/
 | Run static analysis | `.clang-tidy`, `tools/static_analysis/` |
 | Modify build config | `CMakeLists.txt`, `CMakeSettings.json` |
 | Manage dependencies | `vcpkg.json`, `cmake/vcpkg/triplets/` |
-| Run performance benchmarks | `benchmarks/archives/` — machine-readable results in `benchmark_results/serialization_speed_report.json` (written when the RapidJSON archive is enabled) |
+| Run performance benchmarks | `benchmarks/archives/` — CLI (`--bench`, `--stages`, `--list`) and machine-readable results in `benchmark_results/serialization_speed_report.json` (requires `BUILD_JSON_ARCHIVE=ON`) |
 | Benchmark a single function (A/B) | `benchmarks/microbenchmarks/` — intra-binary A/B harness (`benchmarks/harness/bench_harness.h`), see its `README.md` |
 
 ---

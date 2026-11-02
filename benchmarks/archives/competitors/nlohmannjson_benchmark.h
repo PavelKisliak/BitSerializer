@@ -18,31 +18,31 @@ struct nlohmann::adl_serializer<BasicTestModel>
 	static void to_json(json& j, const BasicTestModel& model)
 	{
 		j = {
-			{"BooleanValue", model.booleanValue},
-			{"SignedIntValue", model.signedIntValue},
-			{"UnsignedIntValue", model.unsignedIntValue},
-			{"FloatValue", model.floatValue},
-			{"DoubleValue", model.doubleValue},
-			{"ShortString", model.shortString},
-			{"StringWithLongKeyAndValue", model.stringWithLongKeyAndValue},
-			{"UnicodeString", model.unicodeString},
-			{"StringWithEscapedChars", model.stringWithEscapedChars},
-			{"MultiLineString", model.multiLineString}
+			{"active", model.active},
+			{"id", model.id},
+			{"stock", model.stock},
+			{"price", model.price},
+			{"rating", model.rating},
+			{"name", model.name},
+			{"detailedProductDescription", model.detailedProductDescription},
+			{"localizedName", model.localizedName},
+			{"note", model.note},
+			{"specifications", model.specifications}
 		};
 	}
 
 	static void from_json(const json& j, BasicTestModel& model)
 	{
-		j.at("BooleanValue").get_to(model.booleanValue);
-		j.at("SignedIntValue").get_to(model.signedIntValue);
-		j.at("UnsignedIntValue").get_to(model.unsignedIntValue);
-		j.at("FloatValue").get_to(model.floatValue);
-		j.at("DoubleValue").get_to(model.doubleValue);
-		j.at("ShortString").get_to(model.shortString);
-		j.at("StringWithLongKeyAndValue").get_to(model.stringWithLongKeyAndValue);
-		j.at("UnicodeString").get_to(model.unicodeString);
-		j.at("StringWithEscapedChars").get_to(model.stringWithEscapedChars);
-		j.at("MultiLineString").get_to(model.multiLineString);
+		j.at("active").get_to(model.active);
+		j.at("id").get_to(model.id);
+		j.at("stock").get_to(model.stock);
+		j.at("price").get_to(model.price);
+		j.at("rating").get_to(model.rating);
+		j.at("name").get_to(model.name);
+		j.at("detailedProductDescription").get_to(model.detailedProductDescription);
+		j.at("localizedName").get_to(model.localizedName);
+		j.at("note").get_to(model.note);
+		j.at("specifications").get_to(model.specifications);
 	}
 };
 

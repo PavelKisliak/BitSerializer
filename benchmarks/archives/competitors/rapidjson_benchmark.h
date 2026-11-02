@@ -49,16 +49,16 @@ protected:
 		{
 			auto& obj = targetTestModel[i];
 			const auto& jObj = jItem->GetObject();
-			obj.booleanValue = jObj.FindMember("BooleanValue")->value.GetBool();
-			obj.signedIntValue = static_cast<char>(jObj.FindMember("SignedIntValue")->value.GetInt());
-			obj.unsignedIntValue = jObj.FindMember("UnsignedIntValue")->value.GetInt64();
-			obj.floatValue = jObj.FindMember("FloatValue")->value.GetFloat();
-			obj.doubleValue = jObj.FindMember("DoubleValue")->value.GetDouble();
-			obj.shortString = jObj.FindMember("ShortString")->value.GetString();
-			obj.stringWithLongKeyAndValue = jObj.FindMember("StringWithLongKeyAndValue")->value.GetString();
-			obj.unicodeString = jObj.FindMember("UnicodeString")->value.GetString();
-			obj.stringWithEscapedChars = jObj.FindMember("StringWithEscapedChars")->value.GetString();
-			obj.multiLineString = jObj.FindMember("MultiLineString")->value.GetString();
+			obj.active = jObj.FindMember("active")->value.GetBool();
+			obj.id = static_cast<int32_t>(jObj.FindMember("id")->value.GetInt());
+			obj.stock = jObj.FindMember("stock")->value.GetInt64();
+			obj.price = jObj.FindMember("price")->value.GetFloat();
+			obj.rating = jObj.FindMember("rating")->value.GetDouble();
+			obj.name = jObj.FindMember("name")->value.GetString();
+			obj.detailedProductDescription = jObj.FindMember("detailedProductDescription")->value.GetString();
+			obj.localizedName = jObj.FindMember("localizedName")->value.GetString();
+			obj.note = jObj.FindMember("note")->value.GetString();
+			obj.specifications = jObj.FindMember("specifications")->value.GetString();
 			++i;
 		}
 	}
@@ -73,21 +73,21 @@ protected:
 		for (const auto& item : sourceTestModel)
 		{
 			RapidJsonNode jsonObject(rapidjson::kObjectType);
-			jsonObject.AddMember("BooleanValue", item.booleanValue, allocator);
-			jsonObject.AddMember("SignedIntValue", item.signedIntValue, allocator);
-			jsonObject.AddMember("UnsignedIntValue", item.unsignedIntValue, allocator);
-			jsonObject.AddMember("FloatValue", item.floatValue, allocator);
-			jsonObject.AddMember("DoubleValue", item.doubleValue, allocator);
-			jsonObject.AddMember("ShortString", RapidJsonNode::StringRefType(
-				item.shortString.data(), static_cast<rapidjson::SizeType>(item.shortString.size())), allocator);
-			jsonObject.AddMember("StringWithLongKeyAndValue", RapidJsonNode::StringRefType(
-				item.stringWithLongKeyAndValue.data(), static_cast<rapidjson::SizeType>(item.stringWithLongKeyAndValue.size())), allocator);
-			jsonObject.AddMember("UnicodeString", RapidJsonNode::StringRefType(
-				item.unicodeString.data(), static_cast<rapidjson::SizeType>(item.unicodeString.size())), allocator);
-			jsonObject.AddMember("StringWithEscapedChars", RapidJsonNode::StringRefType(
-				item.stringWithEscapedChars.data(), static_cast<rapidjson::SizeType>(item.stringWithEscapedChars.size())), allocator);
-			jsonObject.AddMember("MultiLineString", RapidJsonNode::StringRefType(
-				item.multiLineString.data(), static_cast<rapidjson::SizeType>(item.multiLineString.size())), allocator);
+			jsonObject.AddMember("active", item.active, allocator);
+			jsonObject.AddMember("id", item.id, allocator);
+			jsonObject.AddMember("stock", item.stock, allocator);
+			jsonObject.AddMember("price", item.price, allocator);
+			jsonObject.AddMember("rating", item.rating, allocator);
+			jsonObject.AddMember("name", RapidJsonNode::StringRefType(
+				item.name.data(), static_cast<rapidjson::SizeType>(item.name.size())), allocator);
+			jsonObject.AddMember("detailedProductDescription", RapidJsonNode::StringRefType(
+				item.detailedProductDescription.data(), static_cast<rapidjson::SizeType>(item.detailedProductDescription.size())), allocator);
+			jsonObject.AddMember("localizedName", RapidJsonNode::StringRefType(
+				item.localizedName.data(), static_cast<rapidjson::SizeType>(item.localizedName.size())), allocator);
+			jsonObject.AddMember("note", RapidJsonNode::StringRefType(
+				item.note.data(), static_cast<rapidjson::SizeType>(item.note.size())), allocator);
+			jsonObject.AddMember("specifications", RapidJsonNode::StringRefType(
+				item.specifications.data(), static_cast<rapidjson::SizeType>(item.specifications.size())), allocator);
 
 			jsonDoc.PushBack(std::move(jsonObject), allocator);
 		}

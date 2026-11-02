@@ -25,23 +25,23 @@ public:
 	 */
 	BasicTestModel()
 	{
-		shortString.reserve(32);
-		stringWithLongKeyAndValue.reserve(128);
-		unicodeString.reserve(128);
-		stringWithEscapedChars.reserve(32);
-		multiLineString.reserve(32);
+		name.reserve(32);
+		detailedProductDescription.reserve(128);
+		localizedName.reserve(128);
+		note.reserve(32);
+		specifications.reserve(32);
 	}
 
-	bool booleanValue = false;
-	int8_t signedIntValue = 0;
-	uint64_t unsignedIntValue = 0;
-	float floatValue = 0.f;
-	double doubleValue = 0.0;
-	std::string shortString;
-	std::string stringWithLongKeyAndValue;
-	std::string unicodeString;
-	std::string stringWithEscapedChars;
-	std::string multiLineString;
+	bool active = false;
+	int32_t id = 0;
+	uint64_t stock = 0;
+	float price = 0.f;
+	double rating = 0.0;
+	std::string name;
+	std::string detailedProductDescription;
+	std::string localizedName;
+	std::string note;
+	std::string specifications;
 
 	/**
 	 * @brief Initializes the test fixture with known values.
@@ -50,16 +50,16 @@ public:
 	 */
 	static void BuildFixture(BasicTestModel& fixture)
 	{
-		fixture.booleanValue = true;
-		fixture.signedIntValue = -100;
-		fixture.unsignedIntValue = 123456789;
-		fixture.floatValue = 3.141592f;
-		fixture.doubleValue = -3.141592654;
-		fixture.shortString = "Short string";
-		fixture.stringWithLongKeyAndValue = "A string whose purpose is to test the performance of working with a long key and value";
-		fixture.unicodeString = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
-		fixture.stringWithEscapedChars = "Test \"escaped\" chars";
-		fixture.multiLineString = "Test\nmulti\nline\nstring";
+		fixture.active = true;
+		fixture.id = -100;
+		fixture.stock = 123456789;
+		fixture.price = 3.141592f;
+		fixture.rating = -3.141592654;
+		fixture.name = "Short string";
+		fixture.detailedProductDescription = "A string whose purpose is to test the performance of working with a long key and value";
+		fixture.localizedName = UTF8("Съешь ещё этих мягких французских булок, да выпей чаю");
+		fixture.note = "Test \"escaped\" chars";
+		fixture.specifications = "Test\nmulti\nline\nstring";
 	}
 
 	/**
@@ -115,16 +115,16 @@ public:
 	 */
 	void Assert(const BasicTestModel& rhs) const
 	{
-		Assert("BooleanValue", booleanValue, rhs.booleanValue);
-		Assert("SignedIntValue", signedIntValue, rhs.signedIntValue);
-		Assert("UnsignedIntValue", unsignedIntValue, rhs.unsignedIntValue);
-		Assert("FloatValue", floatValue, rhs.floatValue);
-		Assert("DoubleValue", doubleValue, rhs.doubleValue);
-		Assert("ShortString", shortString, rhs.shortString);
-		Assert("StringWithLongKeyAndValue", stringWithLongKeyAndValue, rhs.stringWithLongKeyAndValue);
-		Assert("UnicodeString", unicodeString, rhs.unicodeString);
-		Assert("StringWithEscapedChars", stringWithEscapedChars, rhs.stringWithEscapedChars);
-		Assert("MultiLineString", multiLineString, rhs.multiLineString);
+		Assert("active", active, rhs.active);
+		Assert("id", id, rhs.id);
+		Assert("stock", stock, rhs.stock);
+		Assert("price", price, rhs.price);
+		Assert("rating", rating, rhs.rating);
+		Assert("name", name, rhs.name);
+		Assert("detailedProductDescription", detailedProductDescription, rhs.detailedProductDescription);
+		Assert("localizedName", localizedName, rhs.localizedName);
+		Assert("note", note, rhs.note);
+		Assert("specifications", specifications, rhs.specifications);
 	}
 };
 

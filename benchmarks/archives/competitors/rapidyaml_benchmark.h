@@ -40,18 +40,18 @@ protected:
 		{
 			auto yamlObj = root.append_child();
 			yamlObj |= ryml::MAP;
-			yamlObj.append_child() << ryml::key("BooleanValue") << c4::fmt::boolalpha(obj.booleanValue);
-			yamlObj.append_child() << ryml::key("SignedIntValue") << obj.signedIntValue;
-			yamlObj.append_child() << ryml::key("UnsignedIntValue") << obj.unsignedIntValue;
-			yamlObj.append_child() << ryml::key("FloatValue")
-				<< c4::fmt::real(obj.floatValue, std::numeric_limits<float>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-			yamlObj.append_child() << ryml::key("DoubleValue")
-				<< c4::fmt::real(obj.doubleValue, std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-			yamlObj.append_child() << ryml::key("ShortString") << obj.shortString;
-			yamlObj.append_child() << ryml::key("StringWithLongKeyAndValue") << obj.stringWithLongKeyAndValue;
-			yamlObj.append_child() << ryml::key("UnicodeString") << obj.unicodeString;
-			yamlObj.append_child() << ryml::key("StringWithEscapedChars") << obj.stringWithEscapedChars;
-			yamlObj.append_child() << ryml::key("MultiLineString") << obj.multiLineString;
+			yamlObj.append_child() << ryml::key("active") << c4::fmt::boolalpha(obj.active);
+			yamlObj.append_child() << ryml::key("id") << obj.id;
+			yamlObj.append_child() << ryml::key("stock") << obj.stock;
+			yamlObj.append_child() << ryml::key("price")
+				<< c4::fmt::real(obj.price, std::numeric_limits<float>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
+			yamlObj.append_child() << ryml::key("rating")
+				<< c4::fmt::real(obj.rating, std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
+			yamlObj.append_child() << ryml::key("name") << obj.name;
+			yamlObj.append_child() << ryml::key("detailedProductDescription") << obj.detailedProductDescription;
+			yamlObj.append_child() << ryml::key("localizedName") << obj.localizedName;
+			yamlObj.append_child() << ryml::key("note") << obj.note;
+			yamlObj.append_child() << ryml::key("specifications") << obj.specifications;
 		}
 
 		outputData = ryml::emitrs_yaml<std::string>(tree);
@@ -67,16 +67,16 @@ protected:
 		{
 			auto& obj = targetTestModel[i];
 			auto yamlVal = root[i];
-			yamlVal["BooleanValue"] >> obj.booleanValue;
-			yamlVal["SignedIntValue"] >> obj.signedIntValue;
-			yamlVal["UnsignedIntValue"] >> obj.unsignedIntValue;
-			yamlVal["FloatValue"] >> obj.floatValue;
-			yamlVal["DoubleValue"] >> obj.doubleValue;
-			yamlVal["ShortString"] >> obj.shortString;
-			yamlVal["StringWithLongKeyAndValue"] >> obj.stringWithLongKeyAndValue;
-			yamlVal["UnicodeString"] >> obj.unicodeString;
-			yamlVal["StringWithEscapedChars"] >> obj.stringWithEscapedChars;
-			yamlVal["MultiLineString"] >> obj.multiLineString;
+			yamlVal["active"] >> obj.active;
+			yamlVal["id"] >> obj.id;
+			yamlVal["stock"] >> obj.stock;
+			yamlVal["price"] >> obj.price;
+			yamlVal["rating"] >> obj.rating;
+			yamlVal["name"] >> obj.name;
+			yamlVal["detailedProductDescription"] >> obj.detailedProductDescription;
+			yamlVal["localizedName"] >> obj.localizedName;
+			yamlVal["note"] >> obj.note;
+			yamlVal["specifications"] >> obj.specifications;
 		}
 	}
 };

@@ -50,16 +50,16 @@
 template<typename TArchive>
 void SerializeObject(TArchive& archive, BasicTestModel& testModel)
 {
-	archive << BitSerializer::KeyValue("BooleanValue", testModel.booleanValue);
-	archive << BitSerializer::KeyValue("SignedIntValue", testModel.signedIntValue);
-	archive << BitSerializer::KeyValue("UnsignedIntValue", testModel.unsignedIntValue);
-	archive << BitSerializer::KeyValue("FloatValue", testModel.floatValue);
-	archive << BitSerializer::KeyValue("DoubleValue", testModel.doubleValue);
-	archive << BitSerializer::KeyValue("ShortString", testModel.shortString);
-	archive << BitSerializer::KeyValue("StringWithLongKeyAndValue", testModel.stringWithLongKeyAndValue);
-	archive << BitSerializer::KeyValue("UnicodeString", testModel.unicodeString);
-	archive << BitSerializer::KeyValue("StringWithEscapedChars", testModel.stringWithEscapedChars);
-	archive << BitSerializer::KeyValue("MultiLineString", testModel.multiLineString);
+	archive << BitSerializer::KeyValue("active", testModel.active);
+	archive << BitSerializer::KeyValue("id", testModel.id);
+	archive << BitSerializer::KeyValue("stock", testModel.stock);
+	archive << BitSerializer::KeyValue("price", testModel.price);
+	archive << BitSerializer::KeyValue("rating", testModel.rating);
+	archive << BitSerializer::KeyValue("name", testModel.name);
+	archive << BitSerializer::KeyValue("detailedProductDescription", testModel.detailedProductDescription);
+	archive << BitSerializer::KeyValue("localizedName", testModel.localizedName);
+	archive << BitSerializer::KeyValue("note", testModel.note);
+	archive << BitSerializer::KeyValue("specifications", testModel.specifications);
 }
 
 /**

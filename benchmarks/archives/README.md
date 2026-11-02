@@ -77,10 +77,12 @@ archives_benchmarks --bench all --no-report
 
 The benchmark serializes an array of 30 `BasicTestModel` records (10 fields each):
 
-- 5 numeric: `bool`, signed integer (short value `-100`), `uint64` (long value `123456789`), `float`, `double`;
-- 5 string: short, long, UTF-8 (Cyrillic), escaped quotes, multiline.
+- 5 numeric: `active` (`bool`), `id` (`int32`, short value `-100`), `stock` (`uint64`, long value `123456789`), `price` (`float`), `rating` (`double`);
+- 5 string: `name` (short), `detailedProductDescription` (long), `localizedName` (UTF-8, Cyrillic), `note` (escaped quotes), `specifications` (multiline).
 
-The values are deliberately ordinary. The signed/unsigned pair covers short and long number formatting, and the strings cover plain and escaped text (including a long key). The model represents a typical record, not a conformance or edge-case suite: max values, NaN/Inf, empty strings and nested objects are intentionally out of scope — for isolated type coverage use the models in [`benchmarks/microbenchmarks/benchmark_models.h`](../microbenchmarks/benchmark_models.h).
+The values are deliberately ordinary. The `id`/`stock` pair covers short and long number formatting, and the strings cover plain and escaped text (including a long key). The model represents a typical record, not a conformance or edge-case suite: max values, NaN/Inf, empty strings and nested objects are intentionally out of scope — for isolated type coverage use the models in [`benchmarks/microbenchmarks/benchmark_models.h`](../microbenchmarks/benchmark_models.h).
+
+Keys have a deliberate short/medium/long mix: `id` (2), `name` and `note` (4), `stock` and `price` (5), `active` and `rating` (6), `localizedName` (13), `specifications` (14), and `detailedProductDescription` (26). The long key exceeds the common `std::string` SSO buffer (15 characters on MSVC/libstdc++, 22 on libc++), so it exercises the heap path where keys are copied (for example, nlohmann-json) and affects output size and key lookup in the other writers; most serializers use the literal key directly.
 
 All competitors serialize the same fields. Changing the model changes the output size, speed and the published baseline; `BasicTestModel::GetTotalFieldsCount()` must be updated together with the fields.
 

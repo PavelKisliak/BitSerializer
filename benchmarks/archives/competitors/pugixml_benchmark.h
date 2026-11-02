@@ -30,16 +30,16 @@ protected:
 		for (const auto& item : sourceTestModel)
 		{
 			auto objectNode = rootNode.append_child(PUGIXML_TEXT("object"));
-			objectNode.append_child(PUGIXML_TEXT("BooleanValue")).text().set(item.booleanValue);
-			objectNode.append_child(PUGIXML_TEXT("SignedIntValue")).text().set(item.signedIntValue);
-			objectNode.append_child(PUGIXML_TEXT("UnsignedIntValue")).text().set(item.unsignedIntValue);
-			objectNode.append_child(PUGIXML_TEXT("FloatValue")).text().set(item.floatValue);
-			objectNode.append_child(PUGIXML_TEXT("DoubleValue")).text().set(item.doubleValue);
-			objectNode.append_child(PUGIXML_TEXT("ShortString")).text().set(item.shortString.c_str());
-			objectNode.append_child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().set(item.stringWithLongKeyAndValue.c_str());
-			objectNode.append_child(PUGIXML_TEXT("UnicodeString")).text().set(item.unicodeString.c_str());
-			objectNode.append_child(PUGIXML_TEXT("StringWithEscapedChars")).text().set(item.stringWithEscapedChars.c_str());
-			objectNode.append_child(PUGIXML_TEXT("MultiLineString")).text().set(item.multiLineString.c_str());
+			objectNode.append_child(PUGIXML_TEXT("active")).text().set(item.active);
+			objectNode.append_child(PUGIXML_TEXT("id")).text().set(item.id);
+			objectNode.append_child(PUGIXML_TEXT("stock")).text().set(item.stock);
+			objectNode.append_child(PUGIXML_TEXT("price")).text().set(item.price);
+			objectNode.append_child(PUGIXML_TEXT("rating")).text().set(item.rating);
+			objectNode.append_child(PUGIXML_TEXT("name")).text().set(item.name.c_str());
+			objectNode.append_child(PUGIXML_TEXT("detailedProductDescription")).text().set(item.detailedProductDescription.c_str());
+			objectNode.append_child(PUGIXML_TEXT("localizedName")).text().set(item.localizedName.c_str());
+			objectNode.append_child(PUGIXML_TEXT("note")).text().set(item.note.c_str());
+			objectNode.append_child(PUGIXML_TEXT("specifications")).text().set(item.specifications.c_str());
 		}
 	}
 
@@ -52,16 +52,16 @@ protected:
 		for (auto& it : rootNode)
 		{
 			auto& obj = targetTestModel[i];
-			obj.booleanValue = it.child(PUGIXML_TEXT("BooleanValue")).text().as_bool();
-			obj.signedIntValue = static_cast<int8_t>(it.child(PUGIXML_TEXT("SignedIntValue")).text().as_int());
-			obj.unsignedIntValue = it.child(PUGIXML_TEXT("UnsignedIntValue")).text().as_llong();
-			obj.floatValue = it.child(PUGIXML_TEXT("FloatValue")).text().as_float();
-			obj.doubleValue = it.child(PUGIXML_TEXT("DoubleValue")).text().as_double();
-			obj.shortString = it.child(PUGIXML_TEXT("ShortString")).text().as_string();
-			obj.stringWithLongKeyAndValue = it.child(PUGIXML_TEXT("StringWithLongKeyAndValue")).text().as_string();
-			obj.unicodeString = it.child(PUGIXML_TEXT("UnicodeString")).text().as_string();
-			obj.stringWithEscapedChars = it.child(PUGIXML_TEXT("StringWithEscapedChars")).text().as_string();
-			obj.multiLineString = it.child(PUGIXML_TEXT("MultiLineString")).text().as_string();
+			obj.active = it.child(PUGIXML_TEXT("active")).text().as_bool();
+			obj.id = static_cast<int32_t>(it.child(PUGIXML_TEXT("id")).text().as_int());
+			obj.stock = it.child(PUGIXML_TEXT("stock")).text().as_llong();
+			obj.price = it.child(PUGIXML_TEXT("price")).text().as_float();
+			obj.rating = it.child(PUGIXML_TEXT("rating")).text().as_double();
+			obj.name = it.child(PUGIXML_TEXT("name")).text().as_string();
+			obj.detailedProductDescription = it.child(PUGIXML_TEXT("detailedProductDescription")).text().as_string();
+			obj.localizedName = it.child(PUGIXML_TEXT("localizedName")).text().as_string();
+			obj.note = it.child(PUGIXML_TEXT("note")).text().as_string();
+			obj.specifications = it.child(PUGIXML_TEXT("specifications")).text().as_string();
 			++i;
 		}
 	}

@@ -3,12 +3,13 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #include <cstddef>
-#include <cstring>
+#include <cstdint>
 #include <string>
 #include <string_view>
 
 #include "bench_harness.h"
 #include "perf_utils.h"
+#include "bitserializer/convert.h"
 #include "json/writers/json_writer_common.h"
 
 namespace
@@ -17,7 +18,8 @@ namespace
 	volatile std::size_t gSink = 0;
 
 	using BitSerializer::Json::Detail::FindFirstEscape;
-	using BitSerializer::Json::Detail::WriteString;
+	using BitSerializer::Json::Detail::FormatNumber;
+	using BitSerializer::Json::Detail::GetMaxNumberLength;
 
 	/// Alternative A: a plain scalar escape scan instead of the SIMD/SWAR one.
 	std::size_t FindFirstEscapeScalar(std::string_view source, std::size_t pos) noexcept
@@ -33,84 +35,24 @@ namespace
 		return std::string_view::npos;
 	}
 
-	void WriteStringScalarScan(std::string_view source, std::string& target)
+	/// Alternative B: format through a temporary string instead of the direct buffer.
+	template <typename T>
+	std::size_t FormatNumberLegacy(T value)
 	{
-		static constexpr char hexChars[] = "0123456789ABCDEF";
-		const std::size_t origSize = target.size();
-		const std::size_t firstEscape = FindFirstEscapeScalar(source, 0);
-		if (firstEscape == std::string_view::npos)
-		{
-			target.reserve(origSize + 2 + source.size());
-			target.push_back('"');
-			target.append(source);
-			target.push_back('"');
-			return;
-		}
-
-		target.reserve(origSize + 2 + source.size() + 5 * (source.size() - firstEscape));
-		target.push_back('"');
-		std::size_t pos = 0;
-		std::size_t escapePos = firstEscape;
-		do
-		{
-			if (escapePos > pos)
-			{
-				target.append(source.data() + pos, escapePos - pos);
-			}
-			const auto uc = static_cast<unsigned char>(source[escapePos]);
-			switch (uc)
-			{
-			case '"':  target.append("\\\""); break;
-			case '\\': target.append("\\\\"); break;
-			case '\b': target.append("\\b"); break;
-			case '\f': target.append("\\f"); break;
-			case '\n': target.append("\\n"); break;
-			case '\r': target.append("\\r"); break;
-			case '\t': target.append("\\t"); break;
-			default:
-				{
-					const char unicodeEscape[6] = { '\\', 'u', '0', '0', hexChars[uc >> 4], hexChars[uc & 0x0F] };
-					target.append(unicodeEscape, 6);
-				}
-				break;
-			}
-			pos = escapePos + 1;
-			escapePos = FindFirstEscapeScalar(source, pos);
-		} while (escapePos != std::string_view::npos);
-
-		if (pos < source.size())
-		{
-			target.append(source.data() + pos, source.size() - pos);
-		}
-		target.push_back('"');
+		std::string text;
+		BitSerializer::Convert::Detail::To(value, text);
+		return text.size();
 	}
 
-	/// Alternative B: replace `reserve + push_back + append` with `resize + memcpy`.
-	/// Note: the result is compiler-dependent — it is faster on MSVC but slower on
-	/// Clang for long strings (Clang does not eliminate the resize zero-fill there).
-	void WriteStringResize(std::string_view source, std::string& target)
+	template <typename T>
+	bool AreNumberFormatsEqual(T value)
 	{
-		const std::size_t origSize = target.size();
-		if (FindFirstEscape(source, 0) != std::string_view::npos)
-		{
-			WriteString(source, target);
-			return;
-		}
-		target.resize(origSize + 2 + source.size());
-		char* const dst = target.data() + origSize;
-		dst[0] = '"';
-		if (!source.empty())
-		{
-			std::memcpy(dst + 1, source.data(), source.size());
-		}
-		dst[1 + source.size()] = '"';
-	}
+		char buffer[GetMaxNumberLength<T>()];
+		const std::size_t length = FormatNumber(buffer, value);
 
-	std::string Quoted(std::string_view source, void(*writer)(std::string_view, std::string&))
-	{
-		std::string out;
-		writer(source, out);
-		return out;
+		std::string expected;
+		BitSerializer::Convert::Detail::To(value, expected);
+		return std::string_view(buffer, length) == expected;
 	}
 }
 
@@ -126,34 +68,42 @@ int main(int argc, char* argv[])	// NOLINT(bugprone-exception-escape)
 
 	const std::string shortText = "Short string";
 	const std::string longText(200, 'x');
-	const std::string mediumText = "A string whose purpose is to exercise the long-value path of the serializer";
 	const std::string escapedText = "Test \"escaped\" chars\nsecond line";
+	const std::int64_t intValue = 123456789012345;
+	const double doubleValue = -3.141592654;
 
-	// All implementations must produce identical output.
-	for (const std::string* text : { &shortText, &mediumText, &longText, &escapedText })
+	// All alternatives must produce identical results.
+	if (FindFirstEscape(shortText, 0) != FindFirstEscapeScalar(shortText, 0)
+		|| FindFirstEscape(longText, 0) != FindFirstEscapeScalar(longText, 0)
+		|| FindFirstEscape(escapedText, 0) != FindFirstEscapeScalar(escapedText, 0)
+		|| !AreNumberFormatsEqual(intValue)
+		|| !AreNumberFormatsEqual(doubleValue))
 	{
-		const std::string reference = Quoted(*text, WriteString);
-		if (Quoted(*text, WriteStringScalarScan) != reference || Quoted(*text, WriteStringResize) != reference)
-		{
-			return 2;
-		}
+		return 2;
 	}
 
-	std::string target;
-
 	BenchHarness::Runner runner(config);
-	runner.Add("WriteString(short): SIMD vs scalar scan",
-		[&] { target.clear(); WriteString(shortText, target); gSink += target.size(); },
-		[&] { target.clear(); WriteStringScalarScan(shortText, target); gSink += target.size(); });
-	runner.Add("WriteString(long): SIMD vs scalar scan",
-		[&] { target.clear(); WriteString(longText, target); gSink += target.size(); },
-		[&] { target.clear(); WriteStringScalarScan(longText, target); gSink += target.size(); });
-	runner.Add("WriteString(short): current vs resize+memcpy",
-		[&] { target.clear(); WriteString(shortText, target); gSink += target.size(); },
-		[&] { target.clear(); WriteStringResize(shortText, target); gSink += target.size(); });
-	runner.Add("WriteString(long): current vs resize+memcpy",
-		[&] { target.clear(); WriteString(longText, target); gSink += target.size(); },
-		[&] { target.clear(); WriteStringResize(longText, target); gSink += target.size(); });
+	runner.Add("FindFirstEscape(short): SIMD vs scalar",
+		[&] { gSink += FindFirstEscape(shortText, 0); },
+		[&] { gSink += FindFirstEscapeScalar(shortText, 0); });
+	runner.Add("FindFirstEscape(long): SIMD vs scalar",
+		[&] { gSink += FindFirstEscape(longText, 0); },
+		[&] { gSink += FindFirstEscapeScalar(longText, 0); });
+	runner.Add("FindFirstEscape(escaped): SIMD vs scalar",
+		[&] { gSink += FindFirstEscape(escapedText, 0); },
+		[&] { gSink += FindFirstEscapeScalar(escapedText, 0); });
+	runner.Add("FormatNumber(int64): buffer vs string",
+		[&] {
+			char buffer[GetMaxNumberLength<std::int64_t>()];
+			gSink += FormatNumber(buffer, intValue);
+		},
+		[&] { gSink += FormatNumberLegacy(intValue); });
+	runner.Add("FormatNumber(double): buffer vs string",
+		[&] {
+			char buffer[GetMaxNumberLength<double>()];
+			gSink += FormatNumber(buffer, doubleValue);
+		},
+		[&] { gSink += FormatNumberLegacy(doubleValue); });
 
 	runner.RunAll();
 	return 0;

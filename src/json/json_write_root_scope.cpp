@@ -10,12 +10,25 @@
 
 namespace BitSerializer::Json::Detail
 {
+	namespace
+	{
+		void ValidateFormatOptions(const FormatOptions& formatOptions)
+		{
+			if (formatOptions.enableFormat && formatOptions.paddingChar != ' ' && formatOptions.paddingChar != '\t')
+			{
+				throw SerializationException(SerializationErrorCode::InvalidOptions,
+					"JSON indentation character must be ' ' or '\\t'");
+			}
+		}
+	}
+
 	JsonWriteRootScopeBase::JsonWriteRootScopeBase(std::string& outputData, SerializationContext& serializationContext)
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 	{
 		// Created via make_unique + release and kept as a raw pointer on purpose: using std::unique_ptr
 		// caused a measurable MSVC codegen regression in this hot path (bug reproduced on the reader side).
 		const auto& formatOptions = serializationContext.GetOptions().formatOptions;
+		ValidateFormatOptions(formatOptions);
 		if (formatOptions.enableFormat)
 		{
 			mJsonWriter = std::make_unique<JsonStringPrettyWriter>(outputData, formatOptions.paddingChar, formatOptions.paddingCharNum).release();
@@ -31,6 +44,7 @@ namespace BitSerializer::Json::Detail
 	{
 		// raw pointer on purpose (see the note in the constructor above)
 		const auto& options = serializationContext.GetOptions();
+		ValidateFormatOptions(options.formatOptions);
 		switch (options.streamOptions.encoding)
 		{
 		case Convert::Utf::UtfType::Utf8:

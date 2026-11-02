@@ -59,25 +59,27 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <typename T>
-	void WriteNumberChars(StringBuffer& target, char* out, T value)
+	[[nodiscard]] constexpr size_t GetMaxNumberLength() noexcept
 	{
-		constexpr size_t maxNumberLength = std::numeric_limits<T>::digits + 1 + MB_LEN_MAX;
+		return std::numeric_limits<T>::digits + 1 + MB_LEN_MAX;
+	}
+
+	/**
+	 * @brief Formats a number into the provided buffer and returns the number of written bytes.
+	 *
+	 * The caller must provide at least GetMaxNumberLength<T>() bytes.
+	 */
+	template <typename T>
+	size_t FormatNumber(char* out, T value)
+	{
+		constexpr size_t maxNumberLength = GetMaxNumberLength<T>();
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
 		const auto result = std::to_chars(out, out + maxNumberLength, value);
 		if (result.ec != std::errc()) {
 			throw std::runtime_error("Internal error, insufficient number buffer");
 		}
-		target.Commit(static_cast<size_t>(result.ptr - out));
-	}
-
-	template <typename T>
-	void WriteNumberTo(StringBuffer& target, T value)
-	{
-		constexpr size_t maxNumberLength = std::numeric_limits<T>::digits + 1 + MB_LEN_MAX;
-		target.Ensure(maxNumberLength);
-		char* const out = target.Tail();
-
-#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
-		WriteNumberChars(target, out, value);
+		return static_cast<size_t>(result.ptr - out);
 #else
 		if constexpr (std::is_floating_point_v<T>)
 		{
@@ -86,13 +88,24 @@ namespace BitSerializer::Json::Detail
 			if (length < 0 || static_cast<size_t>(length) >= maxNumberLength) {
 				throw std::runtime_error("Internal error, insufficient number buffer");
 			}
-			target.Commit(Convert::Detail::ReplaceLocaleDecimalPointWithDot(out, static_cast<size_t>(length)));
+			return Convert::Detail::ReplaceLocaleDecimalPointWithDot(out, static_cast<size_t>(length));
 		}
 		else
 		{
-			WriteNumberChars(target, out, value);
+			const auto result = std::to_chars(out, out + maxNumberLength, value);
+			if (result.ec != std::errc()) {
+				throw std::runtime_error("Internal error, insufficient number buffer");
+			}
+			return static_cast<size_t>(result.ptr - out);
 		}
 #endif
+	}
+
+	template <typename T>
+	void WriteNumberTo(StringBuffer& target, T value)
+	{
+		target.Ensure(GetMaxNumberLength<T>());
+		target.Commit(FormatNumber(target.Tail(), value));
 	}
 
 	inline void WriteString(std::string_view source, StringBuffer& target)
@@ -169,60 +182,4 @@ namespace BitSerializer::Json::Detail
 		target.Commit(static_cast<size_t>(out - start));
 	}
 
-	inline void WriteString(std::string_view source, std::string& target)
-	{
-		static constexpr char hexChars[] = "0123456789ABCDEF";
-		const size_t origSize = target.size();
-
-		// Fast path: nothing to escape (the common case). Reserve the exact size and copy once.
-		const size_t firstEscape = FindFirstEscape(source, 0);
-		if (firstEscape == std::string_view::npos)
-		{
-			target.reserve(origSize + 2 + source.size());
-			target.push_back('"');
-			target.append(source);
-			target.push_back('"');
-			return;
-		}
-
-		// Escaped path: reserve for the worst case (every byte at or after the first escape expands
-		// to "\u00XX", i.e. 6 bytes, or 5 extra bytes) so that no reallocation happens while emitting.
-		const size_t escapeRange = source.size() - firstEscape;
-		target.reserve(origSize + 2 + source.size() + (escapeRange << 2) + escapeRange);
-		target.push_back('"');
-
-		size_t pos = 0;
-		size_t escapePos = firstEscape;
-		do
-		{
-			if (escapePos > pos) {
-				target.append(source.data() + pos, escapePos - pos);
-			}
-			const unsigned char uc = static_cast<unsigned char>(source[escapePos]);
-			switch (uc)
-			{
-			case '"':  target.append("\\\""); break;
-			case '\\': target.append("\\\\"); break;
-			case '\b': target.append("\\b"); break;
-			case '\f': target.append("\\f"); break;
-			case '\n': target.append("\\n"); break;
-			case '\r': target.append("\\r"); break;
-			case '\t': target.append("\\t"); break;
-			default:
-				{
-					const char unicodeEscape[6] = { '\\', 'u', '0', '0', hexChars[uc >> 4], hexChars[uc & 0x0F] };
-					target.append(unicodeEscape, 6);
-				}
-				break;
-			}
-			pos = escapePos + 1;
-			escapePos = FindFirstEscape(source, pos);
-		}
-		while (escapePos != std::string_view::npos);
-
-		if (pos < source.size()) {
-			target.append(source.data() + pos, source.size() - pos);
-		}
-		target.push_back('"');
-	}
 }

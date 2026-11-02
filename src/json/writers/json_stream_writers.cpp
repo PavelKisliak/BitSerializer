@@ -7,15 +7,56 @@
 
 namespace BitSerializer::Json::Detail
 {
+	namespace
+	{
+		void WriteEscapedString(std::string_view source, Convert::Utf::EncodedStreamWriter& target)
+		{
+			static constexpr char hexChars[] = "0123456789ABCDEF";
+			target.Write("\"");
+
+			size_t pos = 0;
+			size_t escapePos = FindFirstEscape(source, pos);
+			while (escapePos != std::string_view::npos)
+			{
+				if (escapePos > pos) {
+					target.Write(source.substr(pos, escapePos - pos));
+				}
+
+				const unsigned char uc = static_cast<unsigned char>(source[escapePos]);
+				switch (uc)
+				{
+				case '"':  target.Write("\\\""); break;
+				case '\\': target.Write("\\\\"); break;
+				case '\b': target.Write("\\b"); break;
+				case '\f': target.Write("\\f"); break;
+				case '\n': target.Write("\\n"); break;
+				case '\r': target.Write("\\r"); break;
+				case '\t': target.Write("\\t"); break;
+				default:
+					{
+						const char unicodeEscape[6] = { '\\', 'u', '0', '0', hexChars[uc >> 4], hexChars[uc & 0x0F] };
+						target.Write(std::string_view(unicodeEscape, sizeof(unicodeEscape)));
+					}
+					break;
+				}
+
+				pos = escapePos + 1;
+				escapePos = FindFirstEscape(source, pos);
+			}
+			if (pos < source.size()) {
+				target.Write(source.substr(pos));
+			}
+			target.Write("\"");
+		}
+	}
+
 	JsonStreamWriter::JsonStreamWriter(std::ostream& outputStream, const StreamOptions& streamOptions, Convert::Utf::UtfEncodingErrorPolicy encodingErrorPolicy)
 		: mEncodedStream(outputStream, streamOptions.encoding, streamOptions.writeBom, encodingErrorPolicy)
 	{ }
 
 	void JsonStreamWriter::WriteValue(std::string_view value)
 	{
-		mStringBuffer.clear();
-		WriteString(value, mStringBuffer);
-		mEncodedStream.Write(std::string_view(mStringBuffer));
+		WriteEscapedString(value, mEncodedStream);
 	}
 
 	//------------------------------------------------------------------------------
@@ -30,8 +71,6 @@ namespace BitSerializer::Json::Detail
 	void JsonStreamPrettyWriter::WriteValue(std::string_view value)
 	{
 		WriteIndent();
-		mStringBuffer.clear();
-		WriteString(value, mStringBuffer);
-		mEncodedStream.Write(std::string_view(mStringBuffer));
+		WriteEscapedString(value, mEncodedStream);
 	}
 }

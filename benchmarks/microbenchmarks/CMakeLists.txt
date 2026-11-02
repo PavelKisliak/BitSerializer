@@ -5,9 +5,9 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Hot-function A/B example: alternative implementations of the JSON string
-# writer's escaping routine. Uses the archive's internal header, so it is built
-# only with the JSON archive and adds the library source/include roots.
+# Hot-function A/B example: JSON escape scanning and number formatting alternatives.
+# Uses the archive's internal header, so it is built only with the JSON archive and adds
+# the library source/include roots.
 if(BUILD_JSON_ARCHIVE)
     add_executable(microbenchmark
         microbenchmark.cpp

@@ -257,7 +257,7 @@ For a hot function (string escaping, number formatting, a scan loop):
 4. Measure with `BenchHarness::Runner` (~2 s per direction, layout-robust).
 5. Iterate on the variant until the gain is clearly above the noise band.
 
-`microbenchmark.cpp` (target `microbenchmark`) is a worked example: it pitches the current SIMD escape scan and the current `reserve+append` fast path of the JSON string writer against alternatives. It includes the archive's internal header on purpose — that is the function being optimized.
+`microbenchmark.cpp` (target `microbenchmark`) is a worked example: it pitches the current SIMD escape scan and the current direct-buffer number formatting against their scalar/string-based alternatives. It includes the archive's internal header on purpose — that is the function being optimized.
 
 ### Tier 2 — archive-level A/B (when the change spans the pipeline)
 
@@ -289,12 +289,12 @@ Run the round-trip `archives_benchmark` for the affected archive and stage (Clan
 
 ### Worked example (what this buys you)
 
-`microbenchmark.cpp` compares the JSON string writer against two alternatives. Running it on both compilers shows why per-compiler validation matters:
+`microbenchmark.cpp` compares two current JSON helpers against their alternatives. Running it on both compilers shows why per-compiler validation matters:
 
-- Replacing the SIMD escape scan with a scalar loop is **10–87% slower** — the SIMD scan is essential.
-- Replacing `reserve+append` with `resize+memcpy` is **faster on MSVC** but **substantially slower on Clang for long strings** (Clang does not eliminate the `resize` zero-fill). It was therefore not landed; a compiler-specific win needs a guard rather than a blanket change.
+- The SIMD escape scan is much faster than a scalar loop for long unescaped strings, but its fixed overhead can make it slower for very short strings.
+- Direct-buffer `FormatNumber` avoids the temporary string and is faster than formatting through `Convert::Detail::To`.
 
-Lesson: run the A/B on every compiler you care about — a win on one can be a loss on another.
+Lesson: run the A/B on every compiler and with workload-relevant input sizes - a win on one case can be a loss on another.
 
 ## Building
 

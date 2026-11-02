@@ -560,6 +560,20 @@ TEST(JsonArchive, SaveWithFormatting)
 	TestSaveFormattedJson<JsonArchive>();
 }
 
+TEST(JsonArchive, SaveWithUnsupportedPaddingCharShouldThrow)
+{
+	BitSerializer::SerializationOptions options;
+	options.formatOptions.enableFormat = true;
+	options.formatOptions.paddingChar = '|';
+	const TestPointClass value;
+	std::string output;
+
+	const auto ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::SaveObject<JsonArchive>(value, output, options);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::InvalidOptions, ex.GetErrorCode());
+}
+
 //-----------------------------------------------------------------------------
 // Native `std::string_view` keys (passed through without conversion to key_type)
 //-----------------------------------------------------------------------------

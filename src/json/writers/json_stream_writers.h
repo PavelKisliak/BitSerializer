@@ -92,13 +92,12 @@ namespace BitSerializer::Json::Detail
 						"JSON does not support non-finite numbers (NaN or Infinity)");
 				}
 			}
-			mStringBuffer.clear();
-			Convert::Detail::To(value, mStringBuffer);
-			mEncodedStream.Write(mStringBuffer);
+			char buffer[GetMaxNumberLength<T>()];
+			const size_t length = FormatNumber(buffer, value);
+			mEncodedStream.Write(std::string_view(buffer, length));
 		}
 
 		Convert::Utf::EncodedStreamWriter mEncodedStream;
-		std::string mStringBuffer;
 	};
 
 	class JsonStreamPrettyWriter final : public IJsonWriter
@@ -269,26 +268,33 @@ namespace BitSerializer::Json::Detail
 						"JSON does not support non-finite numbers (NaN or Infinity)");
 				}
 			}
-			mStringBuffer.clear();
-			Convert::Detail::To(value, mStringBuffer);
-			mEncodedStream.Write(mStringBuffer);
+			char buffer[GetMaxNumberLength<T>()];
+			const size_t length = FormatNumber(buffer, value);
+			mEncodedStream.Write(std::string_view(buffer, length));
 		}
 
 		void WriteIndent()
 		{
 			if (mPadding)
 			{
-				mStringBuffer.clear();
-				mStringBuffer.push_back('\n');
-				if (mCurrentPadding > 0) {
-					mStringBuffer.append(mCurrentPadding, mPaddingChar);
+				mEncodedStream.Write("\n");
+				if (mCurrentPadding > 0)
+				{
+					static constexpr std::string_view tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+					static constexpr std::string_view spaces = "                ";
+					const std::string_view padding = mPaddingChar == '\t' ? tabs : spaces;
+					uint32_t remaining = mCurrentPadding;
+					while (remaining > 0)
+					{
+						const size_t chunkSize = remaining < padding.size() ? remaining : padding.size();
+						mEncodedStream.Write(padding.substr(0, chunkSize));
+						remaining -= static_cast<uint32_t>(chunkSize);
+					}
 				}
-				mEncodedStream.Write(mStringBuffer);
 			}
 		}
 
 		Convert::Utf::EncodedStreamWriter mEncodedStream;
-		std::string mStringBuffer;
 		uint32_t mCurrentPadding = 0;
 		uint16_t mPaddingCharNum;
 		char mPaddingChar;

@@ -8,10 +8,24 @@ Supported load/save JSON from:
 - std::string: UTF-8 (without BOM)
 - std::stream: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE (auto-detection encoding with/without BOM)
 
-String input is treated as already-decoded text; use streams for BOM/other encodings
-(see [Input and output data types](../README.md#input-and-output-data-types)).
+String input is treated as already-decoded text; use streams for BOM/other encodings (see [Input and output data types](../README.md#input-and-output-data-types)).
 
-This is the built-in JSON archive implementation with no external dependencies. It is about 40% faster than the RapidJSON-based implementation and offers the same functionality.
+This is the built-in JSON archive implementation with no external dependencies. It offers the same functionality as the RapidJSON-based archive and is faster, especially for stream output.
+
+### Performance
+
+The table below compares `BitSerializer::Json::JsonArchive` with the RapidJSON-based `BitSerializer::Json::RapidJson::JsonArchive` on the archive benchmark model. Values are relative throughput ratios; higher is better.
+
+| Operation | MSVC | clang-cl |
+|-----------|-----:|---------:|
+| Save to memory | ~2.9x | ~2.8x |
+| Load from memory | ~1.8x | ~2.1x |
+| Save to `std::ostream` | ~16x | ~19x |
+| Load from `std::istream` | ~4.0x | ~3.4x |
+
+The large stream-output difference is expected: the built-in archive writes directly to the output and does not build a DOM before serialization. Loading is a more balanced comparison, and on MSVC the memory-loading gain is currently below 2x.
+
+These are representative results from `benchmarks/archives` (Release builds, default 30-second stages); exact numbers depend on the compiler, machine and workload. The benchmark also compares both archives with the raw RapidJSON API, which gives similar relative results.
 
 ### How to install
 This archive is built-in and does not require any external dependencies. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:
@@ -25,8 +39,7 @@ target_link_libraries(main PRIVATE BitSerializer::json-archive)
 ```
 
 ### Implementation detail
-The JSON specification allows storing not only objects and arrays in the root, but also more primitive types such as string, number, and boolean.
-This is also not a problem for BitSerializer:
+The JSON specification allows storing not only objects and arrays in the root, but also more primitive types such as string, number, and boolean. This is also not a problem for BitSerializer:
 ```cpp
 int main()
 {
@@ -44,16 +57,10 @@ int main()
 ```
 
 ### Strict input
-The whole input must contain exactly one JSON value. Trailing non-whitespace content is rejected
-with a `ParsingException` (for `JsoncArchive`, trailing comments are allowed). This applies to both
-string and stream input.
-Unescaped control characters (U+0000-U+001F) inside strings are also rejected with a
-`ParsingException`; they must be escaped (`\n`, `\u0000`, etc.).
+The whole input must contain exactly one JSON value. Trailing non-whitespace content is rejected with a `ParsingException` (for `JsoncArchive`, trailing comments are allowed). This applies to both string and stream input. Unescaped control characters (U+0000-U+001F) inside strings are also rejected with a `ParsingException`; they must be escaped (`\n`, `\u0000`, etc.).
 
 ### Non-finite numbers
-JSON has no representation for `NaN` and `Infinity`. Saving such a value throws a
-`SerializationException` with the error code `SerializationErrorCode::OutOfRange`.
-If a non-finite value must be preserved, encode it explicitly (for example, as a string field).
+JSON has no representation for `NaN` and `Infinity`. Saving such a value throws a `SerializationException` with the error code `SerializationErrorCode::OutOfRange`. If a non-finite value must be preserved, encode it explicitly (for example, as a string field).
 
 ### Pretty format
 The built-in JSON archive supports output to human readable format:
@@ -112,16 +119,13 @@ This code outputs to the console:
 ```
 
 ### JSONC (comments and trailing commas)
-In addition to the strict JSON archive, the library provides the `JsoncArchive` alias, which reads JSON with
-extensions commonly known as JSONC:
+In addition to the strict JSON archive, the library provides the `JsoncArchive` alias, which reads JSON with extensions commonly known as JSONC:
 
 - `//` line comments
 - `/* ... */` block comments
 - a single trailing comma before a closing `]` or `}`
 
-Comments are a read-only extension for typed serialization: `JsoncArchive` always writes plain JSON, so its output is
-identical to `JsonArchive`. The only exception is explicit payload passthrough — a raw JSONC block captured with
-`JsoncArchive::raw_type` is written back verbatim (comments included).
+Comments are a read-only extension for typed serialization: `JsoncArchive` always writes plain JSON, so its output is identical to `JsonArchive`. The only exception is explicit payload passthrough — a raw JSONC block captured with `JsoncArchive::raw_type` is written back verbatim (comments included).
 
 ```cpp
 #include <iostream>
@@ -166,9 +170,7 @@ int main()
 }
 ```
 
-The `JsoncArchive` alias is a JSON dialect (advertised via `ArchiveType::Jsonc`, see `ArchiveType`)
-that enables all supported extensions. Readers are instantiated per archive type rather than per feature
-combination, so adding new formats (e.g. JSON5) does not multiply the set of compiled instantiations.
+The `JsoncArchive` alias is a JSON dialect (advertised via `ArchiveType::Jsonc`, see `ArchiveType`) that enables all supported extensions. Readers are instantiated per archive type rather than per feature combination, so adding new formats (e.g. JSON5) does not multiply the set of compiled instantiations.
 
 #### Raw payload passthrough and JSON dialects
 
@@ -177,15 +179,11 @@ The raw payload type of an archive is tagged with the archive's format:
 - `JsonArchive::raw_type` is `RawPayload<std::string, ArchiveType::Json>`;
 - `JsoncArchive::raw_type` is `RawPayload<std::string, ArchiveType::Jsonc>`.
 
-Because strict JSON is a subset of JSONC, a raw block captured from a strict JSON document can be embedded into a
-JSONC archive, but not the other way around: a JSONC block may contain comments, which are not valid in strict JSON.
-These rules are enforced at compile time by `IsRawPayloadCompatible(source, target)`:
+Because strict JSON is a subset of JSONC, a raw block captured from a strict JSON document can be embedded into a JSONC archive, but not the other way around: a JSONC block may contain comments, which are not valid in strict JSON. These rules are enforced at compile time by `IsRawPayloadCompatible(source, target)`:
 
 | Raw payload format | Embedded into `JsonArchive` | Embedded into `JsoncArchive` |
 |--------------------|:---------------------------:|:----------------------------:|
 | `RawPayload<..., Json>`  | ✅ | ✅ |
 | `RawPayload<..., Jsonc>` | ❌ (compile-time error) | ✅ (comments preserved) |
 
-Reading a raw block from a JSONC document always produces a `JsoncArchive::raw_type` value, so it can never be
-accidentally written into a strict JSON document.
-
+Reading a raw block from a JSONC document always produces a `JsoncArchive::raw_type` value, so it can never be accidentally written into a strict JSON document.

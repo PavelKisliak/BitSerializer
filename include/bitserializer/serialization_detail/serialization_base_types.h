@@ -273,7 +273,12 @@ namespace BitSerializer
 	{
 		using namespace Convert::Detail;
 
-		if constexpr (TArchive::IsLoading())
+		// Prefer the archive's direct value overload when it supports this string type
+		if constexpr (can_serialize_value_with_key_v<TArchive, TValue, TKey>)
+		{
+			return archive.SerializeValue(std::forward<TKey>(key), value);
+		}
+		else if constexpr (TArchive::IsLoading())
 		{
 			auto stringView = StringViewOf(value);
 			if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
@@ -306,7 +311,12 @@ namespace BitSerializer
 	{
 		using namespace Convert::Detail;
 
-		if constexpr (TArchive::IsLoading())
+		// Prefer the archive's direct value overload when it supports this string type
+		if constexpr (can_serialize_value_v<TArchive, TValue>)
+		{
+			return archive.SerializeValue(value);
+		}
+		else if constexpr (TArchive::IsLoading())
 		{
 			auto stringView = StringViewOf(value);
 			if (Detail::SerializeString(archive, stringView))

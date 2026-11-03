@@ -18,10 +18,10 @@ The table below compares `BitSerializer::Json::JsonArchive` with the RapidJSON-b
 
 | Operation | MSVC | clang-cl |
 |-----------|-----:|---------:|
-| Save to memory | ~2.9x | ~2.8x |
-| Load from memory | ~1.8x | ~2.1x |
-| Save to `std::ostream` | ~16x | ~19x |
-| Load from `std::istream` | ~4.0x | ~3.4x |
+| Save to memory | ~3.1x | ~3.0x |
+| Load from memory | ~1.7x | ~1.9x |
+| Save to `std::ostream` | ~15x | ~17x |
+| Load from `std::istream` | ~3.6x | ~3.1x |
 
 The large stream-output difference is expected: the built-in archive writes directly to the output and does not build a DOM before serialization. Loading is a more balanced comparison, and on MSVC the memory-loading gain is currently below 2x.
 

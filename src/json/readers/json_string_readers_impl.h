@@ -850,6 +850,24 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
+	bool JsonStringReader<TFormat>::ReadValue(std::string& value)
+	{
+		std::string_view result;
+		if (ReadString<TFormat>(mInputData, mPos, result, mLineNumber, value))
+		{
+			// The escaped path writes directly into `value`; the unescaped path returns a view
+			// into the input document and still requires a copy.
+			if (result.data() != value.data() || result.size() != value.size()) {
+				value.assign(result.data(), result.size());
+			}
+			return true;
+		}
+
+		HandleMismatchedTypesPolicy<TFormat>(mInputData, mPos, mLineNumber, mSerializationOptions.mismatchedTypesPolicy);
+		return false;
+	}
+
+	template <ArchiveType TFormat>
 	bool JsonStringReader<TFormat>::ReadRawValue(std::string& value)
 	{
 		SkipWhitespaceAndPeek<TFormat>(mInputData, mPos, mLineNumber);

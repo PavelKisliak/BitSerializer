@@ -245,6 +245,7 @@ public:
 	virtual bool ReadValue(long double& value) = 0;
 
 	virtual bool ReadValue(std::string_view& value) = 0;
+	virtual bool ReadValue(std::string& value) = 0;
 
 	virtual bool ReadRawValue(std::string& value) = 0;
 
@@ -641,6 +642,18 @@ public:
 		return result;
 	}
 
+	bool SerializeValue(std::string& value)
+	{
+		if (mIndex)
+		{
+			mJsonReader->ReadValueSeparator();
+		}
+
+		const bool result = mJsonReader->ReadValue(value);
+		++mIndex;
+		return result;
+	}
+
 	template <ArchiveType FRaw>
 	bool SerializeValue(RawPayload<std::string, FRaw>& value)
 	{
@@ -810,6 +823,18 @@ public:
 		return false;
 	}
 
+	template <typename TKey>
+	bool SerializeValue(TKey&& key, std::string& value)
+	{
+		if (FindValueByKey(std::forward<TKey>(key)))
+		{
+			++mIndex;
+			mCurrentKey = {};
+			return mJsonReader->ReadValue(value);
+		}
+		return false;
+	}
+
 	template <typename TKey, ArchiveType FRaw>
 	bool SerializeValue(TKey&& key, RawPayload<std::string, FRaw>& value)
 	{
@@ -964,6 +989,11 @@ public:
 
 	template <typename T, std::enable_if_t<std::is_arithmetic_v<T> || std::is_null_pointer_v<T> || std::is_same_v<T, typename JsonArchiveTraits<TFormat>::string_view_type>, int> = 0>
 	bool SerializeValue(T& value) const
+	{
+		return mJsonReader->ReadValue(value);
+	}
+
+	bool SerializeValue(std::string& value) const
 	{
 		return mJsonReader->ReadValue(value);
 	}

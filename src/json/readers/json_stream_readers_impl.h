@@ -987,6 +987,19 @@ namespace BitSerializer::Json::Detail
 	}
 
 	template <ArchiveType TFormat>
+	bool JsonStreamReader<TFormat>::ReadValue(std::string& value)
+	{
+		const size_t savedPos = GetPosition();
+		if (ReadStringImpl(value)) {
+			return true;
+		}
+
+		SetPosition(savedPos);
+		HandleMismatchedTypesPolicyStream();
+		return false;
+	}
+
+	template <ArchiveType TFormat>
 	bool JsonStreamReader<TFormat>::ReadRawValue(std::string& value)
 	{
 		SkipWhitespaceAndPeek<TFormat>(mEncodedStreamReader, mLineNumber);

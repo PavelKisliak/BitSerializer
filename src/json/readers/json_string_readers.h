@@ -48,6 +48,7 @@ namespace BitSerializer::Json::Detail
 		bool ReadValue(long double& value) override;
 
 		bool ReadValue(std::string_view& value) override;
+		bool ReadValue(std::string& value) override;
 
 		bool ReadRawValue(std::string& value) override;
 

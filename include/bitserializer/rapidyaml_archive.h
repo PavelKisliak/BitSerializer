@@ -59,6 +59,81 @@ namespace BitSerializer::Yaml::RapidYaml {
 		}
 
 		/**
+		 * @brief RapidYaml v0.16.0 deprecated the legacy tree-building and
+		 * serialization operators in favor of the `set_*()` / `save()` methods.
+		 */
+#if defined(RYML_VERSION_MAJOR) && defined(RYML_VERSION_MINOR) && \
+	(RYML_VERSION_MAJOR > 0 || RYML_VERSION_MINOR >= 16)
+		/**
+		 * @brief Sets the node type to a mapping.
+		 */
+		inline void SetNodeAsMap(ryml::NodeRef& node)
+		{
+			node.set_map();
+		}
+
+		/**
+		 * @brief Sets the node type to a sequence.
+		 */
+		inline void SetNodeAsSeq(ryml::NodeRef& node)
+		{
+			node.set_seq();
+		}
+
+		/**
+		 * @brief Serializes the key and assigns it to the node.
+		 */
+		template <typename TKey>
+		inline void SetNodeKey(ryml::NodeRef& node, const TKey& key)
+		{
+			node.set_key_serialized(key);
+		}
+
+		/**
+		 * @brief Serializes the value and assigns it to the node.
+		 */
+		template <typename TValue>
+		inline void SaveNodeValue(ryml::NodeRef& node, const TValue& value)
+		{
+			node.save(value);
+		}
+#else
+		/**
+		 * @brief Sets the node type to a mapping.
+		 */
+		inline void SetNodeAsMap(ryml::NodeRef& node)
+		{
+			node |= ryml::MAP;
+		}
+
+		/**
+		 * @brief Sets the node type to a sequence.
+		 */
+		inline void SetNodeAsSeq(ryml::NodeRef& node)
+		{
+			node |= ryml::SEQ;
+		}
+
+		/**
+		 * @brief Serializes the key and assigns it to the node.
+		 */
+		template <typename TKey>
+		inline void SetNodeKey(ryml::NodeRef& node, const TKey& key)
+		{
+			node << ryml::key(key);
+		}
+
+		/**
+		 * @brief Serializes the value and assigns it to the node.
+		 */
+		template <typename TValue>
+		inline void SaveNodeValue(ryml::NodeRef& node, const TValue& value)
+		{
+			node << value;
+		}
+#endif
+
+		/**
 		 * @brief Base class of YAML scope.
 		 */
 		class RapidYamlScopeBase : public RapidYamlArchiveTraits
@@ -128,16 +203,16 @@ namespace BitSerializer::Yaml::RapidYaml {
 			static void SaveValue(RapidYamlNode& yamlValue, T& value)
 			{
 				if constexpr (std::is_null_pointer_v<T>) {
-					yamlValue << nullValue;
+					SaveNodeValue(yamlValue, nullValue);
 				} else if constexpr (std::is_same_v<T, bool>) {
-					yamlValue << c4::fmt::boolalpha(value);
+					SaveNodeValue(yamlValue, c4::fmt::boolalpha(value));
 				} else if constexpr (std::is_floating_point_v<T>) {
-					yamlValue << c4::fmt::real(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
+					SaveNodeValue(yamlValue, c4::fmt::real(value, std::numeric_limits<T>::max_digits10, c4::RealFormat_e::FTOA_SCIENT));
 				} else if constexpr (std::is_same_v<T, char>) {
 					// Need to extend size of type for prevent save as character
-					yamlValue << static_cast<int16_t>(value);
+					SaveNodeValue(yamlValue, static_cast<int16_t>(value));
 				} else {
-					yamlValue << value;
+					SaveNodeValue(yamlValue, value);
 				}
 			}
 
@@ -244,7 +319,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue << c4::csubstr(value.data(), value.size());
+					SaveNodeValue(yamlValue, c4::csubstr(value.data(), value.size()));
 					mIndex++;
 					return true;
 				}
@@ -274,7 +349,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue |= ryml::MAP;
+					SetNodeAsMap(yamlValue);
 					mIndex++;
 					return RapidYamlObjectScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), this);
 				}
@@ -304,7 +379,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue |= ryml::SEQ;
+					SetNodeAsSeq(yamlValue);
 					mIndex++;
 					return RapidYamlArrayScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), arraySize, this);
 				}
@@ -415,7 +490,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue << ryml::key(key);
+					SetNodeKey(yamlValue, key);
 					SaveValue(yamlValue, value);
 					return true;
 				}
@@ -436,8 +511,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue << ryml::key(key);
-					yamlValue << c4::csubstr(value.data(), value.size());
+					SetNodeKey(yamlValue, key);
+					SaveNodeValue(yamlValue, c4::csubstr(value.data(), value.size()));
 					return true;
 				}
 			}
@@ -471,8 +546,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue << c4::yml::key(key);
-					yamlValue |= ryml::MAP;
+					SetNodeKey(yamlValue, key);
+					SetNodeAsMap(yamlValue);
 					return RapidYamlObjectScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), this, key);
 				}
 			}
@@ -506,8 +581,8 @@ namespace BitSerializer::Yaml::RapidYaml {
 				else
 				{
 					auto yamlValue = mNode.append_child();
-					yamlValue << c4::yml::key(key);
-					yamlValue |= ryml::SEQ;
+					SetNodeKey(yamlValue, key);
+					SetNodeAsSeq(yamlValue);
 					return RapidYamlArrayScope<TMode>(yamlValue, ArchiveScope<TMode>::GetContext(), 0, this, key);
 				}
 			}
@@ -558,7 +633,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					mNode |= ryml::MAP;
+					SetNodeAsMap(mNode);
 					return RapidYamlObjectScope<TMode>(mNode, ArchiveScope<TMode>::GetContext());
 				}
 			}
@@ -579,7 +654,7 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 				else
 				{
-					mNode |= ryml::SEQ;
+					SetNodeAsSeq(mNode);
 					return RapidYamlArrayScope<TMode>(mNode, ArchiveScope<TMode>::GetContext(), 0);
 				}
 			}

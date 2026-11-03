@@ -29,10 +29,10 @@ XML requires a named root node. When no explicit name is provided, BitSerializer
  - "array" for arrays
 
 ```cpp
-class CPoint
+class Point
 {
 public:
-    CPoint(const int x, const int y) : X(x), Y(y) { }
+    Point(const int x, const int y) : X(x), Y(y) { }
 
     template <class TArchive>
     void Serialize(TArchive& archive)
@@ -46,7 +46,7 @@ public:
 
 int main()
 {
-    CPoint point(10, 20);
+    Point point(10, 20);
 
     // Serialize object with defined name of root node
     auto result = BitSerializer::SaveObject<XmlArchive>(KeyValue("Point", point));
@@ -84,12 +84,12 @@ Forces serialization as an XML attribute. **Causes compile-time error if used wi
 using namespace BitSerializer;
 using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 
-class CRectangle
+class Rectangle
 {
 public:
-    CRectangle() = default;
+    Rectangle() = default;
 
-    CRectangle(const int Width, const int Height)
+    Rectangle(const int Width, const int Height)
         : mType("Rectangle")
         , mWidth(Width)
         , mHeight(Height)
@@ -110,7 +110,7 @@ public:
 
 int main()
 {
-    std::vector<CRectangle> Shapes = {
+    std::vector<Rectangle> Shapes = {
         { 5, 10 },
         { 20, 5 },
         { 50, 25 }
@@ -161,10 +161,10 @@ void Serialize(TArchive& archive)
 using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
 using namespace BitSerializer;
 
-class CPoint
+class Point
 {
 public:
-    CPoint(const int x, const int y) : X(x), Y(y) { }
+    Point(const int x, const int y) : X(x), Y(y) { }
 
     template <class TArchive>
     void Serialize(TArchive& archive)
@@ -178,7 +178,7 @@ public:
 
 int main()
 {
-    std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
+    std::vector<Point> points = { Point(10, 20), Point(30, 40) };
 
     SerializationOptions serializationOptions;
     serializationOptions.formatOptions.enableFormat = true;

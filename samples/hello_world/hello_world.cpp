@@ -9,7 +9,7 @@ using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::JsonArchive;
 using CsvArchive = BitSerializer::Csv::CsvArchive;
 
-struct CUser
+struct User
 {
 	// Mandatory fields
 	uint64_t Id = 0;
@@ -46,7 +46,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 ])";
 
 	// Load list of users from JSON
-	std::vector<CUser> users;
+	std::vector<User> users;
 	BitSerializer::LoadObject<JsonArchive>(users, sourceJson);
 
 	// Save to CSV

@@ -152,10 +152,10 @@ TEST(MsgPackArchive, SerializeCTime)
 {
 	// Arrange
 	time_t time = 102030;
-	CTimeRef timeRef(time);
+	TimeRef timeRef(time);
 
 	time_t actualTime = 0;
-	CTimeRef actualTimeRef(actualTime);
+	TimeRef actualTimeRef(actualTime);
 
 	std::string outputData;
 

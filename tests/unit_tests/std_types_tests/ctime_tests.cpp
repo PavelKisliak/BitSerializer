@@ -20,7 +20,7 @@ struct TestCTime
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << KeyValue("Time", CTimeRef(time));
+		archive << KeyValue("Time", TimeRef(time));
 	}
 
 	time_t time = 0;
@@ -36,8 +36,8 @@ TEST(STD_Ctime, SerializeTimeType)
 	ArchiveStub::preferred_output_type testArchive;
 
 	// Act
-	BitSerializer::SaveObject<ArchiveStub>(CTimeRef(expected), testArchive);
-	BitSerializer::LoadObject<ArchiveStub>(CTimeRef(actual), testArchive);
+	BitSerializer::SaveObject<ArchiveStub>(TimeRef(expected), testArchive);
+	BitSerializer::LoadObject<ArchiveStub>(TimeRef(actual), testArchive);
 
 	// Assert
 	EXPECT_EQ(expected, actual);
@@ -54,7 +54,7 @@ TEST(STD_Ctime, ThrowMismatchedTypesExceptionWhenLoadInvalidIsoDate)
 	{
 		// Load as `time_t`
 		time_t actual = 0;
-		BitSerializer::LoadObject<ArchiveStub>(CTimeRef(actual), testArchive);
+		BitSerializer::LoadObject<ArchiveStub>(TimeRef(actual), testArchive);
 	}
 	catch (const SerializationException& ex)
 	{
@@ -75,7 +75,7 @@ TEST(STD_Ctime, SkipInvalidIsoDateWhenPolicyIsSkip)
 	time_t actual = 0;
 	SerializationOptions options;
 	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
-	BitSerializer::LoadObject<ArchiveStub>(CTimeRef(actual), testArchive, options);
+	BitSerializer::LoadObject<ArchiveStub>(TimeRef(actual), testArchive, options);
 
 	EXPECT_EQ(0, actual);
 }
@@ -146,8 +146,8 @@ TEST(STD_CtimeAsBin, SerializeTimeType)
 	BinArchiveStub::preferred_output_type binArchive;
 
 	// Act
-	BitSerializer::SaveObject<BinArchiveStub>(CTimeRef(expected), binArchive);
-	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
+	BitSerializer::SaveObject<BinArchiveStub>(TimeRef(expected), binArchive);
+	BitSerializer::LoadObject<BinArchiveStub>(TimeRef(actual), binArchive);
 
 	// Assert
 	EXPECT_EQ(expected, actual);
@@ -161,7 +161,7 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsPart)
 	binArchive.data->emplace<Detail::BinTimestamp>(timestamp);
 
 	time_t actual = 0;
-	BitSerializer::LoadObject<BinArchiveStub>(CTimeRef(actual), binArchive);
+	BitSerializer::LoadObject<BinArchiveStub>(TimeRef(actual), binArchive);
 
 	// Assert
 	EXPECT_EQ(timestamp.seconds, actual);

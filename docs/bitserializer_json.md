@@ -73,10 +73,10 @@ The built-in JSON archive supports output to human readable format:
 using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::JsonArchive;
 
-class CPoint
+class Point
 {
 public:
-    CPoint(const int x, const int y) : X(x), Y(y) { }
+    Point(const int x, const int y) : X(x), Y(y) { }
 
     template <class TArchive>
     void Serialize(TArchive& archive)
@@ -90,7 +90,7 @@ public:
 
 int main()
 {
-    std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
+    std::vector<Point> points = { Point(10, 20), Point(30, 40) };
 
     SerializationOptions serializationOptions;
     serializationOptions.formatOptions.enableFormat = true;
@@ -135,11 +135,11 @@ Comments are a read-only extension for typed serialization: `JsoncArchive` alway
 using namespace BitSerializer;
 using JsoncArchive = BitSerializer::Json::JsoncArchive;
 
-class CPoint
+class Point
 {
 public:
-    CPoint() = default;
-    CPoint(const int x, const int y) : X(x), Y(y) { }
+    Point() = default;
+    Point(const int x, const int y) : X(x), Y(y) { }
 
     template <class TArchive>
     void Serialize(TArchive& archive)
@@ -159,7 +159,7 @@ int main()
         "y": 20
     })";
 
-    CPoint point;
+    Point point;
     BitSerializer::LoadObject<JsoncArchive>(point, jsonc);
 
     // The output is plain JSON

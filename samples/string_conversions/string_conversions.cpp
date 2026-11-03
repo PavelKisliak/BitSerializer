@@ -31,12 +31,12 @@ BITSERIALIZER_REGISTER_ENUM(Number, {
 })
 
 
-class CPoint3D
+class Point3D
 {
 public:
-	CPoint3D() = default;
+	Point3D() = default;
 
-	CPoint3D(int x, int y) noexcept
+	Point3D(int x, int y) noexcept
 		: x(x), y(y)
 	{ }
 
@@ -89,9 +89,9 @@ int main()	// NOLINT(bugprone-exception-escape)
 	assert(Number::Five == Convert::To<Number>(u16Str));
 
 	// Convert custom class
-	const auto point = Convert::To<CPoint3D>("640 480 120");
+	const auto point = Convert::To<Point3D>("640 480 120");
 	const auto pointStr = Convert::To<std::string>(point);
-	std::cout << "Conversion CPoint3D to string result: " << pointStr << std::endl;
+	std::cout << "Conversion Point3D to string result: " << pointStr << std::endl;
 
 	// Convert using an additional argument to construct the target type
 	std::cout << Convert::To<std::string>(point, "Coordinates: ") << std::endl;

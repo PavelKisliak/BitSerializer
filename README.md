@@ -108,7 +108,7 @@ using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::JsonArchive;
 using CsvArchive = BitSerializer::Csv::CsvArchive;
 
-struct CUser
+struct User
 {
     // Mandatory fields
     uint64_t Id = 0;
@@ -145,7 +145,7 @@ int main()  // NOLINT(bugprone-exception-escape)
 ])";
 
     // Load list of users from JSON
-    std::vector<CUser> users;
+    std::vector<User> users;
     BitSerializer::LoadObject<JsonArchive>(users, sourceJson);
 
     // Save to CSV
@@ -665,12 +665,12 @@ Duration notes:
 - Both decimal separators (dot and comma) are supported for fractions of a second.
 - Allowed rounding only fractions of seconds, in all other cases an exception is thrown (according to `OverflowNumberPolicy`).
 
-Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CTimeRef`, otherwise time will be serialized as number.
+Since `std::time_t` is equal to `int64_t`, need to use special wrapper `TimeRef`, otherwise time will be serialized as number.
 ```cpp
 template <class TArchive>
 void Serialize(TArchive& archive)
 {
-    archive << KeyValue("Time", CTimeRef(timeValue));
+    archive << KeyValue("Time", TimeRef(timeValue));
 }
 ```
 
@@ -943,7 +943,7 @@ Additionally, BitSerializer wants to know the number of elements in the list.
 This is optional for a text archives like JSON, but mandatory for a binary archive like MsgPack since it stores the size prior the array elements.
 The size of list can be obtained via one of the following ways:
 
- - Global function `size(const CMyArray&)` in the same namespace as the serializing class (highest priority).
+ - Global function `size(const MyArray&)` in the same namespace as the serializing class (highest priority).
  - Standard class method `size()`.
  - By enumerating array elements using iterators (like as for `std::forward_list`).
 
@@ -953,11 +953,11 @@ Please take a look at the following example:
 ```cpp
 // Some custom array type
 template <typename T>
-class CMyArray
+class MyArray
 {
 public:
-    CMyArray() = default;
-    CMyArray(std::initializer_list<T> initList)
+    MyArray() = default;
+    MyArray(std::initializer_list<T> initList)
         : mArray(initList)
     { }
 
@@ -973,13 +973,13 @@ private:
     std::vector<T> mArray;
 };
 
-// Returns the size of the CMyArray.
+// Returns the size of the MyArray.
 template <class T>
-size_t size(const CMyArray<T>& cont) noexcept { return cont.GetSize(); }
+size_t size(const MyArray<T>& cont) noexcept { return cont.GetSize(); }
 
-// Serializes CMyArray.
+// Serializes MyArray.
 template <class TArchive, class TValue>
-void SerializeArray(TArchive& arrayScope, CMyArray<TValue>& cont)
+void SerializeArray(TArchive& arrayScope, MyArray<TValue>& cont)
 {
     if constexpr (TArchive::IsLoading())
     {
@@ -1021,10 +1021,10 @@ Working with the different output formats, the transport (streams and files), an
 ### Serializing to multiple formats
 One of the core advantages of BitSerializer is the ability to serialize objects into multiple formats through a unified interface. The following example demonstrates how to save the same object to JSON and XML with minimal code changes:
 ```cpp
-class CPoint
+class Point
 {
 public:
-    CPoint(int x, int y)
+    Point(int x, int y)
         : x(x), y(y)
     { }
 
@@ -1040,7 +1040,7 @@ public:
 
 int main()
 {
-    auto testObj = CPoint(100, 200);
+    auto testObj = Point(100, 200);
 
     const auto jsonResult = BitSerializer::SaveObject<JsonArchive>(testObj);
     std::cout << "JSON: " << jsonResult << std::endl;
@@ -1152,11 +1152,11 @@ Streams/files support multiple UTF encodings and BOM handling; see
 BitSerializer can detect encoding of input stream by BOM ([Byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark)) and via data analysis, but the latter is only supported by the built-in JSON, RapidJSON, PugiXml and CSV archives. The output encoding and BOM is configurable via `SerializationOptions`.
 The following example shows how to save/load to `std::stream`:
 ```cpp
-class CPoint
+class Point
 {
 public:
-    CPoint() = default;
-    CPoint(int x, int y)
+    Point() = default;
+    Point(int x, int y)
         : x(x), y(y)
     { }
 
@@ -1172,7 +1172,7 @@ public:
 
 int main()
 {
-    auto testObj = CPoint(100, 200);
+    auto testObj = Point(100, 200);
 
     SerializationOptions serializationOptions;
     serializationOptions.streamOptions.encoding = Convert::Utf::UtfType::Utf8;
@@ -1184,7 +1184,7 @@ int main()
     std::cout << outputStream.str() << std::endl;
 
     // Load from string stream
-    CPoint loadedObj;
+    Point loadedObj;
     BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
 
     assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);

@@ -6,11 +6,11 @@
 using namespace BitSerializer;
 using JsonArchive = BitSerializer::Json::JsonArchive;
 
-class CPoint
+class Point
 {
 public:
-	CPoint() = default;
-	CPoint(int x, int y)
+	Point() = default;
+	Point(int x, int y)
 		: x(x), y(y)
 	{ }
 
@@ -26,7 +26,7 @@ public:
 
 int main()	// NOLINT(bugprone-exception-escape)
 {
-	auto testObj = CPoint(100, 200);
+	auto testObj = Point(100, 200);
 
 	SerializationOptions serializationOptions;
 	serializationOptions.streamOptions.encoding = Convert::Utf::UtfType::Utf8;
@@ -38,7 +38,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 	std::cout << outputStream.str() << std::endl;
 
 	// Load from string stream
-	CPoint loadedObj;
+	Point loadedObj;
 	BitSerializer::LoadObject<JsonArchive>(loadedObj, outputStream);
 
 	assert(loadedObj.x == testObj.x && loadedObj.y == testObj.y);

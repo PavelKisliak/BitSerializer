@@ -551,7 +551,7 @@ When in doubt, follow the patterns you see in the surrounding code.
 | Namespaces | CamelCase | `BitSerializer::Json::Detail` |
 
 > [!NOTE]
-> Some existing classes (e.g. in the CSV archive) still use a legacy `C` prefix. New code should use plain CamelCase without the prefix.
+> Legacy `C`-prefixed aliases (`CRawTime`, `CTimeRef`) are deprecated in favor of `UnixTime` and `TimeRef`; new code must use the non-prefixed names.
 >
 > The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
 

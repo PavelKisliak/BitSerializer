@@ -287,7 +287,7 @@ namespace BitSerializer
 	 *
 	 * @par Example:
 	 * @code
-	 * std::variant<int, std::string, CUser> data;
+	 * std::variant<int, std::string, User> data;
 	 * archive << KeyValue("data", VariantAsIndexed(data));
 	 * @endcode
 	 */
@@ -328,7 +328,7 @@ namespace BitSerializer
 	 *
 	 * @par Example:
 	 * @code
-	 * std::variant<int, std::string, CUser> data;
+	 * std::variant<int, std::string, User> data;
 	 * archive << KeyValue("data", VariantAsNamed(data));
 	 * @endcode
 	 */
@@ -376,7 +376,7 @@ namespace BitSerializer
 	 *
 	 * @par Example:
 	 * @code
-	 * std::variant<int, std::string, CUser> data;
+	 * std::variant<int, std::string, User> data;
 	 * archive << KeyValue("data", VariantAsDiscriminated(data));
 	 * archive << KeyValue("data", VariantAsDiscriminated(data, "kind"));
 	 * @endcode

@@ -10,11 +10,11 @@ namespace MyApp
 {
 	// Some custom array type
 	template <typename T>
-	class CMyArray
+	class MyArray
 	{
 	public:
-		CMyArray() = default;
-		CMyArray(std::initializer_list<T> initList)
+		MyArray() = default;
+		MyArray(std::initializer_list<T> initList)
 			: mArray(initList)
 		{ }
 
@@ -30,13 +30,13 @@ namespace MyApp
 		std::vector<T> mArray;
 	};
 
-	// Returns the size of the CMyArray.
+	// Returns the size of the MyArray.
 	template <class T>
-	static size_t size(const CMyArray<T>& cont) noexcept { return cont.GetSize(); }
+	static size_t size(const MyArray<T>& cont) noexcept { return cont.GetSize(); }
 
-	// Serializes CMyArray.
+	// Serializes MyArray.
 	template <class TArchive, class TValue>
-	static void SerializeArray(TArchive& arrayScope, CMyArray<TValue>& cont)
+	static void SerializeArray(TArchive& arrayScope, MyArray<TValue>& cont)
 	{
 		if constexpr (TArchive::IsLoading())
 		{
@@ -68,13 +68,13 @@ namespace MyApp
 int main()	// NOLINT(bugprone-exception-escape)
 {
 	// Save custom array to JSON
-	MyApp::CMyArray<int> myArray = { 1, 2, 3, 4, 5 };
+	MyApp::MyArray<int> myArray = { 1, 2, 3, 4, 5 };
 	std::string jsonResult;
 	BitSerializer::SaveObject<JsonArchive>(myArray, jsonResult);
 	std::cout << "Saved JSON: " << jsonResult << std::endl;
 
 	// Load from JSON-array
-	MyApp::CMyArray<std::string> arrayOfString;
+	MyApp::MyArray<std::string> arrayOfString;
 	const std::string srcJson = R"([ "Red", "Green", "Blue" ])";
 	BitSerializer::LoadObject<JsonArchive>(arrayOfString, srcJson);
 	std::cout << std::endl << "Loaded array: ";

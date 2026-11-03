@@ -12,12 +12,12 @@ using XmlArchive = BitSerializer::Xml::PugiXml::XmlArchive;
  * Note: AttributeValue causes compile-time error with non-XML archives.
  * For multi-format code, consider using PropertyValue instead (see multiformat_customization.cpp).
  */
-class CRectangle
+class Rectangle
 {
 public:
-	CRectangle() = default;
+	Rectangle() = default;
 
-	CRectangle(const int Width, const int Height)
+	Rectangle(const int Width, const int Height)
 		: mType("Rectangle")
 		, mWidth(Width)
 		, mHeight(Height)
@@ -44,7 +44,7 @@ public:
 
 int main()	// NOLINT(bugprone-exception-escape)
 {
-	std::vector<CRectangle> Shapes = {
+	std::vector<Rectangle> Shapes = {
 		{ 5, 10 },
 		{ 20, 5 },
 		{ 50, 25 }

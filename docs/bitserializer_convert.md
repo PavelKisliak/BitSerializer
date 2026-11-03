@@ -155,10 +155,10 @@ Date, time and duration can be converted to string representation of ISO 8601 an
 - Both decimal separators (dot and comma) are supported for fractions of a second.
 - Allowed rounding only fractions of seconds, in all other cases `std::out_of_range` exception is thrown.
 
-Since `std::time_t` is equal to `int64_t`, need to use special wrapper `CRawTime`, otherwise time will be converted as number.
+Since `std::time_t` is equal to `int64_t`, need to use special wrapper `UnixTime`, otherwise time will be converted as number.
 ```cpp
-time_t time = Convert::To<CRawTime>("1969-12-31T23:59:59Z");
-std::string utc = Convert::ToString(CRawTime(time));
+time_t time = Convert::To<UnixTime>("1969-12-31T23:59:59Z");
+std::string utc = Convert::ToString(UnixTime(time));
 ```
 
 ### Conversion filesystem path
@@ -181,12 +181,12 @@ There are several ways to convert custom classes from/to strings:
 
 using namespace BitSerializer;
 
-class CPoint3D
+class Point3D
 {
 public:
-    CPoint3D() = default;
+    Point3D() = default;
 
-    CPoint3D(int x, int y) noexcept
+    Point3D(int x, int y) noexcept
         : x(x), y(y)
     { }
 
@@ -218,9 +218,9 @@ public:
 int main()
 {
     // Convert custom class
-    const auto point = Convert::To<CPoint3D>("640 480 120");
+    const auto point = Convert::To<Point3D>("640 480 120");
     const auto strPoint = Convert::To<std::string>(point);
-    std::cout << "Conversion CPoint3D to string result: " << strPoint << std::endl;
+    std::cout << "Conversion Point3D to string result: " << strPoint << std::endl;
 
     return EXIT_SUCCESS;
 }
@@ -234,8 +234,8 @@ The important point is that you can implement just pair of methods for `std::str
 
 As an alternative to internal methods, you can achieve the same by implementing two global functions (in the same namespace as the type, or in the global):
 
-- `void To(const CPoint3D& in, std::string& out);`
-- `void To(std::string_view in, CPoint3D& out);`
+- `void To(const Point3D& in, std::string& out);`
+- `void To(std::string_view in, Point3D& out);`
 
 > [!IMPORTANT]
 > Please do not clear the output string.

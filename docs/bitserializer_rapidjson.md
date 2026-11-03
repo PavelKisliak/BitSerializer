@@ -51,10 +51,10 @@ As base library (RapidJson) has the functionality for output to human readable f
 using namespace BitSerializer;
 using namespace BitSerializer::Json::RapidJson;
 
-class CPoint
+class Point
 {
 public:
-    CPoint(const int x, const int y) : X(x), Y(y) { }
+    Point(const int x, const int y) : X(x), Y(y) { }
 
     template <class TArchive>
     void Serialize(TArchive& archive)
@@ -68,7 +68,7 @@ public:
 
 int main()
 {
-    std::vector<CPoint> points = { CPoint(10, 20), CPoint(30, 40) };
+    std::vector<Point> points = { Point(10, 20), Point(30, 40) };
 
     SerializationOptions serializationOptions;
     serializationOptions.formatOptions.enableFormat = true;

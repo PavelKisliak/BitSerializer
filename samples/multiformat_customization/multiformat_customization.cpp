@@ -13,10 +13,10 @@ using JsonArchive = BitSerializer::Json::JsonArchive;
  * Use when you need full control over serialization structure per format.
  * More verbose but explicit about format-specific behavior.
  */
-class CPointExplicit
+class PointExplicit
 {
 public:
-	CPointExplicit(int x, int y) : x(x), y(y) {}
+	PointExplicit(int x, int y) : x(x), y(y) {}
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
@@ -46,10 +46,10 @@ public:
  *
  * Ideal for code generation (OpenAPI) and multi-format APIs.
  */
-class CPointSmart
+class PointSmart
 {
 public:
-	CPointSmart(int x, int y) : x(x), y(y) {}
+	PointSmart(int x, int y) : x(x), y(y) {}
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
@@ -64,8 +64,8 @@ public:
 
 int main()  // NOLINT(bugprone-exception-escape)
 {
-	auto testObjExplicit = CPointExplicit(100, 200);
-	auto testObjSmart = CPointSmart(100, 200);
+	auto testObjExplicit = PointExplicit(100, 200);
+	auto testObjSmart = PointSmart(100, 200);
 
 	// JSON output (both approaches produce identical result)
 	const auto jsonResultExplicit = BitSerializer::SaveObject<JsonArchive>(testObjExplicit);

@@ -21,20 +21,23 @@ namespace BitSerializer
 	 *
 	 * Usage example:
 	 * @code
-	 *   time_t time = Convert::To<CRawTime>("2044-01-01T00:00:00Z");
-	 *   auto isoDate = Convert::To<std::string>(CRawTime(time));
+	 *   time_t time = Convert::To<UnixTime>("2044-01-01T00:00:00Z");
+	 *   auto isoDate = Convert::To<std::string>(UnixTime(time));
 	 * @endcode
 	 */
-	struct CRawTime
+	struct UnixTime
 	{
-		CRawTime() = default;
-		explicit CRawTime(time_t inTime) noexcept : time(inTime) {}
+		UnixTime() = default;
+		explicit UnixTime(time_t inTime) noexcept : time(inTime) {}
 
 		operator time_t& () noexcept { return time; }
 		operator const time_t& () const noexcept { return time; }
 
 		time_t time = 0;
 	};
+
+	/// @deprecated Use `UnixTime` instead.
+	using CRawTime [[deprecated("Use UnixTime instead")]] = UnixTime;
 }
 
 namespace BitSerializer::Convert::Detail
@@ -554,26 +557,26 @@ namespace BitSerializer::Convert::Detail
 	}
 
 	/**
-	 * @brief Converts Unix time in the `CRawTime` to `std::string` (ISO 8601/UTC).
+	 * @brief Converts Unix time in the `UnixTime` to `std::string` (ISO 8601/UTC).
 	 *
-	 * @param[in] in Input `CRawTime` wrapper around `time_t`.
+	 * @param[in] in Input `UnixTime` wrapper around `time_t`.
 	 * @param[out] out Output string.
 	 */
 	template <typename TSym, typename TAllocator>
-	void To(const CRawTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	void To(const UnixTime& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
 		const std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp(std::chrono::seconds(in.time));
 		To(tp, out);
 	}
 
 	/**
-	 * @brief Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `CRawTime`.
+	 * @brief Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to Unix time in the `UnixTime`.
 	 *
 	 * @param[in] in Input string.
-	 * @param[out] out Output `CRawTime` object.
+	 * @param[out] out Output `UnixTime` object.
 	 */
 	template <typename TSym>
-	void To(std::basic_string_view<TSym> in, CRawTime& out)
+	void To(std::basic_string_view<TSym> in, UnixTime& out)
 	{
 		std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<time_t>> tp;
 		To(in, tp);

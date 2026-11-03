@@ -90,30 +90,30 @@ TEST(ConvertClasses, ConvertFromAnyStringViaInternalFromUtf32String) {
 //-----------------------------------------------------------------------------
 // Test conversion via global function
 //-----------------------------------------------------------------------------
-class CExternalConvertFixture
+class ExternalConvertFixture
 {
 public:
-	CExternalConvertFixture() = default;
-	explicit CExternalConvertFixture(std::string expectedValue) noexcept : value(std::move(expectedValue)) { }
+	ExternalConvertFixture() = default;
+	explicit ExternalConvertFixture(std::string expectedValue) noexcept : value(std::move(expectedValue)) { }
 
 	std::string value;
 };
 
-static void To(const CExternalConvertFixture& in, std::string& out)
+static void To(const ExternalConvertFixture& in, std::string& out)
 {
 	out = in.value;
 }
 
-static void To(std::string_view in, CExternalConvertFixture& out)
+static void To(std::string_view in, ExternalConvertFixture& out)
 {
 	out.value = in;
 }
 
 TEST(ConvertClasses, ConvertToStringViaExternalConvertFunc) {
-	const auto testFixture = CExternalConvertFixture("16384");
+	const auto testFixture = ExternalConvertFixture("16384");
 	EXPECT_EQ("16384", Convert::ToString(testFixture));
 }
 
 TEST(ConvertClasses, ConvertFromStringViaExternalConvertFunc) {
-	EXPECT_EQ("16384", Convert::To<CExternalConvertFixture>("16384").value);
+	EXPECT_EQ("16384", Convert::To<ExternalConvertFixture>("16384").value);
 }

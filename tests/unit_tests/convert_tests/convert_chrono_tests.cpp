@@ -488,23 +488,23 @@ constexpr time_t ctime9999_12_31T23_59_59 = 253402300799;
 //-----------------------------------------------------------------------------
 
 TEST(ConvertChrono, ConvertCTimeSinceEpochToUtcString) {
-	EXPECT_EQ("1970-01-01T00:00:00Z", Convert::To<std::string>(CRawTime(ctime1970_01_01T00_00_00)));
-	EXPECT_EQ(u"1970-01-01T00:00:01Z", Convert::To<std::u16string>(CRawTime(ctime1970_01_01T00_00_01)));
-	EXPECT_EQ(U"2038-01-19T03:14:07Z", Convert::To<std::u32string>(CRawTime(ctime2038_01_19T03_14_07)));
+	EXPECT_EQ("1970-01-01T00:00:00Z", Convert::To<std::string>(UnixTime(ctime1970_01_01T00_00_00)));
+	EXPECT_EQ(u"1970-01-01T00:00:01Z", Convert::To<std::u16string>(UnixTime(ctime1970_01_01T00_00_01)));
+	EXPECT_EQ(U"2038-01-19T03:14:07Z", Convert::To<std::u32string>(UnixTime(ctime2038_01_19T03_14_07)));
 #if INTPTR_MAX == INT64_MAX
-	EXPECT_EQ(L"9999-12-31T23:59:59Z", Convert::To<std::wstring>(CRawTime(ctime9999_12_31T23_59_59)));
+	EXPECT_EQ(L"9999-12-31T23:59:59Z", Convert::To<std::wstring>(UnixTime(ctime9999_12_31T23_59_59)));
 #endif
 }
 
 TEST(ConvertChrono, ConvertCTimeBeforeEpochToUtcString) {
-	EXPECT_EQ("1969-12-31T23:59:59Z", Convert::ToString(CRawTime(ctime1969_12_31T23_59_59)));
-	EXPECT_EQ("1969-12-31T06:53:00Z", Convert::ToString(CRawTime(ctime1969_12_31T06_53_00)));
-	EXPECT_EQ("1969-12-31T00:59:00Z", Convert::ToString(CRawTime(ctime1969_12_31T00_59_00)));
-	EXPECT_EQ("1969-08-01T00:00:00Z", Convert::ToString(CRawTime(ctime1969_08_01T00_00_00)));
-	EXPECT_EQ("1901-12-13T20:45:52Z", Convert::ToString(CRawTime(ctime1901_12_13T20_45_52)));
+	EXPECT_EQ("1969-12-31T23:59:59Z", Convert::ToString(UnixTime(ctime1969_12_31T23_59_59)));
+	EXPECT_EQ("1969-12-31T06:53:00Z", Convert::ToString(UnixTime(ctime1969_12_31T06_53_00)));
+	EXPECT_EQ("1969-12-31T00:59:00Z", Convert::ToString(UnixTime(ctime1969_12_31T00_59_00)));
+	EXPECT_EQ("1969-08-01T00:00:00Z", Convert::ToString(UnixTime(ctime1969_08_01T00_00_00)));
+	EXPECT_EQ("1901-12-13T20:45:52Z", Convert::ToString(UnixTime(ctime1901_12_13T20_45_52)));
 #if INTPTR_MAX == INT64_MAX
-	EXPECT_EQ("1583-01-01T00:00:00Z", Convert::ToString(CRawTime(ctime1583_01_01T00_00_00)));
-	EXPECT_EQ("0000-01-01T00:00:00Z", Convert::ToString(CRawTime(ctime0000_01_01T00_00_00)));
+	EXPECT_EQ("1583-01-01T00:00:00Z", Convert::ToString(UnixTime(ctime1583_01_01T00_00_00)));
+	EXPECT_EQ("0000-01-01T00:00:00Z", Convert::ToString(UnixTime(ctime0000_01_01T00_00_00)));
 #endif
 }
 
@@ -512,32 +512,32 @@ TEST(ConvertChrono, ConvertCTimeBeforeEpochToUtcString) {
 // Test conversion from std::string to time_t
 //-----------------------------------------------------------------------------
 TEST(ConvertChrono, ConvertUtcSinceEpochStringToCTime) {
-	EXPECT_EQ(ctime1970_01_01T00_00_00, Convert::To<CRawTime>("1970-01-01T00:00:00Z"));
-	EXPECT_EQ(ctime1970_01_01T00_00_01, Convert::To<CRawTime>(u"1970-01-01T00:00:01Z"));
-	EXPECT_EQ(ctime2038_01_19T03_14_07, Convert::To<CRawTime>(U"2038-01-19T03:14:07Z"));
+	EXPECT_EQ(ctime1970_01_01T00_00_00, Convert::To<UnixTime>("1970-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime1970_01_01T00_00_01, Convert::To<UnixTime>(u"1970-01-01T00:00:01Z"));
+	EXPECT_EQ(ctime2038_01_19T03_14_07, Convert::To<UnixTime>(U"2038-01-19T03:14:07Z"));
 #if INTPTR_MAX == INT64_MAX
-	EXPECT_EQ(ctime9999_12_31T23_59_59, Convert::To<CRawTime>(L"9999-12-31T23:59:59Z"));
+	EXPECT_EQ(ctime9999_12_31T23_59_59, Convert::To<UnixTime>(L"9999-12-31T23:59:59Z"));
 #endif
 }
 
 TEST(ConvertChrono, ConvertUtcBeforeEpochStringToCTime) {
-	EXPECT_EQ(ctime1969_12_31T23_59_59, Convert::To<CRawTime>("1969-12-31T23:59:59Z"));
-	EXPECT_EQ(ctime1969_12_31T06_53_00, Convert::To<CRawTime>("1969-12-31T06:53:00Z"));
-	EXPECT_EQ(ctime1969_12_31T00_59_00, Convert::To<CRawTime>("1969-12-31T00:59:00Z"));
-	EXPECT_EQ(ctime1969_08_01T00_00_00, Convert::To<CRawTime>(u"1969-08-01T00:00:00Z"));
+	EXPECT_EQ(ctime1969_12_31T23_59_59, Convert::To<UnixTime>("1969-12-31T23:59:59Z"));
+	EXPECT_EQ(ctime1969_12_31T06_53_00, Convert::To<UnixTime>("1969-12-31T06:53:00Z"));
+	EXPECT_EQ(ctime1969_12_31T00_59_00, Convert::To<UnixTime>("1969-12-31T00:59:00Z"));
+	EXPECT_EQ(ctime1969_08_01T00_00_00, Convert::To<UnixTime>(u"1969-08-01T00:00:00Z"));
 #if INTPTR_MAX == INT64_MAX
-	EXPECT_EQ(ctime1583_01_01T00_00_00, Convert::To<CRawTime>(U"1583-01-01T00:00:00Z"));
-	EXPECT_EQ(ctime0000_01_01T00_00_00, Convert::To<CRawTime>(L"0000-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime1583_01_01T00_00_00, Convert::To<UnixTime>(U"1583-01-01T00:00:00Z"));
+	EXPECT_EQ(ctime0000_01_01T00_00_00, Convert::To<UnixTime>(L"0000-01-01T00:00:00Z"));
 #endif
 }
 
 TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenEmpty) {
-	EXPECT_THROW(Convert::To<CRawTime>(""), std::invalid_argument);
+	EXPECT_THROW(Convert::To<UnixTime>(""), std::invalid_argument);
 }
 
 TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenOverflow) {
-	EXPECT_THROW(Convert::To<CRawTime>("+292277026596-12-04T15:30:08Z"), std::out_of_range);
-	EXPECT_THROW(Convert::To<CRawTime>("-292277022657-01-27T08:29:51Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<UnixTime>("+292277026596-12-04T15:30:08Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<UnixTime>("-292277022657-01-27T08:29:51Z"), std::out_of_range);
 }
 
 //-----------------------------------------------------------------------------

@@ -14,11 +14,11 @@ using namespace BitSerializer;
 namespace TestSpace
 {
 	// Custom string test fixture
-	class CCustomString  // NOLINT(cppcoreguidelines-special-member-functions)
+	class CustomString  // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		CCustomString() = default;
-		explicit CCustomString(std::string_view str) : mInternalString(str) {}
+		CustomString() = default;
+		explicit CustomString(std::string_view str) : mInternalString(str) {}
 
 		[[nodiscard]] const std::string& ToGenericString() const {
 			return mInternalString;
@@ -33,13 +33,13 @@ namespace TestSpace
 	};
 
 	template <typename T>
-	[[maybe_unused]] static void To(const T& in, CCustomString& out)
+	[[maybe_unused]] static void To(const T& in, CustomString& out)
 	{
 		out.Append(Convert::To<std::string>(in));
 	}
 
 	template <typename T>
-	[[maybe_unused]] static void To(const CCustomString& in, T& out)
+	[[maybe_unused]] static void To(const CustomString& in, T& out)
 	{
 		out = Convert::To<T>(in.ToGenericString());
 	}
@@ -50,37 +50,37 @@ namespace TestSpace
 //-----------------------------------------------------------------------------
 TEST(ConvertCustomString, ConvertCustomStringToNumber)
 {
-	EXPECT_EQ(100, Convert::To<int>(TestSpace::CCustomString("100")));
-	EXPECT_EQ(123.123f, Convert::To<float>(TestSpace::CCustomString("123.123")));
+	EXPECT_EQ(100, Convert::To<int>(TestSpace::CustomString("100")));
+	EXPECT_EQ(123.123f, Convert::To<float>(TestSpace::CustomString("123.123")));
 }
 
 TEST(ConvertCustomString, ConvertCustomStringToStdString)
 {
-	EXPECT_EQ("Hello world!", Convert::To<std::string>(TestSpace::CCustomString("Hello world!")));
-	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(TestSpace::CCustomString(UTF8("Привет мир!"))));
-	EXPECT_EQ(U"世界，您好！", Convert::To<std::u32string>(TestSpace::CCustomString(UTF8("世界，您好！"))));
+	EXPECT_EQ("Hello world!", Convert::To<std::string>(TestSpace::CustomString("Hello world!")));
+	EXPECT_EQ(u"Привет мир!", Convert::To<std::u16string>(TestSpace::CustomString(UTF8("Привет мир!"))));
+	EXPECT_EQ(U"世界，您好！", Convert::To<std::u32string>(TestSpace::CustomString(UTF8("世界，您好！"))));
 }
 
 TEST(ConvertCustomString, ConvertNumberToCustomString)
 {
-	EXPECT_EQ("100", Convert::To<TestSpace::CCustomString>(100).ToGenericString());
-	EXPECT_EQ("-0.1875", Convert::To<TestSpace::CCustomString>(-0.1875f).ToGenericString());
+	EXPECT_EQ("100", Convert::To<TestSpace::CustomString>(100).ToGenericString());
+	EXPECT_EQ("-0.1875", Convert::To<TestSpace::CustomString>(-0.1875f).ToGenericString());
 }
 
 TEST(ConvertCustomString, ConvertRawStringToCustomString)
 {
-	EXPECT_EQ("Hello world!", Convert::To<TestSpace::CCustomString>("Hello world!").ToGenericString());
-	EXPECT_EQ(UTF8("Привет мир!"), Convert::To<TestSpace::CCustomString>(UTF8("Привет мир!")).ToGenericString());
+	EXPECT_EQ("Hello world!", Convert::To<TestSpace::CustomString>("Hello world!").ToGenericString());
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::To<TestSpace::CustomString>(UTF8("Привет мир!")).ToGenericString());
 
-	EXPECT_EQ(UTF8("世界，您好！"), Convert::To<TestSpace::CCustomString>(u"世界，您好！").ToGenericString());
-	EXPECT_EQ(UTF8("😀😎🙋"), Convert::To<TestSpace::CCustomString>(U"😀😎🙋").ToGenericString());
+	EXPECT_EQ(UTF8("世界，您好！"), Convert::To<TestSpace::CustomString>(u"世界，您好！").ToGenericString());
+	EXPECT_EQ(UTF8("😀😎🙋"), Convert::To<TestSpace::CustomString>(U"😀😎🙋").ToGenericString());
 }
 
 TEST(ConvertCustomString, ConvertStdStringToCustomString)
 {
-	EXPECT_EQ("Hello world!", Convert::To<TestSpace::CCustomString>(std::string("Hello world!")).ToGenericString());
-	EXPECT_EQ(UTF8("Привет мир!"), Convert::To<TestSpace::CCustomString>(std::u16string(u"Привет мир!")).ToGenericString());
-	EXPECT_EQ(UTF8("😀😎🙋"), Convert::To<TestSpace::CCustomString>(std::u32string(U"😀😎🙋")).ToGenericString());
+	EXPECT_EQ("Hello world!", Convert::To<TestSpace::CustomString>(std::string("Hello world!")).ToGenericString());
+	EXPECT_EQ(UTF8("Привет мир!"), Convert::To<TestSpace::CustomString>(std::u16string(u"Привет мир!")).ToGenericString());
+	EXPECT_EQ(UTF8("😀😎🙋"), Convert::To<TestSpace::CustomString>(std::u32string(U"😀😎🙋")).ToGenericString());
 }
 
 #pragma warning(pop)

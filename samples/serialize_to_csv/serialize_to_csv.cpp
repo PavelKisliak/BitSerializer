@@ -8,7 +8,7 @@ using namespace std::chrono;
 using namespace BitSerializer;
 using CsvArchive = BitSerializer::Csv::CsvArchive;
 
-class CUserScore
+class UserScore
 {
 public:
 	template <class TArchive>
@@ -29,7 +29,7 @@ public:
 int main()	// NOLINT(bugprone-exception-escape)
 {
 	constexpr auto tp2023_01_01 = time_point<system_clock, seconds>(seconds(1672531200));
-	std::vector<CUserScore> highScores = {
+	std::vector<UserScore> highScores = {
 		{"Ivan", 99565, tp2023_01_01 + 15h + 3min, 2min + 10s},
 		{"Carl", 90580, tp2023_01_01 - 10h + 2min, 2min + 56s},
 		{"Kate", 75005, tp2023_01_01 - 1325h + 7min, 1min + 43s},
@@ -45,7 +45,7 @@ int main()	// NOLINT(bugprone-exception-escape)
 	std::cout << outputStr << std::endl;
 
 	// Load from CSV
-	std::vector<CUserScore> parsedHighScores;
+	std::vector<UserScore> parsedHighScores;
 	BitSerializer::LoadObject<CsvArchive>(parsedHighScores, outputStr);
 
 	std::cout << std::endl << "Parsed CSV:" << std::endl << std::endl;

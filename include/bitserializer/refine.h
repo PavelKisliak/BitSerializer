@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include "bitserializer/common/text.h"
 #include "bitserializer/convert.h"
@@ -44,7 +45,7 @@ namespace BitSerializer::Refine
 
 	// Deduction guide for constructing `Fallback` class
 	template<class T>
-	Fallback(T&&) -> Fallback<T>;
+	Fallback(T&&) -> Fallback<std::decay_t<T>>;
 
 	namespace Detail
 	{

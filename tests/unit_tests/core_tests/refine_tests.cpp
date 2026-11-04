@@ -66,6 +66,21 @@ TEST(RefineFallback, ShouldConstructFallbackValueFromVarArgs)
 	EXPECT_EQ("---", testValue);
 }
 
+TEST(RefineFallback, ShouldCopyLvalueFallbackValue)
+{
+	// Arrange
+	std::string defaultValue = "fallback";
+	auto fallback = Refine::Fallback(defaultValue);
+	defaultValue = "changed";
+	std::string testValue = "test";
+
+	// Act
+	fallback(testValue, false);
+
+	// Assert
+	EXPECT_EQ("fallback", testValue);
+}
+
 //-----------------------------------------------------------------------------
 // Tests for 'TrimWhitespace' refiner
 //-----------------------------------------------------------------------------

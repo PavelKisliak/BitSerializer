@@ -265,7 +265,12 @@ namespace AutoFixture
 	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
 	void BuildFixture(Fixture& fixture, T& value)
 	{
-		const auto randIndex = fixture.Rand() % BitSerializer::Convert::Detail::EnumRegistry<T>::size();
+		const auto enumSize = BitSerializer::Convert::Detail::EnumRegistry<T>::size();
+		if (enumSize == 0) {
+			value = T{};
+			return;
+		}
+		const auto randIndex = fixture.Rand() % enumSize;
 		value = (BitSerializer::Convert::Detail::EnumRegistry<T>::cbegin() + randIndex)->value;
 	}
 

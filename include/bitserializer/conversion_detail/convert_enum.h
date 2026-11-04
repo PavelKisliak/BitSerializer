@@ -4,9 +4,10 @@
 *******************************************************************************/
 #pragma once
 #include <string>
-#include <cctype>
 #include <cstring>
 #include <stdexcept>
+#include <type_traits>
+#include "bitserializer/common/text.h"
 
 
 /**
@@ -66,7 +67,7 @@ template <class TSym, class TTraits = std::char_traits<TSym>> \
 std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enumType& value) \
 { \
 	TSym sym; std::basic_string<TSym, TTraits> str; \
-	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = static_cast<TSym>(stream.get())) { \
+	for (stream >> sym; !stream.eof() && !::BitSerializer::Text::IsWhitespace(sym); sym = static_cast<TSym>(stream.get())) { \
 		str.push_back(sym); } \
 	BitSerializer::Convert::Detail::To(std::basic_string_view<TSym>(str), value); \
 	return stream; \
@@ -86,7 +87,7 @@ template <class TSym, class TTraits = std::char_traits<TSym>> \
 std::basic_istream<TSym, TTraits>& operator>>(std::basic_istream<TSym, TTraits>& stream, enumType& value) \
 { \
 	TSym sym; std::basic_string<TSym, TTraits> str; \
-	for (stream >> sym; !stream.eof() && !std::isspace(sym); sym = static_cast<TSym>(stream.get())) { \
+	for (stream >> sym; !stream.eof() && !::BitSerializer::Text::IsWhitespace(sym); sym = static_cast<TSym>(stream.get())) { \
 		str.push_back(sym); } \
 	BitSerializer::Convert::Detail::To(std::basic_string_view<TSym>(str), value); \
 	return stream; \
@@ -192,9 +193,13 @@ namespace BitSerializer::Convert::Detail
 				if (it->name.size() == nameSize)
 				{
 					bool isMatched = true;
+					using UChar = std::make_unsigned_t<TSym>;
 					for (size_t i = 0; i < nameSize; ++i)
 					{
-						if (std::tolower(static_cast<int>(it->name[i])) != std::tolower(name[i]))
+						const auto lhs = static_cast<unsigned char>(it->name[i]);
+						const auto rhs = static_cast<UChar>(name[i]);
+						if (lhs > 0x7F || rhs > static_cast<UChar>(0x7F) ||
+							Text::ToAsciiLower(lhs) != Text::ToAsciiLower(static_cast<unsigned char>(rhs)))
 						{
 							isMatched = false;
 							break;
@@ -213,7 +218,7 @@ namespace BitSerializer::Convert::Detail
 		 * @brief Returns the number of registered enum values.
 		 */
 		[[nodiscard]] static size_t size() noexcept {
-			return mEndIt - mBeginIt;
+			return mBeginIt == nullptr ? 0 : static_cast<size_t>(mEndIt - mBeginIt);
 		}
 
 		/**

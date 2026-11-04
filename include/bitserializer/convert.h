@@ -4,6 +4,7 @@
 *******************************************************************************/
 #pragma once
 #include <optional>
+#include <string>
 #include "bitserializer/config.h"
 #include "bitserializer/conversion_detail/convert_fundamental.h"
 #include "bitserializer/conversion_detail/convert_detail.h"
@@ -120,7 +121,7 @@ namespace BitSerializer::Convert
 	}
 
 	/**
-	 * @brief Converts a value to `std::wstring` (syntax sugar for To<std::wstring>()).
+	 * @brief Converts a value to `std::wstring` (syntax sugar for `To<std::wstring>()`).
 	 *
 	 * @tparam TIn Source type.
 	 * @param[in] value Input value to convert.

@@ -24,8 +24,8 @@ namespace BitSerializer::Convert::Detail
 	 *
 	 * @param[in] sourceValue The value to convert from.
 	 * @param[out] targetValue The converted value will be stored here.
-	 * @throws std::out_of_range If the conversion resulted in data loss.
-	 * @throws std::invalid_argument If attempted conversion float to integer or negative value to unsigned.
+	 * @throws std::out_of_range If the value cannot be represented in the target type.
+	 * @throws std::invalid_argument If the conversion is not allowed (float to integer, negative value to unsigned).
 	 */
 	template <typename TSource, typename TTarget, std::enable_if_t<std::is_arithmetic_v<TSource>&& std::is_arithmetic_v<TTarget>, int> = 0>
 	void To(const TSource& sourceValue, TTarget& targetValue)
@@ -128,7 +128,8 @@ namespace BitSerializer::Convert::Detail
 			// Check that string does not contain decimal fractions (parsing a float number to integer is not allowed)
 			if constexpr (std::is_integral_v<T>)
 			{
-				if (rc.ptr + 1 < str.data() + str.size() && *rc.ptr == '.' && std::isdigit(*(rc.ptr + 1)))
+				if (rc.ptr + 1 < str.data() + str.size() && *rc.ptr == '.' &&
+					*(rc.ptr + 1) >= '0' && *(rc.ptr + 1) <= '9')
 				{
 					throw std::invalid_argument("Unable to convert string with float number to integer");
 				}
@@ -195,7 +196,7 @@ namespace BitSerializer::Convert::Detail
 				return;
 			}
 
-			// Allow to read unsigned to boolean
+			// Allow reading an unsigned value into a boolean
 			if (static_cast<unsigned>(startIt[0] - static_cast<TSym>('0')) <= 9u)
 			{
 				if (startIt[0] == '1' && (size == 1 ||
@@ -221,7 +222,7 @@ namespace BitSerializer::Convert::Detail
 	/**
 	 * @brief Converts a numeric value (integral or floating-point) to a UTF string.
 	 *
-	 * The output is formatted as a decimal string without scientific notation.
+	 * The output uses the shortest round-trippable representation (it may use scientific notation).
 	 *
 	 * @param[in] in Value to convert.
 	 * @param[out] out Output string containing the UTF-encoded representation.
@@ -267,7 +268,7 @@ namespace BitSerializer::Convert::Detail
 	/**
 	 * @brief Converts a boolean type to any UTF string.
 	 *
-	 * The output representation is "true|false", please cast your boolean type to `int` if you would like to represent it as "1|0".
+	 * The output representation is "true|false"; cast the boolean to `int` if you want to represent it as "1|0".
 	 *
 	 * @param[in] in Boolean value to convert.
 	 * @param[out] out Output string with "true" or "false".

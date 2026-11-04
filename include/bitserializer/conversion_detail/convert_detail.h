@@ -169,7 +169,7 @@ namespace BitSerializer::Convert::Detail
 				out.FromString(std::u32string_view(static_cast<const char32_t*>(in.data()), in.size()));
 			}
 			// Otherwise use conversion methods for other encodings with transcoding
-			if constexpr (hasInternalFromString_Utf8) {
+			else if constexpr (hasInternalFromString_Utf8) {
 				std::string utf8Str;
 				Utf::Utf8::Encode(in.cbegin(), in.cend(), utf8Str);
 				out.FromString(utf8Str);

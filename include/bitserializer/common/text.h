@@ -226,21 +226,15 @@ namespace BitSerializer::Text
 		while (first != last && IsWhitespace(*first)) {
 			++first;
 		}
-
-		size_t newLength = 0;
-		if (first != last)
-		{
-			auto lastNonWs = last - 1;
-			while (lastNonWs >= first && IsWhitespace(*lastNonWs)) {
-				--lastNonWs;
-			}
-			newLength = static_cast<size_t>(lastNonWs - first + 1);
+		while (last != first && IsWhitespace(*(last - 1))) {
+			--last;
 		}
 
-		if (first != str.begin() && newLength > 0)
+		const auto newLength = static_cast<size_t>(last - first);
+		if (first != str.begin())
 		{
 			auto dest = str.begin();
-			for (auto src = first; src != first + newLength; ++src, ++dest) {
+			for (auto src = first; src != last; ++src, ++dest) {
 				*dest = *src;
 			}
 		}

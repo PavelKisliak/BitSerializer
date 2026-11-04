@@ -4,6 +4,8 @@
 *******************************************************************************/
 #pragma once
 #include <cmath>
+#include <limits>
+#include <stdexcept>
 #include "bitserializer/serialization_detail/object_traits.h"
 #include "bitserializer/convert.h"
 
@@ -75,7 +77,7 @@ namespace BitSerializer::Validate
 				else if constexpr (std::is_same_v<TCompareOp<T>, std::less_equal<T>>) {
 					return "Value must be less than or equal to " + Convert::ToString(mThreshold);
 				}
-				//return "Validation failed";
+				return "Validation failed";
 			}
 
 			T mThreshold;
@@ -165,8 +167,11 @@ namespace BitSerializer::Validate
 
 	/**
 	 * @brief Validates that a numeric value is a multiple of a specified divisor.
-	 * 
+	 *
 	 * For floating-point types, uses epsilon-based comparison to handle precision issues.
+	 * Negative divisors are supported.
+	 *
+	 * @throws std::invalid_argument If the divisor is zero or too small.
 	 */
 	template <typename T>
 	class MultipleOf
@@ -176,11 +181,11 @@ namespace BitSerializer::Validate
 			: mDivisor(divisor)
 			, mErrorMessage(errorMessage)
 		{
-			static_assert(std::is_arithmetic_v<T>, "MultipleOfValidator supports only arithmetic types");
+			static_assert(std::is_arithmetic_v<T>, "MultipleOf supports only arithmetic types");
 			if constexpr (std::is_floating_point_v<T>)
 			{
-				if (mDivisor <= std::numeric_limits<T>::epsilon()) {
-					throw std::invalid_argument("Divisor must be greater than epsilon for floating-point types");
+				if (std::abs(mDivisor) <= std::numeric_limits<T>::epsilon()) {
+					throw std::invalid_argument("Absolute divisor must be greater than epsilon for floating-point types");
 				}
 			}
 			else
@@ -266,7 +271,7 @@ namespace BitSerializer::Validate
 			if (mErrorMessage) {
 				return mErrorMessage;
 			}
-			return "Size must be less than " + Convert::ToString(mMinSize);
+			return "Size must be at least " + Convert::ToString(mMinSize);
 		}
 
 	private:
@@ -444,8 +449,9 @@ namespace BitSerializer::Validate
 	/**
 	 * @brief Validates that a string matches a phone number pattern.
 	 *
-	 * Allows optional '+' prefix, parentheses, spaces, and dashes.
-	 * Examples: "+1 (800) 123-45-67", "800 123 4567", "(800)123-4567".
+	 * Allows an optional '+' prefix (controlled by `plusRequired`), parentheses, spaces, and dashes.
+	 * With the default settings: "+1 (800) 123-45-67", "+44 20 7123 1234".
+	 * With `plusRequired = false`: "800 123 4567", "(800)123-4567".
 	 */
 	class PhoneNumber
 	{
@@ -537,7 +543,7 @@ namespace BitSerializer::Validate
 			if (digitCount < mMinDigits || digitCount > mMaxDigits)
 			{
 				if (mMinDigits == mMaxDigits) {
-					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Phone must contain at least " + Convert::ToString(mMinDigits) + " digits");
+					return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Phone must contain exactly " + Convert::ToString(mMinDigits) + " digits");
 				}
 				return mErrorMessage ? mErrorMessage : std::make_optional<std::string>("Phone must contain "
 					+ Convert::ToString(mMinDigits) + " to " + Convert::ToString(mMaxDigits) + " digits");
@@ -553,7 +559,10 @@ namespace BitSerializer::Validate
 	};
 
 	/**
-	 * @brief Validates that a value is a valid UUID (RFC 4122 and RFC 9562).
+	 * @brief Validates the canonical textual form of a UUID (8-4-4-4-12 hex digits with hyphens).
+	 *
+	 * This checks the RFC 4122/9562 textual layout only. The version and variant bits are not
+	 * validated; use a dedicated UUID library if semantic UUID validation is required.
 	 */
 	class Uuid
 	{

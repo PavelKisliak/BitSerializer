@@ -421,6 +421,15 @@ TEST(ValidatorMultipleOf, ShouldValidateWithNegativeDivisor)
 	EXPECT_TRUE(validator(-7, true).has_value());
 }
 
+TEST(ValidatorMultipleOf, ShouldValidateWithNegativeFloatDivisor)
+{
+	const auto validator = Validate::MultipleOf(-0.5);
+
+	EXPECT_FALSE(validator(1.0, true).has_value());
+	EXPECT_FALSE(validator(-1.5, true).has_value());
+	EXPECT_TRUE(validator(0.75, true).has_value());
+}
+
 TEST(ValidatorMultipleOf, ShouldThrowsExceptionWhenZeroDivisor)
 {
 	EXPECT_THROW(Validate::MultipleOf(0), std::invalid_argument);
@@ -498,7 +507,8 @@ TEST(ValidatorMinSize, ShouldReturnErrorIfSizeIsLess)
 	const auto result = validator(testValue, true);
 
 	// Assert
-	EXPECT_TRUE(result.has_value());
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Size must be at least 10", result.value());
 }
 
 TEST(ValidatorMinSize, ShouldReturnCustomErrorMessage)
@@ -750,6 +760,26 @@ TEST(ValidatorPhoneNumber, TestValidPhonesWithoutPlus)
 	EXPECT_FALSE(validator("(555) 555-55-55", true).has_value());
 	EXPECT_FALSE(validator("44 20 7123 1234", true).has_value());
 	EXPECT_FALSE(validator(" (55) 555-5555 ", true).has_value());
+}
+
+TEST(ValidatorPhoneNumber, ShouldRequirePlusByDefault)
+{
+	const auto validator = Validate::PhoneNumber();
+
+	const auto result = validator("800 123 4567", true);
+
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Phone number must start with '+'", result.value());
+}
+
+TEST(ValidatorPhoneNumber, ShouldReportExactDigitsWhenMinEqualsMax)
+{
+	const auto validator = Validate::PhoneNumber(10, 10);
+
+	const auto result = validator("+123456789", true);
+
+	ASSERT_TRUE(result.has_value());
+	EXPECT_EQ("Phone must contain exactly 10 digits", result.value());
 }
 
 TEST(ValidatorPhoneNumber, TestPhonesWithInvalidNumberOfDigits)

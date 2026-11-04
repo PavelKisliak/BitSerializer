@@ -546,8 +546,8 @@ TEST(ConvertChrono, ConvertCTimeShouldThrowExceptionWhenOverflow) {
 TEST(ConvertChrono, ConvertTmToUtcString)
 {
 	std::tm tm{};
-	tm.tm_year = 2023;
-	tm.tm_mon = 9;
+	tm.tm_year = 2023 - 1900;
+	tm.tm_mon = 9 - 1;
 	tm.tm_mday = 5;
 	tm.tm_hour = 22;
 	tm.tm_min = 59;
@@ -561,8 +561,8 @@ TEST(ConvertChrono, ConvertTmToUtcString)
 TEST(ConvertChrono, ConvertUtcStringToTm)
 {
 	const auto tm = Convert::To<std::tm>("2023-09-05T22:59:35Z");
-	EXPECT_EQ(2023, tm.tm_year);
-	EXPECT_EQ(9, tm.tm_mon);
+	EXPECT_EQ(2023 - 1900, tm.tm_year);
+	EXPECT_EQ(9 - 1, tm.tm_mon);
 	EXPECT_EQ(5, tm.tm_mday);
 	EXPECT_EQ(22, tm.tm_hour);
 	EXPECT_EQ(59, tm.tm_min);
@@ -583,5 +583,14 @@ TEST(ConvertChrono, ConvertUtcStringToTmShouldThrowExceptionWhenInvalidTime) {
 }
 
 TEST(ConvertChrono, ConvertUtcStringToTmShouldThrowExceptionWhenOverflow) {
-	EXPECT_THROW(Convert::To<tm>("+2147483648-12-04T15:30:07Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<tm>("+2147485548-12-04T15:30:07Z"), std::out_of_range);
+	EXPECT_THROW(Convert::To<tm>("-2147481749-12-04T15:30:07Z"), std::out_of_range);
+}
+
+TEST(ConvertChrono, ConvertUtcStringToTmShouldAcceptBoundaryYears) {
+	const auto maxTm = Convert::To<tm>("+2147485547-12-04T15:30:07Z");
+	EXPECT_EQ((std::numeric_limits<int>::max)(), maxTm.tm_year);
+
+	const auto minTm = Convert::To<tm>("-2147481748-12-04T15:30:07Z");
+	EXPECT_EQ((std::numeric_limits<int>::min)(), minTm.tm_year);
 }

@@ -4,13 +4,13 @@
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
-#include <cctype>
 #include <cstdlib>
 #include <cinttypes>
 #include <climits>
 #include <chrono>
 #include <charconv>
 #include <optional>
+#include "bitserializer/common/text.h"
 #include "bitserializer/conversion_detail/convert_utf.h"
 
 
@@ -42,25 +42,25 @@ namespace BitSerializer
 
 namespace BitSerializer::Convert::Detail
 {
-	constexpr size_t UtcBufSize = 32;
+	constexpr size_t UtcBufSize = 64;
 	constexpr int DaysInMonth[12] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 	template <class TFractions = std::chrono::nanoseconds,
 		std::enable_if_t<TFractions::period::num == 1 && std::chrono::seconds::period::den < TFractions::period::den, int> = 0>
-		struct DateTimeParts
+	struct DateTimeParts
 	{
 		DateTimeParts() = default;
 		DateTimeParts(const tm& tm, std::optional<TFractions> inSecFractions = std::nullopt)
-			: year(tm.tm_year), month(tm.tm_mon), day(tm.tm_mday), hour(tm.tm_hour)
+			: year(static_cast<int64_t>(tm.tm_year) + 1900), month(tm.tm_mon + 1), day(tm.tm_mday), hour(tm.tm_hour)
 			, min(tm.tm_min), sec(tm.tm_sec), secFractions(inSecFractions)
 		{ }
 
 		int64_t year = 0;
 		int month = 1;
 		int day = 1;
-		int hour = 1;
-		int min = 1;
-		int sec = 1;
+		int hour = 0;
+		int min = 0;
+		int sec = 0;
 		std::optional<TFractions> secFractions;
 	};
 
@@ -333,7 +333,7 @@ namespace BitSerializer::Convert::Detail
 		{
 			auto parseDatetimePart = [](const char* buf, const char* end, auto& outValue, std::optional<int> minValue = std::nullopt, std::optional<int> maxValue = std::nullopt, char delimiter = 0, bool isYear = false) -> const char*
 			{
-				if (buf != end && (std::isdigit(*buf) || isYear))
+				if (buf != end && ((*buf >= '0' && *buf <= '9') || isYear))
 				{
 					if (isYear && *buf == '+') {
 						++buf;
@@ -412,14 +412,15 @@ namespace BitSerializer::Convert::Detail
 			if (utc.year >= 10000) {
 				*pos++ = '+';
 			}
-			const size_t outSize = snprintf(pos, endPos - pos, "%04" PRId64 "-%02d-%02dT%02d:%02d:%02d", utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec);
-			if (outSize > 0)
+			const auto remainingSize = static_cast<size_t>(endPos - pos);
+			const int outSize = snprintf(pos, remainingSize, "%04" PRId64 "-%02d-%02dT%02d:%02d:%02d", utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec);
+			if (outSize > 0 && static_cast<size_t>(outSize) < remainingSize)
 			{
 				pos += outSize;
 				if (utc.secFractions) {
 					pos = PrintSecondsFractions(pos, endPos, utc.secFractions.value());
 				}
-				if (pos != endPos)
+				if (pos != nullptr && pos != endPos)
 				{
 					*pos++ = 'Z';
 					return pos;
@@ -431,6 +432,9 @@ namespace BitSerializer::Convert::Detail
 
 	/**
 	 * @brief Converts UTC expressed in the `tm` structure to `std::string` (ISO 8601/UTC).
+	 *
+	 * Uses the standard `std::tm` conventions: `tm_year` is the number of years since 1900
+	 * and `tm_mon` is zero-based.
 	 *
 	 * @param[in] in Input `tm` structure.
 	 * @param[out] out Output string.
@@ -447,6 +451,9 @@ namespace BitSerializer::Convert::Detail
 	/**
 	 * @brief Converts from `std::string_view` (ISO 8601/UTC format: YYYY-MM-DDThh:mm:ssZ) to `tm` structure.
 	 *
+	 * Uses the standard `std::tm` conventions: `tm_year` is the number of years since 1900
+	 * and `tm_mon` is zero-based.
+	 *
 	 * @param[in] in Input string.
 	 * @param[out] out Output `tm` structure.
 	 */
@@ -454,11 +461,13 @@ namespace BitSerializer::Convert::Detail
 	void To(std::basic_string_view<TSym> in, tm& out)
 	{
 		const DateTimeParts<> utc = ParseIsoUtc(in);
-		if (utc.year > (std::numeric_limits<int>::max)() || utc.year < (std::numeric_limits<int>::min)()) {
+		constexpr auto minYear = static_cast<int64_t>((std::numeric_limits<int>::min)()) + 1900;
+		constexpr auto maxYear = static_cast<int64_t>((std::numeric_limits<int>::max)()) + 1900;
+		if (utc.year < minYear || utc.year > maxYear) {
 			throw std::out_of_range("The target range of years in the `tm` structure is not sufficient");
 		}
-		out.tm_year = static_cast<int>(utc.year);
-		out.tm_mon = utc.month;
+		out.tm_year = static_cast<int>(utc.year - 1900);
+		out.tm_mon = utc.month - 1;
 		out.tm_mday = utc.day;
 		out.tm_hour = utc.hour;
 		out.tm_min = utc.min;
@@ -624,9 +633,10 @@ namespace BitSerializer::Convert::Detail
 	/**
 	 * @brief Converts from `std::string_view` (ISO 8601/Duration format: PnWnDTnHnMnS) to `std::chrono::duration`.
 	 *
-	 * Durations which contains years, month, or with base UTC (2003-02-15T00:00:00Z/P2M) are not allowed.
-	 * The decimal fraction supported only for seconds part, maximum 9 digits.
-	 * Negative durations are supported (but they are not defined officially).
+	 * Durations that contain years or months, or that are relative to a UTC base
+	 * (e.g. `2003-02-15T00:00:00Z/P2M`), are not supported.
+	 * A decimal fraction is supported only for the seconds part, with at most 9 digits.
+	 * Negative durations are supported (although they are not officially defined).
 	 *
 	 * Examples:
 	 * - P25DT55M41S
@@ -671,7 +681,7 @@ namespace BitSerializer::Convert::Detail
 					throw std::invalid_argument("Input string is not a valid ISO duration: PnWnDTnHnMnS");
 				};
 
-				if (pos != end && std::isdigit(*pos))
+				if (pos != end && *pos >= '0' && *pos <= '9')
 				{
 					uint64_t value = 0;
 					const std::from_chars_result result = std::from_chars(pos, end, value);
@@ -743,7 +753,7 @@ namespace BitSerializer::Convert::Detail
 							++pos;
 						}
 						pos = parseNextPart(pos, end, isDatePart, isNegative, duration);
-					} while (pos != end && !std::isspace(*pos));
+					} while (pos != end && !Text::IsWhitespace(*pos));
 					return duration;
 				}
 			}

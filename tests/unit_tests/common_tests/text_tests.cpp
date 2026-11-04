@@ -36,6 +36,37 @@ TEST(IsWhitespaceTest, CheckWideCharacters)
 }
 
 //-----------------------------------------------------------------------------
+// Test ToAsciiLower() / ToAsciiUpper()
+//-----------------------------------------------------------------------------
+TEST(AsciiCaseConversionTest, ShouldConvertLetters)
+{
+	EXPECT_EQ('a', Text::ToAsciiLower('A'));
+	EXPECT_EQ('z', Text::ToAsciiLower('Z'));
+	EXPECT_EQ('A', Text::ToAsciiUpper('a'));
+	EXPECT_EQ('Z', Text::ToAsciiUpper('z'));
+}
+
+TEST(AsciiCaseConversionTest, ShouldLeaveOtherCharactersUnchanged)
+{
+	EXPECT_EQ('1', Text::ToAsciiLower('1'));
+	EXPECT_EQ('@', Text::ToAsciiLower('@'));
+	EXPECT_EQ('1', Text::ToAsciiUpper('1'));
+	EXPECT_EQ('@', Text::ToAsciiUpper('@'));
+
+	const auto nonAscii = static_cast<unsigned char>(0xC0);
+	EXPECT_EQ(nonAscii, Text::ToAsciiLower(nonAscii));
+	EXPECT_EQ(nonAscii, Text::ToAsciiUpper(nonAscii));
+}
+
+TEST(AsciiCaseConversionTest, ShouldConvertWideCharacters)
+{
+	EXPECT_EQ(u'a', Text::ToAsciiLower(u'A'));
+	EXPECT_EQ(U'z', Text::ToAsciiLower(U'Z'));
+	EXPECT_EQ(L'A', Text::ToAsciiUpper(L'a'));
+	EXPECT_EQ(U'Z', Text::ToAsciiUpper(U'z'));
+}
+
+//-----------------------------------------------------------------------------
 // Test TrimWhitespace() for mutable strings
 //-----------------------------------------------------------------------------
 TEST(TrimWhitespaceTest, ShouldTrimUtf8String)
@@ -249,4 +280,60 @@ TEST(TextEqualTest, ShouldCompareBoundaryLengthsSevenEightNine)
 	EXPECT_TRUE(Text::Equal("123456789", std::string_view("123456789")));
 	EXPECT_FALSE(Text::Equal("1234567", "1234560"));
 	EXPECT_TRUE(Text::Equal("123456789", "123456789"));
+}
+
+//-----------------------------------------------------------------------------
+// Test EqualIgnoreCase()
+//-----------------------------------------------------------------------------
+TEST(EqualIgnoreCaseTest, ShouldCompareStringViews)
+{
+	EXPECT_TRUE(Text::EqualIgnoreCase(std::string_view("HeLLo"), std::string_view("hello")));
+	EXPECT_TRUE(Text::EqualIgnoreCase(std::string("ABC"), std::string("abc")));
+	EXPECT_FALSE(Text::EqualIgnoreCase(std::string_view("Hello"), std::string_view("world")));
+	EXPECT_FALSE(Text::EqualIgnoreCase(std::string_view("Hello"), std::string_view("hell")));
+}
+
+TEST(EqualIgnoreCaseTest, ShouldCompareWithStringLiterals)
+{
+	EXPECT_TRUE(Text::EqualIgnoreCase(std::string_view("HeLLo"), "hello"));
+	EXPECT_TRUE(Text::EqualIgnoreCase("hello", std::string_view("HeLLo")));
+	EXPECT_TRUE(Text::EqualIgnoreCase("HeLLo", "hello"));
+	EXPECT_FALSE(Text::EqualIgnoreCase("Hello", "world"));
+}
+
+TEST(EqualIgnoreCaseTest, ShouldOnlyFoldAsciiLetters)
+{
+	EXPECT_TRUE(Text::EqualIgnoreCase("a1-b2", "A1-B2"));
+	EXPECT_FALSE(Text::EqualIgnoreCase("abc", "abC "));
+	EXPECT_FALSE(Text::EqualIgnoreCase("a@", "a`"));
+	EXPECT_FALSE(Text::EqualIgnoreCase("a[", "a{"));
+
+	const std::string nonAsciiA = "\xC3\x84";	// UTF-8 "Ä"
+	const std::string nonAsciiB = "\xC3\xA4";	// UTF-8 "ä"
+	EXPECT_TRUE(Text::EqualIgnoreCase(nonAsciiA, nonAsciiA));
+	EXPECT_FALSE(Text::EqualIgnoreCase(nonAsciiA, nonAsciiB));
+}
+
+TEST(EqualIgnoreCaseTest, ShouldWorkAtCompileTime)
+{
+	static_assert(Text::EqualIgnoreCase("HeLLo", "hello"));
+	static_assert(!Text::EqualIgnoreCase("Hello", "world"));
+	static_assert(!Text::EqualIgnoreCase("Hello", "hell"));
+}
+
+TEST(EqualIgnoreCaseTest, ShouldSupportWideCharacterTypes)
+{
+	EXPECT_TRUE(Text::EqualIgnoreCase(std::wstring_view(L"HeLLo"), std::wstring_view(L"hello")));
+	EXPECT_FALSE(Text::EqualIgnoreCase(std::wstring_view(L"Hello"), std::wstring_view(L"world")));
+
+	EXPECT_TRUE(Text::EqualIgnoreCase(std::u16string_view(u"ABC"), u"abc"));
+	EXPECT_TRUE(Text::EqualIgnoreCase(u"abc", std::u16string_view(u"ABC")));
+	EXPECT_TRUE(Text::EqualIgnoreCase(U"Hello", U"hello"));
+}
+
+TEST(EqualIgnoreCaseTest, ShouldSupportWideCompileTimeComparison)
+{
+	static_assert(Text::EqualIgnoreCase(u"HeLLo", u"hello"));
+	static_assert(Text::EqualIgnoreCase(U"HELLO", U"hello"));
+	static_assert(!Text::EqualIgnoreCase(L"Hello", L"world"));
 }

@@ -5,6 +5,7 @@
 #pragma once
 #include <cstddef>
 #include <string_view>
+#include <type_traits>
 #include "bitserializer/common/memory.h"
 
 namespace BitSerializer::Text
@@ -102,6 +103,113 @@ namespace BitSerializer::Text
 			c == static_cast<TChar>('\t') ||
 			c == static_cast<TChar>('\n') ||
 			c == static_cast<TChar>('\r');
+	}
+
+	/**
+	 * @brief Converts an ASCII uppercase letter to lowercase.
+	 *
+	 * The conversion is locale-independent and branchless; non-ASCII characters are returned unchanged.
+	 *
+	 * @param c Character to convert.
+	 * @return Lowercase ASCII character, or the original character.
+	 */
+	template <typename TChar>
+	constexpr TChar ToAsciiLower(TChar c) noexcept
+	{
+		using UChar = std::make_unsigned_t<TChar>;
+		const auto value = static_cast<UChar>(c);
+		return static_cast<TChar>(value >= static_cast<UChar>('A') && value <= static_cast<UChar>('Z')
+			? static_cast<UChar>(value + ('a' - 'A'))
+			: value);
+	}
+
+	/**
+	 * @brief Converts an ASCII lowercase letter to uppercase.
+	 *
+	 * The conversion is locale-independent and branchless; non-ASCII characters are returned unchanged.
+	 *
+	 * @param c Character to convert.
+	 * @return Uppercase ASCII character, or the original character.
+	 */
+	template <typename TChar>
+	constexpr TChar ToAsciiUpper(TChar c) noexcept
+	{
+		using UChar = std::make_unsigned_t<TChar>;
+		const auto value = static_cast<UChar>(c);
+		return static_cast<TChar>(value >= static_cast<UChar>('a') && value <= static_cast<UChar>('z')
+			? static_cast<UChar>(value - ('a' - 'A'))
+			: value);
+	}
+
+	namespace Detail
+	{
+		/**
+		 * @brief Compares two character ranges as ASCII strings, ignoring case.
+		 */
+		template <typename TChar>
+		[[nodiscard]] constexpr bool EqualIgnoreCaseBytes(std::basic_string_view<TChar> lhs, std::basic_string_view<TChar> rhs) noexcept
+		{
+			if (lhs.size() != rhs.size()) {
+				return false;
+			}
+			for (std::size_t i = 0; i < lhs.size(); ++i)
+			{
+				if (ToAsciiLower(lhs[i]) != ToAsciiLower(rhs[i])) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	/**
+	 * @brief Compares two ASCII strings case-insensitively.
+	 *
+	 * Only ASCII letters are case-folded; non-ASCII characters must match exactly.
+	 */
+	[[nodiscard]] constexpr bool EqualIgnoreCase(std::string_view lhs, std::string_view rhs) noexcept
+	{
+		return Detail::EqualIgnoreCaseBytes(lhs, rhs);
+	}
+
+	/**
+	 * @brief Compares two ASCII strings case-insensitively.
+	 *
+	 * Only ASCII letters are case-folded; non-ASCII characters must match exactly.
+	 */
+	template <typename TChar>
+	[[nodiscard]] constexpr bool EqualIgnoreCase(std::basic_string_view<TChar> lhs, std::basic_string_view<TChar> rhs) noexcept
+	{
+		return Detail::EqualIgnoreCaseBytes(lhs, rhs);
+	}
+
+	/**
+	 * @brief Compares an ASCII string view with a character array, ignoring case.
+	 */
+	template <typename TChar, std::size_t N>
+	[[nodiscard]] constexpr bool EqualIgnoreCase(std::basic_string_view<TChar> lhs, const TChar (&rhs)[N]) noexcept
+	{
+		return Detail::EqualIgnoreCaseBytes(lhs, std::basic_string_view<TChar>(rhs, N - 1));
+	}
+
+	/**
+	 * @brief Compares a character array with an ASCII string view, ignoring case.
+	 */
+	template <typename TChar, std::size_t N>
+	[[nodiscard]] constexpr bool EqualIgnoreCase(const TChar (&lhs)[N], std::basic_string_view<TChar> rhs) noexcept
+	{
+		return Detail::EqualIgnoreCaseBytes(std::basic_string_view<TChar>(lhs, N - 1), rhs);
+	}
+
+	/**
+	 * @brief Compares two character arrays case-insensitively at compile time.
+	 */
+	template <typename TChar, std::size_t N, std::size_t M>
+	[[nodiscard]] constexpr bool EqualIgnoreCase(const TChar (&lhs)[N], const TChar (&rhs)[M]) noexcept
+	{
+		return Detail::EqualIgnoreCaseBytes(
+			std::basic_string_view<TChar>(lhs, N - 1),
+			std::basic_string_view<TChar>(rhs, M - 1));
 	}
 
 	/**

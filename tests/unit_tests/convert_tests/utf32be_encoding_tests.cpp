@@ -105,7 +105,7 @@ TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(NativeStringToBigEndian(U"☐test☐"), outString);
+	EXPECT_EQ(NativeStringToBigEndian(U"�test�"), outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
@@ -122,7 +122,7 @@ TEST(Utf32BeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(NativeStringToBigEndian(U"☐test"), outString);
+	EXPECT_EQ(NativeStringToBigEndian(U"�test"), outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(1U, result.InvalidSequencesCount);
 }

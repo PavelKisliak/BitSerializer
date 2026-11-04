@@ -255,7 +255,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐☐test☐☐", outString);
+	EXPECT_EQ(U"��test��", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(4U, result.InvalidSequencesCount);
 }
@@ -272,7 +272,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐test", outString);
+	EXPECT_EQ(U"�test", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(1U, result.InvalidSequencesCount);
 }

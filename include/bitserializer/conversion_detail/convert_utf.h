@@ -9,6 +9,7 @@
 #include <iterator>
 #include <string>
 #include <cstring>
+#include <type_traits>
 #include "bitserializer/common/memory.h"
 #include "bitserializer/conversion_detail/convert_enum.h"
 
@@ -40,7 +41,7 @@ namespace BitSerializer::Convert::Utf
 	 */
 	enum class UtfEncodingErrorPolicy
 	{
-		Skip,		///< Skip invalid UTF sequences (replace with an error mark).
+		Skip,		///< Replace invalid UTF sequences with an error mark.
 		ThrowError	///< Throw a `std::invalid_argument` on invalid sequence.
 	};
 
@@ -131,17 +132,22 @@ namespace BitSerializer::Convert::Utf
 		template <typename TChar>
 		constexpr const TChar* GetDefaultErrorMark() noexcept
 		{
-			static_assert(sizeof(TChar) <= sizeof(char32_t), "Unsupported character type");
+			static_assert(std::is_same_v<TChar, char> || std::is_same_v<TChar, wchar_t> ||
+				std::is_same_v<TChar, char16_t> || std::is_same_v<TChar, char32_t>,
+				"Unsupported character type");
 
-			if constexpr (sizeof(TChar) == sizeof(char)) {
-				return reinterpret_cast<const TChar*>(u8"☐");
+			if constexpr (std::is_same_v<TChar, char>) {
+				// UTF-8 encoding of U+FFFD (REPLACEMENT CHARACTER)
+				return "\xEF\xBF\xBD";
 			}
-			if constexpr (sizeof(TChar) == sizeof(char16_t)) {
-				return reinterpret_cast<const TChar*>(u"☐");
+			else if constexpr (std::is_same_v<TChar, wchar_t>) {
+				return L"\uFFFD";
 			}
-			if constexpr (sizeof(TChar) == sizeof(char32_t))
-			{
-				return reinterpret_cast<const TChar*>(U"☐");
+			else if constexpr (std::is_same_v<TChar, char16_t>) {
+				return u"\uFFFD";
+			}
+			else {
+				return U"\uFFFD";
 			}
 		}
 	} // namespace Detail
@@ -172,6 +178,7 @@ namespace BitSerializer::Convert::Utf
 			while (in != end)
 			{
 				TInIt startTailPos = in;
+				// Analyzer false positive: the loop guard and the caller guarantee an initialized, valid range
 				uint32_t sym = static_cast<unsigned char>(*in);		// NOLINT(clang-analyzer-core.uninitialized.Assign)
 				++in;
 				if ((sym & 0b10000000) == 0)
@@ -185,13 +192,15 @@ namespace BitSerializer::Convert::Utf
 				if ((sym & 0b11100000) == 0b11000000) { tails = 2; sym &= 0b00011111; }
 				else if ((sym & 0b11110000) == 0b11100000) { tails = 3; sym &= 0b00001111; }
 				else if ((sym & 0b11111000) == 0b11110000) { tails = 4; sym &= 0b00000111; }
-				// Overlong sequence (was prohibited in the RFC 3629 since November 2003)
+				// 5- and 6-byte sequences were not allowed by RFC 3629
 				else if ((sym & 0b11111100) == 0b11111000) { isWrongSeq = true; tails = 5; }
 				else if ((sym & 0b11111110) == 0b11111100) { isWrongSeq = true; tails = 6; }
 				// Invalid start code
 				else {
 					isWrongSeq = true;
 				}
+
+				const int sequenceLength = tails;
 
 				// Decode following tails
 				for (; tails > 1; --tails)
@@ -202,6 +211,7 @@ namespace BitSerializer::Convert::Utf
 
 					if (!isWrongSeq)
 					{
+						// Same analyzer false positive as for the start byte above
 						const auto nextTail = static_cast<uint8_t>(*in);	// NOLINT(clang-analyzer-core.uninitialized.Assign)
 						if ((nextTail & 0b11000000) == 0b10000000)
 						{
@@ -214,6 +224,18 @@ namespace BitSerializer::Convert::Utf
 						}
 					}
 					++in;
+				}
+
+				// Reject overlong encodings and code points outside the Unicode range
+				if (!isWrongSeq)
+				{
+					if ((sequenceLength == 2 && sym < 0x80) ||
+						(sequenceLength == 3 && sym < 0x800) ||
+						(sequenceLength == 4 && sym < 0x10000) ||
+						sym > 0x10FFFF)
+					{
+						isWrongSeq = true;
+					}
 				}
 
 				// Error handling when wrong sequence or when surrogate pair (prohibited in the UTF-8)
@@ -286,7 +308,7 @@ namespace BitSerializer::Convert::Utf
 						}
 						// Surrogate characters are always written as pairs (low follows after high)
 						const char16_t low = *in;
-						if (low >= UnicodeTraits::LowSurrogatesStart && sym <= UnicodeTraits::LowSurrogatesEnd)
+						if (low >= UnicodeTraits::LowSurrogatesStart && low <= UnicodeTraits::LowSurrogatesEnd)
 						{
 							sym = 0x10000 + ((sym & 0x3FF) << 10 | (low & 0x3FF));
 							++in;
@@ -395,7 +417,7 @@ namespace BitSerializer::Convert::Utf
 							}
 							// Surrogate characters are always written as pairs (low follows after high)
 							const char16_t low = *in;
-							if (low >= UnicodeTraits::LowSurrogatesStart && sym <= UnicodeTraits::LowSurrogatesEnd)
+							if (low >= UnicodeTraits::LowSurrogatesStart && low <= UnicodeTraits::LowSurrogatesEnd)
 							{
 								sym = 0x10000 + ((sym & 0x3FF) << 10 | (low & 0x3FF));
 								++in;
@@ -597,7 +619,7 @@ namespace BitSerializer::Convert::Utf
 	{
 	public:
 		using char_type = char32_t;
-		static constexpr UtfType utfType = UtfType::Utf32le;
+		static constexpr UtfType utfType = Memory::Endian::native == Memory::Endian::little ? UtfType::Utf32le : UtfType::Utf32be;
 		static constexpr char bom[] = { '\xFF', '\xFE', '\x00', '\x00' };
 		static constexpr Memory::Endian endianness = Memory::Endian::native;
 
@@ -879,7 +901,9 @@ namespace BitSerializer::Convert::Utf
 				// Detecting UTF-32 (LE/BE)
 				if (i % sizeof(Utf32Le::char_type) == 0 && i + sizeof(Utf32Le::char_type) < inputString.size())
 				{
-					if (const uint32_t sym = Memory::NativeToLittleEndian(*reinterpret_cast<const uint32_t*>(&inputString[i])); sym != 0)
+					uint32_t rawSym;
+					std::memcpy(&rawSym, &inputString[i], sizeof(rawSym));
+					if (const uint32_t sym = Memory::NativeToLittleEndian(rawSym); sym != 0)
 					{
 						if ((sym & 0b11111111111111110000000000000000) == 0)
 						{
@@ -896,7 +920,9 @@ namespace BitSerializer::Convert::Utf
 				// Detecting UTF-16 (LE/BE)
 				if (i % sizeof(Utf16Le::char_type) == 0 && i + sizeof(Utf16Le::char_type) < inputString.size())
 				{
-					if (const uint16_t sym = Memory::NativeToLittleEndian(*reinterpret_cast<const uint16_t*>(&inputString[i])); sym != 0)
+					uint16_t rawSym;
+					std::memcpy(&rawSym, &inputString[i], sizeof(rawSym));
+					if (const uint16_t sym = Memory::NativeToLittleEndian(rawSym); sym != 0)
 					{
 						if ((sym & 0b1111111100000000) == 0)
 						{

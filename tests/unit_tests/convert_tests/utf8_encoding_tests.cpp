@@ -105,7 +105,7 @@ TEST(Utf8EncodeTest, ShouldEncodeInvalidSurrogatePairsAsErrorMark)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(UTF8("☐test☐"), outString);
+	EXPECT_EQ(UTF8("�test�"), outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
@@ -272,7 +272,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedFiveOctets)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(U"�test�", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
@@ -289,9 +289,89 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenDeprecatedSixOctets)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(U"�test�", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldRejectOverlongTwoOctetSequence)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string source = MakeStringFromSequence(0b11000001, 0b10000001);
+
+	// Act
+	const auto result = Convert::Utf::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"�", outString);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldRejectOverlongThreeOctetSequence)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string source = MakeStringFromSequence(0b11100000, 0b10000000, 0b10000000);
+
+	// Act
+	const auto result = Convert::Utf::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"�", outString);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldRejectOverlongFourOctetSequence)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string source = MakeStringFromSequence(0b11110000, 0b10000000, 0b10000000, 0b10000000);
+
+	// Act
+	const auto result = Convert::Utf::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"�", outString);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
+}
+
+TEST(Utf8DecodeTest, ShouldRejectCodePointAboveUnicodeMax)
+{
+	// Arrange
+	std::u32string outString;
+	const std::string source = MakeStringFromSequence(0b11110100, 0b10010000, 0b10000000, 0b10000000);
+
+	// Act
+	const auto result = Convert::Utf::Utf8::Decode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(U"�", outString);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
+}
+
+TEST(Utf8EncodeTest, ShouldNotDecodeHighSurrogateFollowedByNonLowSurrogateAsPair)
+{
+	// Arrange
+	std::string outString;
+	const std::u16string source = u"\xD83D\xFFFF";
+
+	// Act
+	const auto result = Convert::Utf::Utf8::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::Skip);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(std::string(UTF8("�")) + "\xEF\xBF\xBF", outString);
+	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
+	EXPECT_EQ(1U, result.InvalidSequencesCount);
 }
 
 TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode)
@@ -306,7 +386,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenInvalidStartCode)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐☐test☐☐", outString);
+	EXPECT_EQ(U"��test��", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(4U, result.InvalidSequencesCount);
 }
@@ -323,7 +403,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail2InSequence)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(U"�test�", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
@@ -340,7 +420,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail3InSequence)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(U"�test�", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
@@ -357,7 +437,7 @@ TEST(Utf8DecodeTest, ShouldDecodeUtf8WhenWrongTail4InSequence)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"☐test☐", outString);
+	EXPECT_EQ(U"�test�", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }
@@ -464,7 +544,7 @@ TEST(Utf8DecodeTest, ShouldNotDecodeSurrogatePairs)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(U"test☐☐", outString);
+	EXPECT_EQ(U"test��", outString);
 	EXPECT_EQ(static_cast<ptrdiff_t>(source.size()), std::distance(std::begin(source), result.Iterator));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }

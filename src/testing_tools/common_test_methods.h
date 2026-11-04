@@ -677,8 +677,8 @@ void TestEncodingPolicy(BitSerializer::Convert::Utf::UtfEncodingErrorPolicy utfE
 
 #pragma warning(push)
 #pragma warning(disable: 4566)
-			EXPECT_EQ(u"☐☐test_value☐☐", std::get<0>(targetObj[0]));
-			EXPECT_EQ(UTF8("☐☐test_value☐☐"), std::get<1>(targetObj[0]));
+			EXPECT_EQ(u"��test_value��", std::get<0>(targetObj[0]));
+			EXPECT_EQ(UTF8("��test_value��"), std::get<1>(targetObj[0]));
 #pragma warning(pop)
 		}
 		catch (...)

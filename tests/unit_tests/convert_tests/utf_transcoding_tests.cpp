@@ -156,7 +156,7 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndSkipPolicy)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(L"☐☐test_value☐☐", outString);
+	EXPECT_EQ(L"��test_value��", outString);
 	EXPECT_EQ(sourceView.size(), static_cast<size_t>(std::distance(sourceView.begin(), result.Iterator)));
 	EXPECT_EQ(4U, result.InvalidSequencesCount);
 }
@@ -191,7 +191,7 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndSkipPolicy)
 
 	// Assert
 	EXPECT_TRUE(result);
-	EXPECT_EQ(L"☐☐test_value", outString);
+	EXPECT_EQ(L"��test_value", outString);
 	EXPECT_EQ(sourceView.size(), static_cast<size_t>(std::distance(sourceView.begin(), result.Iterator)));
 	EXPECT_EQ(2U, result.InvalidSequencesCount);
 }

@@ -216,14 +216,13 @@ namespace BitSerializer::Yaml::RapidYaml {
 				}
 			}
 
-			static bool IsNullYamlValue(c4::csubstr str)
+			static bool IsNullYamlValue(c4::csubstr str) noexcept
 			{
-				return str.data() == nullptr ||
-					std::equal(str.begin(), str.end(), std::cbegin(nullValueAlt), std::cend(nullValueAlt) - 1) ||
-					std::equal(str.begin(), str.end(), std::cbegin(nullValue), std::cend(nullValue) - 1,
-						[](int lhs, int rhs) {
-							return std::tolower(lhs) == rhs;
-				});
+				if (str.data() == nullptr) {
+					return true;
+				}
+				const std::string_view value(str.data(), str.size());
+				return value == nullValueAlt || Text::EqualIgnoreCase(value, nullValue);
 			}
 
 			static void HandleMismatchedTypesPolicy(MismatchedTypesPolicy mismatchedTypesPolicy)

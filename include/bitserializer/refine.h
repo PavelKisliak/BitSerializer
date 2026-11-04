@@ -6,7 +6,6 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <cctype>
 #include "bitserializer/common/text.h"
 #include "bitserializer/convert.h"
 #include "bitserializer/serialization_detail/object_traits.h"
@@ -130,10 +129,7 @@ namespace BitSerializer::Refine
 			{
 				Detail::TransformChars(str, [](auto& c)
 				{
-					using char_type = std::remove_reference_t<decltype(c)>;
-					if (c < 128) {
-						c = static_cast<char_type>(std::tolower(static_cast<int>(c)));
-					}
+					c = Text::ToAsciiLower(c);
 				});
 			}
 		}
@@ -152,10 +148,7 @@ namespace BitSerializer::Refine
 			{
 				Detail::TransformChars(str, [](auto& c)
 				{
-					using char_type = std::remove_reference_t<decltype(c)>;
-					if (c < 128) {
-						c = static_cast<char_type>(std::toupper(static_cast<int>(c)));
-					}
+					c = Text::ToAsciiUpper(c);
 				});
 			}
 		}

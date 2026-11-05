@@ -594,3 +594,100 @@ TEST(ConvertChrono, ConvertUtcStringToTmShouldAcceptBoundaryYears) {
 	const auto minTm = Convert::To<tm>("-2147481748-12-04T15:30:07Z");
 	EXPECT_EQ((std::numeric_limits<int>::min)(), minTm.tm_year);
 }
+
+#if defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907L
+//-----------------------------------------------------------------------------
+// Test conversion for C++20 calendar types
+//-----------------------------------------------------------------------------
+static_assert(Convert::IsConvertible<year_month_day, std::string>());
+static_assert(Convert::IsConvertible<std::string, year_month_day>());
+static_assert(Convert::IsConvertible<hh_mm_ss<milliseconds>, std::string>());
+static_assert(Convert::IsConvertible<std::string, hh_mm_ss<milliseconds>>());
+
+TEST(ConvertChrono, ConvertYearMonthDayToString)
+{
+	const auto date = year_month_day{year{2024}, month{2}, day{29}};
+	EXPECT_EQ("2024-02-29", Convert::ToString(date));
+	EXPECT_EQ(L"2024-02-29", Convert::To<std::wstring>(date));
+	EXPECT_EQ(u"2024-02-29", Convert::To<std::u16string>(date));
+	EXPECT_EQ(U"2024-02-29", Convert::To<std::u32string>(date));
+	EXPECT_EQ("1970-01-01", Convert::ToString(year_month_day{year{1970}, month{1}, day{1}}));
+	EXPECT_EQ("+10000-01-01", Convert::ToString(year_month_day{year{10000}, month{1}, day{1}}));
+	EXPECT_EQ("-0001-12-31", Convert::ToString(year_month_day{year{-1}, month{12}, day{31}}));
+}
+
+TEST(ConvertChrono, ConvertStringToYearMonthDay)
+{
+	const auto expected = year_month_day{year{2024}, month{2}, day{29}};
+	EXPECT_TRUE(expected == Convert::To<year_month_day>("2024-02-29"));
+	EXPECT_TRUE(expected == Convert::To<year_month_day>(L"2024-02-29"));
+	EXPECT_TRUE(expected == Convert::To<year_month_day>(u"2024-02-29"));
+	EXPECT_TRUE(expected == Convert::To<year_month_day>(U"2024-02-29"));
+	EXPECT_TRUE(expected == Convert::To<year_month_day>(u8"2024-02-29"));
+
+	const auto minYear = year_month_day{year{-1}, month{12}, day{31}};
+	EXPECT_TRUE(minYear == Convert::To<year_month_day>("-0001-12-31"));
+
+	const auto extendedYear = year_month_day{year{10000}, month{1}, day{1}};
+	EXPECT_TRUE(extendedYear == Convert::To<year_month_day>("+10000-01-01"));
+}
+
+TEST(ConvertChrono, ConvertStringToYearMonthDayShouldThrowExceptionWhenInvalid)
+{
+	EXPECT_THROW(Convert::To<year_month_day>("2024-02-30"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("2024-13-01"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("2024-00-01"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("2024-01-00"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("2024-01-32"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("2024-01"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("2024-01-01T00:00:00Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<year_month_day>("+32768-01-01"), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertYearMonthDayToStringShouldThrowExceptionWhenInvalid)
+{
+	EXPECT_THROW(Convert::ToString(year_month_day{year{2023}, month{2}, day{29}}), std::invalid_argument);
+	EXPECT_THROW(Convert::ToString(year_month_day{}), std::invalid_argument);
+}
+
+TEST(ConvertChrono, ConvertHhMmSsToString)
+{
+	using Ms = milliseconds;
+	EXPECT_EQ("12:34:56", Convert::ToString(hh_mm_ss<seconds>{hours{12} + minutes{34} + seconds{56}}));
+	EXPECT_EQ("12:34:56.789", Convert::ToString(hh_mm_ss<Ms>{hours{12} + minutes{34} + seconds{56} + milliseconds{789}}));
+	EXPECT_EQ("12:34:56.78", Convert::ToString(hh_mm_ss<Ms>{hours{12} + minutes{34} + seconds{56} + milliseconds{780}}));
+	EXPECT_EQ("12:34:56", Convert::ToString(hh_mm_ss<Ms>{hours{12} + minutes{34} + seconds{56}}));
+	EXPECT_EQ("00:00:00", Convert::ToString(hh_mm_ss<Ms>{Ms{0}}));
+	EXPECT_EQ("-12:34:56.789", Convert::ToString(hh_mm_ss<Ms>{Ms{-45296789}}));
+	EXPECT_EQ("36:00:00", Convert::ToString(hh_mm_ss<seconds>{hours{36}}));
+	EXPECT_EQ(L"12:34:56.789", Convert::To<std::wstring>(hh_mm_ss<Ms>{hours{12} + minutes{34} + seconds{56} + milliseconds{789}}));
+}
+
+TEST(ConvertChrono, ConvertStringToHhMmSs)
+{
+	using Ms = milliseconds;
+	const auto expected = hh_mm_ss<Ms>{hours{12} + minutes{34} + seconds{56} + milliseconds{789}};
+	EXPECT_EQ(expected.to_duration().count(), Convert::To<hh_mm_ss<Ms>>("12:34:56.789").to_duration().count());
+	EXPECT_EQ(expected.to_duration().count(), Convert::To<hh_mm_ss<Ms>>("12:34:56,789").to_duration().count());
+	EXPECT_EQ(expected.to_duration().count(), Convert::To<hh_mm_ss<Ms>>(L"12:34:56.789").to_duration().count());
+	EXPECT_EQ(expected.to_duration().count(), Convert::To<hh_mm_ss<Ms>>(u8"12:34:56.789").to_duration().count());
+	EXPECT_EQ(700, Convert::To<hh_mm_ss<Ms>>("00:00:00.7").to_duration().count());
+	EXPECT_EQ(780, Convert::To<hh_mm_ss<Ms>>("00:00:00.78").to_duration().count());
+	EXPECT_EQ(0, Convert::To<hh_mm_ss<Ms>>("00:00:00").to_duration().count());
+	EXPECT_EQ(-45296789, Convert::To<hh_mm_ss<Ms>>("-12:34:56.789").to_duration().count());
+	EXPECT_EQ(129600, Convert::To<hh_mm_ss<seconds>>("36:00:00").to_duration().count());
+}
+
+TEST(ConvertChrono, ConvertStringToHhMmSsShouldThrowExceptionWhenInvalid)
+{
+	using Ms = milliseconds;
+	EXPECT_THROW(Convert::To<hh_mm_ss<Ms>>("12:60:00"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<hh_mm_ss<Ms>>("12:34:60"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<hh_mm_ss<Ms>>("12-34-56"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<hh_mm_ss<Ms>>("12:34:56."), std::invalid_argument);
+	EXPECT_THROW(Convert::To<hh_mm_ss<Ms>>("12:34:56Z"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<hh_mm_ss<seconds>>("12:34:56.789"), std::invalid_argument);
+	EXPECT_THROW(Convert::To<hh_mm_ss<hours>>("12:34:56"), std::out_of_range);
+	EXPECT_THROW(Convert::To<hh_mm_ss<Ms>>("9223372036854775808:00:00"), std::out_of_range);
+}
+#endif

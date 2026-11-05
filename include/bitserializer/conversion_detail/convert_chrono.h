@@ -770,4 +770,282 @@ namespace BitSerializer::Convert::Detail
 			out = parseDuration(utf8Str.data(), utf8Str.data() + utf8Str.size());
 		}
 	}
+
+#if defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907L
+	/**
+	 * @brief Converts a UTF string view to UTF-8 for parsing calendar/time values.
+	 */
+	template <typename TSym>
+	std::string ToUtf8String(std::basic_string_view<TSym> in)
+	{
+		if constexpr (std::is_same_v<std::remove_cv_t<TSym>, char>) {
+			return in.empty() ? std::string() : std::string(in.data(), in.size());
+		}
+		else
+		{
+			std::string utf8Str;
+			if (!Utf::Transcode(in, utf8Str, Utf::UtfEncodingErrorPolicy::ThrowError)) {
+				throw std::invalid_argument("The source string contains an invalid UTF sequence");
+			}
+			return utf8Str;
+		}
+	}
+
+	/**
+	 * @brief Converts `std::chrono::year_month_day` to ISO 8601 date string (YYYY-MM-DD).
+	 *
+	 * Extended years are rendered as `+YYYYY` (year > 9999) or `-YYYY` (negative year).
+	 *
+	 * @param[in] in Input date.
+	 * @param[out] out Output string.
+	 */
+	template <typename TSym, typename TAllocator>
+	void To(const std::chrono::year_month_day& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		if (!in.ok()) {
+			throw std::invalid_argument("Invalid year_month_day");
+		}
+
+		const int year = static_cast<int>(in.year());
+		const auto month = static_cast<unsigned>(in.month());
+		const auto day = static_cast<unsigned>(in.day());
+		char buf[UtcBufSize];
+		int outSize;
+		if (year >= 0 && year <= 9999) {
+			outSize = snprintf(buf, sizeof(buf), "%04d-%02u-%02u", year, month, day);
+		}
+		else if (year > 9999) {
+			outSize = snprintf(buf, sizeof(buf), "+%d-%02u-%02u", year, month, day);
+		}
+		else {
+			outSize = snprintf(buf, sizeof(buf), "-%04d-%02u-%02u", -year, month, day);
+		}
+		if (outSize <= 0 || static_cast<size_t>(outSize) >= sizeof(buf)) {
+			throw std::runtime_error("Internal error: insufficient buffer size");
+		}
+		out.append(buf, buf + outSize);
+	}
+
+	/**
+	 * @brief Converts from a string (ISO 8601 date format: YYYY-MM-DD) to `std::chrono::year_month_day`.
+	 *
+	 * @param[in] in Input string.
+	 * @param[out] out Output date.
+	 */
+	template <typename TSym>
+	void To(std::basic_string_view<TSym> in, std::chrono::year_month_day& out)
+	{
+		const auto parseDate = [](const char* pos, const char* end) -> std::chrono::year_month_day
+		{
+			const auto parseNumber = [](const char*& p, const char* e, int minValue, int maxValue) -> int
+			{
+				int value = 0;
+				const std::from_chars_result result = std::from_chars(p, e, value);
+				if (result.ec == std::errc::result_out_of_range) {
+					throw std::out_of_range("ISO date contains too big number");
+				}
+				if (result.ec != std::errc() || result.ptr == p || value < minValue || value > maxValue) {
+					throw std::invalid_argument("Input string is not a valid ISO date: YYYY-MM-DD");
+				}
+				p = result.ptr;
+				return value;
+			};
+
+			bool isNegative = false;
+			if (pos != end && (*pos == '-' || *pos == '+')) {
+				isNegative = *pos == '-';
+				++pos;
+			}
+			int year = parseNumber(pos, end, 0, 32767);
+			if (isNegative) {
+				year = -year;
+			}
+			if (pos == end || *pos != '-') {
+				throw std::invalid_argument("Input string is not a valid ISO date: YYYY-MM-DD");
+			}
+			++pos;
+			const int month = parseNumber(pos, end, 1, 12);
+			if (pos == end || *pos != '-') {
+				throw std::invalid_argument("Input string is not a valid ISO date: YYYY-MM-DD");
+			}
+			++pos;
+			const int day = parseNumber(pos, end, 1, 31);
+			if (pos != end) {
+				throw std::invalid_argument("Input string is not a valid ISO date: YYYY-MM-DD");
+			}
+			const std::chrono::year_month_day date{
+				std::chrono::year{year},
+				std::chrono::month{static_cast<unsigned>(month)},
+				std::chrono::day{static_cast<unsigned>(day)}
+			};
+			if (!date.ok()) {
+				throw std::invalid_argument("Input ISO date is out of range");
+			}
+			return date;
+		};
+
+		const std::string utf8Str = ToUtf8String(in);
+		out = parseDate(utf8Str.data(), utf8Str.data() + utf8Str.size());
+	}
+
+	/**
+	 * @brief Converts `std::chrono::hh_mm_ss` to ISO 8601 time string ([-]hh:mm:ss[.fff]).
+	 *
+	 * @param[in] in Input time decomposition.
+	 * @param[out] out Output string.
+	 */
+	template <typename TDuration, typename TSym, typename TAllocator>
+	void To(const std::chrono::hh_mm_ss<TDuration>& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
+	{
+		static_assert(std::is_integral_v<typename TDuration::rep>,
+			"BitSerializer. Conversion of hh_mm_ss requires an integral duration representation");
+		static_assert(!std::ratio_less_v<typename TDuration::period, std::chrono::nanoseconds::period>,
+			"BitSerializer. Maximum supported precision is nanoseconds");
+
+		char buf[UtcBufSize];
+		char* pos = buf;
+		char* const end = buf + sizeof(buf);
+		if (in.is_negative()) {
+			*pos++ = '-';
+		}
+		const auto appendNumber = [&pos, end](auto value)
+		{
+			const auto result = std::to_chars(pos, end, value);
+			if (result.ec != std::errc()) {
+				throw std::runtime_error("Internal error: insufficient buffer size");
+			}
+			pos = result.ptr;
+		};
+		const auto appendTwoDigits = [&pos, end](auto value)
+		{
+			if (pos + 2 > end) {
+				throw std::runtime_error("Internal error: insufficient buffer size");
+			}
+			*pos++ = static_cast<char>('0' + value / 10);
+			*pos++ = static_cast<char>('0' + value % 10);
+		};
+
+		const auto hours = static_cast<long long>(in.hours().count());
+		if (hours < 10 && pos != end) {
+			*pos++ = '0';
+		}
+		appendNumber(hours);
+		if (pos == end) {
+			throw std::runtime_error("Internal error: insufficient buffer size");
+		}
+		*pos++ = ':';
+		appendTwoDigits(static_cast<long long>(in.minutes().count()));
+		if (pos == end) {
+			throw std::runtime_error("Internal error: insufficient buffer size");
+		}
+		*pos++ = ':';
+		appendTwoDigits(static_cast<long long>(in.seconds().count()));
+		if constexpr (std::ratio_less_v<typename TDuration::period, std::chrono::seconds::period>)
+		{
+			if (in.subseconds().count() != 0)
+			{
+				pos = PrintSecondsFractions(pos, end, in.subseconds(), false);
+				if (pos == nullptr) {
+					throw std::runtime_error("Internal error: insufficient buffer size");
+				}
+			}
+		}
+		out.append(buf, pos);
+	}
+
+	/**
+	 * @brief Converts from a string (ISO 8601 time format: [-]hh:mm:ss[.fff]) to `std::chrono::hh_mm_ss`.
+	 *
+	 * @param[in] in Input string.
+	 * @param[out] out Output time decomposition.
+	 */
+	template <typename TSym, typename TDuration>
+	void To(std::basic_string_view<TSym> in, std::chrono::hh_mm_ss<TDuration>& out)
+	{
+		static_assert(std::is_integral_v<typename TDuration::rep>,
+			"BitSerializer. Conversion of hh_mm_ss requires an integral duration representation");
+		static_assert(!std::ratio_less_v<typename TDuration::period, std::chrono::nanoseconds::period>,
+			"BitSerializer. Maximum supported precision is nanoseconds");
+
+		using TPrecision = typename std::chrono::hh_mm_ss<TDuration>::precision;
+
+		const auto parseTime = [](const char* pos, const char* end) -> std::chrono::hh_mm_ss<TDuration>
+		{
+			bool isNegative = false;
+			if (pos != end && (*pos == '-' || *pos == '+')) {
+				isNegative = *pos == '-';
+				++pos;
+			}
+			const auto parseNumber = [](const char*& p, const char* e, char delimiter, long long minValue, long long maxValue) -> long long
+			{
+				long long value = 0;
+				const std::from_chars_result result = std::from_chars(p, e, value);
+				if (result.ec == std::errc::result_out_of_range) {
+					throw std::out_of_range("ISO time contains too big number");
+				}
+				if (result.ec != std::errc() || result.ptr == p || value < minValue || value > maxValue) {
+					throw std::invalid_argument("Input string is not a valid ISO time: [-]hh:mm:ss[.fff]");
+				}
+				p = result.ptr;
+				if (delimiter)
+				{
+					if (p == e || *p != delimiter) {
+						throw std::invalid_argument("Input string is not a valid ISO time: [-]hh:mm:ss[.fff]");
+					}
+					++p;
+				}
+				return value;
+			};
+
+			const long long hours = parseNumber(pos, end, ':', 0, (std::numeric_limits<long long>::max)());
+			const long long minutes = parseNumber(pos, end, ':', 0, 59);
+			const long long seconds = parseNumber(pos, end, '\0', 0, 59);
+
+			bool hasFractions = false;
+			TPrecision fractions{};
+			if (pos != end && (*pos == '.' || *pos == ','))
+			{
+				++pos;
+				if constexpr (std::ratio_less_v<typename TPrecision::period, std::chrono::seconds::period> &&
+					std::ratio_greater_equal_v<typename TPrecision::period, std::chrono::nanoseconds::period>)
+				{
+					pos = ParseSecondFractions(pos, end, fractions);
+					if (pos == nullptr) {
+						throw std::invalid_argument("Input ISO time has invalid fractions of second");
+					}
+					hasFractions = true;
+				}
+				else {
+					throw std::invalid_argument("Fractions of a second are not supported for the target duration");
+				}
+			}
+			if (pos != end) {
+				throw std::invalid_argument("Input string is not a valid ISO time: [-]hh:mm:ss[.fff]");
+			}
+			if (isNegative && std::is_unsigned_v<typename TPrecision::rep>) {
+				throw std::out_of_range("Target duration type can't store negative values");
+			}
+
+			TPrecision total{};
+			SafeAddDuration(total, std::chrono::hours(hours));
+			SafeAddDuration(total, std::chrono::minutes(minutes));
+			SafeAddDuration(total, std::chrono::seconds(seconds));
+			if (hasFractions) {
+				SafeAddDuration(total, fractions);
+			}
+			if (isNegative)
+			{
+				if (total == (TPrecision::min)()) {
+					throw std::out_of_range("Negative time is out of range");
+				}
+				total = -total;
+			}
+			const TDuration duration = SafeDurationCast<TDuration>(total);
+			return std::chrono::hh_mm_ss<TDuration>(duration);
+		};
+
+		const std::string utf8Str = ToUtf8String(in);
+		out = parseTime(utf8Str.data(), utf8Str.data() + utf8Str.size());
+	}
+#endif
 }

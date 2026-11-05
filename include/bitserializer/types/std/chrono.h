@@ -169,4 +169,90 @@ namespace BitSerializer
 			}
 		}
 	}
+
+#if defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907L
+	/**
+	 * @brief Serializes `std::chrono::year_month_day` as ISO 8601 date string (YYYY-MM-DD).
+	 */
+	template <typename TArchive, typename TKey>
+	bool Serialize(TArchive& archive, TKey&& key, std::chrono::year_month_day& value)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::string isoDate;
+			if (Serialize(archive, std::forward<TKey>(key), isoDate)) {
+				return Detail::ConvertByPolicy(isoDate, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+			}
+			return false;
+		}
+		else
+		{
+			std::string isoDate = Convert::ToString(value);
+			return Serialize(archive, std::forward<TKey>(key), isoDate);
+		}
+	}
+
+	/**
+	 * @brief Serializes `std::chrono::year_month_day` as ISO 8601 date string (YYYY-MM-DD).
+	 */
+	template <typename TArchive>
+	bool Serialize(TArchive& archive, std::chrono::year_month_day& value)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::string isoDate;
+			if (Serialize(archive, isoDate)) {
+				return Detail::ConvertByPolicy(isoDate, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+			}
+			return false;
+		}
+		else
+		{
+			std::string isoDate = Convert::ToString(value);
+			return Serialize(archive, isoDate);
+		}
+	}
+
+	/**
+	 * @brief Serializes `std::chrono::hh_mm_ss` as ISO 8601 time string ([-]hh:mm:ss[.fff]).
+	 */
+	template <typename TArchive, typename TKey, typename TDuration>
+	bool Serialize(TArchive& archive, TKey&& key, std::chrono::hh_mm_ss<TDuration>& value)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::string isoTime;
+			if (Serialize(archive, std::forward<TKey>(key), isoTime)) {
+				return Detail::ConvertByPolicy(isoTime, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+			}
+			return false;
+		}
+		else
+		{
+			std::string isoTime = Convert::ToString(value);
+			return Serialize(archive, std::forward<TKey>(key), isoTime);
+		}
+	}
+
+	/**
+	 * @brief Serializes `std::chrono::hh_mm_ss` as ISO 8601 time string ([-]hh:mm:ss[.fff]).
+	 */
+	template <typename TArchive, typename TDuration>
+	bool Serialize(TArchive& archive, std::chrono::hh_mm_ss<TDuration>& value)
+	{
+		if constexpr (TArchive::IsLoading())
+		{
+			std::string isoTime;
+			if (Serialize(archive, isoTime)) {
+				return Detail::ConvertByPolicy(isoTime, value, archive.GetOptions().mismatchedTypesPolicy, archive.GetOptions().overflowNumberPolicy);
+			}
+			return false;
+		}
+		else
+		{
+			std::string isoTime = Convert::ToString(value);
+			return Serialize(archive, isoTime);
+		}
+	}
+#endif
 }

@@ -512,7 +512,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::variant | #include "bitserializer/types/std/variant.h" |
 | std::monostate | #include "bitserializer/types/std/variant.h" |
 | std::unique_ptr, std::shared_ptr | #include "bitserializer/types/std/memory.h" |
-| std::chrono::time_point, chrono::duration | #include "bitserializer/types/std/chrono.h" |
+| std::chrono::time_point, chrono::duration,<br>chrono::year_month_day, chrono::hh_mm_ss (C++20) | #include "bitserializer/types/std/chrono.h" |
 | std::time_t | #include "bitserializer/types/std/ctime.h" |
 | std::filesystem::path | #include "bitserializer/types/std/filesystem.h" |
 
@@ -646,6 +646,8 @@ The following table contains all supported types with examples of string represe
 | `std::time_t` | YYYY-MM-DDThh:mm:ssZ | 1677-09-21T00:12:44Z<br>2262-04-11T23:47:16Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601) |
 | `chrono::time_point` | [±]YYYY-MM-DDThh:mm:ss[.SSS]Z | 1872-01-01T04:55:32.021Z<br>2262-04-11T23:47:16Z<br>9999-12-31T23:59:59.999Z<br>+12376-01-20T00:00:00Z<br>-1241-06-23T00:00:00Z | [ISO 8601/UTC](https://en.wikipedia.org/wiki/ISO_8601)  |
 | `chrono::duration` | [±]PnWnDTnHnMnS | P125DT55M41S<br>PT10H20.346S<br>P10DT25M<br>P35W5D | [ISO 8601/Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations)  |
+| `chrono::year_month_day` (C++20) | [±]YYYY-MM-DD | 2024-02-29<br>+10000-01-01<br>-0001-12-31 | [ISO 8601/Date](https://en.wikipedia.org/wiki/ISO_8601#Calendar_dates) |
+| `chrono::hh_mm_ss` (C++20) | [-]hh:mm:ss[.fff] | 12:34:56.789<br>-12:34:56.789<br>36:00:00 | [ISO 8601/Time](https://en.wikipedia.org/wiki/ISO_8601#Times) |
 
 Time point notes:
 - Only UTC representation is supported, fractions of a second are optional ([±]YYYY-MM-DDThh:mm:ss[.SSS]Z).
@@ -655,6 +657,7 @@ Time point notes:
 - The date range depends on the `std::chrono::duration` type, for example implementation of `system_clock` on Linux has range **1678...2262 years**.
 - Keep in mind that `std::chrono::system_clock` has time point with different duration on Windows and Linux, prefer to store time in custom `time_point` if you need predictable range (e.g. `time_point<system_clock, milliseconds>`).
 - According to the C++20 standard, the EPOCH date for `system_clock` types is considered as *1970-01-01 00:00:00 UTC* excluding leap seconds.
+- `std::chrono::hh_mm_ss` requires an integral duration representation and supports precision up to nanoseconds.
 - For avoid mistakes, time points with **steady_clock**  type are not allowed due to floating EPOCH.
 - Allowed rounding only fractions of seconds, in all other cases an exception is thrown (according to `OverflowNumberPolicy`).
 

@@ -492,6 +492,10 @@ TEST(RapidJsonArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive>(BuildFixture<TestPointClass>());
 }
 
+TEST(RapidJsonArchive, SaveObjectWithExplicitOutputStreamType) {
+	TestSaveObjectWithExplicitOutputStream<JsonArchive>(BuildFixture<TestPointClass>());
+}
+
 TEST(RapidJsonArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];

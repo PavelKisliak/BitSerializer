@@ -293,6 +293,10 @@ TEST(PugiXmlArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<XmlArchive>(BuildFixture<TestPointClass>());
 }
 
+TEST(PugiXmlArchive, SaveObjectWithExplicitOutputStreamType) {
+	TestSaveObjectWithExplicitOutputStream<XmlArchive>(BuildFixture<TestPointClass>());
+}
+
 TEST(PugiXmlArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];

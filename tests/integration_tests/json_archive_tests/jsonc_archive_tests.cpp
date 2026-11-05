@@ -9,6 +9,7 @@
 #include "bitserializer/json_archive.h"
 #include "bitserializer/types/std/vector.h"
 
+// JSONC-specific tests. Strict JSON archive tests live in json_archive_tests.cpp.
 using BitSerializer::Json::JsonArchive;
 using BitSerializer::Json::JsoncArchive;
 
@@ -147,6 +148,11 @@ TEST(JsoncArchive, SaveProducesPlainJson)
 	TestPointClass point(10, 20);
 	const auto actual = BitSerializer::SaveObject<JsoncArchive>(point);
 	EXPECT_EQ(R"({"x":10,"y":20})", actual);
+}
+
+TEST(JsoncArchive, SaveObjectWithExplicitOutputStreamType)
+{
+	TestSaveObjectWithExplicitOutputStream<JsoncArchive>(BuildFixture<TestPointClass>());
 }
 
 TEST(JsoncArchive, SerializeRoundTrip)

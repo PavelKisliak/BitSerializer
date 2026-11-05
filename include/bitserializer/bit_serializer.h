@@ -181,17 +181,32 @@ namespace BitSerializer
 	 *
 	 * @tparam TArchive   The archive type that handles serialization/deserialization (e.g. JsonArchive, MsgPackArchive).
 	 * @tparam TValue     The type of the object to be serialized.
-	 * @tparam TOutput    The preferred output type for the archive (default: typename TArchive::preferred_output_type).
+	 * @tparam TOutput    The output data type supported by the archive (default: typename TArchive::preferred_output_type).
 	 * @param[in] object  The object to be serialized.
 	 * @param[in] options The serialization options.
-	 * @return The serialized data in the archive's preferred format.
+	 * @return The serialized data in the requested output type.
+	 *
+	 * @note `TOutput` must be an output data type supported by the archive. The built-in archives
+	 *       support `std::string` and `std::ostream`-derived types.
 	 */
 	template <typename TArchive, typename TValue, typename TOutput = typename TArchive::preferred_output_type>
 	static TOutput SaveObject(TValue&& object, const SerializationOptions& options = DefaultOptions)
 	{
-		typename TArchive::preferred_output_type output;
-		SaveObject<TArchive>(std::forward<TValue>(object), output, options);
-		return output;
+		constexpr auto hasOutputDataTypeSupport = is_archive_support_output_data_type_v<typename TArchive::output_archive_type, TOutput>;
+		constexpr auto isOutputStream = is_output_stream_v<TOutput>;
+		static_assert(hasOutputDataTypeSupport || isOutputStream,
+			"BitSerializer. The archive does not support saving to the provided data type.");
+
+		if constexpr (hasOutputDataTypeSupport || isOutputStream)
+		{
+			TOutput output;
+			SaveObject<TArchive>(std::forward<TValue>(object), output, options);
+			return output;
+		}
+		else
+		{
+			return {};
+		}
 	}
 
 	//-----------------------------------------------------------------------------

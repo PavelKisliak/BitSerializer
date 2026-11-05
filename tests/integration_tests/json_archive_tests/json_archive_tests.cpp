@@ -2,6 +2,9 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <sstream>
+#include <type_traits>
+
 #include "testing_tools/common_test_methods.h"
 #include "testing_tools/string_like_test_types.h"
 #include "testing_tools/common_json_test_methods.h"
@@ -31,6 +34,7 @@
 #include "testing_tools/auto_fixture/std/variant.h"
 #include "testing_tools/auto_fixture/std/vector.h"
 
+// Strict JSON archive tests. JSONC-specific tests live in jsonc_archive_tests.cpp.
 using BitSerializer::Json::JsonArchive;
 
 #pragma warning(push)
@@ -591,6 +595,10 @@ TEST(JsonArchive, SerializeWithStringViewKey)
 //-----------------------------------------------------------------------------
 TEST(JsonArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<JsonArchive>(BuildFixture<TestPointClass>());
+}
+
+TEST(JsonArchive, SaveObjectWithExplicitOutputStreamType) {
+	TestSaveObjectWithExplicitOutputStream<JsonArchive>(BuildFixture<TestPointClass>());
 }
 
 TEST(JsonArchive, SerializeArrayOfClassesToStream)

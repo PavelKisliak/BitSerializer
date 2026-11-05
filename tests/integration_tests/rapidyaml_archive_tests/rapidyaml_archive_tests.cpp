@@ -284,6 +284,10 @@ TEST(RapidYamlArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<YamlArchive>(BuildFixture<TestPointClass>());
 }
 
+TEST(RapidYamlArchive, SaveObjectWithExplicitOutputStreamType) {
+	TestSaveObjectWithExplicitOutputStream<YamlArchive>(BuildFixture<TestPointClass>());
+}
+
 TEST(RapidYamlArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];

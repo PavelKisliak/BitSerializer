@@ -460,6 +460,10 @@ TEST(MsgPackArchive, SerializeClassToStream) {
 	TestSerializeClassToStream<MsgPackArchive>(BuildFixture<TestPointClass>());
 }
 
+TEST(MsgPackArchive, SaveObjectWithExplicitOutputStreamType) {
+	TestSaveObjectWithExplicitOutputStream<MsgPackArchive>(BuildFixture<TestPointClass>());
+}
+
 TEST(MsgPackArchive, SerializeArrayOfClassesToStream)
 {
 	TestClassWithSubTypes<short, int, long, size_t, double, std::string> testArray[3];

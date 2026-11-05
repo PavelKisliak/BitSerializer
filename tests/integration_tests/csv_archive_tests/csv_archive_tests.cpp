@@ -171,6 +171,11 @@ TEST_F(CsvArchiveTests, SerializeArrayOfClassesToStream)
 	TestSerializeArrayToStream<CsvArchive>(testArray);
 }
 
+TEST_F(CsvArchiveTests, SaveObjectWithExplicitOutputStreamType)
+{
+	TestSaveObjectWithExplicitOutputStream<CsvArchive>(std::vector<TestPointClass>{ BuildFixture<TestPointClass>() });
+}
+
 TEST_F(CsvArchiveTests, SerializeUnicodeToEncodedStream) {
 	TestClassWithSubType<std::wstring> TestArray[1] = { TestClassWithSubType<std::wstring>(L"Привет мир!") };
 	TestSerializeArrayToStream<CsvArchive>(TestArray);

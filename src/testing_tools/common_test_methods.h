@@ -5,6 +5,8 @@
 #pragma once
 #include <filesystem>
 #include <map>
+#include <sstream>
+#include <type_traits>
 #if defined __has_include && __has_include(<version>)
 #include <version>
 #endif
@@ -277,6 +279,24 @@ void TestSerializeTwoDimensionalArray()
 			GTestExpectEq(testArray[i][c], actual[i][c]);
 		}
 	}
+}
+
+/**
+ * @brief Verifies that the return-value `SaveObject` overload honors an explicit non-default `TOutput`.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam T The value type to serialize.
+ * @param value Value to serialize.
+ */
+template <typename TArchive, typename T>
+void TestSaveObjectWithExplicitOutputStream(T&& value)
+{
+	BitSerializer::SerializationOptions options;
+	options.streamOptions.writeBom = false;
+
+	auto result = BitSerializer::SaveObject<TArchive, std::decay_t<T>, std::ostringstream>(std::forward<T>(value), options);
+	static_assert(std::is_same_v<decltype(result), std::ostringstream>);
+	EXPECT_FALSE(result.str().empty());
 }
 
 /**

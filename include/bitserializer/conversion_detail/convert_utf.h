@@ -133,13 +133,22 @@ namespace BitSerializer::Convert::Utf
 		constexpr const TChar* GetDefaultErrorMark() noexcept
 		{
 			static_assert(std::is_same_v<TChar, char> || std::is_same_v<TChar, wchar_t> ||
-				std::is_same_v<TChar, char16_t> || std::is_same_v<TChar, char32_t>,
-				"Unsupported character type");
+				std::is_same_v<TChar, char16_t> || std::is_same_v<TChar, char32_t>
+#if defined(__cpp_char8_t)
+				|| std::is_same_v<TChar, char8_t>
+#endif
+				, "Unsupported character type");
 
 			if constexpr (std::is_same_v<TChar, char>) {
 				// UTF-8 encoding of U+FFFD (REPLACEMENT CHARACTER)
 				return "\xEF\xBF\xBD";
 			}
+#if defined(__cpp_char8_t)
+			else if constexpr (std::is_same_v<TChar, char8_t>) {
+				// UTF-8 encoding of U+FFFD (REPLACEMENT CHARACTER)
+				return u8"\uFFFD";
+			}
+#endif
 			else if constexpr (std::is_same_v<TChar, wchar_t>) {
 				return L"\uFFFD";
 			}
@@ -791,6 +800,14 @@ namespace BitSerializer::Convert::Utf
 		if constexpr (std::is_same_v<std::remove_cv_t<TInCharType>, std::remove_cv_t<TOutChar>>)
 		{
 			outStr.append(in, end);
+			return UtfEncodingResult(UtfEncodingErrorCode::Success, end, 0);
+		}
+		else if constexpr (sizeof(TInCharType) == 1 && sizeof(TOutChar) == 1)
+		{
+			// char and char8_t are both byte-oriented UTF-8; copy the bytes as-is
+			for (auto it = in; it != end; ++it) {
+				outStr.push_back(static_cast<TOutChar>(*it));
+			}
 			return UtfEncodingResult(UtfEncodingErrorCode::Success, end, 0);
 		}
 		else if constexpr (sizeof(TOutChar) == 1) {

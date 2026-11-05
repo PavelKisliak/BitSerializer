@@ -77,8 +77,13 @@ TEST(BaseTypes, SerializeUtf8Sting)
 	TestSerializeType<ArchiveStub, std::string>("Test ANSI string");
 	TestSerializeType<ArchiveStub, std::string>(UTF8("Test UTF8 string - Привет мир!"));
 #if defined(__cpp_lib_char8_t)
-	// ToDo: uncomment when gtest will allow to compare u8strings (https://github.com/google/googletest/issues/4591)
-	// TestSerializeType<ArchiveStub, std::u8string>(u8"Test UTF8 string - Привет мир!");
+	// GTest cannot print std::u8string (googletest issue #4591), so compare explicitly.
+	const std::u8string expectedU8String = u8"Test UTF8 string - Привет мир!";
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(expectedU8String, outputArchive);
+	std::u8string actualU8String;
+	BitSerializer::LoadObject<ArchiveStub>(actualU8String, outputArchive);
+	EXPECT_TRUE(actualU8String == expectedU8String);
 #endif
 }
 

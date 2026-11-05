@@ -79,6 +79,9 @@ namespace BitSerializer::Convert::Detail
 	template <typename TSym>
 	struct is_char_type : std::bool_constant<
 		std::is_same_v<TSym, char> ||
+#if defined(__cpp_char8_t)
+		std::is_same_v<TSym, char8_t> ||
+#endif
 		std::is_same_v<TSym, char16_t> ||
 		std::is_same_v<TSym, char32_t> ||
 		std::is_same_v<TSym, wchar_t>> {};

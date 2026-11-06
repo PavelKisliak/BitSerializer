@@ -76,6 +76,7 @@ ___
   - [Serializing to multiple formats](#serializing-to-multiple-formats)
   - [Input and output data types](#input-and-output-data-types)
   - [Serialization to streams and files](#serialization-to-streams-and-files)
+- [Serialization options](#serialization-options)
 - [Advanced loading](#advanced-loading)
   - [Payload passthrough of unprocessed data structures](#payload-passthrough-of-unprocessed-data-structures)
   - [Conditional loading and versioning](#conditional-loading-and-versioning)
@@ -491,6 +492,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | Types  | Header |
 | ------ | ------ |
 | std::basic_string<>, std::pmr::basic_string<> | Part of the basic package |
+| std::basic_string_view<> (saving only) | Part of the basic package |
 | std::byte | Part of the basic package |
 | std::atomic | #include "bitserializer/types/std/atomic.h" |
 | std::array | #include "bitserializer/types/std/array.h" |
@@ -1210,6 +1212,67 @@ BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const Se
 
 > [!NOTE]
 > Built-in archives (JSON, CSV, MsgPack) deserialize streams incrementally in chunks with bounded memory usage, so they can handle files much larger than available RAM. Third-party archives (RapidJSON, PugiXml, RapidYAML) are DOM-based and keep the whole document in memory.
+
+## Serialization options
+
+`SerializationOptions` controls output formatting, stream encoding, error policies, validation, and format-specific behavior. Pass it to `SaveObject` / `LoadObject` (or their stream/file overloads) as the last argument. When omitted, `BitSerializer::DefaultOptions` is used. Options are shared across archives; format-specific settings are ignored when they are not applicable.
+
+```cpp
+BitSerializer::SerializationOptions options;
+options.formatOptions.enableFormat = true;
+options.formatOptions.paddingChar = ' ';
+options.formatOptions.paddingCharNum = 2;
+options.streamOptions.writeBom = false;
+options.overflowNumberPolicy = BitSerializer::OverflowNumberPolicy::Skip;
+
+const auto json = BitSerializer::SaveObject<JsonArchive>(object, options);
+BitSerializer::LoadObject<JsonArchive>(object, json, options);
+```
+
+`DefaultOptions` is a mutable global object. Configure it once at startup, before serialization starts; don't modify it concurrently from multiple threads.
+
+### Formatting options
+
+| Option | Default | Description |
+|---|---|---|
+| `formatOptions.enableFormat` | `false` | Enables pretty-printing for text archives that support it (JSON/JSONC, XML). |
+| `formatOptions.paddingChar` | `'\t'` | Indentation character; use `' '` or `'\t'`. |
+| `formatOptions.paddingCharNum` | `1` | Number of indentation characters per level. |
+
+### Stream and encoding options
+
+| Option | Default | Description |
+|---|---|---|
+| `streamOptions.writeBom` | `true` | Write a BOM at the beginning of output streams and files. String output never includes a BOM. |
+| `streamOptions.encoding` | `BitSerializer::Convert::Utf::UtfType::Utf8` | Output encoding for streams and files: UTF-8, UTF-16LE/BE, UTF-32LE/BE. Input encoding is detected automatically. |
+
+### Error handling policies
+
+| Option | Default | Description |
+|---|---|---|
+| `overflowNumberPolicy` | `ThrowError` | `ThrowError` throws when a number does not fit the target type; `Skip` skips the value. |
+| `mismatchedTypesPolicy` | `ThrowError` | `ThrowError` throws when the archive value type is incompatible with the target type; `Skip` skips it. |
+| `utfEncodingErrorPolicy` | `ThrowError` | `ThrowError` throws on invalid UTF sequences; `Skip` replaces them with `U+FFFD`. |
+| `maxValidationErrors` | `0` | Maximum number of fields with validation errors before `ValidationException` is thrown; `0` means no limit. |
+
+### String and CSV options
+
+| Option | Default | Description |
+|---|---|---|
+| `trimStringFields` | `false` | Trims leading/trailing whitespace from every string-like value during deserialization, including nested strings. Keys and enum names are not trimmed; saving is not affected. |
+| `valuesSeparator` | `','` | Value separator for CSV. Supported characters: `','`, `';'`, `'\t'`, `' '`, `'|'`. |
+
+### Variant and map options
+
+| Option | Default | Description |
+|---|---|---|
+| `variantOptions.mode` | `Indexed` | Default `std::variant` representation: `Indexed`, `Named`, or `Discriminated`. |
+| `variantOptions.typeKey` | `"type"` | Discriminator key for `Named` and `Discriminated` modes. |
+| `variantOptions.valueKey` | `"value"` | Value key for `Indexed` and `Named` modes. |
+| `variantOptions.indexKey` | `"index"` | Index key for `Indexed` mode. |
+| `mapOptions.loadMode` | `Replace` | Default map loading behavior: `Replace`, `UpdateExisting`, or `InsertOrUpdate`. |
+
+`MapAsObject`, `MapAsDictionary`, `MapAsPairs`, `VariantAsIndexed`, `VariantAsNamed`, and `VariantAsDiscriminated` can override the corresponding global options for a specific value.
 
 ## Advanced loading
 Advanced deserialization scenarios: passing through unprocessed data and handling evolving schemas (supporting multiple model versions).

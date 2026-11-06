@@ -264,6 +264,34 @@ namespace BitSerializer
 				ioData.template emplace<key_type>(value);
 			}
 
+			/**
+			 * @brief Loads the stub's native string type directly.
+			 */
+			static bool LoadString(const TestIoData<TConfig>& ioData, key_type& value, const SerializationOptions& options)
+			{
+				if (std::holds_alternative<key_type>(ioData))
+				{
+					value = std::get<key_type>(ioData);
+					return true;
+				}
+
+				// NULL value deserialized from the archive is excluded from MismatchedTypesPolicy processing
+				if (!std::holds_alternative<std::nullptr_t>(ioData) && options.mismatchedTypesPolicy == MismatchedTypesPolicy::ThrowError)
+				{
+					throw SerializationException(SerializationErrorCode::MismatchedTypes,
+						"The type of target field does not match the value being loaded");
+				}
+				return false;
+			}
+
+			/**
+			 * @brief Saves the stub's native string type directly.
+			 */
+			static void SaveString(TestIoData<TConfig>& ioData, key_type& value)
+			{
+				ioData.template emplace<key_type>(value);
+			}
+
 			TestIoDataPtr<TConfig> mNode;
 			ArchiveStubScopeBase* mParent;
 			key_type mParentKey;
@@ -314,6 +342,25 @@ namespace BitSerializer
 			 * @brief Serializes a string value at the current array position.
 			 */
 			bool SerializeValue(string_view_type& value)
+			{
+				if (TestIoDataPtr<TConfig> ioData = LoadNextItem())
+				{
+					if constexpr (TMode == SerializeMode::Load) {
+						return this->LoadString(*ioData, value, this->GetOptions());
+					}
+					else
+					{
+						this->SaveString(*ioData, value);
+						return true;
+					}
+				}
+				return false;
+			}
+
+			/**
+			 * @brief Serializes the stub's native string type at the current array position.
+			 */
+			bool SerializeValue(key_type& value)
 			{
 				if (TestIoDataPtr<TConfig> ioData = LoadNextItem())
 				{
@@ -506,6 +553,23 @@ namespace BitSerializer
 			}
 
 			/**
+			 * @brief Serializes the stub's native string type associated with the given key.
+			 */
+			bool SerializeValue(const key_type& key, key_type& value)
+			{
+				if constexpr (TMode == SerializeMode::Load)
+				{
+					const auto archiveValue = LoadArchiveValueByKey(key);
+					return archiveValue == nullptr ? false : this->LoadString(*archiveValue, value, this->GetOptions());
+				}
+				else
+				{
+					this->SaveString(*AddArchiveValue(key), value);
+					return true;
+				}
+			}
+
+			/**
 			 * @brief Serializes a fundamental value associated with the given key.
 			 */
 			template <typename T, std::enable_if_t<std::is_fundamental_v<T>, int> = 0>
@@ -664,6 +728,21 @@ namespace BitSerializer
 			 * @brief Serializes a string value at the root level.
 			 */
 			bool SerializeValue(string_view_type& value)
+			{
+				if constexpr (TMode == SerializeMode::Load) {
+					return this->LoadString(*mInputData->data, value, this->GetOptions());
+				}
+				else
+				{
+					this->SaveString(*mOutputData->data, value);
+					return true;
+				}
+			}
+
+			/**
+			 * @brief Serializes the stub's native string type at the root level.
+			 */
+			bool SerializeValue(key_type& value)
 			{
 				if constexpr (TMode == SerializeMode::Load) {
 					return this->LoadString(*mInputData->data, value, this->GetOptions());

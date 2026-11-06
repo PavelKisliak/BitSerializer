@@ -332,14 +332,30 @@ TEST(BaseTypes, ShouldTrimStringFieldsInArray)
 	SerializationOptions options;
 	options.trimStringFields = true;
 	ArchiveStub::preferred_output_type outputArchive{};
-	std::vector<std::string> actual = { " value1 ", " value2\n", "\t value3 \t" };
+	std::vector<std::wstring> actual = { L" value1 ", L" value2\n", L"\t value3 \t" };
 
 	// Act
 	BitSerializer::SaveObject<ArchiveStub>(actual, outputArchive);
 	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
 
 	// Assert
-	GTestExpectEq({ "value1", "value2", "value3" }, actual);
+	EXPECT_EQ((std::vector<std::wstring>{ L"value1", L"value2", L"value3" }), actual);
+}
+
+TEST(BaseTypes, ShouldTrimNestedStringFields)
+{
+	// Arrange
+	SerializationOptions options;
+	options.trimStringFields = true;
+	ArchiveStub::preferred_output_type outputArchive{};
+	std::vector<std::vector<std::wstring>> actual = { { L" value1 ", L"value2 " }, { L"\t value3" } };
+
+	// Act
+	BitSerializer::SaveObject<ArchiveStub>(actual, outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	// Assert
+	EXPECT_EQ((std::vector<std::vector<std::wstring>>{ { L"value1", L"value2" }, { L"value3" } }), actual);
 }
 
 TEST(BaseTypes, SerializeArrayOfClasses) {
@@ -408,14 +424,30 @@ TEST(BaseTypes, ShouldTrimStringFieldsInClassMembers)
 	SerializationOptions options;
 	options.trimStringFields = true;
 	ArchiveStub::preferred_output_type outputArchive{};
-	TestClassWithSubType actual(std::string(" value "), Refine::TrimWhitespace());
+	TestClassWithSubType actual(std::wstring(L" value "));
 
 	// Act
 	BitSerializer::SaveObject<ArchiveStub>(actual, outputArchive);
 	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
 
 	// Assert
-	EXPECT_EQ("value", actual.GetValue());
+	EXPECT_EQ(L"value", actual.GetValue());
+}
+
+TEST(BaseTypes, ShouldTrimStringLikeFields)
+{
+	// Arrange
+	SerializationOptions options;
+	options.trimStringFields = true;
+	ArchiveStub::preferred_output_type outputArchive{};
+	TestClassWithSubType actual(TestWStringLikeType(L" value "));
+
+	// Act
+	BitSerializer::SaveObject<ArchiveStub>(actual, outputArchive);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	// Assert
+	EXPECT_EQ(L"value", actual.GetValue().GetValue());
 }
 
 TEST(BaseTypes, SerializeClassWithExternalSerializeFunction) {

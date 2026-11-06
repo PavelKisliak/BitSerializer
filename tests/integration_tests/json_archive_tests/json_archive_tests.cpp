@@ -242,6 +242,24 @@ TEST(JsonArchive, SerializeStringWithEscapeSequences)
 	TestSerializeType<JsonArchive, std::string>("\"\\/\b\f\n\r\t");
 }
 
+TEST(JsonArchive, SerializeStringView)
+{
+	const std::string_view value = "test";
+
+	EXPECT_EQ("\"test\"", BitSerializer::SaveObject<JsonArchive>(value));
+}
+
+TEST(JsonArchive, ShouldNotTrimEnumNamesWhenEnabled)
+{
+	// Arrange
+	BitSerializer::SerializationOptions options;
+	options.trimStringFields = true;
+	TestEnum actual;
+
+	// Act / Assert
+	EXPECT_THROW(BitSerializer::LoadObject<JsonArchive>(actual, R"(" Two ")", options), BitSerializer::SerializationException);
+}
+
 TEST(JsonArchive, SerializeEnum)
 {
 	TestSerializeType<JsonArchive, TestEnum>(TestEnum::Two);

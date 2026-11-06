@@ -198,9 +198,6 @@ namespace BitSerializer
 				}
 				else
 				{
-					if (archive.GetContext().GetOptions().trimStringFields) {
-						Text::TrimWhitespace(archiveStringView);
-					}
 					TranscodeStringByPolicy(value, archiveStringView, archive.GetContext());
 					return archive.SerializeValue(std::forward<TKey>(key), archiveStringView);
 				}
@@ -239,9 +236,6 @@ namespace BitSerializer
 				{
 					if (archive.SerializeValue(archiveStringView))
 					{
-						if (archive.GetContext().GetOptions().trimStringFields) {
-							Text::TrimWhitespace(archiveStringView);
-						}
 						TranscodeStringByPolicy(archiveStringView, value, archive.GetContext());
 						return true;
 					}
@@ -251,6 +245,24 @@ namespace BitSerializer
 				{
 					TranscodeStringByPolicy(value, archiveStringView, archive.GetContext());
 					return archive.SerializeValue(archiveStringView);
+				}
+			}
+		}
+
+		/**
+		 * @brief Trims a loaded string-like value when `trimStringFields` is enabled.
+		 */
+		template <typename TArchive, typename TString>
+		void TrimStringLikeIfNeeded(TArchive& archive, TString& value)
+		{
+			if constexpr (TArchive::IsLoading())
+			{
+				if (archive.GetOptions().trimStringFields)
+				{
+					using namespace Convert::Detail;
+					auto stringView = StringViewOf(value);
+					Text::TrimWhitespace(stringView);
+					AssignString(value, stringView);
 				}
 			}
 		}
@@ -276,13 +288,20 @@ namespace BitSerializer
 		// Prefer the archive's direct value overload when it supports this string type
 		if constexpr (can_serialize_value_with_key_v<TArchive, TValue, TKey>)
 		{
-			return archive.SerializeValue(std::forward<TKey>(key), value);
+			const bool result = archive.SerializeValue(std::forward<TKey>(key), value);
+			if (result) {
+				Detail::TrimStringLikeIfNeeded(archive, value);
+			}
+			return result;
 		}
 		else if constexpr (TArchive::IsLoading())
 		{
 			auto stringView = StringViewOf(value);
 			if (Detail::SerializeString(archive, std::forward<TKey>(key), stringView))
 			{
+				if (archive.GetOptions().trimStringFields) {
+					Text::TrimWhitespace(stringView);
+				}
 				AssignString(value, stringView);
 				return true;
 			}
@@ -314,13 +333,20 @@ namespace BitSerializer
 		// Prefer the archive's direct value overload when it supports this string type
 		if constexpr (can_serialize_value_v<TArchive, TValue>)
 		{
-			return archive.SerializeValue(value);
+			const bool result = archive.SerializeValue(value);
+			if (result) {
+				Detail::TrimStringLikeIfNeeded(archive, value);
+			}
+			return result;
 		}
 		else if constexpr (TArchive::IsLoading())
 		{
 			auto stringView = StringViewOf(value);
 			if (Detail::SerializeString(archive, stringView))
 			{
+				if (archive.GetOptions().trimStringFields) {
+					Text::TrimWhitespace(stringView);
+				}
 				AssignString(value, stringView);
 				return true;
 			}
@@ -331,6 +357,43 @@ namespace BitSerializer
 			auto stringView = StringViewOf(value);
 			return Detail::SerializeString(archive, stringView);
 		}
+	}
+
+	/**
+	 * @brief Serializes a `std::basic_string_view` with a key (saving only).
+	 *
+	 * Loading into a string view is not supported because the resulting view may refer to a
+	 * temporary archive buffer. Use a string type for deserialization instead.
+	 *
+	 * @param archive   Archive used for serialization.
+	 * @param key       The key associated with the value.
+	 * @param value     Reference to the string view being serialized.
+	 * @return true if serialization succeeded, false otherwise.
+	 */
+	template <class TArchive, typename TKey, typename TSym>
+	bool Serialize(TArchive& archive, TKey&& key, std::basic_string_view<TSym>& value)
+	{
+		static_assert(!TArchive::IsLoading(),
+			"BitSerializer. Loading into std::basic_string_view is not supported; use std::basic_string instead.");
+		return Detail::SerializeString(archive, std::forward<TKey>(key), value);
+	}
+
+	/**
+	 * @brief Serializes a `std::basic_string_view` without a key (saving only).
+	 *
+	 * Loading into a string view is not supported because the resulting view may refer to a
+	 * temporary archive buffer. Use a string type for deserialization instead.
+	 *
+	 * @param archive   Archive used for serialization.
+	 * @param value     Reference to the string view being serialized.
+	 * @return true if serialization succeeded, false otherwise.
+	 */
+	template <class TArchive, typename TSym>
+	bool Serialize(TArchive& archive, std::basic_string_view<TSym>& value)
+	{
+		static_assert(!TArchive::IsLoading(),
+			"BitSerializer. Loading into std::basic_string_view is not supported; use std::basic_string instead.");
+		return Detail::SerializeString(archive, value);
 	}
 
 	//-----------------------------------------------------------------------------

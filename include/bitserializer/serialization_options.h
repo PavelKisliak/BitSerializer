@@ -239,7 +239,10 @@ namespace BitSerializer
 		uint32_t maxValidationErrors = 0;
 
 		/**
-		 * @brief Automatically trims whitespace from ALL string fields during deserialization.
+		 * @brief Trims leading and trailing whitespace from every string-like value during deserialization.
+		 *
+		 * Applies to direct fields, array elements, and nested strings (for example in containers or `std::optional`).
+		 * Map/object keys and enum names are not affected, and saving does not trim values.
 		 */
 		bool trimStringFields = false;
 

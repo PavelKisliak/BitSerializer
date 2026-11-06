@@ -252,6 +252,9 @@ namespace BitSerializer
 						"The target field range is insufficient for the value being loaded");
 				}
 			}
+			catch (const SerializationException&) {
+				throw;
+			}
 			catch (...) {
 				throw SerializationException(SerializationErrorCode::ParsingError, "Unknown error while converting value");
 			}

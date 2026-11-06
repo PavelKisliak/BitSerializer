@@ -100,6 +100,21 @@ TEST(ConvertByPolicyTest, ThrowExceptionWhenMismatchedType)
 	EXPECT_EQ(0, targetInteger);
 }
 
+TEST(ConvertByPolicyTest, ShouldReportMismatchedTypesForNonConvertibleType)
+{
+	int targetInteger = 0;
+	try
+	{
+		Detail::ConvertByPolicy(NonConvertibleFixture(), targetInteger, MismatchedTypesPolicy::ThrowError, OverflowNumberPolicy::ThrowError);
+		FAIL() << "Expected SerializationException";
+	}
+	catch (const SerializationException& ex)
+	{
+		EXPECT_EQ(SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+	}
+	EXPECT_EQ(0, targetInteger);
+}
+
 TEST(ConvertByPolicyTest, SkipMismatchedTypeWhenPolicyIsSkip)
 {
 	bool targetBool = false;

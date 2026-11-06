@@ -48,7 +48,7 @@ class TestArchive_SaveMode : ArchiveScope<SerializeMode::Save>
 {
 public:
 	using key_type = std::string;
-	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
+	using supported_key_types = SupportedKeyTypes<key_type, std::string_view>;
 
 	class key_const_iterator
 	{

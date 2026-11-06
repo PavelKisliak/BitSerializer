@@ -465,10 +465,10 @@ namespace BitSerializer
 	{
 		using value_type = std::underlying_type_t<T>;
 
-		explicit EnumAsBin(T& value) noexcept : Value(value) {}
-		value_type& GetUnderlyingValue() noexcept { return reinterpret_cast<value_type&>(Value); }
+		explicit EnumAsBin(T& inValue) noexcept : value(inValue) {}
+		value_type& GetUnderlyingValue() noexcept { return reinterpret_cast<value_type&>(value); }
 
-		T& Value;
+		T& value;
 	};
 
 	template <class TArchive, typename TKey, class TValue>

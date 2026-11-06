@@ -85,7 +85,7 @@ namespace BitSerializer::Convert::Utf
 					FlushIfFull();
 					return UtfEncodingErrorCode::Success;
 				}
-				return result.ErrorCode;
+				return result.errorCode;
 			}
 		}
 

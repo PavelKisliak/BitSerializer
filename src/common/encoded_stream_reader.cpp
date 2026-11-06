@@ -367,8 +367,8 @@ namespace BitSerializer::Convert::Utf
 
 		const auto handleDecodeResult = [&](auto result) -> void
 		{
-			mRawBytesPos += static_cast<size_t>(reinterpret_cast<const char*>(result.Iterator) - data);
-			if (result.ErrorCode != UtfEncodingErrorCode::Success && mEncodingErrorPolicy == UtfEncodingErrorPolicy::ThrowError)
+			mRawBytesPos += static_cast<size_t>(reinterpret_cast<const char*>(result.iterator) - data);
+			if (result.errorCode != UtfEncodingErrorCode::Success && mEncodingErrorPolicy == UtfEncodingErrorPolicy::ThrowError)
 			{
 				throw std::invalid_argument("Invalid UTF sequence detected");
 			}

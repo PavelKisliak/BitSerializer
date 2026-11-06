@@ -222,7 +222,7 @@ namespace BitSerializer {
 	class FieldsCountVisitor
 	{
 	public:
-		explicit FieldsCountVisitor(const TArchive& archive) noexcept : Archive(archive) {}
+		explicit FieldsCountVisitor(const TArchive& inArchive) noexcept : mArchive(inArchive) {}
 
 		template <typename TValue>
 		size_t Count(TValue& obj)
@@ -238,7 +238,7 @@ namespace BitSerializer {
 			else if constexpr (hasGlobalSerializeObject) {
 				SerializeObject(*this, obj);
 			}
-			return Size;
+			return mSize;
 		}
 
 		static constexpr ArchiveType archive_type = TArchive::archive_type;
@@ -250,8 +250,8 @@ namespace BitSerializer {
 		static constexpr auto IsSaving() noexcept { return TArchive::IsSaving(); }
 		static constexpr auto IsLoading() noexcept { return TArchive::IsLoading(); }
 
-		[[nodiscard]] SerializationContext& GetContext() const noexcept { return Archive.GetContext(); }
-		[[nodiscard]] const SerializationOptions& GetOptions() const noexcept { return Archive.GetOptions(); }
+		[[nodiscard]] SerializationContext& GetContext() const noexcept { return mArchive.GetContext(); }
+		[[nodiscard]] const SerializationOptions& GetOptions() const noexcept { return mArchive.GetOptions(); }
 
 		/**
 		 * @brief Counts a value serialized under a key as a single field.
@@ -259,7 +259,7 @@ namespace BitSerializer {
 		template <typename TKey, typename T>
 		bool SerializeValue(TKey&&, T&) noexcept
 		{
-			++Size;
+			++mSize;
 			return true;
 		}
 
@@ -269,7 +269,7 @@ namespace BitSerializer {
 		template <typename T>
 		bool SerializeValue(T&) noexcept
 		{
-			++Size;
+			++mSize;
 			return true;
 		}
 
@@ -294,7 +294,7 @@ namespace BitSerializer {
 		template <class TValue>
 		FieldsCountVisitor& operator<<(TValue&&) noexcept
 		{
-			++Size;
+			++mSize;
 			return *this;
 		}
 
@@ -306,8 +306,8 @@ namespace BitSerializer {
 		}
 
 	private:
-		size_t Size = 0;
-		const TArchive& Archive;
+		size_t mSize = 0;
+		const TArchive& mArchive;
 	};
 
 	/**

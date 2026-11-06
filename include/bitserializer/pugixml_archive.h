@@ -28,17 +28,17 @@ struct PugiXmlArchiveTraits  // NOLINT(cppcoreguidelines-special-member-function
 	using key_type = std::wstring;
 	using string_view_type = std::basic_string_view<wchar_t>;
 #	ifdef PUGIXML_HAS_STRING_VIEW
-	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*, string_view_type>;
+	using supported_key_types = SupportedKeyTypes<key_type, const wchar_t*, string_view_type>;
 #	else
-	using supported_key_types = TSupportedKeyTypes<key_type, const wchar_t*>;
+	using supported_key_types = SupportedKeyTypes<key_type, const wchar_t*>;
 #	endif
 #else
 	using key_type = std::string;
 	using string_view_type = std::basic_string_view<char>;
 #	ifdef PUGIXML_HAS_STRING_VIEW
-	using supported_key_types = TSupportedKeyTypes<key_type, const char*, string_view_type>;
+	using supported_key_types = SupportedKeyTypes<key_type, const char*, string_view_type>;
 #	else
-	using supported_key_types = TSupportedKeyTypes<key_type, const char*>;
+	using supported_key_types = SupportedKeyTypes<key_type, const char*>;
 #	endif
 #endif
 

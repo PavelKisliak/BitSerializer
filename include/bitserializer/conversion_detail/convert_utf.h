@@ -67,24 +67,24 @@ namespace BitSerializer::Convert::Utf
 	class UtfEncodingResult
 	{
 	public:
-		UtfEncodingResult(UtfEncodingErrorCode errorCode, TIterator it, size_t invalidSequencesCount) noexcept
-			: ErrorCode(errorCode), Iterator(std::move(it)), InvalidSequencesCount(invalidSequencesCount)
+		UtfEncodingResult(UtfEncodingErrorCode inErrorCode, TIterator inIt, size_t inInvalidSequencesCount) noexcept
+			: errorCode(inErrorCode), iterator(std::move(inIt)), invalidSequencesCount(inInvalidSequencesCount)
 		{
 		}
 
 		template <typename TOtherIt, std::enable_if_t<std::is_convertible_v<TOtherIt, TIterator>, int> = 0>
 		UtfEncodingResult(const UtfEncodingResult<TOtherIt>& otherResult) noexcept(std::is_nothrow_constructible_v<TIterator, TOtherIt>)
-			: ErrorCode(otherResult.ErrorCode), Iterator(otherResult.Iterator), InvalidSequencesCount(otherResult.InvalidSequencesCount)
+			: errorCode(otherResult.errorCode), iterator(otherResult.iterator), invalidSequencesCount(otherResult.invalidSequencesCount)
 		{
 		}
 
-		[[nodiscard]] operator bool() const noexcept {
-			return ErrorCode == UtfEncodingErrorCode::Success;
+		[[nodiscard]] explicit operator bool() const noexcept {
+			return errorCode == UtfEncodingErrorCode::Success;
 		}
 
-		UtfEncodingErrorCode ErrorCode;	///< Result status.
-		TIterator Iterator;				///< Points to the first unprocessed character.
-		size_t InvalidSequencesCount;	///< Count of replaced or skipped invalid sequences.
+		UtfEncodingErrorCode errorCode;	///< Result status.
+		TIterator iterator;				///< Points to the first unprocessed character.
+		size_t invalidSequencesCount;	///< Count of replaced or skipped invalid sequences.
 	};
 
 	namespace UnicodeTraits

@@ -44,7 +44,7 @@ namespace BitSerializer
 	 * @brief List of supported key types for an archive.
 	 */
 	template <class ...KeyTypes>
-	using TSupportedKeyTypes = std::tuple<KeyTypes...>;
+	using SupportedKeyTypes = std::tuple<KeyTypes...>;
 
 	/**
 	 * @brief Tag for constructing an archive scope in the "not opened" state.
@@ -171,7 +171,7 @@ namespace BitSerializer
 	{
 	public:
 		using value_type = T;
-		static constexpr ArchiveType Format = TFormat;
+		static constexpr ArchiveType format = TFormat;
 
 		RawPayload() = default;
 		explicit RawPayload(T&& data) noexcept(std::is_nothrow_move_constructible_v<T>) : mData(std::move(data)) { }

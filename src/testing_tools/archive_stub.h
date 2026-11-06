@@ -108,7 +108,7 @@ namespace BitSerializer
 		template <typename TConfig>
 		struct ArchiveStubTraits : public TConfig
 		{
-			using supported_key_types = TSupportedKeyTypes<typename TConfig::key_type>;
+			using supported_key_types = SupportedKeyTypes<typename TConfig::key_type>;
 			using preferred_output_type = TestIoDataRoot<TConfig>;
 			static constexpr char path_separator = '/';
 

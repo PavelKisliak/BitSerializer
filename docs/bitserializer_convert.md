@@ -313,6 +313,8 @@ They all have the same API:
 - `UtfEncodingResult Decode(beginIt, endIt, outStr, encodePolicy, errorMark)`
 - `UtfEncodingResult Encode(beginIt, endIt, outStr, encodePolicy, errorMark)`
 
+The result exposes `errorCode`, `iterator` (the first unprocessed character) and `invalidSequencesCount`.
+
 You might want to convert something from one string type to another with detailed error handling:
 
 ```cpp

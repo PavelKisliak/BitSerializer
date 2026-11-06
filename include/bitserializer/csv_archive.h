@@ -25,7 +25,7 @@ struct CsvArchiveTraits  // NOLINT(cppcoreguidelines-special-member-functions)
 {
 	static constexpr ArchiveType archive_type = ArchiveType::Csv;
 	using key_type = std::string;
-	using supported_key_types = TSupportedKeyTypes<key_type, std::string_view>;
+	using supported_key_types = SupportedKeyTypes<key_type, std::string_view>;
 	using string_view_type = std::string_view;
 	using preferred_output_type = std::string;
 	static constexpr char path_separator = '/';

@@ -322,7 +322,7 @@ namespace BitSerializer::Detail
 					auto objectScope = arrayScope.OpenObjectScope(2);
 					if (objectScope)
 					{
-						Serialize(objectScope, keyField, const_cast<std::remove_const_t<TKey>&>(elem.first));
+						Serialize(objectScope, keyField, elem.first);
 						Serialize(objectScope, valueField, elem.second);
 					}
 				}

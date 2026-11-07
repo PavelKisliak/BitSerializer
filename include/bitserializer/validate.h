@@ -9,6 +9,14 @@
 #include "bitserializer/serialization_detail/object_traits.h"
 #include "bitserializer/convert.h"
 
+/**
+ * @namespace BitSerializer::Validate
+ * @brief Validators for deserialized values.
+ *
+ * @warning Custom error messages are stored as non-owning `const char*`.
+ *          The string must outlive the validator and the whole serialization/validation call.
+ *          Do not pass `c_str()` of a temporary string or a pointer into temporary storage.
+ */
 namespace BitSerializer::Validate
 {
 	/**

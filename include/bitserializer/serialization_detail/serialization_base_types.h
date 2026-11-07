@@ -466,7 +466,6 @@ namespace BitSerializer
 		using value_type = std::underlying_type_t<T>;
 
 		explicit EnumAsBin(T& inValue) noexcept : value(inValue) {}
-		value_type& GetUnderlyingValue() noexcept { return reinterpret_cast<value_type&>(value); }
 
 		T& value;
 	};
@@ -474,13 +473,43 @@ namespace BitSerializer
 	template <class TArchive, typename TKey, class TValue>
 	bool Serialize(TArchive& archive, TKey&& key, EnumAsBin<TValue> value)
 	{
-		return Serialize(archive, std::forward<TKey>(key), value.GetUnderlyingValue());
+		using TUnderlying = typename EnumAsBin<TValue>::value_type;
+		if constexpr (TArchive::IsSaving())
+		{
+			TUnderlying underlying = static_cast<TUnderlying>(value.value);
+			return Serialize(archive, std::forward<TKey>(key), underlying);
+		}
+		else
+		{
+			TUnderlying underlying{};
+			if (Serialize(archive, std::forward<TKey>(key), underlying))
+			{
+				value.value = static_cast<TValue>(underlying);
+				return true;
+			}
+			return false;
+		}
 	}
 
 	template <class TArchive, class TValue>
 	bool Serialize(TArchive& archive, EnumAsBin<TValue> value)
 	{
-		return Serialize(archive, value.GetUnderlyingValue());
+		using TUnderlying = typename EnumAsBin<TValue>::value_type;
+		if constexpr (TArchive::IsSaving())
+		{
+			TUnderlying underlying = static_cast<TUnderlying>(value.value);
+			return Serialize(archive, underlying);
+		}
+		else
+		{
+			TUnderlying underlying{};
+			if (Serialize(archive, underlying))
+			{
+				value.value = static_cast<TValue>(underlying);
+				return true;
+			}
+			return false;
+		}
 	}
 
 	//------------------------------------------------------------------------------

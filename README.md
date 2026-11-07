@@ -1512,6 +1512,9 @@ archive << KeyValue("Age", mAge,
 ```
 Error messages can contain either descriptive text or localization string identifiers.
 
+> [!WARNING]
+> Custom error messages are stored by pointer and are not copied. The string must remain valid until the serialization call completes. Passing `someTemporaryString.c_str()` produces a dangling pointer.
+
 #### Built-in validators
 All validators are declared in the `BitSerializer::Validate` namespace (except `Required`, which is also available in the `BitSerializer` namespace).
 

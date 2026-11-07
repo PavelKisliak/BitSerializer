@@ -13,7 +13,15 @@ namespace BitSerializer
 	template<typename TArchive, typename TFirst, typename TSecond>
 	void SerializeObject(TArchive& archive, std::pair<TFirst, TSecond>& pair)
 	{
-		archive << KeyValue("key", const_cast<std::remove_const_t<TFirst>&>(pair.first));
-		archive << KeyValue("value", pair.second);
+		if constexpr (TArchive::IsSaving())
+		{
+			archive << KeyValue("key", std::as_const(pair.first));
+			archive << KeyValue("value", std::as_const(pair.second));
+		}
+		else
+		{
+			archive << KeyValue("key", pair.first);
+			archive << KeyValue("value", pair.second);
+		}
 	}
 }

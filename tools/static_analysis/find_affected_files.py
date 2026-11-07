@@ -8,6 +8,38 @@ import os
 import re
 import sys
 
+# Object files produced by the Ninja generator: `.o` on POSIX, `.obj` on Windows.
+OBJECT_FILE_RE = re.compile(r'^(?P<object>\S+\.(?:o|obj)):')
+
+
+def object_file_to_source(object_path):
+    """
+    Transform an object file path (relative to the CMake build directory) to the corresponding
+    source file path (relative to the source directory).
+
+    :param object_path: Object file path, e.g. `CMakeFiles/core_tests.dir/main.cpp.o`.
+    :return: Source file path, e.g. `main.cpp`.
+    """
+    for extension in ('.obj', '.o'):
+        if object_path.endswith(extension):
+            object_path = object_path[: -len(extension)]
+            break
+
+    cmake_files_pos = object_path.find('CMakeFiles/')
+    dir_pos = object_path.rfind('.dir/')
+    if cmake_files_pos != -1 and dir_pos != -1 and dir_pos > cmake_files_pos:
+        cmake_component = object_path[cmake_files_pos: dir_pos + len('.dir/')]
+        return object_path.replace(cmake_component, '')
+    return object_path
+
+
+def is_object_header(line):
+    """
+    Check whether a line from the `ninja -t deps` output starts a new object file entry.
+    """
+    return bool(OBJECT_FILE_RE.match(line.strip()))
+
+
 def find_affected_sources(ninja_deps_file, headers):
     """
     Parse the deps.txt file to find source files that depend on the given headers.
@@ -23,15 +55,12 @@ def find_affected_sources(ninja_deps_file, headers):
     affected_sources = {}
     i = 0
     while i < len(content):
-        line = content[i].strip()
-        if re.match(r'^[^:]+\.obj:', line):
-            # Transform a path referencing a Cmake build directory to the corresponding source directory
-            cmake_build_path = line[: line.find('.obj:')]
-            cmake_component = cmake_build_path[cmake_build_path.find("CMakeFiles/") : cmake_build_path.rfind('.dir/') + 5]
-            src_path = cmake_build_path.replace(cmake_component, "")
+        match = OBJECT_FILE_RE.match(content[i].strip())
+        if match:
+            src_path = object_file_to_source(match.group('object'))
             i += 1
 
-            while i < len(content) and not ".obj" in content[i]:
+            while i < len(content) and content[i].strip() and not is_object_header(content[i]):
                 next_line = content[i].strip()
                 for header in headers:
                     if header in next_line:

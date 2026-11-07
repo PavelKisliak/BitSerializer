@@ -22,26 +22,28 @@ jobs:
 
   steps:
   - checkout: self
-    fetchDepth: 2
+    # The build cache stores the SHA of the last built revision, and the changed-files list is
+    # computed against it, so the full history is required (the repository is small).
+    fetchDepth: 0
 
   - script: |
       echo ------------------------------------------------------------------------------
       echo -- Detecting C/C++ changes
       echo ------------------------------------------------------------------------------
-      # Skip the whole job (configure, build, analysis) when the last commit doesn't touch C/C++.
-      # The build is only needed for the dependency graph used to map changed headers to translation units.
+      # Skip the whole job when the last commit doesn't touch C/C++ or the build configuration.
+      # The build is needed for the dependency graph and the build cache used for incremental analysis.
       if changed_files=$(git diff HEAD HEAD~ --name-only 2>/dev/null); then
-        cpp_files=$(echo "$changed_files" | grep -E '\.(h|hpp|cpp|cc)$' || true)
-        if [ -n "$cpp_files" ]; then
-          echo "##vso[task.setvariable variable=hasCppChanges]true"
-          echo "C/C++ files changed:"
-          echo "$cpp_files"
+        relevant_files=$(echo "$changed_files" | grep -E '\.(h|hpp|cpp|cc)$|(^|/)(vcpkg\.json|CMakeLists\.txt|CMakeSettings\.json)$|^cmake/|\.cmake$' || true)
+        if [ -n "$relevant_files" ]; then
+          echo "##vso[task.setvariable variable=hasRelevantChanges]true"
+          echo "Analysis-relevant files changed:"
+          echo "$relevant_files"
         else
-          echo "##vso[task.setvariable variable=hasCppChanges]false"
-          echo "No C/C++ files changed, static analysis will be skipped."
+          echo "##vso[task.setvariable variable=hasRelevantChanges]false"
+          echo "No C/C++ or build configuration changes, static analysis will be skipped."
         fi
       else
-        echo "##vso[task.setvariable variable=hasCppChanges]true"
+        echo "##vso[task.setvariable variable=hasRelevantChanges]true"
         echo "Failed to determine changed files, static analysis will run."
       fi
     displayName: 'Detect C/C++ changes'
@@ -50,7 +52,7 @@ jobs:
       echo --- Install build tools ---
       sudo apt-get install ninja-build
     displayName: 'Install build tools'
-    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasRelevantChanges, 'true')))
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ jobs:
       ninja --version
       clang-tidy --version
     displayName: 'Tools version info'
-    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasRelevantChanges, 'true')))
 
   - script: |
       echo ------------------------------------------------------------------------------
@@ -80,9 +82,20 @@ jobs:
       echo ------------------------------------------------------------------------------
       ${{ variables.vcpkgDir }}/bootstrap-vcpkg.sh
     displayName: 'Install VCPKG'
-    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasRelevantChanges, 'true')))
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
+
+  - task: Cache@2
+    inputs:
+      key: |
+        ninja-build | v2 | $(vcpkgCommit) | $(Build.SourcesDirectory)/vcpkg.json | $(Build.SourceVersion)
+      restoreKeys: |
+        ninja-build | v2 | $(vcpkgCommit) | $(Build.SourcesDirectory)/vcpkg.json
+      path: ${{ parameters.buildDirectory }}
+      cacheHitVar: BUILD_CACHE_RESTORED
+    displayName: Restore build cache
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'))
 
   - task: Cache@2
     inputs:
@@ -93,28 +106,100 @@ jobs:
       path: ${{ parameters.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
-    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasRelevantChanges, 'true')))
 
   - task: CMake@1
     inputs:
       workingDirectory: ${{ parameters.buildDirectory }}
-      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
+      # Debug keeps compilation fast; -g0 drops debug info because this build is only needed for the
+      # dependency graph and the incremental build cache (it halves the cache size).
+      cmakeArgs: '${{ parameters.cmakeGenArgs }} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS_DEBUG=-g0 -DCMAKE_C_FLAGS_DEBUG=-g0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/../vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} .. -G Ninja'
     displayName: 'CMake - generate'
-    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasCppChanges, 'true')))
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.hasRelevantChanges, 'true')))
 
   - script: |
-      ninja -C ${{ parameters.buildDirectory }}
-      ninja -C ${{ parameters.buildDirectory }} -t deps > ${{ parameters.buildDirectory }}/deps.txt
+      set -e
+      build_dir="${{ parameters.buildDirectory }}"
+      changed_file="$build_dir/changed_since_build.txt"
+
+      diff_failed=false
+      if [ -f "$build_dir/.last_source_version" ]; then
+        base_version=$(cat "$build_dir/.last_source_version")
+        if git rev-parse --verify --quiet "$base_version^{commit}" > /dev/null; then
+          echo "Changes since the last build ($base_version):"
+          git diff --name-only "$base_version" HEAD > "$changed_file" || diff_failed=true
+        else
+          # The cached revision is unknown (e.g. a force-push), the incremental build is not reliable.
+          echo "The cached build revision $base_version is not available."
+          diff_failed=true
+        fi
+      elif [ "$BUILD_CACHE_RESTORED" = "false" ]; then
+        echo "The build cache is empty, using the previous commit:"
+        git diff HEAD HEAD~ --name-only > "$changed_file" 2>/dev/null || diff_failed=true
+      else
+        # A restored build cache must have the revision marker; otherwise its contents are unusable.
+        echo "The restored build cache has no source revision marker."
+        diff_failed=true
+      fi
+      if [ "$diff_failed" = "true" ]; then
+        echo "__all__" > "$changed_file"
+      fi
+      cat "$changed_file"
+
+      # Changes in the build configuration affect every translation unit (new dependencies,
+      # include paths or compiler flags), so the incremental analysis is not reliable for them.
+      force_full=false
+      if [ "$diff_failed" = "true" ] || grep -Eq '^(vcpkg\.json|CMakeSettings\.json)$|(^|/)CMakeLists\.txt$|^cmake/|\.cmake$' "$changed_file"; then
+        force_full=true
+      fi
+      echo "##vso[task.setvariable variable=forceFullAnalysis]$force_full"
+
+      if [ "$force_full" = "true" ]; then
+        echo "The build configuration changed, the full analysis will run."
+      elif [ "$BUILD_CACHE_RESTORED" != "false" ]; then
+        # Restored build artifacts keep their timestamps (the Ninja deps log records them too),
+        # so make unchanged sources older than the artifacts to prevent a full rebuild.
+        # Files changed since the cached build become newer and are recompiled by Ninja.
+        echo "Normalizing file timestamps for the incremental build..."
+        git ls-files -z | xargs -0 -r touch -h -d '2000-01-01 00:00:00'
+        if [ -d "$build_dir/vcpkg_installed" ]; then
+          find "$build_dir/vcpkg_installed" -type f -exec touch -d '2000-01-01 00:00:00' {} +
+        fi
+        while IFS= read -r changed_path; do
+          if [ -n "$changed_path" ] && [ -e "$changed_path" ]; then
+            touch -h "$changed_path"
+          fi
+        done < "$changed_file"
+      fi
+    displayName: 'Prepare incremental build'
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'))
+
+  - script: |
+      set -e
+      build_dir="${{ parameters.buildDirectory }}"
+      touch "$build_dir/.build_start_marker"
+      ninja -C "$build_dir"
+      ninja -C "$build_dir" -t deps > "$build_dir/deps.txt"
+      git rev-parse HEAD > "$build_dir/.last_source_version"
     displayName: 'Build'
-    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasCppChanges, 'true'))
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'))
 
   - script: |
+      set -e
+      build_dir="${{ parameters.buildDirectory }}"
       echo ------------------------------------------------------------------------------
       echo -- Identifying affected source files
       echo ------------------------------------------------------------------------------
-      git diff HEAD HEAD~ --name-only > ${{ parameters.buildDirectory }}/changed_files.txt
-      python tools/static_analysis/find_affected_files.py ${{ parameters.buildDirectory }}/deps.txt ${{ parameters.buildDirectory }}/changed_files.txt ${{ parameters.buildDirectory }}/affected_sources.txt
-      affected_sources=$(cat ${{ parameters.buildDirectory }}/affected_sources.txt)
+      if [ "$BUILD_CACHE_RESTORED" != "false" ]; then
+        # Analyze exactly the translation units rebuilt by the incremental build: this covers all
+        # units that include a changed header (not just one per header) as well as units recompiled
+        # due to changes in their dependencies or compiler settings.
+        find "$build_dir" -type f \( -name '*.o' -o -name '*.obj' \) -newer "$build_dir/.build_start_marker" > "$build_dir/rebuilt_objects.txt"
+        python tools/static_analysis/find_rebuilt_sources.py "$build_dir" "$build_dir/rebuilt_objects.txt" "$build_dir/affected_sources.txt"
+      else
+        python tools/static_analysis/find_affected_files.py "$build_dir/deps.txt" "$build_dir/changed_since_build.txt" "$build_dir/affected_sources.txt"
+      fi
+      affected_sources=$(cat "$build_dir/affected_sources.txt")
       if [ -n "$affected_sources" ]; then
           echo
           echo $affected_sources
@@ -122,12 +207,12 @@ jobs:
           echo ------------------------------------------------------------------------------
           echo -- Сlang-tidy analysis
           echo ------------------------------------------------------------------------------
-          python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }} $affected_sources
+          python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p "$build_dir" $affected_sources
       else
           echo "No affected source files found. Skipping clang-tidy analysis."
       fi
     displayName: 'Static analysis [latest changes]'
-    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasCppChanges, 'true'))
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'), eq(variables.forceFullAnalysis, 'false'))
 
   - script: |
       python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }}
@@ -138,5 +223,5 @@ jobs:
       fi
     continueOnError: true
     displayName: 'Static analysis [full]'
-    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', true))
+    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.forceFullAnalysis, 'true')))
     timeoutInMinutes: 90

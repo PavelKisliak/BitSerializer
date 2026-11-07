@@ -98,6 +98,8 @@ namespace BitSerializer::Convert::Detail
 	 * @throws std::invalid_argument On invalid numeric format.
 	 * @throws std::out_of_range If parsed value exceeds the range of T.
 	 * @note The decimal separator is always '.', regardless of the current C locale.
+	 * @note Only the leading numeric value is parsed; trailing characters are ignored.
+	 *       A fractional part is rejected when converting to an integer.
 	 */
 	template <typename T, typename TSym, std::enable_if_t<(std::is_integral_v<T>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS

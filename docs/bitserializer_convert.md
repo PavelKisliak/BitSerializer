@@ -29,13 +29,15 @@ ___
 The library provides several public functions for convert types:
 
 - `TOut To<TOut>(TIn&& value, TInitArgs... initArgs)` may throw exceptions
-- `std::optional<TOut> TryTo<TOut>(TIn&& value, TInitArgs... initArgs)` throws nothing
+- `std::optional<TOut> TryTo<TOut>(TIn&& value, TInitArgs... initArgs)` does not throw on conversion errors; `std::bad_alloc` and non-standard exceptions are propagated
 - `std::string ToString(TIn&& value, TInitArgs... initArgs)` just "syntax sugar" for `To<std::string>()`
 - `std::wstring ToWString(TIn&& value, TInitArgs... initArgs)` just "syntax sugar" for `To<std::wstring>()`
 - `bool IsConvertible<TIn, TOut>()` checks whether conversion from `TIn` to `TOut` is supported
 
 Under the hood, integer and floating types are converting via modern `std::from_chars()` and `std::to_chars()`, except for old versions of GCC and CLANG compilers, which do not support floating types. In this case, will be used older (and significantly slower) functions from C++11.
 Floating-point input and output always use `.` as the decimal separator, regardless of the current C locale.
+
+Numeric and boolean conversions parse only the leading value; any trailing characters after it are ignored. Integer conversions still reject a fractional part (for example, `"3.1"`).
 ```cpp
 #include "bitserializer/convert.h"
 

@@ -1,8 +1,10 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <exception>
+#include <new>
 #include <optional>
 #include <string>
 #include "bitserializer/config.h"
@@ -144,16 +146,21 @@ namespace BitSerializer::Convert
 	 * @tparam TInitArgs Variadic arguments for constructing TOut.
 	 * @param[in] value Source value to convert.
 	 * @param[in] initArgs Optional arguments for constructing the output type (e.g., allocator or existing string).
-	 * @return `optional<TOut>` containing the result, or empty if an error occurs.
+	 * @return `optional<TOut>` containing the result, or empty if a conversion error occurs.
+	 * @note `std::bad_alloc` and non-standard exceptions are propagated.
 	 */
 	template <typename TOut, typename TIn, typename... TInitArgs, std::enable_if_t<std::is_constructible_v<TOut, TInitArgs...>, int> = 0>
-	std::optional<TOut> TryTo(TIn&& value, TInitArgs... initArgs) noexcept
+	std::optional<TOut> TryTo(TIn&& value, TInitArgs... initArgs)
 	{
 		try
 		{
 			return To<TOut>(std::forward<TIn>(value), std::forward<TInitArgs>(initArgs)...);
 		}
-		catch (...)
+		catch (const std::bad_alloc&)
+		{
+			throw;
+		}
+		catch (const std::exception&)
 		{
 			return std::nullopt;
 		}

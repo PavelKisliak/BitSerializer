@@ -2,6 +2,7 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <new>
 #include <gtest/gtest.h>
 #include "testing_tools/common_test_entities.h"
 
@@ -11,6 +12,15 @@ using namespace BitSerializer;
  * @brief Test class without any conversions methods (internal or external).
  */
 class NotConvertibleFixture { };
+
+/**
+ * @brief Test class whose conversion always fails with an allocation error.
+ */
+class BadAllocConvertibleFixture
+{
+public:
+	static void FromString(std::string_view) { throw std::bad_alloc(); }
+};
 
 //-----------------------------------------------------------------------------
 // Test IsConvertible<>()
@@ -165,6 +175,10 @@ TEST(ConvertApi, TryToShouldReturnEmptyWhenOccurredError) {
 TEST(ConvertApi, TryToShouldNoThrowExceptions) {
 	EXPECT_NO_THROW(Convert::TryTo<bool>("-1"));
 	EXPECT_NO_THROW(Convert::TryTo<char>("10000"));
+}
+
+TEST(ConvertApi, TryToShouldPropagateBadAlloc) {
+	EXPECT_THROW((Convert::TryTo<BadAllocConvertibleFixture>("test")), std::bad_alloc);
 }
 
 TEST(ConvertApi, TryToShouldConvertWithInitArgs)

@@ -239,6 +239,14 @@ TEST(ConvertFundamentals, BoolFromStringWithSignShouldThrowException) {
 	}
 }
 
+TEST(ConvertFundamentals, NumericFromStringIgnoresTrailingCharacters) {
+	EXPECT_EQ(123, Convert::To<int>("123abc"));
+	EXPECT_EQ(123, Convert::To<int>(L"123abc"));
+	EXPECT_EQ(1.5, Convert::To<double>("1.5abc"));
+	EXPECT_EQ(1.5f, Convert::To<float>(u"1.5abc"));
+	EXPECT_THROW(Convert::To<int>("123.5"), std::invalid_argument);
+}
+
 TEST(ConvertFundamentals, BoolFromWideString) {
 	EXPECT_EQ(true, Convert::To<bool>(L"  True"));
 	EXPECT_EQ(false, Convert::To<bool>(L"FALSE"));

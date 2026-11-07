@@ -158,6 +158,7 @@ namespace BitSerializer::Convert::Detail
 	 * @param out Output variable to store the parsed value.
 	 * @throws std::invalid_argument If parsing fails or input is not a valid number.
 	 * @throws std::out_of_range If result exceeds representable range.
+	 * @note Only the leading numeric value is parsed; trailing characters are ignored.
 	 */
 	template <typename T, typename TSym, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out)

@@ -197,7 +197,7 @@ public:
 	 * @brief Returns the estimated number of items to load (for reserving the size of containers).
 	 */
 	[[nodiscard]] size_t GetEstimatedSize() const {
-		return this->mNode->Capacity();
+		return this->mNode->Size();
 	}
 
 	/**

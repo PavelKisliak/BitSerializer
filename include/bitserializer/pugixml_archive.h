@@ -341,7 +341,7 @@ protected:
 	pugi::xml_node LoadNextItem()
 	{
 		static_assert(TMode == SerializeMode::Load);
-		if (mValueIt != mValueIt->end())
+		if (mValueIt != mNode.end())
 		{
 			auto xmlNode = *mValueIt;
 			++mValueIt;

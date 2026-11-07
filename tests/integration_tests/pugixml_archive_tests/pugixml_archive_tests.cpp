@@ -105,6 +105,21 @@ TEST(PugiXmlArchive, SerializeTwoDimensionalArray) {
 	TestSerializeTwoDimensionalArray<XmlArchive, int32_t>();
 }
 
+TEST(PugiXmlArchive, ShouldThrowWhenOpeningScopeAfterArrayEnd) {
+	// Arrange
+	pugi::xml_document doc;
+	auto arrayNode = doc.append_child("root").append_child("items");
+	arrayNode.append_child("item").text().set("1");
+	BitSerializer::SerializationContext context(BitSerializer::DefaultOptions);
+	BitSerializer::Xml::PugiXml::Detail::PugiXmlArrayScope<BitSerializer::SerializeMode::Load> arrayScope(arrayNode, context);
+	int value = 0;
+
+	// Act / Assert
+	ASSERT_TRUE(arrayScope.SerializeValue(value));
+	ASSERT_TRUE(arrayScope.IsEnd());
+	EXPECT_THROW(arrayScope.OpenObjectScope(1), BitSerializer::SerializationException);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for classes
 //-----------------------------------------------------------------------------

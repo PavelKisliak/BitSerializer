@@ -234,7 +234,7 @@ namespace BitSerializer
 		Convert::Utf::UtfEncodingErrorPolicy utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::ThrowError;
 
 		/**
-		 * @brief Maximum number of validation errors to collect before throwing an exception (0 means no limit).
+		 * @brief Maximum number of fields with validation errors to collect before throwing an exception (0 means no limit).
 		 */
 		uint32_t maxValidationErrors = 0;
 

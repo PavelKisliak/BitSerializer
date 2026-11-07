@@ -31,7 +31,7 @@ namespace BitSerializer
 		/**
 		 * @brief Records a validation error associated with a specific field path.
 		 *
-		 * If the number of validation errors exceeds the limit specified in the options,
+		 * If the number of fields with validation errors exceeds the limit specified in the options,
 		 * a `ValidationException` will be thrown immediately.
 		 *
 		 * @param path Path to the field where the error occurred.
@@ -46,8 +46,8 @@ namespace BitSerializer
 				it->second.push_back(std::move(errorMessage));
 			}
 
-			// Immediately throw `ValidationException` when `MaxValidationErrors` is exceeded
-			if (mSerializationOptions.maxValidationErrors > 0 && static_cast<size_t>(mSerializationOptions.maxValidationErrors) == mErrorsMap.size())
+			// Immediately throw `ValidationException` when the limit of fields with errors is reached
+			if (mSerializationOptions.maxValidationErrors > 0 && mErrorsMap.size() >= static_cast<size_t>(mSerializationOptions.maxValidationErrors))
 			{
 				OnFinishSerialization();
 			}

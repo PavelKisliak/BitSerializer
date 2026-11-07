@@ -89,3 +89,16 @@ TEST(ValidatorRequired, ShouldThrowErrorWhenExceededLimit)
 	context.AddValidationError("path2", "error2");
 	EXPECT_THROW(context.AddValidationError("path3", "error3"), BitSerializer::ValidationException);
 }
+
+TEST(ValidatorRequired, ShouldCountFieldsNotValidationErrors)
+{
+	// Arrange
+	SerializationOptions options;
+	options.maxValidationErrors = 2;
+	SerializationContext context(options);
+
+	// Act / Assert
+	context.AddValidationError("path1", "error1");
+	EXPECT_NO_THROW(context.AddValidationError("path1", "error2"));
+	EXPECT_THROW(context.AddValidationError("path2", "error3"), BitSerializer::ValidationException);
+}

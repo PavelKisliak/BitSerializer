@@ -33,25 +33,25 @@ protected:
 	{
 		ryml::Tree tree;
 		auto root = tree.rootref();
-		root |= ryml::SEQ;
+		root.set_seq();
 
 		// Save array of objects
 		for (const auto& obj : sourceTestModel)
 		{
 			auto yamlObj = root.append_child();
-			yamlObj |= ryml::MAP;
-			yamlObj.append_child() << ryml::key("active") << c4::fmt::boolalpha(obj.active);
-			yamlObj.append_child() << ryml::key("id") << obj.id;
-			yamlObj.append_child() << ryml::key("stock") << obj.stock;
-			yamlObj.append_child() << ryml::key("price")
-				<< c4::fmt::real(obj.price, std::numeric_limits<float>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-			yamlObj.append_child() << ryml::key("rating")
-				<< c4::fmt::real(obj.rating, std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT);
-			yamlObj.append_child() << ryml::key("name") << obj.name;
-			yamlObj.append_child() << ryml::key("detailedProductDescription") << obj.detailedProductDescription;
-			yamlObj.append_child() << ryml::key("localizedName") << obj.localizedName;
-			yamlObj.append_child() << ryml::key("note") << obj.note;
-			yamlObj.append_child() << ryml::key("specifications") << obj.specifications;
+			yamlObj.set_map();
+			yamlObj["active"].save(c4::fmt::boolalpha(obj.active));
+			yamlObj["id"].save(obj.id);
+			yamlObj["stock"].save(obj.stock);
+			yamlObj["price"].save(
+				c4::fmt::real(obj.price, std::numeric_limits<float>::max_digits10, c4::RealFormat_e::FTOA_SCIENT));
+			yamlObj["rating"].save(
+				c4::fmt::real(obj.rating, std::numeric_limits<double>::max_digits10, c4::RealFormat_e::FTOA_SCIENT));
+			yamlObj["name"].save(obj.name);
+			yamlObj["detailedProductDescription"].save(obj.detailedProductDescription);
+			yamlObj["localizedName"].save(obj.localizedName);
+			yamlObj["note"].save(obj.note);
+			yamlObj["specifications"].save(obj.specifications);
 		}
 
 		outputData = ryml::emitrs_yaml<std::string>(tree);
@@ -67,16 +67,16 @@ protected:
 		{
 			auto& obj = targetTestModel[i];
 			auto yamlVal = root[i];
-			yamlVal["active"] >> obj.active;
-			yamlVal["id"] >> obj.id;
-			yamlVal["stock"] >> obj.stock;
-			yamlVal["price"] >> obj.price;
-			yamlVal["rating"] >> obj.rating;
-			yamlVal["name"] >> obj.name;
-			yamlVal["detailedProductDescription"] >> obj.detailedProductDescription;
-			yamlVal["localizedName"] >> obj.localizedName;
-			yamlVal["note"] >> obj.note;
-			yamlVal["specifications"] >> obj.specifications;
+			yamlVal["active"].load(&obj.active);
+			yamlVal["id"].load(&obj.id);
+			yamlVal["stock"].load(&obj.stock);
+			yamlVal["price"].load(&obj.price);
+			yamlVal["rating"].load(&obj.rating);
+			yamlVal["name"].load(&obj.name);
+			yamlVal["detailedProductDescription"].load(&obj.detailedProductDescription);
+			yamlVal["localizedName"].load(&obj.localizedName);
+			yamlVal["note"].load(&obj.note);
+			yamlVal["specifications"].load(&obj.specifications);
 		}
 	}
 };

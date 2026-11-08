@@ -1,9 +1,15 @@
 /*******************************************************************************
-* Copyright (C) 2018-2025 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+
+#ifndef BITSERIALIZER_DETAIL_CONVERT_TRAITS_ENABLED
+#error "BitSerializer. Include <bitserializer/convert.h> instead of <bitserializer/conversion_detail/convert_traits.h>."
+#endif
+
 #include <type_traits>
+#include "bitserializer/conversion_detail/string_traits.h"
 
 namespace BitSerializer::Convert::Detail
 {

@@ -23,12 +23,12 @@ namespace BitSerializer
 		bool enableFormat = false;
 
 		/**
-		 * @brief Character used for padding levels of indentation; must be whitespace (' ' or '\t').
+		 * @brief Character used to pad each indentation level; must be whitespace (' ' or '\t').
 		 */
 		char paddingChar = '\t';
 
 		/**
-		 * @brief Number of padding characters used per indentation level.
+		 * @brief Number of padding characters per indentation level.
 		 */
 		uint16_t paddingCharNum = 1;
 	};
@@ -148,7 +148,7 @@ namespace BitSerializer
 	};
 
 	/**
-	 * @brief Defines how a map (or multimap) is loaded over the existing content.
+	 * @brief Defines how a map (or multimap) is loaded into existing content.
 	 *
 	 * Applies to `std::map`, `std::unordered_map`, `std::multimap` and `std::unordered_multimap`
 	 * while loading. For unique-key containers an entry updates the value of an existing key,
@@ -202,7 +202,7 @@ namespace BitSerializer
 		FormatOptions formatOptions;
 
 		/**
-		 * @brief Options affecting output stream properties like encoding and BOM.
+		 * @brief Options affecting output stream properties such as encoding and BOM.
 		 */
 		StreamOptions streamOptions;
 

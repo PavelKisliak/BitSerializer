@@ -61,7 +61,7 @@ enum class ValueType
 };
 
 /**
- * @brief Stores the current key in the archive, supports all variants of keys from specified tuple.
+ * @brief Stores the current key in the archive and supports all key variants from the specified tuple.
  */
 template <typename TTuple>
 class VariableKey
@@ -184,7 +184,7 @@ public:
 	template <typename T>
 	void WriteValue(T value)
 	{
-		// Some integer types don't have fixed-size convertible types
+		// Some integer types do not have a fixed-size convertible representation
 		static_assert(!std::is_same_v<compatible_fixed_t<T>, void>);
 		WriteValue(static_cast<compatible_fixed_t<T>>(value));
 	}
@@ -238,7 +238,7 @@ public:
 	template <typename T>
 	bool ReadValue(T& value)
 	{
-		// Some integer types don't have fixed-size convertible types
+		// Some integer types do not have a fixed-size convertible representation
 		static_assert(!std::is_same_v<compatible_fixed_t<T>, void>);
 		compatible_fixed_t<T> temp;
 		if (ReadValue(temp))

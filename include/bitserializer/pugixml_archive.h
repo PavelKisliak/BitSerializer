@@ -121,7 +121,7 @@ namespace PugiXmlExtensions
 	/**
 	 * @brief Converts a PugiXml text to `std::string` for use in error messages.
 	 *
-	 * Never throws on malformed input, invalid UTF sequences are replaced with an error mark.
+	 * Never throws on malformed input; invalid UTF sequences are replaced with an error mark.
 	 */
 	[[nodiscard]] inline std::string ToNarrowString(const pugi::char_t* text)
 	{
@@ -356,7 +356,7 @@ protected:
 
 
 /**
- * @brief XML scope for serializing attributes (key-value pairs represented as XML attributes in the XML node)
+ * @brief XML scope for serializing attributes (key-value pairs represented as XML attributes on the XML node).
  */
 template <SerializeMode TMode>
 class PugiXmlAttributeScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits
@@ -459,7 +459,7 @@ protected:
 
 
 /**
- * @brief XML scope for serializing objects (key-value pairs represented as nodes in the XML).
+ * @brief XML scope for serializing objects (key-value pairs represented as child nodes).
  */
 template <SerializeMode TMode>
 class PugiXmlObjectScope final : public ArchiveScope<TMode>, public PugiXmlArchiveTraits

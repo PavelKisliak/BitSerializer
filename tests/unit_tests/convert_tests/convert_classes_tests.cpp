@@ -109,9 +109,40 @@ static void To(std::string_view in, ExternalConvertFixture& out)
 	out.value = in;
 }
 
+namespace ExternalNamespaceConvert
+{
+	class Fixture
+	{
+	public:
+		Fixture() = default;
+		explicit Fixture(std::string expectedValue) noexcept : value(std::move(expectedValue)) { }
+
+		std::string value;
+	};
+
+	static void To(const Fixture& in, std::string& out)
+	{
+		out = in.value;
+	}
+
+	static void To(std::string_view in, Fixture& out)
+	{
+		out.value = in;
+	}
+}
+
 TEST(ConvertClasses, ConvertToStringViaExternalConvertFunc) {
 	const auto testFixture = ExternalConvertFixture("16384");
 	EXPECT_EQ("16384", Convert::ToString(testFixture));
+}
+
+TEST(ConvertClasses, ConvertToStringViaExternalConvertFuncInTypeNamespace) {
+	const auto testFixture = ExternalNamespaceConvert::Fixture("16384");
+	EXPECT_EQ("16384", Convert::ToString(testFixture));
+}
+
+TEST(ConvertClasses, ConvertFromStringViaExternalConvertFuncInTypeNamespace) {
+	EXPECT_EQ("16384", Convert::To<ExternalNamespaceConvert::Fixture>("16384").value);
 }
 
 TEST(ConvertClasses, ConvertFromStringViaExternalConvertFunc) {

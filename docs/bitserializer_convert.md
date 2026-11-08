@@ -234,10 +234,12 @@ The important point is that you can implement just pair of methods for `std::str
 - `std::u32string ToU32String();`
 - `void FromString(std::u32string_view);`
 
-As an alternative to internal methods, you can achieve the same by implementing two global functions (in the same namespace as the type, or in the global):
+As an alternative to internal methods, you can achieve the same by implementing two functions in the namespace of the type (or in the global namespace if the type itself is declared globally):
 
 - `void To(const Point3D& in, std::string& out);`
 - `void To(std::string_view in, Point3D& out);`
+
+The functions are found via ADL, so they may be declared after including `convert.h` as long as they are in the type's associated namespace. A function in an unrelated namespace (including `BitSerializer::Convert::Detail`) will not be found.
 
 > [!IMPORTANT]
 > Please do not clear the output string.

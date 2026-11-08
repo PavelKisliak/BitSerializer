@@ -1,9 +1,12 @@
 /*******************************************************************************
-* Copyright (C) 2018-2024 by Pavel Kisliak                                     *
+* Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
 #pragma once
+#include <string>
+#include <string_view>
 #include <type_traits>
+#include <utility>
 
 namespace BitSerializer::Convert::Detail
 {

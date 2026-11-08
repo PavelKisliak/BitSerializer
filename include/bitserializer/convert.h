@@ -7,6 +7,8 @@
 #include <new>
 #include <optional>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include "bitserializer/config.h"
 #include "bitserializer/conversion_detail/convert_fundamental.h"
 #include "bitserializer/conversion_detail/convert_detail.h"
@@ -16,7 +18,11 @@
 #include "bitserializer/conversion_detail/convert_filesystem.h"
 #endif
 #include "bitserializer/conversion_detail/convert_chrono.h"
+
+// `convert_traits.h` defines `is_convert_supported`, which requires all `To` overloads above.
+#define BITSERIALIZER_DETAIL_CONVERT_TRAITS_ENABLED
 #include "bitserializer/conversion_detail/convert_traits.h"
+#undef BITSERIALIZER_DETAIL_CONVERT_TRAITS_ENABLED
 
 // Suppress C4702 - unreachable code
 #pragma warning(push)
@@ -56,8 +62,12 @@ namespace BitSerializer::Convert
 		constexpr bool isSame = std::is_same_v<TOut, std::decay_t<TIn>>;
 		constexpr bool isConvertible = IsConvertible<TIn, TOut>();
 
-		// You may need to implement internal or external conversion functions for your types
-		static_assert(isSame || isConvertible, "BitSerializer::Convert. Converting these types is not supported.");
+		// To make a custom type convertible, use one of the following options:
+		// - implement ToString()/FromString() (optionally ToU16String()/ToU32String() with matching FromString() overloads);
+		// - declare To(in, out) overloads in the type's namespace (found via ADL);
+		// - for string-like wrapper types, register them with BITSERIALIZER_DECLARE_STRING_TYPE.
+		static_assert(isSame || isConvertible,
+			"BitSerializer::Convert. Conversion is not supported; see the comment above.");
 
 		// Convert to the same type
 		if constexpr (isSame && sizeof...(TInitArgs) == 0) {

@@ -22,9 +22,9 @@
 #include "rapidjson/error/en.h"
 
 #ifdef GetObject
-// see https://github.com/Tencent/rapidjson/issues/1448
-// a former included windows.h might have defined a macro called GetObject, which affects
-// GetObject defined here. This ensures the macro does not get applied
+// See https://github.com/Tencent/rapidjson/issues/1448.
+// If windows.h was included earlier, it might have defined a macro named GetObject,
+// which conflicts with the GetObject method defined here. This ensures the macro is not applied.
 #pragma push_macro("GetObject")
 #define RAPIDJSON_WINDOWS_GETOBJECT_WORKAROUND_APPLIED
 #undef GetObject
@@ -337,7 +337,7 @@ protected:
 		}
 		else
 		{
-			// Some integer types don't have fixed-size convertible types
+			// Some integer types do not have a fixed-size convertible representation
 			const auto compatibleValue = static_cast<compatible_fixed_t<T>>(value);
 			this->mNode->PushBack(compatibleValue, mAllocator);
 		}
@@ -411,7 +411,7 @@ public:
 					return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(value));
 				}
 				else {
-					// Some integer types don't have fixed-size convertible types
+					// Some integer types do not have a fixed-size convertible representation
 					return SaveJsonValue(Convert::ToStringView(key), RapidJsonNode(static_cast<compatible_fixed_t<T>>(value)));
 				}
 			}
@@ -561,7 +561,7 @@ protected:
 
 	bool SaveJsonValue(const key_type& key, RapidJsonNode&& jsonValue) const
 	{
-		// Checks that object was not saved previously under the same key
+		// Checks that the object has not already been saved under the same key
 		assert(this->mNode->GetObject().FindMember(key.c_str()) == this->mNode->GetObject().MemberEnd());
 
 		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);
@@ -571,7 +571,7 @@ protected:
 
 	bool SaveJsonValue(key_raw_ptr key, RapidJsonNode&& jsonValue) const
 	{
-		// Checks that object was not saved previously under the same key
+		// Checks that the object has not already been saved under the same key
 		assert(this->mNode->GetObject().FindMember(key) == this->mNode->GetObject().MemberEnd());
 
 		this->mNode->AddMember(RapidJsonNode(typename RapidJsonNode::StringRefType(key)), std::move(jsonValue), mAllocator);
@@ -580,7 +580,7 @@ protected:
 
 	bool SaveJsonValue(key_type_view key, RapidJsonNode&& jsonValue) const
 	{
-		// Checks that object was not saved previously under the same key
+		// Checks that the object has not already been saved under the same key
 		assert(FindMember(key) == this->mNode->GetObject().MemberEnd());
 
 		auto jsonKey = RapidJsonNode(key.data(), static_cast<rapidjson::SizeType>(key.size()), mAllocator);

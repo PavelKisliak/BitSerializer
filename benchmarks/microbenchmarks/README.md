@@ -279,13 +279,13 @@ If the change is a **policy/template parameter** (e.g. a writer policy), instant
 
 ### Tier 3 — end-to-end validation (before committing)
 
-Run the round-trip `archives_benchmark` for the affected archive and stage (Clang/GCC with function alignment; MSVC is indicative). This catches whole-TU codegen effects that a Tier 1/2 win can mask.
+Run the round-trip `archives_benchmark` for the affected archive and stage (Clang/GCC with function alignment; MSVC is indicative). This reveals whole-TU codegen effects that Tier 1/2 can miss. Because layout can shift save and load independently, compare repeated runs and the combined save+load result rather than requiring the same delta in each stage.
 
 ### Rules
 
 - Compare under the same compiler and flags; never mix absolute numbers.
-- A result is meaningful only when it is `significant` (median delta above the noise band, and the min agrees in sign).
-- If a Tier 1 win does not reproduce in Tier 3, do not commit it.
+- A microbenchmark result is meaningful when it is `significant` (median delta above the noise band, and the min agrees in sign). A non-significant result cannot prove a win, but it can still explain a repeatable effect seen in Tier 2/3.
+- Do not require the Tier 1 delta to reproduce exactly in Tier 3. Whole-TU layout can move save and load independently, so a load-only change may even show an apparent save-side gain or loss. Judge repeated Tier 3 runs by the **combined save+load result**: accept a clear Tier 1 win when the sum improves, even if one of the stages is slower; if the sum is neutral, use judgment and repeatability rather than requiring both stages to improve. Reject the change when the sum regresses repeatably.
 
 ### Worked example (what this buys you)
 

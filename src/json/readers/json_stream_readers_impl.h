@@ -330,27 +330,25 @@ namespace BitSerializer::Json::Detail
 			inputData = data;
 		}
 
-		// Slow path: string contains escape sequences - copy prefix and process via buffer
+		// Slow path: string contains escape sequences - copy runs between escapes
 		outValue.clear();
-		outValue.assign(inputData.data() + start, pos - start);
 
-		size_t size = inputData.size();
 		const auto readMoreData = [&]()
 		{
 			// Read more data (forces the raw buffer to grow by at least one chunk if the stream has more data)
-			const std::string_view data = mEncodedStreamReader.PeekChars(size + 1);
-			if (data.size() == size) {
+			const size_t oldSize = inputData.size();
+			const std::string_view data = mEncodedStreamReader.PeekChars(oldSize + 1);
+			if (data.size() == oldSize) {
 				return false; // No more data available
 			}
 			inputData = data;
-			size = inputData.size();
 			return true;
 		};
 
 		// Ensures that `count` characters are available starting at `pos`, reading more data from the stream if needed
 		const auto ensureAvailable = [&](size_t count)
 		{
-			while (pos + count > size)
+			while (pos + count > inputData.size())
 			{
 				if (!readMoreData()) {
 					return false;
@@ -359,20 +357,34 @@ namespace BitSerializer::Json::Detail
 			return true;
 		};
 
-		do
+		size_t segmentStart = start;
+		while (true)
 		{
-			if (!ensureAvailable(1)) {
-				throw ParsingException("Unterminated string literal", mLineNumber, pos);
+			if (pos > segmentStart)
+			{
+				const size_t runLength = pos - segmentStart;
+				if (runLength >= 4) {
+					outValue.append(inputData.data() + segmentStart, runLength);
+				}
+				else {
+					for (size_t i = segmentStart; i < pos; ++i) {
+						outValue.push_back(inputData[i]);
+					}
+				}
 			}
+
 			ch = inputData[pos];
-			++pos;
 			if (ch == '"')
 			{
+				++pos;
 				mEncodedStreamReader.SkipChars(pos);
 				return true;
 			}
-			if (ch == '\\')
+
+			assert(ch == '\\');
+			do
 			{
+				++pos;
 				if (!ensureAvailable(1)) {
 					throw ParsingException("Unexpected end of input in string escape sequence", mLineNumber, pos);
 				}
@@ -429,15 +441,39 @@ namespace BitSerializer::Json::Detail
 				default:
 					throw ParsingException("Invalid escape sequence", mLineNumber, pos - 1);
 				}
-			}
-			else
-			{
-				if (static_cast<unsigned char>(ch) < 0x20) {
-					throw ParsingException("Unescaped control character in string literal", mLineNumber, GetPosition() + pos - 1);
+
+				segmentStart = pos;
+				if (!ensureAvailable(1)) {
+					throw ParsingException("Unterminated string literal", mLineNumber, pos);
 				}
-				outValue.push_back(ch);
+			} while (inputData[pos] == '\\');
+
+			if (inputData[pos] == '"')
+			{
+				++pos;
+				mEncodedStreamReader.SkipChars(pos);
+				return true;
 			}
-		} while (true);
+
+			while (true)
+			{
+				const size_t next = BitSerializer::Simd::FindFirstOfOrLessThan<0x20, '"', '\\'>(inputData, pos);
+				if (next != std::string_view::npos)
+				{
+					if (inputData[next] != '"' && inputData[next] != '\\') {
+						throw ParsingException("Unescaped control character in string literal", mLineNumber, GetPosition() + next);
+					}
+					pos = next;
+					break;
+				}
+
+				const size_t oldSize = inputData.size();
+				if (!readMoreData()) {
+					throw ParsingException("Unterminated string literal", mLineNumber, oldSize);
+				}
+				pos = oldSize;
+			}
+		}
 	}
 
 	template <ArchiveType TFormat>

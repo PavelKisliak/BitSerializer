@@ -732,6 +732,24 @@ TYPED_TEST(JsonReaderTest, ReadStringWithEscapeSequences)
 	EXPECT_EQ("\"\\/\b\f\n\r\t", actualStr);
 }
 
+TYPED_TEST(JsonReaderTest, ReadStringDirectlyToStdString)
+{
+	std::string actualStr = "stale value";
+
+	this->PrepareReader(R"("Line1\nLine2\tEnd")");
+	ASSERT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ("Line1\nLine2\tEnd", actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadUnescapedStringDirectlyToStdString)
+{
+	std::string actualStr = "stale value";
+
+	this->PrepareReader(R"("plain text")");
+	ASSERT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ("plain text", actualStr);
+}
+
 TYPED_TEST(JsonReaderTest, ReadStringWithUnicodeEscape)
 {
 	std::string_view actualStr;
@@ -1020,6 +1038,17 @@ TYPED_TEST(JsonReaderTest, ReadLongStringWithMultipleEscapes)
 	this->PrepareReader(testJson);
 	EXPECT_TRUE(this->mJsonReader->ReadValue(actualStr));
 	EXPECT_EQ(expected, actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongEscapedStringDirectlyToStdStringAtChunkBoundary)
+{
+	const std::string prefix = this->GenTestString(chunkSize - 4);
+	const std::string suffix = this->GenTestString(chunkSize);
+	std::string actualStr = "stale value";
+
+	this->PrepareReader("\"" + prefix + "\\u0041" + suffix + "\"");
+	ASSERT_TRUE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ(prefix + "A" + suffix, actualStr);
 }
 
 TYPED_TEST(JsonReaderTest, ReadLongStringShouldThrowExceptionWhenNoCloseQuotes)

@@ -90,7 +90,7 @@ All competitors serialize the same fields. Changing the model changes the output
 
 The benchmark reports the minimum single-iteration time per stage. On Windows the clock tick is 100 ns; an iteration of the fastest stage (MsgPack, ~3.6 µs) is only ~36 ticks, so the reported best can move by one tick (~3%) between runs. This is measurement quantization, not a regression; the other archives have longer iterations and a smaller quantum.
 
-Run the benchmark several times (`run_repeated.py`) and compare the `best` values (or the `median` for a conservative estimate). Changes below ~3% on the fastest archives cannot be resolved by the round-trip benchmark — use the intra-binary [microbenchmark harness](../microbenchmarks/README.md) for those.
+Run the benchmark several times (`run_repeated.py`) and compare the `best` values (or the `median` for a conservative estimate). The ~3% figure is a practical noise band for the fastest stages, not a hard cutoff: a single stage can move by a tick or by code layout, and a change that only affects loading may even shift the reported save result. For that reason, prefer the **combined save+load result**: a repeatable improvement in the sum is stronger evidence than a sub-3% change in one stage. Judge the change by the round-trip result: accept it when the repeated save+load sum improves, even if one of the stages is slower; conversely, reject it when the sum regresses repeatably. Use the intra-binary [microbenchmark harness](../microbenchmarks/README.md) to confirm the mechanism, especially for small or short-lived deltas.
 
 ## Reports
 

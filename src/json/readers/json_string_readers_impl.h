@@ -553,23 +553,39 @@ namespace BitSerializer::Json::Detail
 			return true;
 		}
 
-		// Slow path: string contains escape sequences - copy prefix and process via buffer
+		// Slow path: string contains escape sequences - copy runs between escapes
 		pos = firstEscape;
 		buffer.clear();
-		buffer.assign(inputData.data() + start, pos - start);
 
 		const size_t size = inputData.size();
-		do
+		size_t segmentStart = start;
+		while (true)
 		{
+			if (pos > segmentStart)
+			{
+				const size_t runLength = pos - segmentStart;
+				if (runLength >= 4) {
+					buffer.append(inputData.data() + segmentStart, runLength);
+				}
+				else {
+					for (size_t i = segmentStart; i < pos; ++i) {
+						buffer.push_back(inputData[i]);
+					}
+				}
+			}
+
 			ch = inputData[pos];
-			++pos;
 			if (ch == '"')
 			{
 				outValue = buffer;
+				++pos;
 				return true;
 			}
-			if (ch == '\\')
+
+			assert(ch == '\\');
+			do
 			{
+				++pos;
 				if (pos >= size) {
 					throw ParsingException("Unexpected end of input in string escape sequence", line, pos);
 				}
@@ -623,17 +639,29 @@ namespace BitSerializer::Json::Detail
 				default:
 					throw ParsingException("Invalid escape sequence", line, pos - 1);
 				}
-			}
-			else
-			{
-				if (static_cast<unsigned char>(ch) < 0x20) {
-					throw ParsingException("Unescaped control character in string literal", line, pos - 1);
-				}
-				buffer.push_back(ch);
-			}
-		} while (pos < size);
 
-		throw ParsingException("Unterminated string literal", line, pos);
+				segmentStart = pos;
+				if (pos >= size) {
+					throw ParsingException("Unterminated string literal", line, size);
+				}
+			} while (inputData[pos] == '\\');
+
+			if (inputData[pos] == '"')
+			{
+				outValue = buffer;
+				++pos;
+				return true;
+			}
+
+			const size_t next = BitSerializer::Simd::FindFirstOfOrLessThan<0x20, '"', '\\'>(inputData, pos);
+			if (next == std::string_view::npos) {
+				throw ParsingException("Unterminated string literal", line, size);
+			}
+			if (inputData[next] != '"' && inputData[next] != '\\') {
+				throw ParsingException("Unescaped control character in string literal", line, next);
+			}
+			pos = next;
+		}
 	}
 
 	template <ArchiveType TFormat>

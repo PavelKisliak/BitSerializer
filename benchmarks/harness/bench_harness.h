@@ -42,7 +42,7 @@
  *   the reported value is the per-call time including loop overhead.
  *
  * Command-line options (via `ParseConfig`): `--blocks N`, `--block-ms N`,
- * `--warmup-ms N`, `--help`/`-h`.
+ * `--warmup-ms N`, `--filter <substr>`, `--help`/`-h`.
  */
 namespace BenchHarness
 {
@@ -61,6 +61,9 @@ namespace BenchHarness
 
 		/// Number of alternating blocks (base, variant, base, variant, ...).
 		int blocks = 9;
+
+		/// Run only pairs whose name contains this substring (empty = run all).
+		std::string filter;
 
 		/// Minimum |delta| (percentage points) required to declare a result significant.
 		double significanceThresholdPct = 1.0;
@@ -190,7 +193,7 @@ namespace BenchHarness
 	/**
 	 * @brief Parses common benchmark options from the command line.
 	 *
-	 * Supported: `--blocks N`, `--block-ms N`, `--warmup-ms N`, `--help`/`-h`.
+	 * Supported: `--blocks N`, `--block-ms N`, `--warmup-ms N`, `--filter <substr>`, `--help`/`-h`.
 	 * @return False when `--help` was requested (usage printed), otherwise true.
 	 */
 	inline bool ParseConfig(int argc, char* argv[], Config& config)
@@ -224,9 +227,15 @@ namespace BenchHarness
 					config.warmup = std::chrono::milliseconds(std::atoi(value));
 				}
 			}
+			else if (arg == "--filter")
+			{
+				if (const char* value = readValue(i)) {
+					config.filter = value;
+				}
+			}
 			else if (arg == "--help" || arg == "-h")
 			{
-				std::cout << "Options: --blocks <n> --block-ms <n> --warmup-ms <n>" << std::endl;
+				std::cout << "Options: --blocks <n> --block-ms <n> --warmup-ms <n> --filter <substr>" << std::endl;
 				return false;
 			}
 		}
@@ -310,7 +319,7 @@ namespace BenchHarness
 	{
 	public:
 		explicit Runner(Config config = {})
-			: mConfig(config)
+			: mConfig(std::move(config))
 		{
 		}
 
@@ -338,6 +347,9 @@ namespace BenchHarness
 			mResults.reserve(mEntries.size());
 			for (auto& entry : mEntries)
 			{
+				if (!mConfig.filter.empty() && entry.name.find(mConfig.filter) == std::string::npos) {
+					continue;
+				}
 				mResults.push_back(RunAB(entry.name, entry.base, entry.variant, mConfig));
 			}
 
@@ -381,6 +393,16 @@ namespace BenchHarness
 
 		void printTable(std::ostream& out) const
 		{
+			if (mResults.empty())
+			{
+				out << "\nNo benchmarks to run";
+				if (!mConfig.filter.empty()) {
+					out << " for filter \"" << mConfig.filter << "\"";
+				}
+				out << ".\n";
+				return;
+			}
+
 			struct Row
 			{
 				std::string name;

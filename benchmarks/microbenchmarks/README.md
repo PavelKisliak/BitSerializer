@@ -112,6 +112,11 @@ Recommendation: **about 1 s per pair** (e.g. `--blocks 9 --block-ms 50` or `--bl
 
 ## Usage
 
+> [!NOTE]
+> `microbenchmark.cpp` (target `microbenchmark`) is a **small illustrative example**, not a
+> collection of every experiment. For a new A/B, create a dedicated source/target (copy the
+> structure) and keep the example focused on a few generic cases.
+
 Include `bench_harness.h` (part of the `bench_harness` target) and register base/variant callables. The complete example:
 
 ```cpp
@@ -200,6 +205,7 @@ Intra-binary A/B microbenchmark (9 blocks x 100 ms, warmup 200 ms)
 
 - **Use the same process environment as the archives benchmark**: call `BenchHarness::PrepareEnvironment()` before running — it raises priority, pins the thread to a fixed core and warms up the CPU (see the [Usage](#usage) example).
 - **Tune the time if needed.** `--blocks`, `--block-ms` and `--warmup-ms` override the defaults (see `BenchHarness::ParseConfig`); see [Choosing the time (recipes)](#choosing-the-time-recipes).
+- **Filter one-off experiments.** `--filter <substr>` runs only pairs whose name contains the substring. If you temporarily add an A/B to `microbenchmark.cpp`, use it to avoid running the other examples, and revert the experimental pair before committing (or put it in a dedicated target).
 - **Give the callable real, observable work.** Accumulate into a `volatile` sink, or write to a buffer that outlives the call.
 - **Keep one unit of work per call.** For very cheap operations the harness already batches internally; do not wrap your own loop unless the loop is part of what you are measuring.
 - **Prefer more blocks / longer blocks for small effects.** `9 × 100 ms` per pair (about 2 s) is a good default; increase `blocks` if a few-percent delta must be resolved.

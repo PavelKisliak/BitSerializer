@@ -2,6 +2,14 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+/**
+ * @file microbenchmark.cpp
+ * @brief Small illustrative example of the intra-binary A/B harness.
+ *
+ * Keep this file focused on a few generic examples. Add a dedicated source/target for a new
+ * experiment (copy the structure from here) instead of growing this example into a full set
+ * of benchmarks - see benchmarks/microbenchmarks/README.md.
+ */
 #include <cstddef>
 #include <cstdint>
 #include <string>

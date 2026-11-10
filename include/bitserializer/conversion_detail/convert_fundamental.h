@@ -5,10 +5,13 @@
 #pragma once
 #include <charconv>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
 #include "bitserializer/config.h"
+#include "bitserializer/conversion_detail/convert_integer.h"
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 #include "bitserializer/conversion_detail/convert_compatibility.h"
 #endif
@@ -236,34 +239,42 @@ namespace BitSerializer::Convert::Detail
 			), int> = 0>
 	void To(const T& in, std::basic_string<TSym, std::char_traits<TSym>, TAllocator>& out)
 	{
-		if constexpr (std::is_floating_point_v<T> && std::numeric_limits<T>::has_quiet_NaN)
+		if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool> && sizeof(T) <= sizeof(std::uint64_t))
 		{
-			// Handle NAN for cross-platform compatibility
-			if (std::isnan(in))
-			{
-				if (std::signbit(in)) {
-					out.append({ '-', 'n', 'a', 'n' });
-				}
-				else {
-					out.append({ 'n', 'a', 'n' });
-				}
-				return;
-			}
-		}
-
-		char buf[std::numeric_limits<T>::digits];
-		const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
-		if (rc.ec != std::errc())
-		{
-			throw std::runtime_error("Internal error, insufficient buffer size");
-		}
-		if constexpr (std::is_same_v<char, TSym>)
-		{
-			out.append(buf, rc.ptr);
+			FormatInteger(out, in);
+			return;
 		}
 		else
 		{
-			Utf::Utf8::Decode(buf, rc.ptr, out);
+			if constexpr (std::is_floating_point_v<T> && std::numeric_limits<T>::has_quiet_NaN)
+			{
+				// Handle NAN for cross-platform compatibility
+				if (std::isnan(in))
+				{
+					if (std::signbit(in)) {
+						out.append({ '-', 'n', 'a', 'n' });
+					}
+					else {
+						out.append({ 'n', 'a', 'n' });
+					}
+					return;
+				}
+			}
+
+			char buf[std::numeric_limits<T>::digits];
+			const std::to_chars_result rc = std::to_chars(buf, buf + sizeof(buf), in);
+			if (rc.ec != std::errc())
+			{
+				throw std::runtime_error("Internal error, insufficient buffer size");
+			}
+			if constexpr (std::is_same_v<char, TSym>)
+			{
+				out.append(buf, rc.ptr);
+			}
+			else
+			{
+				Utf::Utf8::Decode(buf, rc.ptr, out);
+			}
 		}
 	}
 

@@ -89,6 +89,8 @@ protected:
 	char mPaddingChar = '\t';
 	uint16_t mPaddingCharNum = 1;
 
-	std::shared_ptr<TWriter> mJsonWriter;
+	// The output storage must outlive the writer: the writer's destructor finalizes the
+	// output, and members are destroyed in reverse declaration order.
 	std::variant<std::string, std::ostringstream> mResult;
+	std::shared_ptr<TWriter> mJsonWriter;
 };

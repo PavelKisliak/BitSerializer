@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
     convert_enums_tests.cpp
     convert_filesystem_tests.cpp
     convert_fundamentals_tests.cpp
+    convert_integer_format_tests.cpp
     convert_traits_tests.cpp
     detect_encodings_fixture.h
     detect_encodings_tests.cpp

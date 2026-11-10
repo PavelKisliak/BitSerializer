@@ -7,6 +7,7 @@
 #include <climits>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
@@ -17,6 +18,7 @@
 #include "common/simd/scan.h"
 #include "common/string_buffer.h"
 #include "bitserializer/config.h"
+#include "bitserializer/conversion_detail/convert_integer.h"
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 #include "bitserializer/conversion_detail/convert_compatibility.h"
 #endif
@@ -72,33 +74,40 @@ namespace BitSerializer::Json::Detail
 	template <typename T>
 	size_t FormatNumber(char* out, T value)
 	{
-		constexpr size_t maxNumberLength = GetMaxNumberLength<T>();
-
-#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
-		const auto result = std::to_chars(out, out + maxNumberLength, value);
-		if (result.ec != std::errc()) {
-			throw std::runtime_error("Internal error, insufficient number buffer");
-		}
-		return static_cast<size_t>(result.ptr - out);
-#else
-		if constexpr (std::is_floating_point_v<T>)
+		if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool> && sizeof(T) <= sizeof(std::uint64_t))
 		{
-			// Some older standard libraries (e.g. GCC 9) do not provide floating-point std::to_chars.
-			const int length = std::snprintf(out, maxNumberLength, Convert::Detail::GetFloatFormat<T>(), value);
-			if (length < 0 || static_cast<size_t>(length) >= maxNumberLength) {
-				throw std::runtime_error("Internal error, insufficient number buffer");
-			}
-			return Convert::Detail::ReplaceLocaleDecimalPointWithDot(out, static_cast<size_t>(length));
+			return static_cast<size_t>(Convert::Detail::FormatInteger(out, value) - out);
 		}
 		else
 		{
+			constexpr size_t maxNumberLength = GetMaxNumberLength<T>();
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
 			const auto result = std::to_chars(out, out + maxNumberLength, value);
 			if (result.ec != std::errc()) {
 				throw std::runtime_error("Internal error, insufficient number buffer");
 			}
 			return static_cast<size_t>(result.ptr - out);
-		}
+#else
+			if constexpr (std::is_floating_point_v<T>)
+			{
+				// Some older standard libraries (e.g. GCC 9) do not provide floating-point std::to_chars.
+				const int length = std::snprintf(out, maxNumberLength, Convert::Detail::GetFloatFormat<T>(), value);
+				if (length < 0 || static_cast<size_t>(length) >= maxNumberLength) {
+					throw std::runtime_error("Internal error, insufficient number buffer");
+				}
+				return Convert::Detail::ReplaceLocaleDecimalPointWithDot(out, static_cast<size_t>(length));
+			}
+			else
+			{
+				const auto result = std::to_chars(out, out + maxNumberLength, value);
+				if (result.ec != std::errc()) {
+					throw std::runtime_error("Internal error, insufficient number buffer");
+				}
+				return static_cast<size_t>(result.ptr - out);
+			}
 #endif
+		}
 	}
 
 	template <typename T>

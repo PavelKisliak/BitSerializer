@@ -542,6 +542,11 @@ TEST(PugiXmlArchive, ShouldConsumeArraySlotForMismatchedValue)
 	TestMismatchedArrayValue<XmlArchive>(input);
 }
 
+TEST(PugiXmlArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
+{
+	TestMismatchedObjectArrayValue<XmlArchive>();
+}
+
 //-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------

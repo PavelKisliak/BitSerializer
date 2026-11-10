@@ -145,6 +145,42 @@ TYPED_TEST(JsonReaderTest, ReadBooleanShouldSkipValueWhenMismatchedTypes)
 	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
 }
 
+TYPED_TEST(JsonReaderTest, ReadBooleanFromZeroAndOne)
+{
+	bool value = true;
+
+	this->PrepareReader("1");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_TRUE(value);
+
+	this->PrepareReader("0");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_FALSE(value);
+}
+
+TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionForNumbersOtherThanZeroAndOne)
+{
+	for (const auto *testJson : { "12", "10", "01", "0.0" })
+	{
+		this->PrepareReader(testJson);
+		bool value{};
+		BitSerializer::SerializationException ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+			this->mJsonReader->ReadValue(value);
+		});
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+	}
+}
+
+TYPED_TEST(JsonReaderTest, ReadBooleanShouldThrowExceptionWhenLiteralIsInvalid)
+{
+	for (const auto *testJson : { "tru", "fals" })
+	{
+		this->PrepareReader(testJson);
+		bool value{};
+		EXPECT_ANY_THROW(this->mJsonReader->ReadValue(value));
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Tests of reading integral values
 //-----------------------------------------------------------------------------
@@ -336,6 +372,15 @@ TYPED_TEST(JsonReaderTest, ReadInt32ShouldThrowExceptionWhenOverflow)
 	}
 }
 
+TYPED_TEST(JsonReaderTest, ReadInt32ShouldSkipValueWhenOverflow)
+{
+	this->PrepareReader("2147483648", BitSerializer::OverflowNumberPolicy::Skip);
+	int32_t value = 42;
+	EXPECT_FALSE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
+}
+
 TYPED_TEST(JsonReaderTest, ReadInt32ShouldThrowExceptionWhenMismatchedTypes)
 {
 	for (const auto *testJson : { "3.14", "\"123\"", "false", "{ }", "[ 123 ]" })
@@ -480,6 +525,24 @@ TYPED_TEST(JsonReaderTest, ReadUInt64ShouldSkipValueWhenMismatchedTypes)
 	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
 }
 
+TYPED_TEST(JsonReaderTest, ReadUInt64ShouldSkipValueWhenNegative)
+{
+	uint64_t uInt64 = 123;
+	this->PrepareReader("-1", BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	EXPECT_FALSE(this->mJsonReader->ReadValue(uInt64));
+	EXPECT_EQ(123, uInt64);
+	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
+}
+
+TYPED_TEST(JsonReaderTest, ReadFixedTypeShouldReturnFalseWhenValueIsSkipped)
+{
+	this->PrepareReader("\"text\"", BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+	long long value = 42;
+	EXPECT_FALSE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
+}
+
 TYPED_TEST(JsonReaderTest, ReadUInt64ShouldThrowExceptionWhenEmptyJson)
 {
 	uint64_t uInt64;
@@ -490,6 +553,17 @@ TYPED_TEST(JsonReaderTest, ReadUInt64ShouldThrowExceptionWhenEmptyJson)
 	});
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
+}
+
+//-----------------------------------------------------------------------------
+// Tests of reading char
+//-----------------------------------------------------------------------------
+TYPED_TEST(JsonReaderTest, ReadChar)
+{
+	char value{};
+	this->PrepareReader("65");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ('A', value);
 }
 
 //-----------------------------------------------------------------------------
@@ -586,6 +660,15 @@ TYPED_TEST(JsonReaderTest, ReadDoubleShouldSkipValueWhenMismatchedTypes)
 	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
 }
 
+TYPED_TEST(JsonReaderTest, ReadDoubleShouldSkipValueWhenOverflow)
+{
+	this->PrepareReader("1e400", BitSerializer::OverflowNumberPolicy::Skip);
+	double value = 42.0;
+	EXPECT_FALSE(this->mJsonReader->ReadValue(value));
+	EXPECT_DOUBLE_EQ(42.0, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
+}
+
 TYPED_TEST(JsonReaderTest, ReadDoubleShouldThrowExceptionWhenEmptyJson)
 {
 	double value;
@@ -596,6 +679,14 @@ TYPED_TEST(JsonReaderTest, ReadDoubleShouldThrowExceptionWhenEmptyJson)
 	});
 	EXPECT_EQ(1, ex.line);
 	EXPECT_EQ(0, ex.offset);
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongDouble)
+{
+	long double value{};
+	this->PrepareReader("1.5");
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_DOUBLE_EQ(1.5L, value);
 }
 
 //-----------------------------------------------------------------------------
@@ -652,6 +743,8 @@ TYPED_TEST(JsonReaderTest, ReadNumberShouldThrowExceptionWhenMalformed)
 	expectParsingError("0x10", 1, intValue);
 	expectParsingError("007", 1, intValue);
 	expectParsingError("12abc", 2, intValue);
+	expectParsingError("1.x", 2, intValue);
+	expectParsingError("1e+x", 3, intValue);
 	expectParsingError("-", 1, intValue);
 	expectParsingError("+5", 0, intValue);
 
@@ -663,6 +756,21 @@ TYPED_TEST(JsonReaderTest, ReadNumberShouldThrowExceptionWhenMalformed)
 	expectParsingError("1.", 2, doubleValue);
 	expectParsingError("1e", 2, doubleValue);
 	expectParsingError("1e+", 3, doubleValue);
+	expectParsingError("01.5", 1, doubleValue);
+	expectParsingError("1.x", 2, doubleValue);
+	expectParsingError("1e+x", 3, doubleValue);
+	expectParsingError("0x10", 1, doubleValue);
+	expectParsingError("1.2.3", 3, doubleValue);
+}
+
+TYPED_TEST(JsonReaderTest, ReadNumberShouldThrowExceptionWhenTooLong)
+{
+	this->PrepareReader(std::string(100, '9'));
+	int32_t value{};
+	const BitSerializer::SerializationException ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+		this->mJsonReader->ReadValue(value);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::Overflow, ex.GetErrorCode());
 }
 
 TYPED_TEST(JsonReaderTest, ReadNumberAtChunkBoundary)
@@ -674,6 +782,17 @@ TYPED_TEST(JsonReaderTest, ReadNumberAtChunkBoundary)
 	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
 	EXPECT_EQ(12345, value);
 }
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
+TYPED_TEST(JsonReaderTest, ReadLongFloatAtChunkBoundary)
+{
+	const std::string testJson = "1." + std::string(70, '0') + "1";
+	this->PrepareReader(testJson);
+	double value{};
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_DOUBLE_EQ(1.0, value);
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Tests of reading strings
@@ -748,6 +867,28 @@ TYPED_TEST(JsonReaderTest, ReadUnescapedStringDirectlyToStdString)
 	this->PrepareReader(R"("plain text")");
 	ASSERT_TRUE(this->mJsonReader->ReadValue(actualStr));
 	EXPECT_EQ("plain text", actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringDirectlyToStdStringShouldThrowExceptionWhenMismatchedTypes)
+{
+	std::string actualStr = "stale value";
+	this->PrepareReader("true");
+
+	const BitSerializer::SerializationException ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+	EXPECT_EQ("stale value", actualStr);
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringDirectlyToStdStringShouldSkipValueWhenMismatchedTypes)
+{
+	std::string actualStr = "stale value";
+	this->PrepareReader("[true]", BitSerializer::OverflowNumberPolicy::ThrowError, BitSerializer::MismatchedTypesPolicy::Skip);
+
+	EXPECT_FALSE(this->mJsonReader->ReadValue(actualStr));
+	EXPECT_EQ("stale value", actualStr);
+	EXPECT_TRUE(this->mJsonReader->IsEnd()) << "Value should be skipped";
 }
 
 TYPED_TEST(JsonReaderTest, ReadStringWithUnicodeEscape)
@@ -967,6 +1108,16 @@ TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateNotFol
 	EXPECT_STREQ("Parsing error: Incomplete surrogate pair", ex.what());
 }
 
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateFollowedByLongNonUnicodeText)
+{
+	std::string_view actualStr;
+	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->PrepareReader(R"("\uD800x12345678")");
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Incomplete surrogate pair", ex.what());
+}
+
 TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenHighSurrogateAtEndOfString)
 {
 	std::string_view actualStr;
@@ -1057,6 +1208,27 @@ TYPED_TEST(JsonReaderTest, ReadLongStringShouldThrowExceptionWhenNoCloseQuotes)
 	this->PrepareReader(testJson);
 	std::string_view actualStr;
 	BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadStringShouldThrowExceptionWhenEndsAfterEscapeSequence)
+{
+	this->PrepareReader("\"a\\n");
+	std::string_view actualStr;
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
+		this->mJsonReader->ReadValue(actualStr);
+	});
+	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadLongStringShouldThrowExceptionWhenNoCloseQuoteAfterEscape)
+{
+	const std::string testJson = "\"a\\n" + this->GenTestString(chunkSize * 2);
+	this->PrepareReader(testJson);
+	std::string_view actualStr;
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([&] {
 		this->mJsonReader->ReadValue(actualStr);
 	});
 	EXPECT_STREQ("Parsing error: Unterminated string literal", ex.what());
@@ -1751,6 +1923,13 @@ TYPED_TEST(JsonReaderTest, ReadTypeOfUnsignedInt)
 	EXPECT_EQ(BitSerializer::Json::Detail::ValueType::UnsignedInteger, this->mJsonReader->ReadValueType());
 }
 
+TYPED_TEST(JsonReaderTest, ReadTypeOfNumberWithTrailingTerminator)
+{
+	this->PrepareReader("[-123,456]");
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	EXPECT_EQ(BitSerializer::Json::Detail::ValueType::SignedInteger, this->mJsonReader->ReadValueType());
+}
+
 TYPED_TEST(JsonReaderTest, ReadTypeOfFloat)
 {
 	this->PrepareReader("1.0");
@@ -1841,6 +2020,39 @@ TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenInvalidSequence)
 		EXPECT_EQ(0, ex.offset);
 		EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
 	}
+}
+
+TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenEmptyInput)
+{
+	this->PrepareReader("");
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
+	EXPECT_STREQ("Parsing error: No more values to read", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, SkipValueShouldThrowExceptionWhenLiteralIsInvalid)
+{
+	for (const auto *testJson : { "tru", "xyz" })
+	{
+		this->PrepareReader(testJson);
+		const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::SkipValue, this->mJsonReader);
+		EXPECT_STREQ("Parsing error: Expected true, false, or null", ex.what());
+	}
+}
+
+TYPED_TEST(JsonReaderTest, SkipValueWithEmptyArrayAndObject)
+{
+	for (const auto *testJson : { "[]", "{}" })
+	{
+		this->PrepareReader(testJson);
+		this->mJsonReader->SkipValue();
+		EXPECT_TRUE(this->mJsonReader->IsEnd());
+	}
+}
+
+TYPED_TEST(JsonReaderTest, SkipStringShouldThrowExceptionWhenEndsWithBackslash)
+{
+	this->PrepareReader("\"abc\\");
+	EXPECT_THROW(this->mJsonReader->SkipValue(), BitSerializer::ParsingException);
 }
 
 TYPED_TEST(JsonReaderTest, SkipStringWithEscapedCharacters)
@@ -2356,6 +2568,61 @@ TYPED_TEST(JsonReaderTest, ReadShouldThrowExceptionWhenBlockCommentIsUnterminate
 	EXPECT_STREQ("Parsing error: Unterminated block comment", ex.what());
 }
 
+TYPED_TEST(JsonReaderTest, ReadShouldThrowExceptionWhenLoneSlashIsAtEndOfInput)
+{
+	this->PrepareReaderWithFeatures("/", ArchiveType::Jsonc);
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
+	EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadShouldThrowExceptionWhenLoneSlashIsBeforeValue)
+{
+	this->PrepareReaderWithFeatures("/x", ArchiveType::Jsonc);
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>(&BitSerializer::Json::Detail::IJsonReader::ReadValueType, this->mJsonReader);
+	EXPECT_STREQ("Parsing error: Invalid sequence", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, ReadValueWithBlockCommentContainingAsterisk)
+{
+	this->PrepareReaderWithFeatures("/* one * two */ 42", ArchiveType::Jsonc);
+	int32_t value = 0;
+	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(42, value);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, ReadShouldThrowExceptionWhenBlockCommentEndsWithAsterisk)
+{
+	this->PrepareReaderWithFeatures("/* comment *", ArchiveType::Jsonc);
+
+	const BitSerializer::ParsingException ex = GTestExpectException<BitSerializer::ParsingException>([this] { this->mJsonReader->SkipValue(); });
+	EXPECT_STREQ("Parsing error: Unterminated block comment", ex.what());
+}
+
+TYPED_TEST(JsonReaderTest, IsArrayEndShouldRejectCommaAtEndOfInput)
+{
+	this->PrepareReaderWithFeatures("[1,", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(1, value);
+	EXPECT_FALSE(this->mJsonReader->IsArrayEnd());
+}
+
+TYPED_TEST(JsonReaderTest, IsArrayEndShouldRejectLoneSlashAfterComma)
+{
+	this->PrepareReaderWithFeatures("[1, /x]", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(1, value);
+	EXPECT_FALSE(this->mJsonReader->IsArrayEnd());
+}
+
 TYPED_TEST(JsonReaderTest, StrictJsonShouldRejectComments)
 {
 	this->PrepareReaderWithFeatures("/* comment */ 42", ArchiveType::Json);
@@ -2376,6 +2643,18 @@ TYPED_TEST(JsonReaderTest, ReadArrayWithTrailingComma)
 	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
 	EXPECT_EQ(2, value);
 	EXPECT_TRUE(this->mJsonReader->IsArrayEnd()) << "A trailing comma must be treated as the end of the array";
+	this->mJsonReader->CloseArray(true);
+	EXPECT_TRUE(this->mJsonReader->IsEnd());
+}
+
+TYPED_TEST(JsonReaderTest, CloseArrayShouldSkipTrailingComma)
+{
+	this->PrepareReaderWithFeatures("[1, ]", ArchiveType::Jsonc);
+
+	ASSERT_TRUE(this->mJsonReader->OpenArray());
+	int32_t value = 0;
+	ASSERT_TRUE(this->mJsonReader->ReadValue(value));
+	EXPECT_EQ(1, value);
 	this->mJsonReader->CloseArray(true);
 	EXPECT_TRUE(this->mJsonReader->IsEnd());
 }

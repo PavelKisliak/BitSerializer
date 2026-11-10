@@ -684,6 +684,11 @@ TEST(MsgPackArchive, ShouldConsumeArraySlotForMismatchedValue)
 	TestMismatchedArrayValue<MsgPackArchive>(input);
 }
 
+TEST(MsgPackArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
+{
+	TestMismatchedObjectArrayValue<MsgPackArchive>();
+}
+
 TEST(MsgPackArchive, ShouldSkipNullValuesInArray)
 {
 	int32_t target[2]{ 7, 8 };
@@ -898,6 +903,17 @@ namespace
 			archive << KeyValue("payload", Payload);
 		}
 	};
+
+	struct IdOnlyMessage
+	{
+		std::string Id;
+
+		template <typename TArchive>
+		void Serialize(TArchive& archive)
+		{
+			archive << KeyValue("id", Id);
+		}
+	};
 }
 
 TEST(MsgPackArchive, SerializeRawMsgPack)
@@ -1011,6 +1027,19 @@ TEST(MsgPackArchive, SerializeRawMsgPackPassthrough)
 	std::string expectedData;
 	SaveObject<MsgPackArchive>(expected, expectedData);
 	EXPECT_EQ(expectedData, outgoing);
+}
+
+TEST(MsgPackArchive, ShouldLoadObjectWithMissingRawPayloadKey)
+{
+	IdOnlyMessage source;
+	source.Id = "msg-1";
+	std::string input;
+	SaveObject<MsgPackArchive>(source, input);
+
+	RawPayloadMessage actual;
+	EXPECT_NO_THROW(LoadObject<MsgPackArchive>(actual, input));
+	EXPECT_EQ("msg-1", actual.Id);
+	EXPECT_TRUE(actual.Payload.Get().empty());
 }
 
 //-----------------------------------------------------------------------------

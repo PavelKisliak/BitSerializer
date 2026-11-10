@@ -726,6 +726,11 @@ TEST(RapidJsonArchive, ShouldConsumeArraySlotForMismatchedValue)
 	TestMismatchedArrayValue<JsonArchive>(R"(["not a number", 5])");
 }
 
+TEST(RapidJsonArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
+{
+	TestMismatchedObjectArrayValue<JsonArchive>();
+}
+
 //-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------

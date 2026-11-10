@@ -446,6 +446,11 @@ TEST(RapidYamlArchive, ShouldConsumeArraySlotForMismatchedValue)
 	TestMismatchedArrayValue<YamlArchive>(input);
 }
 
+TEST(RapidYamlArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
+{
+	TestMismatchedObjectArrayValue<YamlArchive>();
+}
+
 //-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------

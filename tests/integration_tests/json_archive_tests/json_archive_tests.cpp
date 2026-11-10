@@ -561,6 +561,15 @@ TEST(JsonArchive, SerializeRawJsonPassthrough)
 	EXPECT_EQ(expectedData, outgoing);
 }
 
+TEST(JsonArchive, ShouldLoadObjectWithMissingRawPayloadKey)
+{
+	RawPayloadMessage actual;
+
+	EXPECT_NO_THROW(BitSerializer::LoadObject<JsonArchive>(actual, R"({"id":"msg-1"})"));
+	EXPECT_EQ("msg-1", actual.Id);
+	EXPECT_TRUE(actual.Payload.Get().empty());
+}
+
 //-----------------------------------------------------------------------------
 // Test paths in archive
 //-----------------------------------------------------------------------------
@@ -914,6 +923,11 @@ TEST(JsonArchive, ShouldConsumeArraySlotForSkippedValue)
 TEST(JsonArchive, ShouldConsumeArraySlotForMismatchedValue)
 {
 	TestMismatchedArrayValue<JsonArchive>(R"(["not a number", 5])");
+}
+
+TEST(JsonArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
+{
+	TestMismatchedObjectArrayValue<JsonArchive>();
 }
 
 //-----------------------------------------------------------------------------

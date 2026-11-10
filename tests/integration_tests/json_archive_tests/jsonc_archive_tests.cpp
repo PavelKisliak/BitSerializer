@@ -140,6 +140,11 @@ TEST(JsoncArchive, ShouldConsumeArraySlotForMismatchedValue)
 	TestMismatchedArrayValue<JsoncArchive>(R"(["not a number", 5])");
 }
 
+TEST(JsoncArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
+{
+	TestMismatchedObjectArrayValue<JsoncArchive>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of writing JSONC (comments are not preserved, output is plain JSON)
 //-----------------------------------------------------------------------------

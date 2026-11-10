@@ -352,6 +352,7 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 | `TestMismatchedTypesPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
 | `TestSkippedArrayValues<TArchive>()` | Null/overflow-skipped array elements still consume a slot (fixed array, pre-filled/empty containers, nested array) |
 | `TestMismatchedArrayValue<TArchive>(input)` | A type-mismatched (`Skip`) array element still consumes a slot; `input` is the archive-specific serialized array |
+| `TestMismatchedObjectArrayValue<TArchive>()` | A scalar in place of an object inside an array is skipped and still consumes a slot (object-scope mismatch) |
 | `TestOverflowNumberPolicy<TArchive, Source, Target>(policy)` | Serialize a value near type limits, load into narrower type, verify `OverflowNumberPolicy` |
 | `TestValidationForNamedValues<TArchive, T>()` | Validators (`Required()` etc.) on named fields |
 | `TestEncodingPolicy<TArchive>(policy)` | UTF encoding error policy on invalid sequences |
@@ -409,6 +410,10 @@ prove the public archive surface and its wiring.
   and both JSON/JSONC dialects; the integration suite only checks that `LoadObject` reaches
   `Finalize()` for string, stream and object input.
 
+### Integration test parity across archives
+
+Keep archive integration tests consistent in composition and ordering where the format allows it. When adding or changing an integration test for one archive, check whether the same scenario applies to the other archives and add the analogous test there (format limitations, e.g. CSV without arrays of objects, may exclude some cases). Prefer reusing an existing `Test*` helper from `src/testing_tools/common_test_methods.h`; if the scenario is generic but no helper exists, add a new reusable helper there instead of duplicating the arrange/act/assert code. Keep the order of related test blocks aligned across archive test files (raw payload, skipped array values, error policies, etc.) so differences between archives remain visible.
+
 ### Testing patterns
 
 - **STL types unit tests** (`std_types_tests`) run against `ArchiveStub` only — base serialization logic is shared, so per-archive coverage is done by smoke tests (`SerializeStdTypes`) in each archive's integration tests.
@@ -427,6 +432,7 @@ prove the public archive surface and its wiring.
 - **Respect `.gitattributes`** — all source and markdown files are `text eol=lf` (normalized to LF in the repo), so line endings are **not** a correctness concern; git normalizes them on commit. Still, for the user's local convenience, **preserve the file's current line endings** (CRLF or LF) instead of rewriting the whole file — the platform may not be Windows, and a bulk EOL rewrite creates noisy diffs. If you must script a bulk change, operate on bytes via .NET (`[IO.File]::ReadAllBytes`/`WriteAllBytes`) and re-run a `git diff` afterwards.
 - **Verify after editing** any file that may contain non-ASCII: run `git diff -- <file>` and confirm the diff contains **no multibyte character changes** (grep the diff for `[^\x00-\x7F]`). If the diff shows `?`, `Â`, or replacement characters, you corrupted the encoding — restore from HEAD (`git checkout -- <file>`) and redo the edit with the `edit` tool.
 - **Verify line endings** after editing: the diff should show only your intended change, not a whole-file whitespace rewrite.
+- **Markdown style**: keep each paragraph and bullet on a single line (no hard wrapping); separate paragraphs and list items with blank lines. This applies to `AGENTS.md`, `CONTRIBUTING.md`, `README.md`, `docs/` and other Markdown files.
 
 ### Making changes
 

@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <map>
 #include <sstream>
+#include <tuple>
 #include <type_traits>
 #if defined __has_include && __has_include(<version>)
 #include <version>
@@ -18,6 +19,7 @@
 #include "common_test_entities.h"
 #include "bitserializer/types/std/array.h"
 #include "bitserializer/types/std/optional.h"
+#include "bitserializer/types/std/tuple.h"
 #include "bitserializer/types/std/vector.h"
 
 // NOLINTBEGIN(bugprone-unchecked-optional-access)
@@ -796,6 +798,40 @@ void TestMismatchedArrayValue(const typename TArchive::preferred_output_type& in
 	std::vector<int> prefilledTarget{ 7, 8 };
 	BitSerializer::LoadObject<TArchive>(prefilledTarget, input, options);
 	EXPECT_EQ((std::vector<int>{ 7, 5 }), prefilledTarget);
+}
+
+/**
+ * @brief Tests that a scalar in place of an object in an array is skipped and still consumes a slot.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ */
+template <typename TArchive>
+void TestMismatchedObjectArrayValue()
+{
+	// Arrange
+	const std::tuple<TestPointClass, int, TestPointClass> source{
+		TestPointClass(1, 2), 5, TestPointClass(3, 4) };
+	typename TArchive::preferred_output_type input;
+	BitSerializer::SaveObject<TArchive>(source, input);
+
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = BitSerializer::MismatchedTypesPolicy::Skip;
+
+	TestPointClass actual[3];
+	actual[0] = TestPointClass(0, 0);
+	actual[1] = TestPointClass(-1, -1);
+	actual[2] = TestPointClass(0, 0);
+
+	// Act
+	BitSerializer::LoadObject<TArchive>(actual, input, options);
+
+	// Assert
+	EXPECT_EQ(1, actual[0].x);
+	EXPECT_EQ(2, actual[0].y);
+	EXPECT_EQ(-1, actual[1].x);
+	EXPECT_EQ(-1, actual[1].y);
+	EXPECT_EQ(3, actual[2].x);
+	EXPECT_EQ(4, actual[2].y);
 }
 
 /**

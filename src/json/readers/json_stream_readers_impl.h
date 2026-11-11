@@ -507,7 +507,11 @@ namespace BitSerializer::Json::Detail
 		};
 
 #if (BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0)
-		if constexpr (std::is_floating_point_v<T>)
+		if constexpr (std::is_floating_point_v<T>
+#if BITSERIALIZER_HAS_FAST_FLOAT
+			&& !std::is_same_v<T, float> && !std::is_same_v<T, double>
+#endif
+			)
 		{
 			// Any non-numeric value is a type mismatch, not a malformed number.
 			// A leading '+' is still treated as a malformed number (JSON does not allow it).
@@ -570,7 +574,7 @@ namespace BitSerializer::Json::Detail
 			std::from_chars_result rc{};
 			while (true)
 			{
-				rc = std::from_chars(data.data(), data.data() + data.size(), parsedNumber);
+				rc = Convert::Detail::FromChars(data.data(), data.data() + data.size(), parsedNumber);
 				// A successful conversion that consumed the whole window may continue past it.
 				if (rc.ec != std::errc() || rc.ptr < data.data() + data.size())
 				{

@@ -359,6 +359,8 @@ namespace BitSerializer::Json::Detail
 	template <ArchiveType TFormat, typename T, std::enable_if_t<(std::is_integral_v<T>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
 	|| std::is_floating_point_v<T>
+#elif BITSERIALIZER_HAS_FAST_FLOAT
+	|| std::is_same_v<T, float> || std::is_same_v<T, double>
 #endif
 		), int> = 0>
 	bool ReadNumber(std::string_view inputData, size_t& pos, T& outValue, size_t& line, const SerializationOptions& serializationOptions)
@@ -372,7 +374,7 @@ namespace BitSerializer::Json::Detail
 		const char* const tokenStart = inputData.data() + pos;
 		const size_t available = inputData.size() - pos;
 		T parsedNumber;
-		const std::from_chars_result rc = std::from_chars(tokenStart, tokenStart + available, parsedNumber);
+		const std::from_chars_result rc = Convert::Detail::FromChars(tokenStart, tokenStart + available, parsedNumber);
 
 		if (rc.ec == std::errc())
 		{
@@ -462,7 +464,11 @@ namespace BitSerializer::Json::Detail
 	}
 
 #if (BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0)
-	template <ArchiveType TFormat, typename T, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
+	template <ArchiveType TFormat, typename T, std::enable_if_t<(std::is_floating_point_v<T>
+#if BITSERIALIZER_HAS_FAST_FLOAT
+		&& !std::is_same_v<T, float> && !std::is_same_v<T, double>
+#endif
+		), int> = 0>
 	bool ReadNumber(std::string_view inputData, size_t& pos, T& outValue, size_t& line, const SerializationOptions& serializationOptions)
 	{
 		const char firstChar = SkipWhitespaceAndPeek<TFormat>(inputData, pos, line);

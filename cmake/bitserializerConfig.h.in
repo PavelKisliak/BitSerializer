@@ -23,6 +23,10 @@
 #endif
 #endif
 
+#ifndef BITSERIALIZER_HAS_FAST_FLOAT
+#define BITSERIALIZER_HAS_FAST_FLOAT 0
+#endif
+
 // SIMD availability of the target (compiler/target detected, not a build-system setting).
 // Used by the SIMD helpers shared by the built-in archives (see src/common/simd/).
 #ifndef BITSERIALIZER_HAS_SSE2

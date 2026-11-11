@@ -15,6 +15,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include "bitserializer/config.h"
 #include "bitserializer/common/text.h"
 #include "bitserializer/conversion_detail/convert_utf.h"
 
@@ -160,7 +161,11 @@ namespace BitSerializer::Convert::Detail
 	 * @throws std::out_of_range If result exceeds representable range.
 	 * @note Only the leading numeric value is parsed; trailing characters are ignored.
 	 */
-	template <typename T, typename TSym, std::enable_if_t<(std::is_floating_point_v<T>), int> = 0>
+	template <typename T, typename TSym, std::enable_if_t<(std::is_floating_point_v<T>
+#if BITSERIALIZER_HAS_FAST_FLOAT
+		&& !std::is_same_v<T, float> && !std::is_same_v<T, double>
+#endif
+		), int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out)
 	{
 		if (in.empty()) {

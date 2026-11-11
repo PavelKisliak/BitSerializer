@@ -3,13 +3,14 @@
   "name": "bitserializer",
   "version": "0.85.0",
   "homepage": "https://github.com/PavelKisliak/BitSerializer",
-  "description": "Multi-format serialization library for C++17: JSON/JSONC, CSV and MsgPack (dependency-free), plus XML and YAML",
+  "description": "Multi-format serialization library for C++17: JSON/JSONC, CSV and MsgPack (no mandatory third-party dependencies; optional fast_float acceleration), plus XML and YAML",
   "dependencies": [
     "rapidjson",
     "pugixml",
     "ryml",
     "gtest",
-    "nlohmann-json"
+    "nlohmann-json",
+    "fast-float"
   ],
   "builtin-baseline": "9eec002df1cd109f8f104cd966a763daf9751489",
   "vcpkg-configuration": {

@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include "bitserializer/common/memory.h"
+#include "bitserializer/conversion_detail/convert_fundamental.h"
 #include "bitserializer/serialization_detail/errors_handling.h"
 #include "common/simd/scan.h"
 

@@ -11,6 +11,9 @@
 #include <stdexcept>
 #include <type_traits>
 #include "bitserializer/config.h"
+#if BITSERIALIZER_HAS_FAST_FLOAT
+#include <fast_float/fast_float.h>
+#endif
 #include "bitserializer/conversion_detail/convert_integer.h"
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 #include "bitserializer/conversion_detail/convert_compatibility.h"
@@ -19,6 +22,28 @@
 
 namespace BitSerializer::Convert::Detail
 {
+	/**
+	 * @brief Parses an arithmetic value from a character range.
+	 *
+	 * When fast_float support is enabled at build time, it is used for `float` and `double`;
+	 * all other types (including `long double`) keep using `std::from_chars`.
+	 */
+	template <typename T>
+	[[nodiscard]] BITSERIALIZER_FORCEINLINE std::from_chars_result FromChars(const char* first, const char* last, T& value) noexcept
+	{
+#if BITSERIALIZER_HAS_FAST_FLOAT
+		if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
+		{
+			const auto result = fast_float::from_chars(first, last, value);
+			return {result.ptr, result.ec};
+		}
+		else
+#endif
+		{
+			return std::from_chars(first, last, value);
+		}
+	}
+
 	/**
 	 * @brief Converts between fundamental arithmetic types (integers, floating points, bool).
 	 *
@@ -107,6 +132,8 @@ namespace BitSerializer::Convert::Detail
 	template <typename T, typename TSym, std::enable_if_t<(std::is_integral_v<T>
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
 			|| std::is_floating_point_v<T>
+#elif BITSERIALIZER_HAS_FAST_FLOAT
+			|| std::is_same_v<T, float> || std::is_same_v<T, double>
 #endif
 			), int> = 0>
 	void To(std::basic_string_view<TSym> in, T& out)
@@ -142,13 +169,13 @@ namespace BitSerializer::Convert::Detail
 		};
 
 		if constexpr (sizeof(TSym) == sizeof(char)) {
-			validateResult(std::from_chars(it, end, out), in);
+			validateResult(FromChars(it, end, out), in);
 		}
 		else
 		{
 			std::string utf8Str;
 			Utf::Utf8::Encode(it, end, utf8Str);
-			validateResult(std::from_chars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out), utf8Str);
+			validateResult(FromChars(utf8Str.data(), utf8Str.data() + utf8Str.size(), out), utf8Str);
 		}
 	}
 

@@ -686,7 +686,7 @@ TYPED_TEST(JsonReaderTest, ReadLongDouble)
 	long double value{};
 	this->PrepareReader("1.5");
 	EXPECT_TRUE(this->mJsonReader->ReadValue(value));
-	EXPECT_DOUBLE_EQ(1.5L, value);
+	GTestExpectEq(1.5L, value);
 }
 
 //-----------------------------------------------------------------------------

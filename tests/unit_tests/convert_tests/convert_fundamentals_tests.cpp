@@ -2,6 +2,7 @@
 * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
+#include <charconv>
 #include <cmath>
 #include <string>
 #include <string_view>
@@ -463,6 +464,39 @@ TEST(ConvertFundamentals, FloatFromString) {
 	EXPECT_EQ(-123.4567f, Convert::To<float>(U"  -123.4567  "));
 	EXPECT_EQ(1.0f, Convert::To<float>(L"1.0 .............................. following text should be ignored "));
 }
+
+#if BITSERIALIZER_HAS_FLOAT_FROM_CHARS
+TEST(ConvertFundamentals, FloatFromStringMatchesStdFromChars) {
+	constexpr std::string_view floatValues[] = {
+		"0", "-0", "12345.678", "-3.141592654", "1.17549435e-38", "3.4028235e+38", "1e-45"
+	};
+	for (const std::string_view value : floatValues)
+	{
+		float expected{};
+		const auto result = std::from_chars(value.data(), value.data() + value.size(), expected);
+		ASSERT_TRUE(result.ec == std::errc()) << value;
+		const float actual = Convert::To<float>(value);
+		EXPECT_EQ(expected, actual) << value;
+		EXPECT_EQ(std::signbit(expected), std::signbit(actual)) << value;
+	}
+}
+
+TEST(ConvertFundamentals, DoubleFromStringMatchesStdFromChars) {
+	constexpr std::string_view doubleValues[] = {
+		"0", "-0", "-3.141592654", "1.2345678901234567e+123", "2.2250738585072014e-308",
+		"3.14159265358979323846", "4.9406564584124654e-324", "1.7976931348623157e+308"
+	};
+	for (const std::string_view value : doubleValues)
+	{
+		double expected{};
+		const auto result = std::from_chars(value.data(), value.data() + value.size(), expected);
+		ASSERT_TRUE(result.ec == std::errc()) << value;
+		const double actual = Convert::To<double>(value);
+		EXPECT_EQ(expected, actual) << value;
+		EXPECT_EQ(std::signbit(expected), std::signbit(actual)) << value;
+	}
+}
+#endif
 
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
 TEST(ConvertFundamentals, FloatFromStringShouldUseDotInCommaLocale) {

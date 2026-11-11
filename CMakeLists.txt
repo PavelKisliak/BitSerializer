@@ -60,6 +60,17 @@ message(STATUS "[Option] STATIC_ANALYSIS_CLANG_TIDY: ${STATIC_ANALYSIS_CLANG_TID
 option(ENABLE_COVERAGE "Enable code coverage instrumentation (GCC/Clang only)" OFF)
 message(STATUS "[Option] ENABLE_COVERAGE: ${ENABLE_COVERAGE}")
 
+# Optional dependency: use fast_float when the FastFloat CMake package is available.
+# Users can opt out with -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON.
+find_package(FastFloat CONFIG QUIET)
+if(FastFloat_FOUND AND TARGET FastFloat::fast_float)
+    set(BITSERIALIZER_HAS_FAST_FLOAT 1)
+    message(STATUS "[Dependency] FastFloat: found (fast_float parsing enabled)")
+else()
+    set(BITSERIALIZER_HAS_FAST_FLOAT 0)
+    message(STATUS "[Dependency] FastFloat: not found (using std::from_chars); install the fast-float package or provide the FastFloat CMake package")
+endif()
+
 #################################################################################
 # Global compiler configuration
 #################################################################################
@@ -109,6 +120,14 @@ endif()
 include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/include"
 )
+
+# The optional fast_float headers are needed by every translation unit that includes
+# the public Convert/archive headers.
+if(BITSERIALIZER_HAS_FAST_FLOAT)
+    get_target_property(BITSERIALIZER_FASTFLOAT_INCLUDE_DIRS FastFloat::fast_float INTERFACE_INCLUDE_DIRECTORIES)
+    include_directories(SYSTEM ${BITSERIALIZER_FASTFLOAT_INCLUDE_DIRS})
+    add_definitions(-DBITSERIALIZER_HAS_FAST_FLOAT=1)
+endif()
 
 # Build position-independent code even for static libraries: Linux executables
 # are PIE by default and cannot link non-PIC static archives.
@@ -206,6 +225,16 @@ target_include_directories(${BITSERIALIZER_CORE_NAME} INTERFACE
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_compile_features(${BITSERIALIZER_CORE_NAME} INTERFACE cxx_std_17)
+
+if(BITSERIALIZER_HAS_FAST_FLOAT)
+    # Keep the dependency out of the installed target: the package config re-detects
+    # FastFloat in the consumer environment and adds these usage requirements only
+    # when the dependency is actually available there.
+    foreach(_fastfloat_include_dir IN LISTS BITSERIALIZER_FASTFLOAT_INCLUDE_DIRS)
+        target_include_directories(${BITSERIALIZER_CORE_NAME} INTERFACE $<BUILD_INTERFACE:${_fastfloat_include_dir}>)
+    endforeach()
+    target_compile_definitions(${BITSERIALIZER_CORE_NAME} INTERFACE $<BUILD_INTERFACE:BITSERIALIZER_HAS_FAST_FLOAT=1>)
+endif()
 
 if(BITSERIALIZER_HAS_FILESYSTEM)
     if(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
@@ -505,6 +534,11 @@ install(TARGETS ${BITSERIALIZER_TARGETS}
 
 install(FILES "${PROJECT_SOURCE_DIR}/license.txt"
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME})
+
+if(BITSERIALIZER_HAS_FAST_FLOAT)
+    install(FILES "${PROJECT_SOURCE_DIR}/licenses/fast_float.txt"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME})
+endif()
 
 if(MSVC)
     if(BUILD_SHARED_LIBS)

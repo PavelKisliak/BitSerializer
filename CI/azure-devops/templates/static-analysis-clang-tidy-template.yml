@@ -19,20 +19,54 @@ jobs:
     vmImage: ${{ parameters.image }}
   variables:
     vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
+    # The last successfully built revision. Kept in a small dedicated cache so the early skip
+    # decision doesn't require restoring the large build cache.
+    analysisStateDir: '$(Pipeline.Workspace)/analysis-state'
 
   steps:
   - checkout: self
-    # The build cache stores the SHA of the last built revision, and the changed-files list is
-    # computed against it, so the full history is required (the repository is small).
+    # The changed-files list is computed against the last built revision (stored in the
+    # analysis-state cache) and against the cached build revision, so the full history is
+    # required (the repository is small).
     fetchDepth: 0
+
+  - task: Cache@2
+    inputs:
+      key: |
+        analysis-state | v1 | $(Build.SourceVersion)
+      restoreKeys: |
+        analysis-state | v1
+      path: $(analysisStateDir)
+      cacheHitVar: ANALYSIS_STATE_RESTORED
+    displayName: 'Restore analysis state'
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false))
 
   - script: |
       echo ------------------------------------------------------------------------------
-      echo -- Detecting C/C++ changes
+      echo -- Detecting changes since the last build
       echo ------------------------------------------------------------------------------
-      # Skip the whole job when the last commit doesn't touch C/C++ or the build configuration.
+      # Skip the whole job when nothing C/C++ or build-related changed since the last successful
+      # build. Comparing against the last built revision (not just the last commit) is required:
+      # a single push may contain several commits, and the latest one may not touch the code.
       # The build is needed for the dependency graph and the build cache used for incremental analysis.
-      if changed_files=$(git diff HEAD HEAD~ --name-only 2>/dev/null); then
+      state_dir="$(analysisStateDir)"
+      base_version=""
+      if [ -f "$state_dir/last_built_sha" ]; then
+        candidate=$(cat "$state_dir/last_built_sha")
+        if [ -n "$candidate" ] && git rev-parse --verify --quiet "$candidate^{commit}" > /dev/null; then
+          base_version="$candidate"
+        else
+          echo "The recorded revision '$candidate' is not available in the repository."
+        fi
+      fi
+
+      if [ -z "$base_version" ]; then
+        # No reliable base (first run of the branch, expired cache or force-push): run the analysis.
+        echo "##vso[task.setvariable variable=hasRelevantChanges]true"
+        echo "No recorded last built revision, static analysis will run."
+      elif changed_files=$(git diff --name-only "$base_version" HEAD 2>/dev/null); then
+        echo "Changes since the last build ($base_version):"
+        echo "$changed_files"
         relevant_files=$(echo "$changed_files" | grep -E '\.(h|hpp|cpp|cc)$|(^|/)(vcpkg\.json|CMakeLists\.txt|CMakeSettings\.json)$|^cmake/|\.cmake$' || true)
         if [ -n "$relevant_files" ]; then
           echo "##vso[task.setvariable variable=hasRelevantChanges]true"
@@ -46,7 +80,7 @@ jobs:
         echo "##vso[task.setvariable variable=hasRelevantChanges]true"
         echo "Failed to determine changed files, static analysis will run."
       fi
-    displayName: 'Detect C/C++ changes'
+    displayName: 'Detect changes since last build'
 
   - script: |
       echo --- Install build tools ---
@@ -134,8 +168,22 @@ jobs:
           diff_failed=true
         fi
       elif [ "$BUILD_CACHE_RESTORED" = "false" ]; then
-        echo "The build cache is empty, using the previous commit:"
-        git diff HEAD HEAD~ --name-only > "$changed_file" 2>/dev/null || diff_failed=true
+        # The build cache is empty, so the incremental build cannot be used, but the analysis-state
+        # marker still tells what has changed since the last successful build.
+        state_base=""
+        if [ -f "$(analysisStateDir)/last_built_sha" ]; then
+          candidate=$(cat "$(analysisStateDir)/last_built_sha")
+          if [ -n "$candidate" ] && git rev-parse --verify --quiet "$candidate^{commit}" > /dev/null; then
+            state_base="$candidate"
+          fi
+        fi
+        if [ -n "$state_base" ]; then
+          echo "The build cache is empty, using the last built revision ($state_base):"
+          git diff --name-only "$state_base" HEAD > "$changed_file" || diff_failed=true
+        else
+          echo "The build cache is empty, using the previous commit:"
+          git diff HEAD HEAD~ --name-only > "$changed_file" 2>/dev/null || diff_failed=true
+        fi
       else
         # A restored build cache must have the revision marker; otherwise its contents are unusable.
         echo "The restored build cache has no source revision marker."
@@ -181,6 +229,10 @@ jobs:
       ninja -C "$build_dir"
       ninja -C "$build_dir" -t deps > "$build_dir/deps.txt"
       git rev-parse HEAD > "$build_dir/.last_source_version"
+      # Advance the analysis-state marker (used by the skip decision of the next run) only after
+      # a successful build, so a failed or skipped job never loses unreviewed changes.
+      mkdir -p "$(analysisStateDir)"
+      git rev-parse HEAD > "$(analysisStateDir)/last_built_sha"
     displayName: 'Build'
     condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'))
 

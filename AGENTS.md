@@ -23,7 +23,7 @@ Key design principles:
 | CSV | `csv_archive.h` | `BitSerializer::Csv` | Built-in | `BUILD_CSV_ARCHIVE` |
 | MsgPack | `msgpack_archive.h` | `BitSerializer::MsgPack` | Built-in | `BUILD_MSGPACK_ARCHIVE` |
 
-Dependencies (via vcpkg): rapidjson, pugixml, ryml, gtest, nlohmann-json (benchmark competitor only).
+Dependencies (via vcpkg): rapidjson, pugixml, ryml, gtest, nlohmann-json (benchmark competitor only), fast-float. fast-float is auto-detected through the `FastFloat` CMake package (opt out with `CMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON`). External consumers/official ports may expose it as an optional feature.
 
 ---
 
@@ -39,7 +39,7 @@ BitSerializer/
 │   ├── refine.h                    # Refiners: TrimWhitespace, ToLowerCase, ToUpperCase, Fallback
 │   ├── convert.h                   # String conversion submodule (To<>/From<>)
 │   ├── serialization_options.h     # SerializationOptions struct
-│   ├── config.h                    # Version macros, feature flags (BITSERIALIZER_HAS_FLOAT_FROM_CHARS, BITSERIALIZER_HAS_FILESYSTEM)
+│   ├── config.h                    # Version macros, feature flags (BITSERIALIZER_HAS_FLOAT_FROM_CHARS, BITSERIALIZER_HAS_FAST_FLOAT, BITSERIALIZER_HAS_FILESYSTEM)
 │   ├── export.h                    # DLL export/import macros
 │   ├── serialization_detail/       # Core engine (see Architecture)
 │   ├── conversion_detail/          # Conversion internals (fundamentals, enums, chrono, UTF, filesystem)
@@ -193,6 +193,8 @@ All archive options are **OFF by default** — you must explicitly enable what y
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | RapidYAML-based YAML archive |
 | `BUILD_SHARED_LIBS` | OFF | Build as DLL/shared library |
 | `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only, not MSVC) |
+
+`FastFloat` is not a CMake option: if the package is available, `Convert` and the built-in archives use `fast_float`; otherwise they use `std::from_chars`. The repository manifest includes `fast-float` as a normal dependency; pass `-DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON` to use the fallback. External consumers/official ports can expose it as an optional feature. CI keeps the regular matrix on the fallback path; selected existing jobs (MSVC, clang-cl, GCC) opt in via `fastFloat: true`. Release packages are built with it and install `share/doc/bitserializer/fast_float.txt`; consumer-side FastFloat detection stays optional.
 
 ### Build directory
 

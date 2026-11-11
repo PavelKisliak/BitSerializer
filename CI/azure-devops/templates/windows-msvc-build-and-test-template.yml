@@ -15,6 +15,9 @@ parameters:
   enableRunTests: true
 # [Optional] When to publish test results: always | onFailure | never
   publishTestResults: 'onFailure'
+# [Optional] Use fast_float when it is available (the repository manifest installs it as a dependency).
+# When false, CMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON makes the std::from_chars path explicit.
+  fastFloat: false
 
 jobs:
 - job: ${{ parameters.name }}
@@ -23,6 +26,10 @@ jobs:
   variables:
     vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
     buildDirectory: 'build'
+    ${{ if eq(parameters.fastFloat, true) }}:
+      fastFloatOptions: ''
+    ${{ else }}:
+      fastFloatOptions: '-DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON'
 
   steps:
   - script: |
@@ -50,9 +57,9 @@ jobs:
     displayName: Configure cache of VCPKG packages
     inputs:
       key: |
-        vcpkg | v11 | $(vcpkgCommit) | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v12 | $(vcpkgCommit) | ${{ parameters.name }} | ${{ parameters.fastFloat }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v11 | $(vcpkgCommit) | ${{ parameters.name }}
+        vcpkg | v12 | $(vcpkgCommit) | ${{ parameters.name }} | ${{ parameters.fastFloat }}
       path: ${{ variables.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
 
@@ -82,7 +89,7 @@ jobs:
       echo ------------------------------------------------------------------------------
       echo -- CMake: generate [${{ parameters.buildConfiguration }}]
       echo ------------------------------------------------------------------------------
-      cmake -GNinja -B ${{ variables.buildDirectory }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} ${{ parameters.cmakeGenArgs }}
+      cmake -GNinja -B ${{ variables.buildDirectory }} -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} $(fastFloatOptions) ${{ parameters.cmakeGenArgs }}
       if %ERRORLEVEL% neq 0 (
         echo CMake configuration failed. Exiting...
         exit 1

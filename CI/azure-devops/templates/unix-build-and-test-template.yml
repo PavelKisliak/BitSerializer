@@ -19,6 +19,9 @@ parameters:
   publishTestResults: 'onFailure'
 # [Optional] Enable code coverage (requires gcovr, GNU gcov)
   enableCoverage: false
+# [Optional] Use fast_float when it is available (the repository manifest installs it as a dependency).
+# When false, CMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON makes the std::from_chars path explicit.
+  fastFloat: false
 
 jobs:
 - job: ${{ parameters.name }}
@@ -27,6 +30,10 @@ jobs:
   variables:
     buildDirectory: 'build'
     vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
+    ${{ if eq(parameters.fastFloat, true) }}:
+      fastFloatOptions: ''
+    ${{ else }}:
+      fastFloatOptions: '-DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON'
 
   steps:
   - script: |
@@ -80,9 +87,9 @@ jobs:
   - task: Cache@2
     inputs:
       key: |
-        vcpkg | v9 | $(vcpkgCommit) | ${{ parameters.name }} | $(Build.SourcesDirectory)/vcpkg.json
+        vcpkg | v10 | $(vcpkgCommit) | ${{ parameters.name }} | ${{ parameters.fastFloat }} | $(Build.SourcesDirectory)/vcpkg.json
       restoreKeys: |
-        vcpkg | v9 | $(vcpkgCommit) | ${{ parameters.name }}
+        vcpkg | v10 | $(vcpkgCommit) | ${{ parameters.name }} | ${{ parameters.fastFloat }}
       path: ${{ variables.buildDirectory }}/vcpkg_installed/
       cacheHitVar: VCPKG_CACHE_RESTORED
     displayName: Configure cache of VCPKG packages
@@ -90,7 +97,7 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: ${{ variables.buildDirectory }}
-      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} ${{ parameters.cmakeGenArgs }} ..'
+      cmakeArgs: '-GNinja -DCMAKE_BUILD_TYPE=${{ parameters.buildConfiguration }} -DCMAKE_TOOLCHAIN_FILE=${{ variables.vcpkgDir }}/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkgTriplet }} $(fastFloatOptions) ${{ parameters.cmakeGenArgs }} ..'
     displayName: 'CMake - generate [${{ parameters.buildConfiguration }}]'
 
   - script: |

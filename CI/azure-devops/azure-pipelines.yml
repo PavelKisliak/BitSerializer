@@ -40,6 +40,9 @@ variables:
 - name: CmakeGenOptions
   value: -DBUILD_SAMPLES=ON -DBUILD_BENCHMARKS=ON -DBUILD_MICROBENCHMARKS=ON -DBUILD_TESTS=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON -DBUILD_JSON_ARCHIVE=ON
   readonly: true
+# Build-and-test templates disable FastFloat unless fastFloat: true is passed.
+# Selected existing jobs below opt in (MSVC, clang-cl, GCC); all other jobs exercise
+# the std::from_chars path.
 - group: General
 
 stages:
@@ -51,7 +54,7 @@ stages:
           name: 'StaticAnalysis_ClangTidy'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions)'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON'
           # Perform a full analysis on the scheduled build or if explicitly selected by the user
           fullAnalysis: ${{ or(eq(variables['Build.Reason'], 'Schedule'), eq(parameters.fullStaticAnalysis, true)) }}
 
@@ -60,14 +63,14 @@ stages:
           name: 'MemoryCheck_Valgrind_static'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF'
 
       - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_dynamic'
           image: 'ubuntu-latest'
           vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON'
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -92,6 +95,7 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
+          fastFloat: true
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
@@ -124,6 +128,7 @@ stages:
           platform: 'x64'
           vcpkgTriplet: "x64-windows-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl'
+          fastFloat: true
 
       - template: templates/windows-msvc-build-and-test-template.yml
         parameters:
@@ -141,6 +146,7 @@ stages:
           installToolsCmd: 'sudo apt-get install gcc-9 g++-9 ninja-build'
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9'
+          fastFloat: true
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -149,6 +155,7 @@ stages:
           installToolsCmd: 'sudo apt-get install gcc-14 g++-14 ninja-build'
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_CXX_STANDARD=23 -DBUILD_SHARED_LIBS=ON'
+          fastFloat: true
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -207,6 +214,7 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64-linux-toolchain.cmake'
+          fastFloat: true
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
@@ -216,3 +224,4 @@ stages:
           compilerUrl: "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64_be-none-linux-gnu.tar.xz"
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
+          fastFloat: true

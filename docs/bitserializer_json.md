@@ -10,7 +10,7 @@ Supported load/save JSON from:
 
 String input is treated as already-decoded text; use streams for BOM/other encodings (see [Input and output data types](../README.md#input-and-output-data-types)).
 
-This is the built-in JSON archive implementation with no external dependencies. It offers the same functionality as the RapidJSON-based archive and is faster, especially for stream output.
+This is the built-in JSON archive implementation with no mandatory external dependencies. It offers the same functionality as the RapidJSON-based archive and is faster, especially for stream output. Optional fast_float acceleration is used automatically when the `FastFloat` package is available; it is enabled by default in this repository and in prebuilt packages.
 
 ### Performance
 
@@ -19,11 +19,13 @@ The table below compares `BitSerializer::Json::JsonArchive` with the RapidJSON-b
 | Operation | MSVC | clang-cl |
 |-----------|-----:|---------:|
 | Save to memory | ~3.1x | ~3.0x |
-| Load from memory | ~1.7x | ~1.9x |
+| Load from memory | ~2.2x | ~2.5x |
 | Save to `std::ostream` | ~15x | ~17x |
-| Load from `std::istream` | ~3.6x | ~3.1x |
+| Load from `std::istream` | ~4.6x | ~3.9x |
 
-The large stream-output difference is expected: the built-in archive writes directly to the output and does not build a DOM before serialization. Loading is a more balanced comparison, and on MSVC the memory-loading gain is currently below 2x.
+Load ratios assume the built-in archive is built with fast_float (the default in this repository and in prebuilt packages). Without fast_float, expect roughly `~1.7-1.9x` for memory loading and `~3.1-3.6x` for stream loading.
+
+The large stream-output difference is expected: the built-in archive writes directly to the output and does not build a DOM before serialization.
 
 These are representative results from `benchmarks/archives` (Release builds, default 30-second stages); exact numbers depend on the compiler, machine and workload. The benchmark also compares both archives with the raw RapidJSON API, which gives similar relative results.
 

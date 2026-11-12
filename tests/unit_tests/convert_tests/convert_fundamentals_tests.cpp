@@ -585,6 +585,17 @@ TEST(ConvertFundamentals, DoubleFromString) {
 	EXPECT_EQ(1.0, Convert::To<double>(L"1.0 .............................. following text should be ignored "));
 }
 
+#if BITSERIALIZER_HAS_FAST_FLOAT
+TEST(ConvertFundamentals, WideStringFloatFromStringWithTrailingComma) {
+	EXPECT_EQ(123.4567f, Convert::To<float>(L"123.4567,ignored"));
+	EXPECT_EQ(123.4567f, Convert::To<float>(u"123.4567,ignored"));
+	EXPECT_EQ(123.4567f, Convert::To<float>(U"123.4567,ignored"));
+	EXPECT_EQ(-123.4567, Convert::To<double>(L"-123.4567,ignored"));
+	EXPECT_EQ(-123.4567, Convert::To<double>(u"-123.4567,ignored"));
+	EXPECT_EQ(-123.4567, Convert::To<double>(U"-123.4567,ignored"));
+}
+#endif
+
 TEST(ConvertFundamentals, DoubleSpecialFromString) {
 	if constexpr (std::numeric_limits<double>::has_infinity)
 	{

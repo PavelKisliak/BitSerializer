@@ -9,10 +9,15 @@
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <string_view>
 #include <type_traits>
 #include "bitserializer/config.h"
 #if BITSERIALIZER_HAS_FAST_FLOAT
-#include <fast_float/fast_float.h>
+#  if BITSERIALIZER_USE_BUNDLED_FAST_FLOAT
+#    include <bitserializer/third_party/fast_float/fast_float.h>
+#  else
+#    include <fast_float/fast_float.h>
+#  endif
 #endif
 #include "bitserializer/conversion_detail/convert_integer.h"
 #if BITSERIALIZER_HAS_FLOAT_FROM_CHARS == 0
@@ -22,24 +27,43 @@
 
 namespace BitSerializer::Convert::Detail
 {
+	/// Character types supported by fast_float.
+	template <typename TChar>
+	inline constexpr bool IsSupportedFastFloatCharType =
+		std::is_same_v<TChar, char> ||
+		std::is_same_v<TChar, wchar_t> ||
+		std::is_same_v<TChar, char16_t> ||
+		std::is_same_v<TChar, char32_t>;
+
 	/**
-	 * @brief Parses an arithmetic value from a character range.
+	 * @brief Parses an arithmetic value from a character range of type `TChar`.
 	 *
-	 * When fast_float support is enabled at build time, it is used for `float` and `double`;
-	 * all other types (including `long double`) keep using `std::from_chars`.
+	 * When fast_float support is enabled at build time, it is used for `float` and `double`
+	 * with `char`, `wchar_t`, `char16_t` and `char32_t`. Other types and wide characters
+	 * without fast_float support keep using `std::from_chars`; wide non-float parsing is
+	 * handled by `To` through a UTF-8 fallback.
 	 */
-	template <typename T>
-	[[nodiscard]] BITSERIALIZER_FORCEINLINE std::from_chars_result FromChars(const char* first, const char* last, T& value) noexcept
+	template <typename T, typename TChar>
+	[[nodiscard]] BITSERIALIZER_FORCEINLINE auto FromChars(const TChar* first, const TChar* last, T& value) noexcept
 	{
+		static_assert(std::is_same_v<TChar, char> || IsSupportedFastFloatCharType<TChar>,
+			"BitSerializer. Unsupported character type for number parsing");
 #if BITSERIALIZER_HAS_FAST_FLOAT
 		if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
 		{
 			const auto result = fast_float::from_chars(first, last, value);
-			return {result.ptr, result.ec};
+			if constexpr (std::is_same_v<TChar, char>) {
+				return std::from_chars_result{result.ptr, result.ec};
+			}
+			else {
+				return result;
+			}
 		}
 		else
 #endif
 		{
+			static_assert(std::is_same_v<TChar, char>,
+				"BitSerializer. Wide character parsing without fast_float is handled by Convert::To");
 			return std::from_chars(first, last, value);
 		}
 	}
@@ -143,9 +167,9 @@ namespace BitSerializer::Convert::Detail
 
 		// Skip leading spaces
 		for (; (it != end) && (*it == 0x20 || *it == 0x09); ++it) {}
-
-		const auto validateResult = [](std::from_chars_result rc, [[maybe_unused]]std::string_view str)
+		const auto validateResult = [](auto rc, const auto& str)
 		{
+			(void)str;
 			if (rc.ec != std::errc())
 			{
 				if (rc.ec == std::errc::result_out_of_range) {
@@ -168,7 +192,21 @@ namespace BitSerializer::Convert::Detail
 			}
 		};
 
-		if constexpr (sizeof(TSym) == sizeof(char)) {
+#if BITSERIALIZER_HAS_FAST_FLOAT
+		constexpr bool useDirectFromChars = IsSupportedFastFloatCharType<TSym> &&
+			(std::is_same_v<T, float> || std::is_same_v<T, double>);
+#else
+		constexpr bool useDirectFromChars = false;
+#endif
+		if constexpr (sizeof(TSym) == sizeof(char))
+		{
+			const auto* first = reinterpret_cast<const char*>(it);
+			const auto* last = first + (end - it);
+			const std::string_view bytes(reinterpret_cast<const char*>(in.data()), in.size());
+			validateResult(FromChars(first, last, out), bytes);
+		}
+		else if constexpr (useDirectFromChars)
+		{
 			validateResult(FromChars(it, end, out), in);
 		}
 		else

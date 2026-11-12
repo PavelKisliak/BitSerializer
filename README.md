@@ -502,6 +502,7 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::byte | Part of the basic package |
 | std::atomic | #include "bitserializer/types/std/atomic.h" |
 | std::array | #include "bitserializer/types/std/array.h" |
+| std::span (C++20) | #include "bitserializer/types/std/span.h" |
 | std::vector, std::pmr::vector | #include "bitserializer/types/std/vector.h" |
 | std::deque, std::pmr::deque | #include "bitserializer/types/std/deque.h" |
 | std::bitset | #include "bitserializer/types/std/bitset.h" |
@@ -525,6 +526,10 @@ BitSerializer has built-in serialization for all STD containers and most other c
 | std::filesystem::path | #include "bitserializer/types/std/filesystem.h" |
 
 Few words about serialization smart pointers. There is no any system footprints in output archive, for example empty smart pointer will be serialized as `NULL` type in JSON or in any other suitable way for other archive types. When an object is loading into an empty smart pointer, it will be created, and vice versa, when the loaded object is `NULL` or does not exist, the smart pointer will be reset. Polymorphism are not supported you should take care about such types by yourself.
+
+`std::span` is a non-owning view. Saving works for both fixed and dynamic extents; loading writes into the existing span elements, so the target must already reference enough storage and the number of loaded items must match the span size. `std::span<const T>` is save-only.
+
+`std::string_view` and other string views are non-owning, so they are save-only. Loading into a view is not supported — use an owning string type (e.g. `std::string`) for deserialization.
 
 #### Serialization of std::map
 

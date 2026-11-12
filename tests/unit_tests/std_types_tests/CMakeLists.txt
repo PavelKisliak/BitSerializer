@@ -8,6 +8,8 @@ add_executable(${PROJECT_NAME}
     chrono_tests.cpp
     ctime_tests.cpp
     filesystem_tests.cpp
+    span_tests.cpp
+    string_view_tests.cpp
     std_containers_tests.cpp
     std_pmr_containers_tests.cpp
     std_types_tests.cpp

@@ -10,7 +10,7 @@ Supported load/save JSON from:
 
 String input is treated as already-decoded text; use streams for BOM/other encodings (see [Input and output data types](../README.md#input-and-output-data-types)).
 
-This is the built-in JSON archive implementation with no mandatory external dependencies. It offers the same functionality as the RapidJSON-based archive and is faster, especially for stream output. Optional fast_float acceleration is used automatically when the `FastFloat` package is available; it is enabled by default in this repository and in prebuilt packages.
+This is the self-contained built-in JSON archive implementation. It offers the same functionality as the RapidJSON-based archive and is faster, especially for stream output. Optional fast_float acceleration is used automatically when the `FastFloat` package is available; prebuilt packages bundle its headers and enable it automatically.
 
 ### Performance
 

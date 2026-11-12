@@ -37,14 +37,14 @@ Legend: ✅ supported · ❌ not supported · N/A — not applicable to the form
 Streaming: incremental processing in chunks with bounded memory usage, so documents larger than available RAM can be loaded from streams. All archives support I/O via `std::stream`, but DOM-based archives (RapidJSON, PugiXml, RapidYAML) keep the whole document in memory.
 
 > [!IMPORTANT]
-> The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which has no mandatory external dependencies; optional fast_float acceleration can be enabled for faster floating-point parsing. The built-in implementation is about 3x faster for saving to memory and, with fast_float enabled (the default for this repository and prebuilt packages), roughly 2.2-2.5x faster for loading from memory; without fast_float it is about 1.7-2x faster. Stream I/O is substantially faster in both cases, while offering the same functionality.
+> The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which is self-contained, with optional fast_float acceleration for faster floating-point parsing. The built-in implementation is about 3x faster for saving to memory and, with fast_float enabled (the default for this repository and prebuilt packages), roughly 2.2-2.5x faster for loading from memory; without fast_float it is about 1.7-2x faster. Stream I/O is substantially faster in both cases, while offering the same functionality.
 >
 > Your help with testing the built-in implementation before the switch would be much appreciated — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
 
 ### Requirements:
  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12, Clang-cl¹).
  - Supported platforms: Windows, Linux, MacOS (x86, x64, arm32, arm64, arm64be²).
- - The RapidJSON, PugiXml and RapidYAML archives depend on third-party libraries; the built-in JSON, CSV and MsgPack archives have no mandatory external dependencies. Optional fast_float acceleration can be enabled for faster floating-point parsing.
+ - The RapidJSON, PugiXml and RapidYAML archives depend on third-party libraries; the built-in JSON, CSV and MsgPack archives are self-contained, with optional fast_float acceleration for faster floating-point parsing.
 
  ¹ Versions of the RapidYaml base library less than v0.11.1 does not support Clang-cl(Windows).<br />
  ² Versions of the RapidYaml base library less than v0.7.1 may be unstable on ARM architecture.
@@ -182,7 +182,7 @@ This chapter provides an overview of the performance characteristics of BitSeria
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
 - Low-level byte scanning and comparison in the built-in archives are SIMD-accelerated (SSE2/NEON) where available, with a portable scalar fallback.
 - Hot paths are inlined selectively: performance-critical code gets forced inlining, while larger or cold paths stay out-of-line. This keeps the runtime fast without unnecessarily growing the resulting executable; optimizations that trade a noticeable code-size increase for a marginal speedup are not adopted.
-- Floating-point parsing in the built-in JSON archive and `Convert` can optionally use [fast_float](https://github.com/fastfloat/fast_float), auto-detected through the `FastFloat` CMake package (install the `fast-float` vcpkg package or provide `FastFloat` separately). It can be several times faster than `std::from_chars` for `float`/`double`, falls back automatically when the package is unavailable, and adds only a small amount of code to a typical executable; prebuilt release packages already include it.
+- Floating-point parsing in the built-in JSON archive and `Convert` can optionally use [fast_float](https://github.com/fastfloat/fast_float), auto-detected through the `FastFloat` CMake package (install the `fast-float` vcpkg package or provide `FastFloat` separately). It can be several times faster than `std::from_chars` for `float`/`double`, falls back automatically when the package is unavailable, and adds only a small amount of code to a typical executable. Prebuilt release packages bundle the fast_float headers, so consumers do not need a separate FastFloat package.
 
 #### Comparing "Parsers" and "Serializers" library classes
 It is important to note that comparing "Serialization" classes (like BitSerializer) with "Parser" classes (such as RapidJSON, NlohmannJson, PugiXml, or RapidYAML) may not always be entirely fair. These two categories of libraries differ fundamentally in their design and purpose:
@@ -215,7 +215,7 @@ The CSV format is the most compact among all tested formats, making it an excell
 For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
 
 ### How to install
-Some archives (JSON via RapidJSON, XML and YAML) require third-party libraries, while the built-in JSON, CSV and MsgPack archives have no mandatory external dependencies (optional fast_float acceleration can be enabled). You can install only the ones which you need.
+Some archives (JSON via RapidJSON, XML and YAML) require third-party libraries, while the built-in JSON, CSV and MsgPack archives are self-contained (optional fast_float acceleration can be enabled). You can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
 
@@ -315,7 +315,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::msgpack-archive)
 ```
 
-The built-in archives (JSON, CSV, MsgPack) require no mandatory third-party libraries (optional fast_float acceleration is auto-detected) and are the simplest option for `FetchContent`. Archives based on third-party libraries (`RapidJSON`, `PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
+The built-in archives (JSON, CSV, MsgPack) are self-contained (optional fast_float acceleration is auto-detected) and are the simplest option for `FetchContent`. Archives based on third-party libraries (`RapidJSON`, `PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
 
 > [!NOTE]
 > Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available on `master`; if it is not yet available via your package manager, use `GIT_TAG master` or a prebuilt package.
@@ -347,7 +347,7 @@ find_package(bitserializer CONFIG REQUIRED
 ```
 
 > [!NOTE]
-> Prebuilt packages embed fast_float (MIT) in the built-in JSON archive; its notice is installed as `share/doc/bitserializer/fast_float.txt`. RapidJSON, PugiXml and RapidYAML are not bundled and remain optional external dependencies with their own licenses.
+> Prebuilt packages embed fast_float (MIT) and bundle its headers under `include/bitserializer/third_party/fast_float`, so a separate FastFloat package is not required; its notice is installed as `share/doc/bitserializer/fast_float.txt`. RapidJSON, PugiXml and RapidYAML are not bundled and remain optional external dependencies with their own licenses.
 
 Each package contains both Debug and Release libraries; Windows packages also include PDB files for Debug builds. Debug libraries require the matching Debug runtime/toolset.
 

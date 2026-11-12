@@ -9,10 +9,10 @@ trigger:
 pr: none
 
 variables:
-# Release packages compile fast_float into the built-in JSON archive; consumer-side
-# FastFloat detection in the installed package config remains optional.
+# Release packages compile fast_float into the built-in archives and bundle its headers,
+# so consumers do not need a separate FastFloat package.
 - name: CmakeGenOptions
-  value: -DBUILD_JSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+  value: -DBUILD_JSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON -DBITSERIALIZER_BUNDLE_FAST_FLOAT=ON
   readonly: true
 
 stages:

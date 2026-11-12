@@ -39,7 +39,7 @@ BitSerializer/
 │   ├── refine.h                    # Refiners: TrimWhitespace, ToLowerCase, ToUpperCase, Fallback
 │   ├── convert.h                   # String conversion submodule (To<>/From<>)
 │   ├── serialization_options.h     # SerializationOptions struct
-│   ├── config.h                    # Version macros, feature flags (BITSERIALIZER_HAS_FLOAT_FROM_CHARS, BITSERIALIZER_HAS_FAST_FLOAT, BITSERIALIZER_HAS_FILESYSTEM)
+│   ├── config.h                    # Version macros, feature flags (BITSERIALIZER_HAS_FLOAT_FROM_CHARS, BITSERIALIZER_HAS_FAST_FLOAT, BITSERIALIZER_USE_BUNDLED_FAST_FLOAT, BITSERIALIZER_HAS_FILESYSTEM)
 │   ├── export.h                    # DLL export/import macros
 │   ├── serialization_detail/       # Core engine (see Architecture)
 │   ├── conversion_detail/          # Conversion internals (fundamentals, enums, chrono, UTF, filesystem)
@@ -192,9 +192,10 @@ All archive options are **OFF by default** — you must explicitly enable what y
 | `BUILD_PUGIXML_ARCHIVE` | OFF | PugiXml-based XML archive |
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | RapidYAML-based YAML archive |
 | `BUILD_SHARED_LIBS` | OFF | Build as DLL/shared library |
+| `BITSERIALIZER_BUNDLE_FAST_FLOAT` | OFF | Install the matched fast_float headers into the package (requires FastFloat) |
 | `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only, not MSVC) |
 
-`FastFloat` is not a CMake option: if the package is available, `Convert` and the built-in archives use `fast_float`; otherwise they use `std::from_chars`. The repository manifest includes `fast-float` as a normal dependency; pass `-DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON` to use the fallback. External consumers/official ports can expose it as an optional feature. CI keeps the regular matrix on the fallback path; selected existing jobs (MSVC, clang-cl, GCC) opt in via `fastFloat: true`. Release packages are built with it and install `share/doc/bitserializer/fast_float.txt`; consumer-side FastFloat detection stays optional.
+`FastFloat` is auto-detected for source builds: if the package is available, `Convert` and the built-in archives use `fast_float`; otherwise they use `std::from_chars`. The repository manifest includes `fast-float` as a normal dependency; pass `-DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON` to use the fallback. External consumers/official ports can expose it as an optional feature. CI keeps the regular matrix on the fallback path; selected existing jobs (MSVC, clang-cl, GCC) opt in via `fastFloat: true`. `BITSERIALIZER_BUNDLE_FAST_FLOAT=ON` installs the fast_float headers under `include/bitserializer/third_party/fast_float`; release packages enable it, so consumers do not need a separate FastFloat package. The installed package fixes the fast_float state in `bitserializerConfig.cmake` instead of re-detecting it (when bundling is off, it requires FastFloat explicitly). Release packages also install `share/doc/bitserializer/fast_float.txt`.
 
 ### Build directory
 

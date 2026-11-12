@@ -71,6 +71,17 @@ else()
     message(STATUS "[Dependency] FastFloat: not found (using std::from_chars); install the fast-float package or provide the FastFloat CMake package")
 endif()
 
+option(BITSERIALIZER_BUNDLE_FAST_FLOAT "Install the fast_float headers into the package" OFF)
+message(STATUS "[Option] BITSERIALIZER_BUNDLE_FAST_FLOAT: ${BITSERIALIZER_BUNDLE_FAST_FLOAT}")
+if(BITSERIALIZER_BUNDLE_FAST_FLOAT)
+    if(NOT BITSERIALIZER_HAS_FAST_FLOAT)
+        message(FATAL_ERROR "BITSERIALIZER_BUNDLE_FAST_FLOAT requires FastFloat")
+    endif()
+    set(BITSERIALIZER_USE_BUNDLED_FAST_FLOAT 1)
+else()
+    set(BITSERIALIZER_USE_BUNDLED_FAST_FLOAT 0)
+endif()
+
 #################################################################################
 # Global compiler configuration
 #################################################################################
@@ -533,11 +544,25 @@ install(TARGETS ${BITSERIALIZER_TARGETS}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(FILES "${PROJECT_SOURCE_DIR}/license.txt"
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME})
+    DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 if(BITSERIALIZER_HAS_FAST_FLOAT)
     install(FILES "${PROJECT_SOURCE_DIR}/licenses/fast_float.txt"
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${PROJECT_NAME})
+        DESTINATION ${CMAKE_INSTALL_DOCDIR})
+endif()
+
+if(BITSERIALIZER_USE_BUNDLED_FAST_FLOAT)
+    set(_fastfloat_headers_installed FALSE)
+    foreach(_fastfloat_include_dir IN LISTS BITSERIALIZER_FASTFLOAT_INCLUDE_DIRS)
+        if(EXISTS "${_fastfloat_include_dir}/fast_float/fast_float.h")
+            install(DIRECTORY "${_fastfloat_include_dir}/fast_float"
+                DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/bitserializer/third_party")
+            set(_fastfloat_headers_installed TRUE)
+        endif()
+    endforeach()
+    if(NOT _fastfloat_headers_installed)
+        message(FATAL_ERROR "Unable to locate fast_float headers for BITSERIALIZER_BUNDLE_FAST_FLOAT")
+    endif()
 endif()
 
 if(MSVC)

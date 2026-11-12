@@ -57,14 +57,20 @@ endforeach()
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 
-# fast_float is optional: enable the fast parsers only when the consumer project
-# (or its environment) provides the FastFloat CMake package.
-find_package(FastFloat CONFIG QUIET)
-if(FastFloat_FOUND AND TARGET BitSerializer::core AND TARGET FastFloat::fast_float)
-    set_property(TARGET BitSerializer::core APPEND PROPERTY
-        INTERFACE_LINK_LIBRARIES FastFloat::fast_float)
-    set_property(TARGET BitSerializer::core APPEND PROPERTY
-        INTERFACE_COMPILE_DEFINITIONS BITSERIALIZER_HAS_FAST_FLOAT=1)
+# fast_float configuration is fixed at package build time. Do not re-detect it
+# here: the library and the consumer headers must use the same implementation.
+if(@BITSERIALIZER_HAS_FAST_FLOAT@)
+    if(@BITSERIALIZER_USE_BUNDLED_FAST_FLOAT@)
+        set_property(TARGET BitSerializer::core APPEND PROPERTY
+            INTERFACE_COMPILE_DEFINITIONS
+            "BITSERIALIZER_HAS_FAST_FLOAT=1;BITSERIALIZER_USE_BUNDLED_FAST_FLOAT=1")
+    else()
+        find_dependency(FastFloat CONFIG REQUIRED)
+        set_property(TARGET BitSerializer::core APPEND PROPERTY
+            INTERFACE_LINK_LIBRARIES FastFloat::fast_float)
+        set_property(TARGET BitSerializer::core APPEND PROPERTY
+            INTERFACE_COMPILE_DEFINITIONS BITSERIALIZER_HAS_FAST_FLOAT=1)
+    endif()
 endif()
 
 check_required_components("@PROJECT_NAME@")

@@ -23,7 +23,7 @@ Key design principles:
 | CSV | `csv_archive.h` | `BitSerializer::Csv` | Built-in | `BUILD_CSV_ARCHIVE` |
 | MsgPack | `msgpack_archive.h` | `BitSerializer::MsgPack` | Built-in | `BUILD_MSGPACK_ARCHIVE` |
 
-Dependencies (via vcpkg): rapidjson, pugixml, ryml, gtest, nlohmann-json (benchmark competitor only), fast-float. fast-float is auto-detected through the `FastFloat` CMake package (opt out with `CMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON`). External consumers/official ports may expose it as an optional feature.
+Dependencies (via vcpkg): rapidjson, pugixml, ryml, gtest, nlohmann-json (benchmark competitor only), fast-float. fast-float is auto-detected through the `FastFloat` CMake package (opt out with `CMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON`). External consumers/official ports may expose it as an optional feature. The repository `vcpkg.json` is a project manifest (dependencies and baseline only) and intentionally has no version; the library version is defined only in `CMakeLists.txt`.
 
 ---
 

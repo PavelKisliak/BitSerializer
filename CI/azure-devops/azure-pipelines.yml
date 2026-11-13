@@ -228,3 +228,15 @@ stages:
           vcpkgTriplet: "bitserializer-arm64be-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/cmake/toolchains/arm64be-linux-toolchain.cmake'
           fastFloat: true
+
+      - template: templates/bazel-build-and-test-template.yml
+        parameters:
+          name: 'Bazel_Ubuntu'
+          image: 'ubuntu-latest'
+          os: 'Linux'
+
+      - template: templates/bazel-build-and-test-template.yml
+        parameters:
+          name: 'Bazel_Windows'
+          image: 'windows-2022'
+          os: 'Windows'

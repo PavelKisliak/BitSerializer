@@ -1,0 +1,109 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+# Bazel reuses the same integration test sources as CMake. Each target exercises
+# the corresponding public archive target, so the whole public surface (including
+# stream/file overloads and the built-in/third-party archive wiring) is covered.
+# The deprecated RapidJSON archive is intentionally not exposed here.
+cc_test(
+    name = "convert_api_tests",
+    size = "small",
+    srcs = glob(
+        [
+            "convert_api_tests/*.cpp",
+            "convert_api_tests/*.h",
+        ],
+        allow_empty = True,
+    ),
+    deps = [
+        "//:core",
+        "//:testing_tools",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "json_archive_tests",
+    size = "small",
+    srcs = glob(
+        [
+            "json_archive_tests/*.cpp",
+            "json_archive_tests/*.h",
+        ],
+        allow_empty = True,
+    ),
+    deps = [
+        "//:json_archive",
+        "//:testing_tools",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "csv_archive_tests",
+    size = "small",
+    srcs = glob(
+        [
+            "csv_archive_tests/*.cpp",
+            "csv_archive_tests/*.h",
+        ],
+        allow_empty = True,
+    ),
+    deps = [
+        "//:csv_archive",
+        "//:testing_tools",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "msgpack_archive_tests",
+    size = "small",
+    srcs = glob(
+        [
+            "msgpack_archive_tests/*.cpp",
+            "msgpack_archive_tests/*.h",
+        ],
+        allow_empty = True,
+    ),
+    deps = [
+        "//:msgpack_archive",
+        "//:testing_tools",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "pugixml_archive_tests",
+    size = "small",
+    srcs = glob(
+        [
+            "pugixml_archive_tests/*.cpp",
+            "pugixml_archive_tests/*.h",
+        ],
+        allow_empty = True,
+    ),
+    deps = [
+        "//:pugixml_archive",
+        "//:testing_tools",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "rapidyaml_archive_tests",
+    size = "small",
+    srcs = glob(
+        [
+            "rapidyaml_archive_tests/*.cpp",
+            "rapidyaml_archive_tests/*.h",
+        ],
+        allow_empty = True,
+    ),
+    deps = [
+        "//:rapidyaml_archive",
+        "//:testing_tools",
+        "@googletest//:gtest_main",
+    ],
+)

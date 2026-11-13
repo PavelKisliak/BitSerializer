@@ -13,8 +13,19 @@
 // External dependency (Rapid YAML)
 #include <c4/substr.hpp>
 #include "c4/format.hpp"
+// RapidYaml include layout depends on the distribution: some install the
+// headers under `ryml/` (for example, vcpkg), while others expose them at the
+// include root (Conan and source-based builds such as the Bazel Central
+// Registry module). Support both.
+// Keep the include lines below unindented: the Conan recipe rewrites the
+// RapidYaml includes for both older and newer versions and relies on that form.
+#if __has_include("ryml.hpp")
+#include "ryml.hpp"
+#include "ryml_std.hpp"
+#else
 #include "ryml/ryml.hpp"
 #include "ryml/ryml_std.hpp"
+#endif
 
 namespace BitSerializer::Yaml::RapidYaml {
 	namespace Detail {

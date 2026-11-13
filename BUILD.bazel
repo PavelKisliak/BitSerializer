@@ -1,0 +1,108 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:private"])
+
+# Archive headers are exposed by their own targets, so the core library stays
+# independent from the optional third-party dependencies (PugiXml, RapidYAML).
+cc_library(
+    name = "core",
+    hdrs = glob(
+        ["include/bitserializer/**/*.h"],
+        exclude = ["include/bitserializer/*_archive.h"],
+    ),
+    includes = ["include"],
+    defines = ["BITSERIALIZER_HAS_FAST_FLOAT=1"],
+    deps = ["@fast_float//:fast_float"],
+    visibility = ["//visibility:public"],
+)
+
+# Header-only test utilities (fixtures, common test methods, GTest asserts).
+# Mirrors src/testing_tools/CMakeLists.txt and is shared by the Bazel test targets.
+cc_library(
+    name = "testing_tools",
+    hdrs = glob(["src/testing_tools/**/*.h"]),
+    includes = ["src"],
+    deps = [
+        ":core",
+        "@googletest//:gtest",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Shared private implementation used by the built-in archives (JSON, CSV, MsgPack).
+# In Bazel a single cc_library is the equivalent of the CMake `common_impl` object
+# library: the linker keeps one copy even when several archives are linked together.
+cc_library(
+    name = "common",
+    srcs = glob(["src/common/**/*.cpp"]),
+    hdrs = glob(["src/common/**/*.h"]),
+    includes = ["src"],
+    deps = [":core"],
+)
+
+cc_library(
+    name = "json_archive",
+    srcs = glob([
+        "src/json/**/*.cpp",
+        "src/json/**/*.h",
+    ]),
+    hdrs = ["include/bitserializer/json_archive.h"],
+    includes = ["src"],
+    deps = [
+        ":common",
+        ":core",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "csv_archive",
+    srcs = glob([
+        "src/csv/**/*.cpp",
+        "src/csv/**/*.h",
+    ]),
+    hdrs = ["include/bitserializer/csv_archive.h"],
+    includes = ["src"],
+    deps = [
+        ":common",
+        ":core",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "msgpack_archive",
+    srcs = glob([
+        "src/msgpack/**/*.cpp",
+        "src/msgpack/**/*.h",
+    ]),
+    hdrs = ["include/bitserializer/msgpack_archive.h"],
+    includes = ["src"],
+    deps = [
+        ":common",
+        ":core",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "pugixml_archive",
+    hdrs = ["include/bitserializer/pugixml_archive.h"],
+    includes = ["include"],
+    deps = [
+        ":core",
+        "@pugixml//:pugixml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "rapidyaml_archive",
+    hdrs = ["include/bitserializer/rapidyaml_archive.h"],
+    includes = ["include"],
+    deps = [
+        ":core",
+        "@rapidyaml//:rapidyaml",
+    ],
+    visibility = ["//visibility:public"],
+)

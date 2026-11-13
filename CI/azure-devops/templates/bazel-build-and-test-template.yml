@@ -1,0 +1,47 @@
+parameters:
+# [Required] Job name
+  name: ''
+# [Required] Agent image
+  image: ''
+# [Required] Target OS family: 'Linux' or 'Windows'
+  os: 'Linux'
+# [Optional] Extra Bazel options
+  bazelOptions: '--noshow_progress --curses=no --test_output=errors'
+
+jobs:
+- job: ${{ parameters.name }}
+  pool:
+    vmImage: ${{ parameters.image }}
+
+  steps:
+  # Bazelisk bootstraps the Bazel version pinned in the repository .bazelversion file.
+  - ${{ if eq(parameters.os, 'Windows') }}:
+    - powershell: |
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $bazelPath = Join-Path "$(Agent.TempDirectory)" 'bazel.exe'
+        Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-windows-amd64.exe' -OutFile $bazelPath
+        Write-Host "##vso[task.prependpath]$(Agent.TempDirectory)"
+      displayName: 'Install Bazelisk'
+  - ${{ else }}:
+    - bash: |
+        set -e
+        curl -fsSL -o "$(Agent.TempDirectory)/bazel" 'https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64'
+        chmod +x "$(Agent.TempDirectory)/bazel"
+        echo "##vso[task.prependpath]$(Agent.TempDirectory)"
+      displayName: 'Install Bazelisk'
+
+  # Bazel runs C++ tests through Bash on Windows, so BAZEL_SH must point to Git Bash.
+  - ${{ if eq(parameters.os, 'Windows') }}:
+    - script: bazel build //... ${{ parameters.bazelOptions }}
+      displayName: 'Bazel build'
+      env:
+        BAZEL_SH: 'C:\Program Files\Git\bin\bash.exe'
+    - script: bazel test //... ${{ parameters.bazelOptions }}
+      displayName: 'Bazel test'
+      env:
+        BAZEL_SH: 'C:\Program Files\Git\bin\bash.exe'
+  - ${{ else }}:
+    - bash: bazel build //... ${{ parameters.bazelOptions }}
+      displayName: 'Bazel build'
+    - bash: bazel test //... ${{ parameters.bazelOptions }}
+      displayName: 'Bazel test'

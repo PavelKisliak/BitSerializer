@@ -262,3 +262,9 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Bazel
+/bazel-*
+# Not shipped: the lockfile is host-generated and is not used when the library
+# is consumed as a module via the Bazel Central Registry.
+MODULE.bazel.lock

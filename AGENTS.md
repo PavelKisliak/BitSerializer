@@ -57,6 +57,7 @@ Dependencies (via vcpkg): rapidjson, pugixml, ryml, gtest, nlohmann-json (benchm
 | Run static analysis | `.clang-tidy`, `tools/static_analysis/` |
 | Modify build config | `CMakeLists.txt`, `CMakeSettings.json` |
 | Manage dependencies | `vcpkg.json`, `cmake/vcpkg/triplets/` |
+| Work with Bazel | `BUILD.bazel`, `cmake/MODULE.bazel.in` (generates `MODULE.bazel`), `tests/integration_tests/BUILD.bazel`, `tools/bazel/check_module_version.py`, `CI/azure-devops/templates/bazel-build-and-test-template.yml` |
 | Run performance benchmarks | `benchmarks/archives/` — CLI (`--bench`, `--stages`, `--list`) and machine-readable results in `benchmark_results/serialization_speed_report.json` (requires `BUILD_JSON_ARCHIVE=ON`) |
 | Benchmark a single function (A/B) | `benchmarks/microbenchmarks/` — intra-binary A/B harness (`benchmarks/harness/bench_harness.h`), see its `README.md` |
 | Understand the benchmark workflow | `docs/development/benchmarks.md` |
@@ -215,6 +216,22 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release \
 ninja -C build
 ctest --test-dir build -T test --output-on-failure -j "$(getconf _NPROCESSORS_ONLN)"
 ```
+
+### Bazel build (optional)
+
+Bazel builds the library and the integration tests from source and resolves all third-party dependencies from the Bazel Central Registry (VCPKG is not required). The Bazel version is pinned in `.bazelversion`; use [Bazelisk](https://github.com/bazelbuild/bazelisk) so the pin is honored.
+
+```bash
+bazel build //...
+bazel test //...
+```
+
+- Public targets: `//:core`, `//:json_archive`, `//:csv_archive`, `//:msgpack_archive`, `//:pugixml_archive`, `//:rapidyaml_archive`. The deprecated RapidJSON-based archive is intentionally not exposed.
+- Bazel reuses the CMake integration test sources through `tests/integration_tests/BUILD.bazel`; unit tests remain CMake-only.
+- CI runs `Bazel_Ubuntu` and `Bazel_Windows` in the `Matrix` stage via `CI/azure-devops/templates/bazel-build-and-test-template.yml`.
+- On Windows, `bazel test` requires `BAZEL_SH` pointing to Git Bash (for example, `C:\Program Files\Git\bin\bash.exe`).
+- `fast_float` is always enabled for the Bazel build (`BITSERIALIZER_HAS_FAST_FLOAT=1` is defined on `//:core`); do not vendor its headers for Bazel.
+- `MODULE.bazel` is generated from `cmake/MODULE.bazel.in` during CMake configure (the version comes from `CMakeLists.txt`); commit the regenerated file before tagging. `tools/bazel/check_module_version.py` verifies the committed version in CI.
 
 ### Code coverage (Linux only)
 

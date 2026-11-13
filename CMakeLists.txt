@@ -200,6 +200,15 @@ else()
     configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
 endif()
 
+# Generate the Bazel module definition from a template so the version has a single
+# source of truth (the project() version above). The generated file is committed
+# because Bazel and the BCR source archive must work without running CMake.
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/MODULE.bazel.in" "${PROJECT_SOURCE_DIR}/MODULE.bazel" @ONLY NEWLINE_STYLE LF)
+else()
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/MODULE.bazel.in" "${PROJECT_SOURCE_DIR}/MODULE.bazel" @ONLY)
+endif()
+
 # Keep compiler-generated debug symbols for the prebuilt Debug packages.
 if(MSVC)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/pdb")

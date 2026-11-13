@@ -8,6 +8,7 @@ Development guide for contributors and AI agents. Developer build instructions i
 | I want to... | Read |
 |---|---|
 | See the repository layout | [Project structure](../../CONTRIBUTING.md#project-structure) |
+| Build or test with Bazel | [AGENTS.md - Bazel build](../../AGENTS.md#bazel-build-optional) |
 | Understand the serialization architecture | [Architecture](architecture.md) |
 | Write or run tests | [Testing](testing.md) |
 | Follow the coding style | [Code style](code-style.md) |

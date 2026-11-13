@@ -32,6 +32,8 @@ jobs:
 
   # Bazel runs C++ tests through Bash on Windows, so BAZEL_SH must point to Git Bash.
   - ${{ if eq(parameters.os, 'Windows') }}:
+    - script: python tools\bazel\check_module_version.py
+      displayName: 'Check MODULE.bazel version'
     - script: bazel build //... ${{ parameters.bazelOptions }}
       displayName: 'Bazel build'
       env:
@@ -41,6 +43,8 @@ jobs:
       env:
         BAZEL_SH: 'C:\Program Files\Git\bin\bash.exe'
   - ${{ else }}:
+    - bash: python3 tools/bazel/check_module_version.py
+      displayName: 'Check MODULE.bazel version'
     - bash: bazel build //... ${{ parameters.bazelOptions }}
       displayName: 'Bazel build'
     - bash: bazel test //... ${{ parameters.bazelOptions }}

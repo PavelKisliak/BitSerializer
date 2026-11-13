@@ -256,6 +256,51 @@ bitserializer/*:with_msgpack=True
 ```
 Replace `x.xx` with the latest available version: [![Conan Center](https://img.shields.io/conan/v/bitserializer?color=blue)](https://conan.io/center/recipes/bitserializer)
 
+#### Bazel
+
+BitSerializer can be consumed as a Bazel module. The built-in archives (JSON, CSV, MsgPack) require no third-party packages, and the optional `fast_float` dependency is fetched automatically.
+
+```starlark
+# MODULE.bazel
+bazel_dep(name = "rules_cc", version = "0.2.28")
+bazel_dep(name = "bitserializer", version = "0.90.0")
+```
+
+Replace `0.90.0` with the latest release version that includes Bazel support.
+
+```starlark
+# BUILD.bazel
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+cc_binary(
+    name = "app",
+    srcs = ["main.cpp"],
+    deps = [
+        "@bitserializer//:json_archive",
+        "@bitserializer//:csv_archive",
+        "@bitserializer//:msgpack_archive",
+        # Third-party archives:
+        "@bitserializer//:pugixml_archive",
+        "@bitserializer//:rapidyaml_archive",
+    ],
+)
+```
+
+Every dependency is namespaced by the module repository (`@bitserializer`), so target names such as `json_archive` or `csv_archive` do not collide with other libraries.
+
+Available targets: `@bitserializer//:core`, `@bitserializer//:json_archive`, `@bitserializer//:csv_archive`, `@bitserializer//:msgpack_archive`, `@bitserializer//:pugixml_archive` and `@bitserializer//:rapidyaml_archive`. The deprecated RapidJSON-based archive is intentionally not exposed.
+
+If the required version is not available in your Bazel registry yet (or you want to track an unreleased commit), point the dependency at the repository with `git_override`:
+
+```starlark
+bazel_dep(name = "bitserializer", version = "0.90.0")
+git_override(
+    module_name = "bitserializer",
+    remote = "https://github.com/PavelKisliak/BitSerializer.git",
+    commit = "<commit-hash>",
+)
+```
+
 #### Installation via CMake on a Unix system
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git

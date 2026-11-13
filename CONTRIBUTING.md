@@ -233,6 +233,19 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release \
     ...
 ```
 
+### Option 4: Bazel (optional)
+
+Bazel builds the library and the integration tests from source and fetches all dependencies from the Bazel Central Registry, so VCPKG is not required. Use [Bazelisk](https://github.com/bazelbuild/bazelisk) so the version pinned in `.bazelversion` is used.
+
+```bash
+bazel build //...
+bazel test //...
+```
+
+Public targets are `//:core`, `//:json_archive`, `//:csv_archive`, `//:msgpack_archive`, `//:pugixml_archive` and `//:rapidyaml_archive` (the deprecated RapidJSON archive is not exposed). On Windows, set `BAZEL_SH` to the Git Bash executable before running `bazel test`.
+
+`MODULE.bazel` is generated from `cmake/MODULE.bazel.in` during CMake configure; do not edit it manually. The version is taken from `CMakeLists.txt`, so after bumping it for a release, rerun CMake and commit the regenerated `MODULE.bazel` (CI checks the consistency with `tools/bazel/check_module_version.py`).
+
 ### Static analysis (clang-tidy)
 
 Add `-DSTATIC_ANALYSIS_CLANG_TIDY=ON` to any CMake configure command (Windows, Linux, or macOS) to run clang-tidy during the build:

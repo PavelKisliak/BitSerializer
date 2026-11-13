@@ -30,12 +30,12 @@
 
 ## Checklist
 
-- [ ] Rebased on the latest `dev` (linear history, no merge commits)
-- [ ] Full test suite passes (`ctest --test-dir build -T test --output-on-failure`)
-- [ ] Added or updated tests covering the change
+- [ ] Rebased on the latest `master` (linear history, no merge commits)
+- [ ] Full test suite passes (`ctest --test-dir build -T test --output-on-failure`; see [Testing](https://github.com/PavelKisliak/BitSerializer/blob/master/docs/development/testing.md))
+- [ ] Added or updated tests covering the change (see [Testing](https://github.com/PavelKisliak/BitSerializer/blob/master/docs/development/testing.md))
 - [ ] clang-tidy is clean on changed files (warnings are treated as errors)
 - [ ] Documentation updated if the public API or behavior changed
-- [ ] Benchmarks run for performance-affecting changes; results included below
+- [ ] Benchmarks run for performance-affecting changes; results included below (see [Benchmarks](https://github.com/PavelKisliak/BitSerializer/blob/master/docs/development/benchmarks.md))
 
 ## Benchmark results (if applicable)
 

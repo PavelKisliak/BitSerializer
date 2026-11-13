@@ -4,13 +4,13 @@ Thank you for your interest in contributing to BitSerializer! This guide will he
 
 ## How to Contribute
 
-We welcome contributions of all kinds:
+The most valuable contribution is often a clear description of a problem or an idea. You do not need to write code to contribute: a well-scoped feature request or bug report is enough for the maintainer to evaluate and, if accepted, implement the change directly.
 
-- **Bug fixes** — found something broken? A PR with a fix is always appreciated.
-- **Minor improvements** — performance tweaks, code cleanup, better error messages, small enhancements.
-- **Documentation** — typo fixes, improved examples, missing explanations — all valuable.
-- **Tests** — additional test coverage, edge case tests, regression tests for reported issues.
-- **Performance improvements** — optimizations are welcome, but please include benchmark results before and after your changes (see [Performance Benchmarks](#performance-benchmarks)).
+- **Ideas and feature requests** — describe the problem, who runs into it, the expected behavior, and the constraints or alternatives you considered. A precise request is the fastest path to a change; use the [feature request template](https://github.com/PavelKisliak/BitSerializer/issues/new?template=feature_request.yml).
+- **Bug reports** — include a minimal reproduction, expected vs actual behavior, your BitSerializer version (see `include/bitserializer/config.h`), compiler/OS/version, and architecture. Use the [bug report template](https://github.com/PavelKisliak/BitSerializer/issues/new?template=bug_report.yml).
+- **Documentation and tests** — typo fixes, clearer examples, missing explanations, and additional coverage are always valuable. Read [Testing](docs/development/testing.md) before adding or changing tests.
+- **Performance improvements** — welcome; if you already have measurements, include before/after results (see [Performance Benchmarks](docs/development/benchmarks.md)). If you only have a workload or use case, describe it in an issue.
+- **Code contributions** — welcome as well. Small fixes, documentation, and tests can go straight to a PR. For non-trivial changes (new features, public API, architecture), open an issue or discussion first and mention whether you plan to implement it; this avoids duplicate work and lets us agree on the approach.
 
 > [!NOTE]
 > For **significant changes** — new features, architectural refactoring, changes to the public API — please start by creating an **ADR (Architecture Decision Record)** as a GitHub issue or discussion before submitting a PR. This helps us align on the approach before you invest time in implementation.
@@ -30,6 +30,18 @@ ADRs don't need to be formal or lengthy — a clear, concise explanation is enou
 ### On adding new archive formats
 
 The library aims to support the most widely used serialization formats, not every format that exists. Each new archive adds maintenance burden, and the author's capacity is limited. If you'd like to propose a new format, please open a discussion first — explain the use case, the format's popularity and adoption, and why existing archives don't cover the need.
+
+## Development guide
+
+Detailed development documentation lives in [`docs/development/`](docs/development/README.md):
+
+- [Architecture](docs/development/architecture.md) — archive pattern, scope contract, loading semantics.
+- [Testing](docs/development/testing.md) — test targets, helpers, unit vs integration tests.
+- [Code style](docs/development/code-style.md) — naming, formatting, documentation and license headers.
+- [Benchmarks](docs/development/benchmarks.md) — round-trip and microbenchmark workflow.
+- [Workflow](docs/development/workflow.md) — commit convention, PR workflow, CI matrix.
+
+Build instructions are split by audience: this file covers the human setup (Visual Studio, Developer Command Prompt, VCPKG), while [`AGENTS.md`](AGENTS.md) covers non-interactive/agent builds (`vcvarsall` capture and exact commands). Keep both in sync where they describe the same option.
 
 ## Prerequisites
 
@@ -102,6 +114,9 @@ export VCPKG_ROOT=/path/to/vcpkg
 
 ## Building the project
 
+> [!NOTE]
+> This section describes the human setup path: Visual Studio or a pre-configured VS Developer Command Prompt, where the MSVC environment is already available. For non-interactive shells and AI agents (where the environment must be captured from `vcvarsall.bat`), see [AGENTS.md](AGENTS.md#windows-build-from-powershell). The two paths intentionally differ; keep the shared CMake options in sync.
+
 ### Option 1: Visual Studio (recommended for Windows)
 
 The easiest way on Windows is to use Visual Studio's built-in CMake support:
@@ -170,8 +185,8 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release ^
 :: Build
 ninja -C build
 
-:: Run tests
-ctest --test-dir build -T test --output-on-failure -j2
+:: Run tests (-j = concurrent tests; lower it if memory is tight)
+ctest --test-dir build -T test --output-on-failure -j %NUMBER_OF_PROCESSORS%
 ```
 
 **Using Clang-cl instead of MSVC:**
@@ -200,8 +215,8 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release \
 # Build
 ninja -C build
 
-# Run tests
-ctest --test-dir build -T test --output-on-failure -j2
+# Run tests (-j = concurrent tests; lower it if memory is tight)
+ctest --test-dir build -T test --output-on-failure -j "$(getconf _NPROCESSORS_ONLN)"
 ```
 
 **Using a specific compiler:**
@@ -241,7 +256,7 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON \
     -DBUILD_TESTS=ON -DBUILD_JSON_ARCHIVE=ON \
     -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
 ninja -C build
-ctest --test-dir build --output-on-failure
+ctest --test-dir build --output-on-failure -j "$(getconf _NPROCESSORS_ONLN)"   # -j = concurrent tests
 ninja -C build coverage   # writes build/coverage/coverage.xml and build/coverage/html/
 ```
 
@@ -256,6 +271,8 @@ Preflight job.
 > [!IMPORTANT]
 > All archive options are **OFF by default** — you must explicitly enable what you need.
 
+> Keep this table in sync with [AGENTS.md — CMake Options](AGENTS.md#cmake-options).
+
 | Option | Default | Description |
 |--------|---------|-------------|
 | `BUILD_TESTS` | OFF | Build test executables |
@@ -269,8 +286,9 @@ Preflight job.
 | `BUILD_PUGIXML_ARCHIVE` | OFF | XML archive via PugiXml |
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | YAML archive via RapidYAML |
 | `BUILD_SHARED_LIBS` | OFF | Build as shared/DLL library |
+| `BITSERIALIZER_BUNDLE_FAST_FLOAT` | OFF | Install the matched fast_float headers into the package (requires FastFloat) |
 | `STATIC_ANALYSIS_CLANG_TIDY` | OFF | Enable clang-tidy during build |
-| `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only) |
+| `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only, not MSVC) |
 | `CMAKE_CXX_STANDARD` | 17 | C++ standard (17, 20, 23, or 26) |
 
 > [!NOTE]
@@ -278,384 +296,92 @@ Preflight job.
 
 ---
 
-## Performance Benchmarks
-
-If your changes may affect performance (serialization speed or output size), please verify that there is no significant regression by running the benchmarks.
-
-### Running benchmarks
-
-Build the benchmark executable in Release mode (benchmarks in Debug mode use minimal test time — only enough to verify functionality):
-
-```cmd
-:: Windows (from VS Developer Command Prompt)
-cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON -DBUILD_JSON_ARCHIVE=ON ...
-ninja -C build archives_benchmarks
-
-:: Run (from command-line build)
-build/bin/archives_benchmarks.exe --list
-build/bin/archives_benchmarks.exe --bench bs-json,rapidjson --stages save,load --stage-time 10
-```
-
-In Release mode, each archive and stage runs for **30 seconds** to produce repeatable results. The benchmark also warms up the CPU for 10 seconds before starting. Use `--bench`, `--stages`, `--stage-time` and `--warmup` to run a subset without rebuilding; see [benchmarks/archives/README.md](benchmarks/archives/README.md) for the full CLI and the `run_repeated.py` helper for repeated runs.
-
-> [!IMPORTANT]
-> Avoid using the system during the test for accurate results. Close other applications and background processes that may cause fluctuations.
-
-### Benchmark details
-
-- Pins the process to a single CPU core and sets maximum priority to minimize fluctuations
-- Compares BitSerializer archives against raw usage of underlying libraries (RapidJSON, PugiXml, RapidYAML, nlohmann-json)
-- Measures serialization speed (fields/ms) for save and load operations
-- Uses a representative flat model (5 numeric and 5 string fields); see [Test model](benchmarks/archives/README.md#test-model) for the intent and balance
-- Reports are saved as JSON files in `benchmark_results/` directory (requires the built-in JSON archive, `BUILD_JSON_ARCHIVE=ON`)
-
-### Why the full round-trip benchmark matters
-
-Performance changes must be validated with the **full round-trip benchmark** (save → load of a representative model), not only with microbenchmarks of individual functions. Compiler code generation can shift for reasons unrelated to the algorithm you changed:
-
-- A real case: after templating the JSON reader on the format (`ArchiveType::Json`/`Jsonc`), strict-JSON load regressed ~6% (16500 → ~15493 fields/ms) even though the strict path was unchanged — `if constexpr` removed all JSONC handling and the hot functions' assembly was byte-identical to before. The cause was purely compiler behavior: MSVC generated slower code for the strict instantiation when the larger JSONC instantiation was compiled in the same translation unit. Splitting the explicit instantiations into separate TUs restored the performance.
-
-Lessons:
-
-- **Measure the round-trip.** A change that looks neutral in isolation can still move the whole pipeline.
-- **Microbenchmarks of a single function are still useful** for profiling and hypothesis testing (e.g. whether `__forceinline`/`noinline` helps a hot loop), but they cannot detect whole-TU/binary codegen effects — never rely on them alone.
-- **Judge small effects by the combined save+load result across repeated runs.** Layout can move save and load independently, so a load-only change may even shift the save number. A repeatable improvement in the sum, supported by a function-level microbenchmark, is acceptable even if one of the stages is slower; a repeatable regression in the sum should block the change.
-- **Compare in a single session.** Machine state drifts between sessions; take several back-to-back runs (min-time per metric) of the configurations you are contrasting.
-- **Don't shorten the run.** Keep the default stage time (30 s per stage). Cutting it to a few seconds sharply increases run-to-run variance on a busy machine, so the min-time results become unreliable and can even flip the sign of a small (few %) difference.
-
-### Microbenchmarks (intra-binary A/B)
-
-For **function-level** questions — "is `std::to_chars` faster than `std::to_string` here?", "does `__forceinline` help this loop?" — use the intra-binary A/B harness in [`benchmarks/microbenchmarks/`](benchmarks/microbenchmarks/README.md).
-
-It compiles the **base and variant implementations into the same binary** and measures them alternately in one process. Because both share the build's code layout, the measured *difference* is not affected by the layout lottery — this makes it reliable even on MSVC, where function alignment is unavailable. A conservative noise band (block-to-block spread of the delta) is reported next to each delta, and a delta is only flagged as significant when it exceeds that band.
-
-```cmd
-cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_MICROBENCHMARKS=ON -DBUILD_JSON_ARCHIVE=ON ^
-      -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
-ninja -C build microbenchmark
-build\bin\microbenchmark.exe
-```
-
-Microbenchmarks answer "which implementation of this function is faster", not "is the whole pipeline faster" — still validate final changes with the round-trip benchmark above. See the [harness README](benchmarks/microbenchmarks/README.md) for the API and recommendations.
-
-The harness also covers the **full archive Save/Load pipeline on a small model** (see the [archive A/B section](benchmarks/microbenchmarks/README.md#archive-saveload-ab)) — useful for A/B of two archives or two implementations without the heavy round-trip run.
-
-For the recommended optimization protocol (function-level A/B → archive-level A/B → round-trip validation), see the [A/B workflow](benchmarks/microbenchmarks/README.md#optimizing-an-archive-ab-workflow).
-
-### Code-layout sensitivity and the toolchain rule
-
-The benchmark reports the **minimum** time over millions of single-call samples. The minimum is an extreme-value statistic, so it is very sensitive to the *alignment* of the hot functions: a benign code change anywhere in the linked image — even code that never runs in the timed region — can shift them by one cache line and move the reported speed by ~5-10%. This is a "layout lottery", not a real regression. It can be reproduced by adding a dummy function to a hot translation unit and rebuilding: the unchanged algorithm then reports a different `min`.
-
-To keep builds comparable, the benchmark target aligns its functions to 64 bytes (`-mllvm -align-all-functions=6` on Clang, `-falign-functions=64 -falign-loops=32` on GCC), which collapses the spread to ~1-2%. This is applied to the benchmark target only; the library build is untouched (function alignment has no ABI impact, so it stays compatible with any DLL/static build).
-
-**Rule: run authoritative A/B benchmarks with Clang or GCC.**
-- Clang/GCC can freeze function alignment; MSVC (`cl.exe`) cannot (no per-function alignment attribute or flag), so its spread stays at ~7% and small deltas are masked by layout noise.
-- On Windows, `clang-cl` (ships with Visual Studio) is enough — no separate toolchain needed: add `-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl` to the CMake command.
-- Absolute numbers differ between compilers — only compare deltas measured with the same compiler and flags.
-- MSVC runs remain useful as a smoke check, but treat deltas below ~7% as noise.
-
-### Error handling: exceptions vs `Expected`
-
-Exceptions are the primary error-handling mechanism by design. An experimental migration of the
-`Convert` submodule to `Expected`-based error handling showed a regression in real serialization
-benchmarks (CSV save −9%, load −5%): the overhead is paid on every successful call, whereas
-exceptions are zero-cost on the happy path and cost only on rare error paths. `Expected`/error codes
-are therefore not used in the hot serialization code.
-
----
-
 ## Project Structure
 
-Key directories:
-- `include/bitserializer/` — public API headers
-- `src/` — implementations for built-in archives (CSV, JSON, MsgPack)
-- `tests/unit_tests/` — per-module unit tests
-- `tests/integration_tests/` — per-archive end-to-end tests
-- `samples/` — 15 example projects
-- `docs/` — per-format documentation
-- `benchmarks/archives/` — round-trip serialization benchmarks vs competing libraries
-- `benchmarks/harness/` — shared benchmark infrastructure (perf utils, A/B harness, process runner)
-- `benchmarks/microbenchmarks/` — intra-binary A/B microbenchmark harness (see its `README.md`)
+Paths are relative to the project root:
+
+```
+BitSerializer/
+├── include/bitserializer/          # Public headers (the library)
+│   ├── bit_serializer.h            # Main entry: LoadObject<>() / SaveObject<>()
+│   ├── *_archive.h                 # One header per format (json, csv, msgpack, pugixml, rapidjson, rapidyaml)
+│   ├── key_value.h                 # KeyValue<> and AttrValue<> wrappers
+│   ├── validate.h                  # Validators: Required, Email, PhoneNumber, MaxSize, Range...
+│   ├── refine.h                    # Refiners: TrimWhitespace, ToLowerCase, ToUpperCase, Fallback
+│   ├── convert.h                   # String conversion submodule (To<>/From<>)
+│   ├── serialization_options.h     # SerializationOptions struct
+│   ├── config.h                    # Version macros and feature flags
+│   ├── export.h                    # DLL export/import macros
+│   ├── serialization_detail/       # Core engine (see docs/development/architecture.md)
+│   ├── conversion_detail/          # Conversion internals (fundamentals, enums, chrono, UTF, filesystem)
+│   ├── types/std/                  # STD type serializers (vector, map, optional, chrono, tuple, etc.)
+│   └── common/                     # Utilities (memory.h, text.h)
+│
+├── src/                            # Implementations for built-in formats
+│   ├── csv/                        # CSV reader/writer + csv_archive.cpp
+│   ├── json/                       # JSON root scopes + readers/ + writers/
+│   ├── msgpack/                    # MsgPack reader/writer + msgpack_archive.cpp
+│   ├── common/                     # Binary stream reader
+│   └── testing_tools/              # Shared test utilities (fixtures, assertions; GTest-based)
+│
+├── tests/
+│   ├── unit_tests/                 # Per-module unit tests
+│   │   ├── common_tests/           # Binary stream reader, shared utilities
+│   │   ├── core_tests/             # Archive base, dispatch, context, validators, refine
+│   │   ├── convert_tests/          # Type conversion, UTF encoding, chrono, filesystem
+│   │   ├── csv_tests/              # CSV reader/writer
+│   │   ├── json_tests/             # JSON reader/writer
+│   │   ├── msgpack_tests/          # MsgPack reader/writer
+│   │   └── std_types_tests/        # STD container serialization
+│   ├── integration_tests/          # Per-archive end-to-end tests
+│   │   ├── csv_archive_tests/
+│   │   ├── json_archive_tests/
+│   │   ├── msgpack_archive_tests/
+│   │   ├── pugixml_archive_tests/
+│   │   ├── rapidjson_archive_tests/
+│   │   ├── rapidyaml_archive_tests/
+│   │   └── convert_api_tests/
+│   └── acceptance_tests/           # Installed-library tests (reuses integration tests, CI Valgrind checks)
+│
+├── samples/                        # 15 example projects (hello_world, validation, versioning, etc.)
+├── benchmarks/                     # archives/ (round-trip) + harness/ (perf utils, A/B harness) + microbenchmarks/
+├── docs/                           # Per-format documentation + development/
+├── cmake/                          # vcpkg triplets + ARM cross-compilation toolchains
+├── CI/azure-devops/                # Azure DevOps pipeline definitions
+├── tools/static_analysis/          # Clang-tidy scripts
+└── CMakeLists.txt                  # Root build file
+```
 
 ## Architecture Overview
 
 The library uses an **archive pattern**: each format provides `input_archive_type` (deserialization) and `output_archive_type` (serialization). `BitSerializer::LoadObject<TArchive>()` / `SaveObject<TArchive>()` dispatch values through `Detail::Dispatch()`, which routes fundamentals, STD containers, KeyValue pairs, and custom classes to the correct `Serialize()` overload.
 
-The code example below serializes a `User` object — the diagram that follows visualizes the same flow step by step:
-
-```cpp
-struct User
-{
-    int Id = 0;
-    std::string Name;
-    std::vector<std::string> Tags;
-
-    template <class TArchive>
-    void Serialize(TArchive& archive)
-    {
-        archive << KeyValue("Id", Id);
-        archive << KeyValue("Name", Name);
-        archive << KeyValue("Tags", Tags);
-    }
-};
-
-// Usage:
-std::string output;
-BitSerializer::SaveObject<JsonArchive>(user, output);
-```
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant UserObj as UserObject.Serialize()
-    participant API as BitSerializer API
-    participant Dispatch
-    participant Serialize as Serialize()
-    participant Root as Root Scope
-    participant ObjScope as Object Scope
-    participant ArrScope as Array Scope
-
-    User->>API: SaveObject<TArchive>(userObj, output)
-    API->>Root: output_archive_type(output, context)
-    API->>Dispatch: Dispatch(rootScope, userObj)
-    Dispatch->>Serialize: Serialize(rootScope, userObj)
-
-    Note over Serialize: For classes with Serialize() method:<br/>1. CountMapObjectFields(archive, userObj)<br/>2. archive.OpenObjectScope(mapSize)
-
-    Serialize->>Root: rootScope.OpenObjectScope(mapSize)
-    Root-->>Serialize: ObjectScope (opened)
-    Serialize->>UserObj: userObj.Serialize(objectScope)
-
-    Note over Root: Root scope has the same contract<br/>as child scopes (SerializeValue,<br/>OpenArrayScope, OpenObjectScope...).<br/>Compile-time validation works for all scopes.
-
-    UserObj->>Dispatch: objectScope << KeyValue("Id", id)<br/>(operator<< calls Dispatch)
-    Dispatch->>Serialize: Serialize(objectScope, "Id", id)
-    Serialize->>ObjScope: objectScope.SerializeValue("Id", id)
-
-    UserObj->>Dispatch: objectScope << KeyValue("Items", vec)<br/>(operator<< calls Dispatch)
-    Dispatch->>Serialize: Serialize(objectScope, "Items", vec)
-    Serialize->>ObjScope: objectScope.OpenArrayScope("Items", size)
-    ObjScope-->>Serialize: ArrayScope (opened)
-
-    loop for each element
-        Serialize->>ArrScope: arrScope.SerializeValue(elem)
-    end
-    Note over Root: Child scopes destroyed via RAII.<br/>Finalize() is called on root only.
-
-    Root->>API: rootScope.Finalize()
-    API-->>User: output string/stream
-```
-
-### Archive scope contract
-
-A **scope** is a short-lived RAII object responsible for serializing the current node (object, array, or binary blob) in the archive. It does not own child scopes — each nested node creates its own scope, and when all nested elements are serialized, the parent scope's destructor finalizes the node. Root, object, and array scopes each implement the same core interface. Scopes inherit from both the archive traits and `ArchiveScope<SerializeMode>`, which provides `GetMode()`, `IsSaving()`, `IsLoading()`, `GetContext()`, `GetOptions()`, and the opened/not-opened state (`IsOpened()`, `operator bool`).
-
-`Open*Scope()` returns the concrete scope **by value**. A scope is either *opened* or *not opened*: when the node cannot be opened (for example a type mismatch while loading), the returned scope is in the not-opened state, so `IsOpened()`/`operator bool` yield `false` and the scope performs no operation on destruction.
-
-| Method | Scope types | Mode | Description |
-|--------|------------|------|-------------|
-| `IsOpened()` / `operator bool` | All | Both | Whether the scope was successfully opened |
-| `GetPath()` | All | Both | Current path in archive (for error messages) |
-| `SerializeValue(T& value)` | Root, Array, Binary | Both | Serialize next value |
-| `SerializeValue(TKey&& key, T& value)` | Object | Both | Serialize value by key |
-| `OpenArrayScope(...)` | Root, Array, Object | Both | Open nested array |
-| `OpenObjectScope(...)` | Root, Array, Object | Both | Open nested object |
-| `OpenBinaryScope(...)` | Root, Array, Object | Both | Open nested binary (if supported) |
-| `Finalize()` | Root only | Both | Called after serialization completes |
-| `GetEstimatedSize()` | Array, Object, Binary | Load | Element count for container reserve |
-| `IsEnd()` | Array, Binary | Load | `true` when all elements read |
-| `VisitKeys(TCallback&&)` | Object | Load | Enumerates all keys (re-seeks to start) |
-
-All scopes, including root, implement the same contract — the combination of methods (`SerializeValue`, `OpenArrayScope`, `OpenObjectScope`) which enables **compile-time format validation**. For example, CSV root only has `OpenArrayScope()` (no `SerializeValue()`), so serializing a primitive at root level is a compile error. See `serialization_detail/serialization_dispatch.h` and the respective archive headers for details.
-
-### Loading semantics: arrays and objects
-
-These rules are part of the archive contract and are locked by the shared test helpers
-(`TestSkippedArrayValues`, `TestMismatchedArrayValue`, `TestMismatchedTypesPolicy` in
-`src/testing_tools/common_test_methods.h`).
-
-**Array scopes** (sequences) map **one archive slot to one target slot**, regardless of whether the
-value was successfully converted:
-
-- `SerializeValue()` / `Open*Scope()` consume the current slot even when the value is *skipped* —
-  a `null` value or a value rejected by `MismatchedTypesPolicy::Skip` / `OverflowNumberPolicy::Skip`.
-- The slot counter used by `IsEnd()` (and, for text formats, the read of the next value separator)
-  is advanced for every consumed slot, so a skipped value never shifts the following values.
-- The target slot is left untouched: an element of a fixed C-array or of a pre-filled container keeps
-  its previous value; a newly created element of a dynamic container stays default-constructed.
-  `Skip` means "ignore the value", not "remove/compact the container element" (arity is preserved).
-- A fixed-size array must consume exactly `N` slots; a mismatch between the number of slots in the
-  archive and the target size is reported as `SerializationException(OutOfRange)`.
-- Nested scopes follow the same rule: a skipped nested array/object consumes one parent slot.
-
-Example: loading `[null, 5]` into `int[2]` (or `std::vector<int>`) leaves the first element unchanged
-(or default-initialized) and loads `5` into the second one.
-
-**Object scopes** (key-value maps) are key-driven:
-
-- `SerializeValue(key, value)` / `Open*Scope(key, ...)` look up the key by name; the order of keys in
-  the archive is irrelevant. Unknown keys are skipped.
-- If the key is missing, the target is left unchanged and the call returns `false`; use
-  `KeyValue(..., Required())` to report a validation error instead.
-- A value with a mismatched type follows `MismatchedTypesPolicy`: `ThrowError` (the default) throws,
-  `Skip` leaves the target unchanged and consumes the key-value pair.
-- Null values are excluded from `MismatchedTypesPolicy` and are simply skipped (same as in arrays).
-- Remaining key-value pairs are skipped when the object scope is destroyed, so a partially loaded
-  object does not desynchronize the archive.
-
-### Archive type alias
-
-The top-level archive (e.g., `MsgPackArchive`) is a type alias that specializes `ArchiveBase` with the archive's traits and root scope classes:
-
-```cpp
-using MsgPackArchive = ArchiveBase<
-    Detail::MsgPackArchiveTraits,
-    Detail::MsgPackReadRootScope,
-    Detail::MsgPackWriteRootScope
->;
-```
-
-`ArchiveBase` inherits the traits struct and provides:
-- Traits constants (`archive_type`, `key_type`, `is_binary`, `require_array_size`, etc.)
-- `input_archive_type` — root scope class for deserialization
-- `output_archive_type` — root scope class for serialization
+See [Architecture](docs/development/architecture.md) for the full sequence diagram, archive traits, scope contract, loading semantics for arrays and objects, and the `ArchiveBase` alias.
 
 ---
 
 ## Coding Style
 
-When in doubt, follow the patterns you see in the surrounding code.
+When in doubt, follow the patterns you see in the surrounding code. The full conventions (naming, braces, Doxygen comments, license headers and include order) are in [Code style](docs/development/code-style.md).
 
-### Language and tooling
-
-- **C++17** minimum standard
-- **Clang-tidy** is configured (`.clang-tidy`) with all warnings treated as errors
-- **Tabs** for indentation
-- `#pragma once` for include guards
-
-### Naming conventions
-
-| Element | Convention | Examples |
-|---------|-----------|----------|
-| Classes / Structs (incl. class templates) | CamelCase, no `T` prefix | `ArchiveScope`, `SerializationOptions`, `JsonWriteObjectScope` |
-| Interfaces | `I` + CamelCase | `IJsonReader`, `ICsvReader` |
-| Public/protected methods | CamelCase | `ReadValue()`, `OpenArray()`, `GetPosition()` |
-| Private methods | CamelCase | `ParseNextLine()`, `UnescapeValue()` |
-| Private member variables | `m` + CamelCase | `mPos`, `mLineNumber`, `mInputData` |
-| Public struct members | camelCase | `name`, `object`, `index` |
-| Constructor parameters | camelCase with `in` prefix to avoid shadowing | `inValue`, `inName` |
-| Local variables / Constants | camelCase | `codepoint`, `hexVal`, `targetValue` |
-| Template parameters | `T` + CamelCase | `TSource`, `TTarget`, `TArchive` |
-| Type aliases (public, in traits/classes) | `snake_case_type` | `value_type`, `key_type`, `input_archive_type` |
-| Type aliases (internal) | `snake_case` | `archive_string_view`, `msgpack_variable_key` |
-| Macros | `BITSERIALIZER_` + `SCREAMING_SNAKE_CASE` | `BITSERIALIZER_HAS_FILESYSTEM`, `BITSERIALIZER_REGISTER_ENUM` |
-| Namespaces | CamelCase | `BitSerializer::Json::Detail` |
-
-> [!NOTE]
-> Legacy `C`-prefixed aliases (`CRawTime`, `CTimeRef`) are deprecated in favor of `UnixTime` and `TimeRef`; new code must use the non-prefixed names.
->
-> The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
-
-### Braces and formatting
-
-- **Always use braces** for `if`/`else`/`for`/`while` blocks
-- Opening brace on a separate line:
-  ```cpp
-  if (ch == 'n' && mInputData.compare(mPos + 1, 3, "ull", 3) == 0)
-  {
-      mPos += 4;
-      return true;
-  }
-  ```
-- For single-statement blocks, it is acceptable to put the opening brace on the same line:
-  ```cpp
-  if (hexVal == 0xFF) {
-      throw ParsingException("Invalid hex digit", lineNumber, pos);
-  }
-  ```
-- `else` on its own line:
-  ```cpp
-  if (codepoint < 0x80)
-  {
-      buffer += static_cast<char>(codepoint);
-  }
-  else if (codepoint < 0x800)
-  {
-      buffer += static_cast<char>(0xC0 | (codepoint >> 6));
-  }
-  ```
-
-### Documentation and headers
-
-- **Doxygen-style** comments in English for public API: `/** @brief ... */`
-- **MIT license header** required on all source files:
-  ```cpp
-  /*******************************************************************************
-  * Copyright (C) 2018-2026 by Pavel Kisliak                                     *
-  * This file is part of BitSerializer library, licensed under the MIT license.  *
-  *******************************************************************************/
-  ```
-- Include order: license header, `#pragma once`, standard library, third-party, project headers
-- Use `[[nodiscard]]` on const getters, `noexcept` where appropriate
+Key points: C++17 minimum, tabs for indentation, `#pragma once`, clang-tidy with warnings as errors, MIT license header on every source file.
 
 ---
 
-## Commit Message Convention
+## Testing
 
-Use the format: `[Component] Short description (#issue)`
-
-Use imperative mood ("Add feature", not "Added feature"). If the commit relates to a GitHub issue, add the issue number in parentheses at the end. Omit if there's no related issue.
-
-Components:
-- `[Core]` — Core serialization framework
-- `[Json]` — Built-in JSON archive
-- `[CSV]` — CSV archive
-- `[MsgPack]` — MsgPack archive
-- `[RapidJson]` — RapidJSON-based archive
-- `[Convert]` — String conversion submodule
-- `[Tests]` — Tests
-- `[CI]` — CI/CD pipeline
-- `[Docs]` — Documentation
-
-Examples:
-```
-[Json] Add support for reading surrogate pairs
-[CSV] Optimize deserialization performance (+22% reading from memory)
-[Convert] Improve float-to-string precision
-[RapidJson, PugiXml, RapidYaml] Fix loading optional object and array from `Null` (e.g. "myValue": null) (#11)
-```
-
-### Pull Request workflow
-
-- **Rebase on latest `dev`** before opening a PR. If new commits appear on `dev` while your PR is open, rebase again.
-- Keep PR history clean — squash or amend commits locally before pushing when it makes sense.
-- The project prefers a **linear history** (no merge commits). PRs are merged via rebase.
-- If AI-assisted tools were used (code generation, refactoring, analysis), please include a note `AI-assisted, manually verified & adapted` in the PR description indicating that the output was reviewed and adjusted by a human.
+See [Testing](docs/development/testing.md) for test targets, filtering, the shared helpers and the unit/integration layering rules. Run the full suite before committing with the `ctest` command from the build section.
 
 ---
 
-## CI Pipeline
+## Performance Benchmarks
 
-The project uses Azure DevOps for CI. The pipeline runs automatically on all pushes and PRs.
-
-### What CI checks
-
-1. **Preflight** — Clang-tidy, Valgrind memory checks, and the GCC Debug build that publishes test results and code coverage (runs first)
-2. **Build and test** — 16 configurations across Windows, Linux, macOS, and ARM
-
-The CI matrix covers:
-- Windows: MSVC (x86/x64, static/dynamic), Clang-cl (x64, Release and Debug)
-- Linux: GCC 9, GCC 14 (C++23, C++26), Clang 11, Clang 18
-- macOS: Clang 14 (C++17, C++20)
-- ARM: arm32, arm64, arm64be (cross-compiled, tested with QEMU)
+If your changes may affect performance (serialization speed or output size), please verify that there is no significant regression by running the benchmarks. See [Performance Benchmarks](docs/development/benchmarks.md) for the full workflow: round-trip benchmark, microbenchmarks (intra-binary A/B), code-layout sensitivity and the compiler rule.
 
 ---
 
-## Reporting Issues
+## Commit Messages and Pull Requests
 
-When reporting bugs, please include:
-- BitSerializer version (check `include/bitserializer/config.h`)
-- Compiler and version
-- Operating system and architecture
-- Minimal code example that reproduces the issue
-- Expected vs actual behavior
+Use the commit format `[Component] Short description (#issue)` in imperative mood. Rebase on the latest `master` before opening a PR, keep a linear history, and fold follow-up fixes into the original commit while the branch is under review.
+
+See [Workflow](docs/development/workflow.md) for the component list, commit examples, the full PR workflow, the CI matrix and the checks it runs.

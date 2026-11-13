@@ -245,7 +245,7 @@ The functions are found via ADL, so they may be declared after including `conver
 > Please do not clear the output string.
 
 Optionally, they can be overridden for conversions any other string types (when you are worried about performance).
-As an examples, you also can see the conversion implementation for [filesystem::path](../include/bitserializer/conversion_detail/convert_std.h).
+As an examples, you also can see the conversion implementation for [filesystem::path](../include/bitserializer/conversion_detail/convert_filesystem.h).
 
 ### String-like types (zero-copy view)
 If your class is a *string* type (wraps a character buffer), you can register it as a string-like type via the `BITSERIALIZER_DECLARE_STRING_TYPE` macro. This provides a zero-copy `std::string_view` of the data (instead of the

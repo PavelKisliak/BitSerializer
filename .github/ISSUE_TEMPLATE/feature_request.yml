@@ -7,9 +7,10 @@ body:
     attributes:
       value: |
         Thanks for sharing an idea!
-        For **significant changes** (new features, architectural refactoring, public API changes) the project
-        prefers an [ADR](https://github.com/PavelKisliak/BitSerializer/blob/master/CONTRIBUTING.md#architecture-decision-records-adr)
-        discussed before implementation. A clear, concise issue is a good starting point.
+
+        For **significant changes** (new features, architectural refactoring, public API changes), please open an [ADR](https://github.com/PavelKisliak/BitSerializer/blob/master/CONTRIBUTING.md#architecture-decision-records-adr) first.
+
+        A clear, concise issue is still a good starting point.
 
   - type: textarea
     id: problem

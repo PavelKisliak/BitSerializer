@@ -27,69 +27,14 @@ Dependencies (via vcpkg): rapidjson, pugixml, ryml, gtest, nlohmann-json (benchm
 
 ---
 
-## Project Structure
-
-```
-BitSerializer/
-├── include/bitserializer/          # Public headers (the library)
-│   ├── bit_serializer.h            # Main entry: LoadObject<>() / SaveObject<>()
-│   ├── *_archive.h                 # One header per format (json, csv, msgpack, pugixml, rapidjson, rapidyaml)
-│   ├── key_value.h                 # KeyValue<> and AttrValue<> wrappers
-│   ├── validate.h                  # Validators: Required, Email, PhoneNumber, MaxSize, Range...
-│   ├── refine.h                    # Refiners: TrimWhitespace, ToLowerCase, ToUpperCase, Fallback
-│   ├── convert.h                   # String conversion submodule (To<>/From<>)
-│   ├── serialization_options.h     # SerializationOptions struct
-│   ├── config.h                    # Version macros, feature flags (BITSERIALIZER_HAS_FLOAT_FROM_CHARS, BITSERIALIZER_HAS_FAST_FLOAT, BITSERIALIZER_USE_BUNDLED_FAST_FLOAT, BITSERIALIZER_HAS_FILESYSTEM)
-│   ├── export.h                    # DLL export/import macros
-│   ├── serialization_detail/       # Core engine (see Architecture)
-│   ├── conversion_detail/          # Conversion internals (fundamentals, enums, chrono, UTF, filesystem)
-│   ├── types/std/                  # STD type serializers (vector, map, optional, chrono, tuple, etc.)
-│   └── common/                     # Utilities (memory.h, text.h)
-│
-├── src/                            # Implementations for built-in formats
-│   ├── csv/                        # CSV reader/writer + csv_archive.cpp
-│   ├── json/                       # JSON root scopes (json_read_root_scope.h, json_write_root_scope.cpp) + readers/ + writers/
-│   ├── msgpack/                    # MsgPack reader/writer + msgpack_archive.cpp
-│   ├── common/                     # Binary stream reader
-│   └── testing_tools/              # Shared test utilities (fixtures, assertions; GTest-based)
-│
-├── tests/
-│   ├── unit_tests/                 # Per-module unit tests
-│   │   ├── common_tests/           # Binary stream reader, shared utilities
-│   │   ├── core_tests/             # Archive base, dispatch, context, validators, refine
-│   │   ├── convert_tests/          # Type conversion, UTF encoding, chrono, filesystem
-│   │   ├── csv_tests/              # CSV reader/writer
-│   │   ├── json_tests/             # JSON reader/writer
-│   │   ├── msgpack_tests/          # MsgPack reader/writer
-│   │   └── std_types_tests/        # STD container serialization
-│   ├── integration_tests/          # Per-archive end-to-end tests
-│   │   ├── csv_archive_tests/
-│   │   ├── json_archive_tests/
-│   │   ├── msgpack_archive_tests/
-│   │   ├── pugixml_archive_tests/
-│   │   ├── rapidjson_archive_tests/
-│   │   ├── rapidyaml_archive_tests/
-│   │   └── convert_api_tests/
-│   └── acceptance_tests/           # Installed-library tests (reuses integration tests, CI Valgrind checks)
-│
-├── samples/                        # 15 example projects (hello_world, validation, versioning, etc.)
-├── benchmarks/                     # archives/ (round-trip) + harness/ (perf utils, A/B harness) + microbenchmarks/
-├── docs/                           # Per-format documentation (markdown)
-├── cmake/
-│   ├── vcpkg/triplets/             # Custom triplets for ARM Linux
-│   └── toolchains/                 # ARM cross-compilation toolchains
-├── CI/azure-devops/                # Azure DevOps pipeline definitions
-├── tools/static_analysis/          # Clang-tidy scripts
-└── CMakeLists.txt                  # Root build file
-```
-
----
-
 ## Key Files Reference
 
 | I want to... | Look at |
 |---|---|
 | Understand the main API | `include/bitserializer/bit_serializer.h` |
+| Understand the architecture | `docs/development/architecture.md` |
+| Development guide index | `docs/development/README.md` |
+| See the full repository map | `CONTRIBUTING.md#project-structure` |
 | Work on JSON serialization | `include/bitserializer/json_archive.h`, `src/json/` |
 | Work on CSV serialization | `include/bitserializer/csv_archive.h`, `src/csv/` |
 | Work on MsgPack serialization | `include/bitserializer/msgpack_archive.h`, `src/msgpack/` |
@@ -106,6 +51,7 @@ BitSerializer/
 | Add tests for convert | `tests/unit_tests/convert_tests/` |
 | Add tests for core | `tests/unit_tests/core_tests/` |
 | Add integration tests | `tests/integration_tests/<archive>_tests/` |
+| Find shared test helpers | `src/testing_tools/` |
 | See examples | `samples/` (15 sample projects) |
 | Understand CI | `CI/azure-devops/azure-pipelines.yml` |
 | Run static analysis | `.clang-tidy`, `tools/static_analysis/` |
@@ -113,27 +59,15 @@ BitSerializer/
 | Manage dependencies | `vcpkg.json`, `cmake/vcpkg/triplets/` |
 | Run performance benchmarks | `benchmarks/archives/` — CLI (`--bench`, `--stages`, `--list`) and machine-readable results in `benchmark_results/serialization_speed_report.json` (requires `BUILD_JSON_ARCHIVE=ON`) |
 | Benchmark a single function (A/B) | `benchmarks/microbenchmarks/` — intra-binary A/B harness (`benchmarks/harness/bench_harness.h`), see its `README.md` |
+| Understand the benchmark workflow | `docs/development/benchmarks.md` |
 
 ---
 
 ## Architecture
 
-The library uses an **archive pattern**: each format provides `input_archive_type` (deserialization) and `output_archive_type` (serialization). `BitSerializer::LoadObject<TArchive>()` / `SaveObject<TArchive>()` dispatch values through `Detail::Dispatch()`, which routes fundamentals, STD containers, KeyValue pairs, and custom classes to the correct `Serialize()` overload. See `serialization_detail/serialization_dispatch.h` and the respective archive headers for details. For a sequence diagram of the serialization flow with a matching code example, see [Architecture Overview](CONTRIBUTING.md#architecture-overview).
+The library uses an **archive pattern**: each format provides `input_archive_type` (deserialization) and `output_archive_type` (serialization). `LoadObject<TArchive>()` / `SaveObject<TArchive>()` dispatch values through `Detail::Dispatch()`, which routes fundamentals, STD containers, KeyValue pairs, and custom classes to the correct `Serialize()` overload.
 
----
-
-## Archive Traits
-
-Each archive declares capabilities via a traits struct (e.g. `JsonArchiveTraits`). Archives are assembled via `ArchiveBase<Traits, ReadRootScope, WriteRootScope>` which sets `input_archive_type` / `output_archive_type`.
-
-| Trait | Role |
-|-------|------|
-| `preferred_output_type` | Default buffer type for serialized output (`std::string`) |
-| `string_view_type` | Canonical string view for I/O (`std::string_view`) |
-| `is_binary` | Whether format is binary (`true` for MsgPack) |
-| `require_array_size` / `require_map_size` | Whether size must be known before writing |
-
-Stream support is determined at compile-time via `is_archive_support_{input,output}_data_type_v` (checks `is_constructible_v` of root scope with `(stream, SerializationContext&)`). If an archive lacks stream constructors, `bit_serializer.h` applies a fallback: **Load** → read stream into `preferred_output_type`, verify UTF-8, skip BOM, delegate to string `LoadObject`; **Save** → serialize to `preferred_output_type`, write optional BOM + data to stream. Only `char` streams and UTF-8 are supported in the fallback.
+See [Architecture](docs/development/architecture.md) for the sequence diagram, archive traits, `ArchiveBase`, scope contract and loading semantics. The dispatch entry point is `serialization_detail/serialization_dispatch.h`.
 
 ---
 
@@ -169,6 +103,9 @@ Stream support is determined at compile-time via `is_archive_support_{input,outp
 
 ## Build System
 
+> [!NOTE]
+> This is the non-interactive/agent build path. The human setup (Visual Studio, Developer Command Prompt, VCPKG) is in [CONTRIBUTING.md](CONTRIBUTING.md#building-the-project). The shared CMake options are intentionally duplicated in both files — keep them in sync.
+
 ### Requirements
 - CMake >= 3.10
 - VCPKG (set `VCPKG_ROOT` environment variable)
@@ -183,23 +120,30 @@ All archive options are **OFF by default** — you must explicitly enable what y
 |--------|---------|-------------|
 | `BUILD_TESTS` | OFF | Build test executables |
 | `BUILD_SAMPLES` | OFF | Build sample projects |
-| `BUILD_BENCHMARKS` | OFF | Build benchmarks |
+| `BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
 | `BUILD_MICROBENCHMARKS` | OFF | Build intra-binary A/B microbenchmarks |
-| `BUILD_JSON_ARCHIVE` | OFF | Built-in JSON archive |
-| `BUILD_CSV_ARCHIVE` | OFF | Built-in CSV archive |
-| `BUILD_MSGPACK_ARCHIVE` | OFF | Built-in MsgPack archive |
-| `BUILD_RAPIDJSON_ARCHIVE` | OFF | RapidJSON-based JSON archive |
-| `BUILD_PUGIXML_ARCHIVE` | OFF | PugiXml-based XML archive |
-| `BUILD_RAPIDYAML_ARCHIVE` | OFF | RapidYAML-based YAML archive |
-| `BUILD_SHARED_LIBS` | OFF | Build as DLL/shared library |
+| `BUILD_JSON_ARCHIVE` | OFF | Built-in JSON archive (no external dependency) |
+| `BUILD_CSV_ARCHIVE` | OFF | Built-in CSV archive (no external dependency) |
+| `BUILD_MSGPACK_ARCHIVE` | OFF | Built-in MsgPack archive (no external dependency) |
+| `BUILD_RAPIDJSON_ARCHIVE` | OFF | JSON archive via RapidJSON |
+| `BUILD_PUGIXML_ARCHIVE` | OFF | XML archive via PugiXml |
+| `BUILD_RAPIDYAML_ARCHIVE` | OFF | YAML archive via RapidYAML |
+| `BUILD_SHARED_LIBS` | OFF | Build as shared/DLL library |
 | `BITSERIALIZER_BUNDLE_FAST_FLOAT` | OFF | Install the matched fast_float headers into the package (requires FastFloat) |
+| `STATIC_ANALYSIS_CLANG_TIDY` | OFF | Enable clang-tidy during build |
 | `ENABLE_COVERAGE` | OFF | Instrument with `--coverage` and add the `coverage` target (GCC/Clang only, not MSVC) |
+| `CMAKE_CXX_STANDARD` | 17 | C++ standard (17, 20, 23, or 26) |
+
+> Keep this table in sync with [CONTRIBUTING.md — CMake Options Reference](CONTRIBUTING.md#cmake-options-reference). Selecting `CMAKE_CXX_STANDARD=26` requires CMake 3.30 or newer; MSVC has no C++26 mode (`23` maps to `/std:c++latest`).
 
 `FastFloat` is auto-detected for source builds: if the package is available, `Convert` and the built-in archives use `fast_float`; otherwise they use `std::from_chars`. The repository manifest includes `fast-float` as a normal dependency; pass `-DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON` to use the fallback. External consumers/official ports can expose it as an optional feature. CI keeps the regular matrix on the fallback path; selected existing jobs (MSVC, clang-cl, GCC) opt in via `fastFloat: true`. `BITSERIALIZER_BUNDLE_FAST_FLOAT=ON` installs the fast_float headers under `include/bitserializer/third_party/fast_float`; release packages enable it, so consumers do not need a separate FastFloat package. The installed package fixes the fast_float state in `bitserializerConfig.cmake` instead of re-detecting it (when bundling is off, it requires FastFloat explicitly). Release packages also install `share/doc/bitserializer/fast_float.txt`.
 
 ### Build directory
 
 Build output goes to `build/` in the project root (already in `.gitignore`).
+
+> [!TIP]
+> `ctest -j` is the number of tests run concurrently. The snippets below use all logical CPUs (`$env:NUMBER_OF_PROCESSORS` on Windows, `getconf _NPROCESSORS_ONLN` on Linux/macOS); lower the value if the tests exhaust memory or timing-sensitive tests become flaky. Avoid bare `ctest -j`: the optional level is only supported since CMake 3.29, while this project supports CMake 3.10+.
 
 ### Windows Build (from PowerShell)
 
@@ -251,7 +195,7 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release `
 & $ninja -C build
 
 # 5. Test
-ctest --test-dir build -T test --output-on-failure -j2
+ctest --test-dir build -T test --output-on-failure -j $env:NUMBER_OF_PROCESSORS
 ```
 
 **Clang-cl variant** (ships with both VS 2022 and VS 2026): add to the CMake command:
@@ -269,47 +213,7 @@ cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_JSON_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON \
     -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON
 ninja -C build
-ctest --test-dir build -T test --output-on-failure -j2
-```
-
----
-
-## Testing
-
-### Test executables
-
-Built to `build/bin/` (command-line builds). Names match CTest test names and CMake targets (e.g. `json_tests`, `csv_archive_tests`, `core_tests`). In Visual Studio, binaries are in `%LOCALAPPDATA%\CMakeBuilds\<GUID>\build\<Config>\bin\`.
-
-### Filtering tests (GTest syntax)
-
-```bash
-# Single test
-./build/bin/convert_tests --gtest_filter="ConvertFundamentals.ToTheSameType"
-
-# Entire suite
-./build/bin/convert_tests --gtest_filter="ConvertFundamentals.*"
-
-# Wildcard
-./build/bin/convert_tests --gtest_filter="*Bool*"
-
-# Multiple
-./build/bin/convert_tests --gtest_filter="Suite1.Test1:Suite2.Test2"
-
-# Exclude
-./build/bin/convert_tests --gtest_filter="-Suite.SkipThis"
-```
-
-### Via CTest
-
-```bash
-ctest -R "TestName" --output-on-failure    # Filter by regex
-ctest -T test --output-on-failure -j2      # Run all
-```
-
-### Per-target rebuild
-
-```bash
-ninja -C build convert_tests    # Rebuild only one test target
+ctest --test-dir build -T test --output-on-failure -j "$(getconf _NPROCESSORS_ONLN)"
 ```
 
 ### Code coverage (Linux only)
@@ -323,7 +227,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -DBUILD_TESTS=ON \
     -DBUILD_JSON_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON \
     -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON
 ninja -C build
-ctest --test-dir build --output-on-failure
+ctest --test-dir build --output-on-failure -j "$(getconf _NPROCESSORS_ONLN)"
 ninja -C build coverage
 ```
 
@@ -331,98 +235,18 @@ The report covers only library code (`include/bitserializer/` and `src/`, exclud
 `src/testing_tools/`); tests, samples, benchmarks and VCPKG dependencies are filtered out.
 CI collects and publishes it in the `Ubuntu_GCC_Coverage` Preflight job.
 
-### Test helpers
+---
 
-Shared test utilities live in `src/testing_tools/` — reuse them instead of writing ad-hoc code.
+## Testing
 
-**`common_test_methods.h`** — serialization test methods. These encapsulate the whole arrange → save → load → assert cycle, so **prefer them over hand-writing a full test**. Every helper uses `AutoFixture` to fill random data and `GTestExpectEq` to compare.
+> [!IMPORTANT]
+> Before adding or modifying tests, read [Testing](docs/development/testing.md). It is the source of truth for the helper catalogue, layering rules and archive-parity requirements; the summary below is not a substitute.
 
-| Helper | Purpose |
-|--------|---------|
-| `TestSerializeType<TArchive, TValue>()` | Roundtrip a freshly generated value at the root scope: build fixture → save → load → compare |
-| `TestSerializeType<TArchive>(value)` | Roundtrip a specific value instance (root scope) |
-| `TestSerializeType<TArchive>(KeyValue(k, v))` | Roundtrip a key-value pair at root scope (XML) |
-| `TestSerializeArray<TArchive, TValue>(srcSize=7, tgtSize=src)` | Roundtrip a C-array of `TValue` |
-| `TestSerializeArrayWithKey<TArchive, TValue>(...)` | Roundtrip a named C-array |
-| `TestSerializeTwoDimensionalArray<TArchive, TValue>(...)` | Roundtrip a 2D C-array |
-| `TestSerializePmrType<TArchive, TValue>()` | Roundtrip a `std::pmr` container (asserts allocator is `polymorphic_allocator`) |
-| `TestSerializeClassToStream<TArchive>(value)` | Roundtrip a class through `std::stringstream` |
-| `TestSerializeArrayToStream<TArchive>(array)` | Roundtrip a C-array through a stream |
-| `TestSerializeArrayToFile<TArchive>(overwrite=false)` | Roundtrip to/from a temp file (array of `TestPointClass`) |
-| `TestLoadingToDifferentType<TArchive>(value, expected)` | Load source into a *different* target type, expect conversion |
-| `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into a pre-filled container (must be cleared) |
-| `TestLoadingEmptyContainer<TArchive, TContainer>()` | Loading an empty array must clear a non-empty container |
-| `TestMismatchedTypesPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
-| `TestSkippedArrayValues<TArchive>()` | Null/overflow-skipped array elements still consume a slot (fixed array, pre-filled/empty containers, nested array) |
-| `TestMismatchedArrayValue<TArchive>(input)` | A type-mismatched (`Skip`) array element still consumes a slot; `input` is the archive-specific serialized array |
-| `TestMismatchedObjectArrayValue<TArchive>()` | A scalar in place of an object inside an array is skipped and still consumes a slot (object-scope mismatch) |
-| `TestOverflowNumberPolicy<TArchive, Source, Target>(policy)` | Serialize a value near type limits, load into narrower type, verify `OverflowNumberPolicy` |
-| `TestValidationForNamedValues<TArchive, T>()` | Validators (`Required()` etc.) on named fields |
-| `TestEncodingPolicy<TArchive>(policy)` | UTF encoding error policy on invalid sequences |
-| `TestSkippingObjectValueWhenMismatchKey<TArchive>()` | Mismatched keys must leave target fields untouched |
-| `TestVisitKeysInObjectScope<TArchive>(skipValues=false)` | Visit keys in an object scope |
-| `TestThrowExceptionWhenFileAlreadyExists<TArchive>()` | `SaveObjectToFile` must throw when the file exists |
-
-**`common_test_entities.h`** — reusable serializable test classes. Use these instead of writing your own one-field/multi-field classes for roundtrip tests.
-
-- `TestClassWithSubType<T, KeyValueArgs...>` — wraps a single value under the key `"TestValue"` and serializes it as a named field. Default-ctor fills the value via `BuildFixture`; the `explicit` ctor accepts an initial value (`TestClassWithSubType(initValue)`) plus optional `KeyValue` modifiers (e.g. validators). Use when you need **a single named field** with a **specific value** (unlike `TestClassWithSubTypes`, which only supports default-construction). Also usable when the archive's root scope can't hold a bare value (e.g. objects in `ArchiveStub`). Members: `GetValue()`, `KeyName`.
-- `TestClassWithSubTypes<Args...>` — a `std::tuple<Args...>` whose elements are serialized as named fields `"Member_0"`, `"Member_1"`, … Only default-constructible (plus `WithRequired()` to mark all fields `Required()`). Use for **multiple fields** when you don't need to set initial values.
-- `TestClassWithAttributes<Args...>` — tuple serialized as XML `AttributeValue`s (`"Attribute_0"`, …) for attribute-only archives.
-- `TestClassWithReverseLoad<Args...>` — like `TestClassWithSubTypes` but writes in forward order and loads in reverse order (tests order-agnostic deserialization).
-- `TestClassWithCustomKey<T>` — two `pair` members whose keys come from the value's type (min/max of `T`).
-- `TestClassWithSubArray<T, Size=7>` / `TestClassWithSubTwoDimArray<T, ...>` — wrap a C-array / 2D C-array under one key.
-- `TestClassWithExternalSerialization` — uses a global `SerializeObject()` instead of a member method.
-- `TestClassWithInheritance<TBase>` — tests `BaseObject<TBase>`.
-- `TestClassWithMismatchedField` — saves as `"id"`, loads as `"guid"`.
-- `TestClassWithVersioning` — adds extra fields when saving (versioning).
-- `TestClassForCheckValidation<T>` / `TestClassForCheckCompatibleTypes<T>` — a `Required()` field plus a deliberately-absent field.
-- `TestStringLikeType` / `TestStdStringLikeType` / `TestWStringLikeType` — string-like types registered via `BITSERIALIZER_DECLARE_STRING_TYPE(_EXPLICIT)`; defined in `string_like_test_types.h` (include it explicitly). `TestStringLikeType` uses the explicit macro (`Data()`/`Size()`/`FromString()`), `TestStdStringLikeType` the short form (`data()`/`size()`/`assign()`), `TestWStringLikeType` covers `wchar_t`. Use these instead of declaring local string wrappers in tests.
-- `TestPointClass` (2 ints), `TestUnion` (int+float), `TestEnum` — simple fixtures.
-
-**`auto_fixture.h`** — random test-data generator. Core type is `AutoFixture::Fixture` (seeded `std::mt19937`, `GetContainerSize()`), used via:
-- Free functions `::BuildFixture(value)` / `::BuildFixture<T>()` — the common case; use the shared default `Fixture` (size 7).
-- Explicit `AutoFixture::Fixture().Build(value)` / `.Build<T>()` — configure via fluent `WithContainerSize(n)` / `WithSeed(s)`.
-
-Dispatch is via ADL on `Fixture&`: per-type overloads are free `AutoFixture::BuildFixture(Fixture&, T&)` functions in `namespace AutoFixture`. Custom types opt in with `static void BuildFixture(T&)` (member) or a free `AutoFixture::BuildFixture(Fixture&, T&)`.
-
-**`auto_fixture/std/*.h`** — one header per std type (vector, map, variant, chrono, memory, etc.). Include only the ones your test uses; `auto_fixture/std/all.h` pulls in every std fixture (use in the `*_std_containers_tests.cpp` files). Prefer per-type includes elsewhere.
-
-**`archive_stub.h`** — format-independent archive for unit tests. Key specifics:
-- `key_type` is `std::wstring`; root scope supports only values/arrays, **not keyed objects** — wrap objects via `TestClassWithSubType`
-- `preferred_output_type` is `TestIoDataRoot` (internal IOData tree), not a string — roundtrip works without any text parsing
-
-### Unit vs integration tests
-
-Prefer unit tests for behavior and edge cases; keep integration tests to the minimum needed to
-prove the public archive surface and its wiring.
-
-- **Unit tests** (`tests/unit_tests/`) cover the main functionality and edge cases of a component:
-  readers/writers, `ArchiveStub`, conversion, validators, options and error policies. Cover every
-  relevant variant there (e.g. string vs stream reader, JSON vs JSONC) with typed or parameterized
-  tests.
-- **Integration tests** (`tests/integration_tests/`) only verify what a unit test cannot:
-  `LoadObject`/`SaveObject` wiring, archive aliases and format selection, stream/file overloads,
-  installation/acceptance checks, and one small smoke test per archive.
-- **Do not duplicate** the same behavior in both layers. If a unit test already covers the cases,
-  the integration test should assert only the wiring, with one representative input per path
-  (e.g. string and stream), instead of repeating the whole case matrix.
-- **Decision rule**: if a test can be written against a `Detail::` class or `ArchiveStub`, it
-  belongs to unit tests; if it only makes sense through `LoadObject`/`SaveObject` or a public
-  archive type, it belongs to integration tests.
-- **Example**: strict trailing-garbage validation is covered by typed unit tests for both readers
-  and both JSON/JSONC dialects; the integration suite only checks that `LoadObject` reaches
-  `Finalize()` for string, stream and object input.
-
-### Integration test parity across archives
-
-Keep archive integration tests consistent in composition and ordering where the format allows it. When adding or changing an integration test for one archive, check whether the same scenario applies to the other archives and add the analogous test there (format limitations, e.g. CSV without arrays of objects, may exclude some cases). Prefer reusing an existing `Test*` helper from `src/testing_tools/common_test_methods.h`; if the scenario is generic but no helper exists, add a new reusable helper there instead of duplicating the arrange/act/assert code. Keep the order of related test blocks aligned across archive test files (raw payload, skipped array values, error policies, etc.) so differences between archives remain visible.
-
-### Testing patterns
-
-- **STL types unit tests** (`std_types_tests`) run against `ArchiveStub` only — base serialization logic is shared, so per-archive coverage is done by smoke tests (`SerializeStdTypes`) in each archive's integration tests.
-- **Error policy tests**: serialize a *source* type, deserialize into an *incompatible target* type rather than crafting broken input data manually. E.g. variant out-of-range index = save `variant<int, std::string, double>` (index 2 active) → load into `variant<int, std::string>`.
-- **Custom options** are passed explicitly: `SerializationOptions options; options.mismatchedTypesPolicy = ...; LoadObject<TArchive>(obj, output, options);`
-- **Prefer the `TestSerialize*` helpers** over hand-rolling arrange/save/load/assert. For a single named field with a known value use `TestClassWithSubType`; for several generated fields use `TestClassWithSubTypes`.
+- Use the shared helpers in `src/testing_tools/` (`TestSerialize*`, `TestClassWith*`, `AutoFixture`, `ArchiveStub`) instead of hand-written arrange/save/load/assert code.
+- Unit tests (`tests/unit_tests/`) cover behavior and edge cases; integration tests (`tests/integration_tests/`) only verify `LoadObject`/`SaveObject` wiring and the public archive surface. Do not duplicate cases across layers.
+- When changing an integration test for one archive, check the same scenario for the other archives and add the analogous test where the format allows it; reuse or add a shared `Test*` helper instead of duplicating the body.
+- Run the full suite before committing: `ctest --test-dir build -T test --output-on-failure -j <N>` (`N` = logical CPUs; see the build snippets above).
+- Targeted run: `build/bin/<test>.exe --gtest_filter="*YourTest*"`; rebuild one target with `ninja -C build <target>`.
 
 ---
 
@@ -440,52 +264,19 @@ Keep archive integration tests consistent in composition and ordering where the 
 ### Making changes
 
 1. **Identify the component** you're modifying (archive, core, convert, etc.)
-2. **Find the relevant files** using the table above
+2. **Find the relevant files** using the table above. If you will add or change tests, read [Testing](docs/development/testing.md) first — this is mandatory, not optional background reading.
 3. **Build only the affected target**: `ninja -C build <target_name>`
 4. **Run targeted tests**: `build/bin/<test>.exe --gtest_filter="*YourTest*"` (from command-line build)
-5. **Run full test suite** before committing: `ctest --test-dir build -T test --output-on-failure`
-6. **For performance-affecting changes, run the round-trip benchmark**: see [CONTRIBUTING.md — Performance Benchmarks](CONTRIBUTING.md#performance-benchmarks). Compare several back-to-back runs in a single session (results drift across sessions). **Keep the default stage time (30 s) — do not shorten it for A/B comparisons**: short runs (a few seconds) have large run-to-run variance on a busy machine and produce misleading results. For **function-level A/B** use the intra-binary harness in [benchmarks/microbenchmarks](benchmarks/microbenchmarks/README.md) (layout-robust, reliable even on MSVC).
+5. **Run full test suite** before committing: `ctest --test-dir build -T test --output-on-failure -j <N>` (`N` = logical CPUs)
+6. **For performance-affecting changes, run the round-trip benchmark**: see [Benchmarks](docs/development/benchmarks.md). Compare several back-to-back runs in a single session (results drift across sessions). **Keep the default stage time (30 s) — do not shorten it for A/B comparisons**: short runs (a few seconds) have large run-to-run variance on a busy machine and produce misleading results. For **function-level A/B** use the intra-binary harness in [benchmarks/microbenchmarks](benchmarks/microbenchmarks/README.md) (layout-robust, reliable even on MSVC).
 7. **Offer static analysis before committing**: ask whether to run clang-tidy on the changed files (see [Static analysis](#static-analysis-clang-tidy) below). Limit it to affected translation units (a changed header can pull in many), and run it in parallel via `run-clang-tidy.py`. Honor a stated user preference (never / always without asking).
-8. **Commit with convention**: `[Component] Short description (#issue)`
-
-Components: `[Core]`, `[Json]`, `[CSV]`, `[MsgPack]`, `[RapidJson]`, `[Convert]`, `[Tests]`, `[CI]`, `[Docs]`.
-Examples:
-```
-[Json] Add support for reading surrogate pairs
-[CSV] Optimize deserialization performance (+22%) (#42)
-[Convert] Improve float-to-string precision
-[RapidJson, PugiXml, RapidYaml] Fix loading optional object from Null (#11)
-```
-
-Keep the subject to a **single line with only the main point** — don't enumerate minor details (refactors, renames, doc tweaks, …) that happen to be part of the same change.
-
-**Working-branch commits:** on a feature branch, commit only meaningful changes. When a commit still needs fixes or refinements (review feedback, CI failures, static-analysis errors, etc.), fold them into that commit with `git commit --amend` (or `git rebase -i` to squash a follow-up) — do **not** create separate "fix" commits. This keeps history clean; the PR ends up with one commit per logical change. Only make a new commit for a genuinely new piece of work. If the branch is already pushed, force-push after amending (`git push --force-with-lease`) — but only push when the user explicitly asks.
+8. **Commit with convention**: `[Component] Short description (#issue)` in imperative mood. See [Workflow](docs/development/workflow.md) for the component list, examples and working-branch rules (fold follow-up fixes into the original commit).
 
 ### Code style
 
-- **Formatter**: `.clang-tidy`, warnings as errors
-- **Indentation**: Tabs, `#pragma once`, C++17
-- **License header**: MIT (see [CONTRIBUTING.md](CONTRIBUTING.md))
+Follow [Code style](docs/development/code-style.md). Key points: tabs, `#pragma once`, C++17, Allman braces (single-statement blocks may keep the opening brace on the same line), Doxygen comments in English, MIT license header, clang-tidy warnings as errors.
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Classes / Structs (incl. class templates) | CamelCase, no `T` prefix | `ArchiveScope`, `SerializationOptions` |
-| Interfaces | `I` + CamelCase | `IJsonReader` |
-| Methods (public/private) | CamelCase | `ReadValue()` |
-| Private members | `m` + CamelCase | `mPos` |
-| Public struct members | camelCase | `name`, `object`, `index` |
-| Constructor parameters | camelCase with `in` prefix to avoid shadowing | `inValue`, `inName` |
-| Local variables | camelCase | `hexVal` |
-| Template type parameters | `T` + CamelCase | `TArchive`, `TValue` |
-| Type aliases | `snake_case_type` | `key_type` |
-| Macros | `BITSERIALIZER_` + `SCREAMING_SNAKE_CASE` | `BITSERIALIZER_HAS_FILESYSTEM` |
-| Namespaces | CamelCase | `BitSerializer::Json::Detail` |
-
-> [!NOTE]
-> The `T` prefix marks a template **parameter** (a placeholder), not a template **class**. Concrete types keep plain CamelCase even when they are class templates (e.g. `ArchiveScope<TMode>`); non-template types never take the `T` prefix either (e.g. `ScopeUnopened`).
-
-- **Braces**: Allman style (opening brace on separate line) is preferred; K&R style (opening brace on the same line) is acceptable only for a block with a single statement that fits on one line. Always use braces, even for single-statement blocks.
-- **Comments**: Doxygen-style (`/** @brief ... */`) in English
+The `T` prefix marks a template **parameter**, not a template **class**; concrete types keep plain CamelCase even when they are class templates (details in the style guide).
 
 ### Static analysis (clang-tidy)
 
@@ -511,4 +302,4 @@ Requires the MSVC environment (see Windows build above).
 
 ### Pull requests
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for PR workflow (rebase on `dev`, linear history).
+See [Workflow](docs/development/workflow.md) for the PR workflow (rebase on `master`, linear history), commit convention and CI matrix.

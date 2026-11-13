@@ -1714,7 +1714,7 @@ Each of the supported archives has its own page with details (features, samples,
 
 Additionally, you may want to use the [string conversion submodule](docs/bitserializer_convert.md).
 
-For the full change log, see [History.md](History.md); for contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+For the full change log, see [History.md](History.md); for contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md); for the developer documentation (architecture, testing, code style, benchmarks, workflow), see [docs/development/](docs/development/README.md).
 
 ### Thanks
 - [@Cyberex](https://github.com/Cyberex) for testing on different native Linux distributions and BSD variants, and on real ARM hardware.

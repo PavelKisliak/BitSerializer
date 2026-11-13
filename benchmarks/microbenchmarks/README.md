@@ -23,7 +23,7 @@ flowchart LR
 This is the recommended tool for validating **function-level** optimizations (e.g. *does `std::to_chars` beat `std::to_string` here? does `__forceinline` help this loop?*).
 
 > [!IMPORTANT]
-> Intra-binary A/B compares **two versions of one code path**. It does **not** compare different libraries against each other, and it cannot detect whole-translation-unit / whole-binary code-generation effects. Those must be validated with the full round-trip benchmark — see [CONTRIBUTING.md — Performance Benchmarks](../../CONTRIBUTING.md#performance-benchmarks).
+> Intra-binary A/B compares **two versions of one code path**. It does **not** compare different libraries against each other, and it cannot detect whole-translation-unit / whole-binary code-generation effects. Those must be validated with the full round-trip benchmark — see [Performance Benchmarks](../../docs/development/benchmarks.md).
 
 ## How it works
 
@@ -321,4 +321,4 @@ The example is only a template — copy its structure into a new target when add
 | `archives_benchmarks` (round-trip) | "How fast is the whole save/load pipeline across archives?" | Only with Clang/GCC function alignment |
 | `microbenchmark` (this harness) | "Is this specific function/implementation faster than that one?" | Yes (intra-binary) |
 
-For the background, see [CONTRIBUTING.md — Code-layout sensitivity](../../CONTRIBUTING.md#code-layout-sensitivity-and-the-toolchain-rule).
+For the background, see [Code-layout sensitivity](../../docs/development/benchmarks.md#code-layout-sensitivity-and-the-toolchain-rule).

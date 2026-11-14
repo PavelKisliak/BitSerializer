@@ -314,6 +314,31 @@ TEST(RapidYamlArchive, SaveToUtf8StreamWithBom) {
 	TestSaveYamlToEncodedStream<YamlArchive, BitSerializer::Convert::Utf::Utf8>(true);
 }
 
+TEST(RapidYamlArchive, ThrowWhenLoadingFromNonUtf8Stream)
+{
+	std::stringstream inputStream;
+	inputStream.write(BitSerializer::Convert::Utf::Utf16Le::bom, sizeof(BitSerializer::Convert::Utf::Utf16Le::bom));
+
+	TestClassWithSubType<std::string> actual;
+	const auto exception = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::LoadObject<YamlArchive>(actual, inputStream);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::UnsupportedEncoding, exception.GetErrorCode());
+}
+
+TEST(RapidYamlArchive, ThrowWhenSavingToNonUtf8Stream)
+{
+	std::stringstream outputStream;
+	BitSerializer::SerializationOptions options;
+	options.streamOptions.encoding = BitSerializer::Convert::Utf::Utf16Le::utfType;
+
+	TestClassWithSubType<std::string> testObj("Hello world!");
+	const auto exception = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::SaveObject<YamlArchive>(testObj, outputStream, options);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::UnsupportedEncoding, exception.GetErrorCode());
+}
+
 TEST(RapidYamlArchive, SerializeToFile) {
 	TestSerializeArrayToFile<YamlArchive>();
 	TestSerializeArrayToFile<YamlArchive>(true);

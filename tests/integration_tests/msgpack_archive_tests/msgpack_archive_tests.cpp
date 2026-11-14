@@ -580,6 +580,21 @@ TEST(MsgPackArchive, ThrowExceptionWhenBinaryArrayDeclaresFewerBytesThanTarget)
 		SerializationException);
 }
 
+TEST(MsgPackArchive, ThrowExceptionWhenWritingMoreBytesThanDeclaredInBinaryScope)
+{
+	std::string outputData;
+	BitSerializer::SerializationOptions options;
+	BitSerializer::SerializationContext context(options);
+	MsgPackArchive::output_archive_type outputArchive(outputData, context);
+
+	auto binaryScope = outputArchive.OpenBinaryScope(1);
+	ASSERT_TRUE(binaryScope.IsOpened());
+
+	char value = 'a';
+	ASSERT_TRUE(binaryScope.SerializeValue(value));
+	EXPECT_THROW(binaryScope.SerializeValue(value), SerializationException);
+}
+
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 	TestValidationForNamedValues<MsgPackArchive, TestClassForCheckValidation<bool>>();

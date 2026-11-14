@@ -728,6 +728,32 @@ TEST(JsonArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
 	TestThrowExceptionWhenFileAlreadyExists<JsonArchive>();
 }
 
+TEST(JsonArchive, ThrowExceptionWhenFileNotFound)
+{
+	const auto testFilePath = std::filesystem::temp_directory_path() / "BitSerializerMissingFile.json";
+	std::filesystem::remove(testFilePath);
+
+	TestPointClass point;
+	const auto exception = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::LoadObjectFromFile<JsonArchive>(point, testFilePath);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::InputOutputError, exception.GetErrorCode());
+	EXPECT_NE(std::string::npos, std::string(exception.what()).find("File not found"));
+}
+
+TEST(JsonArchive, ThrowExceptionWhenFileCannotBeOpened)
+{
+	const auto missingDir = std::filesystem::temp_directory_path() / "BitSerializerMissingDir";
+	std::filesystem::remove_all(missingDir);
+	const auto testFilePath = missingDir / "Test.json";
+
+	const auto exception = GTestExpectException<BitSerializer::SerializationException>([&] {
+		BitSerializer::SaveObjectToFile<JsonArchive>(TestPointClass{}, testFilePath);
+	});
+	EXPECT_EQ(BitSerializer::SerializationErrorCode::InputOutputError, exception.GetErrorCode());
+	EXPECT_NE(std::string::npos, std::string(exception.what()).find("Could not open file"));
+}
+
 //-----------------------------------------------------------------------------
 // Tests of errors handling
 //-----------------------------------------------------------------------------

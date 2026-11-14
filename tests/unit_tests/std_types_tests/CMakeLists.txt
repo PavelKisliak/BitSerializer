@@ -5,6 +5,7 @@ find_package(GTest REQUIRED)
 
 # Project sources
 add_executable(${PROJECT_NAME}
+    chrono_calendar_tests.cpp
     chrono_tests.cpp
     ctime_tests.cpp
     filesystem_tests.cpp
@@ -13,6 +14,7 @@ add_executable(${PROJECT_NAME}
     std_containers_tests.cpp
     std_pmr_containers_tests.cpp
     std_types_tests.cpp
+    variant_tests.cpp
 )
 
 # Target configuration

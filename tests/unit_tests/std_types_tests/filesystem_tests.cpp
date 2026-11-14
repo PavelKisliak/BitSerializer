@@ -43,3 +43,32 @@ TEST(STD_Filesystem, SerializePathWithUnicodeAsClassMember)
 	TestClassWithSubType testEntity(std::filesystem::temp_directory_path() / u"Привет мир!.txt");
 	TestSerializeType<ArchiveStub>(testEntity);
 }
+
+TEST(STD_Filesystem, KeepPathWhenKeyedValueIsMismatchedAndPolicyIsSkip)
+{
+	using Path = std::filesystem::path;
+	const Path expected = std::filesystem::temp_directory_path();
+	TestClassWithSubType<Path> actual{ Path(expected) };
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(TestClassWithSubType<int>(123), outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	EXPECT_EQ(expected, actual.GetValue());
+}
+
+TEST(STD_Filesystem, KeepPathWhenRootValueIsMismatchedAndPolicyIsSkip)
+{
+	const std::filesystem::path expected = std::filesystem::temp_directory_path();
+	std::filesystem::path actual = expected;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(123, outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	EXPECT_EQ(expected, actual);
+}

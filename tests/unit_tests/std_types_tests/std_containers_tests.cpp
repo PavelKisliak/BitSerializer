@@ -128,6 +128,17 @@ TEST(STD_Containers, ShouldClearTargetVectorWhenLoadFromEmpty) {
 	TestLoadingEmptyContainer<ArchiveStub, std::vector<TestPointClass>>();
 }
 
+TEST(STD_Containers, LoadVectorOfBooleansIntoSmallerTarget) {
+	const std::vector<bool> expected{ true, false, true, false, true, false, true };
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(expected, outputArchive);
+
+	std::vector<bool> actual(1, false);
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive);
+
+	EXPECT_EQ(expected, actual);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::deque
 //-----------------------------------------------------------------------------
@@ -208,6 +219,17 @@ TEST(STD_Containers, SerializeForwardListAsClassMember) {
 
 TEST(STD_Containers, ShouldClearTargetForwardListWhenLoadFromEmpty) {
 	TestLoadingEmptyContainer<ArchiveStub, std::forward_list<int32_t>>();
+}
+
+TEST(STD_Containers, LoadForwardListIntoEmptyTarget) {
+	const std::forward_list<int32_t> expected{ 1, 2, 3, 4, 5, 6, 7 };
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(expected, outputArchive);
+
+	std::forward_list<int32_t> actual;
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive);
+
+	EXPECT_EQ(expected, actual);
 }
 
 //-----------------------------------------------------------------------------

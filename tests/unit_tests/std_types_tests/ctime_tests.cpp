@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 * Copyright (C) 2018-2024 by Pavel Kisliak                                     *
 * This file is part of BitSerializer library, licensed under the MIT license.  *
 *******************************************************************************/
@@ -136,6 +136,33 @@ TEST(STD_CtimeAsBin, SkipInvalidIsoDateInObjectWhenPolicyIsSkip)
 	EXPECT_EQ(expected, testEntity.time);
 }
 
+TEST(STD_Ctime, KeepTimeWhenKeyedValueIsMismatchedAndPolicyIsSkip)
+{
+	TestClassWithDynamicKey<int> expectedValue("Time", 123);
+	TestCTime actual(42);
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(expectedValue, outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	BitSerializer::LoadObject<ArchiveStub>(actual, outputArchive, options);
+
+	EXPECT_EQ(42, actual.time);
+}
+
+TEST(STD_Ctime, KeepTimeWhenRootValueIsMismatchedAndPolicyIsSkip)
+{
+	time_t actual = 42;
+	ArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<ArchiveStub>(123, outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	BitSerializer::LoadObject<ArchiveStub>(TimeRef(actual), outputArchive, options);
+
+	EXPECT_EQ(42, actual);
+}
+
 //-----------------------------------------------------------------------------
 // Tests of serialization for std::time_t (to binary archive)
 //-----------------------------------------------------------------------------
@@ -197,4 +224,17 @@ TEST(STD_CtimeAsBin, ShouldIgnoreNanosecondsWhenLoadFromObject)
 
 	// Assert
 	EXPECT_EQ(timestamp.seconds, testEntity.time);
+}
+
+TEST(STD_CtimeAsBin, KeepTimeWhenRootValueIsMismatchedAndPolicyIsSkip)
+{
+	time_t actual = 42;
+	BinArchiveStub::preferred_output_type outputArchive{};
+	BitSerializer::SaveObject<BinArchiveStub>(123, outputArchive);
+
+	SerializationOptions options;
+	options.mismatchedTypesPolicy = MismatchedTypesPolicy::Skip;
+	BitSerializer::LoadObject<BinArchiveStub>(TimeRef(actual), outputArchive, options);
+
+	EXPECT_EQ(42, actual);
 }

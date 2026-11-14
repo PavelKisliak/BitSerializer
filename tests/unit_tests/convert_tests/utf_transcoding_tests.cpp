@@ -12,7 +12,7 @@ using namespace BitSerializer;
 //-----------------------------------------------------------------------------
 // Test conversions any UTF string to any other UTF format
 //-----------------------------------------------------------------------------
-TEST(UtfTranscodeTest, TransocodeUt8ToUtf8)
+TEST(UtfTranscodeTest, TranscodeUtf8ToUtf8)
 {
 	// Arrange
 	std::string outString = UTF8("Привет ");
@@ -28,7 +28,7 @@ TEST(UtfTranscodeTest, TransocodeUt8ToUtf8)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf8ToUtf16)
+TEST(UtfTranscodeTest, TranscodeUtf8ToUtf16)
 {
 	// Arrange
 	std::u16string outString = u"Привет ";
@@ -44,7 +44,7 @@ TEST(UtfTranscodeTest, TransocodeUtf8ToUtf16)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf8ToUtf32)
+TEST(UtfTranscodeTest, TranscodeUtf8ToUtf32)
 {
 	// Arrange
 	std::u32string outString = U"Привет ";
@@ -60,7 +60,7 @@ TEST(UtfTranscodeTest, TransocodeUtf8ToUtf32)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf16ToUtf8)
+TEST(UtfTranscodeTest, TranscodeUtf16ToUtf8)
 {
 	// Arrange
 	std::string outString = UTF8("Привет ");
@@ -76,7 +76,7 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToUtf8)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf16ToUtf32)
+TEST(UtfTranscodeTest, TranscodeUtf16ToUtf32)
 {
 	// Arrange
 	std::u32string outString = U"Привет ";
@@ -92,7 +92,7 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToUtf32)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf32ToUtf8)
+TEST(UtfTranscodeTest, TranscodeUtf32ToUtf8)
 {
 	// Arrange
 	std::string outString = UTF8("Привет ");
@@ -108,7 +108,7 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToUtf8)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf32ToUtf16)
+TEST(UtfTranscodeTest, TranscodeUtf32ToUtf16)
 {
 	// Arrange
 	std::u16string outString = u"Привет ";
@@ -128,7 +128,7 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToUtf16)
 // Tests of transcoding between same-width but different character types
 // (e.g. char16_t and wchar_t on Windows, char32_t and wchar_t on Linux)
 //-----------------------------------------------------------------------------
-TEST(UtfTranscodeTest, TransocodeUtf16ToWide)
+TEST(UtfTranscodeTest, TranscodeUtf16ToWString)
 {
 	// Arrange
 	const std::u16string_view source = u"Привет 😀";
@@ -143,10 +143,10 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToWide)
 	EXPECT_EQ(0U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndSkipPolicy)
+TEST(UtfTranscodeTest, TranscodeUtf16ToWStringWithInvalidSequenceAndSkipPolicy)
 {
 	// Arrange
-	const std::u16string wrongUtf16({ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string wrongUtf16{ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart };
 	const std::u16string source = wrongUtf16 + u"test_value" + wrongUtf16;
 	const std::u16string_view sourceView = source;
 	std::wstring outString;
@@ -161,10 +161,10 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndSkipPolicy)
 	EXPECT_EQ(4U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndThrowPolicy)
+TEST(UtfTranscodeTest, TranscodeUtf16ToWStringWithInvalidSequenceAndThrowPolicy)
 {
 	// Arrange
-	const std::u16string wrongUtf16({ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string wrongUtf16{ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart };
 	const std::u16string source = wrongUtf16 + u"test_value" + wrongUtf16;
 	std::wstring outString;
 
@@ -176,7 +176,7 @@ TEST(UtfTranscodeTest, TransocodeUtf16ToWideWithInvalidSequenceAndThrowPolicy)
 	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.errorCode);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndSkipPolicy)
+TEST(UtfTranscodeTest, TranscodeUtf32ToWStringWithInvalidCodePointAndSkipPolicy)
 {
 	// Arrange
 	std::u32string wrongUtf32;
@@ -196,7 +196,7 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndSkipPolicy)
 	EXPECT_EQ(2U, result.invalidSequencesCount);
 }
 
-TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndThrowPolicy)
+TEST(UtfTranscodeTest, TranscodeUtf32ToWStringWithInvalidCodePointAndThrowPolicy)
 {
 	// Arrange
 	std::u32string wrongUtf32;
@@ -204,6 +204,79 @@ TEST(UtfTranscodeTest, TransocodeUtf32ToWideWithInvalidCodePointAndThrowPolicy)
 	wrongUtf32.push_back(0x110000);		// Out of Unicode range
 	const std::u32string source = wrongUtf32 + U"test_value";
 	std::wstring outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(std::u32string_view(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.errorCode);
+}
+
+TEST(UtfTranscodeTest, TranscodeUtf16ToUtf8WithInvalidSurrogatePairAndThrowPolicy)
+{
+	// Arrange
+	const std::u16string source{ Convert::Utf::UnicodeTraits::HighSurrogatesStart, u'A' };
+	std::string outString;
+
+	// Act
+	const auto result = Convert::Utf::Transcode(std::u16string_view(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.errorCode);
+}
+
+// Transcode() uses a fast path for identical string types and skips validation,
+// so the UTF-16 encoder is tested directly here.
+TEST(Utf16EncodeTest, ShouldEncodeValidSurrogatePair)
+{
+	// Arrange
+	const std::u16string source{ Convert::Utf::UnicodeTraits::HighSurrogatesStart, Convert::Utf::UnicodeTraits::LowSurrogatesStart };
+	std::u16string outString;
+
+	// Act
+	const auto result = Convert::Utf::Utf16::Encode(std::begin(source), std::end(source), outString);
+
+	// Assert
+	EXPECT_TRUE(result);
+	EXPECT_EQ(source, outString);
+	EXPECT_EQ(0U, result.invalidSequencesCount);
+}
+
+TEST(Utf16EncodeTest, ShouldThrowExceptionWhenHighSurrogateFollowedByNonLowSurrogate)
+{
+	// Arrange
+	const std::u16string source{ Convert::Utf::UnicodeTraits::HighSurrogatesStart, u'A' };
+	std::u16string outString;
+
+	// Act
+	const auto result = Convert::Utf::Utf16::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.errorCode);
+}
+
+TEST(Utf16EncodeTest, ShouldThrowExceptionWhenLoneLowSurrogate)
+{
+	// Arrange
+	const std::u16string source{ Convert::Utf::UnicodeTraits::LowSurrogatesStart };
+	std::u16string outString;
+
+	// Act
+	const auto result = Convert::Utf::Utf16::Encode(std::begin(source), std::end(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);
+
+	// Assert
+	EXPECT_FALSE(result);
+	EXPECT_EQ(Convert::Utf::UtfEncodingErrorCode::InvalidSequence, result.errorCode);
+}
+
+TEST(UtfTranscodeTest, TranscodeUtf32ToUtf16WithInvalidCodePointAndThrowPolicy)
+{
+	// Arrange
+	const std::u32string source{ static_cast<char32_t>(0xD800) };
+	std::u16string outString;
 
 	// Act
 	const auto result = Convert::Utf::Transcode(std::u32string_view(source), outString, Convert::Utf::UtfEncodingErrorPolicy::ThrowError);

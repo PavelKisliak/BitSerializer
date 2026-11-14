@@ -70,6 +70,12 @@ TYPED_TEST(DetectEncodingTest, ShouldDetectInString_NoBom)
 	this->TestDetectInString();
 }
 
+TEST(UtfDetectEncodingTest, ShouldDetectUtf8InEmptyString)
+{
+	size_t dataOffset = 42;
+	EXPECT_EQ(Convert::Utf::UtfType::Utf8, Convert::Utf::DetectEncoding("", dataOffset));
+	EXPECT_EQ(0U, dataOffset);
+}
 
 //-----------------------------------------------------------------------------
 // Tests for detecting UTF encoding in stream (via detect BOM and data analysis)

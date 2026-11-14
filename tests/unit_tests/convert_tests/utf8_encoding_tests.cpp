@@ -162,7 +162,7 @@ TEST(Utf8EncodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePair)
 {
 	// Arrange
 	std::string outString;
-	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string croppedSequence{ 0xD83D };
 	const std::u16string source = u"test_тест" + croppedSequence;
 	const size_t expectedPos = source.size() - croppedSequence.size();
 

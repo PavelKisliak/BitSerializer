@@ -97,7 +97,7 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string wrongStartCodes({ Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string wrongStartCodes{ Convert::Utf::UnicodeTraits::LowSurrogatesStart };
 	const std::u16string source = wrongStartCodes + u"test" + wrongStartCodes;
 
 	// Act
@@ -114,7 +114,7 @@ TEST(Utf32LeEncodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair{ Convert::Utf::UnicodeTraits::HighSurrogatesStart };
 	const std::u16string source = notFullSurrogatePair + u"test";
 
 	// Act
@@ -131,7 +131,7 @@ TEST(Utf32LeEncodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair{ Convert::Utf::UnicodeTraits::HighSurrogatesStart };
 	const std::u16string source = u"test" + notFullSurrogatePair + u"123";
 
 	// Act
@@ -148,7 +148,7 @@ TEST(Utf32LeEncodeTest, ShouldHandlePolicyThrowError)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair{ Convert::Utf::UnicodeTraits::HighSurrogatesStart };
 	const std::u16string source = u"test" + notFullSurrogatePair + u"test";
 
 	// Act

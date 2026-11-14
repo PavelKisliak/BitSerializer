@@ -129,7 +129,7 @@ TEST(Utf16BeEncodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePair)
 {
 	// Arrange
 	std::u16string outString;
-	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string croppedSequence{ 0xD83D };
 	const std::u16string source = u"test" + croppedSequence;
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
@@ -247,7 +247,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenSurrogateStartsWithWrongCode)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string wrongStartCodes({ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart });
+	const std::u16string wrongStartCodes{ Convert::Utf::UnicodeTraits::LowSurrogatesEnd, Convert::Utf::UnicodeTraits::LowSurrogatesStart };
 	const std::u16string source = NativeStringToBigEndian(wrongStartCodes + u"test" + wrongStartCodes);
 
 	// Act
@@ -264,7 +264,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteErrorMarkWhenNoSecondCodeInSurrogate)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair{ Convert::Utf::UnicodeTraits::HighSurrogatesStart };
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
@@ -281,7 +281,7 @@ TEST(Utf16BeDecodeTest, ShouldWriteCustomErrorMarkWhenError)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair{ Convert::Utf::UnicodeTraits::HighSurrogatesStart };
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
@@ -298,7 +298,7 @@ TEST(Utf16BeDecodeTest, ShouldSkipWrongSequenceWhenErrorMarkIsEmpty)
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string notFullSurrogatePair({ Convert::Utf::UnicodeTraits::HighSurrogatesStart });
+	const std::u16string notFullSurrogatePair{ Convert::Utf::UnicodeTraits::HighSurrogatesStart };
 	const std::u16string source = NativeStringToBigEndian(notFullSurrogatePair + u"test");
 
 	// Act
@@ -315,7 +315,7 @@ TEST(Utf16BeDecodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePairAtEndWh
 {
 	// Arrange
 	std::string outString;
-	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string croppedSequence{ 0xD83D };
 	const std::u16string source = NativeStringToBigEndian(u"test" + croppedSequence);
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
@@ -334,7 +334,7 @@ TEST(Utf16BeDecodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePairAtEndWh
 {
 	// Arrange
 	std::u16string outString;
-	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string croppedSequence{ 0xD83D };
 	const std::u16string source = NativeStringToBigEndian(u"test" + croppedSequence);
 	const size_t expectedPos = source.size() - croppedSequence.size();
 
@@ -353,7 +353,7 @@ TEST(Utf16BeDecodeTest, ShouldHandleUnexpectedEndWhenCroppedSurrogatePairAtEndWh
 {
 	// Arrange
 	std::u32string outString;
-	const std::u16string croppedSequence({ 0xD83D });
+	const std::u16string croppedSequence{ 0xD83D };
 	const std::u16string source = NativeStringToBigEndian(u"test" + croppedSequence);
 	const size_t expectedPos = source.size() - croppedSequence.size();
 

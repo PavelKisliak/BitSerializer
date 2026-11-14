@@ -286,17 +286,15 @@ public:
 //-----------------------------------------------------------------------------
 
 // Forward declarations
-template <class TWriter>
 class MsgPackWriteObjectScope;
 
 /**
  * @brief MsgPack scope for writing binary arrays.
  */
-template <class TWriter>
 class MsgPackWriteBinaryScope final : public MsgPackArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
-	MsgPackWriteBinaryScope(size_t arraySize, TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
+	MsgPackWriteBinaryScope(size_t arraySize, IMsgPackWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mMsgPackWriter(msgPackWriter)
 		, mSize(arraySize)
@@ -316,7 +314,7 @@ public:
 	}
 
 private:
-	TWriter* mMsgPackWriter;
+	IMsgPackWriter* mMsgPackWriter;
 	size_t mSize;
 	size_t mIndex = 0;
 };
@@ -325,11 +323,10 @@ private:
 /**
  * @brief MsgPack scope for writing arrays (sequential values).
  */
-template <class TWriter>
 class MsgPackWriteArrayScope final : public MsgPackArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
-	MsgPackWriteArrayScope(size_t arraySize, TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
+	MsgPackWriteArrayScope(size_t arraySize, IMsgPackWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mMsgPackWriter(msgPackWriter)
 		, mSize(arraySize)
@@ -345,7 +342,7 @@ public:
 		return true;
 	}
 
-	[[nodiscard]] MsgPackWriteArrayScope<TWriter> OpenArrayScope(size_t arraySize)
+	[[nodiscard]] MsgPackWriteArrayScope OpenArrayScope(size_t arraySize)
 	{
 		CheckEnd();
 		mMsgPackWriter->BeginArray(arraySize);
@@ -353,15 +350,9 @@ public:
 		return {arraySize, mMsgPackWriter, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackWriteObjectScope<TWriter> OpenObjectScope(size_t mapSize)
-	{
-		CheckEnd();
-		mMsgPackWriter->BeginMap(mapSize);
-		++mIndex;
-		return {mapSize, mMsgPackWriter, GetContext()};
-	}
+	[[nodiscard]] MsgPackWriteObjectScope OpenObjectScope(size_t mapSize);
 
-	[[nodiscard]] MsgPackWriteBinaryScope<TWriter> OpenBinaryScope(size_t binarySize)
+	[[nodiscard]] MsgPackWriteBinaryScope OpenBinaryScope(size_t binarySize)
 	{
 		CheckEnd();
 		mMsgPackWriter->BeginBinary(binarySize);
@@ -378,7 +369,7 @@ private:
 		}
 	}
 
-	TWriter* mMsgPackWriter;
+	IMsgPackWriter* mMsgPackWriter;
 	size_t mSize;
 	size_t mIndex = 0;
 };
@@ -387,11 +378,10 @@ private:
 /**
  * @brief MsgPack scope for writing objects (key-value pairs).
  */
-template <class TWriter>
 class MsgPackWriteObjectScope final : public MsgPackArchiveTraits, public ArchiveScope<SerializeMode::Save>
 {
 public:
-	MsgPackWriteObjectScope(size_t mapSize, TWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
+	MsgPackWriteObjectScope(size_t mapSize, IMsgPackWriter* msgPackWriter, SerializationContext& serializationContext) noexcept
 		: ArchiveScope<SerializeMode::Save>(serializationContext)
 		, mMsgPackWriter(msgPackWriter)
 		, mSize(mapSize)
@@ -409,7 +399,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] MsgPackWriteArrayScope<TWriter> OpenArrayScope(TKey&& key, size_t arraySize)
+	[[nodiscard]] MsgPackWriteArrayScope OpenArrayScope(TKey&& key, size_t arraySize)
 	{
 		CheckEnd();
 		WriteKey(key);
@@ -419,7 +409,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] MsgPackWriteObjectScope<TWriter> OpenObjectScope(TKey&& key, size_t mapSize)
+	[[nodiscard]] MsgPackWriteObjectScope OpenObjectScope(TKey&& key, size_t mapSize)
 	{
 		CheckEnd();
 		WriteKey(key);
@@ -429,7 +419,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] MsgPackWriteBinaryScope<TWriter> OpenBinaryScope(TKey&& key, size_t binarySize)
+	[[nodiscard]] MsgPackWriteBinaryScope OpenBinaryScope(TKey&& key, size_t binarySize)
 	{
 		CheckEnd();
 		WriteKey(key);
@@ -460,10 +450,18 @@ private:
 		}
 	}
 
-	TWriter* mMsgPackWriter;
+	IMsgPackWriter* mMsgPackWriter;
 	size_t mSize;
 	size_t mIndex = 0;
 };
+
+inline MsgPackWriteObjectScope MsgPackWriteArrayScope::OpenObjectScope(size_t mapSize)
+{
+	CheckEnd();
+	mMsgPackWriter->BeginMap(mapSize);
+	++mIndex;
+	return {mapSize, mMsgPackWriter, GetContext()};
+}
 
 
 /**
@@ -497,19 +495,19 @@ public:
 		return true;
 	}
 
-	[[nodiscard]] MsgPackWriteArrayScope<IMsgPackWriter> OpenArrayScope(size_t arraySize) const
+	[[nodiscard]] MsgPackWriteArrayScope OpenArrayScope(size_t arraySize) const
 	{
 		mMsgPackWriter->BeginArray(arraySize);
 		return {arraySize, mMsgPackWriter, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackWriteObjectScope<IMsgPackWriter> OpenObjectScope(size_t mapSize) const
+	[[nodiscard]] MsgPackWriteObjectScope OpenObjectScope(size_t mapSize) const
 	{
 		mMsgPackWriter->BeginMap(mapSize);
 		return {mapSize, mMsgPackWriter, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackWriteBinaryScope<IMsgPackWriter> OpenBinaryScope(size_t binarySize) const
+	[[nodiscard]] MsgPackWriteBinaryScope OpenBinaryScope(size_t binarySize) const
 	{
 		mMsgPackWriter->BeginBinary(binarySize);
 		return {binarySize, mMsgPackWriter, GetContext()};
@@ -527,7 +525,7 @@ private:
 //-----------------------------------------------------------------------------
 
 // Forward declarations
-template <class TReader> class MsgPackReadObjectScope;
+class MsgPackReadObjectScope;
 
 
 class MsgPackReadScopeBase : public MsgPackArchiveTraits
@@ -569,11 +567,10 @@ private:
 /**
  * @brief MsgPack scope for reading binary arrays.
  */
-template <class TReader>
 class MsgPackReadBinaryScope final : public MsgPackReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
-	MsgPackReadBinaryScope(size_t arraySize, TReader* msgPackReader, SerializationContext& serializationContext, MsgPackReadScopeBase* parentScope = nullptr) noexcept
+	MsgPackReadBinaryScope(size_t arraySize, IMsgPackReader* msgPackReader, SerializationContext& serializationContext, MsgPackReadScopeBase* parentScope = nullptr) noexcept
 		: MsgPackReadScopeBase(parentScope)
 		, ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mMsgPackReader(msgPackReader)
@@ -631,7 +628,7 @@ private:
 		}
 	}
 
-	TReader* mMsgPackReader;
+	IMsgPackReader* mMsgPackReader;
 	const size_t mSize;
 	size_t mIndex = 0;
 };
@@ -640,11 +637,10 @@ private:
 /**
  * @brief MsgPack scope for reading arrays (sequential values).
  */
-template <class TReader>
 class MsgPackReadArrayScope final : public MsgPackReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
-	MsgPackReadArrayScope(size_t arraySize, TReader* msgPackReader, SerializationContext& serializationContext, MsgPackReadScopeBase* parentScope = nullptr) noexcept
+	MsgPackReadArrayScope(size_t arraySize, IMsgPackReader* msgPackReader, SerializationContext& serializationContext, MsgPackReadScopeBase* parentScope = nullptr) noexcept
 		: MsgPackReadScopeBase(parentScope)
 		, ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mMsgPackReader(msgPackReader)
@@ -694,7 +690,7 @@ public:
 		return mIndex == mSize;
 	}
 
-	[[nodiscard]] MsgPackReadArrayScope<TReader> OpenArrayScope(size_t)
+	[[nodiscard]] MsgPackReadArrayScope OpenArrayScope(size_t)
 	{
 		CheckEnd();
 		if (size_t sz = 0; mMsgPackReader->ReadArraySize(sz))
@@ -706,19 +702,9 @@ public:
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackReadObjectScope<TReader> OpenObjectScope(size_t)
-	{
-		CheckEnd();
-		if (size_t sz = 0; mMsgPackReader->ReadMapSize(sz))
-		{
-			++mIndex;
-			return {sz, mMsgPackReader, GetContext(), this};
-		}
-		++mIndex;
-		return {ScopeUnopened{}, GetContext()};
-	}
+	[[nodiscard]] MsgPackReadObjectScope OpenObjectScope(size_t);
 
-	[[nodiscard]] MsgPackReadBinaryScope<TReader> OpenBinaryScope(size_t)
+	[[nodiscard]] MsgPackReadBinaryScope OpenBinaryScope(size_t)
 	{
 		CheckEnd();
 		// Probe the type first: the value is not consumed when it isn't a binary array,
@@ -741,7 +727,7 @@ private:
 		}
 	}
 
-	TReader* mMsgPackReader;
+	IMsgPackReader* mMsgPackReader;
 	size_t mSize;
 	size_t mIndex = 0;
 };
@@ -750,11 +736,10 @@ private:
 /**
  * @brief MsgPack scope for reading objects (key-value pairs).
  */
-template <class TReader>
 class MsgPackReadObjectScope final : public MsgPackReadScopeBase, public ArchiveScope<SerializeMode::Load>
 {
 public:
-	MsgPackReadObjectScope(size_t mapSize, TReader* msgPackReader, SerializationContext& serializationContext, MsgPackReadScopeBase* parentScope = nullptr) noexcept
+	MsgPackReadObjectScope(size_t mapSize, IMsgPackReader* msgPackReader, SerializationContext& serializationContext, MsgPackReadScopeBase* parentScope = nullptr) noexcept
 		: MsgPackReadScopeBase(parentScope)
 		, ArchiveScope<SerializeMode::Load>(serializationContext)
 		, mMsgPackReader(msgPackReader)
@@ -849,7 +834,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] MsgPackReadArrayScope<TReader> OpenArrayScope(TKey&& key, size_t)
+	[[nodiscard]] MsgPackReadArrayScope OpenArrayScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
@@ -862,7 +847,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] MsgPackReadObjectScope<TReader> OpenObjectScope(TKey&& key, size_t)
+	[[nodiscard]] MsgPackReadObjectScope OpenObjectScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
@@ -875,7 +860,7 @@ public:
 	}
 
 	template <typename TKey>
-	[[nodiscard]] MsgPackReadBinaryScope<TReader> OpenBinaryScope(TKey&& key, size_t)
+	[[nodiscard]] MsgPackReadBinaryScope OpenBinaryScope(TKey&& key, size_t)
 	{
 		if (FindValueByKey(key))
 		{
@@ -978,12 +963,24 @@ private:
 		}
 	}
 
-	TReader* mMsgPackReader;
+	IMsgPackReader* mMsgPackReader;
 	size_t mStartPos;
 	const size_t mSize;
 	size_t mIndex = 0;
 	msgpack_variable_key mCurrentKey;
 };
+
+inline MsgPackReadObjectScope MsgPackReadArrayScope::OpenObjectScope(size_t)
+{
+	CheckEnd();
+	if (size_t sz = 0; mMsgPackReader->ReadMapSize(sz))
+	{
+		++mIndex;
+		return {sz, mMsgPackReader, GetContext(), this};
+	}
+	++mIndex;
+	return {ScopeUnopened{}, GetContext()};
+}
 
 
 /**
@@ -1011,7 +1008,7 @@ public:
 		return mMsgPackReader->ReadValue(value);
 	}
 
-	[[nodiscard]] MsgPackReadArrayScope<IMsgPackReader> OpenArrayScope(size_t) const
+	[[nodiscard]] MsgPackReadArrayScope OpenArrayScope(size_t) const
 	{
 		if (size_t sz = 0; mMsgPackReader->ReadArraySize(sz)) {
 			return {sz, mMsgPackReader, GetContext()};
@@ -1019,7 +1016,7 @@ public:
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackReadObjectScope<IMsgPackReader> OpenObjectScope(size_t) const
+	[[nodiscard]] MsgPackReadObjectScope OpenObjectScope(size_t) const
 	{
 		if (size_t sz = 0; mMsgPackReader->ReadMapSize(sz)) {
 			return {sz, mMsgPackReader, GetContext()};
@@ -1027,7 +1024,7 @@ public:
 		return {ScopeUnopened{}, GetContext()};
 	}
 
-	[[nodiscard]] MsgPackReadBinaryScope<IMsgPackReader> OpenBinaryScope(size_t) const
+	[[nodiscard]] MsgPackReadBinaryScope OpenBinaryScope(size_t) const
 	{
 		// Probe the type first: the value is not consumed when it isn't a binary array,
 		// so the caller can still fall back to reading it as an array of chars.

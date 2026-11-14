@@ -578,7 +578,11 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
 }
 
 /**
- * @brief Tests mismatched types policy behavior during deserialization.
+ * @brief Tests a field mismatch inside an array of objects, including the resulting validation behavior.
+ *
+ * Source and target are wrapped in `TestClassWithSubTypes<T, T>` to keep the root an array (CSV-compatible).
+ * For `Skip`, the target fields are marked `Required()`, so the helper expects `ValidationException`.
+ * For arbitrary targets/inputs without these assumptions use `TestMismatchedTypesPolicy(input, target, policy)`.
  *
  * @tparam TArchive The archive type used for serialization.
  * @tparam TSourceType Original data type.
@@ -586,7 +590,7 @@ void TestOverflowNumberPolicy(BitSerializer::OverflowNumberPolicy overflowNumber
  * @param mismatchedTypesPolicy Policy for handling type mismatches.
  */
 template <typename TArchive, class TSourceType, class TTargetType>
-void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
+void TestMismatchedFieldPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
 {
 	// Arrange
 	static_assert(!std::is_same_v<TSourceType, TTargetType>);
@@ -649,24 +653,24 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 }
 
 /**
- * @brief Tests loading a non-null value into `std::nullptr_t` with the given `MismatchedTypesPolicy`.
+ * @brief Tests a mismatched value loaded into an arbitrary target with the given `MismatchedTypesPolicy`.
+ *
+ * Unlike `TestMismatchedFieldPolicy`, this helper does not assume a particular wrapper/root shape:
+ * the caller provides the archive-specific serialized input and the target object.
  *
  * @tparam TArchive The archive type used for serialization.
+ * @tparam TTarget The target type (may be a root value, an object, an array, etc.).
+ * @param input Archive-specific serialized input containing a mismatched value.
+ * @param target The target object to load into.
  * @param mismatchedTypesPolicy Policy for handling the type mismatch.
  */
-template <typename TArchive>
-void TestNullTargetPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
+template <typename TArchive, typename TTarget>
+void TestMismatchedTypesPolicy(const typename TArchive::preferred_output_type& input, TTarget& target,
+	BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
 {
-	// Arrange
-	TestClassWithSubType<int> source[1]{ TestClassWithSubType<int>(123) };
-	typename TArchive::preferred_output_type input;
-	BitSerializer::SaveObject<TArchive>(source, input);
-
 	BitSerializer::SerializationOptions options;
 	options.mismatchedTypesPolicy = mismatchedTypesPolicy;
-	TestClassWithSubType<std::nullptr_t> target[1];
 
-	// Act / Assert
 	if (mismatchedTypesPolicy == BitSerializer::MismatchedTypesPolicy::ThrowError)
 	{
 		const auto ex = GTestExpectException<BitSerializer::SerializationException>([&] {
@@ -677,8 +681,54 @@ void TestNullTargetPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPo
 	else
 	{
 		EXPECT_NO_THROW(BitSerializer::LoadObject<TArchive>(target, input, options));
-		EXPECT_EQ(nullptr, target[0].GetValue());
 	}
+}
+
+/**
+ * @brief Serializes a root value of `TSourceType` and loads it into `TTargetType` with the given policy.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @tparam TSourceType The source root type.
+ * @tparam TTargetType The target root type.
+ * @tparam TCheck Optional callback invoked with the target after loading (e.g. to verify it was not modified).
+ * @param mismatchedTypesPolicy Policy for handling the type mismatch.
+ * @param check Optional callback for post-load checks.
+ */
+template <typename TArchive, typename TSourceType, typename TTargetType, typename TCheck = std::nullptr_t>
+void TestRootMismatchPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy, TCheck&& check = nullptr)
+{
+	TSourceType source{};
+	BuildFixture(source);
+	typename TArchive::preferred_output_type input;
+	BitSerializer::SaveObject<TArchive>(source, input);
+
+	TTargetType target{};
+	TestMismatchedTypesPolicy<TArchive>(input, target, mismatchedTypesPolicy);
+
+	if constexpr (!std::is_same_v<std::decay_t<TCheck>, std::nullptr_t>) {
+		check(target);
+	}
+}
+
+/**
+ * @brief Tests loading a non-null value into `std::nullptr_t` with the given `MismatchedTypesPolicy`.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @param mismatchedTypesPolicy Policy for handling the type mismatch.
+ */
+template <typename TArchive>
+void TestNullTargetPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
+{
+	using SourceType = TestClassWithSubType<int>[1];
+	using TargetType = TestClassWithSubType<std::nullptr_t>[1];
+
+	TestRootMismatchPolicy<TArchive, SourceType, TargetType>(
+		mismatchedTypesPolicy,
+		[](const auto& target) {
+			for (const auto& item : target) {
+				EXPECT_EQ(nullptr, item.GetValue());
+			}
+		});
 }
 
 /**

@@ -322,26 +322,26 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenMissedRequiredValue) {
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<CsvArchive, int, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<CsvArchive, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, int, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<CsvArchive, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
 }
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
-	TestMismatchedTypesPolicy<CsvArchive, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<CsvArchive, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<CsvArchive, float, uint32_t>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, float, uint32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
@@ -352,29 +352,29 @@ TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<CsvArchive, int, bool>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<CsvArchive, uint32_t, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, int, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, uint32_t, bool>(MismatchedTypesPolicy::Skip);
 }
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<CsvArchive, std::string, int32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, int32_t>(MismatchedTypesPolicy::Skip);
 }
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<CsvArchive, std::string, double>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, float>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, std::string, double>(MismatchedTypesPolicy::Skip);
 }
 
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<CsvArchive, float, uint32_t>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, float, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::Skip);
 }
 TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
-	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<CsvArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<CsvArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST_F(CsvArchiveTests, SkipValueWhenLoadValueToNull) {

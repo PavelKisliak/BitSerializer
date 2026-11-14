@@ -106,7 +106,7 @@ All scopes, including root, implement the same contract — the combination of m
 
 ### Loading semantics: arrays and objects
 
-These rules are part of the archive contract and are locked by the shared test helpers (`TestSkippedArrayValues`, `TestMismatchedArrayValue`, `TestMismatchedTypesPolicy` in `src/testing_tools/common_test_methods.h`).
+These rules are part of the archive contract and are locked by the shared test helpers (`TestSkippedArrayValues`, `TestMismatchedArrayValue`, `TestMismatchedFieldPolicy` in `src/testing_tools/common_test_methods.h`).
 
 **Array scopes** (sequences) map **one archive slot to one target slot**, regardless of whether the value was successfully converted:
 

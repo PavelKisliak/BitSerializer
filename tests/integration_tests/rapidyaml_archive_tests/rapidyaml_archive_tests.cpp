@@ -365,66 +365,75 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<YamlArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<YamlArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<YamlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
-	TestMismatchedTypesPolicy<YamlArchive, int32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<YamlArchive, int32_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, int32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, int32_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidYamlArchive, ThrowSerializationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<YamlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<YamlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
 	TestNullTargetPolicy<YamlArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadArrayOfArrays) {
+	TestRootMismatchPolicy<YamlArchive, int[2], int[2][3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadRootMismatch) {
+	TestRootMismatchPolicy<YamlArchive, std::vector<int>, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<YamlArchive, TestClassWithSubType<int>, std::vector<int>>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<YamlArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<YamlArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<YamlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<YamlArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<YamlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
-	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<YamlArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidYamlArchive, SkipValueWhenLoadValueToNull)
@@ -438,10 +447,24 @@ TEST(RapidYamlArchive, IgnoreMissingKeyWhenLoadNull)
 }
 
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<YamlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+TEST(RapidYamlArchive, SkipValueWhenLoadArrayOfArrays)
+{
+	TestRootMismatchPolicy<YamlArchive, int[2], int[2][3]>(BitSerializer::MismatchedTypesPolicy::Skip, [](const auto& target) {
+		const int expected[2][3]{};
+		GTestExpectEq(expected, target);
+	});
+}
+
+TEST(RapidYamlArchive, SkipValueWhenLoadRootMismatch)
+{
+	TestRootMismatchPolicy<YamlArchive, std::vector<int>, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<YamlArchive, TestClassWithSubType<int>, std::vector<int>>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

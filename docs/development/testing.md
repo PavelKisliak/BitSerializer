@@ -61,7 +61,9 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 | `TestLoadingToDifferentType<TArchive>(value, expected)` | Load source into a *different* target type, expect conversion |
 | `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into a pre-filled container (must be cleared) |
 | `TestLoadingEmptyContainer<TArchive, TContainer>()` | Loading an empty array must clear a non-empty container |
-| `TestMismatchedTypesPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
+| `TestMismatchedFieldPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
+| `TestMismatchedTypesPolicy<TArchive, Target>(input, target, policy)` | Load archive-specific mismatched `input` into an arbitrary `target` and verify `MismatchedTypesPolicy` |
+| `TestRootMismatchPolicy<TArchive, Source, Target>(policy, check?)` | Serialize root `Source`, load into mismatched root `Target`, verify `MismatchedTypesPolicy`; optional `check` inspects the target after loading |
 | `TestNullTargetPolicy<TArchive>(policy)` | A non-null value loaded into `std::nullptr_t` follows `MismatchedTypesPolicy` |
 | `TestMissingNullTargetKey<TArchive>()` | A missing field is ignored when loading into `std::nullptr_t` |
 | `TestSkippedArrayValues<TArchive>()` | Null/overflow-skipped array elements still consume a slot (fixed array, pre-filled/empty containers, nested array) |
@@ -116,6 +118,8 @@ Prefer unit tests for behavior and edge cases; keep integration tests to the min
 ### Integration test parity across archives
 
 Keep archive integration tests consistent in composition and ordering where the format allows it. When adding or changing an integration test for one archive, check whether the same scenario applies to the other archives and add the analogous test there (format limitations, e.g. CSV without arrays of objects, may exclude some cases). Prefer reusing an existing `Test*` helper from `src/testing_tools/common_test_methods.h`; if the scenario is generic but no helper exists, add a new reusable helper there instead of duplicating the arrange/act/assert code. Keep the order of related test blocks aligned across archive test files (raw payload, skipped array values, error policies, etc.) so differences between archives remain visible.
+
+**JSONC is an exception:** its integration suite should contain only JSONC-specific behavior (comments, trailing commas, raw JSONC compatibility, strict-JSON rejection); generic JSON/archive behavior is covered by the JSON suite and must not be duplicated in `jsonc_archive_tests.cpp`.
 
 ### Testing patterns
 

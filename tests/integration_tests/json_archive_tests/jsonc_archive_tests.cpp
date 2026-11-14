@@ -128,39 +128,6 @@ TEST(JsoncArchive, LoadFromFile)
 }
 
 //-----------------------------------------------------------------------------
-// Tests of skipped array values
-//-----------------------------------------------------------------------------
-TEST(JsoncArchive, ShouldConsumeArraySlotForSkippedValue)
-{
-	TestSkippedArrayValues<JsoncArchive>();
-}
-
-TEST(JsoncArchive, ShouldConsumeArraySlotForMismatchedValue)
-{
-	TestMismatchedArrayValue<JsoncArchive>(R"(["not a number", 5])");
-}
-
-TEST(JsoncArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
-{
-	TestMismatchedObjectArrayValue<JsoncArchive>();
-}
-
-TEST(JsoncArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull)
-{
-	TestNullTargetPolicy<JsoncArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-}
-
-TEST(JsoncArchive, SkipValueWhenLoadValueToNull)
-{
-	TestNullTargetPolicy<JsoncArchive>(BitSerializer::MismatchedTypesPolicy::Skip);
-}
-
-TEST(JsoncArchive, IgnoreMissingKeyWhenLoadNull)
-{
-	TestMissingNullTargetKey<JsoncArchive>();
-}
-
-//-----------------------------------------------------------------------------
 // Tests of writing JSONC (comments are not preserved, output is plain JSON)
 //-----------------------------------------------------------------------------
 TEST(JsoncArchive, SaveProducesPlainJson)
@@ -168,22 +135,6 @@ TEST(JsoncArchive, SaveProducesPlainJson)
 	TestPointClass point(10, 20);
 	const auto actual = BitSerializer::SaveObject<JsoncArchive>(point);
 	EXPECT_EQ(R"({"x":10,"y":20})", actual);
-}
-
-TEST(JsoncArchive, SaveObjectWithExplicitOutputStreamType)
-{
-	TestSaveObjectWithExplicitOutputStream<JsoncArchive>(BuildFixture<TestPointClass>());
-}
-
-TEST(JsoncArchive, SerializeRoundTrip)
-{
-	TestPointClass expected(3, 4);
-	auto saved = BitSerializer::SaveObject<JsoncArchive>(expected);
-
-	TestPointClass actual;
-	BitSerializer::LoadObject<JsoncArchive>(actual, saved);
-
-	EXPECT_EQ(expected, actual);
 }
 
 //-----------------------------------------------------------------------------

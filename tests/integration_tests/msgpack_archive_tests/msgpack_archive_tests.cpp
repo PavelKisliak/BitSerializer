@@ -594,71 +594,82 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<MsgPackArchive, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowPolicyForArrayWhenMismatchedLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<MsgPackArchive, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<MsgPackArchive, float, int>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, float, int>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, int32_t[3]>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, int32_t[3]>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToBinArray) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, char[3]>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, char[3]>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
 	TestNullTargetPolicy<MsgPackArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadArrayOfArrays) {
+	TestRootMismatchPolicy<MsgPackArchive, int[2], int[2][3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadRootMismatch) {
+	TestRootMismatchPolicy<MsgPackArchive, int, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<MsgPackArchive, int, std::vector<int>>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<MsgPackArchive, int, std::string>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<MsgPackArchive, TestClassWithSubType<int>, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int, bool>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<MsgPackArchive, uint32_t, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, int, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, uint32_t, bool>(MismatchedTypesPolicy::Skip);
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<MsgPackArchive, std::string, int32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::string, int32_t>(MismatchedTypesPolicy::Skip);
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::string, float>(MismatchedTypesPolicy::Skip);
 }
 
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<MsgPackArchive, float, int>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, float, int>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, double, int>(MismatchedTypesPolicy::Skip);
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
-	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(MsgPackArchive, SkipValueWhenLoadValueToNull)
@@ -672,13 +683,29 @@ TEST(MsgPackArchive, IgnoreMissingKeyWhenLoadNull)
 }
 
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, int32_t[3]>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, int32_t[3]>(MismatchedTypesPolicy::Skip);
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToBinArray) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, char[3]>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, char[3]>(MismatchedTypesPolicy::Skip);
 }
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
+}
+
+TEST(MsgPackArchive, SkipValueWhenLoadArrayOfArrays)
+{
+	TestRootMismatchPolicy<MsgPackArchive, int[2], int[2][3]>(BitSerializer::MismatchedTypesPolicy::Skip, [](const auto& target) {
+		const int expected[2][3]{};
+		GTestExpectEq(expected, target);
+	});
+}
+
+TEST(MsgPackArchive, SkipValueWhenLoadRootMismatch)
+{
+	TestRootMismatchPolicy<MsgPackArchive, int, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<MsgPackArchive, int, std::vector<int>>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<MsgPackArchive, int, std::string>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<MsgPackArchive, TestClassWithSubType<int>, int>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

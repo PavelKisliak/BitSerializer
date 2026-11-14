@@ -593,69 +593,69 @@ TEST(BaseTypes, ShouldCollectErrorsAboutRequiredNamedValues) {
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<ArchiveStub, int, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<ArchiveStub, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, int, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, uint32_t, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, int32_t>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
-	TestMismatchedTypesPolicy<ArchiveStub, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<ArchiveStub, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, int32_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, int32_t, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
-	TestMismatchedTypesPolicy<ArchiveStub, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, int32_t, std::string>(MismatchedTypesPolicy::ThrowError);
 }
 TEST(BaseTypes, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
-	TestMismatchedTypesPolicy<ArchiveStub, float, int>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<ArchiveStub, double, int>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, float, int>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, double, int>(MismatchedTypesPolicy::ThrowError);
 }
 
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<ArchiveStub, int, bool>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<ArchiveStub, uint32_t, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, int, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, uint32_t, bool>(MismatchedTypesPolicy::Skip);
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, bool>(MismatchedTypesPolicy::Skip);
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, int32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, int32_t>(MismatchedTypesPolicy::Skip);
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<ArchiveStub, std::string, double>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, float>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, std::string, double>(MismatchedTypesPolicy::Skip);
 }
 
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<ArchiveStub, float, uint32_t>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<ArchiveStub, double, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, float, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, double, uint32_t>(MismatchedTypesPolicy::Skip);
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadFloatToInt) {
-	TestMismatchedTypesPolicy<ArchiveStub, float, int>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<ArchiveStub, double, int>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, float, int>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, double, int>(MismatchedTypesPolicy::Skip);
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
-	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<ArchiveStub, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<ArchiveStub, int32_t, int32_t[3]>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, int32_t, int32_t[3]>(MismatchedTypesPolicy::Skip);
 }
 TEST(BaseTypes, ThrowValidationExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<ArchiveStub, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<ArchiveStub, int32_t, TestPointClass>(MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

@@ -641,73 +641,84 @@ TEST(RapidJsonArchive, ThrowValidationExceptionWhenMissedRequiredValue) {
 // Test MismatchedTypesPolicy::ThrowError
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<JsonArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<JsonArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadSignedToUnsigned) {
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadNumberToString) {
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, std::string>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, std::string>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadFloatToInt) {
-	TestMismatchedTypesPolicy<JsonArchive, float, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, float, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
 	TestNullTargetPolicy<JsonArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadArrayOfArrays) {
+	TestRootMismatchPolicy<JsonArchive, int[2], int[2][3]>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadRootMismatch) {
+	TestRootMismatchPolicy<JsonArchive, int, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<JsonArchive, int, std::vector<int>>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<JsonArchive, int, std::string>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestRootMismatchPolicy<JsonArchive, TestClassWithSubType<int>, int>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadIntToBoolean) {
-	TestMismatchedTypesPolicy<JsonArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<JsonArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, int, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, uint32_t, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadStringToBoolean) {
-	TestMismatchedTypesPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, bool>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadStringToInteger) {
-	TestMismatchedTypesPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, int32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadStringToFloat) {
-	TestMismatchedTypesPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<JsonArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, float>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, std::string, double>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadFloatToInteger) {
-	TestMismatchedTypesPolicy<JsonArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<JsonArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, float, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, double, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadFloatToInt) {
-	TestMismatchedTypesPolicy<JsonArchive, float, int>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, float, int>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, double, int>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	// It doesn't matter what kind of MismatchedTypesPolicy is used, should throw only validation exception
-	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
-	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
-	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<JsonArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(RapidJsonArchive, SkipValueWhenLoadValueToNull)
@@ -721,10 +732,26 @@ TEST(RapidJsonArchive, IgnoreMissingKeyWhenLoadNull)
 }
 
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, int32_t[3]>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadIntegerToObject) {
-	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestMismatchedFieldPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+TEST(RapidJsonArchive, SkipValueWhenLoadArrayOfArrays)
+{
+	TestRootMismatchPolicy<JsonArchive, int[2], int[2][3]>(BitSerializer::MismatchedTypesPolicy::Skip, [](const auto& target) {
+		const int expected[2][3]{};
+		GTestExpectEq(expected, target);
+	});
+}
+
+TEST(RapidJsonArchive, SkipValueWhenLoadRootMismatch)
+{
+	TestRootMismatchPolicy<JsonArchive, int, TestPointClass>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<JsonArchive, int, std::vector<int>>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<JsonArchive, int, std::string>(BitSerializer::MismatchedTypesPolicy::Skip);
+	TestRootMismatchPolicy<JsonArchive, TestClassWithSubType<int>, int>(BitSerializer::MismatchedTypesPolicy::Skip);
 }
 
 //-----------------------------------------------------------------------------

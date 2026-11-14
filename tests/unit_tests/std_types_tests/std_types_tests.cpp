@@ -85,11 +85,11 @@ TEST(STD_Types, SerializeTuple) {
 }
 
 TEST(STD_Types, SerializeTupleThrowMismatchedTypesExceptionWhenLessSize) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::tuple<int, float, bool>, std::tuple<int, float>>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::tuple<int, float, bool>, std::tuple<int, float>>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(STD_Types, SerializeTupleThrowMismatchedTypesExceptionWhenLargerSize) {
-	TestMismatchedTypesPolicy<ArchiveStub, std::tuple<int, float>, std::tuple<int, float, bool>>(MismatchedTypesPolicy::ThrowError);
+	TestMismatchedFieldPolicy<ArchiveStub, std::tuple<int, float>, std::tuple<int, float, bool>>(MismatchedTypesPolicy::ThrowError);
 }
 
 TEST(STD_Types, SerializeTupleAsClassMember) {

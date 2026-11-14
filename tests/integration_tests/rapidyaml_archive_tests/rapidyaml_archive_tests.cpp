@@ -488,6 +488,24 @@ TEST(RapidYamlArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
 	TestMismatchedObjectArrayValue<YamlArchive>();
 }
 
+TEST(RapidYamlArchive, ShouldSkipMapElementInIntArrayWhenPolicyIsSkip)
+{
+	TestMismatchedArrayValue<YamlArchive>("- {key: value}\n- 5");
+}
+
+TEST(RapidYamlArchive, ShouldSkipMapElementInStringArrayWhenPolicyIsSkip)
+{
+	std::string expected[2]{ "first", "second" };
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = BitSerializer::MismatchedTypesPolicy::Skip;
+
+	BitSerializer::LoadObject<YamlArchive>(expected, "- {key: value}\n- second", options);
+
+	EXPECT_EQ("first", expected[0]);
+	EXPECT_EQ("second", expected[1]);
+}
+
+
 //-----------------------------------------------------------------------------
 // Test OverflowNumberPolicy::ThrowError
 //-----------------------------------------------------------------------------

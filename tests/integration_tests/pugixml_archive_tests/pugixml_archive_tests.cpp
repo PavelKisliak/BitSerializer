@@ -279,6 +279,19 @@ TEST(PugiXmlArchive, SerializeAttributesWithString) {
 	TestSerializeType<XmlArchive>(BuildFixture<TestClassWithAttributes<std::string, std::wstring>>());
 }
 
+TEST(PugiXmlArchive, ShouldKeepValueWhenAttributeIsMissing) {
+	TestClassWithAttributes<int> intValue(42);
+	BitSerializer::LoadObject<XmlArchive>(intValue, "<root/>");
+	EXPECT_EQ(42, std::get<0>(intValue));
+
+	TestClassWithAttributes<std::string> stringValue("initial");
+	BitSerializer::LoadObject<XmlArchive>(stringValue, "<root/>");
+	EXPECT_EQ("initial", std::get<0>(stringValue));
+
+	TestClassWithAttributes<std::nullptr_t> nullValue(nullptr);
+	EXPECT_NO_THROW(BitSerializer::LoadObject<XmlArchive>(nullValue, "<root/>"));
+}
+
 //-----------------------------------------------------------------------------
 // Tests format output XML
 //-----------------------------------------------------------------------------
@@ -418,6 +431,12 @@ TEST(PugiXmlArchive, SerializeToFileThrowExceptionWhenAlreadyExists) {
 TEST(PugiXmlArchive, ThrowExceptionWhenBadSyntaxInSource) {
 	auto fixture = BuildFixture<TestClassWithSubTypes<std::string>>();
 	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, "<root>Hello"), BitSerializer::ParsingException);
+}
+
+TEST(PugiXmlArchive, ThrowParsingExceptionWhenBadSyntaxInInputStream) {
+	auto fixture = BuildFixture<TestClassWithSubTypes<std::string>>();
+	std::istringstream inputStream("<root>Hello");
+	EXPECT_THROW(BitSerializer::LoadObject<XmlArchive>(fixture, inputStream), BitSerializer::ParsingException);
 }
 
 TEST(PugiXmlArchive, ThrowParsingExceptionWithCorrectPosition)

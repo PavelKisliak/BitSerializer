@@ -45,6 +45,8 @@ variables:
 # the std::from_chars path.
 - group: General
 
+# Hosted images are pinned to concrete versions instead of `-latest` so a runner-image
+# migration cannot silently change compilers or system tools between runs.
 stages:
   - stage: Preflight
     displayName: 'Preflight checks stage'
@@ -64,21 +66,21 @@ stages:
       - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_static'
-          image: 'ubuntu-latest'
+          image: 'ubuntu-26.04'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF'
 
       - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_dynamic'
-          image: 'ubuntu-latest'
+          image: 'ubuntu-26.04'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_GCC_Coverage'
-          image: 'ubuntu-latest'
+          image: 'ubuntu-26.04'
           installToolsCmd: 'sudo apt-get install ninja-build'
           vcpkgTriplet: "x64-linux"
           cmakeGenArgs: '$(CmakeGenOptions) -DBUILD_SAMPLES=OFF -DBUILD_BENCHMARKS=OFF -DBUILD_MICROBENCHMARKS=OFF -DENABLE_COVERAGE=ON'
@@ -179,23 +181,23 @@ stages:
       - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'Ubuntu_Clang_18_dynamic'
-          image: 'ubuntu-latest'
+          image: 'ubuntu-26.04'
           installToolsCmd: 'sudo apt-get install clang-18 ninja-build --install-suggests'
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DBUILD_SHARED_LIBS=ON'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
-          name: 'MacOS14_Clang14_static'
-          image: 'macOS-latest'
+          name: 'MacOS15_static'
+          image: 'macOS-15'
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions)'
 
       - template: templates/unix-build-and-test-template.yml
         parameters:
-          name: 'MacOS14_Clang14_CXX20_dynamic'
-          image: 'macOS-latest'
+          name: 'MacOS15_CXX20_dynamic'
+          image: 'macOS-15'
           installToolsCmd: 'brew install ninja'
           vcpkgTriplet: "x64-osx-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_CXX_STANDARD=20 -DBUILD_SHARED_LIBS=ON'
@@ -232,7 +234,7 @@ stages:
       - template: templates/bazel-build-and-test-template.yml
         parameters:
           name: 'Bazel_Ubuntu'
-          image: 'ubuntu-latest'
+          image: 'ubuntu-26.04'
           os: 'Linux'
 
       - template: templates/bazel-build-and-test-template.yml

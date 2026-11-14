@@ -15,6 +15,8 @@ variables:
   value: -DBUILD_JSON_ARCHIVE=ON -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON -DBITSERIALIZER_BUNDLE_FAST_FLOAT=ON
   readonly: true
 
+# Hosted images are pinned to concrete versions instead of `-latest` so a runner-image
+# migration cannot silently change compilers or system tools between runs.
 stages:
   - stage: BuildPackages
     displayName: 'Build packages'
@@ -49,7 +51,7 @@ stages:
       - template: templates/unix-publish-release-template.yml
         parameters:
           name: 'Linux_x64_GCC8_glibc228_static'
-          image: 'ubuntu-latest'
+          image: 'ubuntu-26.04'
           container: 'almalinux:8'
           containerOptions: '--user root'
           installToolsCmd: 'bash $(Build.SourcesDirectory)/CI/azure-devops/scripts/install-almalinux8-build-tools.sh'
@@ -93,7 +95,7 @@ stages:
     jobs:
     - job: PublishRelease
       pool:
-        vmImage: 'ubuntu-latest'
+        vmImage: 'ubuntu-26.04'
       steps:
       - task: DownloadPipelineArtifact@2
         displayName: 'Download packages'

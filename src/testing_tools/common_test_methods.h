@@ -649,6 +649,59 @@ void TestMismatchedTypesPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTy
 }
 
 /**
+ * @brief Tests loading a non-null value into `std::nullptr_t` with the given `MismatchedTypesPolicy`.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ * @param mismatchedTypesPolicy Policy for handling the type mismatch.
+ */
+template <typename TArchive>
+void TestNullTargetPolicy(BitSerializer::MismatchedTypesPolicy mismatchedTypesPolicy)
+{
+	// Arrange
+	TestClassWithSubType<int> source[1]{ TestClassWithSubType<int>(123) };
+	typename TArchive::preferred_output_type input;
+	BitSerializer::SaveObject<TArchive>(source, input);
+
+	BitSerializer::SerializationOptions options;
+	options.mismatchedTypesPolicy = mismatchedTypesPolicy;
+	TestClassWithSubType<std::nullptr_t> target[1];
+
+	// Act / Assert
+	if (mismatchedTypesPolicy == BitSerializer::MismatchedTypesPolicy::ThrowError)
+	{
+		const auto ex = GTestExpectException<BitSerializer::SerializationException>([&] {
+			BitSerializer::LoadObject<TArchive>(target, input, options);
+		});
+		EXPECT_EQ(BitSerializer::SerializationErrorCode::MismatchedTypes, ex.GetErrorCode());
+	}
+	else
+	{
+		EXPECT_NO_THROW(BitSerializer::LoadObject<TArchive>(target, input, options));
+		EXPECT_EQ(nullptr, target[0].GetValue());
+	}
+}
+
+/**
+ * @brief Tests that a missing field is not an error when loading into `std::nullptr_t`.
+ *
+ * @tparam TArchive The archive type used for serialization.
+ */
+template <typename TArchive>
+void TestMissingNullTargetKey()
+{
+	// Arrange: save the value under a different key
+	TestClassWithMismatchedField source[1];
+	source[0].id = "123";
+	typename TArchive::preferred_output_type input;
+	BitSerializer::SaveObject<TArchive>(source, input);
+
+	// Act / Assert
+	TestClassWithSubType<std::nullptr_t> target[1];
+	EXPECT_NO_THROW(BitSerializer::LoadObject<TArchive>(target, input));
+	EXPECT_EQ(nullptr, target[0].GetValue());
+}
+
+/**
  * @brief Tests UTF encoding error handling policy during serialization/deserialization.
  *
  * @tparam TArchive The archive type used for serialization.

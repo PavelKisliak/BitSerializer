@@ -62,6 +62,8 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 | `TestLoadToNotEmptyContainer<TArchive, TContainer>(size)` | Load into a pre-filled container (must be cleared) |
 | `TestLoadingEmptyContainer<TArchive, TContainer>()` | Loading an empty array must clear a non-empty container |
 | `TestMismatchedTypesPolicy<TArchive, Source, Target>(policy)` | Serialize `Source`, load into incompatible `Target`, verify `MismatchedTypesPolicy` |
+| `TestNullTargetPolicy<TArchive>(policy)` | A non-null value loaded into `std::nullptr_t` follows `MismatchedTypesPolicy` |
+| `TestMissingNullTargetKey<TArchive>()` | A missing field is ignored when loading into `std::nullptr_t` |
 | `TestSkippedArrayValues<TArchive>()` | Null/overflow-skipped array elements still consume a slot (fixed array, pre-filled/empty containers, nested array) |
 | `TestMismatchedArrayValue<TArchive>(input)` | A type-mismatched (`Skip`) array element still consumes a slot; `input` is the archive-specific serialized array |
 | `TestMismatchedObjectArrayValue<TArchive>()` | A scalar in place of an object inside an array is skipped and still consumes a slot (object-scope mismatch) |
@@ -75,10 +77,11 @@ Shared test utilities live in `src/testing_tools/` — reuse them instead of wri
 **`common_test_entities.h`** — reusable serializable test classes. Use these instead of writing your own one-field/multi-field classes for roundtrip tests.
 
 - `TestClassWithSubType<T, KeyValueArgs...>` — wraps a single value under the key `"TestValue"` and serializes it as a named field. Default-ctor fills the value via `BuildFixture`; the `explicit` ctor accepts an initial value (`TestClassWithSubType(initValue)`) plus optional `KeyValue` modifiers (e.g. validators). Use when you need **a single named field** with a **specific value** (unlike `TestClassWithSubTypes`, which only supports default-construction). Also usable when the archive's root scope can't hold a bare value (e.g. objects in `ArchiveStub`). Members: `GetValue()`, `KeyName`.
+- `TestClassWithDynamicKey<T>` — wraps a single value under a runtime-configurable `Key`; useful when a test needs a specific key name (e.g. invalid UTF keys).
 - `TestClassWithSubTypes<Args...>` — a `std::tuple<Args...>` whose elements are serialized as named fields `"Member_0"`, `"Member_1"`, … Only default-constructible (plus `WithRequired()` to mark all fields `Required()`). Use for **multiple fields** when you don't need to set initial values.
 - `TestClassWithAttributes<Args...>` — tuple serialized as XML `AttributeValue`s (`"Attribute_0"`, …) for attribute-only archives.
 - `TestClassWithReverseLoad<Args...>` — like `TestClassWithSubTypes` but writes in forward order and loads in reverse order (tests order-agnostic deserialization).
-- `TestClassWithCustomKey<T>` — two `pair` members whose keys come from the value's type (min/max of `T`).
+- `TestClassWithCustomKeyType<T>` — two `pair` members with key type `T` (keys are the min/max values for `T`).
 - `TestClassWithSubArray<T, Size=7>` / `TestClassWithSubTwoDimArray<T, ...>` — wrap a C-array / 2D C-array under one key.
 - `TestClassWithExternalSerialization` — uses a global `SerializeObject()` instead of a member method.
 - `TestClassWithInheritance<TBase>` — tests `BaseObject<TBase>`.

@@ -145,6 +145,21 @@ TEST(JsoncArchive, ShouldSkipMismatchedObjectInArrayWhenPolicyIsSkip)
 	TestMismatchedObjectArrayValue<JsoncArchive>();
 }
 
+TEST(JsoncArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull)
+{
+	TestNullTargetPolicy<JsoncArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(JsoncArchive, SkipValueWhenLoadValueToNull)
+{
+	TestNullTargetPolicy<JsoncArchive>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+TEST(JsoncArchive, IgnoreMissingKeyWhenLoadNull)
+{
+	TestMissingNullTargetKey<JsoncArchive>();
+}
+
 //-----------------------------------------------------------------------------
 // Tests of writing JSONC (comments are not preserved, output is plain JSON)
 //-----------------------------------------------------------------------------

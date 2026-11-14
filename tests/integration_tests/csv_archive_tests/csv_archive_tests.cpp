@@ -114,6 +114,17 @@ TEST_F(CsvArchiveTests, ShouldReturnPathInArrayScopeWhenSaving)
 	}
 }
 
+TEST_F(CsvArchiveTests, ShouldReturnUnopenedObjectScopeWhenNoMoreRows) {
+	SerializationOptions options;
+	SerializationContext context(options);
+	CsvArchive::input_archive_type inputArchive("TestValue\r\n", context);
+
+	auto arrayScope = inputArchive.OpenArrayScope(1);
+	ASSERT_TRUE(arrayScope.IsOpened());
+	auto objectScope = arrayScope.OpenObjectScope(0);
+	EXPECT_FALSE(objectScope.IsOpened());
+}
+
 TEST_F(CsvArchiveTests, ShouldVisitKeysInObjectScopeWhenReadValues)
 {
 	TestVisitKeysInObjectScope<CsvArchive>();
@@ -333,6 +344,10 @@ TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenLoadFloatToInteger) {
 	TestMismatchedTypesPolicy<CsvArchive, double, uint32_t>(MismatchedTypesPolicy::ThrowError);
 }
 
+TEST_F(CsvArchiveTests, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
+	TestNullTargetPolicy<CsvArchive>(MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
@@ -360,6 +375,14 @@ TEST_F(CsvArchiveTests, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<CsvArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST_F(CsvArchiveTests, SkipValueWhenLoadValueToNull) {
+	TestNullTargetPolicy<CsvArchive>(MismatchedTypesPolicy::Skip);
+}
+
+TEST_F(CsvArchiveTests, IgnoreMissingKeyWhenLoadNull) {
+	TestMissingNullTargetKey<CsvArchive>();
 }
 
 //-----------------------------------------------------------------------------
@@ -409,6 +432,34 @@ TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenEncodingError) {
 
 TEST_F(CsvArchiveTests, ShouldSkipInvalidUtfWhenPolicyIsSkip) {
 	TestEncodingPolicy<CsvArchive>(Convert::Utf::UtfEncodingErrorPolicy::Skip);
+}
+
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenInvalidUtfInValueOfStream) {
+	TestClassWithSubType<std::string> source[1] = { TestClassWithSubType<std::string>("\xFE\xFF") };
+	SerializationOptions options;
+	options.utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::ThrowError;
+	options.streamOptions.encoding = Convert::Utf::UtfType::Utf16le;
+	std::ostringstream output;
+
+	const SerializationException ex = GTestExpectException<SerializationException>([&] {
+		SaveObject<CsvArchive>(source, output, options);
+	});
+	EXPECT_EQ(SerializationErrorCode::UtfEncodingError, ex.GetErrorCode());
+}
+
+TEST_F(CsvArchiveTests, ThrowSerializationExceptionWhenInvalidUtfInKeyOfStream) {
+	TestClassWithDynamicKey<int> source[1];
+	source[0].Key = "\xFE\xFF";
+	source[0].Value = 1;
+	SerializationOptions options;
+	options.utfEncodingErrorPolicy = Convert::Utf::UtfEncodingErrorPolicy::ThrowError;
+	options.streamOptions.encoding = Convert::Utf::UtfType::Utf16le;
+	std::ostringstream output;
+
+	const SerializationException ex = GTestExpectException<SerializationException>([&] {
+		SaveObject<CsvArchive>(source, output, options);
+	});
+	EXPECT_EQ(SerializationErrorCode::UtfEncodingError, ex.GetErrorCode());
 }
 
 //-----------------------------------------------------------------------------

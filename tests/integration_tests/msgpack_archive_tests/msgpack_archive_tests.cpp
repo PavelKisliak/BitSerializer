@@ -403,29 +403,29 @@ TEST(MsgPackArchive, SerializeClassWithSkippingFields)
 //-----------------------------------------------------------------------------
 TEST(MsgPackArchive, SerializeClassWithIntAsKey)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int8_t>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int16_t>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int32_t>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<int64_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<int8_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<int16_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<int32_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<int64_t>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithUIntAsKey)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint8_t>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint16_t>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint32_t>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<uint64_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<uint8_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<uint16_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<uint32_t>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<uint64_t>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithFloatAsKey)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<float>>());
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<double>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<float>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<double>>());
 }
 
 TEST(MsgPackArchive, SerializeClassWithTimestampAsKey)
 {
-	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKey<Detail::BinTimestamp>>());
+	TestSerializeType<MsgPackArchive>(BuildFixture<TestClassWithCustomKeyType<Detail::BinTimestamp>>());
 }
 
 //-----------------------------------------------------------------------------
@@ -629,6 +629,10 @@ TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
 	TestMismatchedTypesPolicy<MsgPackArchive, int32_t, TestPointClass>(MismatchedTypesPolicy::ThrowError);
 }
 
+TEST(MsgPackArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
+	TestNullTargetPolicy<MsgPackArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
@@ -655,6 +659,16 @@ TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, bool>(MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, uint32_t>(MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<MsgPackArchive, std::nullptr_t, double>(MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(MsgPackArchive, SkipValueWhenLoadValueToNull)
+{
+	TestNullTargetPolicy<MsgPackArchive>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+TEST(MsgPackArchive, IgnoreMissingKeyWhenLoadNull)
+{
+	TestMissingNullTargetKey<MsgPackArchive>();
 }
 
 TEST(MsgPackArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {

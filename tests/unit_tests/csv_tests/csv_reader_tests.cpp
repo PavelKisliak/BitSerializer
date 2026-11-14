@@ -208,6 +208,66 @@ Value1,Value2,Value3
 	EXPECT_EQ("Value2", actual);
 }
 
+TYPED_TEST(CsvReaderTest, ShouldReturnFalseWhenKeyNotFound)
+{
+	// Arrange
+	const std::string csv = R"(Column1,Column2
+Value1,Value2
+)";
+	this->PrepareCsvReader(csv, true);
+
+	// Act
+	std::string_view actual = "not empty";
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+
+	// Assert
+	EXPECT_FALSE(this->mCsvReader->ReadValue("UnknownColumn", actual));
+	EXPECT_TRUE(actual.empty());
+}
+
+TYPED_TEST(CsvReaderTest, ShouldReturnFalseWhenReadKeyedValueWithoutHeader)
+{
+	// Arrange
+	const std::string csv = "Value1,Value2";
+	this->PrepareCsvReader(csv, false);
+
+	// Act
+	std::string_view actual = "not empty";
+	ASSERT_TRUE(this->mCsvReader->ParseNextRow());
+
+	// Assert
+	EXPECT_FALSE(this->mCsvReader->ReadValue("Column1", actual));
+	EXPECT_EQ("not empty", actual);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldThrowExceptionWhenUnescapedDoubleQuotesInsideValue)
+{
+	// Arrange
+	const std::string csv = R"("a"b"c")";
+	this->PrepareCsvReader(csv, false);
+
+	// Act / Assert
+	EXPECT_THROW(this->mCsvReader->ParseNextRow(), BitSerializer::ParsingException);
+}
+
+TYPED_TEST(CsvReaderTest, ShouldReturnFalseWhenSeekToInvalidHeader)
+{
+	// Arrange
+	const std::string csv = R"(Column1,Column2
+Value1,Value2
+)";
+	this->PrepareCsvReader(csv, true);
+
+	// Act
+	std::string_view header;
+
+	// Assert
+	EXPECT_FALSE(this->mCsvReader->SeekToHeader(2, header));
+
+	this->PrepareCsvReader(csv, false);
+	EXPECT_FALSE(this->mCsvReader->SeekToHeader(0, header));
+}
+
 TYPED_TEST(CsvReaderTest, ShouldParseWithCustomSeparator)
 {
 	// Arrange

@@ -394,6 +394,10 @@ TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
 	TestMismatchedTypesPolicy<YamlArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+TEST(RapidYamlArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
+	TestNullTargetPolicy<YamlArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
@@ -421,6 +425,16 @@ TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<YamlArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidYamlArchive, SkipValueWhenLoadValueToNull)
+{
+	TestNullTargetPolicy<YamlArchive>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+TEST(RapidYamlArchive, IgnoreMissingKeyWhenLoadNull)
+{
+	TestMissingNullTargetKey<YamlArchive>();
 }
 
 TEST(RapidYamlArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {

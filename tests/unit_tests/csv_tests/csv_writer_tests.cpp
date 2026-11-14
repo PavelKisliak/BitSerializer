@@ -29,20 +29,68 @@ TYPED_TEST(CsvWriterTest, ShouldWriteHeaderWithValues)
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 
-TYPED_TEST(CsvWriterTest, ShouldWriteArithmeticValues)
+TYPED_TEST(CsvWriterTest, ShouldWriteSignedIntegerValues)
 {
 	// Arrange
 	this->PrepareCsvReader(true);
 
 	// Act
-	this->mCsvWriter->WriteValue("IntValue", int32_t(-42));
-	this->mCsvWriter->WriteValue("DoubleValue", 3.5);
+	this->mCsvWriter->WriteValue("Int8", int8_t(-8));
+	this->mCsvWriter->WriteValue("Int16", int16_t(-16));
+	this->mCsvWriter->WriteValue("Int32", int32_t(-32));
+	this->mCsvWriter->WriteValue("Int64", int64_t(-64));
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = "Int8,Int16,Int32,Int64\r\n-8,-16,-32,-64\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
+}
+
+TYPED_TEST(CsvWriterTest, ShouldWriteUnsignedIntegerValues)
+{
+	// Arrange
+	this->PrepareCsvReader(true);
+
+	// Act
+	this->mCsvWriter->WriteValue("UInt8", uint8_t(8));
+	this->mCsvWriter->WriteValue("UInt16", uint16_t(16));
+	this->mCsvWriter->WriteValue("UInt32", uint32_t(32));
+	this->mCsvWriter->WriteValue("UInt64", uint64_t(64));
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = "UInt8,UInt16,UInt32,UInt64\r\n8,16,32,64\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
+}
+
+TYPED_TEST(CsvWriterTest, ShouldWriteFloatingPointValues)
+{
+	// Arrange
+	this->PrepareCsvReader(true);
+
+	// Act
+	this->mCsvWriter->WriteValue("Float", 1.5f);
+	this->mCsvWriter->WriteValue("Double", 2.5);
+	this->mCsvWriter->WriteValue("LongDouble", 3.5L);
+	this->mCsvWriter->NextLine();
+
+	// Assert
+	const std::string expectedCsv = "Float,Double,LongDouble\r\n1.5,2.5,3.5\r\n";
+	EXPECT_EQ(expectedCsv, this->GetResult());
+}
+
+TYPED_TEST(CsvWriterTest, ShouldWriteBooleanAndNullValues)
+{
+	// Arrange
+	this->PrepareCsvReader(true);
+
+	// Act
 	this->mCsvWriter->WriteValue("BoolValue", true);
 	this->mCsvWriter->WriteValue("NullValue", nullptr);
 	this->mCsvWriter->NextLine();
 
 	// Assert
-	const std::string expectedCsv = "IntValue,DoubleValue,BoolValue,NullValue\r\n-42,3.5,true,\r\n";
+	const std::string expectedCsv = "BoolValue,NullValue\r\ntrue,\r\n";
 	EXPECT_EQ(expectedCsv, this->GetResult());
 }
 

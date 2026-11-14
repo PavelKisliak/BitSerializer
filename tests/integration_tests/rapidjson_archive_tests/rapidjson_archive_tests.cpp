@@ -673,6 +673,10 @@ TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadIntegerToObject) {
 	TestMismatchedTypesPolicy<JsonArchive, int32_t, TestPointClass>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 }
 
+TEST(RapidJsonArchive, ThrowMismatchedTypesExceptionWhenLoadValueToNull) {
+	TestNullTargetPolicy<JsonArchive>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
 //-----------------------------------------------------------------------------
 // Test MismatchedTypesPolicy::Skip
 //-----------------------------------------------------------------------------
@@ -704,6 +708,16 @@ TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadNullToAnyType) {
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, bool>(BitSerializer::MismatchedTypesPolicy::ThrowError);
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, uint32_t>(BitSerializer::MismatchedTypesPolicy::Skip);
 	TestMismatchedTypesPolicy<JsonArchive, std::nullptr_t, double>(BitSerializer::MismatchedTypesPolicy::ThrowError);
+}
+
+TEST(RapidJsonArchive, SkipValueWhenLoadValueToNull)
+{
+	TestNullTargetPolicy<JsonArchive>(BitSerializer::MismatchedTypesPolicy::Skip);
+}
+
+TEST(RapidJsonArchive, IgnoreMissingKeyWhenLoadNull)
+{
+	TestMissingNullTargetKey<JsonArchive>();
 }
 
 TEST(RapidJsonArchive, ThrowValidationExceptionWhenLoadIntegerToArray) {

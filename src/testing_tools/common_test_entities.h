@@ -6,6 +6,7 @@
 #include <charconv>
 #include <cstddef>
 #include <functional>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <utility>
@@ -201,6 +202,36 @@ private:
 // Deduction guide for constructing `TestClassWithSubType` class
 template<class TValue, class... TKeyValueArgs>
 TestClassWithSubType(TValue, TKeyValueArgs...) -> TestClassWithSubType<TValue, TKeyValueArgs...>;
+
+
+/**
+ * @brief A test class that wraps a single value under a runtime-configurable key.
+ *
+ * Useful when a test needs a specific key name, for example an invalid UTF sequence.
+ *
+ * @tparam T The wrapped value type.
+ */
+template <typename T>
+class TestClassWithDynamicKey
+{
+public:
+	TestClassWithDynamicKey() = default;
+
+	explicit TestClassWithDynamicKey(std::string key, T value = T{})
+		: Key(std::move(key))
+		, Value(std::move(value))
+	{
+	}
+
+	template <class TArchive>
+	void Serialize(TArchive& archive)
+	{
+		archive << BitSerializer::KeyValue(Key, Value);
+	}
+
+	std::string Key = "TestValue";
+	T Value{};
+};
 
 
 /**
@@ -451,22 +482,22 @@ public:
 
 //-----------------------------------------------------------------------------
 template <typename T>
-class TestClassWithCustomKey
+class TestClassWithCustomKeyType
 {
 public:
-	static void BuildFixture(TestClassWithCustomKey& fixture)
+	static void BuildFixture(TestClassWithCustomKeyType& fixture)
 	{
 		::BuildFixture(fixture.minValue.second);
 		::BuildFixture(fixture.maxValue.second);
 	}
 
-	void Assert(const TestClassWithCustomKey& rhs) const
+	void Assert(const TestClassWithCustomKeyType& rhs) const
 	{
 		EXPECT_EQ(minValue.second, rhs.minValue.second);
 		EXPECT_EQ(maxValue.second, rhs.maxValue.second);
 	}
 
-	TestClassWithCustomKey() = default;
+	TestClassWithCustomKeyType() = default;
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)

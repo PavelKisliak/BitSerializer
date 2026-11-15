@@ -23,9 +23,6 @@
 #ifdef JSON_BENCHMARK
 #include "bitserializer/json_archive.h"
 #endif
-#ifdef RAPIDJSON_BENCHMARK
-#include "bitserializer/rapidjson_archive.h"
-#endif
 #ifdef PUGIXML_BENCHMARK
 #include "bitserializer/pugixml_archive.h"
 #endif
@@ -94,11 +91,6 @@ public:
 
 	[[nodiscard]] std::string GetLibraryName() const override
 	{
-#ifdef RAPIDJSON_BENCHMARK
-		if constexpr (std::is_same_v<TArchive, BitSerializer::Json::RapidJson::JsonArchive>) {
-			return "BitSerializer-RapidJson";
-		}
-#endif
 #ifdef PUGIXML_BENCHMARK
 		if constexpr (std::is_same_v<TArchive, BitSerializer::Xml::PugiXml::XmlArchive>) {
 			return "BitSerializer-PugiXml";

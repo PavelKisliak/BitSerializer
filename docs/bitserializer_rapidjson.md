@@ -1,5 +1,8 @@
 ### [BitSerializer](../README.md) / JSON (based on RapidJson)
 
+> [!WARNING]
+> This archive is deprecated. Use the built-in [`BitSerializer::Json::JsonArchive`](bitserializer_json.md) from `bitserializer/json_archive.h` instead. The RapidJSON-based archive remains available during the transition period.
+
 Supported load/save JSON from:
 
 - std::string: UTF-8 (without BOM)
@@ -9,6 +12,26 @@ String input is treated as already-decoded text; use streams for BOM/other encod
 (see [Input and output data types](../README.md#input-and-output-data-types)).
 
 This implementation of JSON archive is based on [RapidJson](https://github.com/Tencent/rapidjson) which is one of fastest libraries for parse **JSON**.
+
+### Migration to the built-in archive
+
+The built-in JSON archive has the same `LoadObject`/`SaveObject` interface, so most user code only needs a different include, namespace and build target:
+
+| RapidJSON-based archive | Built-in archive |
+|---|---|
+| `#include "bitserializer/rapidjson_archive.h"` | `#include "bitserializer/json_archive.h"` |
+| `BitSerializer::Json::RapidJson::JsonArchive` | `BitSerializer::Json::JsonArchive` |
+| `BUILD_RAPIDJSON_ARCHIVE` | `BUILD_JSON_ARCHIVE` |
+| `BitSerializer::rapidjson-archive` | `BitSerializer::json-archive` |
+| CMake component `rapidjson` | CMake component `json` |
+| `raw_type` is a RapidJSON DOM document | `raw_type` is `RawPayload<std::string, ArchiveType::Json>` |
+
+Behavioral differences to consider when migrating:
+
+- The built-in archive implements strict RFC 8259 parsing: trailing content, unescaped control characters and non-standard number forms are rejected.
+- `NaN` and `Infinity` cannot be saved by the built-in archive; saving them throws `SerializationException` with `SerializationErrorCode::OutOfRange`.
+- String input is treated as already-decoded text and must not contain a BOM; use the stream/file overloads for encoded input or BOM handling.
+- Raw payloads are captured as JSON text rather than a mutable DOM. If the previous code inspected or modified the DOM, parse the payload explicitly or model it as regular C++ types.
 
 ### How to install
 This archive is based on the third-party [RapidJson](https://github.com/Tencent/rapidjson) library. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:
@@ -20,6 +43,8 @@ This archive is based on the third-party [RapidJson](https://github.com/Tencent/
 find_package(bitserializer CONFIG REQUIRED COMPONENTS rapidjson)
 target_link_libraries(main PRIVATE BitSerializer::rapidjson-archive)
 ```
+
+Legacy package-manager options remain available during the transition period: enable `rapidjson-archive` in VCPKG or set `with_rapidjson=True` in Conan.
 
 ### Implementation detail
 The JSON specification allows storing not only objects and arrays in the root, but also more primitive types such as string, number, and boolean.

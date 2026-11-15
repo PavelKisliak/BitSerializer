@@ -24,8 +24,11 @@ include(CMakePackageConfigHelpers)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 message(STATUS "[Option] BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 
-option(BUILD_RAPIDJSON_ARCHIVE "Build RapidJson archive" OFF)
+option(BUILD_RAPIDJSON_ARCHIVE "Build deprecated RapidJSON archive (use BUILD_JSON_ARCHIVE instead)" OFF)
 message(STATUS "[Option] BUILD_RAPIDJSON_ARCHIVE: ${BUILD_RAPIDJSON_ARCHIVE}")
+if(BUILD_RAPIDJSON_ARCHIVE)
+    message(STATUS "[deprecated] BUILD_RAPIDJSON_ARCHIVE is deprecated; use BUILD_JSON_ARCHIVE and bitserializer/json_archive.h instead")
+endif()
 
 option(BUILD_PUGIXML_ARCHIVE "Build PugiXml archive" OFF)
 message(STATUS "[Option] BUILD_PUGIXML_ARCHIVE: ${BUILD_PUGIXML_ARCHIVE}")

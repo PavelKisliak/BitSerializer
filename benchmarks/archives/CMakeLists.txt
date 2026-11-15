@@ -6,6 +6,7 @@ endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(RapidJSON CONFIG QUIET)
 
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -35,7 +36,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    $<$<BOOL:${BUILD_RAPIDJSON_ARCHIVE}>:"RAPIDJSON_BENCHMARK">
     $<$<BOOL:${BUILD_PUGIXML_ARCHIVE}>:"PUGIXML_BENCHMARK">
     $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:"RAPIDYAML_BENCHMARK">
     $<$<BOOL:${BUILD_CSV_ARCHIVE}>:"CSV_BENCHMARK">
@@ -46,13 +46,19 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     bench_harness
     testing_tools
-    $<$<BOOL:${BUILD_RAPIDJSON_ARCHIVE}>:BitSerializer::rapidjson-archive>
     $<$<BOOL:${BUILD_PUGIXML_ARCHIVE}>:BitSerializer::pugixml-archive>
     $<$<BOOL:${BUILD_RAPIDYAML_ARCHIVE}>:BitSerializer::rapidyaml-archive>
     $<$<BOOL:${BUILD_CSV_ARCHIVE}>:BitSerializer::csv-archive>
     $<$<BOOL:${BUILD_MSGPACK_ARCHIVE}>:BitSerializer::msgpack-archive>
     $<$<BOOL:${BUILD_JSON_ARCHIVE}>:BitSerializer::json-archive>
 )
+
+# RapidJSON is kept only as a native competitor; the deprecated BitSerializer
+# RapidJSON archive is intentionally not benchmarked anymore.
+if(RapidJSON_FOUND)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE RAPIDJSON_COMPETITOR)
+    target_link_libraries(${PROJECT_NAME} PRIVATE rapidjson)
+endif()
 
 # Stabilize results against build-to-build code-layout shifts.
 #

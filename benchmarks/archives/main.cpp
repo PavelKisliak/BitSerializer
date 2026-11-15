@@ -22,7 +22,7 @@
 #include "benchmark_cli.h"
 #include "benchmark_base.h"
 #include "competitors/bitserializer_benchmark.h"
-#ifdef RAPIDJSON_BENCHMARK
+#ifdef RAPIDJSON_COMPETITOR
 #include "competitors/rapidjson_benchmark.h"
 #endif
 #ifdef PUGIXML_BENCHMARK
@@ -66,8 +66,7 @@ namespace
 #ifdef MSGPACK_BENCHMARK
 		entries.push_back({ "bs-msgpack", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive>>(); } });
 #endif
-#ifdef RAPIDJSON_BENCHMARK
-		entries.push_back({ "bs-rapidjson", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Json::RapidJson::JsonArchive>>(); } });
+#ifdef RAPIDJSON_COMPETITOR
 		entries.push_back({ "rapidjson", [] { return std::make_unique<RapidJsonBenchmark>(); } });
 #endif
 #ifdef PUGIXML_BENCHMARK

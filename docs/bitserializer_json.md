@@ -10,24 +10,24 @@ Supported load/save JSON from:
 
 String input is treated as already-decoded text; use streams for BOM/other encodings (see [Input and output data types](../README.md#input-and-output-data-types)).
 
-This is the self-contained built-in JSON archive implementation. It offers the same functionality as the RapidJSON-based archive and is faster, especially for stream output. Optional fast_float acceleration is used automatically when the `FastFloat` package is available; prebuilt packages bundle its headers and enable it automatically.
+This is the self-contained built-in JSON archive implementation. It replaces the deprecated RapidJSON-based archive and is faster, especially for stream output. Optional fast_float acceleration is used automatically when the `FastFloat` package is available; prebuilt packages bundle its headers and enable it automatically.
 
 ### Performance
 
-The table below compares `BitSerializer::Json::JsonArchive` with the RapidJSON-based `BitSerializer::Json::RapidJson::JsonArchive` on the archive benchmark model. Values are relative throughput ratios; higher is better.
+The table below compares `BitSerializer::Json::JsonArchive` with the raw RapidJSON API on the archive benchmark model. Values are relative throughput ratios; higher is better. The deprecated RapidJSON-based archive is no longer part of the default benchmark.
 
 | Operation | MSVC | clang-cl |
 |-----------|-----:|---------:|
-| Save to memory | ~3.1x | ~3.0x |
-| Load from memory | ~2.2x | ~2.5x |
-| Save to `std::ostream` | ~15x | ~17x |
-| Load from `std::istream` | ~4.6x | ~3.9x |
+| Save to memory | ~2.8x | ~2.5x |
+| Load from memory | ~2.1x | ~2.7x |
+| Save to `std::ostream` | ~14x | ~17x |
+| Load from `std::istream` | ~4.3x | ~3.7x |
 
 Load ratios assume the built-in archive is built with fast_float (the default in this repository and in prebuilt packages). Without fast_float, expect roughly `~1.7-1.9x` for memory loading and `~3.1-3.6x` for stream loading.
 
 The large stream-output difference is expected: the built-in archive writes directly to the output and does not build a DOM before serialization.
 
-These are representative results from `benchmarks/archives` (Release builds, default 30-second stages); exact numbers depend on the compiler, machine and workload. The benchmark also compares both archives with the raw RapidJSON API, which gives similar relative results.
+These are representative results from `benchmarks/archives` (Release builds, default 30-second stages); exact numbers depend on the compiler, machine and workload. The pre-deprecation comparison against `BitSerializer::Json::RapidJson::JsonArchive` was approximately `~3.0x` / `~3.0x` for memory saving, `~2.2x` / `~2.5x` for memory loading, `~15x` / `~17x` for stream saving and `~4.6x` / `~3.9x` for stream loading (MSVC / clang-cl).
 
 ### How to install
 This archive is built-in and does not require any external dependencies. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:

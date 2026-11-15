@@ -844,11 +844,19 @@ private:
  * Supports load/save from:
  * - `std::string`: UTF-8
  * - `std::istream`, `std::ostream`: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE
+ *
+ * @deprecated Use `BitSerializer::Json::JsonArchive` from `bitserializer/json_archive.h` instead.
  */
-using JsonArchive = ArchiveBase<
+#if defined(BITSERIALIZER_DISABLE_RAPIDJSON_DEPRECATION)
+#define BITSERIALIZER_RAPIDJSON_DEPRECATED
+#else
+#define BITSERIALIZER_RAPIDJSON_DEPRECATED [[deprecated("Use BitSerializer::Json::JsonArchive from bitserializer/json_archive.h instead")]]
+#endif
+using JsonArchive BITSERIALIZER_RAPIDJSON_DEPRECATED = ArchiveBase<
 	Detail::RapidJsonArchiveTraits<>,
 	Detail::RapidJsonRootScope<SerializeMode::Load>,
 	Detail::RapidJsonRootScope<SerializeMode::Save>>;
+#undef BITSERIALIZER_RAPIDJSON_DEPRECATED
 
 /**
  * @brief Represents an opaque JSON subtree for efficient pass-through handling.

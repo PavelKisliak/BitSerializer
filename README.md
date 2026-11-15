@@ -28,7 +28,7 @@
 | JSON/JSONC | Built-in | UTF8-32 (LE/BE) | ✅ | ✅ | ✅ |
 | MsgPack | Built-in | Binary | N/A | ✅ | ✅ |
 | CSV | Built-in | UTF8-32 (LE/BE) | N/A | ❌ | ✅ |
-| JSON | [RapidJSON](https://github.com/Tencent/rapidjson) | UTF8-32 (LE/BE) | ✅ | ✅ | ❌ |
+| JSON (deprecated) | [RapidJSON](https://github.com/Tencent/rapidjson) | UTF8-32 (LE/BE) | ✅ | ✅ | ❌ |
 | XML | [PugiXml](https://github.com/zeux/pugixml) | UTF8-32 (LE/BE) | ✅ | ❌ | ❌ |
 | YAML | [RapidYAML](https://github.com/biojppm/rapidyaml) | UTF-8 | N/A | ❌ | ❌ |
 
@@ -36,10 +36,10 @@ Legend: ✅ supported · ❌ not supported · N/A — not applicable to the form
 
 Streaming: incremental processing in chunks with bounded memory usage, so documents larger than available RAM can be loaded from streams. All archives support I/O via `std::stream`, but DOM-based archives (RapidJSON, PugiXml, RapidYAML) keep the whole document in memory.
 
-> [!IMPORTANT]
-> The next release will deprecate the RapidJSON-based JSON archive in favor of the new built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which is self-contained, with optional fast_float acceleration for faster floating-point parsing. The built-in implementation is about 3x faster for saving to memory and, with fast_float enabled (the default for this repository and prebuilt packages), roughly 2.2-2.5x faster for loading from memory; without fast_float it is about 1.7-2x faster. Stream I/O is substantially faster in both cases, while offering the same functionality.
+> [!WARNING]
+> The RapidJSON-based JSON archive is deprecated in favor of the built-in implementation (`BitSerializer::Json::JsonArchive`, see `bitserializer/json_archive.h`), which is self-contained, with optional fast_float acceleration for faster floating-point parsing. The built-in implementation is about 3x faster for saving to memory and, with fast_float enabled (the default for this repository and prebuilt packages), roughly 2.2-2.5x faster for loading from memory; without fast_float it is about 1.7-2x faster. Stream I/O is substantially faster in both cases, while offering the same functionality.
 >
-> Your help with testing the built-in implementation before the switch would be much appreciated — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
+> The deprecated archive remains available during the transition period — please report any issues at [BitSerializer issues](https://github.com/PavelKisliak/BitSerializer/issues).
 
 ### Requirements:
  - C++ 17 (VS 2019, GCC-8, CLang-8, AppleCLang-12, Clang-cl¹).
@@ -215,7 +215,7 @@ The CSV format is the most compact among all tested formats, making it an excell
 For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
 
 ### How to install
-Some archives (JSON via RapidJSON, XML and YAML) require third-party libraries, while the built-in JSON, CSV and MsgPack archives are self-contained (optional fast_float acceleration can be enabled). You can install only the ones which you need.
+XML and YAML require third-party libraries, while the built-in JSON, CSV and MsgPack archives are self-contained (optional fast_float acceleration can be enabled). You can install only the ones which you need.
 The easiest way is to use one of supported package managers, in this case, third-party libraries will be installed automatically.
 Please follow [instructions](#what-else-to-read) for specific archives.
 
@@ -226,7 +226,7 @@ Just add BitSerializer to manifest file (`vcpkg.json`) in your project:
     "dependencies": [
         {
             "name": "bitserializer",
-            "features": [ "rapidjson-archive", "pugixml-archive", "rapidyaml-archive", "csv-archive", "msgpack-archive" ]
+            "features": [ "pugixml-archive", "rapidyaml-archive", "csv-archive", "msgpack-archive" ]
         }
     ]
 }
@@ -237,7 +237,7 @@ Enumerate features which you need, by default all are disabled. Use like as usua
 
 Alternatively, you can install the library via the command line:
 ```shell
-> vcpkg install bitserializer[rapidjson-archive,pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
+> vcpkg install bitserializer[pugixml-archive,rapidyaml-archive,csv-archive,msgpack-archive]
 ```
 In the square brackets enumerated all available formats, install only which you need.
 
@@ -248,7 +248,6 @@ The recipe of BitSerializer is available on [Conan-center](https://github.com/co
 bitserializer/x.xx
 
 [options]
-bitserializer/*:with_rapidjson=True
 bitserializer/*:with_pugixml=True
 bitserializer/*:with_rapidyaml=True
 bitserializer/*:with_csv=True
@@ -288,7 +287,7 @@ cc_binary(
 
 Every dependency is namespaced by the module repository (`@bitserializer`), so target names such as `json_archive` or `csv_archive` do not collide with other libraries.
 
-Available targets: `@bitserializer//:core`, `@bitserializer//:json_archive`, `@bitserializer//:csv_archive`, `@bitserializer//:msgpack_archive`, `@bitserializer//:pugixml_archive` and `@bitserializer//:rapidyaml_archive`. The deprecated RapidJSON-based archive is intentionally not exposed.
+Available targets: `@bitserializer//:core`, `@bitserializer//:json_archive`, `@bitserializer//:csv_archive`, `@bitserializer//:msgpack_archive`, `@bitserializer//:pugixml_archive` and `@bitserializer//:rapidyaml_archive`.
 
 If the required version is not available in your Bazel registry yet (or you want to track an unreleased commit), point the dependency at the repository with `git_override`:
 
@@ -305,12 +304,12 @@ git_override(
 ```sh
 $ git clone https://github.com/PavelKisliak/BitSerializer.git
 $ # Enable only archives which you need (by default all are disabled)
-$ cmake bitserializer -B bitserializer/build -DBUILD_RAPIDJSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
+$ cmake bitserializer -B bitserializer/build -DBUILD_JSON_ARCHIVE=ON -DBUILD_PUGIXML_ARCHIVE=ON -DBUILD_RAPIDYAML_ARCHIVE=ON -DBUILD_CSV_ARCHIVE=ON -DBUILD_MSGPACK_ARCHIVE=ON
 $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
 By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
-You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `rapidjson-dev` and `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
+You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
 
 > [!IMPORTANT]
 > Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
@@ -319,10 +318,10 @@ You will also need to install dev-packages of base libraries (CSV and MsgPack ar
 ```cmake
 # Built-in archives require no components. Third-party archives are enabled explicitly.
 find_package(bitserializer CONFIG REQUIRED
-    COMPONENTS rapidjson pugixml rapidyaml)
+    COMPONENTS pugixml rapidyaml)
 # Link only archives which you need
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    BitSerializer::rapidjson-archive
+    BitSerializer::json-archive
     BitSerializer::pugixml-archive
     BitSerializer::rapidyaml-archive
     BitSerializer::csv-archive
@@ -343,8 +342,7 @@ FetchContent_Declare(bitserializer
 set(BUILD_JSON_ARCHIVE    ON CACHE BOOL "" FORCE)
 set(BUILD_CSV_ARCHIVE     ON CACHE BOOL "" FORCE)
 set(BUILD_MSGPACK_ARCHIVE ON CACHE BOOL "" FORCE)
-# Third-party archives (JSON via RapidJSON, XML, YAML) are also available:
-# set(BUILD_RAPIDJSON_ARCHIVE ON CACHE BOOL "" FORCE)
+# Third-party archives (XML, YAML) are also available:
 # set(BUILD_PUGIXML_ARCHIVE   ON CACHE BOOL "" FORCE)
 # set(BUILD_RAPIDYAML_ARCHIVE ON CACHE BOOL "" FORCE)
 # Keep the fetched dependency lean
@@ -360,7 +358,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BitSerializer::msgpack-archive)
 ```
 
-The built-in archives (JSON, CSV, MsgPack) are self-contained (optional fast_float acceleration is auto-detected) and are the simplest option for `FetchContent`. Archives based on third-party libraries (`RapidJSON`, `PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
+The built-in archives (JSON, CSV, MsgPack) are self-contained (optional fast_float acceleration is auto-detected) and are the simplest option for `FetchContent`. Archives based on third-party libraries (`PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
 
 > [!NOTE]
 > Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available on `master`; if it is not yet available via your package manager, use `GIT_TAG master` or a prebuilt package.
@@ -382,17 +380,17 @@ The built-in archives (JSON, CSV, MsgPack) are self-contained (optional fast_flo
 > ```
 > The downloaded sources are cached in `${CMAKE_BINARY_DIR}/_deps` and reused on subsequent configures.
 
-If you prefer not to build the library at all, the [GitHub Releases](https://github.com/PavelKisliak/BitSerializer/releases) page provides prebuilt packages for some platforms and compilers. Each package contains headers, the `share/bitserializer` CMake config, and libraries for all archives, but **not** their third-party dependencies (RapidJSON, PugiXml, RapidYAML) — you still need to install those yourself if you use the corresponding archives. Unpack the package and point `find_package()` at its `share/bitserializer` directory:
+If you prefer not to build the library at all, the [GitHub Releases](https://github.com/PavelKisliak/BitSerializer/releases) page provides prebuilt packages for some platforms and compilers. Each package contains headers, the `share/bitserializer` CMake config, and libraries for all archives, but **not** their third-party dependencies (PugiXml, RapidYAML) — you still need to install those yourself if you use the corresponding archives. Unpack the package and point `find_package()` at its `share/bitserializer` directory:
 ```cmake
 # By default only the core package is required.
-# Add COMPONENTS rapidjson pugixml rapidyaml (or any subset) for third-party archives.
+# Add COMPONENTS pugixml rapidyaml (or any subset) for third-party archives.
 find_package(bitserializer CONFIG REQUIRED
     PATHS ${CMAKE_CURRENT_SOURCE_DIR}/libs/bitserializer/share/bitserializer
     NO_DEFAULT_PATH)
 ```
 
 > [!NOTE]
-> Prebuilt packages embed fast_float (MIT) and bundle its headers under `include/bitserializer/third_party/fast_float`, so a separate FastFloat package is not required; its notice is installed as `share/doc/bitserializer/fast_float.txt`. RapidJSON, PugiXml and RapidYAML are not bundled and remain optional external dependencies with their own licenses.
+> Prebuilt packages embed fast_float (MIT) and bundle its headers under `include/bitserializer/third_party/fast_float`, so a separate FastFloat package is not required; its notice is installed as `share/doc/bitserializer/fast_float.txt`. PugiXml and RapidYAML are not bundled and remain optional external dependencies with their own licenses.
 
 Each package contains both Debug and Release libraries; Windows packages also include PDB files for Debug builds. Debug libraries require the matching Debug runtime/toolset.
 
@@ -1751,7 +1749,7 @@ Further resources and acknowledgements.
 ### What else to read
 Each of the supported archives has its own page with details (features, samples, etc.):
 - [JSON archive "bitserializer-json"](docs/bitserializer_json.md) (built-in)
-- [JSON archive "bitserializer-rapidjson"](docs/bitserializer_rapidjson.md)
+- [JSON archive "bitserializer-rapidjson" (deprecated)](docs/bitserializer_rapidjson.md)
 - [XML archive "bitserializer-pugixml"](docs/bitserializer_pugixml.md)
 - [YAML archive "bitserializer-rapidyaml"](docs/bitserializer_rapidyaml.md)
 - [CSV archive "bitserializer-csv"](docs/bitserializer_csv.md)

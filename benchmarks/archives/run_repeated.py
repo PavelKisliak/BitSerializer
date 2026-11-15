@@ -40,13 +40,12 @@ LIBRARY_ORDER = {
     "BitSerializer-Jsonc": 1,
     "BitSerializer-Csv": 2,
     "BitSerializer-MsgPack": 3,
-    "BitSerializer-RapidJson": 4,
-    "RapidJson": 5,
-    "BitSerializer-PugiXml": 6,
-    "PugiXml": 7,
-    "BitSerializer-RapidYaml": 8,
-    "RapidYaml": 9,
-    "NlohmannJson-MsgPack": 10,
+    "RapidJson": 4,
+    "BitSerializer-PugiXml": 5,
+    "PugiXml": 6,
+    "BitSerializer-RapidYaml": 7,
+    "RapidYaml": 8,
+    "NlohmannJson-MsgPack": 9,
 }
 
 

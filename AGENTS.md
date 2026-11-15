@@ -17,7 +17,7 @@ Key design principles:
 | Archive | Header | Namespace | Backing library | CMake option |
 |---------|--------|-----------|-----------------|--------------|
 | JSON/JSONC (built-in) | `json_archive.h` | `BitSerializer::Json` | Built-in | `BUILD_JSON_ARCHIVE` |
-| JSON (RapidJSON) | `rapidjson_archive.h` | `BitSerializer::Json::RapidJson` | RapidJSON | `BUILD_RAPIDJSON_ARCHIVE` |
+| JSON (RapidJSON, deprecated) | `rapidjson_archive.h` | `BitSerializer::Json::RapidJson` | RapidJSON | `BUILD_RAPIDJSON_ARCHIVE` |
 | XML | `pugixml_archive.h` | `BitSerializer::Xml::PugiXml` | PugiXml | `BUILD_PUGIXML_ARCHIVE` |
 | YAML | `rapidyaml_archive.h` | `BitSerializer::Yaml::RapidYaml` | RapidYAML | `BUILD_RAPIDYAML_ARCHIVE` |
 | CSV | `csv_archive.h` | `BitSerializer::Csv` | Built-in | `BUILD_CSV_ARCHIVE` |
@@ -126,7 +126,7 @@ All archive options are **OFF by default** — you must explicitly enable what y
 | `BUILD_JSON_ARCHIVE` | OFF | Built-in JSON archive (no external dependency) |
 | `BUILD_CSV_ARCHIVE` | OFF | Built-in CSV archive (no external dependency) |
 | `BUILD_MSGPACK_ARCHIVE` | OFF | Built-in MsgPack archive (no external dependency) |
-| `BUILD_RAPIDJSON_ARCHIVE` | OFF | JSON archive via RapidJSON |
+| `BUILD_RAPIDJSON_ARCHIVE` | OFF | Deprecated JSON archive via RapidJSON (use `BUILD_JSON_ARCHIVE`) |
 | `BUILD_PUGIXML_ARCHIVE` | OFF | XML archive via PugiXml |
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | YAML archive via RapidYAML |
 | `BUILD_SHARED_LIBS` | OFF | Build as shared/DLL library |

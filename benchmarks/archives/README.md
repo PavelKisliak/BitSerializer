@@ -40,7 +40,6 @@ Run `--list` to see what is compiled in the current binary.
 | `bs-jsonc` | `BitSerializer-Jsonc` |
 | `bs-csv` | `BitSerializer-Csv` |
 | `bs-msgpack` | `BitSerializer-MsgPack` |
-| `bs-rapidjson` | `BitSerializer-RapidJson` |
 | `bs-pugixml` | `BitSerializer-PugiXml` |
 | `bs-rapidyaml` | `BitSerializer-RapidYaml` |
 | `rapidjson` | `RapidJson` |
@@ -69,7 +68,7 @@ Keys are case-insensitive and can be separated by commas or spaces.
 archives_benchmarks --list
 archives_benchmarks --bench bs-json --stages save,load --stage-time 10
 archives_benchmarks --bench bitserializer --stage-time 60
-archives_benchmarks --bench bs-rapidjson,rapidjson --stages load-memory --warmup 0
+archives_benchmarks --bench bs-json,rapidjson --stages load-memory --warmup 0
 archives_benchmarks --bench all --no-report
 ```
 

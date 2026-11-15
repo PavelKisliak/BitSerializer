@@ -295,7 +295,7 @@ Preflight job.
 | `BUILD_JSON_ARCHIVE` | OFF | Built-in JSON archive (no external dependency) |
 | `BUILD_CSV_ARCHIVE` | OFF | Built-in CSV archive (no external dependency) |
 | `BUILD_MSGPACK_ARCHIVE` | OFF | Built-in MsgPack archive (no external dependency) |
-| `BUILD_RAPIDJSON_ARCHIVE` | OFF | JSON archive via RapidJSON |
+| `BUILD_RAPIDJSON_ARCHIVE` | OFF | Deprecated JSON archive via RapidJSON (use `BUILD_JSON_ARCHIVE`) |
 | `BUILD_PUGIXML_ARCHIVE` | OFF | XML archive via PugiXml |
 | `BUILD_RAPIDYAML_ARCHIVE` | OFF | YAML archive via RapidYAML |
 | `BUILD_SHARED_LIBS` | OFF | Build as shared/DLL library |

@@ -143,7 +143,7 @@ namespace BenchmarkCli
 			<< "Selection:\n"
 			<< "  --bench <list>       Benchmarks (default: all):\n"
 			<< "                       bs-json, bs-jsonc, bs-csv, bs-msgpack,\n"
-			<< "                       bs-rapidjson, bs-pugixml, bs-rapidyaml,\n"
+			<< "                       bs-pugixml, bs-rapidyaml,\n"
 			<< "                       rapidjson, pugixml, rapidyaml, nlohmann-msgpack\n"
 			<< "                       meta: bitserializer, competitors, all\n"
 			<< "  --stages <list>      Stages (default: all):\n"

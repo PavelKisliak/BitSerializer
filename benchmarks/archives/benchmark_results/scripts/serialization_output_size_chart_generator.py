@@ -47,7 +47,13 @@ def generate_horizontal_bar_chart(json_file, output_file):
     plt.rcParams['font.size'] = 10
 
     # Set up the horizontal bar chart
-    y = range(num_groups)  # Y-axis positions for the groups
+    bar_height = 0.15
+    group_gap = 0.3
+    y_positions = []
+    cursor = 0.0
+    for _ in sorted_groups:
+        y_positions.append(cursor + bar_height / 2)
+        cursor += bar_height + group_gap
 
     # Create the figure and axis with a dark theme
     fig, ax = plt.subplots(figsize=(12, fig_height))
@@ -59,7 +65,7 @@ def generate_horizontal_bar_chart(json_file, output_file):
 
     # Create the horizontal bars with visible borders
     bars = ax.barh(
-        y, sizes, height=0.3,
+        y_positions, sizes, height=bar_height,
         color=[colors[i % len(colors)] for i in range(num_groups)],
         edgecolor='#3d444d', linewidth=0.5
     )
@@ -72,7 +78,7 @@ def generate_horizontal_bar_chart(json_file, output_file):
     ax.set_xlabel('Size of serialized data (bytes)', fontsize=10, color='white')
 
     # Display group names
-    ax.set_yticks(y)
+    ax.set_yticks(y_positions)
     ax.set_yticklabels(
         sorted_groups, fontsize=11, color='white', fontweight='normal'
     )

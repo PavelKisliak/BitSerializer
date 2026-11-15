@@ -24,7 +24,7 @@ In Release mode, each archive and stage runs for **30 seconds** to produce repea
 ### Benchmark details
 
 - Pins the process to a single CPU core and sets maximum priority to minimize fluctuations
-- Compares BitSerializer archives against raw usage of underlying libraries (RapidJSON, PugiXml, RapidYAML, nlohmann-json)
+- Compares BitSerializer archives against third-party libraries and native competitors (RapidJSON, PugiXml, RapidYAML, msgpack-cxx)
 - Measures serialization speed (fields/ms) for save and load operations
 - Uses a representative flat model (5 numeric and 5 string fields); see [Test model](../../benchmarks/archives/README.md#test-model) for the intent and balance
 - Reports are saved as JSON files in `benchmark_results/` directory (requires the built-in JSON archive, `BUILD_JSON_ARCHIVE=ON`)

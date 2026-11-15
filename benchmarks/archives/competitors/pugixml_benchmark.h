@@ -21,6 +21,11 @@ public:
 		return "PugiXml";
 	}
 
+	[[nodiscard]] std::string GetLibraryVersion() const override
+	{
+		return FormatVersion(PUGIXML_VERSION / 1000, (PUGIXML_VERSION / 10) % 100, PUGIXML_VERSION % 10);
+	}
+
 protected:
 	void SaveToXmlDocument(const CommonTestModel& sourceTestModel, pugi::xml_document& xmlDoc)	// NOLINT(readability-convert-member-functions-to-static)
 	{

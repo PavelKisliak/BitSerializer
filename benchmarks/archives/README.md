@@ -1,6 +1,6 @@
 # Archives benchmark
 
-Round-trip serialization benchmark for BitSerializer archives and competing libraries (RapidJSON, PugiXml, RapidYAML, nlohmann-json). It measures Save/Load to memory and to `std::iostream` and writes JSON reports.
+Round-trip serialization benchmark for BitSerializer archives and competing libraries (RapidJSON, PugiXml, RapidYAML, msgpack-cxx). It measures Save/Load to memory and to `std::iostream` and writes JSON reports.
 
 ## Build
 
@@ -12,6 +12,8 @@ ninja -C build archives_benchmarks
 ```
 
 Enable the archives you want via `BUILD_*_ARCHIVE` options. Reports are written through the **built-in JSON archive**, so `BUILD_JSON_ARCHIVE=ON` is required for them (the benchmark itself works without it and prints a warning when reports are requested).
+
+Competitor benchmarks require RapidJSON and msgpack-cxx; both are provided by the repository `vcpkg.json`.
 
 ## Command line
 
@@ -45,7 +47,7 @@ Run `--list` to see what is compiled in the current binary.
 | `rapidjson` | `RapidJson` |
 | `pugixml` | `PugiXml` |
 | `rapidyaml` | `RapidYaml` |
-| `nlohmann-msgpack` | `NlohmannJson-MsgPack` |
+| `msgpack-cxx` | `msgpack-cxx` |
 
 Meta keys: `bitserializer` (all `bs-*`), `competitors` (all external libraries), `all` (everything compiled in).
 
@@ -81,7 +83,7 @@ The benchmark serializes an array of 30 `BasicTestModel` records (10 fields each
 
 The values are deliberately ordinary. The `id`/`stock` pair covers short and long number formatting, and the strings cover plain and escaped text (including a long key). The model represents a typical record, not a conformance or edge-case suite: max values, NaN/Inf, empty strings and nested objects are intentionally out of scope — for isolated type coverage use the models in [`benchmarks/microbenchmarks/benchmark_models.h`](../microbenchmarks/benchmark_models.h).
 
-Keys have a deliberate short/medium/long mix: `id` (2), `name` and `note` (4), `stock` and `price` (5), `active` and `rating` (6), `localizedName` (13), `specifications` (14), and `detailedProductDescription` (26). The long key exceeds the common `std::string` SSO buffer (15 characters on MSVC/libstdc++, 22 on libc++), so it exercises the heap path where keys are copied (for example, nlohmann-json) and affects output size and key lookup in the other writers; most serializers use the literal key directly.
+Keys have a deliberate short/medium/long mix: `id` (2), `name` and `note` (4), `stock` and `price` (5), `active` and `rating` (6), `localizedName` (13), `specifications` (14), and `detailedProductDescription` (26). The long key exceeds the common `std::string` SSO buffer (15 characters on MSVC/libstdc++, 22 on libc++), so it exercises the heap path where keys are copied (for example, DOM-based libraries) and affects output size and key lookup in the other writers; most serializers use the literal key directly.
 
 All competitors serialize the same fields. Changing the model changes the output size, speed and the published baseline; `BasicTestModel::GetTotalFieldsCount()` must be updated together with the fields.
 
@@ -97,6 +99,8 @@ Reports are written to `--output` (default `benchmark_results`):
 
 - `serialization_speed_report.json` — fields per millisecond for each library and stage;
 - `serialization_output_size_report.json` — serialized size for each library.
+
+Report labels for third-party libraries include the tested version (for example, `RapidJson 1.1.0`); BitSerializer archive names stay unversioned. The output-size report excludes the base libraries and `BitSerializer-Jsonc`, because JSONC emits plain JSON and its size is identical to `BitSerializer-Json`.
 
 If the built-in JSON archive is not enabled, a warning is printed and no reports are written.
 

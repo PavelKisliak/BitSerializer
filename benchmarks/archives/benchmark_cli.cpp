@@ -144,7 +144,7 @@ namespace BenchmarkCli
 			<< "  --bench <list>       Benchmarks (default: all):\n"
 			<< "                       bs-json, bs-jsonc, bs-csv, bs-msgpack,\n"
 			<< "                       bs-pugixml, bs-rapidyaml,\n"
-			<< "                       rapidjson, pugixml, rapidyaml, nlohmann-msgpack\n"
+			<< "                       rapidjson, pugixml, rapidyaml, msgpack-cxx\n"
 			<< "                       meta: bitserializer, competitors, all\n"
 			<< "  --stages <list>      Stages (default: all):\n"
 			<< "                       save-memory, load-memory, save-stream, load-stream\n"

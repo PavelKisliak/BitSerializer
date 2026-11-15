@@ -22,6 +22,11 @@ public:
 		return "RapidYaml";
 	}
 
+	[[nodiscard]] std::string GetLibraryVersion() const override
+	{
+		return RYML_VERSION;
+	}
+
 	[[nodiscard]] std::vector<TestStage> GetStagesList() const override
 	{
 		// Exclude serialization tests to streams (not supported by RapidYaml)

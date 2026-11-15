@@ -45,12 +45,15 @@ LIBRARY_ORDER = {
     "PugiXml": 6,
     "BitSerializer-RapidYaml": 7,
     "RapidYaml": 8,
-    "NlohmannJson-MsgPack": 9,
+    "msgpack-cxx": 9,
 }
 
 
 def library_sort_key(library: str) -> tuple[int, str]:
-    return LIBRARY_ORDER.get(library, len(LIBRARY_ORDER)), library
+    for known, order in LIBRARY_ORDER.items():
+        if library == known or library.startswith(known + " "):
+            return order, library
+    return len(LIBRARY_ORDER), library
 
 
 def find_executable(explicit: str | None) -> Path:

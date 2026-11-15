@@ -1,7 +1,7 @@
 {
-	"BitSerializer-RapidJson": 14671,
-	"BitSerializer-MsgPack": 12783,
-	"BitSerializer-Csv": 8950,
-	"BitSerializer-PugiXml": 19476,
-	"BitSerializer-RapidYaml": 15330
+  "BitSerializer-Json": 12481,
+  "BitSerializer-Csv": 8886,
+  "BitSerializer-MsgPack": 10863,
+  "BitSerializer-PugiXml": 15636,
+  "BitSerializer-RapidYaml": 13290
 }

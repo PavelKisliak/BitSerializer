@@ -1,12 +1,12 @@
 project(archives_benchmarks)
 
 if (NOT DEFINED CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 23)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(RapidJSON CONFIG QUIET)
+find_package(msgpack-cxx CONFIG REQUIRED)
+find_package(RapidJSON CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -19,7 +19,7 @@ add_executable(${PROJECT_NAME}
     competitors/rapidjson_benchmark.h
     competitors/pugixml_benchmark.h
     competitors/rapidyaml_benchmark.h
-    competitors/nlohmannjson_benchmark.h
+    competitors/msgpack_cxx_benchmark.h
 )
 
 # Copy the repeated-run helper next to the executable, so it can find the benchmark in the current directory.
@@ -30,8 +30,6 @@ add_custom_command(
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
     COMMENT "Copying run_repeated.py to the benchmark output directory"
 )
-
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
@@ -53,12 +51,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     $<$<BOOL:${BUILD_JSON_ARCHIVE}>:BitSerializer::json-archive>
 )
 
-# RapidJSON is kept only as a native competitor; the deprecated BitSerializer
-# RapidJSON archive is intentionally not benchmarked anymore.
-if(RapidJSON_FOUND)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE RAPIDJSON_COMPETITOR)
-    target_link_libraries(${PROJECT_NAME} PRIVATE rapidjson)
-endif()
+# Native competitors only: the deprecated BitSerializer RapidJSON archive is intentionally not benchmarked anymore.
+target_link_libraries(${PROJECT_NAME} PRIVATE msgpack-cxx rapidjson)
 
 # Stabilize results against build-to-build code-layout shifts.
 #

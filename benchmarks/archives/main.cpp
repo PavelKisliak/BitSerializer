@@ -22,16 +22,14 @@
 #include "benchmark_cli.h"
 #include "benchmark_base.h"
 #include "competitors/bitserializer_benchmark.h"
-#ifdef RAPIDJSON_COMPETITOR
 #include "competitors/rapidjson_benchmark.h"
-#endif
 #ifdef PUGIXML_BENCHMARK
 #include "competitors/pugixml_benchmark.h"
 #endif
 #ifdef RAPIDYAML_BENCHMARK
 #include "competitors/rapidyaml_benchmark.h"
 #endif
-#include "competitors/nlohmannjson_benchmark.h"
+#include "competitors/msgpack_cxx_benchmark.h"
 
 #ifdef JSON_BENCHMARK
 #include "bitserializer/bit_serializer.h"
@@ -66,9 +64,7 @@ namespace
 #ifdef MSGPACK_BENCHMARK
 		entries.push_back({ "bs-msgpack", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::MsgPack::MsgPackArchive>>(); } });
 #endif
-#ifdef RAPIDJSON_COMPETITOR
 		entries.push_back({ "rapidjson", [] { return std::make_unique<RapidJsonBenchmark>(); } });
-#endif
 #ifdef PUGIXML_BENCHMARK
 		entries.push_back({ "bs-pugixml", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Xml::PugiXml::XmlArchive>>(); } });
 		entries.push_back({ "pugixml", [] { return std::make_unique<PugiXmlBenchmark>(); } });
@@ -77,7 +73,7 @@ namespace
 		entries.push_back({ "bs-rapidyaml", [] { return std::make_unique<BitSerializerBenchmark<BitSerializer::Yaml::RapidYaml::YamlArchive>>(); } });
 		entries.push_back({ "rapidyaml", [] { return std::make_unique<RapidYamlBenchmark>(); } });
 #endif
-		entries.push_back({ "nlohmann-msgpack", [] { return std::make_unique<NlohmannMsgPackBenchmark>(); } });
+		entries.push_back({ "msgpack-cxx", [] { return std::make_unique<MsgpackCxxBenchmark>(); } });
 		return entries;
 	}
 
@@ -165,7 +161,7 @@ namespace
 				constexpr std::size_t keyWidth = 20;
 				std::cout << "    " << entry.key
 					<< std::string(keyWidth > entry.key.size() ? keyWidth - entry.key.size() : 0, ' ')
-					<< benchmark->GetLibraryName() << ": " << JoinStageNames(benchmark->GetStagesList()) << '\n';
+					<< benchmark->GetLibraryDisplayName() << ": " << JoinStageNames(benchmark->GetStagesList()) << '\n';
 			}
 		};
 		printGroup("BitSerializer", registry, true);
@@ -266,8 +262,10 @@ int main(int argc, char* argv[])	// NOLINT(bugprone-exception-escape)
 					stagesTest.emplace(stageTestResults.first, stageTestResults.second.serializationSpeed);
 				}
 				serializationSpeedReport.emplace(benchmarkResult.libraryName, std::move(stagesTest));
-				// Filter results from base libraries (doesn't make sense since they are equal)
-				if (benchmarkResult.libraryName != "RapidJson" && benchmarkResult.libraryName != "PugiXml" && benchmarkResult.libraryName != "RapidYaml")
+				// Filter base libraries (their output duplicates BitSerializer's) and JSONC
+				// (it emits plain JSON, so its size is identical to BitSerializer-Json).
+				if (benchmarkResult.libraryKey != "RapidJson" && benchmarkResult.libraryKey != "PugiXml" &&
+					benchmarkResult.libraryKey != "RapidYaml" && benchmarkResult.libraryKey != "BitSerializer-Jsonc")
 				{
 					serializationOutputSizeReport.emplace(benchmarkResult.libraryName, benchmarkResult.serializedDataSize);
 				}

@@ -34,6 +34,11 @@ public:
 		return "RapidJson";
 	}
 
+	[[nodiscard]] std::string GetLibraryVersion() const override
+	{
+		return RAPIDJSON_VERSION_STRING;
+	}
+
 protected:
 	using RapidJsonDocument = rapidjson::GenericDocument<rapidjson::UTF8<>>;
 	using RapidJsonNode = rapidjson::GenericValue<rapidjson::UTF8<>>;

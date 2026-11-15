@@ -32,12 +32,23 @@ BITSERIALIZER_REGISTER_ENUM(TestStage, {
 })
 
 /**
+ * @brief Formats a version from its numeric parts.
+ */
+[[nodiscard]] inline std::string FormatVersion(int major, int minor, int patch)
+{
+	return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+}
+
+/**
  * @brief Stores test results for a serialization library.
  */
 struct LibraryTestResults
 {
 	/// Name of the tested serialization library.
 	std::string libraryName;
+
+	/// Stable library identifier without the version suffix (used for filtering).
+	std::string libraryKey;
 
 	/// Total number of fields in the test model.
 	size_t testModelFieldsCount = 0;
@@ -83,6 +94,25 @@ public:
 	 * @return The library name as a string.
 	 */
 	[[nodiscard]] virtual std::string GetLibraryName() const = 0;
+
+	/**
+	 * @brief Gets the version of the serialization library being tested.
+	 *
+	 * @return The library version as a string, or an empty string when unknown.
+	 */
+	[[nodiscard]] virtual std::string GetLibraryVersion() const { return {}; }
+
+	/**
+	 * @brief Gets the library name with the tested version appended when known.
+	 *
+	 * Used for console output and report labels. `GetLibraryName()` stays stable
+	 * so internal filtering and ordering do not depend on the version.
+	 */
+	[[nodiscard]] std::string GetLibraryDisplayName() const
+	{
+		const std::string version = GetLibraryVersion();
+		return version.empty() ? GetLibraryName() : GetLibraryName() + " " + version;
+	}
 
 	/**
 	 * @brief Gets the list of supported test stages.

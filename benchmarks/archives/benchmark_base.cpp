@@ -58,7 +58,8 @@ LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTi
 	const bool isConsoleOutput = IsConsoleOutput();
 	int progressPercent = -1;
 	LibraryTestResults libTestResults;
-	libTestResults.libraryName = GetLibraryName();
+	libTestResults.libraryName = GetLibraryDisplayName();
+	libTestResults.libraryKey = GetLibraryName();
 	libTestResults.testModelFieldsCount = GetTotalFieldsCount();
 
 	if (mStagesList.empty())
@@ -82,7 +83,7 @@ LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTi
 			if (isConsoleOutput && progressPercent != newPercent)
 			{
 				progressPercent = newPercent;
-				std::cout << "\r" << GetLibraryName() << " | " << GetCurrentStageName() << ": " << progressPercent << "%";
+				std::cout << "\r" << libTestResults.libraryName << " | " << GetCurrentStageName() << ": " << progressPercent << "%";
 			}
 
 			// Run benchmark
@@ -121,7 +122,7 @@ LibraryTestResults BenchmarkBase::RunBenchmark(const std::chrono::seconds testTi
 		libTestResults.stagesTestResults.emplace(mTestStage, testMetrics);
 
 		// Display result
-		std::cout << GetLibraryName() << " | " << GetCurrentStageName() << ": " << testMetrics.serializationSpeed << " (fields/ms)" << std::endl;
+		std::cout << libTestResults.libraryName << " | " << GetCurrentStageName() << ": " << testMetrics.serializationSpeed << " (fields/ms)" << std::endl;
 
 	} while (NextStage());
 

@@ -174,11 +174,11 @@ BitSerializer treats missing fields as optional by default, but you can enforce 
 
 ### Performance overview
 BitSerializer prioritizes reliability and usability, but we understand that performance remains a critical factor for serialization libraries.
-This chapter provides an overview of the performance characteristics of BitSerializer across various serialization formats, as well as comparative tests with the used third-party libraries.
+This chapter provides an overview of the performance characteristics of BitSerializer across various serialization formats, as well as comparisons with the third-party libraries behind the XML/YAML archives and with independent JSON/MsgPack competitors: RapidJSON, msgpack-cxx, PugiXml and RapidYAML.
 
 #### Key performance insights
 - Formats implemented natively in BitSerializer (built-in JSON/JSONC, CSV and MsgPack) demonstrate excellent performance due to their DOM-free architecture. This approach eliminates intermediate object tree construction, enabling direct serialization/deserialization to/from streams.
-- Formats relying on external libraries (RapidJSON, PugiXml, RapidYAML) show an average performance loss of ~5% compared to their native APIs. This minor trade-off is due to the unified BitSerializer abstraction layer, which provides consistent behavior across all supported formats.
+- The XML and YAML archives are thin wrappers over PugiXml and RapidYAML; their benchmark rows show the cost of the unified BitSerializer abstraction. The built-in JSON/JSONC and MsgPack archives are independent implementations and are compared directly with RapidJSON and msgpack-cxx.
 - All formats support non-linear loading of named fields, but maximum performance can be achieved when loading in the same order. This feature is important for compatibility and flexibility when working with complex models (e.g. for updating models).
 - Low-level byte scanning and comparison in the built-in archives are SIMD-accelerated (SSE2/NEON) where available, with a portable scalar fallback.
 - Hot paths are inlined selectively: performance-critical code gets forced inlining, while larger or cold paths stay out-of-line. This keeps the runtime fast without unnecessarily growing the resulting executable; optimizations that trade a noticeable code-size increase for a marginal speedup are not adopted.
@@ -191,10 +191,9 @@ It is important to note that comparing "Serialization" classes (like BitSerializ
 
 It should be noted, that the historical distinction between "DOM parsers" and "stream serializers" is increasingly blurred by modern libraries offering hybrid approaches (e.g. SAX, "on demand").
 
-In this performance analysis, we have benchmarked BitSerializer against the base libraries it relies on (e.g., RapidJSON, PugiXml, and RapidYAML).
-These libraries are primarily "Parser" classes, and the performance differences observed reflect the inherent trade-offs between DOM-based parsing and streaming serialization. 
+The benchmark compares the built-in JSON archive with RapidJSON, the MsgPack archive with msgpack-cxx, and the XML/YAML archives with PugiXml and RapidYAML. For XML and YAML the BitSerializer archive is a thin layer over the same library, so the difference mainly shows the abstraction overhead. For JSON and MsgPack the implementations are independent, so the comparison is closer to a like-for-like performance test.
 
-We understand that comparing "Serialization" classes with "Parser" classes might not always be equitable due to the fundamental differences in their nature (e.g., DOM vs. streaming serialization). However, this comparison provides valuable insights into how BitSerializer performs relative to the libraries it builds upon.
+Most of the compared libraries are DOM-based parsers/serializers, while the BitSerializer built-in archives stream directly into the target object. This distinction explains part of the difference and is why the JSON/MsgPack rows are useful alongside the raw parser comparisons.
 
 #### Comparison of serialized data size
 In addition to performance metrics, the size of the serialized output is another important factor to consider when choosing a serialization format.
@@ -202,17 +201,22 @@ Below is a comparison of the serialized output sizes (in bytes) for the same tes
 
 ![image info](benchmarks/archives/benchmark_results/serialization_output_size_chart.png)
 
-Binary formats like MsgPack produce significantly smaller outputs compared to text-based formats like JSON, XML, or YAML.
-The CSV format is the most compact among all tested formats, making it an excellent choice for storage and transmission of tabular data.
+For this test model, MsgPack (10863 bytes) is smaller than JSON (12481), YAML (13290) and XML (15636). CSV is the most compact format (8886 bytes), making it a good choice for storage and transmission of tabular data.
+
+Raw data: [`serialization_output_size_report.json`](benchmarks/archives/benchmark_results/serialization_output_size_report.json).
 
 #### Performance test methodology
 - ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
 - **Test model:** The [test model](benchmarks/archives/test_model.h) consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
+- **Library versions:** Third-party library versions are included in the chart labels (RapidJson 1.1.0, PugiXml 1.16.0, RapidYaml 0.16.0, msgpack-cxx 9.0.0); results depend on the library version, compiler and hardware.
+- **Environment:** The published chart was produced with clang-cl 19.1.5 in C++23 mode on x64; other compilers and optimization flags may produce different numbers.
 
 #### Performance test results
 ![image info](benchmarks/archives/benchmark_results/serialization_speed_chart.png)
 
-For most applications, BitSerializer provides the optimal combination of reliability, feature completeness, and performance. Developers working with MsgPack/CSV will see best-in-class speeds, while users needing JSON/XML/YAML benefit from consistent performance with minimal overhead compared to format-specific libraries.
+Raw data: [`serialization_speed_report.json`](benchmarks/archives/benchmark_results/serialization_speed_report.json). The benchmark implementation and methodology are described in [benchmarks/archives/README.md](benchmarks/archives/README.md).
+
+In the current benchmark, the built-in JSON archive is faster than RapidJSON on both save and load, and MsgPack is faster than msgpack-cxx. The XML and YAML archives stay close to their base libraries, with the overhead of the unified abstraction. CSV is the most compact format, but has no direct competitor in this benchmark. For most applications, BitSerializer provides a good combination of reliability, feature completeness and performance.
 
 ### How to install
 XML and YAML require third-party libraries, while the built-in JSON, CSV and MsgPack archives are self-contained (optional fast_float acceleration can be enabled). You can install only the ones which you need.

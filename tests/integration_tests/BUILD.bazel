@@ -9,6 +9,7 @@ package(default_visibility = ["//visibility:private"])
 cc_test(
     name = "convert_api_tests",
     size = "small",
+    tags = ["manual"],
     srcs = glob(
         [
             "convert_api_tests/*.cpp",
@@ -26,6 +27,7 @@ cc_test(
 cc_test(
     name = "json_archive_tests",
     size = "small",
+    tags = ["manual"],
     srcs = glob(
         [
             "json_archive_tests/*.cpp",
@@ -43,6 +45,7 @@ cc_test(
 cc_test(
     name = "csv_archive_tests",
     size = "small",
+    tags = ["manual"],
     srcs = glob(
         [
             "csv_archive_tests/*.cpp",
@@ -60,6 +63,7 @@ cc_test(
 cc_test(
     name = "msgpack_archive_tests",
     size = "small",
+    tags = ["manual"],
     srcs = glob(
         [
             "msgpack_archive_tests/*.cpp",
@@ -77,6 +81,7 @@ cc_test(
 cc_test(
     name = "pugixml_archive_tests",
     size = "small",
+    tags = ["manual"],
     srcs = glob(
         [
             "pugixml_archive_tests/*.cpp",
@@ -88,12 +93,14 @@ cc_test(
         "//:pugixml_archive",
         "//:testing_tools",
         "@googletest//:gtest_main",
+        "@pugixml//:pugixml",
     ],
 )
 
 cc_test(
     name = "rapidyaml_archive_tests",
     size = "small",
+    tags = ["manual"],
     srcs = glob(
         [
             "rapidyaml_archive_tests/*.cpp",
@@ -105,5 +112,22 @@ cc_test(
         "//:rapidyaml_archive",
         "//:testing_tools",
         "@googletest//:gtest_main",
+        "@rapidyaml//:rapidyaml",
+    ],
+)
+
+# The tests use dev-only dependencies (googletest, PugiXml, RapidYAML), so they
+# are excluded from wildcard builds of the module. The CI runs this suite
+# explicitly; a consumer can still build @bitserializer//... without dev deps.
+test_suite(
+    name = "all_tests",
+    tags = ["manual"],
+    tests = [
+        ":convert_api_tests",
+        ":csv_archive_tests",
+        ":json_archive_tests",
+        ":msgpack_archive_tests",
+        ":pugixml_archive_tests",
+        ":rapidyaml_archive_tests",
     ],
 )

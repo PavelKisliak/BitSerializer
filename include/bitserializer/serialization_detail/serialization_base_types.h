@@ -456,24 +456,36 @@ namespace BitSerializer
 	}
 
 	/**
-	 * @brief Allows serialization of enum types as integers.
+	 * @brief Allows serialization of enum types as their underlying integer values.
 	 *
-	 * Usage example: `archive << KeyValue("EnumValue", EnumAsBin(enumValue));`
+	 * Registration via `BITSERIALIZER_REGISTER_ENUM` is not required when using this wrapper.
+	 *
+	 * Usage example: `archive << KeyValue("EnumValue", EnumAsInteger(enumValue));`
 	 */
 	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-	struct EnumAsBin
+	struct EnumAsInteger
 	{
 		using value_type = std::underlying_type_t<T>;
 
-		explicit EnumAsBin(T& inValue) noexcept : value(inValue) {}
+		explicit EnumAsInteger(T& inValue) noexcept : value(inValue) {}
 
 		T& value;
 	};
 
-	template <class TArchive, typename TKey, class TValue>
-	bool Serialize(TArchive& archive, TKey&& key, EnumAsBin<TValue> value)
+	/**
+	 * @brief Deprecated compatibility wrapper; use `EnumAsInteger` instead.
+	 */
+	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	struct [[deprecated("Use EnumAsInteger instead")]] EnumAsBin : EnumAsInteger<T>
 	{
-		using TUnderlying = typename EnumAsBin<TValue>::value_type;
+		[[deprecated("Use EnumAsInteger instead")]]
+		explicit EnumAsBin(T& inValue) noexcept : EnumAsInteger<T>(inValue) {}
+	};
+
+	template <class TArchive, typename TKey, class TValue>
+	bool Serialize(TArchive& archive, TKey&& key, EnumAsInteger<TValue> value)
+	{
+		using TUnderlying = typename EnumAsInteger<TValue>::value_type;
 		if constexpr (TArchive::IsSaving())
 		{
 			TUnderlying underlying = static_cast<TUnderlying>(value.value);
@@ -492,9 +504,9 @@ namespace BitSerializer
 	}
 
 	template <class TArchive, class TValue>
-	bool Serialize(TArchive& archive, EnumAsBin<TValue> value)
+	bool Serialize(TArchive& archive, EnumAsInteger<TValue> value)
 	{
-		using TUnderlying = typename EnumAsBin<TValue>::value_type;
+		using TUnderlying = typename EnumAsInteger<TValue>::value_type;
 		if constexpr (TArchive::IsSaving())
 		{
 			TUnderlying underlying = static_cast<TUnderlying>(value.value);

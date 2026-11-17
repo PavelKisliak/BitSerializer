@@ -285,6 +285,9 @@ namespace BitSerializer
 	 * Serializes the variant as an object with `index` and `value` fields,
 	 * preserving the type information via integer index.
 	 *
+	 * @warning `indexKey` and `valueKey` are non-owning `std::string_view`s; the referenced
+	 *          strings must outlive the serialization call.
+	 *
 	 * @par Example:
 	 * @code
 	 * std::variant<int, std::string, User> data;
@@ -325,6 +328,9 @@ namespace BitSerializer
 	 *
 	 * Serializes the variant as an object with `type` and `value` fields, using registered type names instead of integer indices.
 	 * Requires all alternatives to be registered via BITSERIALIZER_REGISTER_TYPE.
+	 *
+	 * @warning `typeKey` and `valueKey` are non-owning `std::string_view`s; the referenced
+	 *          strings must outlive the serialization call.
 	 *
 	 * @par Example:
 	 * @code
@@ -373,6 +379,9 @@ namespace BitSerializer
 	 * The type name is embedded inside the payload next to the active alternative's fields
 	 * (the OpenAPI `discriminator` style), instead of being wrapped around it. This allows object
 	 * hierarchies to be represented in flat formats such as CSV, where nested values are not possible.
+	 *
+	 * @warning `typeKey` is a non-owning `std::string_view`; the referenced string must outlive
+	 *          the serialization call.
 	 *
 	 * @par Example:
 	 * @code

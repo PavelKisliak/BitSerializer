@@ -123,6 +123,9 @@ namespace BitSerializer
 
 	/**
 	 * @brief Configuration options for serialization of `std::variant`.
+	 *
+	 * @warning The key names are non-owning `std::string_view`s. The referenced strings must
+	 *          outlive the serialization call; use string literals or static strings, not temporaries.
 	 */
 	struct VariantOptions
 	{

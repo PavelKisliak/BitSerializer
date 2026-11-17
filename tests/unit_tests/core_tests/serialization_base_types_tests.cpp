@@ -251,29 +251,29 @@ TEST(BaseTypes, SerializeUnknownEnumAsClassMemberShouldThrowException)
 //-----------------------------------------------------------------------------
 // Tests of serialization for enum as integers
 //-----------------------------------------------------------------------------
-struct TestEnumAsBin
+struct TestEnumAsInteger
 {
-	TestEnumAsBin() = default;
-	TestEnumAsBin(TestEnum testEnumValue) : TestEnumValue(testEnumValue) { }
+	TestEnumAsInteger() = default;
+	TestEnumAsInteger(TestEnum testEnumValue) : TestEnumValue(testEnumValue) { }
 
 	template <class TArchive>
 	void Serialize(TArchive& archive)
 	{
-		archive << KeyValue("TestEnum", EnumAsBin(TestEnumValue));
+		archive << KeyValue("TestEnum", EnumAsInteger(TestEnumValue));
 	}
 
 	TestEnum TestEnumValue = TestEnum::One;
 };
 
-TEST(BaseTypes, SerializeEnumBinAsRoot)
+TEST(BaseTypes, SerializeEnumIntegerAsRoot)
 {
 	// Arrange
 	TestEnum expected = TestEnum::Three, actual = TestEnum::One;
 	ArchiveStub::preferred_output_type testArchive;
 
 	// Act
-	BitSerializer::SaveObject<ArchiveStub>(EnumAsBin(expected), testArchive);
-	BitSerializer::LoadObject<ArchiveStub>(EnumAsBin(actual), testArchive);
+	BitSerializer::SaveObject<ArchiveStub>(EnumAsInteger(expected), testArchive);
+	BitSerializer::LoadObject<ArchiveStub>(EnumAsInteger(actual), testArchive);
 
 	// Assert
 	EXPECT_EQ(expected, actual);
@@ -282,7 +282,7 @@ TEST(BaseTypes, SerializeEnumBinAsRoot)
 TEST(BaseTypes, SerializeEnumTypeAsClassMember)
 {
 	// Arrange
-	TestEnumAsBin expected(TestEnum::Four), actual;
+	TestEnumAsInteger expected(TestEnum::Four), actual;
 	ArchiveStub::preferred_output_type testArchive;
 
 	// Act

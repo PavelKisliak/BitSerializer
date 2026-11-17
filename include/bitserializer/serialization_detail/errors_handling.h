@@ -6,6 +6,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 #include "bitserializer/convert.h"
 
@@ -138,6 +139,15 @@ namespace BitSerializer
 			, Offset(offset)
 			, line(line)
 			, offset(offset)
+		{
+		}
+
+		ParsingException(const ParsingException& other)
+			: SerializationException(other)
+			, Line(other.line)
+			, Offset(other.offset)
+			, line(other.line)
+			, offset(other.offset)
 		{
 		}
 

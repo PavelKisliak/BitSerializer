@@ -415,6 +415,9 @@ namespace BitSerializer
 	 * archive << KeyValue("data", MapAsPairs(data));
 	 * archive << KeyValue("data", MapAsPairs(data, MapLoadMode::InsertOrUpdate, "name", "count"));
 	 * @endcode
+	 *
+	 * @warning `keyField` and `valueField` are non-owning `std::string_view`s; the referenced
+	 *          strings must outlive the serialization call.
 	 */
 	template <typename T>
 	struct MapAsPairs

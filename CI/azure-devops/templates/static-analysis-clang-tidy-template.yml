@@ -14,7 +14,8 @@ parameters:
 
 jobs:
 - job: ${{ parameters.name }}
-  timeoutInMinutes: 120
+  # The full clang-tidy analysis can exceed the task timeout; keep this above the task limit.
+  timeoutInMinutes: 240
   pool:
     vmImage: ${{ parameters.image }}
   variables:
@@ -292,4 +293,5 @@ jobs:
     continueOnError: true
     displayName: 'Static analysis [full]'
     condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.forceFullAnalysis, 'true')))
-    timeoutInMinutes: 90
+    # Full analysis over the whole codebase is slow; keep this below the job timeout (240).
+    timeoutInMinutes: 180

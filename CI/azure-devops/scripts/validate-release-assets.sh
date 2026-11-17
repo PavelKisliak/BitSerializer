@@ -21,6 +21,9 @@ expected_suffixes=(
 
 required_entries=(
     "(^|/)include/bitserializer/bit_serializer\\.h$"
+    "(^|/)include/bitserializer/json_archive\\.h$"
+    "(^|/)include/bitserializer/csv_archive\\.h$"
+    "(^|/)include/bitserializer/msgpack_archive\\.h$"
     "(^|/)include/bitserializer/third_party/fast_float/fast_float\\.h$"
     "(^|/)share/bitserializer/bitserializerConfig\\.cmake$"
     "(^|/)share/doc/bitserializer/fast_float\\.txt$"

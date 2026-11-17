@@ -28,10 +28,10 @@ The built-in JSON archive has the same `LoadObject`/`SaveObject` interface, so m
 
 Behavioral differences to consider when migrating:
 
-- The built-in archive implements strict RFC 8259 parsing: trailing content, unescaped control characters and non-standard number forms are rejected.
 - `NaN` and `Infinity` cannot be saved by the built-in archive; saving them throws `SerializationException` with `SerializationErrorCode::OutOfRange`.
-- String input is treated as already-decoded text and must not contain a BOM; use the stream/file overloads for encoded input or BOM handling.
 - Raw payloads are captured as JSON text rather than a mutable DOM. If the previous code inspected or modified the DOM, parse the payload explicitly or model it as regular C++ types.
+
+The built-in archive follows RFC 8259 strictly; the RapidJSON archive is also strict by default, so parsing of ordinary JSON should not change. JSONC (comments and trailing commas) is available via the separate `JsoncArchive`.
 
 ### How to install
 This archive is based on the third-party [RapidJson](https://github.com/Tencent/rapidjson) library. For installation instructions, see [How to install](../README.md#how-to-install) in the main README. Include the header and link the archive:

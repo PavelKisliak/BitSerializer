@@ -239,10 +239,10 @@ Bazel builds the library and the integration tests from source and fetches all d
 
 ```bash
 bazel build //...
-bazel test //...
+bazel test //tests/integration_tests:all_tests
 ```
 
-Public targets are `//:core`, `//:json_archive`, `//:csv_archive`, `//:msgpack_archive`, `//:pugixml_archive` and `//:rapidyaml_archive` (the deprecated RapidJSON archive is not exposed). On Windows, set `BAZEL_SH` to the Git Bash executable before running `bazel test`.
+Public targets are `//:core`, `//:json_archive`, `//:csv_archive`, `//:msgpack_archive`, `//:pugixml_archive` and `//:rapidyaml_archive` (the deprecated RapidJSON archive is not exposed). The integration tests use dev-only dependencies and are marked `manual`, so wildcard builds stay usable for consumers; run the `all_tests` suite explicitly. On Windows, set `BAZEL_SH` to the Git Bash executable before running `bazel test`.
 
 `MODULE.bazel` is generated from `cmake/MODULE.bazel.in` during CMake configure; do not edit it manually. The version is taken from `CMakeLists.txt`, so after bumping it for a release, rerun CMake and commit the regenerated `MODULE.bazel` (CI checks the consistency with `tools/bazel/check_module_version.py`).
 
@@ -318,10 +318,10 @@ BitSerializer/
 ├── include/bitserializer/          # Public headers (the library)
 │   ├── bit_serializer.h            # Main entry: LoadObject<>() / SaveObject<>()
 │   ├── *_archive.h                 # One header per format (json, csv, msgpack, pugixml, rapidjson, rapidyaml)
-│   ├── key_value.h                 # KeyValue<> and AttrValue<> wrappers
+│   ├── key_value.h                 # KeyValue<> and AttributeValue<> wrappers
 │   ├── validate.h                  # Validators: Required, Email, PhoneNumber, MaxSize, Range...
 │   ├── refine.h                    # Refiners: TrimWhitespace, ToLowerCase, ToUpperCase, Fallback
-│   ├── convert.h                   # String conversion submodule (To<>/From<>)
+│   ├── convert.h                   # String conversion submodule (To<>/TryTo/ToString)
 │   ├── serialization_options.h     # SerializationOptions struct
 │   ├── config.h                    # Version macros and feature flags
 │   ├── export.h                    # DLL export/import macros

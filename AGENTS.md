@@ -77,7 +77,7 @@ See [Architecture](docs/development/architecture.md) for the sequence diagram, a
 ### Serialization wrappers
 
 - `archive << KeyValue("name", value)` — named field (all formats)
-- `archive << AttrValue("name", value)` — XML attribute only
+- `archive << AttributeValue("name", value)` — XML attribute only
 - `archive << PropertyValue("name", value)` — auto: XML attr if value is string-like, else key-value
 - `archive << KeyValue("name", value, Required())` — field with validator
 - `archive << KeyValue("name", value, Validate::Email(), Refine::TrimWhitespace())` — multiple modifiers
@@ -223,10 +223,11 @@ Bazel builds the library and the integration tests from source and resolves all 
 
 ```bash
 bazel build //...
-bazel test //...
+bazel test //tests/integration_tests:all_tests
 ```
 
 - Public targets: `//:core`, `//:json_archive`, `//:csv_archive`, `//:msgpack_archive`, `//:pugixml_archive`, `//:rapidyaml_archive`. The deprecated RapidJSON-based archive is intentionally not exposed.
+- `pugixml` and `rapidyaml` are dev dependencies of the module; `pugixml_archive`/`rapidyaml_archive` are header-only wrappers. Consumers add the third-party module and target themselves, so JSON/CSV/MsgPack-only builds do not pull them.
 - Bazel reuses the CMake integration test sources through `tests/integration_tests/BUILD.bazel`; unit tests remain CMake-only.
 - CI runs `Bazel_Ubuntu` and `Bazel_Windows` in the `Matrix` stage via `CI/azure-devops/templates/bazel-build-and-test-template.yml`.
 - On Windows, `bazel test` requires `BAZEL_SH` pointing to Git Bash (for example, `C:\Program Files\Git\bin\bash.exe`).

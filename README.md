@@ -13,14 +13,13 @@
 - Seamless handling of optional and required fields, bypassing the need to use `std::optional`.
 - Configurable set of policies to control overflow and type mismatch errors.
 - Serialization support for almost all STD containers and types (including Unicode strings like `std::u16string`).
-- Payload passthrough of unprocessed data structures with minimal serialization overhead.²
+- Payload passthrough of unprocessed data structures with minimal serialization overhead.
 - Enums can be serialized as integers or strings, giving you full control over representation.
 - Efficient deserialization from streams with bounded memory usage (built-in JSON/CSV/MsgPack archives).
 - Full Unicode support with automatic detection and transcoding (except YAML).
 - Built-in string conversion for enums, classes, chrono types and UTF encoding.
 
  ¹ Non-intrusive — serialization logic is defined outside user classes, so their source code stays unchanged.<br />
- ² Payload passthrough is currently supported by the JSON and MsgPack archives.
 
 ### Supported formats:
 | Format | Dependency | Encoding | Pretty format | Payload passthrough | Streaming |
@@ -58,6 +57,12 @@ ___
   - [Hello world](#hello-world)
   - [Performance overview](#performance-overview)
   - [How to install](#how-to-install)
+    - [VCPKG](#vcpkg)
+    - [Conan 2](#conan-2)
+    - [Bazel](#bazel)
+    - [Installation via CMake on a Unix system](#installation-via-cmake-on-a-unix-system)
+    - [How to use with CMake](#how-to-use-with-cmake)
+    - [How to use with CMake FetchContent](#how-to-use-with-cmake-fetchcontent)
 - [Serializing classes](#serializing-classes)
   - [Serializing class](#serializing-class)
   - [Serializing base class](#serializing-base-class)
@@ -203,8 +208,6 @@ Below is a comparison of the serialized output sizes (in bytes) for the same tes
 
 For this test model, MsgPack (10863 bytes) is smaller than JSON (12481), YAML (13290) and XML (15636). CSV is the most compact format (8886 bytes), making it a good choice for storage and transmission of tabular data.
 
-Raw data: [`serialization_output_size_report.json`](benchmarks/archives/benchmark_results/serialization_output_size_report.json).
-
 #### Performance test methodology
 - ***Metrics:*** To evaluate the performance of BitSerializer, we measure the number of fields processed per millisecond (`fields/ms`) during serialization and deserialization. This metric allows us to objectively compare the efficiency of different formats and libraries.
 - **Test model:** The [test model](benchmarks/archives/test_model.h) consists of an array of objects containing various data types compatible with all supported formats. This ensures a fair comparison of formats since the same data structure is used for all tests.
@@ -214,7 +217,7 @@ Raw data: [`serialization_output_size_report.json`](benchmarks/archives/benchmar
 #### Performance test results
 ![image info](benchmarks/archives/benchmark_results/serialization_speed_chart.png)
 
-Raw data: [`serialization_speed_report.json`](benchmarks/archives/benchmark_results/serialization_speed_report.json). The benchmark implementation and methodology are described in [benchmarks/archives/README.md](benchmarks/archives/README.md).
+Raw data: [`serialization_speed_report.json`](benchmarks/archives/benchmark_results/serialization_speed_report.json) (compiled/tested on Win/clang-cl/CXX23).
 
 In the current benchmark, the built-in JSON archive is faster than RapidJSON on both save and load, and MsgPack is faster than msgpack-cxx. The XML and YAML archives stay close to their base libraries, with the overhead of the unified abstraction. CSV is the most compact format, but has no direct competitor in this benchmark. For most applications, BitSerializer provides a good combination of reliability, feature completeness and performance.
 
@@ -263,10 +266,15 @@ Replace `x.xx` with the latest available version: [![Conan Center](https://img.s
 
 BitSerializer can be consumed as a Bazel module. The built-in archives (JSON, CSV, MsgPack) require no third-party packages, and the optional `fast_float` dependency is fetched automatically.
 
+The PugiXml and RapidYAML archive targets are header-only wrappers. Add the corresponding third-party module and target explicitly when you use the XML/YAML archives; JSON/CSV/MsgPack-only consumers do not pull PugiXml or RapidYAML into their module graph.
+
 ```starlark
 # MODULE.bazel
 bazel_dep(name = "rules_cc", version = "0.2.28")
 bazel_dep(name = "bitserializer", version = "0.90.0")
+# Only when using the XML/YAML archives:
+bazel_dep(name = "pugixml", version = "1.15.bcr.1")
+bazel_dep(name = "rapidyaml", version = "0.15.2")
 ```
 
 Replace `0.90.0` with the latest release version that includes Bazel support.
@@ -282,14 +290,16 @@ cc_binary(
         "@bitserializer//:json_archive",
         "@bitserializer//:csv_archive",
         "@bitserializer//:msgpack_archive",
-        # Third-party archives:
+        # Third-party archives (also add the bazel_dep entries above):
         "@bitserializer//:pugixml_archive",
+        "@pugixml//:pugixml",
         "@bitserializer//:rapidyaml_archive",
+        "@rapidyaml//:rapidyaml",
     ],
 )
 ```
 
-Every dependency is namespaced by the module repository (`@bitserializer`), so target names such as `json_archive` or `csv_archive` do not collide with other libraries.
+Every dependency is namespaced by the module repository (`@bitserializer`), so target names such as `json_archive` or `csv_archive` do not collide with other libraries. The `pugixml_archive` and `rapidyaml_archive` targets only expose the BitSerializer headers; linking the third-party target is the consumer's responsibility.
 
 Available targets: `@bitserializer//:core`, `@bitserializer//:json_archive`, `@bitserializer//:csv_archive`, `@bitserializer//:msgpack_archive`, `@bitserializer//:pugixml_archive` and `@bitserializer//:rapidyaml_archive`.
 
@@ -313,7 +323,7 @@ $ sudo cmake --build bitserializer/build --config Debug --target install
 $ sudo cmake --build bitserializer/build --config Release --target install
 ```
 By default, will be built a static library, add the CMake parameter `-DBUILD_SHARED_LIBS=ON` to build shared.
-You will also need to install dev-packages of base libraries (CSV and MsgPack archives do not require any dependencies), currently available only `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
+You will also need to install dev-packages of base libraries (the built-in JSON, CSV and MsgPack archives do not require any dependencies), currently available only `libpugixml-dev`, the RapidYaml library needs to be compiled manually.
 
 > [!IMPORTANT]
 > Make sure your application and library are compiled with the same options (C++ standard, optimization flags, runtime type, etc.) to avoid binary incompatibility issues.
@@ -365,7 +375,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 The built-in archives (JSON, CSV, MsgPack) are self-contained (optional fast_float acceleration is auto-detected) and are the simplest option for `FetchContent`. Archives based on third-party libraries (`PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
 
 > [!NOTE]
-> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available on `master`; if it is not yet available via your package manager, use `GIT_TAG master` or a prebuilt package.
+> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available since 0.90.0; if your package manager does not provide it yet, use the release tag with `FetchContent` or a prebuilt package.
 
 > [!TIP]
 > Add `GIT_SHALLOW TRUE` to `FetchContent_Declare()` for a faster clone when `GIT_TAG` is a tag or branch (it is ignored for commit hashes):
@@ -865,9 +875,9 @@ Loading a `VariantAsNamed` / `VariantAsDiscriminated` value that contains an unk
 
 ### Serializing enum types
 Enum types can be serialized as integers or as strings, as you prefer.
-By default, they serializing as strings, to serialize as integers, use the `EnumAsBin` wrapper:
+By default, enum types are serialized as strings. To serialize them as their underlying integer values, use the `EnumAsInteger` wrapper (the previous `EnumAsBin` name is deprecated):
 ```cpp
-archive << KeyValue("EnumValue", EnumAsBin(enumValue));
+archive << KeyValue("EnumValue", EnumAsInteger(enumValue));
 ```
 To be able to serialize `enum` types as string, you need to register a map with string equivalents in the your HEADER file.
 ```cpp
@@ -1258,11 +1268,11 @@ int main()
 
 For save/load to files, BitSerializer provides the following functions (which are just wrappers of serialization methods to streams):
 ```cpp
-template <typename TArchive, typename T, typename TString>
-BitSerializer::SaveObjectToFile<TArchive>(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions, bool overwrite = false);
+template <typename TArchive, typename TValue, typename TPath>
+BitSerializer::SaveObjectToFile<TArchive>(TValue&& object, const TPath& path, const SerializationOptions& serializationOptions = DefaultOptions, bool overwrite = false);
 
-template <typename TArchive, typename T, typename TString>
-BitSerializer::LoadObjectFromFile<TArchive>(T&& object, TString&& path, const SerializationOptions& serializationOptions = DefaultOptions);
+template <typename TArchive, typename TValue, typename TPath>
+BitSerializer::LoadObjectFromFile<TArchive>(TValue&& object, const TPath& path, const SerializationOptions& serializationOptions = DefaultOptions);
 ```
 
 > [!NOTE]
@@ -1341,7 +1351,7 @@ This occurs in API gateways, event routers, and integration points where your se
 BitSerializer efficiently handles these scenarios with its payload passthrough feature.
 
 > [!NOTE]
-> Currently the data passthrough is supported by the JSON and MsgPack archives.
+> Payload passthrough is available for the JSON and MsgPack archives.
 
 ```cpp
 using namespace BitSerializer;
@@ -1388,6 +1398,7 @@ BitSerializer::SaveObject<JsonArchive>(envelope, routedMessage);
 
 This approach minimizes processing overhead for pass-through fields while maintaining container-level validation (e.g., ensuring required fields exist).
 The passthrough payload is re-emitted verbatim: the built-in JSON and MsgPack archives preserve the captured bytes exactly, without re-parsing or re-formatting.
+The payload is stored as plain text (or raw bytes for MsgPack). Loading scans it only to determine its extent (malformed syntax can still be reported), while saving emits it as-is without validation; modifying it through `RawPayload::Get()` is the caller's responsibility.
 
 ### Conditional loading and versioning
 The functional style of serialization used in BitSerializer has one advantage over the declarative one - you can write branches depending on the data.
@@ -1578,7 +1589,7 @@ All validators are declared in the `BitSerializer::Validate` namespace (except `
 
 | Signature           | Description   |
 | ------------------- | --------------------- |
-| `Required(errorMessage = nullptr)`         | Ensures the field is present in the source data |
+| `Required(errorMessage = "Value is required")` | Ensures the field is present in the source data |
 | `GreaterThan(threshold, errorMessage = nullptr)` | Validates value > threshold |
 | `GreaterThanOrEqual(threshold, errorMessage = nullptr)` | Validates value >= threshold |
 | `LessThan(threshold, errorMessage = nullptr)` | Validates value < threshold |
@@ -1587,8 +1598,8 @@ All validators are declared in the `BitSerializer::Validate` namespace (except `
 | `MultipleOf(divisor, errorMessage = nullptr)` | Validates that value is a multiple of divisor (supports integer and floating-point types with epsilon-based comparison) |
 | `MinSize(minSize, errorMessage = nullptr)` | Ensures containers or strings meet minimum size requirements |
 | `MaxSize(maxSize, errorMessage = nullptr)` | Ensures containers or strings do not exceed maximum size |
-| `Email(errorMessage = nullptr)`            | Validates email format per RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains)) |
-| `PhoneNumber(minDigits = 7, maxDigits = 15, isPlusRequired = true, errorMessage = nullptr)` | Validates international phone number format with configurable digit constraints |
+| `Email(errorMessage = nullptr)`            | Validates email format per RFC standards (excluding quoted parts, comments, SMTPUTF8, and IP domains) |
+| `PhoneNumber(minDigits = 7, maxDigits = 15, plusRequired = true, errorMessage = nullptr)` | Validates international phone number format with configurable digit constraints |
 | `Uuid(errorMessage = nullptr)` | Validates UUID format according to RFC 4122/RFC 9562 |
 
 > [!NOTE]

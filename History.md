@@ -1,6 +1,6 @@
 # BitSerializer (History log)
 
-## 0.90 (17 Nov 2026)
+## 0.91 (20 Nov 2026)
 
 ### New features
 - New built-in JSON/JSONC archive (about 3x faster than the previous RapidJSON-based archive):
@@ -64,6 +64,7 @@
 - Added first-class Bazel support (`MODULE.bazel`/`BUILD.bazel`, integration tests and CI).
 - Bazel consumers pull PugiXml/RapidYAML only when they add those third-party modules explicitly; MsgPack-only builds stay free of them.
 - Prebuilt packages bundle `fast_float` headers and include the built-in JSON archive.
+- Release assets include the source tarball `bitserializer_v0.91_src.tar.gz` with a `.sha256` checksum.
 
 ## 0.85 (11 Jan 2026)
 - [ ! ] Introduced deserialization postprocessors (`Fallback`, `TrimWhitespace`, `ToLowerCase`, `ToUpperCase`).

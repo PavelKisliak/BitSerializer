@@ -271,13 +271,15 @@ The PugiXml and RapidYAML archive targets are header-only wrappers. Add the corr
 ```starlark
 # MODULE.bazel
 bazel_dep(name = "rules_cc", version = "0.2.28")
-bazel_dep(name = "bitserializer", version = "0.90.0")
+bazel_dep(name = "bitserializer", version = "x.xx.x")
 # Only when using the XML/YAML archives:
 bazel_dep(name = "pugixml", version = "1.15.bcr.1")
 bazel_dep(name = "rapidyaml", version = "0.15.2")
 ```
 
-Replace `0.90.0` with the latest release version that includes Bazel support.
+Replace `x.xx.x` with the version published in the [Bazel Central Registry](https://registry.bazel.build/modules/bitserializer).
+
+> **Note:** BitSerializer is new to the Bazel Central Registry, and the module is not published yet. Until it is available, use the `git_override` example below with a release tag or commit hash.
 
 ```starlark
 # BUILD.bazel
@@ -306,11 +308,11 @@ Available targets: `@bitserializer//:core`, `@bitserializer//:json_archive`, `@b
 If the required version is not available in your Bazel registry yet (or you want to track an unreleased commit), point the dependency at the repository with `git_override`:
 
 ```starlark
-bazel_dep(name = "bitserializer", version = "0.90.0")
+bazel_dep(name = "bitserializer", version = "x.xx.x")
 git_override(
     module_name = "bitserializer",
     remote = "https://github.com/PavelKisliak/BitSerializer.git",
-    commit = "<commit-hash>",
+    commit = "<commit-hash>",  # or tag = "<release-tag>"
 )
 ```
 
@@ -375,7 +377,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 The built-in archives (JSON, CSV, MsgPack) are self-contained (optional fast_float acceleration is auto-detected) and are the simplest option for `FetchContent`. Archives based on third-party libraries (`PugiXml`, `RapidYAML`) rely on `find_package()`, so make sure their dependencies are discoverable (for example, by setting the VCPKG toolchain file) before `FetchContent_MakeAvailable()`.
 
 > [!NOTE]
-> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available since 0.90.0; if your package manager does not provide it yet, use the release tag with `FetchContent` or a prebuilt package.
+> Replace `<version-tag>` with the [latest release](https://github.com/PavelKisliak/BitSerializer/releases) tag to pin a specific version; `GIT_TAG` can also be a branch name or a commit hash. The built-in JSON archive (`BitSerializer::json-archive`) is available since 0.91.0; if your package manager does not provide it yet, use the release tag with `FetchContent` or a prebuilt package.
 
 > [!TIP]
 > Add `GIT_SHALLOW TRUE` to `FetchContent_Declare()` for a faster clone when `GIT_TAG` is a tag or branch (it is ignored for commit hashes):

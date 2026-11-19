@@ -195,13 +195,33 @@ endif()
 #################################################################################
 set(BITSERIALIZER_NAMESPACE "BitSerializer")
 
-# Generate config.h with LF line endings so the file doesn't appear as modified
-# in Git on Windows (CMake writes native CRLF line endings otherwise).
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h" NEWLINE_STYLE LF)
-else()
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h")
-endif()
+# Render a config.h copy from the template with LF line endings so the file doesn't appear
+# as modified in Git on Windows (CMake writes native CRLF line endings otherwise).
+function(bitserializer_configure_config_header out_file has_fast_float use_bundled_fast_float)
+    # Values are passed explicitly instead of being saved and restored around the call:
+    # function scope keeps the caller's variables untouched.
+    set(BITSERIALIZER_HAS_FAST_FLOAT ${has_fast_float})
+    set(BITSERIALIZER_USE_BUNDLED_FAST_FLOAT ${use_bundled_fast_float})
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
+        configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${out_file}" NEWLINE_STYLE LF)
+    else()
+        configure_file("${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.h.in" "${out_file}")
+    endif()
+endfunction()
+
+# Installed copy: records the optional dependencies found by this build, so that consumers
+# without the exported targets compile the same code as the prebuilt archives.
+bitserializer_configure_config_header(
+    "${CMAKE_BINARY_DIR}/generated/include/${PROJECT_NAME}/config.h"
+    ${BITSERIALIZER_HAS_FAST_FLOAT}
+    ${BITSERIALIZER_USE_BUNDLED_FAST_FLOAT})
+
+# Source-tree copy: committed to the repository and consumed by non-CMake builds (Bazel,
+# FetchContent), where optional dependencies may be absent, so it keeps neutral defaults.
+bitserializer_configure_config_header(
+    "${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/config.h"
+    0
+    0)
 
 # Generate the Bazel module definition from a template so the version has a single
 # source of truth (the project() version above). The generated file is committed
@@ -609,7 +629,13 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE)
+        FILES_MATCHING PATTERN "*.h" PATTERN "*_archive.h" EXCLUDE
+        PATTERN "config.h" EXCLUDE)
+
+# Install the generated header with the detected optional features instead of the neutral
+# copy from the source tree.
+install(FILES "${CMAKE_BINARY_DIR}/generated/include/${PROJECT_NAME}/config.h"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 if(BUILD_JSON_ARCHIVE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/bitserializer/json_archive.h

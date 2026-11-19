@@ -94,6 +94,16 @@ TEST(JsonArchive, SerializeDouble)
 	TestSerializeType<JsonArchive, double>(std::numeric_limits<double>::max());
 }
 
+TEST(JsonArchive, SerializeLongDouble)
+{
+	// Covers the `long double` conversion path of the installed package. libc++ implements
+	// only the `float` and `double` overloads, so the test must also compile and round-trip
+	// with the portable fallback.
+	TestSerializeType<JsonArchive, long double>(0.0L);
+	TestSerializeType<JsonArchive, long double>(1.5L);
+	TestSerializeType<JsonArchive, long double>(-3.25L);
+}
+
 TEST(JsonArchive, SaveNonFiniteNumberShouldThrow)
 {
 	const auto expectOutOfRange = [](auto value)

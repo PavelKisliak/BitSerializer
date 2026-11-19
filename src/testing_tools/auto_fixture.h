@@ -238,6 +238,10 @@ namespace AutoFixture
 	inline void BuildFixture(Fixture& fixture, bool& value)			{ value = static_cast<bool>(fixture.Rand() % 2); }
 	inline void BuildFixture(Fixture& fixture, float& value)		{ value = static_cast<float>((fixture.Rand() % 1000) + 1) * 1.141592f; }
 	inline void BuildFixture(Fixture& fixture, double& value)		{ value = static_cast<double>((fixture.Rand() % 100000) + 1) * 1.141592; }
+	// Other floating-point types (e.g. `long double`). The overload above wins when the type
+	// is an alias of `double` (MSVC), otherwise this template keeps such types supported.
+	template <typename T, std::enable_if_t<std::is_floating_point_v<T> && !std::is_same_v<T, float> && !std::is_same_v<T, double>, int> = 0>
+	inline void BuildFixture(Fixture& fixture, T& value)		{ value = static_cast<T>((fixture.Rand() % 100000) + 1) * static_cast<T>(1.141592L); }
 	inline void BuildFixture(Fixture&, std::nullptr_t& value)		{ value = nullptr; }
 
 	inline void BuildFixture(Fixture& fixture, std::string& value)		{ value = UTF8("UTF-8 Тест_") + std::to_string(fixture.Rand()); }

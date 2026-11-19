@@ -4,6 +4,11 @@
 *******************************************************************************/
 #pragma once
 
+// Include a standard header first so that the standard library identification macros
+// (`__GLIBCXX__`, `_LIBCPP_VERSION`) are defined before the feature detection below,
+// regardless of the header inclusion order.
+#include <cstddef>
+
 #define BITSERIALIZER_VERSION_MAJOR @bitserializer_VERSION_MAJOR@
 #define BITSERIALIZER_VERSION_MINOR @bitserializer_VERSION_MINOR@
 #define BITSERIALIZER_VERSION_PATCH @bitserializer_VERSION_PATCH@
@@ -15,20 +20,28 @@
 #cmakedefine01 BITSERIALIZER_HAS_FILESYSTEM
 #endif
 
+// `std::from_chars`/`std::to_chars` floating-point overloads come from the standard
+// library, not from the compiler. MSVC and libstdc++ 11+ provide the `long double`
+// overload; libc++ (Android NDK, Emscripten, FreeBSD, Apple) does not, so these platforms
+// use the portable `strto*` conversion. `__GLIBCXX__` moves with patch releases
+// (Ubuntu's GCC 9.4 reports a 2021 date, for example), so the check uses
+// `_GLIBCXX_RELEASE` instead.
 #ifndef BITSERIALIZER_HAS_FLOAT_FROM_CHARS
-#if defined(_MSC_VER) || (defined __GNUC__ && !defined __clang__ && __GNUC__ > 11) || (defined __clang__ && !defined __apple_build_version__ && __clang_major__ > 13)
+#if defined(_MSC_VER) || (defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE >= 11)
 #define BITSERIALIZER_HAS_FLOAT_FROM_CHARS 1
 #else
 #define BITSERIALIZER_HAS_FLOAT_FROM_CHARS 0
 #endif
 #endif
 
+// The installed copy records the configuration detected by CMake, so that consumers
+// without the exported targets compile the same code as the prebuilt archives. The copy committed to the source tree keeps the neutral defaults.
 #ifndef BITSERIALIZER_HAS_FAST_FLOAT
-#define BITSERIALIZER_HAS_FAST_FLOAT 0
+#cmakedefine01 BITSERIALIZER_HAS_FAST_FLOAT
 #endif
 
 #ifndef BITSERIALIZER_USE_BUNDLED_FAST_FLOAT
-#define BITSERIALIZER_USE_BUNDLED_FAST_FLOAT 0
+#cmakedefine01 BITSERIALIZER_USE_BUNDLED_FAST_FLOAT
 #endif
 
 // SIMD availability of the target (compiler/target detected, not a build-system setting).

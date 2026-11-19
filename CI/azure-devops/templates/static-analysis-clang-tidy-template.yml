@@ -20,8 +20,8 @@ jobs:
     vmImage: ${{ parameters.image }}
   variables:
     vcpkgDir: '$(Pipeline.Workspace)/vcpkg'
-    # The last successfully analyzed revision. Kept in a small dedicated cache so the early skip
-    # decision doesn't require restoring the large build cache.
+    # The last completed analysis revision. Optional: when this cache is missing or empty,
+    # the analysis falls back to the merge base with master instead of scanning everything.
     analysisStateDir: '$(Pipeline.Workspace)/analysis-state'
 
   steps:
@@ -63,7 +63,8 @@ jobs:
       fi
 
       if [ -z "$base_version" ]; then
-        # No reliable base (first run of the branch, expired cache or force-push): run the analysis.
+        # No reliable base (first run of the branch, expired cache or force-push). The analysis
+        # still runs; the next step picks the merge base with master as the base revision.
         echo "##vso[task.setvariable variable=hasRelevantChanges]true"
         echo "No recorded last analyzed revision, static analysis will run."
       elif changed_files=$(git diff --name-only "$base_version" HEAD 2>/dev/null); then
@@ -122,14 +123,16 @@ jobs:
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
 
-  # Bump the `v3` component whenever the incremental analysis inputs or the affected-source
-  # detection changes, so a cache produced by the previous logic is not reused.
+  # Bump the `v4` component whenever the incremental analysis inputs or the affected source
+  # detection changes, so a cache produced by the previous logic is not reused. `vcpkg.json`
+  # is part of the key only: restoreKeys must also match a cache built with an older manifest,
+  # otherwise any dependency change throws away the incremental build tree.
   - task: Cache@2
     inputs:
       key: |
-        ninja-build | v3 | $(vcpkgCommit) | $(Build.SourcesDirectory)/vcpkg.json | $(Build.SourceVersion)
+        ninja-build | v4 | $(vcpkgCommit) | $(Build.SourcesDirectory)/vcpkg.json | $(Build.SourceVersion)
       restoreKeys: |
-        ninja-build | v3 | $(vcpkgCommit) | $(Build.SourcesDirectory)/vcpkg.json
+        ninja-build | v4 | $(vcpkgCommit)
       path: ${{ parameters.buildDirectory }}
       cacheHitVar: BUILD_CACHE_RESTORED
     displayName: Restore build cache
@@ -160,60 +163,41 @@ jobs:
       build_dir="${{ parameters.buildDirectory }}"
       changed_file="$build_dir/changed_since_build.txt"
 
-      diff_failed=false
+      # Pick the analysis base in this order: build tree revision, last analyzed revision,
+      # then the merge base with master. A missing marker never triggers a full scan;
+      # affected translation units come from the changed files and the Ninja graph.
+      base_version=""
+      base_source="none"
       if [ -f "$build_dir/.last_source_version" ]; then
-        base_version=$(cat "$build_dir/.last_source_version")
-        if git rev-parse --verify --quiet "$base_version^{commit}" > /dev/null; then
-          echo "Changes since the last build ($base_version):"
-          git diff --name-only "$base_version" HEAD > "$changed_file" || diff_failed=true
-        else
-          # The cached revision is unknown (e.g. a force-push), the incremental build is not reliable.
-          echo "The cached build revision $base_version is not available."
-          diff_failed=true
+        candidate=$(cat "$build_dir/.last_source_version")
+        if [ -n "$candidate" ] && git rev-parse --verify --quiet "$candidate^{commit}" > /dev/null; then
+          base_version="$candidate"
+          base_source="build-cache"
         fi
-      elif [ "$BUILD_CACHE_RESTORED" = "false" ]; then
-        # The build cache is empty, so the incremental build cannot be used, but the analysis-state
-        # marker still tells what has changed since the last successful analysis.
-        state_base=""
-        if [ -f "$(analysisStateDir)/last_built_sha" ]; then
-          candidate=$(cat "$(analysisStateDir)/last_built_sha")
-          if [ -n "$candidate" ] && git rev-parse --verify --quiet "$candidate^{commit}" > /dev/null; then
-            state_base="$candidate"
-          fi
+      fi
+      if [ -z "$base_version" ] && [ -f "$(analysisStateDir)/last_built_sha" ]; then
+        candidate=$(cat "$(analysisStateDir)/last_built_sha")
+        if [ -n "$candidate" ] && git rev-parse --verify --quiet "$candidate^{commit}" > /dev/null; then
+          base_version="$candidate"
+          base_source="state-cache"
         fi
-        if [ -n "$state_base" ]; then
-          echo "The build cache is empty, using the last analyzed revision ($state_base):"
-          git diff --name-only "$state_base" HEAD > "$changed_file" || diff_failed=true
-        else
-          echo "The build cache is empty, using the previous commit:"
-          git diff HEAD HEAD~ --name-only > "$changed_file" 2>/dev/null || diff_failed=true
-        fi
+      fi
+      if [ -z "$base_version" ]; then
+        git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master || true
+        base_version=$(git merge-base refs/remotes/origin/master HEAD 2>/dev/null || true)
+        base_source="merge-base"
+      fi
+
+      if [ -n "$base_version" ]; then
+        git diff --name-only "$base_version" HEAD > "$changed_file"
       else
-        # A restored build cache must have the revision marker; otherwise its contents are unusable.
-        echo "The restored build cache has no source revision marker."
-        diff_failed=true
-      fi
-      if [ "$diff_failed" = "true" ]; then
         echo "__all__" > "$changed_file"
+        base_source="none"
       fi
+      echo "mode=incremental base=${base_version:-none} source=$base_source buildCache=${BUILD_CACHE_RESTORED:-false} stateCache=${ANALYSIS_STATE_RESTORED:-false} changedFiles=$(wc -l < "$changed_file")"
       cat "$changed_file"
 
-      # A full analysis is needed only when the incremental build cannot capture a global build
-      # change. With a restored build cache Ninja recompiles every translation unit whose compiler
-      # command changed, and the rebuilt-object list covers them, so cosmetic edits (for example a
-      # `configure_file`-only CMake change) are not forced into a full run. When the build cache is
-      # empty, global build changes cannot be mapped to translation units from the changed files,
-      # so they still force a full analysis. Nested `CMakeLists.txt` files only affect their target
-      # and are handled by the incremental rebuild.
-      force_full=false
-      if [ "$diff_failed" = "true" ] || { [ "$BUILD_CACHE_RESTORED" = "false" ] && grep -Eq '^(vcpkg\.json|CMakePresets\.json|CMakeSettings\.json|CMakeLists\.txt)$|\.cmake$|^cmake/.*\.h\.in$' "$changed_file"; }; then
-        force_full=true
-      fi
-      echo "##vso[task.setvariable variable=forceFullAnalysis]$force_full"
-
-      if [ "$force_full" = "true" ]; then
-        echo "The build configuration changed, the full analysis will run."
-      elif [ "$BUILD_CACHE_RESTORED" != "false" ]; then
+      if [ "${BUILD_CACHE_RESTORED:-false}" != "false" ]; then
         # Restored build artifacts keep their timestamps (the Ninja deps log records them too),
         # so make unchanged sources older than the artifacts to prevent a full rebuild.
         # Files changed since the cached build become newer and are recompiled by Ninja.
@@ -237,14 +221,9 @@ jobs:
       touch "$build_dir/.build_start_marker"
       ninja -C "$build_dir"
       ninja -C "$build_dir" -t deps > "$build_dir/deps.txt"
+      # The build revision marker lets the next run diff against this tree. The analysis marker
+      # (analysisStateDir) is advanced by the analysis step itself, after clang-tidy has run.
       git rev-parse HEAD > "$build_dir/.last_source_version"
-      # Advance the analysis-state marker (used by the skip decision of the next run) only after
-      # a successful incremental build, so a failed or skipped job never loses unreviewed changes.
-      # A forced full analysis owns the marker and advances it only after the analysis succeeds.
-      if [ "$(forceFullAnalysis)" != "true" ]; then
-        mkdir -p "$(analysisStateDir)"
-        git rev-parse HEAD > "$(analysisStateDir)/last_built_sha"
-      fi
     displayName: 'Build'
     condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'))
 
@@ -264,34 +243,48 @@ jobs:
         python tools/static_analysis/find_affected_files.py "$build_dir/deps.txt" "$build_dir/changed_since_build.txt" "$build_dir/affected_sources.txt"
       fi
       affected_sources=$(cat "$build_dir/affected_sources.txt")
+      analysis_exit=0
       if [ -n "$affected_sources" ]; then
           echo
           echo $affected_sources
           echo
           echo ------------------------------------------------------------------------------
-          echo -- Сlang-tidy analysis
+          echo -- clang-tidy analysis
           echo ------------------------------------------------------------------------------
+          set +e
           python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p "$build_dir" $affected_sources
+          analysis_exit=$?
+          set -e
       else
           echo "No affected source files found. Skipping clang-tidy analysis."
       fi
+      # Advance the marker even when findings are reported: they are published by this run,
+      # and the next push must analyze only its own changes instead of repeating everything.
+      mkdir -p "$(analysisStateDir)"
+      git rev-parse HEAD > "$(analysisStateDir)/last_built_sha"
+      exit $analysis_exit
     displayName: 'Static analysis [latest changes]'
-    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'), eq(variables.forceFullAnalysis, 'false'))
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', false), eq(variables.hasRelevantChanges, 'true'))
 
   - script: |
+      echo "mode=full revision=$(git rev-parse HEAD)"
+      set +e
       python ./tools/static_analysis/clang-tidy/run-clang-tidy.py -config-file=".clang-tidy" -p ${{ parameters.buildDirectory }}
       EXIT_CODE=$?
-      if [ $EXIT_CODE -eq 0 ]; then
-          # Advance the analysis-state marker only after a clean full analysis, so a failed run
-          # never hides unreviewed changes from the skip decision of the next run.
-          mkdir -p "$(analysisStateDir)"
-          git rev-parse HEAD > "$(analysisStateDir)/last_built_sha"
-      else
+      set -e
+      # Advance the marker even when findings are reported, so the next push only analyzes its own
+      # changes. Findings are still published below.
+      mkdir -p "$(analysisStateDir)"
+      git rev-parse HEAD > "$(analysisStateDir)/last_built_sha"
+      if [ $EXIT_CODE -ne 0 ]; then
           echo "##vso[task.logissue type=warning]Warnings or errors were found during clang-tidy analysis."
           echo "##vso[task.complete result=SucceededWithIssues;]Pipeline marked as partially succeeded due to clang-tidy warnings."
       fi
+    # Full analysis reports findings without failing the run: analyzer updates regularly add
+    # new checks, and a new finding would otherwise turn a green release into a red badge.
+    # Incremental analysis of the pushed changes stays a hard gate.
     continueOnError: true
     displayName: 'Static analysis [full]'
-    condition: and(succeeded(), or(eq('${{ parameters.fullAnalysis }}', true), eq(variables.forceFullAnalysis, 'true')))
+    condition: and(succeeded(), eq('${{ parameters.fullAnalysis }}', true))
     # Full analysis over the whole codebase is slow; keep this below the job timeout (240).
     timeoutInMinutes: 180

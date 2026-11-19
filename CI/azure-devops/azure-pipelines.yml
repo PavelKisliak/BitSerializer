@@ -51,18 +51,6 @@ stages:
   - stage: Preflight
     displayName: 'Preflight checks stage'
     jobs:
-      - template: templates/static-analysis-clang-tidy-template.yml
-        parameters:
-          name: 'StaticAnalysis_ClangTidy'
-          # Pinned instead of ubuntu-latest: the migration to Ubuntu 26 brings a newer clang-tidy
-          # whose new checks (e.g. readability-use-concise-preprocessor-directives) fail the build
-          # because of WarningsAsErrors: '*'.
-          image: 'ubuntu-24.04'
-          vcpkgTriplet: "x64-linux"
-          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON'
-          # Perform a full analysis on the scheduled build or if explicitly selected by the user
-          fullAnalysis: ${{ or(eq(variables['Build.Reason'], 'Schedule'), eq(parameters.fullStaticAnalysis, true)) }}
-
       - template: templates/memory-check-valgrind-template.yml
         parameters:
           name: 'MemoryCheck_Valgrind_static'
@@ -255,3 +243,22 @@ stages:
           name: 'Bazel_Windows'
           image: 'windows-2022'
           os: 'Windows'
+
+  # Runs in parallel with the build matrix, so the incremental analysis does not delay
+  # compile and test feedback while still gating the pipeline result. The full analysis runs
+  # only on the nightly schedule, release tags and manual runs.
+  - stage: Quality
+    displayName: 'Quality checks stage'
+    dependsOn: Preflight
+    condition: in(dependencies.Preflight.result, 'Succeeded', 'SucceededWithIssues')
+    jobs:
+      - template: templates/static-analysis-clang-tidy-template.yml
+        parameters:
+          name: 'StaticAnalysis_ClangTidy'
+          # Keep the image pinned: WarningsAsErrors is '*', and newer clang-tidy releases add
+          # checks that fail the build, such as readability-use-concise-preprocessor-directives.
+          # The pinned version is the one validated for this project.
+          image: 'ubuntu-24.04'
+          vcpkgTriplet: "x64-linux"
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_DISABLE_FIND_PACKAGE_FastFloat=ON'
+          fullAnalysis: ${{ or(or(eq(variables['Build.Reason'], 'Schedule'), startsWith(variables['Build.SourceBranch'], 'refs/tags/')), eq(parameters.fullStaticAnalysis, true)) }}

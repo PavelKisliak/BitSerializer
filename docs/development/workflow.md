@@ -47,11 +47,12 @@ The project uses Azure DevOps for CI. The pipeline runs automatically on all pus
 
 #### What CI checks
 
-1. **Preflight** — Clang-tidy, Valgrind memory checks, and the GCC Debug build that publishes test results and code coverage (runs first)
-2. **Build and test** — 16 configurations across Windows, Linux, macOS, and ARM
+1. **Preflight** — Valgrind memory checks and the GCC Debug build that publishes test results and code coverage (runs first)
+2. **Build and test** — the build-and-test matrix across Windows, Linux, macOS, ARM and Bazel
+3. **Quality** — clang-tidy for the pushed changes and their affected translation units; the full analysis runs on the nightly schedule, release tags and manual runs (`fullStaticAnalysis`)
 
 The CI matrix covers:
 - Windows: MSVC (x86/x64, static/dynamic), Clang-cl (x64, Release and Debug)
-- Linux: GCC 9, GCC 14 (C++23, C++26), Clang 11, Clang 18
+- Linux: GCC 9, GCC 14 (C++23, C++26), Clang 11, Clang 18, Clang with libc++
 - macOS: Clang 14 (C++17, C++20)
 - ARM: arm32, arm64, arm64be (cross-compiled, tested with QEMU)

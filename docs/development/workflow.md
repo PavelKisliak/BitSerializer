@@ -6,6 +6,8 @@ Use the format: `[Component] Short description (#issue)`
 
 Use imperative mood ("Add feature", not "Added feature"). If the commit relates to a GitHub issue, add the issue number in parentheses at the end. Omit if there's no related issue.
 
+Write the subject in plain English: one statement per sentence, a concrete verb with a direct object (`Skip`, `Report`, `Reject`) instead of idioms (`take into account`, `deal with`). Keep new commit, PR and review text in ASCII: no em dashes, curly quotes or arrows.
+
 Components:
 - `[Core]` — Core serialization framework
 - `[Json]` — Built-in JSON archive
@@ -36,6 +38,7 @@ On a feature branch, commit only meaningful changes. When a commit still needs f
 - **Rebase on latest `master`** before opening a PR. If new commits appear on `master` while your PR is open, rebase again.
 - Keep PR history clean — squash or amend commits locally before pushing when it makes sense.
 - The project prefers a **linear history** (no merge commits). PRs are merged via rebase.
+- Review comments focus on the change, not on the author's English. Do not reject a contribution for imperfect English; suggest a wording instead.
 - If AI-assisted tools were used (code generation, refactoring, analysis), please include a note `AI-assisted, manually verified & adapted` in the PR description indicating that the output was reviewed and adjusted by a human.
 
 ### CI Pipeline

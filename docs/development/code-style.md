@@ -73,3 +73,11 @@ When in doubt, follow the patterns you see in the surrounding code.
   ```
 - Include order: license header, `#pragma once`, standard library, third-party, project headers
 - Use `[[nodiscard]]` on const getters, `noexcept` where appropriate
+
+Comments follow the same rules as commit messages and review replies:
+
+- A comment sits directly above the code it describes. When a block moves into a helper, move its comment with it; do not leave the comment above the call site.
+- Describe the current behavior: a comment explains what the code does now and why. Do not record what it replaced (`no longer`, `previously`, `used to`, `was added`, comparisons with an older implementation); commit messages and release notes carry that history.
+- Write new comment text in plain ASCII: no em dashes, curly quotes, arrows or non-breaking spaces. Non-ASCII stays in test data, localized user-facing strings and existing text that is not being edited; do not strip the UTF-8 BOM from files that have it.
+- Break a multi-line comment (`//`, `#` or `/* ... */`) at phrase boundaries: after `.`, `,`, `;` or before a conjunction. Do not fill lines up to a column limit. A line must not end with an article, preposition, conjunction or auxiliary verb (`a`, `an`, `the`, `of`, `to`, `in`, `on`, `for`, `with`, `and`, `or`, `so`, `that`, `which`, `is`, `are`, `does`, `not`).
+- Use plain English with one statement per sentence. Prefer a concrete verb and a direct object (`check`, `skip`, `report`) over idioms (`take into account`, `deal with`). If a sentence needs `neither/nor`, `instead of` or several subordinate clauses, split it into separate sentences or bullets.

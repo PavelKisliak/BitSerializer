@@ -292,7 +292,7 @@ CI collects and publishes it in the `Ubuntu_GCC_Coverage` Preflight job.
 
 ### Code style
 
-Follow [Code style](docs/development/code-style.md). Key points: tabs, `#pragma once`, C++17, Allman braces (single-statement blocks may keep the opening brace on the same line), Doxygen comments in English, MIT license header, clang-tidy warnings as errors.
+Follow [Code style](docs/development/code-style.md). Key points: tabs, `#pragma once`, C++17, Allman braces (single-statement blocks may keep the opening brace on the same line), Doxygen comments in English, ASCII comment text with phrase-boundary wrapping (no hanging word on a line), plain English in commits and reviews, MIT license header, clang-tidy warnings as errors.
 
 The `T` prefix marks a template **parameter**, not a template **class**; concrete types keep plain CamelCase even when they are class templates (details in the style guide).
 

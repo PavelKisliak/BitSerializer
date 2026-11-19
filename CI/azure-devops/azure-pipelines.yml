@@ -186,6 +186,19 @@ stages:
           vcpkgTriplet: "x64-linux-release"
           cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DBUILD_SHARED_LIBS=ON'
 
+      # Builds and tests the whole suite with libc++ instead of libstdc++. The Android NDK,
+      # Emscripten and FreeBSD use libc++ too, and it does not implement the `long double`
+      # overloads of std::from_chars/std::to_chars. Dependencies use the `x64-linux-libcxx`
+      # overlay triplet, which builds them with libc++ as well.
+      - template: templates/unix-build-and-test-template.yml
+        parameters:
+          name: 'Ubuntu_Clang_libcxx_static'
+          image: 'ubuntu-24.04'
+          installToolsCmd: 'sudo apt-get update && sudo apt-get install -y clang libc++-dev libc++abi-dev ninja-build'
+          vcpkgTriplet: "x64-linux-libcxx"
+          cmakeGenArgs: '$(CmakeGenOptions) -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -DCMAKE_SHARED_LINKER_FLAGS=-stdlib=libc++'
+          fastFloat: true
+
       - template: templates/unix-build-and-test-template.yml
         parameters:
           name: 'MacOS15_static'

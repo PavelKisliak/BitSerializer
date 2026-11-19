@@ -27,8 +27,8 @@ namespace AutoFixture
 		constexpr int64_t time_9999_12_31T23_59_59 = 253402300799;
 
 		const int64_t seconds = fixture.Rand(
-			(std::max)(tpMinSec, time_0000_01_01T00_00_00),
-			(std::min)(tpMaxSec, time_9999_12_31T23_59_59));
+			(std::max)(static_cast<int64_t>(tpMinSec), time_0000_01_01T00_00_00),
+			(std::min)(static_cast<int64_t>(tpMaxSec), time_9999_12_31T23_59_59));
 
 		timePoint = std::chrono::time_point<TClock, TDuration>(std::chrono::duration_cast<TDuration>(std::chrono::seconds(seconds)));
 	}
